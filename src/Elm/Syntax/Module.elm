@@ -8,6 +8,7 @@ module Elm.Syntax.Module
         , ExposedType
         , ValueConstructorExpose
         , Import
+        , topLevelExposeRange
         )
 
 {-| Module Syntax
@@ -26,6 +27,8 @@ module Elm.Syntax.Module
 # Exposing
 
 @docs Exposing, TopLevelExpose, ExposedType, ValueConstructorExpose
+
+@docs topLevelExposeRange
 
 -}
 
@@ -100,3 +103,21 @@ type alias Import =
     , exposingList : Exposing TopLevelExpose
     , range : Range
     }
+
+
+{-| Find out the range of a top level expose
+-}
+topLevelExposeRange : TopLevelExpose -> Range
+topLevelExposeRange e =
+    case e of
+        InfixExpose _ r ->
+            r
+
+        FunctionExpose _ r ->
+            r
+
+        TypeOrAliasExpose _ r ->
+            r
+
+        TypeExpose typeExpose ->
+            typeExpose.range
