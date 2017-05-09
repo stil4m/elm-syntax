@@ -1,4 +1,4 @@
-module Elm.Syntax.Range exposing (Range, Location, emptyRange, encode)
+module Elm.Syntax.Range exposing (Range, Location, emptyRange, encode, decode)
 
 {-| Source Code Ranges
 
@@ -15,11 +15,13 @@ module Elm.Syntax.Range exposing (Range, Location, emptyRange, encode)
 
 # Json
 
-@docs encode
+@docs encode, decode
 
 -}
 
 import Json.Encode as JE exposing (Value)
+import Json.Decode as JD exposing (Decoder)
+import Json.Decode.Extra exposing (fromResult)
 
 
 {-| Source location
@@ -47,7 +49,7 @@ emptyRange =
     }
 
 
-{-| Encode range
+{-| Encode a range
 -}
 encode : Range -> Value
 encode { start, end } =
@@ -57,3 +59,25 @@ encode { start, end } =
         , JE.int end.row
         , JE.int end.column
         ]
+
+
+{-| Decode a range
+-}
+decode : Decoder Range
+decode =
+    JD.list JD.int
+        |> JD.andThen
+            (fromList >> fromResult)
+
+
+fromList : List Int -> Result String Range
+fromList input =
+    case input of
+        [ a, b, c, d ] ->
+            Ok
+                { start = { row = a, column = b }
+                , end = { row = c, column = d }
+                }
+
+        _ ->
+            Err "Invalid input list"
