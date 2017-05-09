@@ -1,6 +1,6 @@
 module Elm.Parser.Expose exposing (exposeDefinition, infixExpose, typeExpose, exposingListInner, definitionExpose, exposable)
 
-import Elm.Syntax.Module exposing (ExposedType, Exposure(None, All, Explicit), ValueConstructorExpose, Expose(InfixExpose, TypeExpose, TypeOrAliasExpose, FunctionExpose))
+import Elm.Syntax.Module exposing (ExposedType, Exposing(None, All, Explicit), ValueConstructorExpose, TopLevelExpose(InfixExpose, TypeExpose, TypeOrAliasExpose, FunctionExpose))
 import Combine exposing ((*>), (<$), (<$>), (<*>), Parser, choice, maybe, or, parens, sepBy, string, succeed, while)
 import Combine.Char exposing (char)
 import Elm.Parser.Tokens exposing (exposingToken, functionName, typeName)
@@ -9,7 +9,7 @@ import Elm.Parser.State exposing (State)
 import Elm.Parser.Ranges exposing (withRange)
 
 
-exposeDefinition : Parser State a -> Parser State (Exposure a)
+exposeDefinition : Parser State a -> Parser State (Exposing a)
 exposeDefinition p =
     choice
         [ moreThanIndentWhitespace *> exposingToken *> maybe moreThanIndentWhitespace *> exposeListWith p
@@ -17,7 +17,7 @@ exposeDefinition p =
         ]
 
 
-exposable : Parser State Expose
+exposable : Parser State TopLevelExpose
 exposable =
     choice
         [ typeExpose
@@ -26,12 +26,12 @@ exposable =
         ]
 
 
-infixExpose : Parser State Expose
+infixExpose : Parser State TopLevelExpose
 infixExpose =
     withRange (InfixExpose <$> parens (while ((/=) ')')))
 
 
-typeExpose : Parser State Expose
+typeExpose : Parser State TopLevelExpose
 typeExpose =
     TypeExpose <$> exposedType
 
@@ -49,18 +49,18 @@ valueConstructorExpose =
     withRange ((,) <$> typeName)
 
 
-exposingListInner : Parser State b -> Parser State (Exposure b)
+exposingListInner : Parser State b -> Parser State (Exposing b)
 exposingListInner p =
     or (withRange (All <$ trimmed (string "..")))
         (Explicit <$> sepBy (char ',') (trimmed p))
 
 
-exposeListWith : Parser State b -> Parser State (Exposure b)
+exposeListWith : Parser State b -> Parser State (Exposing b)
 exposeListWith p =
     parens (exposingListInner p)
 
 
-definitionExpose : Parser State Expose
+definitionExpose : Parser State TopLevelExpose
 definitionExpose =
     withRange <|
         or

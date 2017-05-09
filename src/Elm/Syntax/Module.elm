@@ -3,8 +3,8 @@ module Elm.Syntax.Module
         ( Module(..)
         , DefaultModuleData
         , EffectModuleData
-        , Exposure(..)
-        , Expose(..)
+        , Exposing(..)
+        , TopLevelExpose(..)
         , ExposedType
         , ValueConstructorExpose
         , Import
@@ -25,7 +25,7 @@ module Elm.Syntax.Module
 
 # Exposing
 
-@docs Exposure, Expose, ExposedType, ValueConstructorExpose
+@docs Exposing, TopLevelExpose, ExposedType, ValueConstructorExpose
 
 -}
 
@@ -46,7 +46,7 @@ type Module
 -}
 type alias DefaultModuleData =
     { moduleName : ModuleName
-    , exposingList : Exposure Expose
+    , exposingList : Exposing TopLevelExpose
     }
 
 
@@ -54,7 +54,7 @@ type alias DefaultModuleData =
 -}
 type alias EffectModuleData =
     { moduleName : ModuleName
-    , exposingList : Exposure Expose
+    , exposingList : Exposing TopLevelExpose
     , command : Maybe String
     , subscription : Maybe String
     }
@@ -62,7 +62,7 @@ type alias EffectModuleData =
 
 {-| Diffent kind of exposing declarations
 -}
-type Exposure a
+type Exposing a
     = None
     | All Range
     | Explicit (List a)
@@ -70,7 +70,7 @@ type Exposure a
 
 {-| An exposed entity
 -}
-type Expose
+type TopLevelExpose
     = InfixExpose String Range
     | FunctionExpose String Range
     | TypeOrAliasExpose String Range
@@ -81,7 +81,7 @@ type Expose
 -}
 type alias ExposedType =
     { name : String
-    , constructors : Exposure ValueConstructorExpose
+    , constructors : Exposing ValueConstructorExpose
     , range : Range
     }
 
@@ -97,6 +97,6 @@ type alias ValueConstructorExpose =
 type alias Import =
     { moduleName : ModuleName
     , moduleAlias : Maybe ModuleName
-    , exposingList : Exposure Expose
+    , exposingList : Exposing TopLevelExpose
     , range : Range
     }

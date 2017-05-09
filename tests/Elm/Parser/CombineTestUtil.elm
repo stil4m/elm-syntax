@@ -96,7 +96,7 @@ noRangeImport imp =
     }
 
 
-noRangeExposingList : Exposure Expose -> Exposure Expose
+noRangeExposingList : Exposing TopLevelExpose -> Exposing TopLevelExpose
 noRangeExposingList x =
     case x of
         All r ->
@@ -165,7 +165,7 @@ unRange p =
     { p | range = emptyRange }
 
 
-noRangeExpose : Expose -> Expose
+noRangeExpose : TopLevelExpose -> TopLevelExpose
 noRangeExpose l =
     case l of
         InfixExpose s r ->

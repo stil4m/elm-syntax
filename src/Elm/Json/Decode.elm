@@ -105,7 +105,7 @@ decodeModuleName =
     list string
 
 
-decodeExpose : Decoder Expose
+decodeExpose : Decoder TopLevelExpose
 decodeExpose =
     decodeTyped
         [ ( "infix", map2 InfixExpose nameField rangeField )
@@ -130,7 +130,7 @@ decodeValueConstructorExpose =
         |: rangeField
 
 
-decodeExposingList : Decoder a -> Decoder (Exposure a)
+decodeExposingList : Decoder a -> Decoder (Exposing a)
 decodeExposingList x =
     lazy
         (\() ->

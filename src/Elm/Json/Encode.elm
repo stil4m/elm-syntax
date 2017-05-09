@@ -101,7 +101,7 @@ encodeModuleName =
     List.map string >> list
 
 
-encodeExpose : Expose -> Value
+encodeExpose : TopLevelExpose -> Value
 encodeExpose exp =
     case exp of
         InfixExpose x r ->
@@ -146,7 +146,7 @@ encodeValueConstructorExpose ( name, range ) =
         ]
 
 
-encodeExposingList : Exposure a -> (a -> Value) -> Value
+encodeExposingList : Exposing a -> (a -> Value) -> Value
 encodeExposingList exp f =
     case exp of
         None ->
