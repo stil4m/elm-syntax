@@ -1,6 +1,6 @@
 module Elm.Parser.Expose exposing (exposeDefinition, infixExpose, typeExpose, exposingListInner, definitionExpose, exposable)
 
-import Elm.Syntax.Module exposing (ExposedType, Exposing(None, All, Explicit), ValueConstructorExpose, TopLevelExpose(InfixExpose, TypeExpose, TypeOrAliasExpose, FunctionExpose))
+import Elm.Syntax.Exposing exposing (ExposedType, Exposing(None, All, Explicit), ValueConstructorExpose, TopLevelExpose(InfixExpose, TypeExpose, TypeOrAliasExpose, FunctionExpose))
 import Combine exposing ((*>), (<$), (<$>), (<*>), Parser, choice, maybe, or, parens, sepBy, string, succeed, while)
 import Combine.Char exposing (char)
 import Elm.Parser.Tokens exposing (exposingToken, functionName, typeName)

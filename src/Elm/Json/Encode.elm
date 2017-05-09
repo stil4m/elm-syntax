@@ -12,6 +12,7 @@ Encoding Elm Code to Json
 -}
 
 import Elm.Syntax.Range as Range exposing (Range)
+import Elm.Syntax.Exposing exposing (..)
 import Elm.Syntax.File exposing (..)
 import Elm.Syntax.Module exposing (..)
 import Elm.Syntax.Base exposing (..)

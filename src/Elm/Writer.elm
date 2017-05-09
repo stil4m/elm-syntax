@@ -14,6 +14,7 @@ import Elm.Syntax.Expression exposing (..)
 import Elm.Syntax.TypeAnnotation exposing (..)
 import List.Extra as List
 import StructuredWriter as Writer exposing (..)
+import Elm.Syntax.Exposing as Exposing exposing (..)
 
 
 write : Writer -> String
@@ -118,7 +119,7 @@ writeExposureExpose x =
             Explicit exposeList ->
                 let
                     diffLines =
-                        List.map Module.topLevelExposeRange exposeList
+                        List.map Exposing.topLevelExposeRange exposeList
                             |> startOnDifferentLines
                 in
                     parensComma diffLines (List.map writeExpose exposeList)

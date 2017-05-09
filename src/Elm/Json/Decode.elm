@@ -14,6 +14,7 @@ Decoding Elm Code from Json
 import Elm.Syntax.File exposing (File)
 import Elm.Syntax.Documentation exposing (Documentation)
 import Elm.Syntax.Module exposing (..)
+import Elm.Syntax.Exposing exposing (..)
 import Elm.Syntax.Base exposing (..)
 import Elm.Syntax.Type exposing (..)
 import Elm.Syntax.TypeAlias exposing (..)
