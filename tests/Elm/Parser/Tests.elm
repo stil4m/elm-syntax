@@ -16,6 +16,7 @@ import Elm.Parser.TypingsTests as TypingsTests
 import Elm.Parser.UtilTests as UtilTests
 import Elm.Parser.InfixTests as InfixTests
 import Elm.Parser.GlslTests as GlslTests
+import Elm.Parser.FileTests as FileTests
 import Test exposing (Test)
 
 
@@ -38,4 +39,5 @@ suite =
         , CaseExpressionTests.all
         , LambdaExpressionTests.all
         , PatternTests.all
+        , FileTests.all
         ]
