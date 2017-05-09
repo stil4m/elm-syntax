@@ -1,4 +1,4 @@
-module Elm.Syntax.Range exposing (Range, Location, emptyRange)
+module Elm.Syntax.Range exposing (Range, Location, emptyRange, encode)
 
 {-| Source Code Ranges
 
@@ -12,7 +12,14 @@ module Elm.Syntax.Range exposing (Range, Location, emptyRange)
 
 @docs emptyRange
 
+
+# Json
+
+@docs encode
+
 -}
+
+import Json.Encode as JE exposing (Value)
 
 
 {-| Source location
@@ -38,3 +45,15 @@ emptyRange =
     { start = { row = 0, column = 0 }
     , end = { row = 0, column = 0 }
     }
+
+
+{-| Encode range
+-}
+encode : Range -> Value
+encode { start, end } =
+    JE.list
+        [ JE.int start.row
+        , JE.int start.column
+        , JE.int end.row
+        , JE.int end.column
+        ]
