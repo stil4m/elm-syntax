@@ -27,7 +27,7 @@ type TypeAnnotation
     | Tupled (List TypeAnnotation) Range
     | Record RecordDefinition Range
     | GenericRecord String RecordDefinition Range
-    | FunctionTypeReference TypeAnnotation TypeAnnotation Range
+    | FunctionTypeAnnotation TypeAnnotation TypeAnnotation Range
 
 
 {-| List of fields for a record
