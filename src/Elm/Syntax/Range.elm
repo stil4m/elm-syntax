@@ -1,4 +1,4 @@
-module Elm.Syntax.Range exposing (Range, Location)
+module Elm.Syntax.Range exposing (Range, Location, emptyRange)
 
 {-| Source Code Ranges
 
@@ -6,6 +6,11 @@ module Elm.Syntax.Range exposing (Range, Location)
 # Types
 
 @docs Range, Location
+
+
+# Functions
+
+@docs emptyRange
 
 -}
 
@@ -23,4 +28,13 @@ type alias Location =
 type alias Range =
     { start : Location
     , end : Location
+    }
+
+
+{-| Construct an empty range
+-}
+emptyRange : Range
+emptyRange =
+    { start = { row = 0, column = 0 }
+    , end = { row = 0, column = 0 }
     }
