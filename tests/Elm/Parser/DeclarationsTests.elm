@@ -13,6 +13,7 @@ import Elm.Syntax.Module exposing (..)
 import Elm.Syntax.Pattern exposing (..)
 import Elm.Syntax.Declaration exposing (..)
 import Elm.Syntax.TypeAnnotation exposing (..)
+import Elm.Syntax.Exposing exposing (..)
 
 
 all : Test

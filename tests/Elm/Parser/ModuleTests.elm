@@ -6,6 +6,7 @@ import Elm.Parser.CombineTestUtil exposing (..)
 import Elm.Parser.Modules as Parser
 import Test exposing (..)
 import Elm.Syntax.Module exposing (..)
+import Elm.Syntax.Exposing exposing (..)
 
 
 all : Test

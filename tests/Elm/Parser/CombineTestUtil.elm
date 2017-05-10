@@ -12,6 +12,7 @@ import Elm.Syntax.TypeAlias exposing (..)
 import Elm.Syntax.TypeAnnotation exposing (..)
 import Elm.Syntax.Type exposing (..)
 import Elm.Parser.State exposing (State, emptyState)
+import Elm.Syntax.Exposing exposing (..)
 
 
 parseFullStringState : State -> String -> Parser State b -> Maybe b

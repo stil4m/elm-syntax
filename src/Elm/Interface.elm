@@ -1,4 +1,21 @@
-module Elm.Interface exposing (..)
+module Elm.Interface exposing (Interface, Exposed(..), build, exposesAlias, exposesFunction, operators)
+
+{-|
+
+
+# Elm.Interface
+
+
+## Types
+
+@docs Interface, Exposed
+
+
+## Functions
+
+@docs build, exposesAlias, exposesFunction, operators
+
+-}
 
 import Elm.Syntax.File as AST
 import Elm.Syntax.Infix as AST exposing (Infix)
@@ -6,12 +23,17 @@ import Elm.Syntax.Module as Module
 import Elm.Syntax.Exposing as AST
 import Elm.Syntax.Declaration as AST
 import List.Extra
+import Elm.Internal.RawFile exposing (RawFile(Raw))
 
 
+{-| An interface
+-}
 type alias Interface =
     List Exposed
 
 
+{-| Union type for the things that a module can expose
+-}
 type Exposed
     = Function String
     | Type ( String, List String )
@@ -19,6 +41,8 @@ type Exposed
     | Operator Infix
 
 
+{-| Interface property whether a certain alias is exposed.
+-}
 exposesAlias : String -> Interface -> Bool
 exposesAlias k interface =
     interface
@@ -33,6 +57,8 @@ exposesAlias k interface =
             )
 
 
+{-| Interface property whether a certain function is exposed.
+-}
 exposesFunction : String -> Interface -> Bool
 exposesFunction k interface =
     interface
@@ -53,6 +79,8 @@ exposesFunction k interface =
             )
 
 
+{-| Retrieve all infix operators exposed
+-}
 operators : Interface -> List Infix
 operators =
     List.filterMap
@@ -66,8 +94,10 @@ operators =
         )
 
 
-build : AST.File -> Interface
-build file =
+{-| Build an interface from a file
+-}
+build : RawFile -> Interface
+build (Raw file) =
     let
         fileDefinitionList =
             fileToDefinitions file
