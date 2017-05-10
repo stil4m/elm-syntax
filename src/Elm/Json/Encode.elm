@@ -11,6 +11,7 @@ Encoding Elm Code to Json
 
 -}
 
+import Elm.Internal.RawFile exposing (RawFile(Raw))
 import Elm.Syntax.Range as Range exposing (Range)
 import Elm.Syntax.Exposing exposing (..)
 import Elm.Syntax.File exposing (..)
@@ -45,8 +46,13 @@ rangeField r =
 
 {-| Encode a file to a value
 -}
-encode : File -> Value
-encode { moduleDefinition, imports, declarations, comments } =
+encode : RawFile -> Value
+encode (Raw file) =
+    encodeFile file
+
+
+encodeFile : File -> Value
+encodeFile { moduleDefinition, imports, declarations, comments } =
     object
         [ ( "moduleDefinition", encodeModule moduleDefinition )
         , ( "imports", asList encodeImport imports )

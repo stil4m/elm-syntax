@@ -11,6 +11,7 @@ import Elm.Parser as Parser
 import Test exposing (..)
 import Elm.Parser.State exposing (emptyState)
 import Elm.Json.Decode as Elm
+import Elm.Internal.RawFile exposing (RawFile(Raw))
 
 
 all : Test
@@ -49,6 +50,7 @@ all =
                                 let
                                     parsed =
                                         parseFullStringState emptyState s Parser.file
+                                            |> Maybe.map Raw
 
                                     roundTrip =
                                         parsed

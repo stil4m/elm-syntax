@@ -11,6 +11,7 @@ Decoding Elm Code from Json
 
 -}
 
+import Elm.Internal.RawFile exposing (RawFile(Raw))
 import Elm.Syntax.File exposing (File)
 import Elm.Syntax.Documentation exposing (Documentation)
 import Elm.Syntax.Module exposing (..)
@@ -59,9 +60,14 @@ nameField =
 
 {-| Decode a file stored in Json
 -}
-decode : Decoder File
+decode : Decoder RawFile
 decode =
-    succeed File
+    map Raw decodeFile
+
+
+decodeFile : Decoder File
+decodeFile =
+    succeed (File)
         |: field "moduleDefinition" decodeModule
         |: field "imports" (list decodeImport)
         |: field "declarations" (list decodeDeclaration)
