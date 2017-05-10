@@ -4,6 +4,7 @@ module Elm.Syntax.Module
         , DefaultModuleData
         , EffectModuleData
         , Import
+        , exposingList
         )
 
 {-| Module Syntax
@@ -13,6 +14,8 @@ module Elm.Syntax.Module
 
 @docs Module, DefaultModuleData, EffectModuleData
 
+@docs exposingList
+
 
 # Import
 
@@ -20,7 +23,7 @@ module Elm.Syntax.Module
 
 -}
 
-import Elm.Syntax.Exposing exposing (Exposing, TopLevelExpose)
+import Elm.Syntax.Exposing exposing (Exposing(..), TopLevelExpose)
 import Elm.Syntax.Range exposing (Range)
 import Elm.Syntax.Base exposing (ModuleName)
 
@@ -60,3 +63,21 @@ type alias Import =
     , exposingList : Exposing TopLevelExpose
     , range : Range
     }
+
+
+{-| TODO
+-}
+exposingList : Module -> Exposing TopLevelExpose
+exposingList m =
+    case m of
+        NormalModule x ->
+            x.exposingList
+
+        PortModule x ->
+            x.exposingList
+
+        EffectModule x ->
+            x.exposingList
+
+        NoModule ->
+            None
