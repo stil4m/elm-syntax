@@ -1,4 +1,4 @@
-module Elm.Syntax.Range exposing (Range, Location, emptyRange, encode, decode)
+module Elm.Syntax.Range exposing (Range, Location, emptyRange, combine, encode, decode)
 
 {-| Source Code Ranges
 
@@ -10,7 +10,7 @@ module Elm.Syntax.Range exposing (Range, Location, emptyRange, encode, decode)
 
 # Functions
 
-@docs emptyRange
+@docs emptyRange, combine
 
 
 # Json
@@ -81,3 +81,35 @@ fromList input =
 
         _ ->
             Err "Invalid input list"
+
+
+{-| TODO
+-}
+combine : List Range -> Range
+combine ranges =
+    let
+        starts =
+            List.map .start ranges |> sortLocations
+
+        ends =
+            List.map .end ranges |> sortLocations |> List.reverse
+    in
+        Maybe.map2 Range (List.head starts) (List.head ends)
+            |> Maybe.withDefault emptyRange
+
+
+{-| Could be faster via single fold
+-}
+sortLocations : List Location -> List Location
+sortLocations =
+    List.sortWith compareLocations
+
+
+compareLocations : Location -> Location -> Order
+compareLocations left right =
+    if left.row < right.row then
+        LT
+    else if right.row < left.row then
+        GT
+    else
+        compare left.column right.column
