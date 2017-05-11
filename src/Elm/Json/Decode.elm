@@ -14,9 +14,9 @@ Decoding Elm Code from Json
 import Elm.Internal.RawFile exposing (RawFile(Raw))
 import Elm.Syntax.File exposing (File)
 import Elm.Syntax.Documentation exposing (Documentation)
-import Elm.Syntax.Module exposing (..)
+import Elm.Syntax.Module exposing (Module(..), DefaultModuleData, EffectModuleData, Import)
 import Elm.Syntax.Exposing exposing (..)
-import Elm.Syntax.Base exposing (..)
+import Elm.Syntax.Base exposing (ModuleName, VariablePointer)
 import Elm.Syntax.Type exposing (..)
 import Elm.Syntax.TypeAlias exposing (..)
 import Elm.Syntax.TypeAnnotation exposing (..)
@@ -67,7 +67,7 @@ decode =
 
 decodeFile : Decoder File
 decodeFile =
-    succeed (File)
+    succeed File
         |: field "moduleDefinition" decodeModule
         |: field "imports" (list decodeImport)
         |: field "declarations" (list decodeDeclaration)

@@ -13,7 +13,7 @@ Write a file to a string.
 
 import Elm.Syntax.Range exposing (Range)
 import Elm.Syntax.File exposing (..)
-import Elm.Syntax.Module as Module exposing (..)
+import Elm.Syntax.Module exposing (..)
 import Elm.Syntax.Base exposing (..)
 import Elm.Syntax.Pattern exposing (..)
 import Elm.Syntax.Infix exposing (..)

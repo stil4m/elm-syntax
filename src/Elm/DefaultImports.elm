@@ -1,32 +1,32 @@
 module Elm.DefaultImports exposing (defaults)
 
-import Elm.Syntax.Exposing as AST exposing (..)
-import Elm.Syntax.Module as AST exposing (..)
+import Elm.Syntax.Exposing exposing (Exposing(All, None, Explicit), TopLevelExpose(TypeExpose, InfixExpose), ExposedType)
+import Elm.Syntax.Module exposing (Import)
 import Elm.Syntax.Range as Range
 
 
-defaults : List AST.Import
+defaults : List Import
 defaults =
     [ { moduleName = [ "Basics" ]
-      , exposingList = AST.All Range.emptyRange
+      , exposingList = All Range.emptyRange
       , moduleAlias = Nothing
       , range = Range.emptyRange
       }
     , { moduleName = [ "List" ]
       , exposingList =
-            AST.Explicit
-                [ TypeExpose (ExposedType "List" AST.None Range.emptyRange)
-                , (InfixExpose "::" Range.emptyRange)
+            Explicit
+                [ TypeExpose (ExposedType "List" None Range.emptyRange)
+                , InfixExpose "::" Range.emptyRange
                 ]
       , moduleAlias = Nothing
       , range = Range.emptyRange
       }
     , { moduleName = [ "Maybe" ]
       , exposingList =
-            AST.Explicit
+            Explicit
                 [ TypeExpose
                     (ExposedType "Maybe"
-                        (AST.Explicit
+                        (Explicit
                             [ ( "Just", Range.emptyRange )
                             , ( "Nothing", Range.emptyRange )
                             ]
@@ -39,10 +39,10 @@ defaults =
       }
     , { moduleName = [ "Result" ]
       , exposingList =
-            AST.Explicit
+            Explicit
                 [ TypeExpose
                     (ExposedType "Result"
-                        (AST.Explicit
+                        (Explicit
                             [ ( "Ok", Range.emptyRange )
                             , ( "Err", Range.emptyRange )
                             ]
@@ -53,30 +53,30 @@ defaults =
       , moduleAlias = Nothing
       , range = Range.emptyRange
       }
-    , { moduleName = [ "String" ], exposingList = AST.None, moduleAlias = Nothing, range = Range.emptyRange }
-    , { moduleName = [ "Tuple" ], exposingList = AST.None, moduleAlias = Nothing, range = Range.emptyRange }
-    , { moduleName = [ "Debug" ], exposingList = AST.None, moduleAlias = Nothing, range = Range.emptyRange }
+    , { moduleName = [ "String" ], exposingList = None, moduleAlias = Nothing, range = Range.emptyRange }
+    , { moduleName = [ "Tuple" ], exposingList = None, moduleAlias = Nothing, range = Range.emptyRange }
+    , { moduleName = [ "Debug" ], exposingList = None, moduleAlias = Nothing, range = Range.emptyRange }
     , { moduleName = [ "Platform" ]
       , exposingList =
-            AST.Explicit
-                [ TypeExpose (ExposedType "Program" AST.None Range.emptyRange)
+            Explicit
+                [ TypeExpose (ExposedType "Program" None Range.emptyRange)
                 ]
       , moduleAlias = Nothing
       , range = Range.emptyRange
       }
     , { moduleName = [ "Platform", "Cmd" ]
       , exposingList =
-            AST.Explicit
-                [ TypeExpose (ExposedType "Cmd" AST.None Range.emptyRange)
-                , (InfixExpose "!" Range.emptyRange)
+            Explicit
+                [ TypeExpose (ExposedType "Cmd" None Range.emptyRange)
+                , InfixExpose "!" Range.emptyRange
                 ]
       , moduleAlias = Nothing
       , range = Range.emptyRange
       }
     , { moduleName = [ "Platform", "Sub" ]
       , exposingList =
-            AST.Explicit
-                [ TypeExpose (ExposedType "Sub" AST.None Range.emptyRange)
+            Explicit
+                [ TypeExpose (ExposedType "Sub" None Range.emptyRange)
                 ]
       , moduleAlias = Nothing
       , range = Range.emptyRange

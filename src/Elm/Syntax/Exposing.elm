@@ -1,7 +1,7 @@
 module Elm.Syntax.Exposing
     exposing
-        ( Exposing(..)
-        , TopLevelExpose(..)
+        ( Exposing(None, All, Explicit)
+        , TopLevelExpose(InfixExpose, FunctionExpose, TypeOrAliasExpose, TypeExpose)
         , ExposedType
         , ValueConstructorExpose
         , topLevelExposeRange

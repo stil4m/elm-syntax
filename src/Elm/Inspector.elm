@@ -1,14 +1,14 @@
 module Elm.Inspector exposing (Order(Skip, Continue, Pre, Post, Inner), Config, defaultConfig, inspect)
 
 import Elm.Syntax.File exposing (File)
-import Elm.Syntax.Module exposing (..)
-import Elm.Syntax.Declaration exposing (..)
-import Elm.Syntax.Infix exposing (..)
-import Elm.Syntax.Type exposing (..)
-import Elm.Syntax.Pattern exposing (..)
-import Elm.Syntax.TypeAlias exposing (..)
-import Elm.Syntax.Expression exposing (..)
-import Elm.Syntax.TypeAnnotation exposing (..)
+import Elm.Syntax.Module exposing (Import)
+import Elm.Syntax.Declaration exposing (Declaration(..))
+import Elm.Syntax.Infix exposing (Infix, InfixDirection)
+import Elm.Syntax.Type exposing (Type, ValueConstructor)
+import Elm.Syntax.Pattern exposing (Pattern(..))
+import Elm.Syntax.TypeAlias exposing (TypeAlias)
+import Elm.Syntax.Expression exposing (Expression, InnerExpression(..), Lambda, Function, LetBlock, FunctionSignature, Case, RecordUpdate, LetDeclaration(..))
+import Elm.Syntax.TypeAnnotation exposing (TypeAnnotation(..))
 
 
 type Order context x

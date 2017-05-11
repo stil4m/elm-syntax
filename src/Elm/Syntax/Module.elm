@@ -1,6 +1,6 @@
 module Elm.Syntax.Module
     exposing
-        ( Module(..)
+        ( Module(NormalModule, PortModule, EffectModule, NoModule)
         , DefaultModuleData
         , EffectModuleData
         , Import

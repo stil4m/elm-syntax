@@ -1,7 +1,32 @@
 module Elm.Syntax.Expression
     exposing
         ( Expression
-        , InnerExpression(..)
+        , InnerExpression
+            ( UnitExpr
+            , Application
+            , OperatorApplication
+            , FunctionOrValue
+            , IfBlock
+            , PrefixOperator
+            , Operator
+            , Integer
+            , Floatable
+            , Negation
+            , Literal
+            , CharLiteral
+            , TupledExpression
+            , ParenthesizedExpression
+            , LetExpression
+            , CaseExpression
+            , LambdaExpression
+            , RecordExpr
+            , ListExpr
+            , QualifiedExpr
+            , RecordAccess
+            , RecordAccessFunction
+            , RecordUpdateExpression
+            , GLSLExpression
+            )
         , Function
         , FunctionSignature
         , FunctionDeclaration
@@ -10,7 +35,10 @@ module Elm.Syntax.Expression
         , Case
         , Lambda
         , LetBlock
-        , LetDeclaration(..)
+        , LetDeclaration
+            ( LetFunction
+            , LetDestructuring
+            )
         , RecordUpdate
         , RecordSetter
         )

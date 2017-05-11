@@ -1,4 +1,24 @@
-module Elm.Syntax.Pattern exposing (Pattern(..), QualifiedNameRef)
+module Elm.Syntax.Pattern
+    exposing
+        ( Pattern
+            ( AllPattern
+            , UnitPattern
+            , CharPattern
+            , StringPattern
+            , IntPattern
+            , FloatPattern
+            , TuplePattern
+            , RecordPattern
+            , UnConsPattern
+            , ListPattern
+            , VarPattern
+            , NamedPattern
+            , QualifiedNamePattern
+            , AsPattern
+            , ParenthesizedPattern
+            )
+        , QualifiedNameRef
+        )
 
 {-| Pattern Syntax
 

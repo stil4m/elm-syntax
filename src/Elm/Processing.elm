@@ -21,35 +21,21 @@ Processing raw files with the context of other files and dependencies.
 
 import Dict exposing (Dict)
 import List exposing (maximum)
-import Elm.Syntax.File exposing (File)
 import Elm.Syntax.Expression exposing (..)
 import Elm.Syntax.Infix exposing (InfixDirection(Left), Infix)
 import Elm.Syntax.Declaration exposing (Declaration(FuncDecl))
 import Elm.Processing.Documentation as Documentation
 import List.Extra as List
 import Elm.Syntax.Range as Range
-import Elm.Interface exposing (Interface)
-import Elm.Dependency exposing (Dependency)
 import Elm.Syntax.Module exposing (Import)
 import Elm.Interface as Interface exposing (Interface)
 import Elm.Dependency exposing (Dependency)
-import Elm.RawFile as RawFile
-import Elm.Internal.RawFile exposing (RawFile(Raw))
 import Elm.DefaultImports as DefaultImports
 import Elm.Syntax.Base exposing (ModuleName)
 import Elm.Syntax.File exposing (File)
 import Elm.Internal.RawFile as RawFile exposing (RawFile(Raw))
-import Elm.Interface as Interface
-import Elm.Internal.RawFile as RawFile
 import Elm.RawFile as RawFile
 import Elm.Syntax.Exposing as Exposing exposing (..)
-
-
-type alias ProcessedFile =
-    { interface : Interface
-    , moduleName : Maybe ModuleName
-    , ast : File
-    }
 
 
 type alias OperatorTable =
@@ -88,13 +74,13 @@ addFile file ((ProcessContext x) as m) =
 {-| Add a whole depenency with its modules to the context.
 -}
 addDependency : Dependency -> ProcessContext -> ProcessContext
-addDependency dep ((ProcessContext x) as m) =
+addDependency dep (ProcessContext x) =
     ProcessContext (Dict.foldl (\k v d -> Dict.insert k v d) x dep.interfaces)
 
 
 entryFromRawFile : RawFile -> Maybe ( ModuleName, Interface )
-entryFromRawFile ((Raw file) as rawFile) =
-    case (RawFile.moduleName rawFile) of
+entryFromRawFile ((Raw _) as rawFile) =
+    case RawFile.moduleName rawFile of
         Just modName ->
             Just ( modName, Interface.build rawFile )
 

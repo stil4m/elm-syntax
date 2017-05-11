@@ -1,4 +1,17 @@
-module Elm.Interface exposing (Interface, Exposed(..), build, exposesAlias, exposesFunction, operators)
+module Elm.Interface
+    exposing
+        ( Interface
+        , Exposed
+            ( Function
+            , Type
+            , Alias
+            , Operator
+            )
+        , build
+        , exposesAlias
+        , exposesFunction
+        , operators
+        )
 
 {-|
 
@@ -17,11 +30,11 @@ module Elm.Interface exposing (Interface, Exposed(..), build, exposesAlias, expo
 
 -}
 
-import Elm.Syntax.File as AST
-import Elm.Syntax.Infix as AST exposing (Infix)
+import Elm.Syntax.File exposing (File)
+import Elm.Syntax.Infix exposing (Infix, InfixDirection(Left))
 import Elm.Syntax.Module as Module
-import Elm.Syntax.Exposing as AST
-import Elm.Syntax.Declaration as AST
+import Elm.Syntax.Exposing exposing (Exposing(All, None, Explicit), TopLevelExpose(TypeOrAliasExpose, InfixExpose, TypeExpose, FunctionExpose))
+import Elm.Syntax.Declaration exposing (Declaration(..))
 import List.Extra
 import Elm.Internal.RawFile exposing (RawFile(Raw))
 
@@ -106,13 +119,13 @@ build (Raw file) =
             Module.exposingList file.moduleDefinition
     in
         case moduleExposing of
-            AST.None ->
+            None ->
                 []
 
-            AST.Explicit x ->
+            Explicit x ->
                 buildInterfaceFromExplicit x fileDefinitionList
 
-            AST.All _ ->
+            All _ ->
                 fileDefinitionList |> List.map Tuple.second
 
 
@@ -121,31 +134,31 @@ lookupForDefinition key =
     List.filter (Tuple.first >> (==) key) >> List.head >> Maybe.map Tuple.second
 
 
-buildInterfaceFromExplicit : List AST.TopLevelExpose -> List ( String, Exposed ) -> Interface
+buildInterfaceFromExplicit : List TopLevelExpose -> List ( String, Exposed ) -> Interface
 buildInterfaceFromExplicit x fileDefinitionList =
     x
         |> List.filterMap
             (\expose ->
                 case expose of
-                    AST.InfixExpose k _ ->
+                    InfixExpose k _ ->
                         lookupForDefinition k fileDefinitionList
 
-                    AST.TypeOrAliasExpose s _ ->
+                    TypeOrAliasExpose s _ ->
                         lookupForDefinition s fileDefinitionList
                             |> Maybe.map (ifType (\( name, _ ) -> Type ( name, [] )))
 
-                    AST.FunctionExpose s _ ->
+                    FunctionExpose s _ ->
                         Just <| Function s
 
-                    AST.TypeExpose exposedType ->
+                    TypeExpose exposedType ->
                         case exposedType.constructors of
-                            AST.None ->
+                            None ->
                                 Just <| Type ( exposedType.name, [] )
 
-                            AST.All _ ->
+                            All _ ->
                                 lookupForDefinition exposedType.name fileDefinitionList
 
-                            AST.Explicit v ->
+                            Explicit v ->
                                 Just <| Type ( exposedType.name, List.map Tuple.first v )
             )
 
@@ -160,7 +173,7 @@ ifType f i =
             i
 
 
-fileToDefinitions : AST.File -> List ( String, Exposed )
+fileToDefinitions : File -> List ( String, Exposed )
 fileToDefinitions file =
     let
         allDeclarations =
@@ -168,32 +181,32 @@ fileToDefinitions file =
                 |> List.filterMap
                     (\decl ->
                         case decl of
-                            AST.TypeDecl t ->
+                            TypeDecl t ->
                                 Just ( t.name, Type ( t.name, t.constructors |> List.map .name ) )
 
-                            AST.AliasDecl a ->
+                            AliasDecl a ->
                                 Just ( a.name, Alias a.name )
 
-                            AST.PortDeclaration p ->
+                            PortDeclaration p ->
                                 Just ( p.name, Function p.name )
 
-                            AST.FuncDecl f ->
+                            FuncDecl f ->
                                 if f.declaration.operatorDefinition then
                                     Just
                                         ( f.declaration.name.value
                                         , Operator
                                             { operator = f.declaration.name.value
                                             , precedence = 5
-                                            , direction = AST.Left
+                                            , direction = Left
                                             }
                                         )
                                 else
                                     Just ( f.declaration.name.value, Function f.declaration.name.value )
 
-                            AST.InfixDeclaration i ->
+                            InfixDeclaration i ->
                                 Just ( i.operator, Operator i )
 
-                            AST.Destructuring _ _ ->
+                            Destructuring _ _ ->
                                 Nothing
                     )
 
@@ -201,7 +214,7 @@ fileToDefinitions file =
         getValidOperatorInterface t1 t2 =
             case ( t1, t2 ) of
                 ( Operator x, Operator y ) ->
-                    if x.precedence == 5 && x.direction == AST.Left then
+                    if x.precedence == 5 && x.direction == Left then
                         Just <| Operator y
                     else
                         Just <| Operator x
