@@ -1,4 +1,15 @@
-module Elm.Writer exposing (..)
+module Elm.Writer exposing (write, writeFile, writePattern)
+
+{-|
+
+
+# Elm.Writer
+
+Write a file to a string.
+
+@docs write, writeFile, writePattern
+
+-}
 
 import Elm.Syntax.Range exposing (Range)
 import Elm.Syntax.File exposing (..)
@@ -17,11 +28,15 @@ import StructuredWriter as Writer exposing (..)
 import Elm.Syntax.Exposing as Exposing exposing (..)
 
 
+{-| Transform a writer to a string
+-}
 write : Writer -> String
 write =
     Writer.write
 
 
+{-| Write a file
+-}
 writeFile : File -> Writer
 writeFile file =
     breaked
@@ -520,6 +535,8 @@ writeExpression ( range, inner ) =
                     ]
 
 
+{-| Write a pattern
+-}
 writePattern : Pattern -> Writer
 writePattern p =
     case p of

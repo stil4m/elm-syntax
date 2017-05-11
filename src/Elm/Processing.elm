@@ -1,5 +1,24 @@
 module Elm.Processing exposing (ProcessContext, init, addFile, addDependency, process)
 
+{-|
+
+
+# Elm.Processing
+
+Processing raw files with the context of other files and dependencies.
+
+
+# Types
+
+@docs ProcessContext
+
+
+# Functions
+
+@docs init, addFile, addDependency, process
+
+-}
+
 import Dict exposing (Dict)
 import List exposing (maximum)
 import Elm.Syntax.File exposing (File)
@@ -37,6 +56,8 @@ type alias OperatorTable =
     Dict String Infix
 
 
+{-| Opaque type to hold context for the processing
+-}
 type ProcessContext
     = ProcessContext ModuleIndexInner
 
@@ -45,11 +66,15 @@ type alias ModuleIndexInner =
     Dict ModuleName Interface
 
 
+{-| Initialise an empty context
+-}
 init : ProcessContext
 init =
     ProcessContext Dict.empty
 
 
+{-| Add a file to the context that may be a dependency for the file that will be processed.
+-}
 addFile : RawFile -> ProcessContext -> ProcessContext
 addFile file ((ProcessContext x) as m) =
     case entryFromRawFile file of
@@ -60,6 +85,8 @@ addFile file ((ProcessContext x) as m) =
             m
 
 
+{-| Add a whole depenency with its modules to the context.
+-}
 addDependency : Dependency -> ProcessContext -> ProcessContext
 addDependency dep ((ProcessContext x) as m) =
     ProcessContext (Dict.foldl (\k v d -> Dict.insert k v d) x dep.interfaces)
@@ -107,6 +134,9 @@ buildSingle imp moduleIndex =
                     |> List.filter (Tuple.first >> flip List.member selectedOperators)
 
 
+{-| Process a rawfile with a context.
+Operator precedence and documentation will be fixed.
+-}
 process : ProcessContext -> RawFile -> File
 process processContext ((Raw file) as rawFile) =
     let

@@ -100,6 +100,8 @@ exposesFunction s exposure =
                 l
 
 
+{-| Get all operator names from a list of TopLevelExposes
+-}
 operators : List TopLevelExpose -> List String
 operators l =
     List.filterMap operator l

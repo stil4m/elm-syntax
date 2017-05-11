@@ -7,14 +7,18 @@
         "src"
     ],
     "exposed-modules": [
+        "Elm.Dependency",
+        "Elm.Interface",
         "Elm.Json.Decode",
         "Elm.Json.Encode",
         "Elm.Parser",
-        "Elm.Interface",
-        "Elm.Dependency",
+        "Elm.Processing",
+        "Elm.RawFile",
+        "Elm.Writer",
         "Elm.Syntax.Base",
         "Elm.Syntax.Declaration",
         "Elm.Syntax.Documentation",
+        "Elm.Syntax.Exposing",
         "Elm.Syntax.Expression",
         "Elm.Syntax.File",
         "Elm.Syntax.Infix",
@@ -23,8 +27,8 @@
         "Elm.Syntax.Range",
         "Elm.Syntax.TypeAlias",
         "Elm.Syntax.TypeAnnotation",
-        "Elm.Syntax.Type",
-        "Elm.RawFile"
+        "Elm.Syntax.Type"
+
     ],
     "dependencies": {
         "elm-community/json-extra": "2.1.0 <= v < 3.0.0",

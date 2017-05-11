@@ -23,14 +23,14 @@ type alias RawFile =
     Internal.RawFile
 
 
-{-| TODO
+{-| Retrieve the module name for a raw file
 -}
 moduleName : RawFile -> Maybe ModuleName
 moduleName (Internal.Raw file) =
     Module.moduleName file.moduleDefinition
 
 
-{-| TODO
+{-| Retrieve the imports for a raw file
 -}
 imports : RawFile -> List Import
 imports (Internal.Raw file) =

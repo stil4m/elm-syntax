@@ -66,7 +66,7 @@ type alias Import =
     }
 
 
-{-| TODO
+{-| Get the name for a module. For older modules this may not be present.
 -}
 moduleName : Module -> Maybe ModuleName
 moduleName m =
@@ -84,7 +84,7 @@ moduleName m =
             Nothing
 
 
-{-| TODO
+{-| Get the exposing list for a module.
 -}
 exposingList : Module -> Exposing TopLevelExpose
 exposingList m =
