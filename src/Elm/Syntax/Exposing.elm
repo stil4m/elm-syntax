@@ -6,6 +6,7 @@ module Elm.Syntax.Exposing
         , ValueConstructorExpose
         , topLevelExposeRange
         , exposesFunction
+        , operators
         )
 
 {-| Exposing Syntax
@@ -18,7 +19,7 @@ module Elm.Syntax.Exposing
 
 # Functions
 
-@docs topLevelExposeRange, exposesFunction
+@docs topLevelExposeRange, exposesFunction, operators
 
 -}
 
@@ -97,3 +98,18 @@ exposesFunction s exposure =
                             False
                 )
                 l
+
+
+operators : List TopLevelExpose -> List String
+operators l =
+    List.filterMap operator l
+
+
+operator : TopLevelExpose -> Maybe String
+operator t =
+    case t of
+        InfixExpose s _ ->
+            Just s
+
+        _ ->
+            Nothing

@@ -1,4 +1,4 @@
-module Elm.Processing exposing (build, process)
+module Elm.Processing exposing (ProcessContext, init, addFile, addDependency, process)
 
 import Dict exposing (Dict)
 import List exposing (maximum)
@@ -10,11 +10,20 @@ import Elm.Processing.Documentation as Documentation
 import List.Extra as List
 import Elm.Syntax.Range as Range
 import Elm.Interface exposing (Interface)
+import Elm.Dependency exposing (Dependency)
+import Elm.Syntax.Module exposing (Import)
+import Elm.Interface as Interface exposing (Interface)
+import Elm.Dependency exposing (Dependency)
+import Elm.RawFile as RawFile
+import Elm.Internal.RawFile exposing (RawFile(Raw))
+import Elm.DefaultImports as DefaultImports
 import Elm.Syntax.Base exposing (ModuleName)
 import Elm.Syntax.File exposing (File)
 import Elm.Internal.RawFile as RawFile exposing (RawFile(Raw))
 import Elm.Interface as Interface
-import Elm.Processing.ModuleIndex as ModuleIndex exposing (ModuleIndex)
+import Elm.Internal.RawFile as RawFile
+import Elm.RawFile as RawFile
+import Elm.Syntax.Exposing as Exposing exposing (..)
 
 
 type alias ProcessedFile =
@@ -24,18 +33,86 @@ type alias ProcessedFile =
     }
 
 
-build : ModuleIndex -> RawFile -> File
-build moduleIndex ((Raw file) as rawFile) =
-    let
-        operatorTable =
-            ModuleIndex.build rawFile moduleIndex
-    in
-        process operatorTable file
+type alias OperatorTable =
+    Dict String Infix
 
 
-process : ModuleIndex.OperatorTable -> File -> File
-process table file =
+type ProcessContext
+    = ProcessContext ModuleIndexInner
+
+
+type alias ModuleIndexInner =
+    Dict ModuleName Interface
+
+
+init : ProcessContext
+init =
+    ProcessContext Dict.empty
+
+
+addFile : RawFile -> ProcessContext -> ProcessContext
+addFile file ((ProcessContext x) as m) =
+    case entryFromRawFile file of
+        Just ( k, v ) ->
+            ProcessContext (Dict.insert k v x)
+
+        Nothing ->
+            m
+
+
+addDependency : Dependency -> ProcessContext -> ProcessContext
+addDependency dep ((ProcessContext x) as m) =
+    ProcessContext (Dict.foldl (\k v d -> Dict.insert k v d) x dep.interfaces)
+
+
+entryFromRawFile : RawFile -> Maybe ( ModuleName, Interface )
+entryFromRawFile ((Raw file) as rawFile) =
+    case (RawFile.moduleName rawFile) of
+        Just modName ->
+            Just ( modName, Interface.build rawFile )
+
+        Nothing ->
+            Nothing
+
+
+tableForFile : RawFile -> ProcessContext -> OperatorTable
+tableForFile rawFile (ProcessContext moduleIndex) =
+    List.concatMap (flip buildSingle moduleIndex) (DefaultImports.defaults ++ RawFile.imports rawFile)
+        |> Dict.fromList
+
+
+buildSingle : Import -> ModuleIndexInner -> List ( String, Infix )
+buildSingle imp moduleIndex =
+    case imp.exposingList of
+        None ->
+            []
+
+        All _ ->
+            moduleIndex
+                |> Dict.get imp.moduleName
+                |> Maybe.withDefault []
+                |> Interface.operators
+                |> List.map (\x -> ( x.operator, x ))
+
+        Explicit l ->
+            let
+                selectedOperators =
+                    Exposing.operators l
+            in
+                moduleIndex
+                    |> Dict.get imp.moduleName
+                    |> Maybe.withDefault []
+                    |> Interface.operators
+                    |> List.map (\x -> ( x.operator, x ))
+                    |> List.filter (Tuple.first >> flip List.member selectedOperators)
+
+
+process : ProcessContext -> RawFile -> File
+process processContext ((Raw file) as rawFile) =
     let
+        table =
+            tableForFile rawFile processContext
+
         operatorFixed =
             visit
                 { onExpression =
@@ -52,11 +129,14 @@ process table file =
                 }
                 table
                 file
+
+        documentationFixed =
+            Documentation.postProcess operatorFixed
     in
-        Documentation.postProcess operatorFixed
+        documentationFixed
 
 
-fixApplication : ModuleIndex.OperatorTable -> List Expression -> InnerExpression
+fixApplication : OperatorTable -> List Expression -> InnerExpression
 fixApplication operators expressions =
     let
         ops : Dict String Infix
