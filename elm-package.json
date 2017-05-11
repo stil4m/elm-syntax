@@ -1,7 +1,7 @@
 {
     "version": "1.0.0",
     "summary": "Elm Syntax in Elm: for parsing and writing Elm in Elm",
-    "repository": "https://github.com/user/project.git",
+    "repository": "https://github.com/stil4m/elm-syntax.git",
     "license": "BSD3",
     "source-directories": [
         "src"
