@@ -1,4 +1,4 @@
-module Elm.Processing exposing (process)
+module Elm.Processing exposing (build, process)
 
 import Dict exposing (Dict)
 import List exposing (maximum)
@@ -6,13 +6,34 @@ import Elm.Syntax.File exposing (File)
 import Elm.Syntax.Expression exposing (..)
 import Elm.Syntax.Infix exposing (InfixDirection(Left), Infix)
 import Elm.Syntax.Declaration exposing (Declaration(FuncDecl))
-import Elm.OperatorTable exposing (OperatorTable)
 import Elm.Processing.Documentation as Documentation
 import List.Extra as List
 import Elm.Syntax.Range as Range
+import Elm.Interface exposing (Interface)
+import Elm.Syntax.Base exposing (ModuleName)
+import Elm.Syntax.File exposing (File)
+import Elm.Internal.RawFile as RawFile exposing (RawFile(Raw))
+import Elm.Interface as Interface
+import Elm.Processing.ModuleIndex as ModuleIndex exposing (ModuleIndex)
 
 
-process : OperatorTable -> File -> File
+type alias ProcessedFile =
+    { interface : Interface
+    , moduleName : Maybe ModuleName
+    , ast : File
+    }
+
+
+build : ModuleIndex -> RawFile -> File
+build moduleIndex ((Raw file) as rawFile) =
+    let
+        operatorTable =
+            ModuleIndex.build rawFile moduleIndex
+    in
+        process operatorTable file
+
+
+process : ModuleIndex.OperatorTable -> File -> File
 process table file =
     let
         operatorFixed =
@@ -35,7 +56,7 @@ process table file =
         Documentation.postProcess operatorFixed
 
 
-fixApplication : OperatorTable -> List Expression -> InnerExpression
+fixApplication : ModuleIndex.OperatorTable -> List Expression -> InnerExpression
 fixApplication operators expressions =
     let
         ops : Dict String Infix
