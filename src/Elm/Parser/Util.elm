@@ -1,7 +1,7 @@
 module Elm.Parser.Util exposing (asPointer, unstrictIndentWhitespace, exactIndentWhitespace, moreThanIndentWhitespace, trimmed, commentSequence, multiLineCommentWithTrailingSpaces)
 
 import Elm.Syntax.Base exposing (VariablePointer)
-import Combine exposing ((*>), (<$>), (<*), (<$), choice, regex, ParseLocation, Parser, lookAhead, many, many1, maybe, or, withState)
+import Combine exposing ((*>), (<$>), (<*), (<$), choice, regex, Parser, lookAhead, many, many1, maybe, or, withState)
 import Elm.Parser.Comments exposing (multilineComment, singleLineComment)
 import Elm.Parser.Ranges exposing (withRange)
 import Elm.Parser.State exposing (State, currentIndent)

@@ -1,6 +1,6 @@
 module Elm.Parser.TypeAnnotation exposing (typeAnnotation)
 
-import Combine exposing (choice, lazy, Parser, parens, map, sepBy, (>>=), (<*>), succeed, (*>), string, maybe, (<$>), sepBy, between, many, (<*), or, whitespace)
+import Combine exposing (choice, lazy, Parser, parens, map, sepBy, (>>=), (<*>), succeed, (*>), string, maybe, (<$>), between, many, (<*), or, whitespace)
 import Elm.Parser.Tokens exposing (functionName, typeName)
 import Elm.Syntax.Range exposing (Range)
 import Elm.Parser.Util exposing (moreThanIndentWhitespace, trimmed)

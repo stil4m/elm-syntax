@@ -131,18 +131,17 @@ process processContext ((Raw file) as rawFile) =
 
         operatorFixed =
             visit
-                { onExpression =
-                    Just
-                        (\context inner expression ->
-                            inner <|
-                                case expression of
-                                    ( r, Application args ) ->
-                                        ( r, fixApplication context args )
+                (Just
+                    (\context inner expression ->
+                        inner <|
+                            case expression of
+                                ( r, Application args ) ->
+                                    ( r, fixApplication context args )
 
-                                    _ ->
-                                        expression
-                        )
-                }
+                                _ ->
+                                    expression
+                    )
+                )
                 table
                 file
 
@@ -247,7 +246,7 @@ expressionOperators ( _, expression ) =
 
 
 type alias Visitor a =
-    { onExpression : Maybe (a -> (Expression -> Expression) -> Expression -> Expression) }
+    Maybe (a -> (Expression -> Expression) -> Expression -> Expression)
 
 
 visit : Visitor context -> context -> File -> File
@@ -313,7 +312,7 @@ visitExpression visitor context expression =
         inner =
             visitExpressionInner visitor context
     in
-        (visitor.onExpression |> Maybe.withDefault (\_ inner expr -> inner expr))
+        (visitor |> Maybe.withDefault (\_ inner expr -> inner expr))
             context
             inner
             expression

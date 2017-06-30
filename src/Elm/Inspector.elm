@@ -3,7 +3,7 @@ module Elm.Inspector exposing (Order(Skip, Continue, Pre, Post, Inner), Config, 
 import Elm.Syntax.File exposing (File)
 import Elm.Syntax.Module exposing (Import)
 import Elm.Syntax.Declaration exposing (Declaration(..))
-import Elm.Syntax.Infix exposing (Infix, InfixDirection)
+import Elm.Syntax.Infix exposing (InfixDirection)
 import Elm.Syntax.Type exposing (Type, ValueConstructor)
 import Elm.Syntax.Pattern exposing (Pattern(..))
 import Elm.Syntax.TypeAlias exposing (TypeAlias)

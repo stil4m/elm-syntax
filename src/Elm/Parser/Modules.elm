@@ -1,6 +1,6 @@
 module Elm.Parser.Modules exposing (moduleDefinition)
 
-import Combine exposing (choice, succeed, Parser, (*>), between, (<$>), (<*>), (*>), string, sepBy1)
+import Combine exposing (choice, succeed, Parser, (*>), between, (<$>), (<*>), string, sepBy1)
 import Elm.Parser.Expose exposing (exposable, exposeDefinition)
 import Elm.Parser.Tokens exposing (functionName, typeName, moduleToken, moduleName, portToken)
 import Elm.Syntax.Module exposing (Module(NormalModule, EffectModule, NoModule, PortModule), DefaultModuleData)

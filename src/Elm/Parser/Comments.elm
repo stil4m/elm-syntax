@@ -1,6 +1,6 @@
 module Elm.Parser.Comments exposing (singleLineComment, multilineComment)
 
-import Combine exposing (Parser, string, lazy, sequence, (<$>), manyTill, succeed, (<$>), (<*>), (*>), (>>=), lookAhead, count, modifyState)
+import Combine exposing (Parser, string, lazy, sequence, (<$>), manyTill, succeed, (<*>), (*>), (>>=), lookAhead, count, modifyState)
 import Combine.Char exposing (anyChar)
 import Elm.Parser.Whitespace exposing (untilNewlineToken)
 import Elm.Parser.State exposing (State, addComment)
