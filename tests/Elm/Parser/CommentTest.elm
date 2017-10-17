@@ -9,7 +9,7 @@ import Test exposing (..)
 
 all : Test
 all =
-    describe "ModuleTests"
+    describe "CommentTests"
         [ test "singleLineComment" <|
             \() ->
                 parseStateToMaybe emptyState "--bar" Parser.singleLineComment
@@ -24,12 +24,12 @@ all =
             \() ->
                 parseFullStringWithNullState "--bar\n" Parser.singleLineComment
                     |> Expect.equal Nothing
-        , test "multilineComment" <|
+        , test "multilineComment parse result" <|
             \() ->
                 parseStateToMaybe emptyState "{-foo\nbar-}" Parser.multilineComment
                     |> Maybe.map Tuple.first
                     |> Expect.equal (Just ())
-        , test "multilineComment" <|
+        , test "multilineComment range" <|
             \() ->
                 parseStateToMaybe emptyState "{-foo\nbar-}" Parser.multilineComment
                     |> Maybe.map (Tuple.second >> State.getComments)

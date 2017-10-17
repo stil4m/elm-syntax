@@ -30,7 +30,7 @@ all =
             \() ->
                 parseFullStringState emptyState "\n  " moreThanIndentWhitespace
                     |> Expect.equal (Just ())
-        , test "with newline and higher indent 2" <|
+        , test "with newline and higher indent 3" <|
             \() ->
                 parseFullStringState emptyState " \n " moreThanIndentWhitespace
                     |> Expect.equal (Just ())
@@ -70,10 +70,6 @@ all =
             \() ->
                 parseFullStringState emptyState "\n --foo\n " moreThanIndentWhitespace
                     |> Expect.equal (Just ())
-        , test "moreThanIndentWhitespace with comments" <|
-            \() ->
-                parseFullStringState emptyState "\n --bar\n " moreThanIndentWhitespace
-                    |> Expect.equal (Just ())
         , test "moreThanIndentWhitespace with comments multi empty line preceding" <|
             \() ->
                 parseFullStringState emptyState "\n\n --bar\n " moreThanIndentWhitespace
@@ -86,7 +82,7 @@ all =
             \() ->
                 parseFullStringState (emptyState |> pushIndent 2) "\n  \n    \n\n  " exactIndentWhitespace
                     |> Expect.equal (Just ())
-        , test "exactIndentWhitespace with multiple new lines" <|
+        , test "exactIndentWhitespace with new line" <|
             \() ->
                 parseFullStringState emptyState "-- bar\n " moreThanIndentWhitespace
                     |> Expect.equal (Just ())
@@ -106,7 +102,7 @@ all =
             \() ->
                 parseFullStringState emptyState "\n{- some note -}    \n " moreThanIndentWhitespace
                     |> Expect.equal (Just ())
-        , test "moreThanIndentWhitespace with multiline comment plus trailing whitespace" <|
+        , test "moreThanIndentWhitespace with multiline comment" <|
             \() ->
                 parseFullStringState emptyState " {- \"Shoes\" NodeId -}" moreThanIndentWhitespace
                     |> Expect.equal (Just ())

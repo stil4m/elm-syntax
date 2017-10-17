@@ -10,7 +10,7 @@ import Test exposing (..)
 
 all : Test
 all =
-    describe "ModuleTests"
+    describe "ExposeTests"
         [ test "infixExpose" <|
             \() ->
                 parseFullStringWithNullState "($>)" infixExpose

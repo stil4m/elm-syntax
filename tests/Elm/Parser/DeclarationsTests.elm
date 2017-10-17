@@ -219,7 +219,7 @@ all =
                                         }
                             }
                         )
-        , test "port declaration" <|
+        , test "port declaration for command" <|
             \() ->
                 parseFullStringWithNullState "port parseResponse : ( String, String ) -> Cmd msg" Parser.declaration
                     |> Maybe.map noRangeDeclaration
@@ -261,7 +261,7 @@ all =
                             , comments = []
                             }
                         )
-        , test "port declaration" <|
+        , test "port declaration for subscription" <|
             \() ->
                 parseFullStringWithNullState "port scroll : (Move -> msg) -> Sub msg" declaration
                     |> Maybe.map noRangeDeclaration

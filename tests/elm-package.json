@@ -3,18 +3,14 @@
     "summary": "Sample Elm Test",
     "repository": "https://github.com/user/project.git",
     "license": "BSD-3-Clause",
-    "source-directories": [
-        ".",
-        "../src"
-    ],
+    "source-directories": [".", "../src"],
     "exposed-modules": [],
     "dependencies": {
         "elm-community/json-extra": "2.0.0 <= v < 3.0.0",
         "elm-lang/html": "2.0.0 <= v < 3.0.0",
         "mgold/elm-random-pcg": "4.0.2 <= v < 5.0.0",
         "elm-lang/core": "5.0.0 <= v < 6.0.0",
-        "elm-community/elm-test": "3.0.0 <= v < 4.0.0",
-        "rtfeldman/node-test-runner": "3.0.0 <= v < 4.0.0",
+        "elm-community/elm-test": "4.0.0 <= v < 5.0.0",
         "elm-community/list-extra": "6.1.0 <= v < 7.0.0",
         "elm-community/parser-combinators": "1.1.0 <= v < 2.0.0",
         "rtfeldman/hex": "1.0.0 <= v < 2.0.0"

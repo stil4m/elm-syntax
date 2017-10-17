@@ -234,7 +234,7 @@ bar = (x + 1) * (2 * y)
 
 suite : Test
 suite =
-    describe "Elm.ProcessingTests"
+    describe "Elm.Processing"
         (List.map
             (\( name, input, output ) ->
                 test name <|

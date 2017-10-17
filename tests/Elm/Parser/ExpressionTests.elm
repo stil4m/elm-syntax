@@ -42,12 +42,12 @@ all =
                 parseFullStringWithNullState "\"\"\"Bar foo \n a\"\"\"" expression
                     |> Maybe.map Tuple.second
                     |> Expect.equal (Just (Literal "Bar foo \n a"))
-        , test "Type expression" <|
+        , test "Type expression for lower case" <|
             \() ->
                 parseFullStringWithNullState "Bar" expression
                     |> Maybe.map Tuple.second
                     |> Expect.equal (Just (FunctionOrValue "Bar"))
-        , test "Type expression" <|
+        , test "Type expression for upper case" <|
             \() ->
                 parseFullStringWithNullState "bar" expression
                     |> Maybe.map Tuple.second

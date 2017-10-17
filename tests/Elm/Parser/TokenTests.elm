@@ -139,15 +139,15 @@ all =
             \() ->
                 parseFullString "~" Parser.prefixOperatorToken
                     |> Expect.equal (Just "~")
-        , test "operatorToken 13" <|
+        , test "operatorToken 14" <|
             \() ->
                 parseFullString "=" Parser.prefixOperatorToken
                     |> Expect.equal Nothing
-        , test "operatorToken 14" <|
+        , test "operatorToken 15" <|
             \() ->
                 parseFullString "?" Parser.prefixOperatorToken
                     |> Expect.equal (Just "?")
-        , test "operatorToken 15" <|
+        , test "operatorToken 16" <|
             \() ->
                 parseFullString "@" Parser.prefixOperatorToken
                     |> Expect.equal (Just "@")
@@ -179,7 +179,7 @@ all =
             \() ->
                 parseFullString "\"foo\\\\\"" Parser.stringLiteral
                     |> Expect.equal (Just "foo\\")
-        , test "character escaped 2" <|
+        , test "character escaped 3" <|
             \() ->
                 parseFullString "'\\n'" Parser.characterLiteral
                     |> Expect.equal (Just '\n')
