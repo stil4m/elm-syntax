@@ -1,6 +1,6 @@
-module Elm.Parser.Whitespace exposing (nSpaces, manySpaces, many1Spaces, realNewLine, untilNewlineToken)
+module Elm.Parser.Whitespace exposing (many1Spaces, manySpaces, nSpaces, realNewLine, untilNewlineToken)
 
-import Combine exposing (regex, Parser)
+import Combine exposing (Parser, regex)
 
 
 nSpaces : Int -> Parser s String

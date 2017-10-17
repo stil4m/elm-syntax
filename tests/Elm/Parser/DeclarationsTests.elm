@@ -1,19 +1,18 @@
 module Elm.Parser.DeclarationsTests exposing (..)
 
 import Elm.Parser.CombineTestUtil exposing (..)
-import Expect
 import Elm.Parser.Declarations as Parser exposing (..)
 import Elm.Parser.File as Parser exposing (file)
-import Elm.Syntax.Range exposing (emptyRange)
-import Test exposing (..)
 import Elm.Parser.State exposing (State, emptyState)
-import Elm.Syntax.Range exposing (emptyRange)
+import Elm.Syntax.Declaration exposing (..)
+import Elm.Syntax.Exposing exposing (..)
 import Elm.Syntax.Expression exposing (..)
 import Elm.Syntax.Module exposing (..)
 import Elm.Syntax.Pattern exposing (..)
-import Elm.Syntax.Declaration exposing (..)
+import Elm.Syntax.Range exposing (emptyRange)
 import Elm.Syntax.TypeAnnotation exposing (..)
-import Elm.Syntax.Exposing exposing (..)
+import Expect
+import Test exposing (..)
 
 
 all : Test

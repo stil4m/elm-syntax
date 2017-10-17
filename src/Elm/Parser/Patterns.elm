@@ -1,13 +1,13 @@
-module Elm.Parser.Patterns exposing (pattern, declarablePattern)
+module Elm.Parser.Patterns exposing (declarablePattern, pattern)
 
-import Combine exposing (Parser, choice, lazy, between, string, sepBy, sepBy1, succeed, maybe, parens, many, or, (<$>), (<$), (<*), (<*>), (*>), (>>=))
+import Combine exposing ((*>), (<$), (<$>), (<*), (<*>), (>>=), Parser, between, choice, lazy, many, maybe, or, parens, sepBy, sepBy1, string, succeed)
 import Combine.Num
-import Elm.Parser.Tokens exposing (characterLiteral, stringLiteral, asToken, functionName, typeName)
-import Elm.Syntax.Pattern exposing (Pattern(ListPattern, UnConsPattern, CharPattern, StringPattern, IntPattern, FloatPattern, AsPattern, TuplePattern, RecordPattern, VarPattern, NamedPattern, QualifiedNamePattern, AllPattern, UnitPattern), QualifiedNameRef)
-import Elm.Syntax.Range exposing (Range)
-import Elm.Parser.Util exposing (moreThanIndentWhitespace, trimmed, asPointer)
+import Elm.Parser.Ranges exposing (withRange, withRangeCustomStart, withRangeTuple)
 import Elm.Parser.State exposing (State)
-import Elm.Parser.Ranges exposing (withRange, withRangeTuple, withRangeCustomStart)
+import Elm.Parser.Tokens exposing (asToken, characterLiteral, functionName, stringLiteral, typeName)
+import Elm.Parser.Util exposing (asPointer, moreThanIndentWhitespace, trimmed)
+import Elm.Syntax.Pattern exposing (Pattern(AllPattern, AsPattern, CharPattern, FloatPattern, IntPattern, ListPattern, NamedPattern, QualifiedNamePattern, RecordPattern, StringPattern, TuplePattern, UnConsPattern, UnitPattern, VarPattern), QualifiedNameRef)
+import Elm.Syntax.Range exposing (Range)
 
 
 type alias RangelessPattern =

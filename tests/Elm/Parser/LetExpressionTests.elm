@@ -2,15 +2,14 @@ module Elm.Parser.LetExpressionTests exposing (..)
 
 import Combine exposing ((*>), string)
 import Elm.Parser.CombineTestUtil exposing (..)
-import Expect
 import Elm.Parser.Declarations as Parser exposing (..)
-import Elm.Parser.Tokens exposing (functionName)
-import Test exposing (..)
-import Elm.Syntax.Range exposing (emptyRange)
 import Elm.Parser.State exposing (emptyState, pushIndent)
-import Elm.Syntax.Range exposing (emptyRange)
+import Elm.Parser.Tokens exposing (functionName)
 import Elm.Syntax.Expression exposing (..)
 import Elm.Syntax.Pattern exposing (..)
+import Elm.Syntax.Range exposing (emptyRange)
+import Expect
+import Test exposing (..)
 
 
 all : Test
@@ -152,7 +151,7 @@ all =
                         )
         , test "some let" <|
             \() ->
-                parseFullStringState emptyState "let\n    _ = b\n in\n    z" (Parser.expression)
+                parseFullStringState emptyState "let\n    _ = b\n in\n    z" Parser.expression
                     |> Maybe.map noRangeExpression
                     |> Maybe.map Tuple.second
                     |> Expect.equal
@@ -169,7 +168,7 @@ all =
                         )
         , test "let inlined" <|
             \() ->
-                parseFullStringState emptyState "let indent = String.length s in indent" (Parser.expression)
+                parseFullStringState emptyState "let indent = String.length s in indent" Parser.expression
                     |> Maybe.map noRangeExpression
                     |> Maybe.map Tuple.second
                     |> Expect.equal

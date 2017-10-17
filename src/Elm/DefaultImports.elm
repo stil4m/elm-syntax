@@ -1,6 +1,6 @@
 module Elm.DefaultImports exposing (defaults)
 
-import Elm.Syntax.Exposing exposing (Exposing(All, None, Explicit), TopLevelExpose(TypeExpose, InfixExpose), ExposedType)
+import Elm.Syntax.Exposing exposing (ExposedType, Exposing(All, Explicit, None), TopLevelExpose(InfixExpose, TypeExpose))
 import Elm.Syntax.Module exposing (Import)
 import Elm.Syntax.Range as Range
 

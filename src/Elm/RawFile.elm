@@ -1,4 +1,4 @@
-module Elm.RawFile exposing (RawFile, moduleName, imports)
+module Elm.RawFile exposing (RawFile, imports, moduleName)
 
 {-|
 
@@ -12,8 +12,8 @@ module Elm.RawFile exposing (RawFile, moduleName, imports)
 -}
 
 import Elm.Internal.RawFile as Internal
-import Elm.Syntax.Module as Module exposing (Import)
 import Elm.Syntax.Base exposing (ModuleName)
+import Elm.Syntax.Module as Module exposing (Import)
 
 
 {-| A Raw file

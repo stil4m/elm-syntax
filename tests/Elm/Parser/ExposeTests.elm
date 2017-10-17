@@ -1,12 +1,11 @@
 module Elm.Parser.ExposeTests exposing (..)
 
-import Elm.Parser.Expose exposing (..)
-import Elm.Syntax.Range exposing (..)
-import Test exposing (..)
-import Expect
 import Elm.Parser.CombineTestUtil exposing (..)
-import Elm.Syntax.Range exposing (emptyRange)
+import Elm.Parser.Expose exposing (..)
 import Elm.Syntax.Exposing exposing (..)
+import Elm.Syntax.Range exposing (..)
+import Expect
+import Test exposing (..)
 
 
 all : Test

@@ -1,22 +1,22 @@
-module Elm.Parser.Declarations exposing (signature, declaration, function, functionDeclaration, expression, letBlock, letBody, caseBlock, caseStatement, caseStatements)
+module Elm.Parser.Declarations exposing (caseBlock, caseStatement, caseStatements, declaration, expression, function, functionDeclaration, letBlock, letBody, signature)
 
-import Combine exposing (maybe, (*>), (>>=), (<*), (<$), (<$>), sepBy, many, succeed, Parser, string, choice, lookAhead, or, withLocation, parens, modifyState, count, between, fail, (<*>), lazy, many1, sepBy1)
+import Combine exposing ((*>), (<$), (<$>), (<*), (<*>), (>>=), Parser, between, choice, count, fail, lazy, lookAhead, many, many1, maybe, modifyState, or, parens, sepBy, sepBy1, string, succeed, withLocation)
 import Combine.Char exposing (anyChar)
 import Combine.Num
-import List.Extra as List
 import Elm.Parser.Infix as Infix
-import Elm.Parser.Patterns exposing (pattern, declarablePattern)
-import Elm.Parser.Tokens exposing (portToken, prefixOperatorToken, multiLineStringLiteral, caseToken, characterLiteral, ofToken, stringLiteral, typeName, thenToken, infixOperatorToken, functionName, ifToken, elseToken)
+import Elm.Parser.Patterns exposing (declarablePattern, pattern)
+import Elm.Parser.Ranges exposing (withRange, withRangeCustomStart)
+import Elm.Parser.State exposing (State, popIndent, pushIndent)
+import Elm.Parser.Tokens exposing (caseToken, characterLiteral, elseToken, functionName, ifToken, infixOperatorToken, multiLineStringLiteral, ofToken, portToken, prefixOperatorToken, stringLiteral, thenToken, typeName)
 import Elm.Parser.TypeAnnotation exposing (typeAnnotation)
+import Elm.Parser.Typings as Typings exposing (typeDeclaration)
+import Elm.Parser.Util exposing (asPointer, commentSequence, exactIndentWhitespace, moreThanIndentWhitespace, trimmed, unstrictIndentWhitespace)
+import Elm.Parser.Whitespace exposing (manySpaces)
 import Elm.Syntax.Declaration exposing (..)
 import Elm.Syntax.Expression exposing (..)
-import Elm.Syntax.Range exposing (Range)
-import Elm.Parser.Typings as Typings exposing (typeDeclaration)
-import Elm.Parser.Util exposing (exactIndentWhitespace, commentSequence, moreThanIndentWhitespace, trimmed, unstrictIndentWhitespace, asPointer)
-import Elm.Parser.Whitespace exposing (manySpaces)
-import Elm.Parser.State exposing (State, pushIndent, popIndent)
-import Elm.Parser.Ranges exposing (withRange, withRangeCustomStart)
 import Elm.Syntax.Pattern exposing (..)
+import Elm.Syntax.Range exposing (Range)
+import List.Extra as List
 
 
 declaration : Parser State Declaration
@@ -69,7 +69,7 @@ signature : Parser State FunctionSignature
 signature =
     withRange <|
         succeed FunctionSignature
-            <*> (lookAhead anyChar >>= \c -> succeed (c == '('))
+            <*> (lookAhead anyChar >>= (\c -> succeed (c == '(')))
             <*> or functionName (parens prefixOperatorToken)
             <*> (trimmed (string ":") *> maybe moreThanIndentWhitespace *> typeAnnotation)
 
@@ -79,7 +79,7 @@ functionDeclaration =
     lazy
         (\() ->
             succeed FunctionDeclaration
-                <*> (lookAhead anyChar >>= \c -> succeed (c == '('))
+                <*> (lookAhead anyChar >>= (\c -> succeed (c == '(')))
                 <*> (asPointer <| or functionName (parens prefixOperatorToken))
                 <*> many (moreThanIndentWhitespace *> functionArgument)
                 <*> (maybe moreThanIndentWhitespace
@@ -152,9 +152,10 @@ expression =
     lazy
         (\() ->
             expressionNotApplication
-                >>= \expr ->
+                >>= (\expr ->
                         or (promoteToApplicationExpression expr)
                             (succeed expr)
+                    )
         )
 
 
@@ -192,9 +193,8 @@ withIndentedState2 p =
                         |> List.takeWhile ((==) ' ')
                         |> List.length
             in
-                ((modifyState (pushIndent x) *> p)
-                    <* modifyState popIndent
-                )
+            (modifyState (pushIndent x) *> p)
+                <* modifyState popIndent
         )
 
 
@@ -210,11 +210,12 @@ glslExpression =
                 (string "|]")
                 (many
                     (lookAhead (String.fromList <$> count 2 anyChar)
-                        >>= \s ->
+                        >>= (\s ->
                                 if s == "|]" then
                                     fail "end symbol"
                                 else
                                     anyChar
+                            )
                     )
                 )
 
@@ -281,7 +282,7 @@ recordFields oneOrMore =
             else
                 sepBy
     in
-        p (string ",") (trimmed recordExpressionField)
+    p (string ",") (trimmed recordExpressionField)
 
 
 recordExpression : Parser State InnerExpression

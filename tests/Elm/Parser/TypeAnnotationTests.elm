@@ -1,11 +1,11 @@
 module Elm.Parser.TypeAnnotationTests exposing (..)
 
-import Elm.Parser.TypeAnnotation as Parser
-import Test exposing (..)
-import Expect
 import Elm.Parser.CombineTestUtil exposing (..)
+import Elm.Parser.TypeAnnotation as Parser
 import Elm.Syntax.Range exposing (emptyRange)
 import Elm.Syntax.TypeAnnotation exposing (..)
+import Expect
+import Test exposing (..)
 
 
 all : Test
@@ -64,7 +64,7 @@ all =
                                 "Foo"
                                 [ Unit emptyRange
                                 , GenericType "a" emptyRange
-                                , (Typed [] "Bar" [] emptyRange)
+                                , Typed [] "Bar" [] emptyRange
                                 ]
                                 emptyRange
                         )
@@ -78,7 +78,7 @@ all =
                                 "Foo"
                                 [ Unit emptyRange
                                 , GenericType "a" emptyRange
-                                , (Typed [] "Bar" [] emptyRange)
+                                , Typed [] "Bar" [] emptyRange
                                 ]
                                 emptyRange
                         )

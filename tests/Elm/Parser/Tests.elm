@@ -5,7 +5,10 @@ import Elm.Parser.CommentTest as CommentTest
 import Elm.Parser.DeclarationsTests as DeclarationsTests
 import Elm.Parser.ExposeTests as ExposeTests
 import Elm.Parser.ExpressionTests as ExpressionTests
+import Elm.Parser.FileTests as FileTests
+import Elm.Parser.GlslTests as GlslTests
 import Elm.Parser.ImportsTests as ImportsTests
+import Elm.Parser.InfixTests as InfixTests
 import Elm.Parser.LambdaExpressionTests as LambdaExpressionTests
 import Elm.Parser.LetExpressionTests as LetExpressionTests
 import Elm.Parser.ModuleTests as ModuleTests
@@ -14,9 +17,6 @@ import Elm.Parser.TokenTests as TokenTests
 import Elm.Parser.TypeAnnotationTests as TypeAnnotationTests
 import Elm.Parser.TypingsTests as TypingsTests
 import Elm.Parser.UtilTests as UtilTests
-import Elm.Parser.InfixTests as InfixTests
-import Elm.Parser.GlslTests as GlslTests
-import Elm.Parser.FileTests as FileTests
 import Test exposing (Test)
 
 

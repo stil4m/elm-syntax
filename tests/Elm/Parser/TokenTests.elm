@@ -1,9 +1,9 @@
 module Elm.Parser.TokenTests exposing (..)
 
-import Elm.Parser.Tokens as Parser
-import Test exposing (..)
-import Expect
 import Elm.Parser.CombineTestUtil exposing (..)
+import Elm.Parser.Tokens as Parser
+import Expect
+import Test exposing (..)
 
 
 longString : String

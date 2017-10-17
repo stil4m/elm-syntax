@@ -1,12 +1,12 @@
 module Elm.Processing.Documentation exposing (postProcess)
 
-import Elm.Syntax.Range exposing (Range)
-import Elm.Syntax.File exposing (File)
-import Elm.Syntax.TypeAlias exposing (TypeAlias)
-import Elm.Syntax.Declaration exposing (Declaration(..))
-import Elm.Syntax.Expression exposing (..)
-import Elm.Syntax.Documentation exposing (..)
 import Elm.Inspector as Inspector exposing (Order(Post), defaultConfig)
+import Elm.Syntax.Declaration exposing (Declaration(..))
+import Elm.Syntax.Documentation exposing (..)
+import Elm.Syntax.Expression exposing (..)
+import Elm.Syntax.File exposing (File)
+import Elm.Syntax.Range exposing (Range)
+import Elm.Syntax.TypeAlias exposing (TypeAlias)
 
 
 postProcess : File -> File
@@ -26,25 +26,25 @@ onTypeAlias typeAlias file =
         docs =
             List.filter (isDocumentationForRange typeAlias.range) file.comments
     in
-        case List.head docs of
-            Just (( docString, docRange ) as doc) ->
-                { file
-                    | comments =
-                        file.comments
-                            |> List.filter ((/=) doc)
-                    , declarations =
-                        List.map
-                            (replaceTypeAlias
-                                { typeAlias
-                                    | documentation =
-                                        Just (Documentation docString docRange)
-                                }
-                            )
-                            file.declarations
-                }
+    case List.head docs of
+        Just (( docString, docRange ) as doc) ->
+            { file
+                | comments =
+                    file.comments
+                        |> List.filter ((/=) doc)
+                , declarations =
+                    List.map
+                        (replaceTypeAlias
+                            { typeAlias
+                                | documentation =
+                                    Just (Documentation docString docRange)
+                            }
+                        )
+                        file.declarations
+            }
 
-            Nothing ->
-                file
+        Nothing ->
+            file
 
 
 onFunction : Function -> File -> File
@@ -58,22 +58,22 @@ onFunction function file =
         docs =
             List.filter (isDocumentationForRange functionRange) file.comments
     in
-        case List.head docs of
-            Just (( docString, docRange ) as doc) ->
-                { file
-                    | comments =
-                        file.comments
-                            |> List.filter ((/=) doc)
-                    , declarations =
-                        List.map
-                            (replaceFunction
-                                { function | documentation = Just (Documentation docString docRange) }
-                            )
-                            file.declarations
-                }
+    case List.head docs of
+        Just (( docString, docRange ) as doc) ->
+            { file
+                | comments =
+                    file.comments
+                        |> List.filter ((/=) doc)
+                , declarations =
+                    List.map
+                        (replaceFunction
+                            { function | documentation = Just (Documentation docString docRange) }
+                        )
+                        file.declarations
+            }
 
-            Nothing ->
-                file
+        Nothing ->
+            file
 
 
 replaceTypeAlias : TypeAlias -> Declaration -> Declaration
@@ -109,6 +109,6 @@ isDocumentationForRange range ( commentText, commentRange ) =
             functionStartRow =
                 range.start.row
         in
-            commentRange.end.row == functionStartRow && commentRange.end.column == -2
+        commentRange.end.row == functionStartRow && commentRange.end.column == -2
     else
         False

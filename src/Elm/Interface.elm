@@ -1,12 +1,12 @@
 module Elm.Interface
     exposing
-        ( Interface
-        , Exposed
-            ( Function
-            , Type
-            , Alias
+        ( Exposed
+            ( Alias
+            , Function
             , Operator
+            , Type
             )
+        , Interface
         , build
         , exposesAlias
         , exposesFunction
@@ -30,13 +30,13 @@ module Elm.Interface
 
 -}
 
+import Elm.Internal.RawFile exposing (RawFile(Raw))
+import Elm.Syntax.Declaration exposing (Declaration(..))
+import Elm.Syntax.Exposing exposing (Exposing(All, Explicit, None), TopLevelExpose(FunctionExpose, InfixExpose, TypeExpose, TypeOrAliasExpose))
 import Elm.Syntax.File exposing (File)
 import Elm.Syntax.Infix exposing (Infix, InfixDirection(Left))
 import Elm.Syntax.Module as Module
-import Elm.Syntax.Exposing exposing (Exposing(All, None, Explicit), TopLevelExpose(TypeOrAliasExpose, InfixExpose, TypeExpose, FunctionExpose))
-import Elm.Syntax.Declaration exposing (Declaration(..))
 import List.Extra
-import Elm.Internal.RawFile exposing (RawFile(Raw))
 
 
 {-| An interface
@@ -118,15 +118,15 @@ build (Raw file) =
         moduleExposing =
             Module.exposingList file.moduleDefinition
     in
-        case moduleExposing of
-            None ->
-                []
+    case moduleExposing of
+        None ->
+            []
 
-            Explicit x ->
-                buildInterfaceFromExplicit x fileDefinitionList
+        Explicit x ->
+            buildInterfaceFromExplicit x fileDefinitionList
 
-            All _ ->
-                fileDefinitionList |> List.map Tuple.second
+        All _ ->
+            fileDefinitionList |> List.map Tuple.second
 
 
 lookupForDefinition : String -> List ( String, Exposed ) -> Maybe Exposed
@@ -237,14 +237,14 @@ fileToDefinitions file =
                 _ ->
                     Nothing
     in
-        allDeclarations
-            |> List.map Tuple.first
-            |> List.Extra.unique
-            |> List.map
-                (\x ->
-                    ( x
-                    , allDeclarations
-                        |> List.filter (Tuple.first >> (==) x)
-                    )
+    allDeclarations
+        |> List.map Tuple.first
+        |> List.Extra.unique
+        |> List.map
+            (\x ->
+                ( x
+                , allDeclarations
+                    |> List.filter (Tuple.first >> (==) x)
                 )
-            |> List.filterMap (Tuple.second >> resolveGroup)
+            )
+        |> List.filterMap (Tuple.second >> resolveGroup)

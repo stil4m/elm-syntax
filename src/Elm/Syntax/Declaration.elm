@@ -1,12 +1,12 @@
 module Elm.Syntax.Declaration
     exposing
         ( Declaration
-            ( FuncDecl
-            , AliasDecl
+            ( AliasDecl
+            , Destructuring
+            , FuncDecl
+            , InfixDeclaration
             , PortDeclaration
             , TypeDecl
-            , InfixDeclaration
-            , Destructuring
             )
         )
 
@@ -19,11 +19,11 @@ module Elm.Syntax.Declaration
 
 -}
 
-import Elm.Syntax.Pattern exposing (Pattern)
-import Elm.Syntax.Expression exposing (Expression, FunctionSignature, Function)
+import Elm.Syntax.Expression exposing (Expression, Function, FunctionSignature)
 import Elm.Syntax.Infix exposing (Infix)
-import Elm.Syntax.TypeAlias exposing (TypeAlias)
+import Elm.Syntax.Pattern exposing (Pattern)
 import Elm.Syntax.Type exposing (Type)
+import Elm.Syntax.TypeAlias exposing (TypeAlias)
 
 
 {-| Union type that represents all different top level declarations.

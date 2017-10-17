@@ -9,11 +9,11 @@ module Elm.Parser exposing (parse)
 
 -}
 
-import Elm.Syntax.File exposing (File)
+import Combine exposing ((<*), Parser, end, mapError, withLocation)
 import Elm.Internal.RawFile as RawFile exposing (RawFile)
-import Combine exposing (Parser, (<*), end, mapError, withLocation)
 import Elm.Parser.File exposing (file)
 import Elm.Parser.State exposing (State, emptyState)
+import Elm.Syntax.File exposing (File)
 
 
 {-| Parse a string

@@ -1,11 +1,11 @@
 module Elm.Parser.TypingsTests exposing (..)
 
-import Elm.Parser.Typings as Parser
-import Test exposing (..)
-import Expect
 import Elm.Parser.CombineTestUtil exposing (..)
+import Elm.Parser.Typings as Parser
 import Elm.Syntax.Range exposing (emptyRange)
 import Elm.Syntax.TypeAnnotation exposing (..)
+import Expect
+import Test exposing (..)
 
 
 all : Test

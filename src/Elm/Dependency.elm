@@ -10,8 +10,8 @@ module Elm.Dependency exposing (Dependency, Version)
 -}
 
 import Dict exposing (Dict)
-import Elm.Syntax.Base exposing (ModuleName)
 import Elm.Interface exposing (Interface)
+import Elm.Syntax.Base exposing (ModuleName)
 
 
 {-| Record that represents a dependency

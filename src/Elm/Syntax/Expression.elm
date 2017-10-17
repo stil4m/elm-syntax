@@ -1,46 +1,46 @@
 module Elm.Syntax.Expression
     exposing
-        ( Expression
+        ( Case
+        , CaseBlock
+        , Cases
+        , Expression
+        , Function
+        , FunctionDeclaration
+        , FunctionSignature
         , InnerExpression
-            ( UnitExpr
-            , Application
-            , OperatorApplication
-            , FunctionOrValue
-            , IfBlock
-            , PrefixOperator
-            , Operator
-            , Integer
-            , Floatable
-            , Negation
-            , Literal
-            , CharLiteral
-            , TupledExpression
-            , ParenthesizedExpression
-            , LetExpression
+            ( Application
             , CaseExpression
+            , CharLiteral
+            , Floatable
+            , FunctionOrValue
+            , GLSLExpression
+            , IfBlock
+            , Integer
             , LambdaExpression
-            , RecordExpr
+            , LetExpression
             , ListExpr
+            , Literal
+            , Negation
+            , Operator
+            , OperatorApplication
+            , ParenthesizedExpression
+            , PrefixOperator
             , QualifiedExpr
             , RecordAccess
             , RecordAccessFunction
+            , RecordExpr
             , RecordUpdateExpression
-            , GLSLExpression
+            , TupledExpression
+            , UnitExpr
             )
-        , Function
-        , FunctionSignature
-        , FunctionDeclaration
-        , CaseBlock
-        , Cases
-        , Case
         , Lambda
         , LetBlock
         , LetDeclaration
-            ( LetFunction
-            , LetDestructuring
+            ( LetDestructuring
+            , LetFunction
             )
-        , RecordUpdate
         , RecordSetter
+        , RecordUpdate
         )
 
 {-| Expression Syntax
@@ -72,12 +72,12 @@ module Elm.Syntax.Expression
 
 -}
 
-import Elm.Syntax.Range exposing (Range)
-import Elm.Syntax.Pattern exposing (Pattern)
-import Elm.Syntax.TypeAnnotation exposing (TypeAnnotation)
-import Elm.Syntax.Base exposing (VariablePointer, ModuleName)
+import Elm.Syntax.Base exposing (ModuleName, VariablePointer)
 import Elm.Syntax.Documentation exposing (Documentation)
 import Elm.Syntax.Infix exposing (InfixDirection)
+import Elm.Syntax.Pattern exposing (Pattern)
+import Elm.Syntax.Range exposing (Range)
+import Elm.Syntax.TypeAnnotation exposing (TypeAnnotation)
 
 
 {-| Type alias for a full function

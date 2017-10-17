@@ -2,12 +2,11 @@ module Elm.Parser.ExpressionTests exposing (..)
 
 import Combine exposing ((*>), whitespace)
 import Elm.Parser.CombineTestUtil exposing (..)
-import Expect
 import Elm.Parser.Declarations exposing (..)
-import Elm.Syntax.Range exposing (..)
-import Test exposing (..)
-import Elm.Syntax.Range exposing (emptyRange)
 import Elm.Syntax.Expression exposing (..)
+import Elm.Syntax.Range exposing (..)
+import Expect
+import Test exposing (..)
 
 
 all : Test
@@ -76,10 +75,9 @@ all =
                         (Just
                             ( { start = { row = 1, column = 0 }, end = { row = 1, column = 14 } }
                             , Application
-                                ([ ( { start = { row = 1, column = 0 }, end = { row = 1, column = 11 } }, QualifiedExpr [ "List" ] "concat" )
-                                 , ( { start = { row = 1, column = 12 }, end = { row = 1, column = 14 } }, ListExpr [] )
-                                 ]
-                                )
+                                [ ( { start = { row = 1, column = 0 }, end = { row = 1, column = 11 } }, QualifiedExpr [ "List" ] "concat" )
+                                , ( { start = { row = 1, column = 12 }, end = { row = 1, column = 14 } }, ListExpr [] )
+                                ]
                             )
                         )
         , test "application expression 2" <|
@@ -89,42 +87,37 @@ all =
                         (Just
                             ( { start = { row = 1, column = 0 }, end = { row = 1, column = 47 } }
                             , TupledExpression
-                                ([ ( { start = { row = 1, column = 1 }, end = { row = 1, column = 3 } }, Literal "" )
-                                 , ( { start = { row = 1, column = 5 }, end = { row = 1, column = 46 } }
-                                   , Application
-                                        ([ ( { start = { row = 1, column = 5 }, end = { row = 1, column = 11 } }, FunctionOrValue "always" )
-                                         , ( { start = { row = 1, column = 12 }, end = { row = 1, column = 46 } }
-                                           , ParenthesizedExpression
+                                [ ( { start = { row = 1, column = 1 }, end = { row = 1, column = 3 } }, Literal "" )
+                                , ( { start = { row = 1, column = 5 }, end = { row = 1, column = 46 } }
+                                  , Application
+                                        [ ( { start = { row = 1, column = 5 }, end = { row = 1, column = 11 } }, FunctionOrValue "always" )
+                                        , ( { start = { row = 1, column = 12 }, end = { row = 1, column = 46 } }
+                                          , ParenthesizedExpression
                                                 ( { start = { row = 1, column = 13 }, end = { row = 1, column = 45 } }
                                                 , Application
-                                                    ([ ( { start = { row = 1, column = 13 }, end = { row = 1, column = 24 } }
-                                                       , QualifiedExpr [ "List" ] "concat"
-                                                       )
-                                                     , ( { start = { row = 1, column = 25 }, end = { row = 1, column = 45 } }
-                                                       , ListExpr
-                                                            ([ ( { start = { row = 1, column = 27 }, end = { row = 1, column = 39 } }
-                                                               , ListExpr
-                                                                    ([ ( { start = { row = 1, column = 29 }, end = { row = 1, column = 37 } }
-                                                                       , FunctionOrValue "fileName"
-                                                                       )
-                                                                     ]
-                                                                    )
-                                                               )
-                                                             , ( { start = { row = 1, column = 41 }, end = { row = 1, column = 43 } }
-                                                               , ListExpr []
-                                                               )
-                                                             ]
-                                                            )
-                                                       )
-                                                     ]
-                                                    )
+                                                    [ ( { start = { row = 1, column = 13 }, end = { row = 1, column = 24 } }
+                                                      , QualifiedExpr [ "List" ] "concat"
+                                                      )
+                                                    , ( { start = { row = 1, column = 25 }, end = { row = 1, column = 45 } }
+                                                      , ListExpr
+                                                            [ ( { start = { row = 1, column = 27 }, end = { row = 1, column = 39 } }
+                                                              , ListExpr
+                                                                    [ ( { start = { row = 1, column = 29 }, end = { row = 1, column = 37 } }
+                                                                      , FunctionOrValue "fileName"
+                                                                      )
+                                                                    ]
+                                                              )
+                                                            , ( { start = { row = 1, column = 41 }, end = { row = 1, column = 43 } }
+                                                              , ListExpr []
+                                                              )
+                                                            ]
+                                                      )
+                                                    ]
                                                 )
-                                           )
-                                         ]
-                                        )
-                                   )
-                                 ]
-                                )
+                                          )
+                                        ]
+                                  )
+                                ]
                             )
                         )
         , test "expressionNotApplication simple" <|
@@ -381,8 +374,8 @@ all =
                     |> Expect.equal
                         (Just
                             (Application
-                                [ (emptyRanged <| FunctionOrValue "toFloat")
-                                , (emptyRanged <| Negation (emptyRanged <| Integer 5))
+                                [ emptyRanged <| FunctionOrValue "toFloat"
+                                , emptyRanged <| Negation (emptyRanged <| Integer 5)
                                 ]
                             )
                         )
@@ -398,11 +391,10 @@ all =
                                 , ParenthesizedExpression
                                     ( emptyRange
                                     , Application
-                                        ([ ( emptyRange, FunctionOrValue "x" )
-                                         , ( emptyRange, Operator "-" )
-                                         , ( emptyRange, FunctionOrValue "y" )
-                                         ]
-                                        )
+                                        [ ( emptyRange, FunctionOrValue "x" )
+                                        , ( emptyRange, Operator "-" )
+                                        , ( emptyRange, FunctionOrValue "y" )
+                                        ]
                                     )
                                 )
                             )

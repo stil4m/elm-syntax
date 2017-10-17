@@ -1,14 +1,14 @@
 module Elm.Parser.File exposing (file)
 
-import Combine exposing (maybe, (*>), (<*), sepBy, succeed, Parser, (<*>), withState)
+import Combine exposing ((*>), (<*), (<*>), Parser, maybe, sepBy, succeed, withState)
+import Elm.Parser.Declarations exposing (declaration)
 import Elm.Parser.Imports exposing (importDefinition)
 import Elm.Parser.Modules exposing (moduleDefinition)
-import Elm.Parser.Declarations exposing (declaration)
-import Elm.Syntax.File exposing (File)
-import Elm.Syntax.Declaration exposing (Declaration)
+import Elm.Parser.State as State exposing (State)
 import Elm.Parser.Util exposing (exactIndentWhitespace)
 import Elm.Parser.Whitespace exposing (manySpaces)
-import Elm.Parser.State as State exposing (State)
+import Elm.Syntax.Declaration exposing (Declaration)
+import Elm.Syntax.File exposing (File)
 import Elm.Syntax.Range exposing (Range)
 
 

@@ -1,33 +1,33 @@
 module Elm.Parser.Tokens
     exposing
-        ( portToken
-        , moduleToken
-        , exposingToken
-        , asToken
-        , ifToken
-        , thenToken
-        , elseToken
+        ( asToken
         , caseToken
-        , ofToken
-        , unitToken
-        , prefixOperatorToken
-        , infixOperatorToken
         , characterLiteral
-        , stringLiteral
-        , typeName
+        , elseToken
+        , exposingToken
         , functionName
         , functionOrTypeName
-        , multiLineStringLiteral
-        , moduleName
+        , ifToken
         , importToken
+        , infixOperatorToken
+        , moduleName
+        , moduleToken
+        , multiLineStringLiteral
+        , ofToken
+        , portToken
+        , prefixOperatorToken
+        , stringLiteral
+        , thenToken
+        , typeName
+        , unitToken
         )
 
-import Dict exposing (Dict)
 import Char exposing (fromCode)
-import Combine exposing (string, regex, Parser, succeed, fail, or, (*>), choice, (<$), (>>=), many, lookAhead, between, count, (<*), sepBy1, many1, (<$>))
+import Combine exposing ((*>), (<$), (<$>), (<*), (>>=), Parser, between, choice, count, fail, lookAhead, many, many1, or, regex, sepBy1, string, succeed)
 import Combine.Char exposing (anyChar, char, oneOf)
-import Hex
+import Dict exposing (Dict)
 import Elm.Syntax.Base exposing (ModuleName)
+import Hex
 
 
 reserved : Dict String Bool
@@ -138,13 +138,14 @@ escapedChar =
             , '\x0D' <$ char 'r'
             , '\x0B' <$ char 'v'
             , (char 'x' *> regex "[0-9A-Fa-f]{2}")
-                >>= \l ->
+                >>= (\l ->
                         case Hex.fromString <| String.toLower l of
                             Ok x ->
                                 succeed (fromCode x)
 
                             Err x ->
                                 fail x
+                    )
             ]
 
 
@@ -184,11 +185,12 @@ multiLineStringLiteral =
             <$> many
                     (or (regex "[^\\\\\\\"]+")
                         (lookAhead (count 3 anyChar)
-                            >>= \x ->
+                            >>= (\x ->
                                     if x == [ '"', '"', '"' ] then
                                         fail "end of input"
                                     else
                                         String.fromChar <$> or escapedChar anyChar
+                                )
                         )
                     )
         )
@@ -250,8 +252,9 @@ operatorTokenFromList : List Char -> Parser s String
 operatorTokenFromList allowedChars =
     String.fromList
         <$> many1 (oneOf allowedChars)
-        >>= \m ->
+        >>= (\m ->
                 if List.member m excludedOperators then
                     fail "operator is not allowed"
                 else
                     succeed m
+            )

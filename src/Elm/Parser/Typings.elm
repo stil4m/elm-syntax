@@ -1,13 +1,13 @@
-module Elm.Parser.Typings exposing (typeDeclaration, typeAlias)
+module Elm.Parser.Typings exposing (typeAlias, typeDeclaration)
 
-import Combine exposing (Parser, string, sepBy, many, succeed, (<*>), (*>))
+import Combine exposing ((*>), (<*>), Parser, many, sepBy, string, succeed)
+import Elm.Parser.Ranges exposing (withRange)
+import Elm.Parser.State exposing (State)
 import Elm.Parser.Tokens exposing (functionName, typeName)
 import Elm.Parser.TypeAnnotation exposing (typeAnnotation)
+import Elm.Parser.Util exposing (moreThanIndentWhitespace, trimmed)
 import Elm.Syntax.Type exposing (Type, ValueConstructor)
 import Elm.Syntax.TypeAlias exposing (TypeAlias)
-import Elm.Parser.Util exposing (moreThanIndentWhitespace, trimmed)
-import Elm.Parser.State exposing (State)
-import Elm.Parser.Ranges exposing (withRange)
 
 
 typeDeclaration : Parser State Type

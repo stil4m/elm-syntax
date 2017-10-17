@@ -1,8 +1,8 @@
-module Elm.Parser.Ranges exposing (withRange, withRangeTuple, withRangeCustomStart)
+module Elm.Parser.Ranges exposing (withRange, withRangeCustomStart, withRangeTuple)
 
-import Combine exposing (Parser, ParseLocation, withLocation, succeed, (<*>))
+import Combine exposing ((<*>), ParseLocation, Parser, succeed, withLocation)
 import Elm.Parser.State exposing (State)
-import Elm.Syntax.Range exposing (Range, Location)
+import Elm.Syntax.Range exposing (Location, Range)
 
 
 asPointerLocation : ParseLocation -> Location

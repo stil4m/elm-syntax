@@ -1,16 +1,16 @@
-module Elm.Parser.Comments exposing (singleLineComment, multilineComment)
+module Elm.Parser.Comments exposing (multilineComment, singleLineComment)
 
-import Combine exposing (Parser, string, lazy, sequence, (<$>), manyTill, succeed, (<*>), (*>), (>>=), lookAhead, count, modifyState)
+import Combine exposing ((*>), (<$>), (<*>), (>>=), Parser, count, lazy, lookAhead, manyTill, modifyState, sequence, string, succeed)
 import Combine.Char exposing (anyChar)
-import Elm.Parser.Whitespace exposing (untilNewlineToken)
-import Elm.Parser.State exposing (State, addComment)
 import Elm.Parser.Ranges exposing (withRange)
+import Elm.Parser.State exposing (State, addComment)
+import Elm.Parser.Whitespace exposing (untilNewlineToken)
 import Elm.Syntax.Range exposing (..)
 
 
 addCommentToState : Parser State ( String, Range ) -> Parser State ()
 addCommentToState p =
-    p >>= \pair -> modifyState (addComment pair) *> succeed ()
+    p >>= (\pair -> modifyState (addComment pair) *> succeed ())
 
 
 parseComment : Parser State String -> Parser State ()
@@ -39,11 +39,12 @@ multilineCommentInner =
                         , String.concat
                             <$> manyTill
                                     (lookAhead (count 2 anyChar)
-                                        >>= \x ->
+                                        >>= (\x ->
                                                 if x == [ '{', '-' ] then
                                                     multilineCommentInner
                                                 else
                                                     String.fromChar <$> anyChar
+                                            )
                                     )
                                     (string "-}")
                         , succeed "-}"

@@ -1,13 +1,12 @@
 module Elm.Parser.PatternTests exposing (..)
 
 import Elm.Parser.CombineTestUtil exposing (..)
-import Expect
-import Elm.Syntax.Range exposing (emptyRange)
-import Test exposing (..)
 import Elm.Parser.Patterns as Parser exposing (..)
 import Elm.Parser.State exposing (emptyState)
-import Elm.Syntax.Range exposing (Range, Location)
 import Elm.Syntax.Pattern exposing (..)
+import Elm.Syntax.Range exposing (Location, Range, emptyRange)
+import Expect
+import Test exposing (..)
 
 
 all : Test
@@ -47,7 +46,7 @@ all =
                 parseFullStringState emptyState "(X x) :: xs" Parser.pattern
                     |> Expect.equal
                         (Just
-                            ((UnConsPattern
+                            (UnConsPattern
                                 (TuplePattern
                                     [ NamedPattern (QualifiedNameRef [] "X")
                                         [ VarPattern "x" (Range (Location 1 3) (Location 1 4)) ]
@@ -57,7 +56,6 @@ all =
                                 )
                                 (VarPattern "xs" (Range (Location 1 9) (Location 1 11)))
                                 (Range (Location 1 0) (Location 1 11))
-                             )
                             )
                         )
         , test "int pattern" <|
@@ -154,12 +152,12 @@ all =
                         (Just
                             (AsPattern
                                 (RecordPattern
-                                    [ { value = "model", range = (Range (Location 1 1) (Location 1 6)) }
-                                    , { value = "context", range = (Range (Location 1 7) (Location 1 14)) }
+                                    [ { value = "model", range = Range (Location 1 1) (Location 1 6) }
+                                    , { value = "context", range = Range (Location 1 7) (Location 1 14) }
                                     ]
                                     (Range (Location 1 0) (Location 1 15))
                                 )
-                                { value = "appState", range = (Range (Location 1 19) (Location 1 27)) }
+                                { value = "appState", range = Range (Location 1 19) (Location 1 27) }
                                 (Range (Location 1 0) (Location 1 27))
                             )
                         )
@@ -191,7 +189,7 @@ all =
                                 [ VarPattern "col" emptyRange
                                 , TuplePattern
                                     [ NamedPattern (QualifiedNameRef [] "RBNode_elm_builtin")
-                                        [ (QualifiedNamePattern (QualifiedNameRef [] "Red") emptyRange)
+                                        [ QualifiedNamePattern (QualifiedNameRef [] "Red") emptyRange
                                         , TuplePattern
                                             [ NamedPattern (QualifiedNameRef [] "RBNode_elm_builtin")
                                                 [ QualifiedNamePattern (QualifiedNameRef [] "Red") emptyRange

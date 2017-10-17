@@ -12,22 +12,22 @@ Decoding Elm Code from Json
 -}
 
 import Elm.Internal.RawFile exposing (RawFile(Raw))
-import Elm.Syntax.File exposing (File)
-import Elm.Syntax.Documentation exposing (Documentation)
-import Elm.Syntax.Module exposing (Module(..), DefaultModuleData, EffectModuleData, Import)
-import Elm.Syntax.Exposing exposing (..)
+import Elm.Json.Util exposing (decodeTyped)
 import Elm.Syntax.Base exposing (ModuleName, VariablePointer)
+import Elm.Syntax.Declaration exposing (..)
+import Elm.Syntax.Documentation exposing (Documentation)
+import Elm.Syntax.Exposing exposing (..)
+import Elm.Syntax.Expression exposing (..)
+import Elm.Syntax.File exposing (File)
+import Elm.Syntax.Infix as Infix exposing (..)
+import Elm.Syntax.Module exposing (DefaultModuleData, EffectModuleData, Import, Module(..))
+import Elm.Syntax.Pattern exposing (..)
+import Elm.Syntax.Range as Range exposing (Range)
 import Elm.Syntax.Type exposing (..)
 import Elm.Syntax.TypeAlias exposing (..)
 import Elm.Syntax.TypeAnnotation exposing (..)
-import Elm.Syntax.Pattern exposing (..)
-import Elm.Syntax.Expression exposing (..)
-import Elm.Syntax.Infix as Infix exposing (..)
-import Elm.Syntax.Declaration exposing (..)
-import Elm.Syntax.Range as Range exposing (Range)
-import Json.Decode exposing (Decoder, field, list, string, map, map2, map3, map4, succeed, lazy, int, bool, andThen, float, fail, at, nullable)
+import Json.Decode exposing (Decoder, andThen, at, bool, fail, field, float, int, lazy, list, map, map2, map3, map4, nullable, string, succeed)
 import Json.Decode.Extra exposing ((|:))
-import Elm.Json.Util exposing (decodeTyped)
 
 
 decodeTypedWithRange : List ( String, Decoder (Range -> a) ) -> Decoder a

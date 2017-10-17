@@ -1,8 +1,8 @@
 module Tests exposing (..)
 
-import Test exposing (..)
 import Elm.Parser.Tests
 import Elm.ProcessingTests
+import Test exposing (..)
 
 
 all : Test

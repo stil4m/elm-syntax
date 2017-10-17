@@ -9,8 +9,8 @@ module Elm.Syntax.TypeAlias exposing (TypeAlias)
 
 -}
 
-import Elm.Syntax.Range exposing (Range)
 import Elm.Syntax.Documentation exposing (Documentation)
+import Elm.Syntax.Range exposing (Range)
 import Elm.Syntax.TypeAnnotation exposing (TypeAnnotation)
 
 

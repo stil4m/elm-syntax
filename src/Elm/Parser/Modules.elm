@@ -1,11 +1,11 @@
 module Elm.Parser.Modules exposing (moduleDefinition)
 
-import Combine exposing (choice, succeed, Parser, (*>), between, (<$>), (<*>), string, sepBy1)
+import Combine exposing ((*>), (<$>), (<*>), Parser, between, choice, sepBy1, string, succeed)
 import Elm.Parser.Expose exposing (exposable, exposeDefinition)
-import Elm.Parser.Tokens exposing (functionName, typeName, moduleToken, moduleName, portToken)
-import Elm.Syntax.Module exposing (Module(NormalModule, EffectModule, NoModule, PortModule), DefaultModuleData)
-import Elm.Parser.Util exposing (moreThanIndentWhitespace, trimmed)
 import Elm.Parser.State exposing (State)
+import Elm.Parser.Tokens exposing (functionName, moduleName, moduleToken, portToken, typeName)
+import Elm.Parser.Util exposing (moreThanIndentWhitespace, trimmed)
+import Elm.Syntax.Module exposing (DefaultModuleData, Module(EffectModule, NoModule, NormalModule, PortModule))
 
 
 moduleDefinition : Parser State Module
@@ -61,10 +61,10 @@ effectModuleDefinition =
                 , subscription = whereClauses.subscription
                 }
     in
-        succeed createEffectModule
-            <*> (string "effect" *> moreThanIndentWhitespace *> moduleToken *> moreThanIndentWhitespace *> moduleName)
-            <*> (moreThanIndentWhitespace *> effectWhereClauses)
-            <*> exposeDefinition exposable
+    succeed createEffectModule
+        <*> (string "effect" *> moreThanIndentWhitespace *> moduleToken *> moreThanIndentWhitespace *> moduleName)
+        <*> (moreThanIndentWhitespace *> effectWhereClauses)
+        <*> exposeDefinition exposable
 
 
 normalModuleDefinition : Parser State Module

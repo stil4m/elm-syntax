@@ -1,4 +1,4 @@
-module Elm.Processing exposing (ProcessContext, init, addFile, addDependency, process)
+module Elm.Processing exposing (ProcessContext, addDependency, addFile, init, process)
 
 {-|
 
@@ -20,22 +20,22 @@ Processing raw files with the context of other files and dependencies.
 -}
 
 import Dict exposing (Dict)
-import List exposing (maximum)
-import Elm.Syntax.Expression exposing (..)
-import Elm.Syntax.Infix exposing (InfixDirection(Left), Infix)
-import Elm.Syntax.Declaration exposing (Declaration(FuncDecl))
-import Elm.Processing.Documentation as Documentation
-import List.Extra as List
-import Elm.Syntax.Range as Range
-import Elm.Syntax.Module exposing (Import)
-import Elm.Interface as Interface exposing (Interface)
-import Elm.Dependency exposing (Dependency)
 import Elm.DefaultImports as DefaultImports
-import Elm.Syntax.Base exposing (ModuleName)
-import Elm.Syntax.File exposing (File)
+import Elm.Dependency exposing (Dependency)
+import Elm.Interface as Interface exposing (Interface)
 import Elm.Internal.RawFile as RawFile exposing (RawFile(Raw))
+import Elm.Processing.Documentation as Documentation
 import Elm.RawFile as RawFile
+import Elm.Syntax.Base exposing (ModuleName)
+import Elm.Syntax.Declaration exposing (Declaration(FuncDecl))
 import Elm.Syntax.Exposing as Exposing exposing (..)
+import Elm.Syntax.Expression exposing (..)
+import Elm.Syntax.File exposing (File)
+import Elm.Syntax.Infix exposing (Infix, InfixDirection(Left))
+import Elm.Syntax.Module exposing (Import)
+import Elm.Syntax.Range as Range
+import List exposing (maximum)
+import List.Extra as List
 
 
 type alias OperatorTable =
@@ -112,12 +112,12 @@ buildSingle imp moduleIndex =
                 selectedOperators =
                     Exposing.operators l
             in
-                moduleIndex
-                    |> Dict.get imp.moduleName
-                    |> Maybe.withDefault []
-                    |> Interface.operators
-                    |> List.map (\x -> ( x.operator, x ))
-                    |> List.filter (Tuple.first >> flip List.member selectedOperators)
+            moduleIndex
+                |> Dict.get imp.moduleName
+                |> Maybe.withDefault []
+                |> Interface.operators
+                |> List.map (\x -> ( x.operator, x ))
+                |> List.filter (Tuple.first >> flip List.member selectedOperators)
 
 
 {-| Process a rawfile with a context.
@@ -148,7 +148,7 @@ process processContext ((Raw file) as rawFile) =
         documentationFixed =
             Documentation.postProcess operatorFixed
     in
-        documentationFixed
+    documentationFixed
 
 
 fixApplication : OperatorTable -> List Expression -> InnerExpression
@@ -195,7 +195,7 @@ fixApplication operators expressions =
                         )
                     |> Maybe.withDefault (fixExprs exps)
     in
-        divideAndConquer expressions
+    divideAndConquer expressions
 
 
 findNextSplit : Dict String Infix -> List Expression -> Maybe ( List Expression, Infix, List Expression )
@@ -213,12 +213,12 @@ findNextSplit dict exps =
         suffix =
             List.drop (List.length prefix + 1) exps
     in
-        exps
-            |> List.drop (List.length prefix)
-            |> List.head
-            |> Maybe.andThen expressionOperators
-            |> Maybe.andThen (\x -> Dict.get x dict)
-            |> Maybe.map (\x -> ( prefix, x, suffix ))
+    exps
+        |> List.drop (List.length prefix)
+        |> List.head
+        |> Maybe.andThen expressionOperators
+        |> Maybe.andThen (\x -> Dict.get x dict)
+        |> Maybe.map (\x -> ( prefix, x, suffix ))
 
 
 highestPrecedence : List ( String, Infix ) -> Dict String Infix
@@ -229,10 +229,10 @@ highestPrecedence input =
                 |> List.map (Tuple.second >> .precedence)
                 |> maximum
     in
-        maxi
-            |> Maybe.map (\m -> List.filter (Tuple.second >> .precedence >> (==) m) input)
-            |> Maybe.withDefault []
-            |> Dict.fromList
+    maxi
+        |> Maybe.map (\m -> List.filter (Tuple.second >> .precedence >> (==) m) input)
+        |> Maybe.withDefault []
+        |> Dict.fromList
 
 
 expressionOperators : Expression -> Maybe String
@@ -255,7 +255,7 @@ visit visitor context file =
         newDeclarations =
             visitDeclarations visitor context file.declarations
     in
-        { file | declarations = newDeclarations }
+    { file | declarations = newDeclarations }
 
 
 visitDeclarations : Visitor context -> context -> List Declaration -> List Declaration
@@ -294,7 +294,7 @@ visitFunctionDecl visitor context function =
         newFunctionDeclaration =
             visitFunctionDeclaration visitor context function.declaration
     in
-        { function | declaration = newFunctionDeclaration }
+    { function | declaration = newFunctionDeclaration }
 
 
 visitFunctionDeclaration : Visitor context -> context -> FunctionDeclaration -> FunctionDeclaration
@@ -303,7 +303,7 @@ visitFunctionDeclaration visitor context functionDeclaration =
         newExpression =
             visitExpression visitor context functionDeclaration.expression
     in
-        { functionDeclaration | expression = newExpression }
+    { functionDeclaration | expression = newExpression }
 
 
 visitExpression : Visitor context -> context -> Expression -> Expression
@@ -312,10 +312,10 @@ visitExpression visitor context expression =
         inner =
             visitExpressionInner visitor context
     in
-        (visitor |> Maybe.withDefault (\_ inner expr -> inner expr))
-            context
-            inner
-            expression
+    (visitor |> Maybe.withDefault (\_ inner expr -> inner expr))
+        context
+        inner
+        expression
 
 
 visitExpressionInner : Visitor context -> context -> Expression -> Expression
@@ -324,57 +324,57 @@ visitExpressionInner visitor context ( r, expression ) =
         subVisit =
             visitExpression visitor context
     in
-        (,) r <|
-            case expression of
-                Application expressionList ->
-                    expressionList
-                        |> List.map subVisit
-                        |> Application
+    (,) r <|
+        case expression of
+            Application expressionList ->
+                expressionList
+                    |> List.map subVisit
+                    |> Application
 
-                OperatorApplication op dir left right ->
-                    OperatorApplication op
-                        dir
-                        (subVisit left)
-                        (subVisit right)
+            OperatorApplication op dir left right ->
+                OperatorApplication op
+                    dir
+                    (subVisit left)
+                    (subVisit right)
 
-                IfBlock e1 e2 e3 ->
-                    IfBlock (subVisit e1) (subVisit e2) (subVisit e3)
+            IfBlock e1 e2 e3 ->
+                IfBlock (subVisit e1) (subVisit e2) (subVisit e3)
 
-                TupledExpression expressionList ->
-                    expressionList
-                        |> List.map subVisit
-                        |> TupledExpression
+            TupledExpression expressionList ->
+                expressionList
+                    |> List.map subVisit
+                    |> TupledExpression
 
-                ParenthesizedExpression expr1 ->
-                    ParenthesizedExpression (subVisit expr1)
+            ParenthesizedExpression expr1 ->
+                ParenthesizedExpression (subVisit expr1)
 
-                LetExpression letBlock ->
-                    LetExpression
-                        { declarations = visitLetDeclarations visitor context letBlock.declarations
-                        , expression = subVisit letBlock.expression
-                        }
+            LetExpression letBlock ->
+                LetExpression
+                    { declarations = visitLetDeclarations visitor context letBlock.declarations
+                    , expression = subVisit letBlock.expression
+                    }
 
-                CaseExpression caseBlock ->
-                    CaseExpression
-                        { expression = subVisit caseBlock.expression
-                        , cases = List.map (Tuple.mapSecond subVisit) caseBlock.cases
-                        }
+            CaseExpression caseBlock ->
+                CaseExpression
+                    { expression = subVisit caseBlock.expression
+                    , cases = List.map (Tuple.mapSecond subVisit) caseBlock.cases
+                    }
 
-                LambdaExpression lambda ->
-                    LambdaExpression <| { lambda | expression = subVisit lambda.expression }
+            LambdaExpression lambda ->
+                LambdaExpression <| { lambda | expression = subVisit lambda.expression }
 
-                RecordExpr expressionStringList ->
-                    expressionStringList
-                        |> List.map (Tuple.mapSecond subVisit)
-                        |> RecordExpr
+            RecordExpr expressionStringList ->
+                expressionStringList
+                    |> List.map (Tuple.mapSecond subVisit)
+                    |> RecordExpr
 
-                ListExpr expressionList ->
-                    ListExpr (List.map subVisit expressionList)
+            ListExpr expressionList ->
+                ListExpr (List.map subVisit expressionList)
 
-                RecordUpdateExpression recordUpdate ->
-                    recordUpdate.updates
-                        |> List.map (Tuple.mapSecond subVisit)
-                        |> (RecordUpdate recordUpdate.name >> RecordUpdateExpression)
+            RecordUpdateExpression recordUpdate ->
+                recordUpdate.updates
+                    |> List.map (Tuple.mapSecond subVisit)
+                    |> (RecordUpdate recordUpdate.name >> RecordUpdateExpression)
 
-                _ ->
-                    expression
+            _ ->
+                expression

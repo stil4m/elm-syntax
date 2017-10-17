@@ -9,8 +9,8 @@ module Elm.Syntax.File exposing (File)
 
 -}
 
-import Elm.Syntax.Module exposing (Module, Import)
 import Elm.Syntax.Declaration exposing (Declaration)
+import Elm.Syntax.Module exposing (Import, Module)
 import Elm.Syntax.Range exposing (Range)
 
 

@@ -1,4 +1,4 @@
-module Elm.Syntax.Infix exposing (Infix, InfixDirection(Left, Right), encode, encodeDirection, decode, decodeDirection)
+module Elm.Syntax.Infix exposing (Infix, InfixDirection(Left, Right), decode, decodeDirection, encode, encodeDirection)
 
 {-| Infix Syntax
 
@@ -13,9 +13,9 @@ module Elm.Syntax.Infix exposing (Infix, InfixDirection(Left, Right), encode, en
 
 -}
 
-import Json.Encode as JE exposing (Value)
 import Json.Decode as JD exposing (Decoder)
 import Json.Decode.Extra exposing ((|:))
+import Json.Encode as JE exposing (Value)
 
 
 {-| Type annotation for a infix definition

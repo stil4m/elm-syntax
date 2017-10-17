@@ -11,21 +11,21 @@ Write a file to a string.
 
 -}
 
-import Elm.Syntax.Range exposing (Range)
-import Elm.Syntax.File exposing (..)
-import Elm.Syntax.Module exposing (..)
 import Elm.Syntax.Base exposing (..)
-import Elm.Syntax.Pattern exposing (..)
+import Elm.Syntax.Declaration exposing (..)
+import Elm.Syntax.Documentation exposing (..)
+import Elm.Syntax.Exposing as Exposing exposing (..)
+import Elm.Syntax.Expression exposing (..)
+import Elm.Syntax.File exposing (..)
 import Elm.Syntax.Infix exposing (..)
+import Elm.Syntax.Module exposing (..)
+import Elm.Syntax.Pattern exposing (..)
+import Elm.Syntax.Range exposing (Range)
 import Elm.Syntax.Type exposing (..)
 import Elm.Syntax.TypeAlias exposing (..)
-import Elm.Syntax.Documentation exposing (..)
-import Elm.Syntax.Declaration exposing (..)
-import Elm.Syntax.Expression exposing (..)
 import Elm.Syntax.TypeAnnotation exposing (..)
 import List.Extra as List
 import StructuredWriter as Writer exposing (..)
-import Elm.Syntax.Exposing as Exposing exposing (..)
 
 
 {-| Transform a writer to a string
@@ -137,7 +137,7 @@ writeExposureExpose x =
                         List.map Exposing.topLevelExposeRange exposeList
                             |> startOnDifferentLines
                 in
-                    parensComma diffLines (List.map writeExpose exposeList)
+                parensComma diffLines (List.map writeExpose exposeList)
         ]
 
 
@@ -175,7 +175,7 @@ writeExposureValueConstructor x =
                     List.map Tuple.second exposeList
                         |> startOnDifferentLines
             in
-                parensComma diffLines (List.map (Tuple.first >> string) exposeList)
+            parensComma diffLines (List.map (Tuple.first >> string) exposeList)
 
 
 startOnDifferentLines : List Range -> Bool
@@ -188,7 +188,7 @@ writeImport { moduleName, moduleAlias, exposingList } =
     spaced
         [ string "import"
         , writeModuleName moduleName
-        , maybe (Maybe.map (writeModuleName >> \x -> spaced [ string "as", x ]) moduleAlias)
+        , maybe (Maybe.map (writeModuleName >> (\x -> spaced [ string "as", x ])) moduleAlias)
         , writeExposureExpose exposingList
         ]
 
@@ -293,9 +293,9 @@ writeType type_ =
                 List.map .range type_.constructors
                     |> startOnDifferentLines
           in
-            sepBy ( "=", "|", "" )
-                diffLines
-                (List.map writeValueConstructor type_.constructors)
+          sepBy ( "=", "|", "" )
+            diffLines
+            (List.map writeValueConstructor type_.constructors)
         ]
 
 
@@ -399,140 +399,140 @@ writeExpression ( range, inner ) =
                     List.map Tuple.first l
                         |> startOnDifferentLines
             in
-                f diffLines (List.map Tuple.second l)
+            f diffLines (List.map Tuple.second l)
     in
-        case inner of
-            UnitExpr ->
-                string "()"
+    case inner of
+        UnitExpr ->
+            string "()"
 
-            Application xs ->
-                case xs of
-                    [] ->
-                        epsilon
+        Application xs ->
+            case xs of
+                [] ->
+                    epsilon
 
-                    [ x ] ->
-                        writeExpression x
+                [ x ] ->
+                    writeExpression x
 
-                    x :: rest ->
-                        spaced
-                            [ writeExpression x
-                            , sepHelper sepBySpace (List.map recurRangeHelper rest)
-                            ]
+                x :: rest ->
+                    spaced
+                        [ writeExpression x
+                        , sepHelper sepBySpace (List.map recurRangeHelper rest)
+                        ]
 
-            OperatorApplication x dir left right ->
-                case dir of
-                    Left ->
-                        sepHelper sepBySpace
-                            [ ( Tuple.first left, writeExpression left )
-                            , ( range, spaced [ string x, writeExpression right ] )
-                            ]
+        OperatorApplication x dir left right ->
+            case dir of
+                Left ->
+                    sepHelper sepBySpace
+                        [ ( Tuple.first left, writeExpression left )
+                        , ( range, spaced [ string x, writeExpression right ] )
+                        ]
 
-                    Right ->
-                        sepHelper sepBySpace
-                            [ ( Tuple.first left, spaced [ writeExpression left, string x ] )
-                            , ( Tuple.first right, writeExpression right )
-                            ]
+                Right ->
+                    sepHelper sepBySpace
+                        [ ( Tuple.first left, spaced [ writeExpression left, string x ] )
+                        , ( Tuple.first right, writeExpression right )
+                        ]
 
-            FunctionOrValue x ->
-                string x
+        FunctionOrValue x ->
+            string x
 
-            IfBlock condition thenCase elseCase ->
-                breaked
-                    [ spaced [ string "if", writeExpression condition, string "then" ]
-                    , indent 2 (writeExpression thenCase)
-                    , string "else"
-                    , indent 2 (writeExpression elseCase)
-                    ]
+        IfBlock condition thenCase elseCase ->
+            breaked
+                [ spaced [ string "if", writeExpression condition, string "then" ]
+                , indent 2 (writeExpression thenCase)
+                , string "else"
+                , indent 2 (writeExpression elseCase)
+                ]
 
-            PrefixOperator x ->
-                string ("(" ++ x ++ ")")
+        PrefixOperator x ->
+            string ("(" ++ x ++ ")")
 
-            Operator x ->
-                string x
+        Operator x ->
+            string x
 
-            Integer i ->
-                string (toString i)
+        Integer i ->
+            string (toString i)
 
-            Floatable f ->
-                string (toString f)
+        Floatable f ->
+            string (toString f)
 
-            Negation x ->
-                append (string "-") (writeExpression x)
+        Negation x ->
+            append (string "-") (writeExpression x)
 
-            Literal s ->
-                string (toString s)
+        Literal s ->
+            string (toString s)
 
-            CharLiteral c ->
-                string (toString c)
+        CharLiteral c ->
+            string (toString c)
 
-            TupledExpression t ->
-                sepHelper sepByComma (List.map recurRangeHelper t)
+        TupledExpression t ->
+            sepHelper sepByComma (List.map recurRangeHelper t)
 
-            ParenthesizedExpression x ->
-                join [ string "(", writeExpression x, string ")" ]
+        ParenthesizedExpression x ->
+            join [ string "(", writeExpression x, string ")" ]
 
-            LetExpression letBlock ->
-                breaked
-                    [ string "let"
-                    , indent 2 (breaked (List.map writeLetDeclaration letBlock.declarations))
-                    , string "in"
-                    , indent 2 (writeExpression letBlock.expression)
-                    ]
+        LetExpression letBlock ->
+            breaked
+                [ string "let"
+                , indent 2 (breaked (List.map writeLetDeclaration letBlock.declarations))
+                , string "in"
+                , indent 2 (writeExpression letBlock.expression)
+                ]
 
-            CaseExpression caseBlock ->
-                let
-                    writeCaseBranch ( pattern, expression ) =
-                        breaked
-                            [ spaced [ writePattern pattern, string "->" ]
-                            , indent 2 (writeExpression expression)
-                            ]
-                in
+        CaseExpression caseBlock ->
+            let
+                writeCaseBranch ( pattern, expression ) =
                     breaked
-                        [ spaced [ string "case", writeExpression caseBlock.expression, string "of" ]
-                        , indent 2
-                            (breaked (List.map writeCaseBranch caseBlock.cases))
+                        [ spaced [ writePattern pattern, string "->" ]
+                        , indent 2 (writeExpression expression)
                         ]
+            in
+            breaked
+                [ spaced [ string "case", writeExpression caseBlock.expression, string "of" ]
+                , indent 2
+                    (breaked (List.map writeCaseBranch caseBlock.cases))
+                ]
 
-            LambdaExpression lambda ->
-                spaced
-                    [ join
-                        [ string "\\"
-                        , spaced (List.map writePattern lambda.args)
-                        ]
-                    , string "->"
-                    , writeExpression lambda.expression
+        LambdaExpression lambda ->
+            spaced
+                [ join
+                    [ string "\\"
+                    , spaced (List.map writePattern lambda.args)
                     ]
+                , string "->"
+                , writeExpression lambda.expression
+                ]
 
-            RecordExpr setters ->
-                sepHelper bracesComma (List.map writeRecordSetter setters)
+        RecordExpr setters ->
+            sepHelper bracesComma (List.map writeRecordSetter setters)
 
-            ListExpr xs ->
-                sepHelper bracketsComma (List.map recurRangeHelper xs)
+        ListExpr xs ->
+            sepHelper bracketsComma (List.map recurRangeHelper xs)
 
-            QualifiedExpr moduleName name ->
-                join [ writeModuleName moduleName, string name ]
+        QualifiedExpr moduleName name ->
+            join [ writeModuleName moduleName, string name ]
 
-            RecordAccess expression accessor ->
-                join [ writeExpression expression, string ".", string accessor ]
+        RecordAccess expression accessor ->
+            join [ writeExpression expression, string ".", string accessor ]
 
-            RecordAccessFunction s ->
-                join [ string ".", string s ]
+        RecordAccessFunction s ->
+            join [ string ".", string s ]
 
-            RecordUpdateExpression { name, updates } ->
-                spaced
-                    [ string "{"
-                    , string name
-                    , string "|"
-                    , sepHelper sepByComma (List.map writeRecordSetter updates)
-                    , string "}"
-                    ]
+        RecordUpdateExpression { name, updates } ->
+            spaced
+                [ string "{"
+                , string name
+                , string "|"
+                , sepHelper sepByComma (List.map writeRecordSetter updates)
+                , string "}"
+                ]
 
-            GLSLExpression s ->
-                join
-                    [ string "[glsl|"
-                    , string s
-                    , string "|]"
-                    ]
+        GLSLExpression s ->
+            join
+                [ string "[glsl|"
+                , string s
+                , string "|]"
+                ]
 
 
 {-| Write a pattern

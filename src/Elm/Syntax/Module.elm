@@ -1,9 +1,9 @@
 module Elm.Syntax.Module
     exposing
-        ( Module(NormalModule, PortModule, EffectModule, NoModule)
-        , DefaultModuleData
+        ( DefaultModuleData
         , EffectModuleData
         , Import
+        , Module(EffectModule, NoModule, NormalModule, PortModule)
         , exposingList
         , moduleName
         )
@@ -24,9 +24,9 @@ module Elm.Syntax.Module
 
 -}
 
+import Elm.Syntax.Base exposing (ModuleName)
 import Elm.Syntax.Exposing exposing (Exposing(..), TopLevelExpose)
 import Elm.Syntax.Range exposing (Range)
-import Elm.Syntax.Base exposing (ModuleName)
 
 
 {-| Union type for different kind of modules

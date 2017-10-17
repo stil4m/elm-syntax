@@ -1,4 +1,4 @@
-module Elm.Syntax.Range exposing (Range, Location, emptyRange, combine, encode, decode)
+module Elm.Syntax.Range exposing (Location, Range, combine, decode, emptyRange, encode)
 
 {-| Source Code Ranges
 
@@ -19,9 +19,9 @@ module Elm.Syntax.Range exposing (Range, Location, emptyRange, combine, encode, 
 
 -}
 
-import Json.Encode as JE exposing (Value)
 import Json.Decode as JD exposing (Decoder)
 import Json.Decode.Extra exposing (fromResult)
+import Json.Encode as JE exposing (Value)
 
 
 {-| Source location
@@ -94,8 +94,8 @@ combine ranges =
         ends =
             List.map .end ranges |> sortLocations |> List.reverse
     in
-        Maybe.map2 Range (List.head starts) (List.head ends)
-            |> Maybe.withDefault emptyRange
+    Maybe.map2 Range (List.head starts) (List.head ends)
+        |> Maybe.withDefault emptyRange
 
 
 {-| Could be faster via single fold

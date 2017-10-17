@@ -1,8 +1,8 @@
 module Elm.Syntax.TypeAnnotation
     exposing
-        ( TypeAnnotation(GenericType, Typed, Unit, Tupled, Record, GenericRecord, FunctionTypeAnnotation)
-        , RecordDefinition
+        ( RecordDefinition
         , RecordField
+        , TypeAnnotation(FunctionTypeAnnotation, GenericRecord, GenericType, Record, Tupled, Typed, Unit)
         )
 
 {-| Type Annotation Syntax
@@ -14,8 +14,8 @@ module Elm.Syntax.TypeAnnotation
 
 -}
 
-import Elm.Syntax.Range exposing (Range)
 import Elm.Syntax.Base exposing (ModuleName)
+import Elm.Syntax.Range exposing (Range)
 
 
 {-| Union type for different type aliases

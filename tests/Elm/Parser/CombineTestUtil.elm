@@ -1,18 +1,17 @@
 module Elm.Parser.CombineTestUtil exposing (..)
 
 import Combine exposing (..)
-import Elm.Syntax.Range exposing (emptyRange)
-import Elm.Syntax.Range exposing (Range)
+import Elm.Parser.State exposing (State, emptyState)
+import Elm.Syntax.Declaration exposing (..)
+import Elm.Syntax.Exposing exposing (..)
 import Elm.Syntax.Expression exposing (..)
 import Elm.Syntax.File exposing (..)
 import Elm.Syntax.Module exposing (..)
 import Elm.Syntax.Pattern exposing (..)
-import Elm.Syntax.Declaration exposing (..)
+import Elm.Syntax.Range exposing (Range, emptyRange)
+import Elm.Syntax.Type exposing (..)
 import Elm.Syntax.TypeAlias exposing (..)
 import Elm.Syntax.TypeAnnotation exposing (..)
-import Elm.Syntax.Type exposing (..)
-import Elm.Parser.State exposing (State, emptyState)
-import Elm.Syntax.Exposing exposing (..)
 
 
 parseFullStringState : State -> String -> Parser State b -> Maybe b
@@ -191,7 +190,7 @@ noRangeExpose l =
                         Explicit list ->
                             Explicit <| List.map (Tuple.mapSecond (always emptyRange)) list
             in
-                TypeExpose (ExposedType name newT emptyRange)
+            TypeExpose (ExposedType name newT emptyRange)
 
 
 noRangeDeclaration : Declaration -> Declaration
@@ -270,7 +269,7 @@ noRangeTypeDeclaration x =
 
 noRangeValueConstructor : ValueConstructor -> ValueConstructor
 noRangeValueConstructor valueConstructor =
-    unRange ({ valueConstructor | arguments = List.map noRangeTypeReference valueConstructor.arguments })
+    unRange { valueConstructor | arguments = List.map noRangeTypeReference valueConstructor.arguments }
 
 
 noRangeFunction : Function -> Function

@@ -1,4 +1,4 @@
-module Elm.Parser.State exposing (State, emptyState, currentIndent, popIndent, pushIndent, addComment, getComments)
+module Elm.Parser.State exposing (State, addComment, currentIndent, emptyState, getComments, popIndent, pushIndent)
 
 import Elm.Syntax.Range exposing (Range)
 

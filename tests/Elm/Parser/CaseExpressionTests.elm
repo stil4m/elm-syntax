@@ -1,13 +1,13 @@
 module Elm.Parser.CaseExpressionTests exposing (..)
 
 import Elm.Parser.CombineTestUtil exposing (..)
-import Expect
 import Elm.Parser.Declarations as Parser exposing (..)
-import Elm.Syntax.Range exposing (emptyRange)
-import Test exposing (..)
 import Elm.Parser.State exposing (emptyState)
 import Elm.Syntax.Expression exposing (..)
 import Elm.Syntax.Pattern exposing (..)
+import Elm.Syntax.Range exposing (emptyRange)
+import Expect
+import Test exposing (..)
 
 
 all : Test
@@ -25,7 +25,7 @@ all =
         , test "caseStatement" <|
             \() ->
                 parseFullStringState emptyState "True -> 1" Parser.caseStatement
-                    |> Maybe.map (((Tuple.mapSecond noRangeExpression >> Tuple.mapFirst noRangePattern)))
+                    |> Maybe.map (Tuple.mapSecond noRangeExpression >> Tuple.mapFirst noRangePattern)
                     |> Expect.equal
                         (Just
                             ( NamedPattern (QualifiedNameRef [] "True") [] emptyRange
@@ -35,7 +35,7 @@ all =
         , test "caseStatement qualified" <|
             \() ->
                 parseFullStringState emptyState "Foo.Bar -> 1" Parser.caseStatement
-                    |> Maybe.map (((Tuple.mapSecond noRangeExpression >> Tuple.mapFirst noRangePattern)))
+                    |> Maybe.map (Tuple.mapSecond noRangeExpression >> Tuple.mapFirst noRangePattern)
                     |> Expect.equal
                         (Just
                             ( NamedPattern (QualifiedNameRef [ "Foo" ] "Bar") [] emptyRange
@@ -45,7 +45,7 @@ all =
         , test "caseStatement no spacing" <|
             \() ->
                 parseFullStringState emptyState "32->Backspace" Parser.caseStatement
-                    |> Maybe.map (((Tuple.mapSecond noRangeExpression >> Tuple.mapFirst noRangePattern)))
+                    |> Maybe.map (Tuple.mapSecond noRangeExpression >> Tuple.mapFirst noRangePattern)
                     |> Expect.equal
                         (Just
                             ( IntPattern 32 emptyRange

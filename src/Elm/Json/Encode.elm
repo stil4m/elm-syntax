@@ -12,21 +12,21 @@ Encoding Elm Code to Json
 -}
 
 import Elm.Internal.RawFile exposing (RawFile(Raw))
-import Elm.Syntax.Range as Range exposing (Range)
-import Elm.Syntax.Exposing exposing (..)
-import Elm.Syntax.File exposing (..)
-import Elm.Syntax.Module exposing (..)
+import Elm.Json.Util exposing (encodeTyped)
 import Elm.Syntax.Base exposing (..)
-import Elm.Syntax.Pattern exposing (..)
+import Elm.Syntax.Declaration exposing (..)
+import Elm.Syntax.Documentation exposing (..)
+import Elm.Syntax.Exposing exposing (..)
+import Elm.Syntax.Expression exposing (..)
+import Elm.Syntax.File exposing (..)
 import Elm.Syntax.Infix as Infix exposing (..)
+import Elm.Syntax.Module exposing (..)
+import Elm.Syntax.Pattern exposing (..)
+import Elm.Syntax.Range as Range exposing (Range)
 import Elm.Syntax.Type exposing (..)
 import Elm.Syntax.TypeAlias exposing (..)
-import Elm.Syntax.Documentation exposing (..)
-import Elm.Syntax.Declaration exposing (..)
-import Elm.Syntax.Expression exposing (..)
 import Elm.Syntax.TypeAnnotation exposing (..)
-import Json.Encode as JE exposing (Value, object, int, string, list, float)
-import Elm.Json.Util exposing (encodeTyped)
+import Json.Encode as JE exposing (Value, float, int, list, object, string)
 
 
 asList : (a -> Value) -> List a -> Value

@@ -1,9 +1,9 @@
 module Elm.Parser.CommentTest exposing (..)
 
-import Expect
 import Elm.Parser.CombineTestUtil exposing (..)
 import Elm.Parser.Comments as Parser
 import Elm.Parser.State as State exposing (emptyState)
+import Expect
 import Test exposing (..)
 
 

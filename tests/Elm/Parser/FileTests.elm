@@ -1,17 +1,17 @@
 module Elm.Parser.FileTests exposing (..)
 
+import Elm.Internal.RawFile exposing (RawFile(Raw))
+import Elm.Json.Decode as Elm
 import Elm.Json.Encode
-import Expect
-import Json.Decode
-import Json.Encode
+import Elm.Parser as Parser
 import Elm.Parser.CombineTestUtil exposing (..)
 import Elm.Parser.File as Parser exposing (file)
 import Elm.Parser.Samples as Samples
-import Elm.Parser as Parser
-import Test exposing (..)
 import Elm.Parser.State exposing (emptyState)
-import Elm.Json.Decode as Elm
-import Elm.Internal.RawFile exposing (RawFile(Raw))
+import Expect
+import Json.Decode
+import Json.Encode
+import Test exposing (..)
 
 
 all : Test
@@ -57,7 +57,7 @@ all =
                                             |> Maybe.map (Elm.Json.Encode.encode >> Json.Encode.encode 0)
                                             |> Maybe.andThen (Json.Decode.decodeString Elm.decode >> Result.toMaybe)
                                 in
-                                    Expect.equal parsed roundTrip
+                                Expect.equal parsed roundTrip
                     )
                 |> Test.concat
             ]

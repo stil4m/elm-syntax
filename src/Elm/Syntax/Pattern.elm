@@ -2,20 +2,20 @@ module Elm.Syntax.Pattern
     exposing
         ( Pattern
             ( AllPattern
-            , UnitPattern
-            , CharPattern
-            , StringPattern
-            , IntPattern
-            , FloatPattern
-            , TuplePattern
-            , RecordPattern
-            , UnConsPattern
-            , ListPattern
-            , VarPattern
-            , NamedPattern
-            , QualifiedNamePattern
             , AsPattern
+            , CharPattern
+            , FloatPattern
+            , IntPattern
+            , ListPattern
+            , NamedPattern
             , ParenthesizedPattern
+            , QualifiedNamePattern
+            , RecordPattern
+            , StringPattern
+            , TuplePattern
+            , UnConsPattern
+            , UnitPattern
+            , VarPattern
             )
         , QualifiedNameRef
         )
@@ -29,8 +29,8 @@ module Elm.Syntax.Pattern
 
 -}
 
-import Elm.Syntax.Range exposing (Range)
 import Elm.Syntax.Base exposing (VariablePointer)
+import Elm.Syntax.Range exposing (Range)
 
 
 {-| Union type for all the patterns

@@ -1,10 +1,10 @@
 module Elm.Parser.UtilTests exposing (..)
 
 import Elm.Parser.CombineTestUtil exposing (..)
-import Expect
-import Elm.Parser.Util exposing (commentSequence, exactIndentWhitespace, moreThanIndentWhitespace, multiLineCommentWithTrailingSpaces)
-import Test exposing (..)
 import Elm.Parser.State exposing (emptyState, pushIndent)
+import Elm.Parser.Util exposing (commentSequence, exactIndentWhitespace, moreThanIndentWhitespace, multiLineCommentWithTrailingSpaces)
+import Expect
+import Test exposing (..)
 
 
 all : Test

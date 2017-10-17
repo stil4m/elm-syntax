@@ -1,12 +1,12 @@
-module Elm.Parser.Expose exposing (exposeDefinition, infixExpose, typeExpose, exposingListInner, definitionExpose, exposable)
+module Elm.Parser.Expose exposing (definitionExpose, exposable, exposeDefinition, exposingListInner, infixExpose, typeExpose)
 
-import Elm.Syntax.Exposing exposing (ExposedType, Exposing(None, All, Explicit), ValueConstructorExpose, TopLevelExpose(InfixExpose, TypeExpose, TypeOrAliasExpose, FunctionExpose))
 import Combine exposing ((*>), (<$), (<$>), (<*>), Parser, choice, maybe, or, parens, sepBy, string, succeed, while)
 import Combine.Char exposing (char)
+import Elm.Parser.Ranges exposing (withRange)
+import Elm.Parser.State exposing (State)
 import Elm.Parser.Tokens exposing (exposingToken, functionName, typeName)
 import Elm.Parser.Util exposing (moreThanIndentWhitespace, trimmed)
-import Elm.Parser.State exposing (State)
-import Elm.Parser.Ranges exposing (withRange)
+import Elm.Syntax.Exposing exposing (ExposedType, Exposing(All, Explicit, None), TopLevelExpose(FunctionExpose, InfixExpose, TypeExpose, TypeOrAliasExpose), ValueConstructorExpose)
 
 
 exposeDefinition : Parser State a -> Parser State (Exposing a)

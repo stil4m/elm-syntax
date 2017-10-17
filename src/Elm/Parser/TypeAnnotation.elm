@@ -1,12 +1,12 @@
 module Elm.Parser.TypeAnnotation exposing (typeAnnotation)
 
-import Combine exposing (choice, lazy, Parser, parens, map, sepBy, (>>=), (<*>), succeed, (*>), string, maybe, (<$>), between, many, (<*), or, whitespace)
+import Combine exposing ((*>), (<$>), (<*), (<*>), (>>=), Parser, between, choice, lazy, many, map, maybe, or, parens, sepBy, string, succeed, whitespace)
+import Elm.Parser.Ranges exposing (withRange)
+import Elm.Parser.State exposing (State)
 import Elm.Parser.Tokens exposing (functionName, typeName)
-import Elm.Syntax.Range exposing (Range)
 import Elm.Parser.Util exposing (moreThanIndentWhitespace, trimmed)
 import Elm.Parser.Whitespace exposing (realNewLine)
-import Elm.Parser.State exposing (State)
-import Elm.Parser.Ranges exposing (withRange)
+import Elm.Syntax.Range exposing (Range)
 import Elm.Syntax.TypeAnnotation exposing (..)
 
 
@@ -31,9 +31,10 @@ typeAnnotation =
         (\() ->
             withRange <|
                 typeAnnotationNoFn
-                    >>= \typeRef ->
+                    >>= (\typeRef ->
                             or (FunctionTypeAnnotation typeRef <$> (trimmed (string "->") *> typeAnnotation))
                                 (succeed (always typeRef))
+                        )
         )
 
 

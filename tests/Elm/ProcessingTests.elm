@@ -1,17 +1,17 @@
 module Elm.ProcessingTests exposing (..)
 
-import Elm.Processing as Processing
-import Expect
 import Elm.Parser as Parser
-import Test exposing (..)
-import Elm.Syntax.Expression exposing (..)
-import Elm.Syntax.File exposing (..)
-import Elm.Syntax.Module exposing (..)
+import Elm.Processing as Processing
 import Elm.Syntax.Declaration exposing (..)
-import Elm.Syntax.TypeAnnotation exposing (..)
-import Elm.Syntax.Infix exposing (..)
 import Elm.Syntax.Documentation exposing (..)
 import Elm.Syntax.Exposing exposing (..)
+import Elm.Syntax.Expression exposing (..)
+import Elm.Syntax.File exposing (..)
+import Elm.Syntax.Infix exposing (..)
+import Elm.Syntax.Module exposing (..)
+import Elm.Syntax.TypeAnnotation exposing (..)
+import Expect
+import Test exposing (..)
 
 
 functionWithDocs : ( String, String, File )
@@ -179,7 +179,7 @@ type alias Foo
                 { documentation = Just (Documentation "{-| The Doc -}" { start = { row = 3, column = -1 }, end = { row = 4, column = -2 } })
                 , name = "Foo"
                 , generics = []
-                , typeAnnotation = Record ([ ( "name", Typed [] "String" [] { start = { row = 5, column = 13 }, end = { row = 5, column = 20 } } ) ]) { start = { row = 5, column = 4 }, end = { row = 6, column = -2 } }
+                , typeAnnotation = Record [ ( "name", Typed [] "String" [] { start = { row = 5, column = 13 }, end = { row = 5, column = 20 } } ) ] { start = { row = 5, column = 4 }, end = { row = 6, column = -2 } }
                 , range = { start = { row = 4, column = -1 }, end = { row = 6, column = -2 } }
                 }
             ]
