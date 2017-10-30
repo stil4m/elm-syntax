@@ -1,7 +1,7 @@
 module Elm.Syntax.Exposing
     exposing
         ( ExposedType
-        , Exposing(All, Explicit, None)
+        , Exposing(All, Explicit)
         , TopLevelExpose(FunctionExpose, InfixExpose, TypeExpose, TypeOrAliasExpose)
         , ValueConstructorExpose
         , exposesFunction
@@ -29,8 +29,7 @@ import Elm.Syntax.Range exposing (Range)
 {-| Diffent kind of exposing declarations
 -}
 type Exposing a
-    = None
-    | All Range
+    = All Range
     | Explicit (List a)
 
 
@@ -47,7 +46,7 @@ type TopLevelExpose
 -}
 type alias ExposedType =
     { name : String
-    , constructors : Exposing ValueConstructorExpose
+    , constructors : Maybe (Exposing ValueConstructorExpose)
     , range : Range
     }
 
@@ -83,9 +82,6 @@ exposesFunction s exposure =
     case exposure of
         All _ ->
             True
-
-        None ->
-            False
 
         Explicit l ->
             List.any

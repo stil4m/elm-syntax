@@ -61,9 +61,6 @@ writeModule m =
         EffectModule effectModuleData ->
             writeEffectModuleData effectModuleData
 
-        NoModule ->
-            epsilon
-
 
 writeDefaultModuleData : DefaultModuleData -> Writer
 writeDefaultModuleData { moduleName, exposingList } =
@@ -122,23 +119,20 @@ writeModuleName moduleName =
 
 writeExposureExpose : Exposing TopLevelExpose -> Writer
 writeExposureExpose x =
-    spaced
-        [ string "exposing"
-        , case x of
-            None ->
-                epsilon
+    case x of
+        All _ ->
+            string "exposing (..)"
 
-            All _ ->
-                string "(..)"
-
-            Explicit exposeList ->
-                let
-                    diffLines =
-                        List.map Exposing.topLevelExposeRange exposeList
-                            |> startOnDifferentLines
-                in
-                parensComma diffLines (List.map writeExpose exposeList)
-        ]
+        Explicit exposeList ->
+            let
+                diffLines =
+                    List.map Exposing.topLevelExposeRange exposeList
+                        |> startOnDifferentLines
+            in
+            spaced
+                [ string "exposing"
+                , parensComma diffLines (List.map writeExpose exposeList)
+                ]
 
 
 writeExpose : TopLevelExpose -> Writer
@@ -154,18 +148,20 @@ writeExpose exp =
             string t
 
         TypeExpose { name, constructors } ->
-            spaced
-                [ string name
-                , writeExposureValueConstructor constructors
-                ]
+            case constructors of
+                Just c ->
+                    spaced
+                        [ string name
+                        , writeExposureValueConstructor c
+                        ]
+
+                Nothing ->
+                    string name
 
 
 writeExposureValueConstructor : Exposing ValueConstructorExpose -> Writer
 writeExposureValueConstructor x =
     case x of
-        None ->
-            epsilon
-
         All _ ->
             string "(..)"
 
@@ -189,7 +185,7 @@ writeImport { moduleName, moduleAlias, exposingList } =
         [ string "import"
         , writeModuleName moduleName
         , maybe (Maybe.map (writeModuleName >> (\x -> spaced [ string "as", x ])) moduleAlias)
-        , writeExposureExpose exposingList
+        , maybe (Maybe.map writeExposureExpose exposingList)
         ]
 
 

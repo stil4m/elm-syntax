@@ -15,4 +15,4 @@ importDefinition =
         succeed Import
             <*> (importToken *> moreThanIndentWhitespace *> moduleName)
             <*> maybe (moreThanIndentWhitespace *> asToken *> moreThanIndentWhitespace *> moduleName)
-            <*> exposeDefinition exposable
+            <*> maybe (exposeDefinition exposable)

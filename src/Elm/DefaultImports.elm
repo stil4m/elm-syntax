@@ -1,6 +1,6 @@
 module Elm.DefaultImports exposing (defaults)
 
-import Elm.Syntax.Exposing exposing (ExposedType, Exposing(All, Explicit, None), TopLevelExpose(InfixExpose, TypeExpose))
+import Elm.Syntax.Exposing exposing (ExposedType, Exposing(All, Explicit), TopLevelExpose(InfixExpose, TypeExpose))
 import Elm.Syntax.Module exposing (Import)
 import Elm.Syntax.Range as Range
 
@@ -8,76 +8,80 @@ import Elm.Syntax.Range as Range
 defaults : List Import
 defaults =
     [ { moduleName = [ "Basics" ]
-      , exposingList = All Range.emptyRange
+      , exposingList = Just (All Range.emptyRange)
       , moduleAlias = Nothing
       , range = Range.emptyRange
       }
     , { moduleName = [ "List" ]
       , exposingList =
-            Explicit
-                [ TypeExpose (ExposedType "List" None Range.emptyRange)
-                , InfixExpose "::" Range.emptyRange
-                ]
+            Just <|
+                Explicit
+                    [ TypeExpose (ExposedType "List" Nothing Range.emptyRange)
+                    , InfixExpose "::" Range.emptyRange
+                    ]
       , moduleAlias = Nothing
       , range = Range.emptyRange
       }
     , { moduleName = [ "Maybe" ]
       , exposingList =
-            Explicit
-                [ TypeExpose
-                    (ExposedType "Maybe"
-                        (Explicit
-                            [ ( "Just", Range.emptyRange )
-                            , ( "Nothing", Range.emptyRange )
-                            ]
+            Just <|
+                Explicit
+                    [ TypeExpose
+                        (ExposedType "Maybe"
+                            (Just <|
+                                Explicit
+                                    [ ( "Just", Range.emptyRange )
+                                    , ( "Nothing", Range.emptyRange )
+                                    ]
+                            )
+                            Range.emptyRange
                         )
-                        Range.emptyRange
-                    )
-                ]
+                    ]
       , moduleAlias = Nothing
       , range = Range.emptyRange
       }
     , { moduleName = [ "Result" ]
       , exposingList =
-            Explicit
-                [ TypeExpose
-                    (ExposedType "Result"
-                        (Explicit
-                            [ ( "Ok", Range.emptyRange )
-                            , ( "Err", Range.emptyRange )
-                            ]
+            Just <|
+                Explicit
+                    [ TypeExpose
+                        (ExposedType "Result"
+                            (Just <|
+                                Explicit
+                                    [ ( "Ok", Range.emptyRange )
+                                    , ( "Err", Range.emptyRange )
+                                    ]
+                            )
+                            Range.emptyRange
                         )
-                        Range.emptyRange
-                    )
-                ]
+                    ]
       , moduleAlias = Nothing
       , range = Range.emptyRange
       }
-    , { moduleName = [ "String" ], exposingList = None, moduleAlias = Nothing, range = Range.emptyRange }
-    , { moduleName = [ "Tuple" ], exposingList = None, moduleAlias = Nothing, range = Range.emptyRange }
-    , { moduleName = [ "Debug" ], exposingList = None, moduleAlias = Nothing, range = Range.emptyRange }
+    , { moduleName = [ "String" ], exposingList = Nothing, moduleAlias = Nothing, range = Range.emptyRange }
+    , { moduleName = [ "Tuple" ], exposingList = Nothing, moduleAlias = Nothing, range = Range.emptyRange }
+    , { moduleName = [ "Debug" ], exposingList = Nothing, moduleAlias = Nothing, range = Range.emptyRange }
     , { moduleName = [ "Platform" ]
       , exposingList =
-            Explicit
-                [ TypeExpose (ExposedType "Program" None Range.emptyRange)
-                ]
+            Just <|
+                Explicit
+                    [ TypeExpose (ExposedType "Program" Nothing Range.emptyRange)
+                    ]
       , moduleAlias = Nothing
       , range = Range.emptyRange
       }
     , { moduleName = [ "Platform", "Cmd" ]
       , exposingList =
-            Explicit
-                [ TypeExpose (ExposedType "Cmd" None Range.emptyRange)
-                , InfixExpose "!" Range.emptyRange
-                ]
+            Just <|
+                Explicit
+                    [ TypeExpose (ExposedType "Cmd" Nothing Range.emptyRange)
+                    , InfixExpose "!" Range.emptyRange
+                    ]
       , moduleAlias = Nothing
       , range = Range.emptyRange
       }
     , { moduleName = [ "Platform", "Sub" ]
-      , exposingList =
-            Explicit
-                [ TypeExpose (ExposedType "Sub" None Range.emptyRange)
-                ]
+      , exposingList = Just <| Explicit [ TypeExpose (ExposedType "Sub" Nothing Range.emptyRange) ]
       , moduleAlias = Nothing
       , range = Range.emptyRange
       }

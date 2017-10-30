@@ -5,7 +5,7 @@ import Elm.Parser.Expose exposing (exposable, exposeDefinition)
 import Elm.Parser.State exposing (State)
 import Elm.Parser.Tokens exposing (functionName, moduleName, moduleToken, portToken, typeName)
 import Elm.Parser.Util exposing (moreThanIndentWhitespace, trimmed)
-import Elm.Syntax.Module exposing (DefaultModuleData, Module(EffectModule, NoModule, NormalModule, PortModule))
+import Elm.Syntax.Module exposing (DefaultModuleData, Module(EffectModule, NormalModule, PortModule))
 
 
 moduleDefinition : Parser State Module
@@ -14,13 +14,7 @@ moduleDefinition =
         [ normalModuleDefinition
         , portModuleDefinition
         , effectModuleDefinition
-        , noModule
         ]
-
-
-noModule : Parser State Module
-noModule =
-    succeed NoModule
 
 
 effectWhereClause : Parser State ( String, String )

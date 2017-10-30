@@ -31,7 +31,8 @@ all =
             [ test "failure on module name" <|
                 \() ->
                     Parser.parse "module foo exposing (..)\nx = 1"
-                        |> Expect.equal (Err [ "Could not continue parsing on location (1,0)" ])
+                        |> Result.toMaybe
+                        |> Expect.equal Nothing
             , test "failure on declaration" <|
                 \() ->
                     Parser.parse "module Foo exposing (..)\n\ntype x = \n  1"

@@ -32,7 +32,7 @@ module Elm.Interface
 
 import Elm.Internal.RawFile exposing (RawFile(Raw))
 import Elm.Syntax.Declaration exposing (Declaration(..))
-import Elm.Syntax.Exposing exposing (Exposing(All, Explicit, None), TopLevelExpose(FunctionExpose, InfixExpose, TypeExpose, TypeOrAliasExpose))
+import Elm.Syntax.Exposing exposing (Exposing(All, Explicit), TopLevelExpose(FunctionExpose, InfixExpose, TypeExpose, TypeOrAliasExpose))
 import Elm.Syntax.File exposing (File)
 import Elm.Syntax.Infix exposing (Infix, InfixDirection(Left))
 import Elm.Syntax.Module as Module
@@ -119,9 +119,6 @@ build (Raw file) =
             Module.exposingList file.moduleDefinition
     in
     case moduleExposing of
-        None ->
-            []
-
         Explicit x ->
             buildInterfaceFromExplicit x fileDefinitionList
 
@@ -152,13 +149,13 @@ buildInterfaceFromExplicit x fileDefinitionList =
 
                     TypeExpose exposedType ->
                         case exposedType.constructors of
-                            None ->
+                            Nothing ->
                                 Just <| Type ( exposedType.name, [] )
 
-                            All _ ->
+                            Just (All _) ->
                                 lookupForDefinition exposedType.name fileDefinitionList
 
-                            Explicit v ->
+                            Just (Explicit v) ->
                                 Just <| Type ( exposedType.name, List.map Tuple.first v )
             )
 

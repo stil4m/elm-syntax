@@ -32,26 +32,14 @@ allSamples =
     , sample27
     , sample28
     , sample29
-    , ""
-
-    -- , sample30
-    , ""
-
-    -- , sample31
-    , ""
-
-    -- , sample32
-    , sample33
-    , ""
-
-    -- , sample34
-    , sample35
-    , sample36
+    , sample30
+    , sample31
+    , sample32
     ]
 
 
-sample36 : String
-sample36 =
+sample31 : String
+sample31 =
     """module Hex exposing (fromString, toString)
 
 {-| Convert to and from Hex strings.
@@ -244,8 +232,8 @@ unsafeToDigit num =
 """
 
 
-sample35 : String
-sample35 =
+sample30 : String
+sample30 =
     """module Bar exposing (..)
 
 type Color = Blue
@@ -253,21 +241,9 @@ type Color = Blue
 """
 
 
-sample34 : String
-sample34 =
-    """module Bar
-
-foo = case x of
-    Foo -> {
-      who = "thinks of"
-    , these = "Things"
-    }
-"""
-
-
-sample33 : String
-sample33 =
-    """module Foo
+sample32 : String
+sample32 =
+    """module Foo exposing (..)
 
 y x =
   case x of
@@ -319,7 +295,7 @@ y x =
 
 sample29 : String
 sample29 =
-    """module Foo
+    """module Foo exposing (..)
 
 x = '\\x0D'
 """
@@ -327,7 +303,7 @@ x = '\\x0D'
 
 sample28 : String
 sample28 =
-    """module Foo
+    """module Foo exposing (..)
 
 x =
     let
@@ -341,7 +317,7 @@ x =
 
 sample27 : String
 sample27 =
-    """module Foo
+    """module Foo exposing (..)
 
 type alias Post = {
   id: Int,
@@ -356,7 +332,7 @@ type alias Post = {
 -}
 sample26 : String
 sample26 =
-    """module Foo
+    """module Foo exposing (..)
 
 x b =
   let
@@ -431,7 +407,8 @@ update msg model =
 -}
 sample3 : String
 sample3 =
-    """import Html
+    """module X exposing (..)
+import Html
 
 main =
   Html.text <| toString foo
@@ -519,14 +496,14 @@ update msg model =
 
 sample10 : String
 sample10 =
-    """module X
+    """module X exposing (..)
 
 {k,v} = r"""
 
 
 sample11 : String
 sample11 =
-    """module Foo
+    """module Foo exposing (..)
 
 type alias X =
     { foo : Bar.Baz
@@ -536,7 +513,7 @@ type alias X =
 
 sample12 : String
 sample12 =
-    """module Z
+    """module Z exposing (..)
 
 x : A -> B
 x baz =
@@ -552,7 +529,7 @@ x baz =
 
 sample13 : String
 sample13 =
-    """module Foo
+    """module Foo exposing (..)
 
 
 bar =
@@ -563,7 +540,7 @@ bar =
 
 sample14 : String
 sample14 =
-    """module G
+    """module G exposing (..)
 
 e =
     let
@@ -576,7 +553,7 @@ e =
 
 sample15 : String
 sample15 =
-    """module G
+    """module G exposing (..)
 
 e =
     let
@@ -590,7 +567,7 @@ e =
 
 sample16 : String
 sample16 =
-    """module Foo
+    """module Foo exposing (..)
 
 bar baz3 =
   Foo1
@@ -599,7 +576,7 @@ bar baz3 =
 
 sample17 : String
 sample17 =
-    """module Foo
+    """module Foo exposing (..)
 bar =
     '1'"""
 
@@ -615,7 +592,7 @@ port scroll : (Move -> msg) -> Sub msg"""
 
 sample19 : String
 sample19 =
-    """module Foo
+    """module Foo exposing (..)
 
 
 timeAgo time now =
@@ -669,7 +646,7 @@ timeAgo time now =
 
 sample20 : String
 sample20 =
-    """module Baz
+    """module Baz exposing (..)
 
 foo = bar
 -- some
@@ -723,7 +700,7 @@ tileMapVertextShader =
 
 sample22 : String
 sample22 =
-    """module Foo
+    """module Foo exposing (..)
 
 x : a -> b -> a
 x y z =
@@ -736,7 +713,7 @@ x y z =
 
 sample23 : String
 sample23 =
-    """module Foo
+    """module Foo exposing (..)
 
 x s =
   let indent = String.length s in
@@ -747,7 +724,7 @@ x s =
 
 sample24 : String
 sample24 =
-    """module Foo
+    """module Foo exposing (..)
 
 tests =
     \\() -> Expect.equal "'\\\\''" (toString '\\'')

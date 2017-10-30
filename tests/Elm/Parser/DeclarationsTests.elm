@@ -242,25 +242,6 @@ all =
                                 }
                             )
                         )
-        , test "no-module and then import" <|
-            \() ->
-                parseFullStringWithNullState "import Html" file
-                    |> Maybe.map noRangeFile
-                    |> Expect.equal
-                        (Just
-                            { moduleDefinition =
-                                NoModule
-                            , imports =
-                                [ { moduleName = [ "Html" ]
-                                  , moduleAlias = Nothing
-                                  , exposingList = None
-                                  , range = emptyRange
-                                  }
-                                ]
-                            , declarations = []
-                            , comments = []
-                            }
-                        )
         , test "port declaration for subscription" <|
             \() ->
                 parseFullStringWithNullState "port scroll : (Move -> msg) -> Sub msg" declaration

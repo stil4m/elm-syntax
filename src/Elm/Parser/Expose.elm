@@ -1,4 +1,4 @@
-module Elm.Parser.Expose exposing (definitionExpose, exposable, exposeDefinition, exposingListInner, infixExpose, typeExpose)
+module Elm.Parser.Expose exposing (definitionExpose, exposable, exposeDefinition, exposingListInner, infixExpose, maybeExposeDefinition, typeExpose)
 
 import Combine exposing ((*>), (<$), (<$>), (<*>), Parser, choice, maybe, or, parens, sepBy, string, succeed, while)
 import Combine.Char exposing (char)
@@ -6,15 +6,17 @@ import Elm.Parser.Ranges exposing (withRange)
 import Elm.Parser.State exposing (State)
 import Elm.Parser.Tokens exposing (exposingToken, functionName, typeName)
 import Elm.Parser.Util exposing (moreThanIndentWhitespace, trimmed)
-import Elm.Syntax.Exposing exposing (ExposedType, Exposing(All, Explicit, None), TopLevelExpose(FunctionExpose, InfixExpose, TypeExpose, TypeOrAliasExpose), ValueConstructorExpose)
+import Elm.Syntax.Exposing exposing (ExposedType, Exposing(All, Explicit), TopLevelExpose(FunctionExpose, InfixExpose, TypeExpose, TypeOrAliasExpose), ValueConstructorExpose)
+
+
+maybeExposeDefinition : Parser State a -> Parser State (Maybe (Exposing a))
+maybeExposeDefinition p =
+    choice [ Just <$> exposeDefinition p, succeed Nothing ]
 
 
 exposeDefinition : Parser State a -> Parser State (Exposing a)
 exposeDefinition p =
-    choice
-        [ moreThanIndentWhitespace *> exposingToken *> maybe moreThanIndentWhitespace *> exposeListWith p
-        , succeed None
-        ]
+    moreThanIndentWhitespace *> exposingToken *> maybe moreThanIndentWhitespace *> exposeListWith p
 
 
 exposable : Parser State TopLevelExpose
@@ -41,7 +43,7 @@ exposedType =
     withRange <|
         succeed ExposedType
             <*> typeName
-            <*> (maybe moreThanIndentWhitespace *> exposeListWith valueConstructorExpose)
+            <*> (maybe moreThanIndentWhitespace *> (Just <$> exposeListWith valueConstructorExpose))
 
 
 valueConstructorExpose : Parser State ValueConstructorExpose

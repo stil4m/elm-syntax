@@ -97,17 +97,17 @@ tableForFile rawFile (ProcessContext moduleIndex) =
 buildSingle : Import -> ModuleIndexInner -> List ( String, Infix )
 buildSingle imp moduleIndex =
     case imp.exposingList of
-        None ->
+        Nothing ->
             []
 
-        All _ ->
+        Just (All _) ->
             moduleIndex
                 |> Dict.get imp.moduleName
                 |> Maybe.withDefault []
                 |> Interface.operators
                 |> List.map (\x -> ( x.operator, x ))
 
-        Explicit l ->
+        Just (Explicit l) ->
             let
                 selectedOperators =
                     Exposing.operators l

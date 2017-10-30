@@ -21,12 +21,12 @@ suite =
                 , imports =
                     [ { moduleName = [ "B" ]
                       , moduleAlias = Nothing
-                      , exposingList = None
+                      , exposingList = Nothing
                       , range = emptyRange
                       }
                     , { moduleName = [ "C" ]
                       , moduleAlias = Just [ "D" ]
-                      , exposingList = All emptyRange
+                      , exposingList = Just (All emptyRange)
                       , range = emptyRange
                       }
                     ]
@@ -37,8 +37,8 @@ suite =
                     |> Writer.write
                     |> Expect.equal
                         ("""module A exposing (..)
-import B  exposing"""
-                            ++ " \n"
+import B  """
+                            ++ "\n"
                             ++ """import C as D exposing (..)
 """
                         )

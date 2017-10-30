@@ -3,7 +3,7 @@ module Elm.Syntax.Module
         ( DefaultModuleData
         , EffectModuleData
         , Import
-        , Module(EffectModule, NoModule, NormalModule, PortModule)
+        , Module(EffectModule, NormalModule, PortModule)
         , exposingList
         , moduleName
         )
@@ -35,7 +35,6 @@ type Module
     = NormalModule DefaultModuleData
     | PortModule DefaultModuleData
     | EffectModule EffectModuleData
-    | NoModule
 
 
 {-| Data for a default default
@@ -61,7 +60,7 @@ type alias EffectModuleData =
 type alias Import =
     { moduleName : ModuleName
     , moduleAlias : Maybe ModuleName
-    , exposingList : Exposing TopLevelExpose
+    , exposingList : Maybe (Exposing TopLevelExpose)
     , range : Range
     }
 
@@ -80,9 +79,6 @@ moduleName m =
         EffectModule x ->
             Just x.moduleName
 
-        NoModule ->
-            Nothing
-
 
 {-| Get the exposing list for a module.
 -}
@@ -97,6 +93,3 @@ exposingList m =
 
         EffectModule x ->
             x.exposingList
-
-        NoModule ->
-            None

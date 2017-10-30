@@ -81,9 +81,6 @@ encodeModule m =
         EffectModule d ->
             encodeTyped "effect" (encodeEffectModuleData d)
 
-        NoModule ->
-            encodeTyped "nomodule" JE.null
-
 
 encodeEffectModuleData : EffectModuleData -> Value
 encodeEffectModuleData { moduleName, exposingList, command, subscription } =
@@ -140,7 +137,11 @@ encodeExposedType : ExposedType -> Value
 encodeExposedType { name, constructors, range } =
     object
         [ nameField name
-        , ( "inner", encodeExposingList constructors encodeValueConstructorExpose )
+        , ( "inner"
+          , constructors
+                |> Maybe.map (\c -> encodeExposingList c encodeValueConstructorExpose)
+                |> Maybe.withDefault JE.null
+          )
         , rangeField range
         ]
 
@@ -156,9 +157,6 @@ encodeValueConstructorExpose ( name, range ) =
 encodeExposingList : Exposing a -> (a -> Value) -> Value
 encodeExposingList exp f =
     case exp of
-        None ->
-            encodeTyped "none" <| JE.null
-
         All r ->
             encodeTyped "all" <| Range.encode r
 
@@ -175,7 +173,11 @@ encodeImport { moduleName, moduleAlias, exposingList, range } =
                 |> Maybe.map encodeModuleName
                 |> Maybe.withDefault JE.null
           )
-        , ( "exposingList", encodeExposingList exposingList encodeExpose )
+        , ( "exposingList"
+          , exposingList
+                |> Maybe.map (\s -> encodeExposingList s encodeExpose)
+                |> Maybe.withDefault JE.null
+          )
         , rangeField range
         ]
 

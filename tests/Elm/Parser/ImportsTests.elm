@@ -20,10 +20,11 @@ all =
                             { moduleName = [ "Foo" ]
                             , moduleAlias = Nothing
                             , exposingList =
-                                Explicit
-                                    [ TypeOrAliasExpose "Model" emptyRange
-                                    , TypeExpose (ExposedType "Msg" (All emptyRange) emptyRange)
-                                    ]
+                                Just <|
+                                    Explicit
+                                        [ TypeOrAliasExpose "Model" emptyRange
+                                        , TypeExpose (ExposedType "Msg" (Just <| All emptyRange) emptyRange)
+                                        ]
                             , range = emptyRange
                             }
                         )
@@ -35,7 +36,7 @@ all =
                         (Just
                             { moduleName = [ "Html" ]
                             , moduleAlias = Nothing
-                            , exposingList = Explicit [ FunctionExpose "text" emptyRange ]
+                            , exposingList = Just <| Explicit [ FunctionExpose "text" emptyRange ]
                             , range = emptyRange
                             }
                         )
@@ -47,7 +48,7 @@ all =
                         (Just
                             { moduleName = [ "Foo" ]
                             , moduleAlias = Nothing
-                            , exposingList = None
+                            , exposingList = Nothing
                             , range = emptyRange
                             }
                         )
@@ -59,7 +60,7 @@ all =
                         (Just
                             { moduleName = [ "Foo" ]
                             , moduleAlias = Just [ "Bar" ]
-                            , exposingList = None
+                            , exposingList = Nothing
                             , range = emptyRange
                             }
                         )

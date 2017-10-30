@@ -84,15 +84,12 @@ noRangeModule m =
         EffectModule n ->
             EffectModule { n | exposingList = noRangeExposingList n.exposingList }
 
-        NoModule ->
-            NoModule
-
 
 noRangeImport : Import -> Import
 noRangeImport imp =
     { imp
         | range = emptyRange
-        , exposingList = noRangeExposingList imp.exposingList
+        , exposingList = Maybe.map noRangeExposingList imp.exposingList
     }
 
 
@@ -101,9 +98,6 @@ noRangeExposingList x =
     case x of
         All r ->
             All emptyRange
-
-        None ->
-            None
 
         Explicit list ->
             list
@@ -181,14 +175,14 @@ noRangeExpose l =
             let
                 newT =
                     case constructors of
-                        All r ->
-                            All emptyRange
+                        Nothing ->
+                            Nothing
 
-                        None ->
-                            None
+                        Just (All r) ->
+                            Just <| All emptyRange
 
-                        Explicit list ->
-                            Explicit <| List.map (Tuple.mapSecond (always emptyRange)) list
+                        Just (Explicit list) ->
+                            Just <| Explicit <| List.map (Tuple.mapSecond (always emptyRange)) list
             in
             TypeExpose (ExposedType name newT emptyRange)
 

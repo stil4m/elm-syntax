@@ -9,6 +9,7 @@ import Elm.Syntax.Expression exposing (..)
 import Elm.Syntax.File exposing (..)
 import Elm.Syntax.Infix exposing (..)
 import Elm.Syntax.Module exposing (..)
+import Elm.Syntax.Range exposing (emptyRange)
 import Elm.Syntax.TypeAnnotation exposing (..)
 import Expect
 import Test exposing (..)
@@ -18,13 +19,17 @@ functionWithDocs : ( String, String, File )
 functionWithDocs =
     ( "functionWithDocs"
     , """
-module Bar
+module Bar exposing (..)
 
 {-| The docs
 -}
 bar = 1
 """
-    , { moduleDefinition = NormalModule { moduleName = [ "Bar" ], exposingList = None }
+    , { moduleDefinition =
+            NormalModule
+                { moduleName = [ "Bar" ]
+                , exposingList = All { start = { row = 1, column = 20 }, end = { row = 1, column = 22 } }
+                }
       , imports = []
       , declarations =
             [ FuncDecl
@@ -47,13 +52,17 @@ operatorFunctionWithDocs : ( String, String, File )
 operatorFunctionWithDocs =
     ( "operatorFunctionWithDocs"
     , """
-module Bar
+module Bar exposing (..)
 
 {-| The docs
 -}
 (++) = 1
 """
-    , { moduleDefinition = NormalModule { moduleName = [ "Bar" ], exposingList = None }
+    , { moduleDefinition =
+            NormalModule
+                { moduleName = [ "Bar" ]
+                , exposingList = All { start = { row = 1, column = 20 }, end = { row = 1, column = 22 } }
+                }
       , imports = []
       , declarations =
             [ FuncDecl
@@ -76,14 +85,18 @@ functionWithDocsAndSignature : ( String, String, File )
 functionWithDocsAndSignature =
     ( "functionWithDocsAndSignature"
     , """
-module Bar
+module Bar exposing (..)
 
 {-| The docs
 -}
 bar : Int
 bar = 1
 """
-    , { moduleDefinition = NormalModule { moduleName = [ "Bar" ], exposingList = None }
+    , { moduleDefinition =
+            NormalModule
+                { moduleName = [ "Bar" ]
+                , exposingList = All { start = { row = 1, column = 20 }, end = { row = 1, column = 22 } }
+                }
       , imports = []
       , declarations =
             [ FuncDecl
@@ -106,12 +119,16 @@ functionWithSingleLineCommentAsDoc : ( String, String, File )
 functionWithSingleLineCommentAsDoc =
     ( "functionWithSingleLineCommentAsDoc"
     , """
-module Bar
+module Bar exposing (..)
 
 --The Doc
 bar = 1
 """
-    , { moduleDefinition = NormalModule { moduleName = [ "Bar" ], exposingList = None }
+    , { moduleDefinition =
+            NormalModule
+                { moduleName = [ "Bar" ]
+                , exposingList = All { start = { row = 1, column = 20 }, end = { row = 1, column = 22 } }
+                }
       , imports = []
       , declarations =
             [ FuncDecl
@@ -134,12 +151,16 @@ functionWithMultiLineCommentAsDoc : ( String, String, File )
 functionWithMultiLineCommentAsDoc =
     ( "functionWithMultiLineCommentAsDoc"
     , """
-module Bar
+module Bar exposing (..)
 
 {- The Doc -}
 bar = 1
 """
-    , { moduleDefinition = NormalModule { moduleName = [ "Bar" ], exposingList = None }
+    , { moduleDefinition =
+            NormalModule
+                { moduleName = [ "Bar" ]
+                , exposingList = All { start = { row = 1, column = 20 }, end = { row = 1, column = 22 } }
+                }
       , imports = []
       , declarations =
             [ FuncDecl
@@ -162,7 +183,7 @@ typeAliasWithDocumentation : ( String, String, File )
 typeAliasWithDocumentation =
     ( "typeAliasWithDocumentation"
     , """
-module Bar
+module Bar exposing (..)
 
 {-| The Doc -}
 type alias Foo
@@ -171,7 +192,7 @@ type alias Foo
     , { moduleDefinition =
             NormalModule
                 { moduleName = [ "Bar" ]
-                , exposingList = None
+                , exposingList = All { start = { row = 1, column = 20 }, end = { row = 1, column = 22 } }
                 }
       , imports = []
       , declarations =
@@ -192,12 +213,15 @@ postProcessInfixOperators : ( String, String, File )
 postProcessInfixOperators =
     ( "postProcessInfixOperators"
     , """
-module Bar
+module Bar exposing (..)
 
 bar = (x + 1) * (2 * y)
 """
     , { moduleDefinition =
-            NormalModule { moduleName = [ "Bar" ], exposingList = None }
+            NormalModule
+                { moduleName = [ "Bar" ]
+                , exposingList = All { start = { row = 1, column = 20 }, end = { row = 1, column = 22 } }
+                }
       , imports = []
       , declarations =
             [ FuncDecl
