@@ -1,4 +1,4 @@
-module Elm.Writer exposing (write, writeFile, writePattern)
+module Elm.Writer exposing (write, writeExpression, writeFile, writePattern)
 
 {-|
 
@@ -7,7 +7,7 @@ module Elm.Writer exposing (write, writeFile, writePattern)
 
 Write a file to a string.
 
-@docs write, writeFile, writePattern
+@docs write, writeFile, writePattern, writeExpression
 
 -}
 
@@ -377,6 +377,8 @@ writeRecordField ( name, ref ) =
         ]
 
 
+{-| Writer an expression
+-}
 writeExpression : Expression -> Writer
 writeExpression ( range, inner ) =
     let
