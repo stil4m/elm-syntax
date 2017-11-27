@@ -173,7 +173,15 @@ module Bar exposing (..)
 type alias Foo
    = { name : String }
 """
-    , { moduleDefinition = NormalModule { moduleName = [ "Bar" ], exposingList = All { start = { row = 0, column = 20 }, end = { row = 0, column = 22 } } }, imports = [], declarations = [ AliasDecl { documentation = Nothing, name = "Foo", generics = [], typeAnnotation = Record [ ( "name", Typed [] "String" [] { start = { row = 5, column = 13 }, end = { row = 5, column = 20 } } ) ] { start = { row = 5, column = 4 }, end = { row = 6, column = -2 } }, range = { start = { row = 4, column = -1 }, end = { row = 6, column = -2 } } } ], comments = [ ( "{-| The Doc -}", { start = { row = 3, column = 0 }, end = { row = 3, column = 14 } } ) ] }
+    , { moduleDefinition =
+            NormalModule
+                { moduleName = [ "Bar" ]
+                , exposingList = All { start = { row = 0, column = 20 }, end = { row = 0, column = 22 } }
+                }
+      , imports = []
+      , declarations = [ AliasDecl { documentation = Just { text = "{-| The Doc -}", range = { start = { row = 3, column = 0 }, end = { row = 3, column = 14 } } }, name = "Foo", generics = [], typeAnnotation = Record [ ( "name", Typed [] "String" [] { start = { row = 5, column = 13 }, end = { row = 5, column = 20 } } ) ] { start = { row = 5, column = 4 }, end = { row = 6, column = -2 } }, range = { start = { row = 4, column = -1 }, end = { row = 6, column = -2 } } } ]
+      , comments = []
+      }
     )
 
 

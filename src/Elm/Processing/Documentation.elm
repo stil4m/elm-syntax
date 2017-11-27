@@ -109,6 +109,6 @@ isDocumentationForRange range ( commentText, commentRange ) =
             functionStartRow =
                 range.start.row
         in
-        (commentRange.end.row + 1) == functionStartRow && commentRange.end.column == 2
+        (commentRange.end.row + 1) == functionStartRow
     else
         False
