@@ -3,7 +3,7 @@ module Elm.Parser.LetExpressionTests exposing (..)
 import Combine exposing ((*>), string)
 import Elm.Parser.CombineTestUtil exposing (..)
 import Elm.Parser.Declarations as Parser exposing (..)
-import Elm.Parser.State exposing (emptyState, pushIndent)
+import Elm.Parser.State exposing (emptyState)
 import Elm.Parser.Tokens exposing (functionName)
 import Elm.Syntax.Expression exposing (..)
 import Elm.Syntax.Pattern exposing (..)
@@ -17,7 +17,7 @@ all =
     describe "LetExpressionTests"
         [ test "let body" <|
             \() ->
-                parseFullStringState (emptyState |> pushIndent 2) "foo = bar\n  \n  john = doe" Parser.letBody
+                parseFullStringState emptyState "foo = bar\n  \n  john = doe" (pushIndent 2 Parser.letBody)
                     |> Maybe.map (List.map noRangeLetDeclaration)
                     |> Expect.equal
                         (Just
@@ -73,7 +73,7 @@ all =
                         )
         , test "correct let with indent" <|
             \() ->
-                parseFullStringState (emptyState |> pushIndent 1) "let\n  bar = 1\n in\n  bar" Parser.expression
+                parseFullStringState emptyState "let\n  bar = 1\n in\n  bar" (pushIndent 1 Parser.expression)
                     |> Maybe.map noRangeExpression
                     |> Maybe.map Tuple.second
                     |> Expect.equal

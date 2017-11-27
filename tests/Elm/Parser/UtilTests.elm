@@ -1,7 +1,7 @@
 module Elm.Parser.UtilTests exposing (..)
 
 import Elm.Parser.CombineTestUtil exposing (..)
-import Elm.Parser.State exposing (emptyState, pushIndent)
+import Elm.Parser.State exposing (emptyState)
 import Elm.Parser.Util exposing (commentSequence, exactIndentWhitespace, moreThanIndentWhitespace, multiLineCommentWithTrailingSpaces)
 import Expect
 import Test exposing (..)
@@ -24,7 +24,7 @@ all =
                     |> Expect.equal Nothing
         , test "no newlines with state" <|
             \() ->
-                parseFullStringState (emptyState |> pushIndent 8) " " moreThanIndentWhitespace
+                parseFullStringState emptyState " " (pushIndent 8 moreThanIndentWhitespace)
                     |> Expect.equal (Just ())
         , test "with newline and higher indent 2" <|
             \() ->
@@ -36,7 +36,7 @@ all =
                     |> Expect.equal (Just ())
         , test "with newline and higher indent 4" <|
             \() ->
-                parseFullStringState (emptyState |> pushIndent 1) " \n  " moreThanIndentWhitespace
+                parseFullStringState emptyState " \n  " (pushIndent 1 moreThanIndentWhitespace)
                     |> Expect.equal (Just ())
         , test "exactIndentWhitespace" <|
             \() ->
@@ -60,11 +60,11 @@ all =
                     |> Expect.equal (Just ())
         , test "moreThanIndentWhitespace with multiple new lines" <|
             \() ->
-                parseFullStringState (emptyState |> pushIndent 2) "\n  \n    \n\n   " moreThanIndentWhitespace
+                parseFullStringState emptyState "\n  \n    \n\n   " (pushIndent 2 moreThanIndentWhitespace)
                     |> Expect.equal (Just ())
         , test "exactIndentWhitespace some" <|
             \() ->
-                parseFullStringState (emptyState |> pushIndent 2) "\n  \n  " exactIndentWhitespace
+                parseFullStringState emptyState "\n  \n  " (pushIndent 2 exactIndentWhitespace)
                     |> Expect.equal (Just ())
         , test "moreThanIndentWhitespace with comments" <|
             \() ->
@@ -80,7 +80,7 @@ all =
                     |> Expect.equal (Just ())
         , test "exactIndentWhitespace with multiple new lines" <|
             \() ->
-                parseFullStringState (emptyState |> pushIndent 2) "\n  \n    \n\n  " exactIndentWhitespace
+                parseFullStringState emptyState "\n  \n    \n\n  " (pushIndent 2 exactIndentWhitespace)
                     |> Expect.equal (Just ())
         , test "exactIndentWhitespace with new line" <|
             \() ->

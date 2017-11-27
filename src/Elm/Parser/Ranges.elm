@@ -1,6 +1,6 @@
 module Elm.Parser.Ranges exposing (withRange, withRangeCustomStart, withRangeTuple)
 
-import Combine exposing ((<*>), ParseLocation, Parser, succeed, withLocation)
+import Combine exposing ((<*>), ParseLocation, Parser, succeed, withLocation, withState)
 import Elm.Parser.State exposing (State)
 import Elm.Syntax.Range exposing (Location, Range)
 

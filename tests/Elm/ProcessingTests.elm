@@ -9,7 +9,6 @@ import Elm.Syntax.Expression exposing (..)
 import Elm.Syntax.File exposing (..)
 import Elm.Syntax.Infix exposing (..)
 import Elm.Syntax.Module exposing (..)
-import Elm.Syntax.Range exposing (emptyRange)
 import Elm.Syntax.TypeAnnotation exposing (..)
 import Expect
 import Test exposing (..)
@@ -28,18 +27,18 @@ bar = 1
     , { moduleDefinition =
             NormalModule
                 { moduleName = [ "Bar" ]
-                , exposingList = All { start = { row = 1, column = 20 }, end = { row = 1, column = 22 } }
+                , exposingList = All { start = { row = 0, column = 20 }, end = { row = 0, column = 22 } }
                 }
       , imports = []
       , declarations =
             [ FuncDecl
-                { documentation = Just (Documentation "{-| The docs\n-}" { start = { row = 3, column = -1 }, end = { row = 5, column = -2 } })
+                { documentation = Just (Documentation "{-| The docs\n-}" { start = { row = 3, column = 0 }, end = { row = 4, column = 2 } })
                 , signature = Nothing
                 , declaration =
                     { operatorDefinition = False
-                    , name = { value = "bar", range = { start = { row = 5, column = -1 }, end = { row = 5, column = 2 } } }
+                    , name = { value = "bar", range = { start = { row = 5, column = 0 }, end = { row = 5, column = 3 } } }
                     , arguments = []
-                    , expression = ( { start = { row = 5, column = 5 }, end = { row = 6, column = -2 } }, Integer 1 )
+                    , expression = ( { start = { row = 5, column = 6 }, end = { row = 5, column = 7 } }, Integer 1 )
                     }
                 }
             ]
@@ -58,21 +57,17 @@ module Bar exposing (..)
 -}
 (++) = 1
 """
-    , { moduleDefinition =
-            NormalModule
-                { moduleName = [ "Bar" ]
-                , exposingList = All { start = { row = 1, column = 20 }, end = { row = 1, column = 22 } }
-                }
+    , { moduleDefinition = NormalModule { moduleName = [ "Bar" ], exposingList = All { start = { row = 0, column = 20 }, end = { row = 0, column = 22 } } }
       , imports = []
       , declarations =
             [ FuncDecl
-                { documentation = Just (Documentation "{-| The docs\n-}" { start = { row = 3, column = -1 }, end = { row = 5, column = -2 } })
+                { documentation = Just { text = "{-| The docs\n-}", range = { start = { row = 3, column = 0 }, end = { row = 4, column = 2 } } }
                 , signature = Nothing
                 , declaration =
                     { operatorDefinition = True
-                    , name = { value = "++", range = { start = { row = 5, column = -1 }, end = { row = 5, column = 3 } } }
+                    , name = { value = "++", range = { start = { row = 5, column = 0 }, end = { row = 5, column = 4 } } }
                     , arguments = []
-                    , expression = ( { start = { row = 5, column = 6 }, end = { row = 6, column = -2 } }, Integer 1 )
+                    , expression = ( { start = { row = 5, column = 7 }, end = { row = 5, column = 8 } }, Integer 1 )
                     }
                 }
             ]
@@ -92,21 +87,17 @@ module Bar exposing (..)
 bar : Int
 bar = 1
 """
-    , { moduleDefinition =
-            NormalModule
-                { moduleName = [ "Bar" ]
-                , exposingList = All { start = { row = 1, column = 20 }, end = { row = 1, column = 22 } }
-                }
+    , { moduleDefinition = NormalModule { moduleName = [ "Bar" ], exposingList = All { start = { row = 0, column = 20 }, end = { row = 0, column = 22 } } }
       , imports = []
       , declarations =
             [ FuncDecl
-                { documentation = Just (Documentation "{-| The docs\n-}" { start = { row = 3, column = -1 }, end = { row = 5, column = -2 } })
-                , signature = Just { operatorDefinition = False, name = "bar", typeAnnotation = Typed [] "Int" [] { start = { row = 5, column = 5 }, end = { row = 6, column = -2 } }, range = { start = { row = 5, column = -1 }, end = { row = 6, column = -2 } } }
+                { documentation = Just { text = "{-| The docs\n-}", range = { start = { row = 3, column = 0 }, end = { row = 4, column = 2 } } }
+                , signature = Just { operatorDefinition = False, name = "bar", typeAnnotation = Typed [] "Int" [] { start = { row = 5, column = 6 }, end = { row = 5, column = 9 } }, range = { start = { row = 5, column = 0 }, end = { row = 5, column = 9 } } }
                 , declaration =
                     { operatorDefinition = False
-                    , name = { value = "bar", range = { start = { row = 6, column = -1 }, end = { row = 6, column = 2 } } }
+                    , name = { value = "bar", range = { start = { row = 6, column = 0 }, end = { row = 6, column = 3 } } }
                     , arguments = []
-                    , expression = ( { start = { row = 6, column = 5 }, end = { row = 7, column = -2 } }, Integer 1 )
+                    , expression = ( { start = { row = 6, column = 6 }, end = { row = 6, column = 7 } }, Integer 1 )
                     }
                 }
             ]
@@ -124,11 +115,7 @@ module Bar exposing (..)
 --The Doc
 bar = 1
 """
-    , { moduleDefinition =
-            NormalModule
-                { moduleName = [ "Bar" ]
-                , exposingList = All { start = { row = 1, column = 20 }, end = { row = 1, column = 22 } }
-                }
+    , { moduleDefinition = NormalModule { moduleName = [ "Bar" ], exposingList = All { start = { row = 0, column = 20 }, end = { row = 0, column = 22 } } }
       , imports = []
       , declarations =
             [ FuncDecl
@@ -136,13 +123,13 @@ bar = 1
                 , signature = Nothing
                 , declaration =
                     { operatorDefinition = False
-                    , name = { value = "bar", range = { start = { row = 4, column = -1 }, end = { row = 4, column = 2 } } }
+                    , name = { value = "bar", range = { start = { row = 4, column = 0 }, end = { row = 4, column = 3 } } }
                     , arguments = []
-                    , expression = ( { start = { row = 4, column = 5 }, end = { row = 5, column = -2 } }, Integer 1 )
+                    , expression = ( { start = { row = 4, column = 6 }, end = { row = 4, column = 7 } }, Integer 1 )
                     }
                 }
             ]
-      , comments = [ ( "--The Doc", { start = { row = 3, column = -1 }, end = { row = 4, column = -2 } } ) ]
+      , comments = [ ( "--The Doc", { start = { row = 3, column = 0 }, end = { row = 3, column = 9 } } ) ]
       }
     )
 
@@ -157,10 +144,7 @@ module Bar exposing (..)
 bar = 1
 """
     , { moduleDefinition =
-            NormalModule
-                { moduleName = [ "Bar" ]
-                , exposingList = All { start = { row = 1, column = 20 }, end = { row = 1, column = 22 } }
-                }
+            NormalModule { moduleName = [ "Bar" ], exposingList = All { start = { row = 0, column = 20 }, end = { row = 0, column = 22 } } }
       , imports = []
       , declarations =
             [ FuncDecl
@@ -168,13 +152,13 @@ bar = 1
                 , signature = Nothing
                 , declaration =
                     { operatorDefinition = False
-                    , name = { value = "bar", range = { start = { row = 4, column = -1 }, end = { row = 4, column = 2 } } }
+                    , name = { value = "bar", range = { start = { row = 4, column = 0 }, end = { row = 4, column = 3 } } }
                     , arguments = []
-                    , expression = ( { start = { row = 4, column = 5 }, end = { row = 5, column = -2 } }, Integer 1 )
+                    , expression = ( { start = { row = 4, column = 6 }, end = { row = 4, column = 7 } }, Integer 1 )
                     }
                 }
             ]
-      , comments = [ ( "{- The Doc -}", { start = { row = 3, column = -1 }, end = { row = 4, column = -2 } } ) ]
+      , comments = [ ( "{- The Doc -}", { start = { row = 3, column = 0 }, end = { row = 3, column = 13 } } ) ]
       }
     )
 
@@ -189,23 +173,7 @@ module Bar exposing (..)
 type alias Foo
    = { name : String }
 """
-    , { moduleDefinition =
-            NormalModule
-                { moduleName = [ "Bar" ]
-                , exposingList = All { start = { row = 1, column = 20 }, end = { row = 1, column = 22 } }
-                }
-      , imports = []
-      , declarations =
-            [ AliasDecl
-                { documentation = Just (Documentation "{-| The Doc -}" { start = { row = 3, column = -1 }, end = { row = 4, column = -2 } })
-                , name = "Foo"
-                , generics = []
-                , typeAnnotation = Record [ ( "name", Typed [] "String" [] { start = { row = 5, column = 13 }, end = { row = 5, column = 20 } } ) ] { start = { row = 5, column = 4 }, end = { row = 6, column = -2 } }
-                , range = { start = { row = 4, column = -1 }, end = { row = 6, column = -2 } }
-                }
-            ]
-      , comments = []
-      }
+    , { moduleDefinition = NormalModule { moduleName = [ "Bar" ], exposingList = All { start = { row = 0, column = 20 }, end = { row = 0, column = 22 } } }, imports = [], declarations = [ AliasDecl { documentation = Nothing, name = "Foo", generics = [], typeAnnotation = Record [ ( "name", Typed [] "String" [] { start = { row = 5, column = 13 }, end = { row = 5, column = 20 } } ) ] { start = { row = 5, column = 4 }, end = { row = 6, column = -2 } }, range = { start = { row = 4, column = -1 }, end = { row = 6, column = -2 } } } ], comments = [ ( "{-| The Doc -}", { start = { row = 3, column = 0 }, end = { row = 3, column = 14 } } ) ] }
     )
 
 
@@ -217,11 +185,7 @@ module Bar exposing (..)
 
 bar = (x + 1) * (2 * y)
 """
-    , { moduleDefinition =
-            NormalModule
-                { moduleName = [ "Bar" ]
-                , exposingList = All { start = { row = 1, column = 20 }, end = { row = 1, column = 22 } }
-                }
+    , { moduleDefinition = NormalModule { moduleName = [ "Bar" ], exposingList = All { start = { row = 0, column = 20 }, end = { row = 0, column = 22 } } }
       , imports = []
       , declarations =
             [ FuncDecl
@@ -229,24 +193,16 @@ bar = (x + 1) * (2 * y)
                 , signature = Nothing
                 , declaration =
                     { operatorDefinition = False
-                    , name = { value = "bar", range = { start = { row = 3, column = -1 }, end = { row = 3, column = 2 } } }
+                    , name = { value = "bar", range = { start = { row = 3, column = 0 }, end = { row = 3, column = 3 } } }
                     , arguments = []
                     , expression =
-                        ( { start = { row = 3, column = 5 }, end = { row = 4, column = -2 } }
+                        ( { start = { row = 3, column = 6 }, end = { row = 3, column = 23 } }
                         , OperatorApplication "*"
                             Left
-                            ( { start = { row = 3, column = 5 }, end = { row = 3, column = 12 } }, ParenthesizedExpression ( { start = { row = 3, column = 6 }, end = { row = 3, column = 11 } }, OperatorApplication "+" Left ( { start = { row = 3, column = 6 }, end = { row = 3, column = 7 } }, FunctionOrValue "x" ) ( { start = { row = 3, column = 10 }, end = { row = 3, column = 11 } }, Integer 1 ) ) )
-                            ( { start = { row = 3, column = 15 }, end = { row = 4, column = -2 } }
-                            , ParenthesizedExpression
-                                ( { start = { row = 3, column = 16 }, end = { row = 3, column = 21 } }
-                                , OperatorApplication "*"
-                                    Left
-                                    ( { start = { row = 3, column = 16 }, end = { row = 3, column = 17 } }
-                                    , Integer 2
-                                    )
-                                    ( { start = { row = 3, column = 20 }, end = { row = 3, column = 21 } }, FunctionOrValue "y" )
-                                )
+                            ( { start = { row = 3, column = 6 }, end = { row = 3, column = 13 } }
+                            , ParenthesizedExpression ( { start = { row = 3, column = 7 }, end = { row = 3, column = 12 } }, OperatorApplication "+" Left ( { start = { row = 3, column = 7 }, end = { row = 3, column = 8 } }, FunctionOrValue "x" ) ( { start = { row = 3, column = 11 }, end = { row = 3, column = 12 } }, Integer 1 ) )
                             )
+                            ( { start = { row = 3, column = 16 }, end = { row = 3, column = 23 } }, ParenthesizedExpression ( { start = { row = 3, column = 17 }, end = { row = 3, column = 22 } }, OperatorApplication "*" Left ( { start = { row = 3, column = 17 }, end = { row = 3, column = 18 } }, Integer 2 ) ( { start = { row = 3, column = 21 }, end = { row = 3, column = 22 } }, FunctionOrValue "y" ) ) )
                         )
                     }
                 }

@@ -14,6 +14,11 @@ import Elm.Syntax.TypeAlias exposing (..)
 import Elm.Syntax.TypeAnnotation exposing (..)
 
 
+pushIndent : Int -> Parser State b -> Parser State b
+pushIndent x p =
+    modifyState (Elm.Parser.State.pushIndent x) *> p
+
+
 parseFullStringState : State -> String -> Parser State b -> Maybe b
 parseFullStringState state s p =
     case Combine.runParser (p <* Combine.end) state s of

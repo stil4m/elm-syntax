@@ -7,12 +7,17 @@ type State
     = State
         { indents : List Int
         , comments : List ( String, Range )
+
+        -- , rangeContext : RangeContext
         }
 
 
 emptyState : State
 emptyState =
-    State { indents = [], comments = [] }
+    State
+        { indents = []
+        , comments = []
+        }
 
 
 currentIndent : State -> Int
