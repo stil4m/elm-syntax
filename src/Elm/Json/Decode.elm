@@ -26,7 +26,7 @@ import Elm.Syntax.Range as Range exposing (Range)
 import Elm.Syntax.Type exposing (..)
 import Elm.Syntax.TypeAlias exposing (..)
 import Elm.Syntax.TypeAnnotation exposing (..)
-import Json.Decode exposing (Decoder, andThen, at, bool, fail, field, float, int, lazy, list, map, map2, map3, map4, maybe, nullable, string, succeed)
+import Json.Decode exposing (Decoder, andThen, at, bool, fail, field, float, int, lazy, list, map, map2, map3, map4, nullable, string, succeed)
 import Json.Decode.Extra exposing ((|:))
 
 

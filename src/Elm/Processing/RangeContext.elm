@@ -36,7 +36,7 @@ context input =
 
 
 build : RangeContext -> Range -> Range
-build (Context rows rangeContext) ({ start, end } as parsed) =
+build (Context rows rangeContext) { start, end } =
     if start.row == 1 then
         { start = { row = start.row - 1, column = start.column }
         , end = realEnd rows rangeContext { row = end.row - 1, column = end.column }
@@ -188,34 +188,6 @@ unRange patch p =
     { p | range = patch p.range }
 
 
-patchExpose : Patch -> TopLevelExpose -> TopLevelExpose
-patchExpose patch l =
-    case l of
-        InfixExpose s r ->
-            InfixExpose s (patch r)
-
-        FunctionExpose s r ->
-            FunctionExpose s (patch r)
-
-        TypeOrAliasExpose s r ->
-            TypeOrAliasExpose s (patch r)
-
-        TypeExpose { name, constructors, range } ->
-            let
-                newT =
-                    case constructors of
-                        Nothing ->
-                            Nothing
-
-                        Just (All r) ->
-                            Just <| All (patch r)
-
-                        Just (Explicit list) ->
-                            Just <| Explicit <| List.map (Tuple.mapSecond patch) list
-            in
-            TypeExpose (ExposedType name newT (patch range))
-
-
 patchDeclaration : Patch -> Declaration -> Declaration
 patchDeclaration patch decl =
     case decl of
@@ -233,8 +205,11 @@ patchDeclaration patch decl =
         PortDeclaration d ->
             PortDeclaration (patchSignature patch d)
 
-        _ ->
-            decl
+        AliasDecl d ->
+            AliasDecl (patchTypeAlias patch d)
+
+        InfixDeclaration d ->
+            InfixDeclaration d
 
 
 patchLetDeclaration : Patch -> LetDeclaration -> LetDeclaration
