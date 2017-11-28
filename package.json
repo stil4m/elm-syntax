@@ -1,5 +1,5 @@
 {
-    "name": "elm-analyse",
+    "name": "elm-syntax",
     "version": "0.13.0-dev",
     "description":
         "A tool that allows you analyse your Elm code and identifies deficiencies and best practices.",
@@ -21,22 +21,11 @@
     "author": "Mats Stijlaart",
     "license": "MIT",
     "keywords": ["elm", "syntax", "ast"],
-    "dependencies": {
-        "express": "4.14.1",
-        "express-ws": "2.0.0",
-        "find": "0.2.7",
-        "fs-extra": "2.0.0",
-        "lodash": "4.17.4",
-        "minimist": "1.2.0",
-        "node-watch": "0.5.5",
-        "normalize-newline": "3.0.0",
-        "os-homedir": "1.0.2",
-        "sums": "0.2.4"
-    },
     "devDependencies": {
         "elm": "0.18.0",
         "elm-format": "0.7.0-exp",
         "elm-live": "2.7.5",
-        "elm-test": "0.18.7"
+        "elm-test": "0.18.7",
+        "elm-analyse": "0.12.1"
     }
 }
