@@ -35,4 +35,4 @@ type Declaration
     | TypeDecl Type
     | PortDeclaration FunctionSignature
     | InfixDeclaration Infix
-    | Destructuring Pattern (Ranged Expression)
+    | Destructuring (Ranged Pattern) (Ranged Expression)

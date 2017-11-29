@@ -30,27 +30,27 @@ module Elm.Syntax.Pattern
 -}
 
 import Elm.Syntax.Base exposing (VariablePointer)
-import Elm.Syntax.Range exposing (Range)
+import Elm.Syntax.Ranged exposing (Ranged)
 
 
 {-| Union type for all the patterns
 -}
 type Pattern
-    = AllPattern Range
-    | UnitPattern Range
-    | CharPattern Char Range
-    | StringPattern String Range
-    | IntPattern Int Range
-    | FloatPattern Float Range
-    | TuplePattern (List Pattern) Range
-    | RecordPattern (List VariablePointer) Range
-    | UnConsPattern Pattern Pattern Range
-    | ListPattern (List Pattern) Range
-    | VarPattern String Range
-    | NamedPattern QualifiedNameRef (List Pattern) Range
-    | QualifiedNamePattern QualifiedNameRef Range
-    | AsPattern Pattern VariablePointer Range
-    | ParenthesizedPattern Pattern Range
+    = AllPattern
+    | UnitPattern
+    | CharPattern Char
+    | StringPattern String
+    | IntPattern Int
+    | FloatPattern Float
+    | TuplePattern (List (Ranged Pattern))
+    | RecordPattern (List VariablePointer)
+    | UnConsPattern (Ranged Pattern) (Ranged Pattern)
+    | ListPattern (List (Ranged Pattern))
+    | VarPattern String
+    | NamedPattern QualifiedNameRef (List (Ranged Pattern))
+    | QualifiedNamePattern QualifiedNameRef
+    | AsPattern (Ranged Pattern) VariablePointer
+    | ParenthesizedPattern (Ranged Pattern)
 
 
 {-| Qualified name reference

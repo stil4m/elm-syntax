@@ -94,7 +94,7 @@ type alias Function =
 type alias FunctionDeclaration =
     { operatorDefinition : Bool
     , name : VariablePointer
-    , arguments : List Pattern
+    , arguments : List (Ranged Pattern)
     , expression : Ranged Expression
     }
 
@@ -164,13 +164,13 @@ type alias LetBlock =
 -}
 type LetDeclaration
     = LetFunction Function
-    | LetDestructuring Pattern (Ranged Expression)
+    | LetDestructuring (Ranged Pattern) (Ranged Expression)
 
 
 {-| Expression for a lambda
 -}
 type alias Lambda =
-    { args : List Pattern
+    { args : List (Ranged Pattern)
     , expression : Ranged Expression
     }
 
@@ -186,7 +186,7 @@ type alias CaseBlock =
 {-| A case in a case block
 -}
 type alias Case =
-    ( Pattern, Ranged Expression )
+    ( Ranged Pattern, Ranged Expression )
 
 
 {-| Type alias for a list of cases

@@ -305,27 +305,31 @@ decodeChar =
             )
 
 
-decodePattern : Decoder Pattern
+decodePattern : Decoder (Ranged Pattern)
 decodePattern =
     lazy
         (\() ->
-            decodeTypedWithRange
-                [ ( "all", succeed AllPattern )
-                , ( "unit", succeed UnitPattern )
-                , ( "char", field "value" decodeChar |> map CharPattern )
-                , ( "string", field "value" string |> map StringPattern )
-                , ( "int", field "value" int |> map IntPattern )
-                , ( "float", field "value" float |> map FloatPattern )
-                , ( "tuple", field "value" (list decodePattern) |> map TuplePattern )
-                , ( "record", field "value" (list decodeVariablePointer) |> map RecordPattern )
-                , ( "uncons", map2 UnConsPattern (field "left" decodePattern) (field "right" decodePattern) )
-                , ( "list", field "value" (list decodePattern) |> map ListPattern )
-                , ( "var", field "value" string |> map VarPattern )
-                , ( "named", map2 NamedPattern (field "qualified" decodeQualifiedNameRef) (field "patterns" (list decodePattern)) )
-                , ( "qualifiedName", map QualifiedNamePattern (field "value" decodeQualifiedNameRef) )
-                , ( "as", map2 AsPattern (field "pattern" decodePattern) (field "name" decodeVariablePointer) )
-                , ( "parentisized", map ParenthesizedPattern (field "value" decodePattern) )
-                ]
+            succeed (,)
+                |: rangeField
+                |: field "pattern"
+                    (decodeTyped
+                        [ ( "all", succeed AllPattern )
+                        , ( "unit", succeed UnitPattern )
+                        , ( "char", field "value" decodeChar |> map CharPattern )
+                        , ( "string", field "value" string |> map StringPattern )
+                        , ( "int", field "value" int |> map IntPattern )
+                        , ( "float", field "value" float |> map FloatPattern )
+                        , ( "tuple", field "value" (list decodePattern) |> map TuplePattern )
+                        , ( "record", field "value" (list decodeVariablePointer) |> map RecordPattern )
+                        , ( "uncons", map2 UnConsPattern (field "left" decodePattern) (field "right" decodePattern) )
+                        , ( "list", field "value" (list decodePattern) |> map ListPattern )
+                        , ( "var", field "value" string |> map VarPattern )
+                        , ( "named", map2 NamedPattern (field "qualified" decodeQualifiedNameRef) (field "patterns" (list decodePattern)) )
+                        , ( "qualifiedName", map QualifiedNamePattern (field "value" decodeQualifiedNameRef) )
+                        , ( "as", map2 AsPattern (field "pattern" decodePattern) (field "name" decodeVariablePointer) )
+                        , ( "parentisized", map ParenthesizedPattern (field "value" decodePattern) )
+                        ]
+                    )
         )
 
 

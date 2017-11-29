@@ -15,30 +15,31 @@ all =
         [ test "all pattern" <|
             \() ->
                 parseFullStringState emptyState "_" Parser.pattern
-                    |> Expect.equal (Just (AllPattern (Range (Location 1 0) (Location 1 1))))
+                    |> Expect.equal (Just ( Range (Location 1 0) (Location 1 1), AllPattern ))
         , test "unit pattern" <|
             \() ->
                 parseFullStringState emptyState "()" Parser.pattern
-                    |> Expect.equal (Just (UnitPattern (Range (Location 1 0) (Location 1 2))))
+                    |> Expect.equal (Just ( Range (Location 1 0) (Location 1 2), UnitPattern ))
         , test "string pattern" <|
             \() ->
                 parseFullStringState emptyState "\"Foo\"" Parser.pattern
-                    |> Expect.equal (Just (StringPattern "Foo" (Range (Location 1 0) (Location 1 5))))
+                    |> Expect.equal (Just ( Range (Location 1 0) (Location 1 5), StringPattern "Foo" ))
         , test "char pattern" <|
             \() ->
                 parseFullStringState emptyState "'f'" Parser.pattern
-                    |> Expect.equal (Just (CharPattern 'f' (Range (Location 1 0) (Location 1 3))))
+                    |> Expect.equal (Just ( Range (Location 1 0) (Location 1 3), CharPattern 'f' ))
         , test "non cons pattern " <|
             \() ->
                 parseFullStringState emptyState "(X x)" Parser.pattern
                     |> Expect.equal
                         (Just
-                            (TuplePattern
-                                [ NamedPattern (QualifiedNameRef [] "X")
-                                    [ VarPattern "x" (Range (Location 1 3) (Location 1 4)) ]
-                                    (Range (Location 1 1) (Location 1 4))
+                            ( Range (Location 1 0) (Location 1 5)
+                            , TuplePattern
+                                [ ( Range (Location 1 1) (Location 1 4)
+                                  , NamedPattern (QualifiedNameRef [] "X")
+                                        [ ( Range (Location 1 3) (Location 1 4), VarPattern "x" ) ]
+                                  )
                                 ]
-                                (Range (Location 1 0) (Location 1 5))
                             )
                         )
         , test "uncons with parens pattern" <|
@@ -46,30 +47,31 @@ all =
                 parseFullStringState emptyState "(X x) :: xs" Parser.pattern
                     |> Expect.equal
                         (Just
-                            (UnConsPattern
-                                (TuplePattern
-                                    [ NamedPattern (QualifiedNameRef [] "X")
-                                        [ VarPattern "x" (Range (Location 1 3) (Location 1 4)) ]
-                                        (Range (Location 1 1) (Location 1 4))
+                            ( Range (Location 1 0) (Location 1 11)
+                            , UnConsPattern
+                                ( Range (Location 1 0) (Location 1 5)
+                                , TuplePattern
+                                    [ ( Range (Location 1 1) (Location 1 4)
+                                      , NamedPattern (QualifiedNameRef [] "X")
+                                            [ ( Range (Location 1 3) (Location 1 4), VarPattern "x" ) ]
+                                      )
                                     ]
-                                    (Range (Location 1 0) (Location 1 5))
                                 )
-                                (VarPattern "xs" (Range (Location 1 9) (Location 1 11)))
-                                (Range (Location 1 0) (Location 1 11))
+                                ( Range (Location 1 9) (Location 1 11), VarPattern "xs" )
                             )
                         )
         , test "int pattern" <|
             \() ->
                 parseFullStringState emptyState "1" Parser.pattern
-                    |> Expect.equal (Just (IntPattern 1 (Range (Location 1 0) (Location 1 1))))
+                    |> Expect.equal (Just ( Range (Location 1 0) (Location 1 1), IntPattern 1 ))
         , test "uncons pattern" <|
             \() ->
                 parseFullStringState emptyState "n :: tail" Parser.pattern
                     |> Expect.equal
                         (Just
-                            (UnConsPattern (VarPattern "n" (Range (Location 1 0) (Location 1 1)))
-                                (VarPattern "tail" (Range (Location 1 5) (Location 1 9)))
-                                (Range (Location 1 0) (Location 1 9))
+                            ( Range (Location 1 0) (Location 1 9)
+                            , UnConsPattern ( Range (Location 1 0) (Location 1 1), VarPattern "n" )
+                                ( Range (Location 1 5) (Location 1 9), VarPattern "tail" )
                             )
                         )
         , test "list pattern" <|
@@ -77,48 +79,49 @@ all =
                 parseFullStringState emptyState "[1]" Parser.pattern
                     |> Expect.equal
                         (Just
-                            (ListPattern [ IntPattern 1 (Range (Location 1 1) (Location 1 2)) ]
-                                (Range (Location 1 0) (Location 1 3))
+                            ( Range (Location 1 0) (Location 1 3)
+                            , ListPattern [ ( Range (Location 1 1) (Location 1 2), IntPattern 1 ) ]
                             )
                         )
         , test "float pattern" <|
             \() ->
                 parseFullStringState emptyState "1.2" Parser.pattern
-                    |> Expect.equal (Just (FloatPattern 1.2 (Range (Location 1 0) (Location 1 3))))
+                    |> Expect.equal (Just ( Range (Location 1 0) (Location 1 3), FloatPattern 1.2 ))
         , test "record pattern" <|
             \() ->
                 parseFullStringState emptyState "{a,b}" Parser.pattern
                     |> Maybe.map noRangePattern
                     |> Expect.equal
                         (Just
-                            (RecordPattern
+                            ( emptyRange
+                            , RecordPattern
                                 [ { value = "a", range = emptyRange }
                                 , { value = "b", range = emptyRange }
                                 ]
-                                emptyRange
                             )
                         )
         , test "named pattern" <|
             \() ->
                 parseFullStringState emptyState "True" Parser.pattern
                     |> Maybe.map noRangePattern
-                    |> Expect.equal (Just (NamedPattern (QualifiedNameRef [] "True") [] emptyRange))
+                    |> Expect.equal (Just ( emptyRange, NamedPattern (QualifiedNameRef [] "True") [] ))
         , test "tuple pattern" <|
             \() ->
                 parseFullStringState emptyState "(a,{b,c},())" Parser.pattern
                     |> Maybe.map noRangePattern
                     |> Expect.equal
                         (Just
-                            (TuplePattern
-                                [ VarPattern "a" emptyRange
-                                , RecordPattern
-                                    [ { value = "b", range = emptyRange }
-                                    , { value = "c", range = emptyRange }
-                                    ]
-                                    emptyRange
-                                , UnitPattern emptyRange
+                            ( emptyRange
+                            , TuplePattern
+                                [ ( emptyRange, VarPattern "a" )
+                                , ( emptyRange
+                                  , RecordPattern
+                                        [ { value = "b", range = emptyRange }
+                                        , { value = "c", range = emptyRange }
+                                        ]
+                                  )
+                                , ( emptyRange, UnitPattern )
                                 ]
-                                emptyRange
                             )
                         )
         , test "destructure pattern" <|
@@ -127,9 +130,9 @@ all =
                     |> Maybe.map noRangePattern
                     |> Expect.equal
                         (Just
-                            (NamedPattern (QualifiedNameRef [] "Set")
-                                [ VarPattern "x" emptyRange ]
-                                emptyRange
+                            ( emptyRange
+                            , NamedPattern (QualifiedNameRef [] "Set")
+                                [ ( emptyRange, VarPattern "x" ) ]
                             )
                         )
         , test "tuple pattern 2" <|
@@ -138,11 +141,11 @@ all =
                     |> Maybe.map noRangePattern
                     |> Expect.equal
                         (Just
-                            (TuplePattern
-                                [ VarPattern "model" emptyRange
-                                , VarPattern "cmd" emptyRange
+                            ( emptyRange
+                            , TuplePattern
+                                [ ( emptyRange, VarPattern "model" )
+                                , ( emptyRange, VarPattern "cmd" )
                                 ]
-                                emptyRange
                             )
                         )
         , test "record as pattern" <|
@@ -150,15 +153,15 @@ all =
                 parseFullStringState emptyState "{model,context} as appState" Parser.pattern
                     |> Expect.equal
                         (Just
-                            (AsPattern
-                                (RecordPattern
+                            ( Range (Location 1 0) (Location 1 27)
+                            , AsPattern
+                                ( Range (Location 1 0) (Location 1 15)
+                                , RecordPattern
                                     [ { value = "model", range = Range (Location 1 1) (Location 1 6) }
                                     , { value = "context", range = Range (Location 1 7) (Location 1 14) }
                                     ]
-                                    (Range (Location 1 0) (Location 1 15))
                                 )
                                 { value = "appState", range = Range (Location 1 19) (Location 1 27) }
-                                (Range (Location 1 0) (Location 1 27))
                             )
                         )
         , test "complex pattern" <|
@@ -167,16 +170,18 @@ all =
                     |> Maybe.map noRangePattern
                     |> Expect.equal
                         (Just
-                            (TuplePattern
-                                [ NamedPattern (QualifiedNameRef [] "Index")
-                                    [ AsPattern (VarPattern "irec" emptyRange)
-                                        { value = "index", range = emptyRange }
-                                        emptyRange
-                                    ]
-                                    emptyRange
-                                , VarPattern "docVector" emptyRange
+                            ( emptyRange
+                            , TuplePattern
+                                [ ( emptyRange
+                                  , NamedPattern (QualifiedNameRef [] "Index")
+                                        [ ( emptyRange
+                                          , AsPattern ( emptyRange, VarPattern "irec" )
+                                                { value = "index", range = emptyRange }
+                                          )
+                                        ]
+                                  )
+                                , ( emptyRange, VarPattern "docVector" )
                                 ]
-                                emptyRange
                             )
                         )
         , test "complex pattern 2" <|
@@ -185,25 +190,29 @@ all =
                     |> Maybe.map noRangePattern
                     |> Expect.equal
                         (Just
-                            (NamedPattern (QualifiedNameRef [] "RBNode_elm_builtin")
-                                [ VarPattern "col" emptyRange
-                                , TuplePattern
-                                    [ NamedPattern (QualifiedNameRef [] "RBNode_elm_builtin")
-                                        [ QualifiedNamePattern (QualifiedNameRef [] "Red") emptyRange
-                                        , TuplePattern
-                                            [ NamedPattern (QualifiedNameRef [] "RBNode_elm_builtin")
-                                                [ QualifiedNamePattern (QualifiedNameRef [] "Red") emptyRange
-                                                , VarPattern "xv" emptyRange
+                            ( emptyRange
+                            , NamedPattern (QualifiedNameRef [] "RBNode_elm_builtin")
+                                [ ( emptyRange, VarPattern "col" )
+                                , ( emptyRange
+                                  , TuplePattern
+                                        [ ( emptyRange
+                                          , NamedPattern (QualifiedNameRef [] "RBNode_elm_builtin")
+                                                [ ( emptyRange, QualifiedNamePattern (QualifiedNameRef [] "Red") )
+                                                , ( emptyRange
+                                                  , TuplePattern
+                                                        [ ( emptyRange
+                                                          , NamedPattern (QualifiedNameRef [] "RBNode_elm_builtin")
+                                                                [ ( emptyRange, QualifiedNamePattern (QualifiedNameRef [] "Red") )
+                                                                , ( emptyRange, VarPattern "xv" )
+                                                                ]
+                                                          )
+                                                        ]
+                                                  )
                                                 ]
-                                                emptyRange
-                                            ]
-                                            emptyRange
+                                          )
                                         ]
-                                        emptyRange
-                                    ]
-                                    emptyRange
+                                  )
                                 ]
-                                emptyRange
                             )
                         )
         ]

@@ -159,7 +159,7 @@ all =
                             (LetExpression
                                 { declarations =
                                     [ LetDestructuring
-                                        (AllPattern emptyRange)
+                                        ( emptyRange, AllPattern )
                                         (emptyRanged <| FunctionOrValue "b")
                                     ]
                                 , expression = emptyRanged <| FunctionOrValue "z"

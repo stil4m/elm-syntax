@@ -2,12 +2,9 @@ module Elm.Parser.DeclarationsTests exposing (..)
 
 import Elm.Parser.CombineTestUtil exposing (..)
 import Elm.Parser.Declarations as Parser exposing (..)
-import Elm.Parser.File as Parser exposing (file)
 import Elm.Parser.State exposing (State, emptyState)
 import Elm.Syntax.Declaration exposing (..)
-import Elm.Syntax.Exposing exposing (..)
 import Elm.Syntax.Expression exposing (..)
-import Elm.Syntax.Module exposing (..)
 import Elm.Syntax.Pattern exposing (..)
 import Elm.Syntax.Range exposing (emptyRange)
 import Elm.Syntax.TypeAnnotation exposing (..)
@@ -101,7 +98,7 @@ all =
                         (Just
                             { operatorDefinition = False
                             , name = { value = "inc", range = emptyRange }
-                            , arguments = [ VarPattern "x" emptyRange ]
+                            , arguments = [ ( emptyRange, VarPattern "x" ) ]
                             , expression =
                                 emptyRanged <|
                                     Application
@@ -193,13 +190,13 @@ all =
                         (Just
                             { operatorDefinition = False
                             , name = { value = "update", range = emptyRange }
-                            , arguments = [ VarPattern "msg" emptyRange, VarPattern "model" emptyRange ]
+                            , arguments = [ ( emptyRange, VarPattern "msg" ), ( emptyRange, VarPattern "model" ) ]
                             , expression =
                                 emptyRanged <|
                                     CaseExpression
                                         { expression = emptyRanged <| FunctionOrValue "msg"
                                         , cases =
-                                            [ ( NamedPattern (QualifiedNameRef [] "Increment") [] emptyRange
+                                            [ ( ( emptyRange, NamedPattern (QualifiedNameRef [] "Increment") [] )
                                               , emptyRanged <|
                                                     Application
                                                         [ emptyRanged <| FunctionOrValue "model"
@@ -207,7 +204,7 @@ all =
                                                         , emptyRanged <| Integer 1
                                                         ]
                                               )
-                                            , ( NamedPattern (QualifiedNameRef [] "Decrement") [] emptyRange
+                                            , ( ( emptyRange, NamedPattern (QualifiedNameRef [] "Decrement") [] )
                                               , emptyRanged <|
                                                     Application
                                                         [ emptyRanged <| FunctionOrValue "model"
@@ -269,7 +266,7 @@ all =
                     |> Expect.equal
                         (Just <|
                             Destructuring
-                                (AllPattern emptyRange)
+                                ( emptyRange, AllPattern )
                                 (emptyRanged <| FunctionOrValue "b")
                         )
         , test "declaration" <|

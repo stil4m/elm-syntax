@@ -130,53 +130,55 @@ patchValueConstructorExpose p ( v, r ) =
     ( v, p r )
 
 
-patchPattern : Patch -> Pattern -> Pattern
-patchPattern patch p =
-    case p of
-        QualifiedNamePattern x r ->
-            QualifiedNamePattern x (patch r)
+patchPattern : Patch -> Ranged Pattern -> Ranged Pattern
+patchPattern patch ( r, p ) =
+    ( r
+    , case p of
+        QualifiedNamePattern x ->
+            QualifiedNamePattern x
 
-        RecordPattern ls r ->
-            RecordPattern (List.map (unRange patch) ls) (patch r)
+        RecordPattern ls ->
+            RecordPattern (List.map (unRange patch) ls)
 
-        VarPattern x r ->
-            VarPattern x (patch r)
+        VarPattern x ->
+            VarPattern x
 
-        NamedPattern x y r ->
-            NamedPattern x (List.map (patchPattern patch) y) (patch r)
+        NamedPattern x y ->
+            NamedPattern x (List.map (patchPattern patch) y)
 
-        ParenthesizedPattern x r ->
-            ParenthesizedPattern (patchPattern patch x) (patch r)
+        ParenthesizedPattern x ->
+            ParenthesizedPattern (patchPattern patch x)
 
-        AsPattern x y r ->
-            AsPattern (patchPattern patch x) (unRange patch y) (patch r)
+        AsPattern x y ->
+            AsPattern (patchPattern patch x) (unRange patch y)
 
-        UnConsPattern x y r ->
-            UnConsPattern (patchPattern patch x) (patchPattern patch y) (patch r)
+        UnConsPattern x y ->
+            UnConsPattern (patchPattern patch x) (patchPattern patch y)
 
-        CharPattern c r ->
-            CharPattern c (patch r)
+        CharPattern c ->
+            CharPattern c
 
-        StringPattern s r ->
-            StringPattern s (patch r)
+        StringPattern s ->
+            StringPattern s
 
-        FloatPattern f r ->
-            FloatPattern f (patch r)
+        FloatPattern f ->
+            FloatPattern f
 
-        IntPattern i r ->
-            IntPattern i (patch r)
+        IntPattern i ->
+            IntPattern i
 
-        AllPattern r ->
-            AllPattern (patch r)
+        AllPattern ->
+            AllPattern
 
-        UnitPattern r ->
-            UnitPattern (patch r)
+        UnitPattern ->
+            UnitPattern
 
-        ListPattern x r ->
-            ListPattern (List.map (patchPattern patch) x) (patch r)
+        ListPattern x ->
+            ListPattern (List.map (patchPattern patch) x)
 
-        TuplePattern x r ->
-            TuplePattern (List.map (patchPattern patch) x) (patch r)
+        TuplePattern x ->
+            TuplePattern (List.map (patchPattern patch) x)
+    )
 
 
 unRange : Patch -> { a | range : Range } -> { a | range : Range }

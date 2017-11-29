@@ -20,7 +20,7 @@ all =
                     |> Expect.equal
                         (Just
                             (LambdaExpression
-                                { args = [ UnitPattern emptyRange ]
+                                { args = [ ( emptyRange, UnitPattern ) ]
                                 , expression = emptyRanged <| FunctionOrValue "foo"
                                 }
                             )
@@ -33,8 +33,8 @@ all =
                         (Just
                             (LambdaExpression
                                 { args =
-                                    [ VarPattern "a" emptyRange
-                                    , VarPattern "b" emptyRange
+                                    [ ( emptyRange, VarPattern "a" )
+                                    , ( emptyRange, VarPattern "b" )
                                     ]
                                 , expression =
                                     emptyRanged <|
@@ -54,11 +54,12 @@ all =
                         (Just
                             (LambdaExpression
                                 { args =
-                                    [ TuplePattern
-                                        [ VarPattern "a" emptyRange
-                                        , VarPattern "b" emptyRange
-                                        ]
-                                        emptyRange
+                                    [ ( emptyRange
+                                      , TuplePattern
+                                            [ ( emptyRange, VarPattern "a" )
+                                            , ( emptyRange, VarPattern "b" )
+                                            ]
+                                      )
                                     ]
                                 , expression = emptyRanged <| Application [ emptyRanged <| FunctionOrValue "a", emptyRanged <| Operator "+", emptyRanged <| FunctionOrValue "b" ]
                                 }

@@ -206,7 +206,7 @@ encodeDeclaration decl =
             encodeTyped "destructuring" (encodeDestructuring pattern expression)
 
 
-encodeDestructuring : Pattern -> Ranged Expression -> Value
+encodeDestructuring : Ranged Pattern -> Ranged Expression -> Value
 encodeDestructuring pattern expression =
     object
         [ ( "pattern", encodePattern pattern )
@@ -356,118 +356,110 @@ encodeVariablePointer { value, range } =
         ]
 
 
-encodePattern : Pattern -> Value
-encodePattern pattern =
-    case pattern of
-        AllPattern r ->
-            encodeTyped "all" (JE.object [ ( "range", Range.encode r ) ])
+encodePattern : Ranged Pattern -> Value
+encodePattern ( r, pattern ) =
+    JE.object
+        [ ( "range", Range.encode r )
+        , ( "pattern"
+          , case pattern of
+                AllPattern ->
+                    encodeTyped "all" (JE.object [])
 
-        UnitPattern r ->
-            encodeTyped "unit" (JE.object [ ( "range", Range.encode r ) ])
+                UnitPattern ->
+                    encodeTyped "unit" (JE.object [])
 
-        CharPattern c r ->
-            encodeTyped "char"
-                (JE.object
-                    [ ( "value", string <| String.fromChar c )
-                    , ( "range", Range.encode r )
-                    ]
-                )
+                CharPattern c ->
+                    encodeTyped "char"
+                        (JE.object
+                            [ ( "value", string <| String.fromChar c )
+                            ]
+                        )
 
-        StringPattern v r ->
-            encodeTyped "char"
-                (JE.object
-                    [ ( "value", string v )
-                    , ( "range", Range.encode r )
-                    ]
-                )
+                StringPattern v ->
+                    encodeTyped "char"
+                        (JE.object
+                            [ ( "value", string v )
+                            ]
+                        )
 
-        IntPattern i r ->
-            encodeTyped "int"
-                (JE.object
-                    [ ( "value", JE.int i )
-                    , ( "range", Range.encode r )
-                    ]
-                )
+                IntPattern i ->
+                    encodeTyped "int"
+                        (JE.object
+                            [ ( "value", JE.int i )
+                            ]
+                        )
 
-        FloatPattern f r ->
-            encodeTyped "float"
-                (JE.object
-                    [ ( "value", float f )
-                    , ( "range", Range.encode r )
-                    ]
-                )
+                FloatPattern f ->
+                    encodeTyped "float"
+                        (JE.object
+                            [ ( "value", float f )
+                            ]
+                        )
 
-        TuplePattern patterns r ->
-            encodeTyped "tuple"
-                (JE.object
-                    [ ( "value", asList encodePattern patterns )
-                    , ( "range", Range.encode r )
-                    ]
-                )
+                TuplePattern patterns ->
+                    encodeTyped "tuple"
+                        (JE.object
+                            [ ( "value", asList encodePattern patterns )
+                            ]
+                        )
 
-        RecordPattern pointers r ->
-            encodeTyped "record"
-                (JE.object
-                    [ ( "value", asList encodeVariablePointer pointers )
-                    , ( "range", Range.encode r )
-                    ]
-                )
+                RecordPattern pointers ->
+                    encodeTyped "record"
+                        (JE.object
+                            [ ( "value", asList encodeVariablePointer pointers )
+                            ]
+                        )
 
-        UnConsPattern p1 p2 r ->
-            encodeTyped "uncons"
-                (object
-                    [ ( "left", encodePattern p1 )
-                    , ( "right", encodePattern p2 )
-                    , ( "range", Range.encode r )
-                    ]
-                )
+                UnConsPattern p1 p2 ->
+                    encodeTyped "uncons"
+                        (object
+                            [ ( "left", encodePattern p1 )
+                            , ( "right", encodePattern p2 )
+                            ]
+                        )
 
-        ListPattern patterns r ->
-            encodeTyped "list"
-                (JE.object
-                    [ ( "value", asList encodePattern patterns )
-                    , ( "range", Range.encode r )
-                    ]
-                )
+                ListPattern patterns ->
+                    encodeTyped "list"
+                        (JE.object
+                            [ ( "value", asList encodePattern patterns )
+                            ]
+                        )
 
-        VarPattern name r ->
-            encodeTyped "var"
-                (JE.object
-                    [ ( "value", string name )
-                    , ( "range", Range.encode r )
-                    ]
-                )
+                VarPattern name ->
+                    encodeTyped "var"
+                        (JE.object
+                            [ ( "value", string name )
+                            ]
+                        )
 
-        NamedPattern qualifiedNameRef patterns r ->
-            encodeTyped "named" <|
-                object
-                    [ ( "qualified", encodeQualifiedNameRef qualifiedNameRef )
-                    , ( "patterns", asList encodePattern patterns )
-                    , ( "range", Range.encode r )
-                    ]
+                NamedPattern qualifiedNameRef patterns ->
+                    encodeTyped "named" <|
+                        object
+                            [ ( "qualified", encodeQualifiedNameRef qualifiedNameRef )
+                            , ( "patterns", asList encodePattern patterns )
+                            ]
 
-        QualifiedNamePattern qualifiedNameRef r ->
-            encodeTyped "qualifiedName" <|
-                JE.object
-                    [ ( "value", encodeQualifiedNameRef qualifiedNameRef )
-                    , ( "range", Range.encode r )
-                    ]
+                QualifiedNamePattern qualifiedNameRef ->
+                    encodeTyped "qualifiedName" <|
+                        JE.object
+                            [ ( "value", encodeQualifiedNameRef qualifiedNameRef )
+                            ]
 
-        AsPattern destructured variablePointer r ->
-            encodeTyped "as" <|
-                object
-                    [ ( "name", encodeVariablePointer variablePointer )
-                    , ( "pattern", encodePattern destructured )
-                    , ( "range", Range.encode r )
-                    ]
+                AsPattern destructured variablePointer ->
+                    encodeTyped "as" <|
+                        object
+                            [ ( "name", encodeVariablePointer variablePointer )
+                            , ( "pattern", encodePattern destructured )
+                            ]
 
-        ParenthesizedPattern p1 r ->
-            encodeTyped "parentisized"
-                (JE.object
-                    [ ( "value", encodePattern p1 )
-                    , ( "range", Range.encode r )
-                    ]
-                )
+                ParenthesizedPattern p1 ->
+                    encodeTyped "parentisized"
+                        (JE.object
+                            [ ( "value", encodePattern p1 )
+                            ]
+                        )
+          )
+        ]
 
 
 encodeQualifiedNameRef : QualifiedNameRef -> Value

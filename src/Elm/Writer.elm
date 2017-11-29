@@ -323,7 +323,7 @@ writeInfix { direction, precedence, operator } =
         ]
 
 
-writeDestructuring : Pattern -> Ranged Expression -> Writer
+writeDestructuring : Ranged Pattern -> Ranged Expression -> Writer
 writeDestructuring pattern expression =
     breaked
         [ spaced [ writePattern pattern, string "=" ]
@@ -536,55 +536,55 @@ writeExpression ( range, inner ) =
 
 {-| Write a pattern
 -}
-writePattern : Pattern -> Writer
-writePattern p =
+writePattern : Ranged Pattern -> Writer
+writePattern ( _, p ) =
     case p of
-        AllPattern _ ->
+        AllPattern ->
             string "_"
 
-        UnitPattern _ ->
+        UnitPattern ->
             string "()"
 
-        CharPattern c _ ->
+        CharPattern c ->
             string (toString c)
 
-        StringPattern s _ ->
+        StringPattern s ->
             string s
 
-        IntPattern i _ ->
+        IntPattern i ->
             string (toString i)
 
-        FloatPattern f _ ->
+        FloatPattern f ->
             string (toString f)
 
-        TuplePattern inner _ ->
+        TuplePattern inner ->
             parensComma False (List.map writePattern inner)
 
-        RecordPattern inner _ ->
+        RecordPattern inner ->
             bracesComma False (List.map (.value >> string) inner)
 
-        UnConsPattern left right _ ->
+        UnConsPattern left right ->
             spaced [ writePattern left, string "::", writePattern right ]
 
-        ListPattern inner _ ->
+        ListPattern inner ->
             bracketsComma False (List.map writePattern inner)
 
-        VarPattern var _ ->
+        VarPattern var ->
             string var
 
-        NamedPattern qnr others _ ->
+        NamedPattern qnr others ->
             spaced
                 [ writeQualifiedNameRef qnr
                 , spaced (List.map writePattern others)
                 ]
 
-        QualifiedNamePattern qnr _ ->
+        QualifiedNamePattern qnr ->
             writeQualifiedNameRef qnr
 
-        AsPattern innerPattern asName _ ->
+        AsPattern innerPattern asName ->
             spaced [ writePattern innerPattern, string "as", string asName.value ]
 
-        ParenthesizedPattern innerPattern _ ->
+        ParenthesizedPattern innerPattern ->
             spaced [ string "(", writePattern innerPattern, string ")" ]
 
 

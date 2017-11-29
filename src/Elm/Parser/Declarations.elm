@@ -91,7 +91,7 @@ functionDeclaration =
         )
 
 
-functionArgument : Parser State Pattern
+functionArgument : Parser State (Ranged Pattern)
 functionArgument =
     pattern
 

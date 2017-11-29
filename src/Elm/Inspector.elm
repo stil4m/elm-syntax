@@ -27,7 +27,7 @@ type alias Config context =
     , onFunctionSignature : Order context FunctionSignature
     , onPortDeclaration : Order context FunctionSignature
     , onTypeAlias : Order context TypeAlias
-    , onDestructuring : Order context ( Pattern, Ranged Expression )
+    , onDestructuring : Order context ( Ranged Pattern, Ranged Expression )
     , onExpression : Order context (Ranged Expression)
     , onOperatorApplication : Order context ( String, InfixDirection, Ranged Expression, Ranged Expression )
     , onTypeAnnotation : Order context TypeAnnotation
@@ -162,7 +162,7 @@ inspectTypeAlias config typeAlias context =
         context
 
 
-inspectDestructuring : Config context -> ( Pattern, Ranged Expression ) -> context -> context
+inspectDestructuring : Config context -> ( Ranged Pattern, Ranged Expression ) -> context -> context
 inspectDestructuring config destructuring context =
     actionLambda
         config.onDestructuring
