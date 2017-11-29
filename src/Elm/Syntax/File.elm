@@ -11,7 +11,7 @@ module Elm.Syntax.File exposing (File)
 
 import Elm.Syntax.Declaration exposing (Declaration)
 import Elm.Syntax.Module exposing (Import, Module)
-import Elm.Syntax.Range exposing (Range)
+import Elm.Syntax.Ranged exposing (Ranged)
 
 
 {-| Type annotation for a file
@@ -20,5 +20,5 @@ type alias File =
     { moduleDefinition : Module
     , imports : List Import
     , declarations : List Declaration
-    , comments : List ( String, Range )
+    , comments : List (Ranged String)
     }

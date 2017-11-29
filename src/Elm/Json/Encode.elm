@@ -62,8 +62,8 @@ encodeFile { moduleDefinition, imports, declarations, comments } =
         ]
 
 
-encodeComment : ( String, Range ) -> Value
-encodeComment ( text, range ) =
+encodeComment : Ranged String -> Value
+encodeComment ( range, text ) =
     object
         [ ( "text", string text )
         , rangeField range

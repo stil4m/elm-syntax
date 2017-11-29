@@ -129,7 +129,7 @@ bar = 1
                     }
                 }
             ]
-      , comments = [ ( "--The Doc", { start = { row = 3, column = 0 }, end = { row = 3, column = 9 } } ) ]
+      , comments = [ ( { start = { row = 3, column = 0 }, end = { row = 3, column = 9 } }, "--The Doc" ) ]
       }
     )
 
@@ -158,7 +158,7 @@ bar = 1
                     }
                 }
             ]
-      , comments = [ ( "{- The Doc -}", { start = { row = 3, column = 0 }, end = { row = 3, column = 13 } } ) ]
+      , comments = [ ( { start = { row = 3, column = 0 }, end = { row = 3, column = 13 } }, "{- The Doc -}" ) ]
       }
     )
 

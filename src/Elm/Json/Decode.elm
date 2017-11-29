@@ -75,11 +75,11 @@ decodeFile =
         |: field "comments" (list decodeComment)
 
 
-decodeComment : Decoder ( String, Range )
+decodeComment : Decoder (Ranged String)
 decodeComment =
     succeed (,)
-        |: field "text" string
         |: field "range" Range.decode
+        |: field "text" string
 
 
 decodeModule : Decoder Module

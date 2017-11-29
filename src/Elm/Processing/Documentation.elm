@@ -6,6 +6,7 @@ import Elm.Syntax.Documentation exposing (..)
 import Elm.Syntax.Expression exposing (..)
 import Elm.Syntax.File exposing (File)
 import Elm.Syntax.Range exposing (Range)
+import Elm.Syntax.Ranged exposing (Ranged)
 import Elm.Syntax.TypeAlias exposing (TypeAlias)
 
 
@@ -27,7 +28,7 @@ onTypeAlias typeAlias file =
             List.filter (isDocumentationForRange typeAlias.range) file.comments
     in
     case List.head docs of
-        Just (( docString, docRange ) as doc) ->
+        Just (( docRange, docString ) as doc) ->
             { file
                 | comments =
                     file.comments
@@ -59,7 +60,7 @@ onFunction function file =
             List.filter (isDocumentationForRange functionRange) file.comments
     in
     case List.head docs of
-        Just (( docString, docRange ) as doc) ->
+        Just (( docRange, docString ) as doc) ->
             { file
                 | comments =
                     file.comments
@@ -102,8 +103,8 @@ replaceFunction f1 decl =
             decl
 
 
-isDocumentationForRange : Range -> ( String, Range ) -> Bool
-isDocumentationForRange range ( commentText, commentRange ) =
+isDocumentationForRange : Range -> Ranged String -> Bool
+isDocumentationForRange range ( commentRange, commentText ) =
     if String.startsWith "{-|" commentText then
         let
             functionStartRow =

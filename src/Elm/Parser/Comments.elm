@@ -5,10 +5,10 @@ import Combine.Char exposing (anyChar)
 import Elm.Parser.Ranges exposing (withRange)
 import Elm.Parser.State exposing (State, addComment)
 import Elm.Parser.Whitespace exposing (untilNewlineToken)
-import Elm.Syntax.Range exposing (..)
+import Elm.Syntax.Ranged exposing (Ranged)
 
 
-addCommentToState : Parser State ( String, Range ) -> Parser State ()
+addCommentToState : Parser State (Ranged String) -> Parser State ()
 addCommentToState p =
     p >>= (\pair -> modifyState (addComment pair) *> succeed ())
 
@@ -16,7 +16,7 @@ addCommentToState p =
 parseComment : Parser State String -> Parser State ()
 parseComment commentParser =
     withRange
-        ((,) <$> commentParser)
+        (flip (,) <$> commentParser)
         |> addCommentToState
 
 

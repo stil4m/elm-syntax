@@ -76,9 +76,9 @@ patchImport patch imp =
     unRange patch { imp | exposingList = Maybe.map (patchExposingList patch patchTopLevelExpose) imp.exposingList }
 
 
-patchComment : Patch -> ( String, Range ) -> ( String, Range )
-patchComment p ( v, r ) =
-    ( v, p r )
+patchComment : Patch -> Ranged String -> Ranged String
+patchComment p ( r, v ) =
+    ( p r, v )
 
 
 patchModuleDefinition : Patch -> Module -> Module

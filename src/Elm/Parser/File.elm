@@ -9,7 +9,7 @@ import Elm.Parser.Util exposing (exactIndentWhitespace)
 import Elm.Parser.Whitespace exposing (manySpaces)
 import Elm.Syntax.Declaration exposing (Declaration)
 import Elm.Syntax.File exposing (File)
-import Elm.Syntax.Range exposing (Range)
+import Elm.Syntax.Ranged exposing (Ranged)
 
 
 file : Parser State File
@@ -21,7 +21,7 @@ file =
         <*> collectComments
 
 
-collectComments : Parser State (List ( String, Range ))
+collectComments : Parser State (List (Ranged String))
 collectComments =
     withState (State.getComments >> succeed)
 
