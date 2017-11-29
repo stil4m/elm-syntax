@@ -1,7 +1,7 @@
 module Elm.Parser.TypeAnnotation exposing (typeAnnotation)
 
 import Combine exposing ((*>), (<$>), (<*), (<*>), (>>=), Parser, between, choice, lazy, many, map, maybe, or, parens, sepBy, string, succeed, whitespace)
-import Elm.Parser.Ranges exposing (ranged, withRange)
+import Elm.Parser.Ranges exposing (ranged)
 import Elm.Parser.State exposing (State)
 import Elm.Parser.Tokens exposing (functionName, typeName)
 import Elm.Parser.Util exposing (moreThanIndentWhitespace, trimmed)
@@ -53,7 +53,7 @@ asTypeAnnotation x =
         [] ->
             Unit
 
-        [ ( r, item ) ] ->
+        [ ( _, item ) ] ->
             item
 
         xs ->

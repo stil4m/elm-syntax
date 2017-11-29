@@ -27,26 +27,8 @@ import Elm.Syntax.Ranged exposing (Ranged)
 import Elm.Syntax.Type exposing (..)
 import Elm.Syntax.TypeAlias exposing (..)
 import Elm.Syntax.TypeAnnotation exposing (..)
-import Json.Decode exposing (Decoder, andThen, at, bool, fail, field, float, int, lazy, list, map, map2, map3, map4, nullable, string, succeed)
+import Json.Decode exposing (Decoder, andThen, bool, fail, field, float, int, lazy, list, map, map2, map3, nullable, string, succeed)
 import Json.Decode.Extra exposing ((|:))
-
-
-decodeTypedWithRange : List ( String, Decoder (Range -> a) ) -> Decoder a
-decodeTypedWithRange opts =
-    lazy
-        (\() ->
-            field "type" string
-                |> andThen
-                    (\t ->
-                        case List.filter (Tuple.first >> (==) t) opts |> List.head of
-                            Just m ->
-                                (field (Tuple.first m) <| Tuple.second m)
-                                    |: at [ Tuple.first m, "range" ] Range.decode
-
-                            Nothing ->
-                                fail ("No decoder for type: " ++ t)
-                    )
-        )
 
 
 rangeField : Decoder Range

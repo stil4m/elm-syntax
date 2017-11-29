@@ -136,7 +136,7 @@ buildInterfaceFromExplicit : List (Ranged TopLevelExpose) -> List ( String, Expo
 buildInterfaceFromExplicit x fileDefinitionList =
     x
         |> List.filterMap
-            (\( range, expose ) ->
+            (\( _, expose ) ->
                 case expose of
                     InfixExpose k ->
                         lookupForDefinition k fileDefinitionList

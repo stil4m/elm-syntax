@@ -2,17 +2,12 @@ module Elm.Parser.Patterns exposing (declarablePattern, pattern)
 
 import Combine exposing ((*>), (<$), (<$>), (<*), (<*>), (>>=), Parser, between, choice, lazy, many, maybe, or, parens, sepBy, sepBy1, string, succeed)
 import Combine.Num
-import Elm.Parser.Ranges exposing (ranged, rangedWithCustomStart, withRange, withRangeCustomStart, withRangeTuple)
+import Elm.Parser.Ranges exposing (ranged, rangedWithCustomStart)
 import Elm.Parser.State exposing (State)
 import Elm.Parser.Tokens exposing (asToken, characterLiteral, functionName, stringLiteral, typeName)
 import Elm.Parser.Util exposing (asPointer, moreThanIndentWhitespace, trimmed)
 import Elm.Syntax.Pattern exposing (Pattern(AllPattern, AsPattern, CharPattern, FloatPattern, IntPattern, ListPattern, NamedPattern, QualifiedNamePattern, RecordPattern, StringPattern, TuplePattern, UnConsPattern, UnitPattern, VarPattern), QualifiedNameRef)
-import Elm.Syntax.Range exposing (Range)
 import Elm.Syntax.Ranged exposing (Ranged)
-
-
-type alias RangelessPattern =
-    Range -> Pattern
 
 
 declarablePattern : Parser State (Ranged Pattern)
