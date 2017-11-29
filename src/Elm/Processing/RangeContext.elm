@@ -8,6 +8,7 @@ import Elm.Syntax.File exposing (..)
 import Elm.Syntax.Module exposing (..)
 import Elm.Syntax.Pattern exposing (..)
 import Elm.Syntax.Range exposing (Location, Range)
+import Elm.Syntax.Ranged exposing (Ranged)
 import Elm.Syntax.Type exposing (..)
 import Elm.Syntax.TypeAlias exposing (..)
 import Elm.Syntax.TypeAnnotation exposing (..)
@@ -129,11 +130,6 @@ patchValueConstructorExpose p ( v, r ) =
     ( v, p r )
 
 
-patchExpression : Patch -> Expression -> Expression
-patchExpression patch ( r, inner ) =
-    ( patch r, patchInnerExpression patch inner )
-
-
 patchPattern : Patch -> Pattern -> Pattern
 patchPattern patch p =
     case p of
@@ -194,7 +190,7 @@ patchDeclaration patch decl =
         Destructuring pattern expression ->
             Destructuring
                 (patchPattern patch pattern)
-                (patchExpression patch expression)
+                (patchRanged patchExpression patch expression)
 
         FuncDecl f ->
             FuncDecl <| patchFunction patch f
@@ -219,7 +215,7 @@ patchLetDeclaration patch decl =
             LetFunction (patchFunction patch function)
 
         LetDestructuring pattern expression ->
-            LetDestructuring (patchPattern patch pattern) (patchExpression patch expression)
+            LetDestructuring (patchPattern patch pattern) (patchRanged patchExpression patch expression)
 
 
 patchTypeAlias : Patch -> TypeAlias -> TypeAlias
@@ -287,69 +283,74 @@ patchSignature patch signature =
 patchFunctionDeclaration : Patch -> FunctionDeclaration -> FunctionDeclaration
 patchFunctionDeclaration patch d =
     { d
-        | expression = patchExpression patch d.expression
+        | expression = patchRanged patchExpression patch d.expression
         , arguments = List.map (patchPattern patch) d.arguments
         , name = unRange patch d.name
     }
 
 
-patchInnerExpression : Patch -> InnerExpression -> InnerExpression
-patchInnerExpression patch inner =
+patchRanged : (Patch -> a -> a) -> Patch -> Ranged a -> Ranged a
+patchRanged f p ( r, x ) =
+    ( p r, f p x )
+
+
+patchExpression : Patch -> Expression -> Expression
+patchExpression patch inner =
     case inner of
         Application xs ->
-            Application <| List.map (patchExpression patch) xs
+            Application <| List.map (patchRanged patchExpression patch) xs
 
         OperatorApplication op dir left right ->
-            OperatorApplication op dir (patchExpression patch left) (patchExpression patch right)
+            OperatorApplication op dir (patchRanged patchExpression patch left) (patchRanged patchExpression patch right)
 
         ListExpr xs ->
-            ListExpr <| List.map (patchExpression patch) xs
+            ListExpr <| List.map (patchRanged patchExpression patch) xs
 
         IfBlock a b c ->
             IfBlock
-                (patchExpression patch a)
-                (patchExpression patch b)
-                (patchExpression patch c)
+                (patchRanged patchExpression patch a)
+                (patchRanged patchExpression patch b)
+                (patchRanged patchExpression patch c)
 
         RecordExpr fields ->
-            RecordExpr <| List.map (Tuple.mapSecond (patchExpression patch)) fields
+            RecordExpr <| List.map (Tuple.mapSecond (patchRanged patchExpression patch)) fields
 
         LambdaExpression lambda ->
             LambdaExpression
                 { lambda
-                    | expression = patchExpression patch lambda.expression
+                    | expression = patchRanged patchExpression patch lambda.expression
                     , args = List.map (patchPattern patch) lambda.args
                 }
 
         RecordUpdateExpression update ->
-            RecordUpdateExpression { update | updates = List.map (Tuple.mapSecond (patchExpression patch)) update.updates }
+            RecordUpdateExpression { update | updates = List.map (Tuple.mapSecond (patchRanged patchExpression patch)) update.updates }
 
         CaseExpression { cases, expression } ->
             CaseExpression
                 { cases =
                     cases
                         |> List.map (Tuple.mapFirst (patchPattern patch))
-                        |> List.map (Tuple.mapSecond (patchExpression patch))
-                , expression = patchExpression patch expression
+                        |> List.map (Tuple.mapSecond (patchRanged patchExpression patch))
+                , expression = patchRanged patchExpression patch expression
                 }
 
         LetExpression { declarations, expression } ->
             LetExpression
                 { declarations = List.map (patchLetDeclaration patch) declarations
-                , expression = patchExpression patch expression
+                , expression = patchRanged patchExpression patch expression
                 }
 
         TupledExpression x ->
-            TupledExpression <| List.map (patchExpression patch) x
+            TupledExpression <| List.map (patchRanged patchExpression patch) x
 
         ParenthesizedExpression x ->
-            ParenthesizedExpression <| patchExpression patch x
+            ParenthesizedExpression <| patchRanged patchExpression patch x
 
         RecordAccess e n ->
-            RecordAccess (patchExpression patch e) n
+            RecordAccess (patchRanged patchExpression patch e) n
 
         Negation expr ->
-            Negation (patchExpression patch expr)
+            Negation (patchRanged patchExpression patch expr)
 
         _ ->
             inner

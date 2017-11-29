@@ -9,6 +9,7 @@ import Elm.Syntax.File exposing (..)
 import Elm.Syntax.Module exposing (..)
 import Elm.Syntax.Pattern exposing (..)
 import Elm.Syntax.Range exposing (Range, emptyRange)
+import Elm.Syntax.Ranged exposing (Ranged)
 import Elm.Syntax.Type exposing (..)
 import Elm.Syntax.TypeAlias exposing (..)
 import Elm.Syntax.TypeAnnotation exposing (..)
@@ -59,12 +60,12 @@ parseFullString s p =
             Nothing
 
 
-emptyRanged : InnerExpression -> Expression
+emptyRanged : Expression -> Ranged Expression
 emptyRanged =
     (,) emptyRange
 
 
-noRangeExpression : Expression -> Expression
+noRangeExpression : Ranged Expression -> Ranged Expression
 noRangeExpression ( _, inner ) =
     ( emptyRange, noRangeInnerExpression inner )
 
@@ -294,7 +295,7 @@ noRangeFunctionDeclaration d =
     }
 
 
-noRangeInnerExpression : InnerExpression -> InnerExpression
+noRangeInnerExpression : Expression -> Expression
 noRangeInnerExpression inner =
     case inner of
         Application xs ->

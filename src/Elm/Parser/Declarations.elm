@@ -16,6 +16,7 @@ import Elm.Syntax.Declaration exposing (..)
 import Elm.Syntax.Expression exposing (..)
 import Elm.Syntax.Pattern exposing (..)
 import Elm.Syntax.Range exposing (Range)
+import Elm.Syntax.Ranged exposing (Ranged)
 import List.Extra as List
 
 
@@ -99,17 +100,17 @@ functionArgument =
 -- Expressions
 
 
-rangedExpression : Parser State InnerExpression -> Parser State Expression
+rangedExpression : Parser State Expression -> Parser State (Ranged Expression)
 rangedExpression p =
     withRange <| (flip (,) <$> p)
 
 
-rangedExpressionWithStart : Range -> Parser State InnerExpression -> Parser State Expression
+rangedExpressionWithStart : Range -> Parser State Expression -> Parser State (Ranged Expression)
 rangedExpressionWithStart r p =
     withRangeCustomStart r <| (flip (,) <$> p)
 
 
-expressionNotApplication : Parser State Expression
+expressionNotApplication : Parser State (Ranged Expression)
 expressionNotApplication =
     lazy
         (\() ->
@@ -141,13 +142,13 @@ expressionNotApplication =
         )
 
 
-liftRecordAccess : Expression -> Parser State Expression
+liftRecordAccess : Ranged Expression -> Parser State (Ranged Expression)
 liftRecordAccess e =
     or ((rangedExpression <| RecordAccess e <$> (string "." *> functionName)) >>= liftRecordAccess)
         (succeed e)
 
 
-expression : Parser State Expression
+expression : Parser State (Ranged Expression)
 expression =
     lazy
         (\() ->
@@ -159,7 +160,7 @@ expression =
         )
 
 
-promoteToApplicationExpression : Expression -> Parser State Expression
+promoteToApplicationExpression : Ranged Expression -> Parser State (Ranged Expression)
 promoteToApplicationExpression expr =
     lazy
         (\() ->
@@ -198,12 +199,12 @@ withIndentedState2 p =
         )
 
 
-unitExpression : Parser State InnerExpression
+unitExpression : Parser State Expression
 unitExpression =
     UnitExpr <$ string "()"
 
 
-glslExpression : Parser State InnerExpression
+glslExpression : Parser State Expression
 glslExpression =
     (String.fromList >> GLSLExpression)
         <$> between (string "[glsl|")
@@ -224,7 +225,7 @@ glslExpression =
 -- listExpression
 
 
-listExpression : Parser State InnerExpression
+listExpression : Parser State Expression
 listExpression =
     lazy
         (\() ->
@@ -240,7 +241,7 @@ listExpression =
         )
 
 
-emptyListExpression : Parser State InnerExpression
+emptyListExpression : Parser State Expression
 emptyListExpression =
     ListExpr []
         <$ (string "["
@@ -259,7 +260,7 @@ emptyListExpression =
 -- recordExpression
 
 
-recordExpressionField : Parser State ( String, Expression )
+recordExpressionField : Parser State ( String, Ranged Expression )
 recordExpressionField =
     lazy
         (\() ->
@@ -273,7 +274,7 @@ recordExpressionField =
         )
 
 
-recordFields : Bool -> Parser State (List ( String, Expression ))
+recordFields : Bool -> Parser State (List ( String, Ranged Expression ))
 recordFields oneOrMore =
     let
         p =
@@ -285,7 +286,7 @@ recordFields oneOrMore =
     p (string ",") (trimmed recordExpressionField)
 
 
-recordExpression : Parser State InnerExpression
+recordExpression : Parser State Expression
 recordExpression =
     lazy
         (\() ->
@@ -296,7 +297,7 @@ recordExpression =
         )
 
 
-recordUpdateExpression : Parser State InnerExpression
+recordUpdateExpression : Parser State Expression
 recordUpdateExpression =
     lazy
         (\() ->
@@ -315,12 +316,12 @@ recordUpdateExpression =
 -- literalExpression
 
 
-literalExpression : Parser State InnerExpression
+literalExpression : Parser State Expression
 literalExpression =
     Literal <$> or multiLineStringLiteral stringLiteral
 
 
-charLiteralExpression : Parser State InnerExpression
+charLiteralExpression : Parser State Expression
 charLiteralExpression =
     CharLiteral <$> characterLiteral
 
@@ -329,7 +330,7 @@ charLiteralExpression =
 -- lambda
 
 
-lambdaExpression : Parser State InnerExpression
+lambdaExpression : Parser State Expression
 lambdaExpression =
     lazy
         (\() ->
@@ -343,7 +344,7 @@ lambdaExpression =
 -- Case Expression
 
 
-caseBlock : Parser State Expression
+caseBlock : Parser State (Ranged Expression)
 caseBlock =
     lazy (\() -> caseToken *> moreThanIndentWhitespace *> expression <* moreThanIndentWhitespace <* ofToken)
 
@@ -363,7 +364,7 @@ caseStatements =
     lazy (\() -> sepBy1 exactIndentWhitespace caseStatement)
 
 
-caseExpression : Parser State InnerExpression
+caseExpression : Parser State Expression
 caseExpression =
     lazy
         (\() ->
@@ -412,7 +413,7 @@ letBlock =
         )
 
 
-letExpression : Parser State InnerExpression
+letExpression : Parser State Expression
 letExpression =
     lazy
         (\() ->
@@ -422,17 +423,17 @@ letExpression =
         )
 
 
-integerExpression : Parser State InnerExpression
+integerExpression : Parser State Expression
 integerExpression =
     Integer <$> Combine.Num.int
 
 
-floatableExpression : Parser State InnerExpression
+floatableExpression : Parser State Expression
 floatableExpression =
     Floatable <$> Combine.Num.float
 
 
-ifBlockExpression : Parser State InnerExpression
+ifBlockExpression : Parser State Expression
 ifBlockExpression =
     ifToken
         *> lazy
@@ -444,12 +445,12 @@ ifBlockExpression =
             )
 
 
-prefixOperatorExpression : Parser State InnerExpression
+prefixOperatorExpression : Parser State Expression
 prefixOperatorExpression =
     PrefixOperator <$> parens prefixOperatorToken
 
 
-negationExpression : Parser State InnerExpression
+negationExpression : Parser State Expression
 negationExpression =
     lazy
         (\() ->
@@ -470,12 +471,12 @@ negationExpression =
         )
 
 
-operatorExpression : Parser State InnerExpression
+operatorExpression : Parser State Expression
 operatorExpression =
     Operator <$> infixOperatorToken
 
 
-functionOrValueExpression : Parser State InnerExpression
+functionOrValueExpression : Parser State Expression
 functionOrValueExpression =
     lazy
         (\() ->
@@ -483,7 +484,7 @@ functionOrValueExpression =
         )
 
 
-qualifiedExpression : Parser State InnerExpression
+qualifiedExpression : Parser State Expression
 qualifiedExpression =
     lazy
         (\() ->
@@ -493,12 +494,12 @@ qualifiedExpression =
         )
 
 
-recordAccessFunctionExpression : Parser State InnerExpression
+recordAccessFunctionExpression : Parser State Expression
 recordAccessFunctionExpression =
     ((++) "." >> RecordAccessFunction) <$> (string "." *> functionName)
 
 
-tupledExpression : Parser State InnerExpression
+tupledExpression : Parser State Expression
 tupledExpression =
     lazy
         (\() ->

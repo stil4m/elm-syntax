@@ -34,6 +34,7 @@ import Elm.Syntax.File exposing (File)
 import Elm.Syntax.Infix exposing (Infix, InfixDirection(Left))
 import Elm.Syntax.Module exposing (Import)
 import Elm.Syntax.Range as Range
+import Elm.Syntax.Ranged exposing (Ranged)
 import List exposing (maximum)
 import List.Extra as List
 
@@ -151,7 +152,7 @@ process processContext ((Raw file) as rawFile) =
     documentationFixed
 
 
-fixApplication : OperatorTable -> List Expression -> InnerExpression
+fixApplication : OperatorTable -> List (Ranged Expression) -> Expression
 fixApplication operators expressions =
     let
         ops : Dict String Infix
@@ -170,7 +171,7 @@ fixApplication operators expressions =
                     )
                 |> highestPrecedence
 
-        fixExprs : List Expression -> InnerExpression
+        fixExprs : List (Ranged Expression) -> Expression
         fixExprs exps =
             case exps of
                 [ x ] ->
@@ -179,7 +180,7 @@ fixApplication operators expressions =
                 _ ->
                     Application exps
 
-        divideAndConquer : List Expression -> InnerExpression
+        divideAndConquer : List (Ranged Expression) -> Expression
         divideAndConquer exps =
             if Dict.isEmpty ops then
                 fixExprs exps
@@ -198,7 +199,7 @@ fixApplication operators expressions =
     divideAndConquer expressions
 
 
-findNextSplit : Dict String Infix -> List Expression -> Maybe ( List Expression, Infix, List Expression )
+findNextSplit : Dict String Infix -> List (Ranged Expression) -> Maybe ( List (Ranged Expression), Infix, List (Ranged Expression) )
 findNextSplit dict exps =
     let
         prefix =
@@ -235,7 +236,7 @@ highestPrecedence input =
         |> Dict.fromList
 
 
-expressionOperators : Expression -> Maybe String
+expressionOperators : Ranged Expression -> Maybe String
 expressionOperators ( _, expression ) =
     case expression of
         Operator s ->
@@ -246,7 +247,7 @@ expressionOperators ( _, expression ) =
 
 
 type alias Visitor a =
-    Maybe (a -> (Expression -> Expression) -> Expression -> Expression)
+    Maybe (a -> (Ranged Expression -> Ranged Expression) -> Ranged Expression -> Ranged Expression)
 
 
 visit : Visitor context -> context -> File -> File
@@ -306,7 +307,7 @@ visitFunctionDeclaration visitor context functionDeclaration =
     { functionDeclaration | expression = newExpression }
 
 
-visitExpression : Visitor context -> context -> Expression -> Expression
+visitExpression : Visitor context -> context -> Ranged Expression -> Ranged Expression
 visitExpression visitor context expression =
     let
         inner =
@@ -318,7 +319,7 @@ visitExpression visitor context expression =
         expression
 
 
-visitExpressionInner : Visitor context -> context -> Expression -> Expression
+visitExpressionInner : Visitor context -> context -> Ranged Expression -> Ranged Expression
 visitExpressionInner visitor context ( r, expression ) =
     let
         subVisit =

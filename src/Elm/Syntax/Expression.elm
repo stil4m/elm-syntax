@@ -4,10 +4,6 @@ module Elm.Syntax.Expression
         , CaseBlock
         , Cases
         , Expression
-        , Function
-        , FunctionDeclaration
-        , FunctionSignature
-        , InnerExpression
             ( Application
             , CaseExpression
             , CharLiteral
@@ -33,6 +29,9 @@ module Elm.Syntax.Expression
             , TupledExpression
             , UnitExpr
             )
+        , Function
+        , FunctionDeclaration
+        , FunctionSignature
         , Lambda
         , LetBlock
         , LetDeclaration
@@ -48,7 +47,7 @@ module Elm.Syntax.Expression
 
 # Expression
 
-@docs Expression, InnerExpression, Lambda
+@docs Expression, Lambda
 
 
 # Lets
@@ -77,6 +76,7 @@ import Elm.Syntax.Documentation exposing (Documentation)
 import Elm.Syntax.Infix exposing (InfixDirection)
 import Elm.Syntax.Pattern exposing (Pattern)
 import Elm.Syntax.Range exposing (Range)
+import Elm.Syntax.Ranged exposing (Ranged)
 import Elm.Syntax.TypeAnnotation exposing (TypeAnnotation)
 
 
@@ -95,7 +95,7 @@ type alias FunctionDeclaration =
     { operatorDefinition : Bool
     , name : VariablePointer
     , arguments : List Pattern
-    , expression : Expression
+    , expression : Ranged Expression
     }
 
 
@@ -111,34 +111,28 @@ type alias FunctionSignature =
 
 {-| Wrapper type for an expresion on a certain range
 -}
-type alias Expression =
-    ( Range, InnerExpression )
-
-
-{-| Union type containing all possible expressions
--}
-type InnerExpression
+type Expression
     = UnitExpr
-    | Application (List Expression)
-    | OperatorApplication String InfixDirection Expression Expression
+    | Application (List (Ranged Expression))
+    | OperatorApplication String InfixDirection (Ranged Expression) (Ranged Expression)
     | FunctionOrValue String
-    | IfBlock Expression Expression Expression
+    | IfBlock (Ranged Expression) (Ranged Expression) (Ranged Expression)
     | PrefixOperator String
     | Operator String
     | Integer Int
     | Floatable Float
-    | Negation Expression
+    | Negation (Ranged Expression)
     | Literal String
     | CharLiteral Char
-    | TupledExpression (List Expression)
-    | ParenthesizedExpression Expression
+    | TupledExpression (List (Ranged Expression))
+    | ParenthesizedExpression (Ranged Expression)
     | LetExpression LetBlock
     | CaseExpression CaseBlock
     | LambdaExpression Lambda
     | RecordExpr (List RecordSetter)
-    | ListExpr (List Expression)
+    | ListExpr (List (Ranged Expression))
     | QualifiedExpr ModuleName String
-    | RecordAccess Expression String
+    | RecordAccess (Ranged Expression) String
     | RecordAccessFunction String
     | RecordUpdateExpression RecordUpdate
     | GLSLExpression String
@@ -155,14 +149,14 @@ type alias RecordUpdate =
 {-| Expression for setting a record field
 -}
 type alias RecordSetter =
-    ( String, Expression )
+    ( String, Ranged Expression )
 
 
 {-| Expression for a let block
 -}
 type alias LetBlock =
     { declarations : List LetDeclaration
-    , expression : Expression
+    , expression : Ranged Expression
     }
 
 
@@ -170,21 +164,21 @@ type alias LetBlock =
 -}
 type LetDeclaration
     = LetFunction Function
-    | LetDestructuring Pattern Expression
+    | LetDestructuring Pattern (Ranged Expression)
 
 
 {-| Expression for a lambda
 -}
 type alias Lambda =
     { args : List Pattern
-    , expression : Expression
+    , expression : Ranged Expression
     }
 
 
 {-| Expression for a case block
 -}
 type alias CaseBlock =
-    { expression : Expression
+    { expression : Ranged Expression
     , cases : Cases
     }
 
@@ -192,7 +186,7 @@ type alias CaseBlock =
 {-| A case in a case block
 -}
 type alias Case =
-    ( Pattern, Expression )
+    ( Pattern, Ranged Expression )
 
 
 {-| Type alias for a list of cases

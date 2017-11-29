@@ -1,11 +1,12 @@
 module Elm.Inspector exposing (Config, Order(Continue, Inner, Post, Pre, Skip), defaultConfig, inspect)
 
 import Elm.Syntax.Declaration exposing (Declaration(..))
-import Elm.Syntax.Expression exposing (Case, Expression, Function, FunctionSignature, InnerExpression(..), Lambda, LetBlock, LetDeclaration(..), RecordUpdate)
+import Elm.Syntax.Expression exposing (Case, Expression(..), Function, FunctionSignature, Lambda, LetBlock, LetDeclaration(..), RecordUpdate)
 import Elm.Syntax.File exposing (File)
 import Elm.Syntax.Infix exposing (InfixDirection)
 import Elm.Syntax.Module exposing (Import)
 import Elm.Syntax.Pattern exposing (Pattern(..))
+import Elm.Syntax.Ranged exposing (Ranged)
 import Elm.Syntax.Type exposing (Type, ValueConstructor)
 import Elm.Syntax.TypeAlias exposing (TypeAlias)
 import Elm.Syntax.TypeAnnotation exposing (TypeAnnotation(..))
@@ -26,15 +27,15 @@ type alias Config context =
     , onFunctionSignature : Order context FunctionSignature
     , onPortDeclaration : Order context FunctionSignature
     , onTypeAlias : Order context TypeAlias
-    , onDestructuring : Order context ( Pattern, Expression )
-    , onExpression : Order context Expression
-    , onOperatorApplication : Order context ( String, InfixDirection, Expression, Expression )
+    , onDestructuring : Order context ( Pattern, Ranged Expression )
+    , onExpression : Order context (Ranged Expression)
+    , onOperatorApplication : Order context ( String, InfixDirection, Ranged Expression, Ranged Expression )
     , onTypeAnnotation : Order context TypeAnnotation
     , onLambda : Order context Lambda
     , onLetBlock : Order context LetBlock
     , onCase : Order context Case
     , onFunctionOrValue : Order context String
-    , onRecordAccess : Order context ( Expression, String )
+    , onRecordAccess : Order context ( Ranged Expression, String )
     , onRecordUpdate : Order context RecordUpdate
     }
 
@@ -161,7 +162,7 @@ inspectTypeAlias config typeAlias context =
         context
 
 
-inspectDestructuring : Config context -> ( Pattern, Expression ) -> context -> context
+inspectDestructuring : Config context -> ( Pattern, Ranged Expression ) -> context -> context
 inspectDestructuring config destructuring context =
     actionLambda
         config.onDestructuring
@@ -235,7 +236,7 @@ inspectTypeAnnotationInner config typeRefence context =
             context
 
 
-inspectExpression : Config context -> Expression -> context -> context
+inspectExpression : Config context -> Ranged Expression -> context -> context
 inspectExpression config expression context =
     actionLambda
         config.onExpression
@@ -244,7 +245,7 @@ inspectExpression config expression context =
         context
 
 
-inspectInnerExpression : Config context -> InnerExpression -> context -> context
+inspectInnerExpression : Config context -> Expression -> context -> context
 inspectInnerExpression config expression context =
     case expression of
         UnitExpr ->

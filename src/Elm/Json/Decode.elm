@@ -23,6 +23,7 @@ import Elm.Syntax.Infix as Infix exposing (..)
 import Elm.Syntax.Module exposing (DefaultModuleData, EffectModuleData, Import, Module(..))
 import Elm.Syntax.Pattern exposing (..)
 import Elm.Syntax.Range as Range exposing (Range)
+import Elm.Syntax.Ranged exposing (Ranged)
 import Elm.Syntax.Type exposing (..)
 import Elm.Syntax.TypeAlias exposing (..)
 import Elm.Syntax.TypeAnnotation exposing (..)
@@ -335,7 +336,7 @@ decodeQualifiedNameRef =
         |: nameField
 
 
-decodeExpression : Decoder Expression
+decodeExpression : Decoder (Ranged Expression)
 decodeExpression =
     lazy
         (\() ->
@@ -345,7 +346,7 @@ decodeExpression =
         )
 
 
-decodeInnerExpression : Decoder InnerExpression
+decodeInnerExpression : Decoder Expression
 decodeInnerExpression =
     lazy
         (\() ->
@@ -449,7 +450,7 @@ decodeLetDeclaration =
         )
 
 
-decodeOperatorApplication : Decoder InnerExpression
+decodeOperatorApplication : Decoder Expression
 decodeOperatorApplication =
     lazy
         (\() ->

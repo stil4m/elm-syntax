@@ -22,6 +22,7 @@ module Elm.Syntax.Declaration
 import Elm.Syntax.Expression exposing (Expression, Function, FunctionSignature)
 import Elm.Syntax.Infix exposing (Infix)
 import Elm.Syntax.Pattern exposing (Pattern)
+import Elm.Syntax.Ranged exposing (Ranged)
 import Elm.Syntax.Type exposing (Type)
 import Elm.Syntax.TypeAlias exposing (TypeAlias)
 
@@ -34,4 +35,4 @@ type Declaration
     | TypeDecl Type
     | PortDeclaration FunctionSignature
     | InfixDeclaration Infix
-    | Destructuring Pattern Expression
+    | Destructuring Pattern (Ranged Expression)

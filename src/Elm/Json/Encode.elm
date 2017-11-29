@@ -23,6 +23,7 @@ import Elm.Syntax.Infix as Infix exposing (..)
 import Elm.Syntax.Module exposing (..)
 import Elm.Syntax.Pattern exposing (..)
 import Elm.Syntax.Range as Range exposing (Range)
+import Elm.Syntax.Ranged exposing (Ranged)
 import Elm.Syntax.Type exposing (..)
 import Elm.Syntax.TypeAlias exposing (..)
 import Elm.Syntax.TypeAnnotation exposing (..)
@@ -205,7 +206,7 @@ encodeDeclaration decl =
             encodeTyped "destructuring" (encodeDestructuring pattern expression)
 
 
-encodeDestructuring : Pattern -> Expression -> Value
+encodeDestructuring : Pattern -> Ranged Expression -> Value
 encodeDestructuring pattern expression =
     object
         [ ( "pattern", encodePattern pattern )
@@ -477,7 +478,7 @@ encodeQualifiedNameRef { moduleName, name } =
         ]
 
 
-encodeExpression : Expression -> Value
+encodeExpression : Ranged Expression -> Value
 encodeExpression ( range, inner ) =
     object
         [ rangeField range
@@ -629,7 +630,7 @@ encodeLetDeclaration letDeclaration =
             encodeTyped "destructuring" (encodeDestructuring pattern expression)
 
 
-encodeOperatorApplication : String -> InfixDirection -> Expression -> Expression -> Value
+encodeOperatorApplication : String -> InfixDirection -> Ranged Expression -> Ranged Expression -> Value
 encodeOperatorApplication operator direction left right =
     object
         [ ( "operator", string operator )

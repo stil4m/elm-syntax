@@ -21,6 +21,7 @@ import Elm.Syntax.Infix exposing (..)
 import Elm.Syntax.Module exposing (..)
 import Elm.Syntax.Pattern exposing (..)
 import Elm.Syntax.Range exposing (Range)
+import Elm.Syntax.Ranged exposing (Ranged)
 import Elm.Syntax.Type exposing (..)
 import Elm.Syntax.TypeAlias exposing (..)
 import Elm.Syntax.TypeAnnotation exposing (..)
@@ -322,7 +323,7 @@ writeInfix { direction, precedence, operator } =
         ]
 
 
-writeDestructuring : Pattern -> Expression -> Writer
+writeDestructuring : Pattern -> Ranged Expression -> Writer
 writeDestructuring pattern expression =
     breaked
         [ spaced [ writePattern pattern, string "=" ]
@@ -379,7 +380,7 @@ writeRecordField ( name, ref ) =
 
 {-| Writer an expression
 -}
-writeExpression : Expression -> Writer
+writeExpression : Ranged Expression -> Writer
 writeExpression ( range, inner ) =
     let
         recurRangeHelper =
