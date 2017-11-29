@@ -148,7 +148,7 @@ encodeExposedType { name, constructors, range } =
 
 
 encodeValueConstructorExpose : ValueConstructorExpose -> Value
-encodeValueConstructorExpose ( name, range ) =
+encodeValueConstructorExpose ( range, name ) =
     object
         [ nameField name
         , rangeField range

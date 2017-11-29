@@ -190,7 +190,7 @@ noRangeExpose l =
                             Just <| All emptyRange
 
                         Just (Explicit list) ->
-                            Just <| Explicit <| List.map (Tuple.mapSecond (always emptyRange)) list
+                            Just <| Explicit <| List.map (Tuple.mapFirst (always emptyRange)) list
             in
             TypeExpose (ExposedType name newT emptyRange)
 

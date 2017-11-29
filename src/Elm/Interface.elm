@@ -156,7 +156,7 @@ buildInterfaceFromExplicit x fileDefinitionList =
                                 lookupForDefinition exposedType.name fileDefinitionList
 
                             Just (Explicit v) ->
-                                Just <| Type ( exposedType.name, List.map Tuple.first v )
+                                Just <| Type ( exposedType.name, List.map Tuple.second v )
             )
 
 

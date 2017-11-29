@@ -25,7 +25,7 @@ all =
             \() ->
                 parseFullStringWithNullState "Msg(Go,Back)" typeExpose
                     |> Maybe.map noRangeExpose
-                    |> Expect.equal (Just (TypeExpose (ExposedType "Msg" (Just <| Explicit [ ( "Go", emptyRange ), ( "Back", emptyRange ) ]) emptyRange)))
+                    |> Expect.equal (Just (TypeExpose (ExposedType "Msg" (Just <| Explicit [ ( emptyRange, "Go" ), ( emptyRange, "Back" ) ]) emptyRange)))
         , test "exposingList" <|
             \() ->
                 parseFullStringWithNullState " exposing (Model,Msg(Go,Back),Info(..),init,(::))" (exposeDefinition exposable)
@@ -34,7 +34,7 @@ all =
                         (Just
                             (Explicit
                                 [ TypeOrAliasExpose "Model" emptyRange
-                                , TypeExpose (ExposedType "Msg" (Just <| Explicit [ ( "Go", emptyRange ), ( "Back", emptyRange ) ]) emptyRange)
+                                , TypeExpose (ExposedType "Msg" (Just <| Explicit [ ( emptyRange, "Go" ), ( emptyRange, "Back" ) ]) emptyRange)
                                 , TypeExpose (ExposedType "Info" (Just <| All emptyRange) emptyRange)
                                 , FunctionExpose "init" emptyRange
                                 , InfixExpose "::" emptyRange
@@ -71,7 +71,7 @@ all =
                         (Just
                             (Explicit
                                 [ TypeOrAliasExpose "Model" emptyRange
-                                , TypeExpose (ExposedType "Msg" (Just <| Explicit [ ( "Go", emptyRange ), ( "Back", emptyRange ) ]) emptyRange)
+                                , TypeExpose (ExposedType "Msg" (Just <| Explicit [ ( emptyRange, "Go" ), ( emptyRange, "Back" ) ]) emptyRange)
                                 , TypeExpose (ExposedType "Info" (Just <| All emptyRange) emptyRange)
                                 , FunctionExpose "init" emptyRange
                                 , InfixExpose "::" emptyRange

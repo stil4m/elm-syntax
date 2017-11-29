@@ -2,7 +2,7 @@ module Elm.Parser.Expose exposing (definitionExpose, exposable, exposeDefinition
 
 import Combine exposing ((*>), (<$), (<$>), (<*>), Parser, choice, maybe, or, parens, sepBy, string, succeed, while)
 import Combine.Char exposing (char)
-import Elm.Parser.Ranges exposing (withRange)
+import Elm.Parser.Ranges exposing (ranged, withRange)
 import Elm.Parser.State exposing (State)
 import Elm.Parser.Tokens exposing (exposingToken, functionName, typeName)
 import Elm.Parser.Util exposing (moreThanIndentWhitespace, trimmed)
@@ -48,7 +48,7 @@ exposedType =
 
 valueConstructorExpose : Parser State ValueConstructorExpose
 valueConstructorExpose =
-    withRange ((,) <$> typeName)
+    ranged typeName
 
 
 exposingListInner : Parser State b -> Parser State (Exposing b)

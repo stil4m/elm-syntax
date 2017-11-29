@@ -126,8 +126,8 @@ patchExposedType p et =
 
 
 patchValueConstructorExpose : Patch -> ValueConstructorExpose -> ValueConstructorExpose
-patchValueConstructorExpose p ( v, r ) =
-    ( v, p r )
+patchValueConstructorExpose p ( r, v ) =
+    ( p r, v )
 
 
 patchPattern : Patch -> Ranged Pattern -> Ranged Pattern

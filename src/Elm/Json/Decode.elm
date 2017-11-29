@@ -133,8 +133,8 @@ decodeExposedType =
 decodeValueConstructorExpose : Decoder ValueConstructorExpose
 decodeValueConstructorExpose =
     succeed (,)
-        |: nameField
         |: rangeField
+        |: nameField
 
 
 decodeExposingList : Decoder a -> Decoder (Exposing a)

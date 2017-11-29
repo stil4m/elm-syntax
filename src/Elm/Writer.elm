@@ -169,10 +169,10 @@ writeExposureValueConstructor x =
         Explicit exposeList ->
             let
                 diffLines =
-                    List.map Tuple.second exposeList
+                    List.map Tuple.first exposeList
                         |> startOnDifferentLines
             in
-            parensComma diffLines (List.map (Tuple.first >> string) exposeList)
+            parensComma diffLines (List.map (Tuple.second >> string) exposeList)
 
 
 startOnDifferentLines : List Range -> Bool

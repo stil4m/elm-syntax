@@ -30,8 +30,8 @@ defaults =
                         (ExposedType "Maybe"
                             (Just <|
                                 Explicit
-                                    [ ( "Just", Range.emptyRange )
-                                    , ( "Nothing", Range.emptyRange )
+                                    [ ( Range.emptyRange, "Just" )
+                                    , ( Range.emptyRange, "Nothing" )
                                     ]
                             )
                             Range.emptyRange
@@ -48,8 +48,8 @@ defaults =
                         (ExposedType "Result"
                             (Just <|
                                 Explicit
-                                    [ ( "Ok", Range.emptyRange )
-                                    , ( "Err", Range.emptyRange )
+                                    [ ( Range.emptyRange, "Ok" )
+                                    , ( Range.emptyRange, "Err" )
                                     ]
                             )
                             Range.emptyRange

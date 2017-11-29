@@ -24,6 +24,7 @@ module Elm.Syntax.Exposing
 -}
 
 import Elm.Syntax.Range exposing (Range)
+import Elm.Syntax.Ranged exposing (Ranged)
 
 
 {-| Diffent kind of exposing declarations
@@ -54,7 +55,7 @@ type alias ExposedType =
 {-| Exposed Value Constructor
 -}
 type alias ValueConstructorExpose =
-    ( String, Range )
+    Ranged String
 
 
 {-| Find out the range of a top level expose
