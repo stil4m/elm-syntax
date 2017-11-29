@@ -92,7 +92,13 @@ bar = 1
       , declarations =
             [ FuncDecl
                 { documentation = Just { text = "{-| The docs\n-}", range = { start = { row = 3, column = 0 }, end = { row = 4, column = 2 } } }
-                , signature = Just { operatorDefinition = False, name = "bar", typeAnnotation = Typed [] "Int" [] { start = { row = 5, column = 6 }, end = { row = 5, column = 9 } }, range = { start = { row = 5, column = 0 }, end = { row = 5, column = 9 } } }
+                , signature =
+                    Just
+                        { operatorDefinition = False
+                        , name = "bar"
+                        , typeAnnotation = ( { start = { row = 5, column = 6 }, end = { row = 5, column = 9 } }, Typed [] "Int" [] )
+                        , range = { start = { row = 5, column = 0 }, end = { row = 5, column = 9 } }
+                        }
                 , declaration =
                     { operatorDefinition = False
                     , name = { value = "bar", range = { start = { row = 6, column = 0 }, end = { row = 6, column = 3 } } }
@@ -185,8 +191,9 @@ type alias Foo
                 , name = "Foo"
                 , generics = []
                 , typeAnnotation =
-                    Record [ ( "name", Typed [] "String" [] { start = { row = 5, column = 14 }, end = { row = 5, column = 21 } } ) ]
-                        { start = { row = 5, column = 5 }, end = { row = 5, column = 22 } }
+                    ( { start = { row = 5, column = 5 }, end = { row = 5, column = 22 } }
+                    , Record [ ( "name", ( { start = { row = 5, column = 14 }, end = { row = 5, column = 21 } }, Typed [] "String" [] ) ) ]
+                    )
                 , range = { start = { row = 4, column = 0 }, end = { row = 5, column = 22 } }
                 }
             ]

@@ -228,35 +228,36 @@ decodeSignature =
         |: rangeField
 
 
-decodeTypeAnnotation : Decoder TypeAnnotation
+decodeTypeAnnotation : Decoder (Ranged TypeAnnotation)
 decodeTypeAnnotation =
     lazy
         (\() ->
-            decodeTyped
-                [ ( "generic", map2 GenericType (field "value" string) rangeField )
-                , ( "typed"
-                  , map4 Typed
-                        (field "moduleName" decodeModuleName)
-                        nameField
-                        (field "args" <| list decodeTypeAnnotation)
-                        rangeField
-                  )
-                , ( "unit", map Unit rangeField )
-                , ( "tupled", map2 Tupled (field "values" (list decodeTypeAnnotation)) rangeField )
-                , ( "function"
-                  , map3 FunctionTypeAnnotation
-                        (field "left" decodeTypeAnnotation)
-                        (field "right" decodeTypeAnnotation)
-                        rangeField
-                  )
-                , ( "record", map2 Record (field "value" decodeRecordDefinition) rangeField )
-                , ( "genericRecord"
-                  , map3 GenericRecord
-                        nameField
-                        (field "values" decodeRecordDefinition)
-                        rangeField
-                  )
-                ]
+            succeed (,)
+                |: field "range" Range.decode
+                |: field "typeAnnotation"
+                    (decodeTyped
+                        [ ( "generic", map GenericType (field "value" string) )
+                        , ( "typed"
+                          , map3 Typed
+                                (field "moduleName" decodeModuleName)
+                                nameField
+                                (field "args" <| list decodeTypeAnnotation)
+                          )
+                        , ( "unit", succeed Unit )
+                        , ( "tupled", map Tupled (field "values" (list decodeTypeAnnotation)) )
+                        , ( "function"
+                          , map2 FunctionTypeAnnotation
+                                (field "left" decodeTypeAnnotation)
+                                (field "right" decodeTypeAnnotation)
+                          )
+                        , ( "record", map Record (field "value" decodeRecordDefinition) )
+                        , ( "genericRecord"
+                          , map2 GenericRecord
+                                nameField
+                                (field "values" decodeRecordDefinition)
+                          )
+                        ]
+                    )
         )
 
 

@@ -23,7 +23,7 @@ all =
                         (Just
                             { operatorDefinition = False
                             , name = "foo"
-                            , typeAnnotation = Typed [] "Int" [] emptyRange
+                            , typeAnnotation = ( emptyRange, Typed [] "Int" [] )
                             , range = emptyRange
                             }
                         )
@@ -35,7 +35,7 @@ all =
                         (Just
                             { operatorDefinition = False
                             , name = "foo"
-                            , typeAnnotation = Typed [] "Int" [] emptyRange
+                            , typeAnnotation = ( emptyRange, Typed [] "Int" [] )
                             , range = emptyRange
                             }
                         )
@@ -52,7 +52,7 @@ all =
                         (Just
                             { operatorDefinition = False
                             , name = "foo"
-                            , typeAnnotation = Typed [] "Int" [] emptyRange
+                            , typeAnnotation = ( emptyRange, Typed [] "Int" [] )
                             , range = emptyRange
                             }
                         )
@@ -117,15 +117,17 @@ all =
                             { operatorDefinition = False
                             , name = "bar"
                             , typeAnnotation =
-                                Typed []
+                                ( emptyRange
+                                , Typed []
                                     "List"
-                                    [ Tupled
-                                        [ Typed [] "Int" [] emptyRange
-                                        , Typed [] "Maybe" [ GenericType "m" emptyRange ] emptyRange
-                                        ]
-                                        emptyRange
+                                    [ ( emptyRange
+                                      , Tupled
+                                            [ ( emptyRange, Typed [] "Int" [] )
+                                            , ( emptyRange, Typed [] "Maybe" [ ( emptyRange, GenericType "m" ) ] )
+                                            ]
+                                      )
                                     ]
-                                    emptyRange
+                                )
                             , range = emptyRange
                             }
                         )
@@ -226,15 +228,16 @@ all =
                                 { operatorDefinition = False
                                 , name = "parseResponse"
                                 , typeAnnotation =
-                                    FunctionTypeAnnotation
-                                        (Tupled
-                                            [ Typed [] "String" [] emptyRange
-                                            , Typed [] "String" [] emptyRange
+                                    ( emptyRange
+                                    , FunctionTypeAnnotation
+                                        ( emptyRange
+                                        , Tupled
+                                            [ ( emptyRange, Typed [] "String" [] )
+                                            , ( emptyRange, Typed [] "String" [] )
                                             ]
-                                            emptyRange
                                         )
-                                        (Typed [] "Cmd" [ GenericType "msg" emptyRange ] emptyRange)
-                                        emptyRange
+                                        ( emptyRange, Typed [] "Cmd" [ ( emptyRange, GenericType "msg" ) ] )
+                                    )
                                 , range = emptyRange
                                 }
                             )
@@ -249,13 +252,14 @@ all =
                                 { operatorDefinition = False
                                 , name = "scroll"
                                 , typeAnnotation =
-                                    FunctionTypeAnnotation
-                                        (FunctionTypeAnnotation (Typed [] "Move" [] emptyRange)
-                                            (GenericType "msg" emptyRange)
-                                            emptyRange
+                                    ( emptyRange
+                                    , FunctionTypeAnnotation
+                                        ( emptyRange
+                                        , FunctionTypeAnnotation ( emptyRange, Typed [] "Move" [] )
+                                            ( emptyRange, GenericType "msg" )
                                         )
-                                        (Typed [] "Sub" [ GenericType "msg" emptyRange ] emptyRange)
-                                        emptyRange
+                                        ( emptyRange, Typed [] "Sub" [ ( emptyRange, GenericType "msg" ) ] )
+                                    )
                                 , range = emptyRange
                                 }
                         )

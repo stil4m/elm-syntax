@@ -11,6 +11,7 @@ module Elm.Syntax.TypeAlias exposing (TypeAlias)
 
 import Elm.Syntax.Documentation exposing (Documentation)
 import Elm.Syntax.Range exposing (Range)
+import Elm.Syntax.Ranged exposing (Ranged)
 import Elm.Syntax.TypeAnnotation exposing (TypeAnnotation)
 
 
@@ -20,6 +21,6 @@ type alias TypeAlias =
     { documentation : Maybe Documentation
     , name : String
     , generics : List String
-    , typeAnnotation : TypeAnnotation
+    , typeAnnotation : Ranged TypeAnnotation
     , range : Range
     }

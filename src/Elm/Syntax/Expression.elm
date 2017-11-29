@@ -104,7 +104,7 @@ type alias FunctionDeclaration =
 type alias FunctionSignature =
     { operatorDefinition : Bool
     , name : String
-    , typeAnnotation : TypeAnnotation
+    , typeAnnotation : Ranged TypeAnnotation
     , range : Range
     }
 

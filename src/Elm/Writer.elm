@@ -331,28 +331,28 @@ writeDestructuring pattern expression =
         ]
 
 
-writeTypeAnnotation : TypeAnnotation -> Writer
-writeTypeAnnotation typeAnnotation =
+writeTypeAnnotation : Ranged TypeAnnotation -> Writer
+writeTypeAnnotation ( _, typeAnnotation ) =
     case typeAnnotation of
-        GenericType s _ ->
+        GenericType s ->
             string s
 
-        Typed moduleName k args _ ->
+        Typed moduleName k args ->
             spaced
                 [ join [ writeModuleName moduleName, string k ]
                 , spaced (List.map writeTypeAnnotation args)
                 ]
 
-        Unit _ ->
+        Unit ->
             string "()"
 
-        Tupled xs _ ->
+        Tupled xs ->
             parensComma False (List.map writeTypeAnnotation xs)
 
-        Record xs _ ->
+        Record xs ->
             bracesComma False (List.map writeRecordField xs)
 
-        GenericRecord name fields _ ->
+        GenericRecord name fields ->
             spaced
                 [ string "{"
                 , string name
@@ -361,7 +361,7 @@ writeTypeAnnotation typeAnnotation =
                 , string "}"
                 ]
 
-        FunctionTypeAnnotation left right _ ->
+        FunctionTypeAnnotation left right ->
             spaced
                 [ writeTypeAnnotation left
                 , string "->"

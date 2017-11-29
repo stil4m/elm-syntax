@@ -10,6 +10,7 @@ module Elm.Syntax.Type exposing (Type, ValueConstructor)
 -}
 
 import Elm.Syntax.Range exposing (Range)
+import Elm.Syntax.Ranged exposing (Ranged)
 import Elm.Syntax.TypeAnnotation exposing (TypeAnnotation)
 
 
@@ -26,6 +27,6 @@ type alias Type =
 -}
 type alias ValueConstructor =
     { name : String
-    , arguments : List TypeAnnotation
+    , arguments : List (Ranged TypeAnnotation)
     , range : Range
     }

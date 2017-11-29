@@ -1,20 +1,20 @@
 module Elm.Parser.TypeAnnotation exposing (typeAnnotation)
 
 import Combine exposing ((*>), (<$>), (<*), (<*>), (>>=), Parser, between, choice, lazy, many, map, maybe, or, parens, sepBy, string, succeed, whitespace)
-import Elm.Parser.Ranges exposing (withRange)
+import Elm.Parser.Ranges exposing (ranged, withRange)
 import Elm.Parser.State exposing (State)
 import Elm.Parser.Tokens exposing (functionName, typeName)
 import Elm.Parser.Util exposing (moreThanIndentWhitespace, trimmed)
 import Elm.Parser.Whitespace exposing (realNewLine)
-import Elm.Syntax.Range exposing (Range)
+import Elm.Syntax.Ranged exposing (Ranged)
 import Elm.Syntax.TypeAnnotation exposing (..)
 
 
-typeAnnotationNoFn : Parser State TypeAnnotation
+typeAnnotationNoFn : Parser State (Ranged TypeAnnotation)
 typeAnnotationNoFn =
     lazy
         (\() ->
-            withRange <|
+            ranged <|
                 choice
                     [ parensTypeAnnotation
                     , typedTypeAnnotation
@@ -25,20 +25,20 @@ typeAnnotationNoFn =
         )
 
 
-typeAnnotation : Parser State TypeAnnotation
+typeAnnotation : Parser State (Ranged TypeAnnotation)
 typeAnnotation =
     lazy
         (\() ->
-            withRange <|
+            ranged <|
                 typeAnnotationNoFn
                     >>= (\typeRef ->
                             or (FunctionTypeAnnotation typeRef <$> (trimmed (string "->") *> typeAnnotation))
-                                (succeed (always typeRef))
+                                (succeed (Tuple.second typeRef))
                         )
         )
 
 
-parensTypeAnnotation : Parser State (Range -> TypeAnnotation)
+parensTypeAnnotation : Parser State TypeAnnotation
 parensTypeAnnotation =
     lazy
         (\() ->
@@ -47,20 +47,20 @@ parensTypeAnnotation =
         )
 
 
-asTypeAnnotation : List TypeAnnotation -> (Range -> TypeAnnotation)
+asTypeAnnotation : List (Ranged TypeAnnotation) -> TypeAnnotation
 asTypeAnnotation x =
     case x of
         [] ->
             Unit
 
-        [ item ] ->
-            always item
+        [ ( r, item ) ] ->
+            item
 
         xs ->
             Tupled xs
 
 
-genericTypeAnnotation : Parser State (Range -> TypeAnnotation)
+genericTypeAnnotation : Parser State TypeAnnotation
 genericTypeAnnotation =
     lazy (\() -> GenericType <$> functionName)
 
@@ -70,7 +70,7 @@ recordFieldsTypeAnnotation =
     lazy (\() -> sepBy (string ",") (trimmed recordFieldDefinition))
 
 
-genericRecordTypeAnnotation : Parser State (Range -> TypeAnnotation)
+genericRecordTypeAnnotation : Parser State TypeAnnotation
 genericRecordTypeAnnotation =
     lazy
         (\() ->
@@ -84,7 +84,7 @@ genericRecordTypeAnnotation =
         )
 
 
-recordTypeAnnotation : Parser State (Range -> TypeAnnotation)
+recordTypeAnnotation : Parser State TypeAnnotation
 recordTypeAnnotation =
     lazy
         (\() ->
@@ -105,7 +105,7 @@ recordFieldDefinition =
         )
 
 
-typedTypeAnnotation : Parser State (Range -> TypeAnnotation)
+typedTypeAnnotation : Parser State TypeAnnotation
 typedTypeAnnotation =
     lazy
         (\() ->

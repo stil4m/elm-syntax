@@ -20,7 +20,7 @@ all =
                             { documentation = Nothing
                             , name = "Foo"
                             , generics = []
-                            , typeAnnotation = Record [ ( "color", Typed [] "String" [] emptyRange ) ] emptyRange
+                            , typeAnnotation = ( emptyRange, Record [ ( "color", ( emptyRange, Typed [] "String" [] ) ) ] )
                             , range = emptyRange
                             }
                         )
@@ -33,7 +33,7 @@ all =
                             { documentation = Nothing
                             , name = "Foo"
                             , generics = [ "a" ]
-                            , typeAnnotation = Record [ ( "some", GenericType "a" emptyRange ) ] emptyRange
+                            , typeAnnotation = ( emptyRange, Record [ ( "some", ( emptyRange, GenericType "a" ) ) ] )
                             , range = emptyRange
                             }
                         )
@@ -47,7 +47,7 @@ all =
                             , generics = []
                             , constructors =
                                 [ { name = "Blue"
-                                  , arguments = [ Typed [] "String" [] emptyRange ]
+                                  , arguments = [ ( emptyRange, Typed [] "String" [] ) ]
                                   , range = emptyRange
                                   }
                                 , { name = "Red"
@@ -71,7 +71,7 @@ all =
                             , generics = [ "a" ]
                             , constructors =
                                 [ { name = "Just"
-                                  , arguments = [ GenericType "a" emptyRange ]
+                                  , arguments = [ ( emptyRange, GenericType "a" ) ]
                                   , range = emptyRange
                                   }
                                 , { name = "Nothing", arguments = [], range = emptyRange }

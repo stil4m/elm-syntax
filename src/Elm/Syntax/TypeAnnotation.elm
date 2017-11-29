@@ -15,19 +15,19 @@ module Elm.Syntax.TypeAnnotation
 -}
 
 import Elm.Syntax.Base exposing (ModuleName)
-import Elm.Syntax.Range exposing (Range)
+import Elm.Syntax.Ranged exposing (Ranged)
 
 
 {-| Union type for different type aliases
 -}
 type TypeAnnotation
-    = GenericType String Range
-    | Typed ModuleName String (List TypeAnnotation) Range
-    | Unit Range
-    | Tupled (List TypeAnnotation) Range
-    | Record RecordDefinition Range
-    | GenericRecord String RecordDefinition Range
-    | FunctionTypeAnnotation TypeAnnotation TypeAnnotation Range
+    = GenericType String
+    | Typed ModuleName String (List (Ranged TypeAnnotation))
+    | Unit
+    | Tupled (List (Ranged TypeAnnotation))
+    | Record RecordDefinition
+    | GenericRecord String RecordDefinition
+    | FunctionTypeAnnotation (Ranged TypeAnnotation) (Ranged TypeAnnotation)
 
 
 {-| List of fields for a record
@@ -39,4 +39,4 @@ type alias RecordDefinition =
 {-| Single field of a record. A name and its type
 -}
 type alias RecordField =
-    ( String, TypeAnnotation )
+    ( String, Ranged TypeAnnotation )

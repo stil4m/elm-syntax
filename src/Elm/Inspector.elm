@@ -30,7 +30,7 @@ type alias Config context =
     , onDestructuring : Order context ( Ranged Pattern, Ranged Expression )
     , onExpression : Order context (Ranged Expression)
     , onOperatorApplication : Order context ( String, InfixDirection, Ranged Expression, Ranged Expression )
-    , onTypeAnnotation : Order context TypeAnnotation
+    , onTypeAnnotation : Order context (Ranged TypeAnnotation)
     , onLambda : Order context Lambda
     , onLetBlock : Order context LetBlock
     , onCase : Order context Case
@@ -202,7 +202,7 @@ inspectSignature config signature context =
         context
 
 
-inspectTypeAnnotation : Config context -> TypeAnnotation -> context -> context
+inspectTypeAnnotation : Config context -> Ranged TypeAnnotation -> context -> context
 inspectTypeAnnotation config typeAnnotation context =
     actionLambda
         config.onTypeAnnotation
@@ -211,28 +211,28 @@ inspectTypeAnnotation config typeAnnotation context =
         context
 
 
-inspectTypeAnnotationInner : Config context -> TypeAnnotation -> context -> context
-inspectTypeAnnotationInner config typeRefence context =
+inspectTypeAnnotationInner : Config context -> Ranged TypeAnnotation -> context -> context
+inspectTypeAnnotationInner config ( _, typeRefence ) context =
     case typeRefence of
-        Typed _ _ typeArgs _ ->
+        Typed _ _ typeArgs ->
             List.foldl (inspectTypeAnnotation config) context typeArgs
 
-        Tupled typeAnnotations _ ->
+        Tupled typeAnnotations ->
             List.foldl (inspectTypeAnnotation config) context typeAnnotations
 
-        Record recordDefinition _ ->
+        Record recordDefinition ->
             List.foldl (inspectTypeAnnotation config) context (List.map Tuple.second recordDefinition)
 
-        GenericRecord _ recordDefinition _ ->
+        GenericRecord _ recordDefinition ->
             List.foldl (inspectTypeAnnotation config) context (List.map Tuple.second recordDefinition)
 
-        FunctionTypeAnnotation left right _ ->
+        FunctionTypeAnnotation left right ->
             List.foldl (inspectTypeAnnotation config) context [ left, right ]
 
-        Unit _ ->
+        Unit ->
             context
 
-        GenericType _ _ ->
+        GenericType _ ->
             context
 
 

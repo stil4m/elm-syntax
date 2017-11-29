@@ -271,59 +271,58 @@ encodeSignature { operatorDefinition, name, typeAnnotation, range } =
         ]
 
 
-encodeTypeAnnotation : TypeAnnotation -> Value
-encodeTypeAnnotation typeAnnotation =
-    case typeAnnotation of
-        GenericType name r ->
-            encodeTyped "generic" <|
-                object
-                    [ ( "value", string name )
-                    , rangeField r
-                    ]
+encodeTypeAnnotation : Ranged TypeAnnotation -> Value
+encodeTypeAnnotation ( r, typeAnnotation ) =
+    object
+        [ rangeField r
+        , ( "typeAnnotation"
+          , case typeAnnotation of
+                GenericType name ->
+                    encodeTyped "generic" <|
+                        object
+                            [ ( "value", string name )
+                            ]
 
-        Typed moduleName name args r ->
-            encodeTyped "typed" <|
-                object
-                    [ ( "moduleName", encodeModuleName moduleName )
-                    , nameField name
-                    , ( "args", asList encodeTypeAnnotation args )
-                    , rangeField r
-                    ]
+                Typed moduleName name args ->
+                    encodeTyped "typed" <|
+                        object
+                            [ ( "moduleName", encodeModuleName moduleName )
+                            , nameField name
+                            , ( "args", asList encodeTypeAnnotation args )
+                            ]
 
-        Unit r ->
-            encodeTyped "unit" <|
-                object
-                    [ rangeField r ]
+                Unit ->
+                    encodeTyped "unit" <|
+                        object
+                            [ rangeField r ]
 
-        Tupled t r ->
-            encodeTyped "tupled" <|
-                object
-                    [ ( "values", asList encodeTypeAnnotation t )
-                    , rangeField r
-                    ]
+                Tupled t ->
+                    encodeTyped "tupled" <|
+                        object
+                            [ ( "values", asList encodeTypeAnnotation t )
+                            ]
 
-        FunctionTypeAnnotation left right r ->
-            encodeTyped "function" <|
-                object
-                    [ ( "left", encodeTypeAnnotation left )
-                    , ( "right", encodeTypeAnnotation right )
-                    , rangeField r
-                    ]
+                FunctionTypeAnnotation left right ->
+                    encodeTyped "function" <|
+                        object
+                            [ ( "left", encodeTypeAnnotation left )
+                            , ( "right", encodeTypeAnnotation right )
+                            ]
 
-        Record recordDefinition r ->
-            encodeTyped "record" <|
-                object
-                    [ ( "value", encodeRecordDefinition recordDefinition )
-                    , rangeField r
-                    ]
+                Record recordDefinition ->
+                    encodeTyped "record" <|
+                        object
+                            [ ( "value", encodeRecordDefinition recordDefinition )
+                            ]
 
-        GenericRecord name recordDefinition r ->
-            encodeTyped "genericRecord" <|
-                object
-                    [ nameField name
-                    , ( "values", encodeRecordDefinition recordDefinition )
-                    , rangeField r
-                    ]
+                GenericRecord name recordDefinition ->
+                    encodeTyped "genericRecord" <|
+                        object
+                            [ nameField name
+                            , ( "values", encodeRecordDefinition recordDefinition )
+                            ]
+          )
+        ]
 
 
 encodeRecordDefinition : RecordDefinition -> Value

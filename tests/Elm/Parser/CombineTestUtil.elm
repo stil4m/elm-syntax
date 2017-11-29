@@ -233,32 +233,33 @@ noRangeTypeAlias typeAlias =
     unRange { typeAlias | typeAnnotation = noRangeTypeReference typeAlias.typeAnnotation }
 
 
-noRangeTypeReference : TypeAnnotation -> TypeAnnotation
-noRangeTypeReference typeAnnotation =
-    case typeAnnotation of
-        GenericType x _ ->
-            GenericType x emptyRange
+noRangeTypeReference : Ranged TypeAnnotation -> Ranged TypeAnnotation
+noRangeTypeReference ( _, typeAnnotation ) =
+    ( emptyRange
+    , case typeAnnotation of
+        GenericType x ->
+            GenericType x
 
-        Typed a b c _ ->
-            Typed a b (List.map noRangeTypeReference c) emptyRange
+        Typed a b c ->
+            Typed a b (List.map noRangeTypeReference c)
 
-        Unit _ ->
-            Unit emptyRange
+        Unit ->
+            Unit
 
-        Tupled a _ ->
-            Tupled (List.map noRangeTypeReference a) emptyRange
+        Tupled a ->
+            Tupled (List.map noRangeTypeReference a)
 
-        Record a _ ->
-            Record (List.map noRangeRecordField a) emptyRange
+        Record a ->
+            Record (List.map noRangeRecordField a)
 
-        GenericRecord a b _ ->
-            GenericRecord a (List.map noRangeRecordField b) emptyRange
+        GenericRecord a b ->
+            GenericRecord a (List.map noRangeRecordField b)
 
-        FunctionTypeAnnotation a b _ ->
+        FunctionTypeAnnotation a b ->
             FunctionTypeAnnotation
                 (noRangeTypeReference a)
                 (noRangeTypeReference b)
-                emptyRange
+    )
 
 
 noRangeRecordField : RecordField -> RecordField

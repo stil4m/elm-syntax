@@ -227,32 +227,33 @@ patchTypeAlias patch typeAlias =
     unRange patch { typeAlias | typeAnnotation = patchTypeReference patch typeAlias.typeAnnotation }
 
 
-patchTypeReference : Patch -> TypeAnnotation -> TypeAnnotation
-patchTypeReference patch typeAnnotation =
-    case typeAnnotation of
-        GenericType x r ->
-            GenericType x (patch r)
+patchTypeReference : Patch -> Ranged TypeAnnotation -> Ranged TypeAnnotation
+patchTypeReference patch ( r, typeAnnotation ) =
+    ( patch r
+    , case typeAnnotation of
+        GenericType x ->
+            GenericType x
 
-        Typed a b c r ->
-            Typed a b (List.map (patchTypeReference patch) c) (patch r)
+        Typed a b c ->
+            Typed a b (List.map (patchTypeReference patch) c)
 
-        Unit r ->
-            Unit (patch r)
+        Unit ->
+            Unit
 
-        Tupled a r ->
-            Tupled (List.map (patchTypeReference patch) a) (patch r)
+        Tupled a ->
+            Tupled (List.map (patchTypeReference patch) a)
 
-        Record a r ->
-            Record (List.map (patchRecordField patch) a) (patch r)
+        Record a ->
+            Record (List.map (patchRecordField patch) a)
 
-        GenericRecord a b r ->
-            GenericRecord a (List.map (patchRecordField patch) b) (patch r)
+        GenericRecord a b ->
+            GenericRecord a (List.map (patchRecordField patch) b)
 
-        FunctionTypeAnnotation a b r ->
+        FunctionTypeAnnotation a b ->
             FunctionTypeAnnotation
                 (patchTypeReference patch a)
                 (patchTypeReference patch b)
-                (patch r)
+    )
 
 
 patchRecordField : Patch -> RecordField -> RecordField
