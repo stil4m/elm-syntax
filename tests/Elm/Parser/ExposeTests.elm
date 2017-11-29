@@ -15,17 +15,17 @@ all =
             \() ->
                 parseFullStringWithNullState "($>)" infixExpose
                     |> Maybe.map noRangeExpose
-                    |> Expect.equal (Just (InfixExpose "$>" emptyRange))
+                    |> Expect.equal (Just ( emptyRange, InfixExpose "$>" ))
         , test "definitionExpose" <|
             \() ->
                 parseFullStringWithNullState "Model" definitionExpose
                     |> Maybe.map noRangeExpose
-                    |> Expect.equal (Just (TypeOrAliasExpose "Model" emptyRange))
+                    |> Expect.equal (Just ( emptyRange, TypeOrAliasExpose "Model" ))
         , test "typeExpose" <|
             \() ->
                 parseFullStringWithNullState "Msg(Go,Back)" typeExpose
                     |> Maybe.map noRangeExpose
-                    |> Expect.equal (Just (TypeExpose (ExposedType "Msg" (Just <| Explicit [ ( emptyRange, "Go" ), ( emptyRange, "Back" ) ]) emptyRange)))
+                    |> Expect.equal (Just ( emptyRange, TypeExpose (ExposedType "Msg" (Just <| Explicit [ ( emptyRange, "Go" ), ( emptyRange, "Back" ) ])) ))
         , test "exposingList" <|
             \() ->
                 parseFullStringWithNullState " exposing (Model,Msg(Go,Back),Info(..),init,(::))" (exposeDefinition exposable)
@@ -33,11 +33,11 @@ all =
                     |> Expect.equal
                         (Just
                             (Explicit
-                                [ TypeOrAliasExpose "Model" emptyRange
-                                , TypeExpose (ExposedType "Msg" (Just <| Explicit [ ( emptyRange, "Go" ), ( emptyRange, "Back" ) ]) emptyRange)
-                                , TypeExpose (ExposedType "Info" (Just <| All emptyRange) emptyRange)
-                                , FunctionExpose "init" emptyRange
-                                , InfixExpose "::" emptyRange
+                                [ ( emptyRange, TypeOrAliasExpose "Model" )
+                                , ( emptyRange, TypeExpose (ExposedType "Msg" (Just <| Explicit [ ( emptyRange, "Go" ), ( emptyRange, "Back" ) ])) )
+                                , ( emptyRange, TypeExpose (ExposedType "Info" (Just <| All emptyRange)) )
+                                , ( emptyRange, FunctionExpose "init" )
+                                , ( emptyRange, InfixExpose "::" )
                                 ]
                             )
                         )
@@ -48,7 +48,7 @@ all =
                     |> Expect.equal
                         (Just
                             (Explicit
-                                [ FunctionExpose "foo" emptyRange
+                                [ ( emptyRange, FunctionExpose "foo" )
                                 ]
                             )
                         )
@@ -59,7 +59,7 @@ all =
                     |> Expect.equal
                         (Just
                             (Explicit
-                                [ FunctionExpose "foo" emptyRange
+                                [ ( emptyRange, FunctionExpose "foo" )
                                 ]
                             )
                         )
@@ -70,11 +70,11 @@ all =
                     |> Expect.equal
                         (Just
                             (Explicit
-                                [ TypeOrAliasExpose "Model" emptyRange
-                                , TypeExpose (ExposedType "Msg" (Just <| Explicit [ ( emptyRange, "Go" ), ( emptyRange, "Back" ) ]) emptyRange)
-                                , TypeExpose (ExposedType "Info" (Just <| All emptyRange) emptyRange)
-                                , FunctionExpose "init" emptyRange
-                                , InfixExpose "::" emptyRange
+                                [ ( emptyRange, TypeOrAliasExpose "Model" )
+                                , ( emptyRange, TypeExpose (ExposedType "Msg" (Just <| Explicit [ ( emptyRange, "Go" ), ( emptyRange, "Back" ) ])) )
+                                , ( emptyRange, TypeExpose (ExposedType "Info" (Just <| All emptyRange)) )
+                                , ( emptyRange, FunctionExpose "init" )
+                                , ( emptyRange, InfixExpose "::" )
                                 ]
                             )
                         )

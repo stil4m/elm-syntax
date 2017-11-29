@@ -37,9 +37,9 @@ type Exposing a
 {-| An exposed entity
 -}
 type TopLevelExpose
-    = InfixExpose String Range
-    | FunctionExpose String Range
-    | TypeOrAliasExpose String Range
+    = InfixExpose String
+    | FunctionExpose String
+    | TypeOrAliasExpose String
     | TypeExpose ExposedType
 
 
@@ -48,7 +48,6 @@ type TopLevelExpose
 type alias ExposedType =
     { name : String
     , constructors : Maybe (Exposing ValueConstructorExpose)
-    , range : Range
     }
 
 
@@ -60,20 +59,9 @@ type alias ValueConstructorExpose =
 
 {-| Find out the range of a top level expose
 -}
-topLevelExposeRange : TopLevelExpose -> Range
-topLevelExposeRange e =
-    case e of
-        InfixExpose _ r ->
-            r
-
-        FunctionExpose _ r ->
-            r
-
-        TypeOrAliasExpose _ r ->
-            r
-
-        TypeExpose typeExpose ->
-            typeExpose.range
+topLevelExposeRange : Ranged TopLevelExpose -> Range
+topLevelExposeRange ( r, _ ) =
+    r
 
 
 {-| Check whether an import/module exposing list exposes a certain function
@@ -88,7 +76,7 @@ exposesFunction s exposure =
             List.any
                 (\x ->
                     case x of
-                        FunctionExpose fun _ ->
+                        FunctionExpose fun ->
                             fun == s
 
                         _ ->
@@ -107,7 +95,7 @@ operators l =
 operator : TopLevelExpose -> Maybe String
 operator t =
     case t of
-        InfixExpose s _ ->
+        InfixExpose s ->
             Just s
 
         _ ->

@@ -16,8 +16,8 @@ defaults =
       , exposingList =
             Just <|
                 Explicit
-                    [ TypeExpose (ExposedType "List" Nothing Range.emptyRange)
-                    , InfixExpose "::" Range.emptyRange
+                    [ ( Range.emptyRange, TypeExpose (ExposedType "List" Nothing) )
+                    , ( Range.emptyRange, InfixExpose "::" )
                     ]
       , moduleAlias = Nothing
       , range = Range.emptyRange
@@ -26,16 +26,17 @@ defaults =
       , exposingList =
             Just <|
                 Explicit
-                    [ TypeExpose
-                        (ExposedType "Maybe"
-                            (Just <|
-                                Explicit
-                                    [ ( Range.emptyRange, "Just" )
-                                    , ( Range.emptyRange, "Nothing" )
-                                    ]
+                    [ ( Range.emptyRange
+                      , TypeExpose
+                            (ExposedType "Maybe"
+                                (Just <|
+                                    Explicit
+                                        [ ( Range.emptyRange, "Just" )
+                                        , ( Range.emptyRange, "Nothing" )
+                                        ]
+                                )
                             )
-                            Range.emptyRange
-                        )
+                      )
                     ]
       , moduleAlias = Nothing
       , range = Range.emptyRange
@@ -44,16 +45,17 @@ defaults =
       , exposingList =
             Just <|
                 Explicit
-                    [ TypeExpose
-                        (ExposedType "Result"
-                            (Just <|
-                                Explicit
-                                    [ ( Range.emptyRange, "Ok" )
-                                    , ( Range.emptyRange, "Err" )
-                                    ]
+                    [ ( Range.emptyRange
+                      , TypeExpose
+                            (ExposedType "Result"
+                                (Just <|
+                                    Explicit
+                                        [ ( Range.emptyRange, "Ok" )
+                                        , ( Range.emptyRange, "Err" )
+                                        ]
+                                )
                             )
-                            Range.emptyRange
-                        )
+                      )
                     ]
       , moduleAlias = Nothing
       , range = Range.emptyRange
@@ -65,7 +67,7 @@ defaults =
       , exposingList =
             Just <|
                 Explicit
-                    [ TypeExpose (ExposedType "Program" Nothing Range.emptyRange)
+                    [ ( Range.emptyRange, TypeExpose (ExposedType "Program" Nothing) )
                     ]
       , moduleAlias = Nothing
       , range = Range.emptyRange
@@ -74,14 +76,14 @@ defaults =
       , exposingList =
             Just <|
                 Explicit
-                    [ TypeExpose (ExposedType "Cmd" Nothing Range.emptyRange)
-                    , InfixExpose "!" Range.emptyRange
+                    [ ( Range.emptyRange, TypeExpose (ExposedType "Cmd" Nothing) )
+                    , ( Range.emptyRange, InfixExpose "!" )
                     ]
       , moduleAlias = Nothing
       , range = Range.emptyRange
       }
     , { moduleName = [ "Platform", "Sub" ]
-      , exposingList = Just <| Explicit [ TypeExpose (ExposedType "Sub" Nothing Range.emptyRange) ]
+      , exposingList = Just <| Explicit [ ( Range.emptyRange, TypeExpose (ExposedType "Sub" Nothing) ) ]
       , moduleAlias = Nothing
       , range = Range.emptyRange
       }

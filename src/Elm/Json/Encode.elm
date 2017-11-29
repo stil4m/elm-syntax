@@ -106,36 +106,38 @@ encodeModuleName =
     List.map string >> list
 
 
-encodeExpose : TopLevelExpose -> Value
-encodeExpose exp =
-    case exp of
-        InfixExpose x r ->
-            encodeTyped "infix" <|
-                object
-                    [ nameField x
-                    , rangeField r
-                    ]
+encodeExpose : Ranged TopLevelExpose -> Value
+encodeExpose ( range, exp ) =
+    JE.object
+        [ rangeField range
+        , ( "topLevel"
+          , case exp of
+                InfixExpose x ->
+                    encodeTyped "infix" <|
+                        object
+                            [ nameField x
+                            ]
 
-        FunctionExpose x r ->
-            encodeTyped "function" <|
-                object
-                    [ nameField x
-                    , rangeField r
-                    ]
+                FunctionExpose x ->
+                    encodeTyped "function" <|
+                        object
+                            [ nameField x
+                            ]
 
-        TypeOrAliasExpose x r ->
-            encodeTyped "typeOrAlias" <|
-                object
-                    [ nameField x
-                    , rangeField r
-                    ]
+                TypeOrAliasExpose x ->
+                    encodeTyped "typeOrAlias" <|
+                        object
+                            [ nameField x
+                            ]
 
-        TypeExpose exposedType ->
-            encodeTyped "typeexpose" (encodeExposedType exposedType)
+                TypeExpose exposedType ->
+                    encodeTyped "typeexpose" (encodeExposedType exposedType)
+          )
+        ]
 
 
 encodeExposedType : ExposedType -> Value
-encodeExposedType { name, constructors, range } =
+encodeExposedType { name, constructors } =
     object
         [ nameField name
         , ( "inner"
@@ -143,7 +145,6 @@ encodeExposedType { name, constructors, range } =
                 |> Maybe.map (\c -> encodeExposingList c encodeValueConstructorExpose)
                 |> Maybe.withDefault JE.null
           )
-        , rangeField range
         ]
 
 

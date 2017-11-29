@@ -104,25 +104,27 @@ patchExposingList p x e =
             Explicit (List.map (x p) aList)
 
 
-patchTopLevelExpose : Patch -> TopLevelExpose -> TopLevelExpose
-patchTopLevelExpose p e =
-    case e of
-        InfixExpose s r ->
-            InfixExpose s (p r)
+patchTopLevelExpose : Patch -> Ranged TopLevelExpose -> Ranged TopLevelExpose
+patchTopLevelExpose p ( r, e ) =
+    ( p r
+    , case e of
+        InfixExpose s ->
+            InfixExpose s
 
-        FunctionExpose s r ->
-            FunctionExpose s (p r)
+        FunctionExpose s ->
+            FunctionExpose s
 
-        TypeOrAliasExpose s r ->
-            TypeOrAliasExpose s (p r)
+        TypeOrAliasExpose s ->
+            TypeOrAliasExpose s
 
         TypeExpose et ->
             TypeExpose (patchExposedType p et)
+    )
 
 
 patchExposedType : Patch -> ExposedType -> ExposedType
 patchExposedType p et =
-    { et | range = p et.range, constructors = Maybe.map (patchExposingList p patchValueConstructorExpose) et.constructors }
+    { et | constructors = Maybe.map (patchExposingList p patchValueConstructorExpose) et.constructors }
 
 
 patchValueConstructorExpose : Patch -> ValueConstructorExpose -> ValueConstructorExpose

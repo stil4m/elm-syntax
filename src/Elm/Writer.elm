@@ -118,7 +118,7 @@ writeModuleName moduleName =
     string (String.join "." moduleName)
 
 
-writeExposureExpose : Exposing TopLevelExpose -> Writer
+writeExposureExpose : Exposing (Ranged TopLevelExpose) -> Writer
 writeExposureExpose x =
     case x of
         All _ ->
@@ -136,16 +136,16 @@ writeExposureExpose x =
                 ]
 
 
-writeExpose : TopLevelExpose -> Writer
-writeExpose exp =
+writeExpose : Ranged TopLevelExpose -> Writer
+writeExpose ( _, exp ) =
     case exp of
-        InfixExpose x _ ->
+        InfixExpose x ->
             string ("(" ++ x ++ ")")
 
-        FunctionExpose f _ ->
+        FunctionExpose f ->
             string f
 
-        TypeOrAliasExpose t _ ->
+        TypeOrAliasExpose t ->
             string t
 
         TypeExpose { name, constructors } ->

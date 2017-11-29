@@ -36,6 +36,7 @@ import Elm.Syntax.Exposing exposing (Exposing(All, Explicit), TopLevelExpose(Fun
 import Elm.Syntax.File exposing (File)
 import Elm.Syntax.Infix exposing (Infix, InfixDirection(Left))
 import Elm.Syntax.Module as Module
+import Elm.Syntax.Ranged exposing (Ranged)
 import List.Extra
 
 
@@ -131,20 +132,20 @@ lookupForDefinition key =
     List.filter (Tuple.first >> (==) key) >> List.head >> Maybe.map Tuple.second
 
 
-buildInterfaceFromExplicit : List TopLevelExpose -> List ( String, Exposed ) -> Interface
+buildInterfaceFromExplicit : List (Ranged TopLevelExpose) -> List ( String, Exposed ) -> Interface
 buildInterfaceFromExplicit x fileDefinitionList =
     x
         |> List.filterMap
-            (\expose ->
+            (\( range, expose ) ->
                 case expose of
-                    InfixExpose k _ ->
+                    InfixExpose k ->
                         lookupForDefinition k fileDefinitionList
 
-                    TypeOrAliasExpose s _ ->
+                    TypeOrAliasExpose s ->
                         lookupForDefinition s fileDefinitionList
                             |> Maybe.map (ifType (\( name, _ ) -> Type ( name, [] )))
 
-                    FunctionExpose s _ ->
+                    FunctionExpose s ->
                         Just <| Function s
 
                     TypeExpose exposedType ->

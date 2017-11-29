@@ -22,8 +22,8 @@ all =
                             , exposingList =
                                 Just <|
                                     Explicit
-                                        [ TypeOrAliasExpose "Model" emptyRange
-                                        , TypeExpose (ExposedType "Msg" (Just <| All emptyRange) emptyRange)
+                                        [ ( emptyRange, TypeOrAliasExpose "Model" )
+                                        , ( emptyRange, TypeExpose (ExposedType "Msg" (Just <| All emptyRange)) )
                                         ]
                             , range = emptyRange
                             }
@@ -36,7 +36,7 @@ all =
                         (Just
                             { moduleName = [ "Html" ]
                             , moduleAlias = Nothing
-                            , exposingList = Just <| Explicit [ FunctionExpose "text" emptyRange ]
+                            , exposingList = Just <| Explicit [ ( emptyRange, FunctionExpose "text" ) ]
                             , range = emptyRange
                             }
                         )

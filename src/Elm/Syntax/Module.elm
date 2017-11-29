@@ -27,6 +27,7 @@ module Elm.Syntax.Module
 import Elm.Syntax.Base exposing (ModuleName)
 import Elm.Syntax.Exposing exposing (Exposing(..), TopLevelExpose)
 import Elm.Syntax.Range exposing (Range)
+import Elm.Syntax.Ranged exposing (Ranged)
 
 
 {-| Union type for different kind of modules
@@ -41,7 +42,7 @@ type Module
 -}
 type alias DefaultModuleData =
     { moduleName : ModuleName
-    , exposingList : Exposing TopLevelExpose
+    , exposingList : Exposing (Ranged TopLevelExpose)
     }
 
 
@@ -49,7 +50,7 @@ type alias DefaultModuleData =
 -}
 type alias EffectModuleData =
     { moduleName : ModuleName
-    , exposingList : Exposing TopLevelExpose
+    , exposingList : Exposing (Ranged TopLevelExpose)
     , command : Maybe String
     , subscription : Maybe String
     }
@@ -60,7 +61,7 @@ type alias EffectModuleData =
 type alias Import =
     { moduleName : ModuleName
     , moduleAlias : Maybe ModuleName
-    , exposingList : Maybe (Exposing TopLevelExpose)
+    , exposingList : Maybe (Exposing (Ranged TopLevelExpose))
     , range : Range
     }
 
@@ -82,7 +83,7 @@ moduleName m =
 
 {-| Get the exposing list for a module.
 -}
-exposingList : Module -> Exposing TopLevelExpose
+exposingList : Module -> Exposing (Ranged TopLevelExpose)
 exposingList m =
     case m of
         NormalModule x ->

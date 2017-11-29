@@ -112,14 +112,18 @@ decodeModuleName =
     list string
 
 
-decodeExpose : Decoder TopLevelExpose
+decodeExpose : Decoder (Ranged TopLevelExpose)
 decodeExpose =
-    decodeTyped
-        [ ( "infix", map2 InfixExpose nameField rangeField )
-        , ( "function", map2 FunctionExpose nameField rangeField )
-        , ( "typeOrAlias", map2 TypeOrAliasExpose nameField rangeField )
-        , ( "typeexpose", map TypeExpose decodeExposedType )
-        ]
+    succeed (,)
+        |: field "range" Range.decode
+        |: field "topLevel"
+            (decodeTyped
+                [ ( "infix", map InfixExpose nameField )
+                , ( "function", map FunctionExpose nameField )
+                , ( "typeOrAlias", map TypeOrAliasExpose nameField )
+                , ( "typeexpose", map TypeExpose decodeExposedType )
+                ]
+            )
 
 
 decodeExposedType : Decoder ExposedType
@@ -127,7 +131,6 @@ decodeExposedType =
     succeed ExposedType
         |: nameField
         |: field "inner" (nullable (decodeExposingList decodeValueConstructorExpose))
-        |: rangeField
 
 
 decodeValueConstructorExpose : Decoder ValueConstructorExpose

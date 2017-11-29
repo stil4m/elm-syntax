@@ -7,6 +7,7 @@ import Elm.Parser.State exposing (State)
 import Elm.Parser.Tokens exposing (exposingToken, functionName, typeName)
 import Elm.Parser.Util exposing (moreThanIndentWhitespace, trimmed)
 import Elm.Syntax.Exposing exposing (ExposedType, Exposing(All, Explicit), TopLevelExpose(FunctionExpose, InfixExpose, TypeExpose, TypeOrAliasExpose), ValueConstructorExpose)
+import Elm.Syntax.Ranged exposing (Ranged)
 
 
 maybeExposeDefinition : Parser State a -> Parser State (Maybe (Exposing a))
@@ -19,7 +20,7 @@ exposeDefinition p =
     moreThanIndentWhitespace *> exposingToken *> maybe moreThanIndentWhitespace *> exposeListWith p
 
 
-exposable : Parser State TopLevelExpose
+exposable : Parser State (Ranged TopLevelExpose)
 exposable =
     choice
         [ typeExpose
@@ -28,22 +29,21 @@ exposable =
         ]
 
 
-infixExpose : Parser State TopLevelExpose
+infixExpose : Parser State (Ranged TopLevelExpose)
 infixExpose =
-    withRange (InfixExpose <$> parens (while ((/=) ')')))
+    ranged (InfixExpose <$> parens (while ((/=) ')')))
 
 
-typeExpose : Parser State TopLevelExpose
+typeExpose : Parser State (Ranged TopLevelExpose)
 typeExpose =
-    TypeExpose <$> exposedType
+    ranged (TypeExpose <$> exposedType)
 
 
 exposedType : Parser State ExposedType
 exposedType =
-    withRange <|
-        succeed ExposedType
-            <*> typeName
-            <*> (maybe moreThanIndentWhitespace *> (Just <$> exposeListWith valueConstructorExpose))
+    succeed ExposedType
+        <*> typeName
+        <*> (maybe moreThanIndentWhitespace *> (Just <$> exposeListWith valueConstructorExpose))
 
 
 valueConstructorExpose : Parser State ValueConstructorExpose
@@ -62,9 +62,9 @@ exposeListWith p =
     parens (exposingListInner p)
 
 
-definitionExpose : Parser State TopLevelExpose
+definitionExpose : Parser State (Ranged TopLevelExpose)
 definitionExpose =
-    withRange <|
+    ranged <|
         or
             (FunctionExpose <$> functionName)
             (TypeOrAliasExpose <$> typeName)

@@ -99,7 +99,7 @@ noRangeImport imp =
     }
 
 
-noRangeExposingList : Exposing TopLevelExpose -> Exposing TopLevelExpose
+noRangeExposingList : Exposing (Ranged TopLevelExpose) -> Exposing (Ranged TopLevelExpose)
 noRangeExposingList x =
     case x of
         All r ->
@@ -167,17 +167,18 @@ unRange p =
     { p | range = emptyRange }
 
 
-noRangeExpose : TopLevelExpose -> TopLevelExpose
-noRangeExpose l =
-    case l of
-        InfixExpose s r ->
-            InfixExpose s emptyRange
+noRangeExpose : Ranged TopLevelExpose -> Ranged TopLevelExpose
+noRangeExpose ( _, l ) =
+    ( emptyRange
+    , case l of
+        InfixExpose s ->
+            InfixExpose s
 
-        FunctionExpose s r ->
-            FunctionExpose s emptyRange
+        FunctionExpose s ->
+            FunctionExpose s
 
-        TypeOrAliasExpose s _ ->
-            TypeOrAliasExpose s emptyRange
+        TypeOrAliasExpose s ->
+            TypeOrAliasExpose s
 
         TypeExpose { name, constructors } ->
             let
@@ -192,7 +193,8 @@ noRangeExpose l =
                         Just (Explicit list) ->
                             Just <| Explicit <| List.map (Tuple.mapFirst (always emptyRange)) list
             in
-            TypeExpose (ExposedType name newT emptyRange)
+            TypeExpose (ExposedType name newT)
+    )
 
 
 noRangeDeclaration : Declaration -> Declaration

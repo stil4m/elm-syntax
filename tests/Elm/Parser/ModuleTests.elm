@@ -20,7 +20,7 @@ all =
                         (Just
                             (NormalModule
                                 { moduleName = [ "Foo" ]
-                                , exposingList = Explicit [ TypeOrAliasExpose "Bar" emptyRange ]
+                                , exposingList = Explicit [ ( emptyRange, TypeOrAliasExpose "Bar" ) ]
                                 }
                             )
                         )
@@ -28,7 +28,7 @@ all =
             \() ->
                 parseFullStringWithNullState "port module Foo exposing (Bar)" Parser.moduleDefinition
                     |> Maybe.map noRangeModule
-                    |> Expect.equal (Just (PortModule { moduleName = [ "Foo" ], exposingList = Explicit [ TypeOrAliasExpose "Bar" emptyRange ] }))
+                    |> Expect.equal (Just (PortModule { moduleName = [ "Foo" ], exposingList = Explicit [ ( emptyRange, TypeOrAliasExpose "Bar" ) ] }))
         , test "effect moduleDefinition" <|
             \() ->
                 parseFullStringWithNullState "effect module Foo where {command = MyCmd, subscription = MySub } exposing (Bar)" Parser.moduleDefinition
@@ -37,7 +37,7 @@ all =
                         (Just
                             (EffectModule
                                 { moduleName = [ "Foo" ]
-                                , exposingList = Explicit [ TypeOrAliasExpose "Bar" emptyRange ]
+                                , exposingList = Explicit [ ( emptyRange, TypeOrAliasExpose "Bar" ) ]
                                 , command = Just "MyCmd"
                                 , subscription = Just "MySub"
                                 }

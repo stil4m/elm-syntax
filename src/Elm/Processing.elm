@@ -111,7 +111,7 @@ buildSingle imp moduleIndex =
         Just (Explicit l) ->
             let
                 selectedOperators =
-                    Exposing.operators l
+                    Exposing.operators <| List.map Tuple.second l
             in
             moduleIndex
                 |> Dict.get imp.moduleName
