@@ -184,27 +184,32 @@ encodeImport { moduleName, moduleAlias, exposingList, range } =
         ]
 
 
-encodeDeclaration : Declaration -> Value
-encodeDeclaration decl =
-    case decl of
-        FuncDecl function ->
-            encodeTyped "function" (encodeFunction function)
+encodeDeclaration : Ranged Declaration -> Value
+encodeDeclaration ( range, decl ) =
+    object
+        [ rangeField range
+        , ( "declaration"
+          , case decl of
+                FuncDecl function ->
+                    encodeTyped "function" (encodeFunction function)
 
-        AliasDecl typeAlias ->
-            encodeTyped "typeAlias" (encodeTypeAlias typeAlias)
+                AliasDecl typeAlias ->
+                    encodeTyped "typeAlias" (encodeTypeAlias typeAlias)
 
-        TypeDecl typeDeclaration ->
-            encodeTyped "typedecl" (encodeType typeDeclaration)
+                TypeDecl typeDeclaration ->
+                    encodeTyped "typedecl" (encodeType typeDeclaration)
 
-        PortDeclaration sig ->
-            encodeTyped "port" (encodeSignature sig)
+                PortDeclaration sig ->
+                    encodeTyped "port" (encodeSignature sig)
 
-        InfixDeclaration inf ->
-            encodeTyped "infix"
-                (Infix.encode inf)
+                InfixDeclaration inf ->
+                    encodeTyped "infix"
+                        (Infix.encode inf)
 
-        Destructuring pattern expression ->
-            encodeTyped "destructuring" (encodeDestructuring pattern expression)
+                Destructuring pattern expression ->
+                    encodeTyped "destructuring" (encodeDestructuring pattern expression)
+          )
+        ]
 
 
 encodeDestructuring : Ranged Pattern -> Ranged Expression -> Value
@@ -234,13 +239,12 @@ encodeValueConstructor { name, arguments, range } =
 
 
 encodeTypeAlias : TypeAlias -> Value
-encodeTypeAlias { documentation, name, generics, typeAnnotation, range } =
+encodeTypeAlias { documentation, name, generics, typeAnnotation } =
     object
         [ ( "documentation", Maybe.map encodeDocumentation documentation |> Maybe.withDefault JE.null )
         , nameField name
         , ( "generics", asList string generics )
         , ( "typeAnnotation", encodeTypeAnnotation typeAnnotation )
-        , rangeField range
         ]
 
 
@@ -248,7 +252,7 @@ encodeFunction : Function -> Value
 encodeFunction { documentation, signature, declaration } =
     object
         [ ( "documentation", Maybe.map encodeDocumentation documentation |> Maybe.withDefault JE.null )
-        , ( "signature", Maybe.map encodeSignature signature |> Maybe.withDefault JE.null )
+        , ( "signature", Maybe.map encodeRangedSignature signature |> Maybe.withDefault JE.null )
         , ( "declaration", encodeFunctionDeclaration declaration )
         ]
 
@@ -261,13 +265,20 @@ encodeDocumentation { text, range } =
         ]
 
 
+encodeRangedSignature : Ranged FunctionSignature -> Value
+encodeRangedSignature ( range, functionSignature ) =
+    object
+        [ rangeField range
+        , ( "signature", encodeSignature functionSignature )
+        ]
+
+
 encodeSignature : FunctionSignature -> Value
-encodeSignature { operatorDefinition, name, typeAnnotation, range } =
+encodeSignature { operatorDefinition, name, typeAnnotation } =
     object
         [ ( "operatorDefinition", JE.bool operatorDefinition )
         , nameField name
         , ( "typeAnnotation", encodeTypeAnnotation typeAnnotation )
-        , rangeField range
         ]
 
 
@@ -612,14 +623,19 @@ encodeLetBlock { declarations, expression } =
         ]
 
 
-encodeLetDeclaration : LetDeclaration -> Value
-encodeLetDeclaration letDeclaration =
-    case letDeclaration of
-        LetFunction f ->
-            encodeTyped "function" (encodeFunction f)
+encodeLetDeclaration : Ranged LetDeclaration -> Value
+encodeLetDeclaration ( range, letDeclaration ) =
+    object
+        [ rangeField range
+        , ( "declaration"
+          , case letDeclaration of
+                LetFunction f ->
+                    encodeTyped "function" (encodeFunction f)
 
-        LetDestructuring pattern expression ->
-            encodeTyped "destructuring" (encodeDestructuring pattern expression)
+                LetDestructuring pattern expression ->
+                    encodeTyped "destructuring" (encodeDestructuring pattern expression)
+          )
+        ]
 
 
 encodeOperatorApplication : String -> InfixDirection -> Ranged Expression -> Ranged Expression -> Value

@@ -5,7 +5,7 @@ import Combine.Char exposing (anyChar)
 import Combine.Num
 import Elm.Parser.Infix as Infix
 import Elm.Parser.Patterns exposing (declarablePattern, pattern)
-import Elm.Parser.Ranges exposing (withRange, withRangeCustomStart)
+import Elm.Parser.Ranges exposing (ranged, withRange, withRangeCustomStart)
 import Elm.Parser.State exposing (State, popIndent, pushIndent)
 import Elm.Parser.Tokens exposing (caseToken, characterLiteral, elseToken, functionName, ifToken, infixOperatorToken, multiLineStringLiteral, ofToken, portToken, prefixOperatorToken, stringLiteral, thenToken, typeName)
 import Elm.Parser.TypeAnnotation exposing (typeAnnotation)
@@ -41,7 +41,7 @@ function =
         (\() ->
             succeed Function
                 <*> succeed Nothing
-                <*> maybe (signature <* exactIndentWhitespace)
+                <*> maybe (ranged signature <* exactIndentWhitespace)
                 <*> functionDeclaration
         )
 
@@ -68,11 +68,10 @@ portDeclaration =
 
 signature : Parser State FunctionSignature
 signature =
-    withRange <|
-        succeed FunctionSignature
-            <*> (lookAhead anyChar >>= (\c -> succeed (c == '(')))
-            <*> or functionName (parens prefixOperatorToken)
-            <*> (trimmed (string ":") *> maybe moreThanIndentWhitespace *> typeAnnotation)
+    succeed FunctionSignature
+        <*> (lookAhead anyChar >>= (\c -> succeed (c == '(')))
+        <*> or functionName (parens prefixOperatorToken)
+        <*> (trimmed (string ":") *> maybe moreThanIndentWhitespace *> typeAnnotation)
 
 
 functionDeclaration : Parser State FunctionDeclaration
@@ -380,11 +379,11 @@ caseExpression =
 -- Let Expression
 
 
-letBody : Parser State (List LetDeclaration)
+letBody : Parser State (List (Ranged LetDeclaration))
 letBody =
     lazy
         (\() ->
-            sepBy1 exactIndentWhitespace (or letDestructuringDeclaration (LetFunction <$> function))
+            sepBy1 exactIndentWhitespace (ranged (or letDestructuringDeclaration (LetFunction <$> function)))
         )
 
 
@@ -398,7 +397,7 @@ letDestructuringDeclaration =
         )
 
 
-letBlock : Parser State (List LetDeclaration)
+letBlock : Parser State (List (Ranged LetDeclaration))
 letBlock =
     lazy
         (\() ->

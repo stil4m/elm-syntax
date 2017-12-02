@@ -190,8 +190,8 @@ writeImport { moduleName, moduleAlias, exposingList } =
         ]
 
 
-writeLetDeclaration : LetDeclaration -> Writer
-writeLetDeclaration letDeclaration =
+writeLetDeclaration : Ranged LetDeclaration -> Writer
+writeLetDeclaration ( _, letDeclaration ) =
     case letDeclaration of
         LetFunction function ->
             writeFunction function
@@ -200,8 +200,8 @@ writeLetDeclaration letDeclaration =
             writeDestructuring pattern expression
 
 
-writeDeclaration : Declaration -> Writer
-writeDeclaration decl =
+writeDeclaration : Ranged Declaration -> Writer
+writeDeclaration ( _, decl ) =
     case decl of
         FuncDecl function ->
             writeFunction function
@@ -226,7 +226,7 @@ writeFunction : Function -> Writer
 writeFunction { documentation, signature, declaration } =
     breaked
         [ maybe (Maybe.map writeDocumentation documentation)
-        , maybe (Maybe.map writeSignature signature)
+        , maybe (Maybe.map (Tuple.second >> writeSignature) signature)
         , writeFunctionDeclaration declaration
         ]
 

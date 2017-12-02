@@ -21,11 +21,11 @@ postProcess file =
         file
 
 
-onTypeAlias : TypeAlias -> File -> File
-onTypeAlias typeAlias file =
+onTypeAlias : Ranged TypeAlias -> File -> File
+onTypeAlias ( r, typeAlias ) file =
     let
         docs =
-            List.filter (isDocumentationForRange typeAlias.range) file.comments
+            List.filter (isDocumentationForRange r) file.comments
     in
     case List.head docs of
         Just (( docRange, docString ) as doc) ->
@@ -35,11 +35,14 @@ onTypeAlias typeAlias file =
                         |> List.filter ((/=) doc)
                 , declarations =
                     List.map
-                        (replaceTypeAlias
-                            { typeAlias
-                                | documentation =
-                                    Just (Documentation docString docRange)
-                            }
+                        (replaceDeclaration
+                            ( r
+                            , AliasDecl
+                                { typeAlias
+                                    | documentation =
+                                        Just (Documentation docString docRange)
+                                }
+                            )
                         )
                         file.declarations
             }
@@ -48,14 +51,9 @@ onTypeAlias typeAlias file =
             file
 
 
-onFunction : Function -> File -> File
-onFunction function file =
+onFunction : Ranged Function -> File -> File
+onFunction ( functionRange, function ) file =
     let
-        functionRange =
-            function.signature
-                |> Maybe.map .range
-                |> Maybe.withDefault function.declaration.name.range
-
         docs =
             List.filter (isDocumentationForRange functionRange) file.comments
     in
@@ -67,8 +65,8 @@ onFunction function file =
                         |> List.filter ((/=) doc)
                 , declarations =
                     List.map
-                        (replaceFunction
-                            { function | documentation = Just (Documentation docString docRange) }
+                        (replaceDeclaration
+                            ( functionRange, FuncDecl { function | documentation = Just (Documentation docString docRange) } )
                         )
                         file.declarations
             }
@@ -77,30 +75,14 @@ onFunction function file =
             file
 
 
-replaceTypeAlias : TypeAlias -> Declaration -> Declaration
-replaceTypeAlias f1 decl =
-    case decl of
-        AliasDecl f2 ->
-            if f1.range == f2.range then
-                AliasDecl f1
-            else
-                decl
-
-        _ ->
-            decl
-
-
-replaceFunction : Function -> Declaration -> Declaration
-replaceFunction f1 decl =
-    case decl of
-        FuncDecl f2 ->
-            if f1.declaration.name.range == f2.declaration.name.range then
-                FuncDecl f1
-            else
-                decl
-
-        _ ->
-            decl
+replaceDeclaration : Ranged Declaration -> Ranged Declaration -> Ranged Declaration
+replaceDeclaration ( r1, new ) ( r2, old ) =
+    ( r2
+    , if r1 == r2 then
+        new
+      else
+        old
+    )
 
 
 isDocumentationForRange : Range -> Ranged String -> Bool

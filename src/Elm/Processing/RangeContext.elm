@@ -188,9 +188,10 @@ unRange patch p =
     { p | range = patch p.range }
 
 
-patchDeclaration : Patch -> Declaration -> Declaration
-patchDeclaration patch decl =
-    case decl of
+patchDeclaration : Patch -> Ranged Declaration -> Ranged Declaration
+patchDeclaration patch ( r, decl ) =
+    ( patch r
+    , case decl of
         Destructuring pattern expression ->
             Destructuring
                 (patchPattern patch pattern)
@@ -210,21 +211,24 @@ patchDeclaration patch decl =
 
         InfixDeclaration d ->
             InfixDeclaration d
+    )
 
 
-patchLetDeclaration : Patch -> LetDeclaration -> LetDeclaration
-patchLetDeclaration patch decl =
-    case decl of
+patchLetDeclaration : Patch -> Ranged LetDeclaration -> Ranged LetDeclaration
+patchLetDeclaration patch ( r, decl ) =
+    ( patch r
+    , case decl of
         LetFunction function ->
             LetFunction (patchFunction patch function)
 
         LetDestructuring pattern expression ->
             LetDestructuring (patchPattern patch pattern) (patchRanged patchExpression patch expression)
+    )
 
 
 patchTypeAlias : Patch -> TypeAlias -> TypeAlias
 patchTypeAlias patch typeAlias =
-    unRange patch { typeAlias | typeAnnotation = patchTypeReference patch typeAlias.typeAnnotation }
+    { typeAlias | typeAnnotation = patchTypeReference patch typeAlias.typeAnnotation }
 
 
 patchTypeReference : Patch -> Ranged TypeAnnotation -> Ranged TypeAnnotation
@@ -275,14 +279,13 @@ patchFunction : Patch -> Function -> Function
 patchFunction patch f =
     { f
         | declaration = patchFunctionDeclaration patch f.declaration
-        , signature = Maybe.map (patchSignature patch) f.signature
+        , signature = Maybe.map (patchRanged patchSignature patch) f.signature
     }
 
 
 patchSignature : Patch -> FunctionSignature -> FunctionSignature
 patchSignature patch signature =
     { signature | typeAnnotation = patchTypeReference patch signature.typeAnnotation }
-        |> unRange patch
 
 
 patchFunctionDeclaration : Patch -> FunctionDeclaration -> FunctionDeclaration

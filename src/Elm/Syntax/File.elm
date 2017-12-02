@@ -19,6 +19,6 @@ import Elm.Syntax.Ranged exposing (Ranged)
 type alias File =
     { moduleDefinition : Module
     , imports : List Import
-    , declarations : List Declaration
+    , declarations : List (Ranged Declaration)
     , comments : List (Ranged String)
     }

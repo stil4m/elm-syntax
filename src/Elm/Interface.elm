@@ -177,7 +177,7 @@ fileToDefinitions file =
         allDeclarations =
             file.declarations
                 |> List.filterMap
-                    (\decl ->
+                    (\( _, decl ) ->
                         case decl of
                             TypeDecl t ->
                                 Just ( t.name, Type ( t.name, t.constructors |> List.map .name ) )

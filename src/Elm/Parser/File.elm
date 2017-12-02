@@ -4,6 +4,7 @@ import Combine exposing ((*>), (<*), (<*>), Parser, maybe, sepBy, succeed, withS
 import Elm.Parser.Declarations exposing (declaration)
 import Elm.Parser.Imports exposing (importDefinition)
 import Elm.Parser.Modules exposing (moduleDefinition)
+import Elm.Parser.Ranges exposing (ranged)
 import Elm.Parser.State as State exposing (State)
 import Elm.Parser.Util exposing (exactIndentWhitespace)
 import Elm.Parser.Whitespace exposing (manySpaces)
@@ -26,6 +27,6 @@ collectComments =
     withState (State.getComments >> succeed)
 
 
-fileDeclarations : Parser State (List Declaration)
+fileDeclarations : Parser State (List (Ranged Declaration))
 fileDeclarations =
-    sepBy exactIndentWhitespace declaration <* maybe exactIndentWhitespace <* manySpaces
+    sepBy exactIndentWhitespace (ranged declaration) <* maybe exactIndentWhitespace <* manySpaces

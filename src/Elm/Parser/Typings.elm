@@ -34,11 +34,10 @@ valueConstructor =
 
 typeAlias : Parser State TypeAlias
 typeAlias =
-    withRange <|
-        succeed (TypeAlias Nothing)
-            <*> (typeAliasPrefix *> typeName)
-            <*> genericList
-            <*> (trimmed (string "=") *> typeAnnotation)
+    succeed (TypeAlias Nothing)
+        <*> (typeAliasPrefix *> typeName)
+        <*> genericList
+        <*> (trimmed (string "=") *> typeAnnotation)
 
 
 genericList : Parser State (List String)

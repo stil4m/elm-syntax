@@ -24,7 +24,6 @@ all =
                             { operatorDefinition = False
                             , name = "foo"
                             , typeAnnotation = ( emptyRange, Typed [] "Int" [] )
-                            , range = emptyRange
                             }
                         )
         , test "no spacing signature" <|
@@ -36,7 +35,6 @@ all =
                             { operatorDefinition = False
                             , name = "foo"
                             , typeAnnotation = ( emptyRange, Typed [] "Int" [] )
-                            , range = emptyRange
                             }
                         )
         , test "on newline signature with wrong indent " <|
@@ -53,7 +51,6 @@ all =
                             { operatorDefinition = False
                             , name = "foo"
                             , typeAnnotation = ( emptyRange, Typed [] "Int" [] )
-                            , range = emptyRange
                             }
                         )
         , test "on newline signature with colon on start of line" <|
@@ -128,7 +125,6 @@ all =
                                       )
                                     ]
                                 )
-                            , range = emptyRange
                             }
                         )
         , test "function declaration with let" <|
@@ -144,19 +140,21 @@ all =
                                 emptyRanged <|
                                     LetExpression
                                         { declarations =
-                                            [ LetFunction
-                                                { documentation = Nothing
-                                                , signature = Nothing
-                                                , declaration =
-                                                    { operatorDefinition = False
-                                                    , name =
-                                                        { value = "b"
-                                                        , range = emptyRange
+                                            [ ( emptyRange
+                                              , LetFunction
+                                                    { documentation = Nothing
+                                                    , signature = Nothing
+                                                    , declaration =
+                                                        { operatorDefinition = False
+                                                        , name =
+                                                            { value = "b"
+                                                            , range = emptyRange
+                                                            }
+                                                        , arguments = []
+                                                        , expression = emptyRanged <| Integer 1
                                                         }
-                                                    , arguments = []
-                                                    , expression = emptyRanged <| Integer 1
                                                     }
-                                                }
+                                              )
                                             ]
                                         , expression = emptyRanged <| FunctionOrValue "b"
                                         }
@@ -238,7 +236,6 @@ all =
                                         )
                                         ( emptyRange, Typed [] "Cmd" [ ( emptyRange, GenericType "msg" ) ] )
                                     )
-                                , range = emptyRange
                                 }
                             )
                         )
@@ -260,7 +257,6 @@ all =
                                         )
                                         ( emptyRange, Typed [] "Sub" [ ( emptyRange, GenericType "msg" ) ] )
                                     )
-                                , range = emptyRange
                                 }
                         )
         , test "Destructuring declaration" <|

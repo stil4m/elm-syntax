@@ -75,7 +75,6 @@ import Elm.Syntax.Base exposing (ModuleName, VariablePointer)
 import Elm.Syntax.Documentation exposing (Documentation)
 import Elm.Syntax.Infix exposing (InfixDirection)
 import Elm.Syntax.Pattern exposing (Pattern)
-import Elm.Syntax.Range exposing (Range)
 import Elm.Syntax.Ranged exposing (Ranged)
 import Elm.Syntax.TypeAnnotation exposing (TypeAnnotation)
 
@@ -84,7 +83,7 @@ import Elm.Syntax.TypeAnnotation exposing (TypeAnnotation)
 -}
 type alias Function =
     { documentation : Maybe Documentation
-    , signature : Maybe FunctionSignature
+    , signature : Maybe (Ranged FunctionSignature)
     , declaration : FunctionDeclaration
     }
 
@@ -105,7 +104,6 @@ type alias FunctionSignature =
     { operatorDefinition : Bool
     , name : String
     , typeAnnotation : Ranged TypeAnnotation
-    , range : Range
     }
 
 
@@ -155,7 +153,7 @@ type alias RecordSetter =
 {-| Expression for a let block
 -}
 type alias LetBlock =
-    { declarations : List LetDeclaration
+    { declarations : List (Ranged LetDeclaration)
     , expression : Ranged Expression
     }
 

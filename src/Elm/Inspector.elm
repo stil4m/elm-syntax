@@ -23,10 +23,10 @@ type Order context x
 type alias Config context =
     { onFile : Order context File
     , onImport : Order context Import
-    , onFunction : Order context Function
-    , onFunctionSignature : Order context FunctionSignature
-    , onPortDeclaration : Order context FunctionSignature
-    , onTypeAlias : Order context TypeAlias
+    , onFunction : Order context (Ranged Function)
+    , onFunctionSignature : Order context (Ranged FunctionSignature)
+    , onPortDeclaration : Order context (Ranged FunctionSignature)
+    , onTypeAlias : Order context (Ranged TypeAlias)
     , onDestructuring : Order context ( Ranged Pattern, Ranged Expression )
     , onExpression : Order context (Ranged Expression)
     , onOperatorApplication : Order context ( String, InfixDirection, Ranged Expression, Ranged Expression )
@@ -101,40 +101,40 @@ inspectImport config imp context =
         context
 
 
-inspectDeclarations : Config context -> List Declaration -> context -> context
+inspectDeclarations : Config context -> List (Ranged Declaration) -> context -> context
 inspectDeclarations config declarations context =
     List.foldl (inspectDeclaration config) context declarations
 
 
-inspectLetDeclarations : Config context -> List LetDeclaration -> context -> context
+inspectLetDeclarations : Config context -> List (Ranged LetDeclaration) -> context -> context
 inspectLetDeclarations config declarations context =
     List.foldl (inspectLetDeclaration config) context declarations
 
 
-inspectLetDeclaration : Config context -> LetDeclaration -> context -> context
-inspectLetDeclaration config declaration context =
+inspectLetDeclaration : Config context -> Ranged LetDeclaration -> context -> context
+inspectLetDeclaration config ( range, declaration ) context =
     case declaration of
         LetFunction function ->
-            inspectFunction config function context
+            inspectFunction config ( range, function ) context
 
         LetDestructuring pattern expression ->
             inspectDestructuring config ( pattern, expression ) context
 
 
-inspectDeclaration : Config context -> Declaration -> context -> context
-inspectDeclaration config declaration context =
+inspectDeclaration : Config context -> Ranged Declaration -> context -> context
+inspectDeclaration config ( r, declaration ) context =
     case declaration of
         FuncDecl function ->
-            inspectFunction config function context
+            inspectFunction config ( r, function ) context
 
         AliasDecl typeAlias ->
-            inspectTypeAlias config typeAlias context
+            inspectTypeAlias config ( r, typeAlias ) context
 
         TypeDecl typeDecl ->
             inspectType config typeDecl context
 
         PortDeclaration signature ->
-            inspectPortDeclaration config signature context
+            inspectPortDeclaration config ( r, signature ) context
 
         InfixDeclaration _ ->
             context
@@ -153,12 +153,12 @@ inspectValueConstructor config valueConstructor context =
     List.foldl (inspectTypeAnnotation config) context valueConstructor.arguments
 
 
-inspectTypeAlias : Config context -> TypeAlias -> context -> context
-inspectTypeAlias config typeAlias context =
+inspectTypeAlias : Config context -> Ranged TypeAlias -> context -> context
+inspectTypeAlias config (( _, typeAlias ) as pair) context =
     actionLambda
         config.onTypeAlias
         (inspectTypeAnnotation config typeAlias.typeAnnotation)
-        typeAlias
+        pair
         context
 
 
@@ -171,8 +171,8 @@ inspectDestructuring config destructuring context =
         context
 
 
-inspectFunction : Config context -> Function -> context -> context
-inspectFunction config function context =
+inspectFunction : Config context -> Ranged Function -> context -> context
+inspectFunction config (( _, function ) as ranged) context =
     actionLambda
         config.onFunction
         (inspectExpression config function.declaration.expression
@@ -180,11 +180,11 @@ inspectFunction config function context =
                     Maybe.map (inspectSignature config) function.signature
                )
         )
-        function
+        ranged
         context
 
 
-inspectPortDeclaration : Config context -> FunctionSignature -> context -> context
+inspectPortDeclaration : Config context -> Ranged FunctionSignature -> context -> context
 inspectPortDeclaration config signature context =
     actionLambda
         config.onPortDeclaration
@@ -193,11 +193,11 @@ inspectPortDeclaration config signature context =
         context
 
 
-inspectSignature : Config context -> FunctionSignature -> context -> context
+inspectSignature : Config context -> Ranged FunctionSignature -> context -> context
 inspectSignature config signature context =
     actionLambda
         config.onFunctionSignature
-        (inspectTypeAnnotation config signature.typeAnnotation)
+        (inspectTypeAnnotation config (Tuple.second signature).typeAnnotation)
         signature
         context
 

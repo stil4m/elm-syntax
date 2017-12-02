@@ -162,6 +162,11 @@ noRangePattern ( r, p ) =
     )
 
 
+unRanged : (a -> a) -> Ranged a -> Ranged a
+unRanged f ( _, a ) =
+    ( emptyRange, f a )
+
+
 unRange : { a | range : Range } -> { a | range : Range }
 unRange p =
     { p | range = emptyRange }
@@ -214,23 +219,28 @@ noRangeDeclaration decl =
         PortDeclaration d ->
             PortDeclaration (noRangeSignature d)
 
-        _ ->
-            decl
+        AliasDecl aliasDecl ->
+            AliasDecl (noRangeTypeAlias aliasDecl)
+
+        InfixDeclaration infixDecl ->
+            InfixDeclaration infixDecl
 
 
-noRangeLetDeclaration : LetDeclaration -> LetDeclaration
-noRangeLetDeclaration decl =
-    case decl of
+noRangeLetDeclaration : Ranged LetDeclaration -> Ranged LetDeclaration
+noRangeLetDeclaration ( r, decl ) =
+    ( emptyRange
+    , case decl of
         LetFunction function ->
             LetFunction (noRangeFunction function)
 
         LetDestructuring pattern expression ->
             LetDestructuring (noRangePattern pattern) (noRangeExpression expression)
+    )
 
 
 noRangeTypeAlias : TypeAlias -> TypeAlias
 noRangeTypeAlias typeAlias =
-    unRange { typeAlias | typeAnnotation = noRangeTypeReference typeAlias.typeAnnotation }
+    { typeAlias | typeAnnotation = noRangeTypeReference typeAlias.typeAnnotation }
 
 
 noRangeTypeReference : Ranged TypeAnnotation -> Ranged TypeAnnotation
@@ -281,14 +291,13 @@ noRangeFunction : Function -> Function
 noRangeFunction f =
     { f
         | declaration = noRangeFunctionDeclaration f.declaration
-        , signature = Maybe.map noRangeSignature f.signature
+        , signature = Maybe.map (unRanged noRangeSignature) f.signature
     }
 
 
 noRangeSignature : FunctionSignature -> FunctionSignature
 noRangeSignature signature =
     { signature | typeAnnotation = noRangeTypeReference signature.typeAnnotation }
-        |> unRange
 
 
 noRangeFunctionDeclaration : FunctionDeclaration -> FunctionDeclaration

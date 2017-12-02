@@ -21,7 +21,6 @@ all =
                             , name = "Foo"
                             , generics = []
                             , typeAnnotation = ( emptyRange, Record [ ( "color", ( emptyRange, Typed [] "String" [] ) ) ] )
-                            , range = emptyRange
                             }
                         )
         , test "type alias with GenericType " <|
@@ -34,7 +33,6 @@ all =
                             , name = "Foo"
                             , generics = [ "a" ]
                             , typeAnnotation = ( emptyRange, Record [ ( "some", ( emptyRange, GenericType "a" ) ) ] )
-                            , range = emptyRange
                             }
                         )
         , test "type" <|

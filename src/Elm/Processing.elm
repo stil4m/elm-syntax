@@ -259,34 +259,38 @@ visit visitor context file =
     { file | declarations = newDeclarations }
 
 
-visitDeclarations : Visitor context -> context -> List Declaration -> List Declaration
+visitDeclarations : Visitor context -> context -> List (Ranged Declaration) -> List (Ranged Declaration)
 visitDeclarations visitor context declarations =
     List.map (visitDeclaration visitor context) declarations
 
 
-visitLetDeclarations : Visitor context -> context -> List LetDeclaration -> List LetDeclaration
+visitLetDeclarations : Visitor context -> context -> List (Ranged LetDeclaration) -> List (Ranged LetDeclaration)
 visitLetDeclarations visitor context declarations =
     List.map (visitLetDeclaration visitor context) declarations
 
 
-visitDeclaration : Visitor context -> context -> Declaration -> Declaration
-visitDeclaration visitor context declaration =
-    case declaration of
+visitDeclaration : Visitor context -> context -> Ranged Declaration -> Ranged Declaration
+visitDeclaration visitor context ( range, declaration ) =
+    ( range
+    , case declaration of
         FuncDecl function ->
             FuncDecl (visitFunctionDecl visitor context function)
 
         _ ->
             declaration
+    )
 
 
-visitLetDeclaration : Visitor context -> context -> LetDeclaration -> LetDeclaration
-visitLetDeclaration visitor context declaration =
-    case declaration of
+visitLetDeclaration : Visitor context -> context -> Ranged LetDeclaration -> Ranged LetDeclaration
+visitLetDeclaration visitor context ( range, declaration ) =
+    ( range
+    , case declaration of
         LetFunction function ->
             LetFunction (visitFunctionDecl visitor context function)
 
         LetDestructuring pattern expression ->
             LetDestructuring pattern (visitExpression visitor context expression)
+    )
 
 
 visitFunctionDecl : Visitor context -> context -> Function -> Function

@@ -21,26 +21,30 @@ all =
                     |> Maybe.map (List.map noRangeLetDeclaration)
                     |> Expect.equal
                         (Just
-                            [ LetFunction
-                                { documentation = Nothing
-                                , signature = Nothing
-                                , declaration =
-                                    { operatorDefinition = False
-                                    , name = { value = "foo", range = emptyRange }
-                                    , arguments = []
-                                    , expression = emptyRanged <| FunctionOrValue "bar"
+                            [ ( emptyRange
+                              , LetFunction
+                                    { documentation = Nothing
+                                    , signature = Nothing
+                                    , declaration =
+                                        { operatorDefinition = False
+                                        , name = { value = "foo", range = emptyRange }
+                                        , arguments = []
+                                        , expression = emptyRanged <| FunctionOrValue "bar"
+                                        }
                                     }
-                                }
-                            , LetFunction
-                                { documentation = Nothing
-                                , signature = Nothing
-                                , declaration =
-                                    { operatorDefinition = False
-                                    , name = { value = "john", range = emptyRange }
-                                    , arguments = []
-                                    , expression = emptyRanged <| FunctionOrValue "doe"
+                              )
+                            , ( emptyRange
+                              , LetFunction
+                                    { documentation = Nothing
+                                    , signature = Nothing
+                                    , declaration =
+                                        { operatorDefinition = False
+                                        , name = { value = "john", range = emptyRange }
+                                        , arguments = []
+                                        , expression = emptyRanged <| FunctionOrValue "doe"
+                                        }
                                     }
-                                }
+                              )
                             ]
                         )
         , test "let block" <|
@@ -49,26 +53,30 @@ all =
                     |> Maybe.map (List.map noRangeLetDeclaration)
                     |> Expect.equal
                         (Just
-                            [ LetFunction
-                                { documentation = Nothing
-                                , signature = Nothing
-                                , declaration =
-                                    { operatorDefinition = False
-                                    , name = { value = "foo", range = emptyRange }
-                                    , arguments = []
-                                    , expression = emptyRanged <| FunctionOrValue "bar"
+                            [ ( emptyRange
+                              , LetFunction
+                                    { documentation = Nothing
+                                    , signature = Nothing
+                                    , declaration =
+                                        { operatorDefinition = False
+                                        , name = { value = "foo", range = emptyRange }
+                                        , arguments = []
+                                        , expression = emptyRanged <| FunctionOrValue "bar"
+                                        }
                                     }
-                                }
-                            , LetFunction
-                                { documentation = Nothing
-                                , signature = Nothing
-                                , declaration =
-                                    { operatorDefinition = False
-                                    , name = { value = "john", range = emptyRange }
-                                    , arguments = []
-                                    , expression = emptyRanged <| FunctionOrValue "doe"
+                              )
+                            , ( emptyRange
+                              , LetFunction
+                                    { documentation = Nothing
+                                    , signature = Nothing
+                                    , declaration =
+                                        { operatorDefinition = False
+                                        , name = { value = "john", range = emptyRange }
+                                        , arguments = []
+                                        , expression = emptyRanged <| FunctionOrValue "doe"
+                                        }
                                     }
-                                }
+                              )
                             ]
                         )
         , test "correct let with indent" <|
@@ -80,19 +88,21 @@ all =
                         (Just
                             (LetExpression
                                 { declarations =
-                                    [ LetFunction
-                                        { documentation = Nothing
-                                        , signature = Nothing
-                                        , declaration =
-                                            { operatorDefinition = False
-                                            , name =
-                                                { value = "bar"
-                                                , range = emptyRange
+                                    [ ( emptyRange
+                                      , LetFunction
+                                            { documentation = Nothing
+                                            , signature = Nothing
+                                            , declaration =
+                                                { operatorDefinition = False
+                                                , name =
+                                                    { value = "bar"
+                                                    , range = emptyRange
+                                                    }
+                                                , arguments = []
+                                                , expression = emptyRanged <| Integer 1
                                                 }
-                                            , arguments = []
-                                            , expression = emptyRanged <| Integer 1
                                             }
-                                        }
+                                      )
                                     ]
                                 , expression = emptyRanged <| FunctionOrValue "bar"
                                 }
@@ -107,16 +117,18 @@ all =
                         (Just
                             (LetExpression
                                 { declarations =
-                                    [ LetFunction
-                                        { documentation = Nothing
-                                        , signature = Nothing
-                                        , declaration =
-                                            { operatorDefinition = False
-                                            , name = { value = "bar", range = emptyRange }
-                                            , arguments = []
-                                            , expression = emptyRanged <| Integer 1
+                                    [ ( emptyRange
+                                      , LetFunction
+                                            { documentation = Nothing
+                                            , signature = Nothing
+                                            , declaration =
+                                                { operatorDefinition = False
+                                                , name = { value = "bar", range = emptyRange }
+                                                , arguments = []
+                                                , expression = emptyRanged <| Integer 1
+                                                }
                                             }
-                                        }
+                                      )
                                     ]
                                 , expression = emptyRanged <| FunctionOrValue "bar"
                                 }
@@ -133,16 +145,18 @@ all =
                                 [ emptyRanged <|
                                     LetExpression
                                         { declarations =
-                                            [ LetFunction
-                                                { documentation = Nothing
-                                                , signature = Nothing
-                                                , declaration =
-                                                    { operatorDefinition = False
-                                                    , name = { value = "bar", range = emptyRange }
-                                                    , arguments = []
-                                                    , expression = emptyRanged <| Integer 1
+                                            [ ( emptyRange
+                                              , LetFunction
+                                                    { documentation = Nothing
+                                                    , signature = Nothing
+                                                    , declaration =
+                                                        { operatorDefinition = False
+                                                        , name = { value = "bar", range = emptyRange }
+                                                        , arguments = []
+                                                        , expression = emptyRanged <| Integer 1
+                                                        }
                                                     }
-                                                }
+                                              )
                                             ]
                                         , expression = emptyRanged <| FunctionOrValue "bar"
                                         }
@@ -158,9 +172,11 @@ all =
                         (Just
                             (LetExpression
                                 { declarations =
-                                    [ LetDestructuring
-                                        ( emptyRange, AllPattern )
-                                        (emptyRanged <| FunctionOrValue "b")
+                                    [ ( emptyRange
+                                      , LetDestructuring
+                                            ( emptyRange, AllPattern )
+                                            (emptyRanged <| FunctionOrValue "b")
+                                      )
                                     ]
                                 , expression = emptyRanged <| FunctionOrValue "z"
                                 }
@@ -175,18 +191,20 @@ all =
                         (Just
                             (LetExpression
                                 { declarations =
-                                    [ LetFunction
-                                        { documentation = Nothing
-                                        , signature = Nothing
-                                        , declaration =
-                                            { operatorDefinition = False
-                                            , name = { value = "indent", range = emptyRange }
-                                            , arguments = []
-                                            , expression =
-                                                emptyRanged <|
-                                                    Application [ emptyRanged <| QualifiedExpr [ "String" ] "length", emptyRanged <| FunctionOrValue "s" ]
+                                    [ ( emptyRange
+                                      , LetFunction
+                                            { documentation = Nothing
+                                            , signature = Nothing
+                                            , declaration =
+                                                { operatorDefinition = False
+                                                , name = { value = "indent", range = emptyRange }
+                                                , arguments = []
+                                                , expression =
+                                                    emptyRanged <|
+                                                        Application [ emptyRanged <| QualifiedExpr [ "String" ] "length", emptyRanged <| FunctionOrValue "s" ]
+                                                }
                                             }
-                                        }
+                                      )
                                     ]
                                 , expression = emptyRanged <| FunctionOrValue "indent"
                                 }
@@ -201,20 +219,22 @@ all =
                         (Just
                             (LetExpression
                                 { declarations =
-                                    [ LetFunction
-                                        { documentation = Nothing
-                                        , signature =
-                                            Nothing
-                                        , declaration =
-                                            { operatorDefinition = False
-                                            , name =
-                                                { value = "indent"
-                                                , range = emptyRange
+                                    [ ( emptyRange
+                                      , LetFunction
+                                            { documentation = Nothing
+                                            , signature =
+                                                Nothing
+                                            , declaration =
+                                                { operatorDefinition = False
+                                                , name =
+                                                    { value = "indent"
+                                                    , range = emptyRange
+                                                    }
+                                                , arguments = []
+                                                , expression = emptyRanged <| Integer 1
                                                 }
-                                            , arguments = []
-                                            , expression = emptyRanged <| Integer 1
                                             }
-                                        }
+                                      )
                                     ]
                                 , expression = emptyRanged <| FunctionOrValue "indent"
                                 }

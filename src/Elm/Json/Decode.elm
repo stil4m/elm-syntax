@@ -142,18 +142,22 @@ decodeImport =
         |: rangeField
 
 
-decodeDeclaration : Decoder Declaration
+decodeDeclaration : Decoder (Ranged Declaration)
 decodeDeclaration =
     lazy
         (\() ->
-            decodeTyped
-                [ ( "function", decodeFunction |> map FuncDecl )
-                , ( "typeAlias", decodeTypeAlias |> map AliasDecl )
-                , ( "typedecl", decodeType |> map TypeDecl )
-                , ( "port", decodeSignature |> map PortDeclaration )
-                , ( "infix", Infix.decode |> map InfixDeclaration )
-                , ( "destructuring", map2 Destructuring (field "pattern" decodePattern) (field "expression" decodeExpression) )
-                ]
+            succeed (,)
+                |: rangeField
+                |: field "declaration"
+                    (decodeTyped
+                        [ ( "function", decodeFunction |> map FuncDecl )
+                        , ( "typeAlias", decodeTypeAlias |> map AliasDecl )
+                        , ( "typedecl", decodeType |> map TypeDecl )
+                        , ( "port", decodeSignature |> map PortDeclaration )
+                        , ( "infix", Infix.decode |> map InfixDeclaration )
+                        , ( "destructuring", map2 Destructuring (field "pattern" decodePattern) (field "expression" decodeExpression) )
+                        ]
+                    )
         )
 
 
@@ -180,7 +184,6 @@ decodeTypeAlias =
         |: nameField
         |: field "generics" (list string)
         |: field "typeAnnotation" decodeTypeAnnotation
-        |: rangeField
 
 
 decodeFunction : Decoder Function
@@ -189,7 +192,7 @@ decodeFunction =
         (\() ->
             succeed Function
                 |: field "documentation" (nullable decodeDocumentation)
-                |: field "signature" (nullable decodeSignature)
+                |: field "signature" (nullable decodeRangedSignature)
                 |: field "declaration" decodeFunctionDeclaration
         )
 
@@ -201,13 +204,19 @@ decodeDocumentation =
         |: rangeField
 
 
+decodeRangedSignature : Decoder (Ranged FunctionSignature)
+decodeRangedSignature =
+    succeed (,)
+        |: rangeField
+        |: field "signature" decodeSignature
+
+
 decodeSignature : Decoder FunctionSignature
 decodeSignature =
     succeed FunctionSignature
         |: field "operatorDefinition" bool
         |: nameField
         |: field "typeAnnotation" decodeTypeAnnotation
-        |: rangeField
 
 
 decodeTypeAnnotation : Decoder (Ranged TypeAnnotation)
@@ -429,14 +438,18 @@ decodeLetBlock =
         )
 
 
-decodeLetDeclaration : Decoder LetDeclaration
+decodeLetDeclaration : Decoder (Ranged LetDeclaration)
 decodeLetDeclaration =
     lazy
         (\() ->
-            decodeTyped
-                [ ( "function", map LetFunction decodeFunction )
-                , ( "destructuring", map2 LetDestructuring (field "pattern" decodePattern) (field "expression" decodeExpression) )
-                ]
+            succeed (,)
+                |: rangeField
+                |: field "declaration"
+                    (decodeTyped
+                        [ ( "function", map LetFunction decodeFunction )
+                        , ( "destructuring", map2 LetDestructuring (field "pattern" decodePattern) (field "expression" decodeExpression) )
+                        ]
+                    )
         )
 
 
