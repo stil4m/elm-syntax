@@ -25,6 +25,7 @@
         "Elm.Syntax.Module",
         "Elm.Syntax.Pattern",
         "Elm.Syntax.Range",
+        "Elm.Syntax.Ranged",
         "Elm.Syntax.TypeAlias",
         "Elm.Syntax.TypeAnnotation",
         "Elm.Syntax.Type"
