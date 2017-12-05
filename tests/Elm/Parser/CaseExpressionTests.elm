@@ -99,6 +99,36 @@ all =
                                 }
                             )
                         )
+        , test "case expression (range)" <|
+            \() ->
+                parseFullStringState emptyState "case f of\n  True -> 1\n  False -> 2" Parser.expression
+                    |> Maybe.map Tuple.second
+                    |> Expect.equal
+                        (Just
+                            (CaseExpression
+                                { expression =
+                                    ( { start = { row = 0, column = 5 }, end = { row = 0, column = 6 } }
+                                    , FunctionOrValue "f"
+                                    )
+                                , cases =
+                                    [ ( ( { start = { row = 1, column = 2 }, end = { row = 1, column = 6 } }
+                                        , NamedPattern (QualifiedNameRef [] "True") []
+                                        )
+                                      , ( { start = { row = 1, column = 10 }, end = { row = 1, column = 11 } }
+                                        , Integer 1
+                                        )
+                                      )
+                                    , ( ( { start = { row = 2, column = 2 }, end = { row = 2, column = 7 } }
+                                        , NamedPattern (QualifiedNameRef [] "False") []
+                                        )
+                                      , ( { start = { row = 2, column = 11 }, end = { row = 2, column = 12 } }
+                                        , Integer 2
+                                        )
+                                      )
+                                    ]
+                                }
+                            )
+                        )
         , test "case expression wrong - indent second case" <|
             \() ->
                 parseFullStringState emptyState "case f of\n  True -> 1\n False -> 2" Parser.expression
