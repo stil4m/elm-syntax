@@ -13,7 +13,6 @@ import Combine exposing ((<*), Parser, end, mapError, withLocation)
 import Elm.Internal.RawFile as RawFile exposing (RawFile)
 import Elm.Parser.File exposing (file)
 import Elm.Parser.State exposing (State, emptyState)
-import Elm.Processing.RangeContext
 import Elm.Syntax.File exposing (File)
 
 
@@ -24,7 +23,7 @@ parse input =
     -- A single line is added for unfinished ranges produced by `parser-combinators` on the last line.
     case Combine.runParser (withEnd file) emptyState (input ++ "\n") of
         Ok ( _, _, r ) ->
-            Ok (RawFile.fromFile <| Elm.Processing.RangeContext.postProcess input r)
+            Ok (RawFile.fromFile r)
 
         Err ( _, _, s ) ->
             Err s

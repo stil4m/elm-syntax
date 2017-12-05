@@ -15,29 +15,29 @@ all =
         [ test "all pattern" <|
             \() ->
                 parseFullStringState emptyState "_" Parser.pattern
-                    |> Expect.equal (Just ( Range (Location 1 0) (Location 1 1), AllPattern ))
+                    |> Expect.equal (Just ( Range (Location 0 0) (Location 0 1), AllPattern ))
         , test "unit pattern" <|
             \() ->
                 parseFullStringState emptyState "()" Parser.pattern
-                    |> Expect.equal (Just ( Range (Location 1 0) (Location 1 2), UnitPattern ))
+                    |> Expect.equal (Just ( Range (Location 0 0) (Location 0 2), UnitPattern ))
         , test "string pattern" <|
             \() ->
                 parseFullStringState emptyState "\"Foo\"" Parser.pattern
-                    |> Expect.equal (Just ( Range (Location 1 0) (Location 1 5), StringPattern "Foo" ))
+                    |> Expect.equal (Just ( Range (Location 0 0) (Location 0 5), StringPattern "Foo" ))
         , test "char pattern" <|
             \() ->
                 parseFullStringState emptyState "'f'" Parser.pattern
-                    |> Expect.equal (Just ( Range (Location 1 0) (Location 1 3), CharPattern 'f' ))
+                    |> Expect.equal (Just ( Range (Location 0 0) (Location 0 3), CharPattern 'f' ))
         , test "non cons pattern " <|
             \() ->
                 parseFullStringState emptyState "(X x)" Parser.pattern
                     |> Expect.equal
                         (Just
-                            ( Range (Location 1 0) (Location 1 5)
+                            ( Range (Location 0 0) (Location 0 5)
                             , TuplePattern
-                                [ ( Range (Location 1 1) (Location 1 4)
+                                [ ( Range (Location 0 1) (Location 0 4)
                                   , NamedPattern (QualifiedNameRef [] "X")
-                                        [ ( Range (Location 1 3) (Location 1 4), VarPattern "x" ) ]
+                                        [ ( Range (Location 0 3) (Location 0 4), VarPattern "x" ) ]
                                   )
                                 ]
                             )
@@ -47,31 +47,31 @@ all =
                 parseFullStringState emptyState "(X x) :: xs" Parser.pattern
                     |> Expect.equal
                         (Just
-                            ( Range (Location 1 0) (Location 1 11)
+                            ( Range (Location 0 0) (Location 0 11)
                             , UnConsPattern
-                                ( Range (Location 1 0) (Location 1 5)
+                                ( Range (Location 0 0) (Location 0 5)
                                 , TuplePattern
-                                    [ ( Range (Location 1 1) (Location 1 4)
+                                    [ ( Range (Location 0 1) (Location 0 4)
                                       , NamedPattern (QualifiedNameRef [] "X")
-                                            [ ( Range (Location 1 3) (Location 1 4), VarPattern "x" ) ]
+                                            [ ( Range (Location 0 3) (Location 0 4), VarPattern "x" ) ]
                                       )
                                     ]
                                 )
-                                ( Range (Location 1 9) (Location 1 11), VarPattern "xs" )
+                                ( Range (Location 0 9) (Location 0 11), VarPattern "xs" )
                             )
                         )
         , test "int pattern" <|
             \() ->
                 parseFullStringState emptyState "1" Parser.pattern
-                    |> Expect.equal (Just ( Range (Location 1 0) (Location 1 1), IntPattern 1 ))
+                    |> Expect.equal (Just ( Range (Location 0 0) (Location 0 1), IntPattern 1 ))
         , test "uncons pattern" <|
             \() ->
                 parseFullStringState emptyState "n :: tail" Parser.pattern
                     |> Expect.equal
                         (Just
-                            ( Range (Location 1 0) (Location 1 9)
-                            , UnConsPattern ( Range (Location 1 0) (Location 1 1), VarPattern "n" )
-                                ( Range (Location 1 5) (Location 1 9), VarPattern "tail" )
+                            ( Range (Location 0 0) (Location 0 9)
+                            , UnConsPattern ( Range (Location 0 0) (Location 0 1), VarPattern "n" )
+                                ( Range (Location 0 5) (Location 0 9), VarPattern "tail" )
                             )
                         )
         , test "list pattern" <|
@@ -79,14 +79,14 @@ all =
                 parseFullStringState emptyState "[1]" Parser.pattern
                     |> Expect.equal
                         (Just
-                            ( Range (Location 1 0) (Location 1 3)
-                            , ListPattern [ ( Range (Location 1 1) (Location 1 2), IntPattern 1 ) ]
+                            ( Range (Location 0 0) (Location 0 3)
+                            , ListPattern [ ( Range (Location 0 1) (Location 0 2), IntPattern 1 ) ]
                             )
                         )
         , test "float pattern" <|
             \() ->
                 parseFullStringState emptyState "1.2" Parser.pattern
-                    |> Expect.equal (Just ( Range (Location 1 0) (Location 1 3), FloatPattern 1.2 ))
+                    |> Expect.equal (Just ( Range (Location 0 0) (Location 0 3), FloatPattern 1.2 ))
         , test "record pattern" <|
             \() ->
                 parseFullStringState emptyState "{a,b}" Parser.pattern
@@ -153,15 +153,15 @@ all =
                 parseFullStringState emptyState "{model,context} as appState" Parser.pattern
                     |> Expect.equal
                         (Just
-                            ( Range (Location 1 0) (Location 1 27)
+                            ( Range (Location 0 0) (Location 0 27)
                             , AsPattern
-                                ( Range (Location 1 0) (Location 1 15)
+                                ( Range (Location 0 0) (Location 0 15)
                                 , RecordPattern
-                                    [ { value = "model", range = Range (Location 1 1) (Location 1 6) }
-                                    , { value = "context", range = Range (Location 1 7) (Location 1 14) }
+                                    [ { value = "model", range = Range (Location 0 1) (Location 0 6) }
+                                    , { value = "context", range = Range (Location 0 7) (Location 0 14) }
                                     ]
                                 )
-                                { value = "appState", range = Range (Location 1 19) (Location 1 27) }
+                                { value = "appState", range = Range (Location 0 19) (Location 0 27) }
                             )
                         )
         , test "complex pattern" <|

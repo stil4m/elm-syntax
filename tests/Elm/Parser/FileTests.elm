@@ -36,11 +36,11 @@ all =
             , test "failure on declaration" <|
                 \() ->
                     Parser.parse "module Foo exposing (..)\n\ntype x = \n  1"
-                        |> Expect.equal (Err [ "Could not continue parsing on location (2,-1)" ])
+                        |> Expect.equal (Err [ "Could not continue parsing on location (2,0)" ])
             , test "failure on declaration expression" <|
                 \() ->
                     Parser.parse "module Foo exposing (..) \nx = \n  x + _"
-                        |> Expect.equal (Err [ "Could not continue parsing on location (2,5)" ])
+                        |> Expect.equal (Err [ "Could not continue parsing on location (2,6)" ])
             ]
         , describe "FileTests - serialisation"
             [ Samples.allSamples

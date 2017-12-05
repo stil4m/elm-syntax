@@ -177,7 +177,7 @@ withIndentedState : Parser State a -> Parser State a
 withIndentedState p =
     withLocation
         (\location ->
-            (modifyState (pushIndent (location.column + 1)) *> p)
+            (modifyState (pushIndent location.column) *> p)
                 <* modifyState popIndent
         )
 
