@@ -236,4 +236,9 @@ all =
                 parseFullStringWithNullState "Maybe\n a" Parser.typeAnnotation
                     |> Maybe.map noRangeTypeReference
                     |> Expect.equal (Just ( emptyRange, Typed [] "Maybe" [ ( emptyRange, GenericType "a" ) ] ))
+        , test "issue #5 - no spaces between type and generic with parens" <|
+            \() ->
+                parseFullStringWithNullState "List(String)" Parser.typeAnnotation
+                    |> Maybe.map noRangeTypeReference
+                    |> Expect.equal (Just ( emptyRange, Typed [] "List" [ ( emptyRange, Typed [] "String" [] ) ] ))
         ]

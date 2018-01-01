@@ -113,6 +113,6 @@ typedTypeAnnotation =
                 <*> many (typeName <* string ".")
                 <*> typeName
                 <*> (Maybe.withDefault []
-                        <$> maybe (moreThanIndentWhitespace *> sepBy moreThanIndentWhitespace typeAnnotationNoFn)
+                        <$> maybe (maybe moreThanIndentWhitespace *> sepBy moreThanIndentWhitespace typeAnnotationNoFn)
                     )
         )
