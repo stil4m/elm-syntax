@@ -40,6 +40,11 @@ module Elm.Syntax.Expression
             )
         , RecordSetter
         , RecordUpdate
+        , isCase
+        , isIfElse
+        , isLambda
+        , isLet
+        , isOperatorApplication
         )
 
 {-| Expression Syntax
@@ -68,6 +73,11 @@ module Elm.Syntax.Expression
 # Functions
 
 @docs Function, FunctionDeclaration, FunctionSignature
+
+
+# Utiltity functions
+
+@docs isLambda, isLet, isIfElse, isCase, isOperatorApplication
 
 -}
 
@@ -191,3 +201,63 @@ type alias Case =
 -}
 type alias Cases =
     List Case
+
+
+{-| Check whether an expression is a lambda-expression
+-}
+isLambda : Expression -> Bool
+isLambda e =
+    case e of
+        LambdaExpression _ ->
+            True
+
+        _ ->
+            False
+
+
+{-| Check whether an expression is a let-expression
+-}
+isLet : Expression -> Bool
+isLet e =
+    case e of
+        LetExpression _ ->
+            True
+
+        _ ->
+            False
+
+
+{-| Check whether an expression is an if-else-expression
+-}
+isIfElse : Expression -> Bool
+isIfElse e =
+    case e of
+        IfBlock _ _ _ ->
+            True
+
+        _ ->
+            False
+
+
+{-| Check whether an expression is a case-expression
+-}
+isCase : Expression -> Bool
+isCase e =
+    case e of
+        CaseExpression _ ->
+            True
+
+        _ ->
+            False
+
+
+{-| Check whether an expression is an operator appliation expression
+-}
+isOperatorApplication : Expression -> Bool
+isOperatorApplication e =
+    case e of
+        OperatorApplication _ _ _ _ ->
+            True
+
+        _ ->
+            False
