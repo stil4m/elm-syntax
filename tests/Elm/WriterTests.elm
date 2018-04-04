@@ -4,6 +4,7 @@ import Elm.Syntax.Exposing exposing (..)
 import Elm.Syntax.Expression exposing (..)
 import Elm.Syntax.Module exposing (..)
 import Elm.Syntax.Range exposing (emptyRange)
+import Elm.Syntax.TypeAnnotation
 import Elm.Writer as Writer
 import Expect
 import Test exposing (..)
@@ -49,4 +50,40 @@ import B  """
                     |> Writer.writeExpression
                     |> Writer.write
                     |> Expect.equal "abc ()"
+        , describe "TypeAnnotation"
+            [ test "write simple type" <|
+                \() ->
+                    ( emptyRange, Elm.Syntax.TypeAnnotation.Typed [] "String" [] )
+                        |> Writer.writeTypeAnnotation
+                        |> Writer.write
+                        |> Expect.equal "String"
+            , test "write qualified type" <|
+                \() ->
+                    ( emptyRange
+                    , Elm.Syntax.TypeAnnotation.Typed
+                        [ "Json", "Decode" ]
+                        "Decoder"
+                        [ ( emptyRange, Elm.Syntax.TypeAnnotation.GenericType "a" ) ]
+                    )
+                        |> Writer.writeTypeAnnotation
+                        |> Writer.write
+                        |> Expect.equal "Json.Decode.Decoder a"
+            , test "write type arguments that require parentheses" <|
+                \() ->
+                    ( emptyRange
+                    , Elm.Syntax.TypeAnnotation.Typed []
+                        "List"
+                        [ ( emptyRange
+                          , Elm.Syntax.TypeAnnotation.Typed []
+                                "Dict"
+                                [ ( emptyRange, Elm.Syntax.TypeAnnotation.Typed [] "String" [] )
+                                , ( emptyRange, Elm.Syntax.TypeAnnotation.Typed [] "Int" [] )
+                                ]
+                          )
+                        ]
+                    )
+                        |> Writer.writeTypeAnnotation
+                        |> Writer.write
+                        |> Expect.equal "List (Dict String Int)"
+            ]
         ]

@@ -1,4 +1,4 @@
-module Elm.Writer exposing (write, writeExpression, writeFile, writePattern)
+module Elm.Writer exposing (write, writeExpression, writeFile, writePattern, writeTypeAnnotation)
 
 {-|
 
@@ -7,7 +7,7 @@ module Elm.Writer exposing (write, writeExpression, writeFile, writePattern)
 
 Write a file to a string.
 
-@docs write, writeFile, writePattern, writeExpression
+@docs write, writeFile, writePattern, writeExpression, writeTypeAnnotation
 
 -}
 
@@ -331,6 +331,8 @@ writeDestructuring pattern expression =
         ]
 
 
+{-| Write a type annotation
+-}
 writeTypeAnnotation : Ranged TypeAnnotation -> Writer
 writeTypeAnnotation ( _, typeAnnotation ) =
     case typeAnnotation of
@@ -339,9 +341,9 @@ writeTypeAnnotation ( _, typeAnnotation ) =
 
         Typed moduleName k args ->
             spaced
-                [ join [ writeModuleName moduleName, string k ]
-                , spaced (List.map writeTypeAnnotation args)
-                ]
+                ((string <| String.join "." (moduleName ++ [ k ]))
+                    :: List.map (writeTypeAnnotation >> parensIfContainsSpaces) args
+                )
 
         Unit ->
             string "()"
@@ -600,3 +602,15 @@ writeQualifiedNameRef { moduleName, name } =
                 , string "."
                 , string name
                 ]
+
+
+
+-- Helpers
+
+
+parensIfContainsSpaces : Writer -> Writer
+parensIfContainsSpaces w =
+    if Writer.write w |> String.contains " " then
+        join [ string "(", w, string ")" ]
+    else
+        w
