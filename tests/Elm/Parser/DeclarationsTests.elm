@@ -310,4 +310,23 @@ all =
                                 }
                             }
                         )
+        , test "function starting with multi line comment" <|
+            \() ->
+                parseFullStringState emptyState "main =\n  {- y -} x" Parser.function
+                    |> Maybe.map noRangeFunction
+                    |> Expect.equal
+                        (Just
+                            { documentation = Nothing
+                            , signature = Nothing
+                            , declaration =
+                                { operatorDefinition = False
+                                , name =
+                                    { value = "main"
+                                    , range = emptyRange
+                                    }
+                                , arguments = []
+                                , expression = emptyRanged (FunctionOrValue "x")
+                                }
+                            }
+                        )
         ]

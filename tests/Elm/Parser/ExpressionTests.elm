@@ -399,4 +399,10 @@ all =
                                 )
                             )
                         )
+        , test "preceded by multiline comment" <|
+            \() ->
+                parseFullStringWithNullState "{- x -} y" expression
+                    |> Maybe.map noRangeExpression
+                    |> Maybe.map Tuple.second
+                    |> Expect.equal (Just (FunctionOrValue "y"))
         ]

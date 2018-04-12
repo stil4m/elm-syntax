@@ -10,7 +10,7 @@ import Elm.Parser.State exposing (State, popIndent, pushIndent)
 import Elm.Parser.Tokens exposing (caseToken, characterLiteral, elseToken, functionName, ifToken, infixOperatorToken, multiLineStringLiteral, ofToken, portToken, prefixOperatorToken, stringLiteral, thenToken, typeName)
 import Elm.Parser.TypeAnnotation exposing (typeAnnotation)
 import Elm.Parser.Typings as Typings exposing (typeDeclaration)
-import Elm.Parser.Util exposing (asPointer, commentSequence, exactIndentWhitespace, moreThanIndentWhitespace, trimmed, unstrictIndentWhitespace)
+import Elm.Parser.Util exposing (asPointer, commentSequence, exactIndentWhitespace, moreThanIndentWhitespace, someComment, trimmed, unstrictIndentWhitespace)
 import Elm.Parser.Whitespace exposing (manySpaces)
 import Elm.Syntax.Declaration exposing (..)
 import Elm.Syntax.Expression exposing (..)
@@ -151,7 +151,8 @@ expression : Parser State (Ranged Expression)
 expression =
     lazy
         (\() ->
-            expressionNotApplication
+            maybe (someComment *> manySpaces)
+                *> expressionNotApplication
                 >>= (\expr ->
                         or (promoteToApplicationExpression expr)
                             (succeed expr)

@@ -35,7 +35,18 @@ allSamples =
     , sample30
     , sample31
     , sample32
+    , sample33
     ]
+
+
+sample33 : String
+sample33 =
+    """
+module SomeModule exposing (..)
+
+x =
+    {- y -} z
+"""
 
 
 sample31 : String

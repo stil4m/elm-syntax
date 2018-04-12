@@ -1,4 +1,4 @@
-module Elm.Parser.Util exposing (asPointer, commentSequence, exactIndentWhitespace, moreThanIndentWhitespace, multiLineCommentWithTrailingSpaces, trimmed, unstrictIndentWhitespace)
+module Elm.Parser.Util exposing (asPointer, commentSequence, exactIndentWhitespace, moreThanIndentWhitespace, multiLineCommentWithTrailingSpaces, someComment, trimmed, unstrictIndentWhitespace)
 
 import Combine exposing ((*>), (<$), (<$>), (<*), Parser, choice, lookAhead, many, many1, maybe, or, regex, withState)
 import Elm.Parser.Comments exposing (multilineComment, singleLineComment)
@@ -24,7 +24,7 @@ exactIndentWhitespace =
         (\state ->
             choice
                 [ () <$ (regex ("( *\\n)+ {" ++ toString (currentIndent state) ++ "}") <* lookAhead (regex "[a-zA-Z0-9\\(\\+/*\\|\\>]"))
-                , () <$ many1 (manySpaces *> maybe someComment *> newLineWithIndentExact state)
+                , () <$ many1 (manySpaces *> maybe someComment *> manySpaces *> newLineWithIndentExact state)
                 ]
         )
 
@@ -37,7 +37,7 @@ multiLineCommentWithTrailingSpaces =
 someComment : Parser State ()
 someComment =
     or singleLineComment
-        multiLineCommentWithTrailingSpaces
+        multilineComment
 
 
 commentSequence : Parser State ()
@@ -45,7 +45,7 @@ commentSequence =
     ()
         <$ many
             (or someComment
-                (realNewLine *> manySpaces *> someComment)
+                ((realNewLine *> manySpaces *> someComment) <* manySpaces)
             )
 
 
@@ -65,12 +65,29 @@ moreThanIndentWhitespace =
                        )
                 , ()
                     <$ many1
-                        (manySpaces
-                            *> commentSequence
-                            *> newLineWithIndentPlus state
+                        (withProgress
+                            (manySpaces
+                                *> commentSequence
+                                *> maybe (newLineWithIndentPlus state)
+                            )
                         )
-                , () <$ many1Spaces <* maybe someComment
+                , () <$ many1Spaces <* maybe (someComment <* manySpaces)
                 ]
+        )
+
+
+withProgress : Parser a b -> Parser a b
+withProgress x =
+    Combine.withLocation
+        (\s ->
+            x
+                <* Combine.withLocation
+                    (\t ->
+                        if t == s then
+                            Combine.fail "should consume content"
+                        else
+                            Combine.succeed ()
+                    )
         )
 
 

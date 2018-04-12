@@ -96,7 +96,7 @@ all =
                     |> Expect.equal (Just ())
         , test "commentSequence" <|
             \() ->
-                parseFullStringState emptyState "\n{- some note -}    " commentSequence
+                parseFullStringState emptyState "\n{- some note -}" commentSequence
                     |> Expect.equal (Just ())
         , test "moreThanIndentWhitespace with multiline comment plus trailing whitespace" <|
             \() ->
