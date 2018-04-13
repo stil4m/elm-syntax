@@ -59,7 +59,7 @@ all =
                                 ]
                             }
                         )
-        , test "type with GenericType " <|
+        , test "type with GenericType" <|
             \() ->
                 parseFullStringWithNullState "type Maybe a = Just a | Nothing" Parser.typeDeclaration
                     |> Maybe.map noRangeTypeDeclaration

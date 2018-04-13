@@ -3,6 +3,7 @@ module Elm.Parser.LetExpressionTests exposing (..)
 import Combine exposing ((*>), string)
 import Elm.Parser.CombineTestUtil exposing (..)
 import Elm.Parser.Declarations as Parser exposing (..)
+import Elm.Parser.Layout as Layout
 import Elm.Parser.State exposing (emptyState)
 import Elm.Parser.Tokens exposing (functionName)
 import Elm.Syntax.Expression exposing (..)
@@ -81,7 +82,7 @@ all =
                         )
         , test "correct let with indent" <|
             \() ->
-                parseFullStringState emptyState "let\n  bar = 1\n in\n  bar" (pushIndent 1 Parser.expression)
+                parseFullStringState emptyState "let\n  bar = 1\n in\n  bar" Parser.expression
                     |> Maybe.map noRangeExpression
                     |> Maybe.map Tuple.second
                     |> Expect.equal
@@ -237,6 +238,36 @@ all =
                                       )
                                     ]
                                 , expression = emptyRanged <| FunctionOrValue "indent"
+                                }
+                            )
+                        )
+        , test "let without indentation" <|
+            \() ->
+                parseFullStringState emptyState " let\n b = 1\n in\n b" (Layout.layout *> Parser.letExpression)
+                    |> Maybe.map ((,) emptyRange >> noRangeExpression)
+                    |> Maybe.map Tuple.second
+                    |> Expect.equal
+                        (Just
+                            (LetExpression
+                                { declarations =
+                                    [ ( emptyRange
+                                      , LetFunction
+                                            { documentation = Nothing
+                                            , signature =
+                                                Nothing
+                                            , declaration =
+                                                { operatorDefinition = False
+                                                , name =
+                                                    { value = "b"
+                                                    , range = emptyRange
+                                                    }
+                                                , arguments = []
+                                                , expression = emptyRanged <| Integer 1
+                                                }
+                                            }
+                                      )
+                                    ]
+                                , expression = emptyRanged <| FunctionOrValue "b"
                                 }
                             )
                         )

@@ -1,4 +1,4 @@
-module Elm.Parser.TokenTests exposing (..)
+module Elm.Parser.TokenTests exposing (all)
 
 import Elm.Parser.CombineTestUtil exposing (..)
 import Elm.Parser.Tokens as Parser
@@ -75,14 +75,6 @@ all =
             \() ->
                 parseFullString "module" Parser.moduleToken
                     |> Expect.equal (Just "module")
-        , test "moduleName" <|
-            \() ->
-                parseFullString "Foo" Parser.moduleName
-                    |> Expect.equal (Just <| [ "Foo" ])
-        , test "moduleNameDir" <|
-            \() ->
-                parseFullString "Foo.Bar" Parser.moduleName
-                    |> Expect.equal (Just <| [ "Foo", "Bar" ])
         , test "exposingToken" <|
             \() ->
                 parseFullString "exposing" Parser.exposingToken

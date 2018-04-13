@@ -1,10 +1,11 @@
 module Elm.Parser.Modules exposing (moduleDefinition)
 
 import Combine exposing ((*>), (<$>), (<*>), Parser, between, choice, sepBy1, string, succeed)
+import Elm.Parser.Base exposing (moduleName)
 import Elm.Parser.Expose exposing (exposable, exposeDefinition)
+import Elm.Parser.Layout as Layout
 import Elm.Parser.State exposing (State)
-import Elm.Parser.Tokens exposing (functionName, moduleName, moduleToken, portToken, typeName)
-import Elm.Parser.Util exposing (moreThanIndentWhitespace, trimmed)
+import Elm.Parser.Tokens exposing (functionName, moduleToken, portToken, typeName)
 import Elm.Syntax.Module exposing (DefaultModuleData, Module(EffectModule, NormalModule, PortModule))
 
 
@@ -21,7 +22,7 @@ effectWhereClause : Parser State ( String, String )
 effectWhereClause =
     succeed (,)
         <*> functionName
-        <*> (trimmed (string "=") *> typeName)
+        <*> (Layout.maybeAroundBothSides (string "=") *> typeName)
 
 
 whereBlock : Parser State { command : Maybe String, subscription : Maybe String }
@@ -35,13 +36,13 @@ whereBlock =
                 (string "{")
                 (string "}")
                 (sepBy1 (string ",")
-                    (trimmed effectWhereClause)
+                    (Layout.maybeAroundBothSides effectWhereClause)
                 )
 
 
 effectWhereClauses : Parser State { command : Maybe String, subscription : Maybe String }
 effectWhereClauses =
-    string "where" *> moreThanIndentWhitespace *> whereBlock
+    string "where" *> Layout.layout *> whereBlock
 
 
 effectModuleDefinition : Parser State Module
@@ -56,8 +57,8 @@ effectModuleDefinition =
                 }
     in
     succeed createEffectModule
-        <*> (string "effect" *> moreThanIndentWhitespace *> moduleToken *> moreThanIndentWhitespace *> moduleName)
-        <*> (moreThanIndentWhitespace *> effectWhereClauses)
+        <*> (string "effect" *> Layout.layout *> moduleToken *> Layout.layout *> moduleName)
+        <*> (Layout.layout *> effectWhereClauses)
         <*> exposeDefinition exposable
 
 
@@ -65,7 +66,7 @@ normalModuleDefinition : Parser State Module
 normalModuleDefinition =
     NormalModule
         <$> (succeed DefaultModuleData
-                <*> (moduleToken *> moreThanIndentWhitespace *> moduleName)
+                <*> (moduleToken *> Layout.layout *> moduleName)
                 <*> exposeDefinition exposable
             )
 
@@ -74,6 +75,6 @@ portModuleDefinition : Parser State Module
 portModuleDefinition =
     PortModule
         <$> (succeed DefaultModuleData
-                <*> (portToken *> moreThanIndentWhitespace *> moduleToken *> moreThanIndentWhitespace *> moduleName)
+                <*> (portToken *> Layout.layout *> moduleToken *> Layout.layout *> moduleName)
                 <*> exposeDefinition exposable
             )

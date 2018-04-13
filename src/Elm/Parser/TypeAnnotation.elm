@@ -1,10 +1,10 @@
 module Elm.Parser.TypeAnnotation exposing (typeAnnotation)
 
-import Combine exposing ((*>), (<$>), (<*), (<*>), (>>=), Parser, between, choice, lazy, many, map, maybe, or, parens, sepBy, string, succeed, whitespace)
+import Combine exposing (..)
+import Elm.Parser.Layout as Layout
 import Elm.Parser.Ranges exposing (ranged)
 import Elm.Parser.State exposing (State)
 import Elm.Parser.Tokens exposing (functionName, typeName)
-import Elm.Parser.Util exposing (moreThanIndentWhitespace, trimmed)
 import Elm.Parser.Whitespace exposing (realNewLine)
 import Elm.Syntax.Ranged exposing (Ranged)
 import Elm.Syntax.TypeAnnotation exposing (..)
@@ -32,7 +32,7 @@ typeAnnotation =
             ranged <|
                 typeAnnotationNoFn
                     >>= (\typeRef ->
-                            or (FunctionTypeAnnotation typeRef <$> (trimmed (string "->") *> typeAnnotation))
+                            or (FunctionTypeAnnotation typeRef <$> (Layout.maybeAroundBothSides (string "->") *> typeAnnotation))
                                 (succeed (Tuple.second typeRef))
                         )
         )
@@ -42,7 +42,7 @@ parensTypeAnnotation : Parser State TypeAnnotation
 parensTypeAnnotation =
     lazy
         (\() ->
-            parens (maybe moreThanIndentWhitespace *> sepBy (string ",") (trimmed typeAnnotation))
+            parens (maybe Layout.layout *> sepBy (string ",") (Layout.maybeAroundBothSides typeAnnotation))
                 |> map asTypeAnnotation
         )
 
@@ -67,7 +67,7 @@ genericTypeAnnotation =
 
 recordFieldsTypeAnnotation : Parser State RecordDefinition
 recordFieldsTypeAnnotation =
-    lazy (\() -> sepBy (string ",") (trimmed recordFieldDefinition))
+    lazy (\() -> sepBy (string ",") (Layout.maybeAroundBothSides recordFieldDefinition))
 
 
 genericRecordTypeAnnotation : Parser State TypeAnnotation
@@ -100,8 +100,8 @@ recordFieldDefinition =
     lazy
         (\() ->
             succeed (,)
-                <*> (maybe moreThanIndentWhitespace *> functionName)
-                <*> (maybe moreThanIndentWhitespace *> string ":" *> maybe moreThanIndentWhitespace *> typeAnnotation)
+                <*> (maybe Layout.layout *> functionName)
+                <*> (maybe Layout.layout *> string ":" *> maybe Layout.layout *> typeAnnotation)
         )
 
 
@@ -113,6 +113,6 @@ typedTypeAnnotation =
                 <*> many (typeName <* string ".")
                 <*> typeName
                 <*> (Maybe.withDefault []
-                        <$> maybe (maybe moreThanIndentWhitespace *> sepBy moreThanIndentWhitespace typeAnnotationNoFn)
+                        <$> maybe (maybe Layout.layout *> sepBy Layout.layout typeAnnotationNoFn)
                     )
         )

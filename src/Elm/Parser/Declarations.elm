@@ -1,23 +1,23 @@
-module Elm.Parser.Declarations exposing (caseBlock, caseStatement, caseStatements, declaration, expression, function, functionDeclaration, letBlock, letBody, signature)
+module Elm.Parser.Declarations exposing (caseBlock, caseStatement, caseStatements, declaration, expression, function, functionDeclaration, letBlock, letBody, letExpression, signature)
 
 import Combine exposing ((*>), (<$), (<$>), (<*), (<*>), (>>=), Parser, between, choice, count, fail, lazy, lookAhead, many, many1, maybe, modifyState, or, parens, sepBy, sepBy1, string, succeed, withLocation)
 import Combine.Char exposing (anyChar)
 import Combine.Num
+import Elm.Parser.Base exposing (variablePointer)
 import Elm.Parser.Infix as Infix
+import Elm.Parser.Layout as Layout
 import Elm.Parser.Patterns exposing (declarablePattern, pattern)
 import Elm.Parser.Ranges exposing (ranged, withRange, withRangeCustomStart)
 import Elm.Parser.State exposing (State, popIndent, pushIndent)
 import Elm.Parser.Tokens exposing (caseToken, characterLiteral, elseToken, functionName, ifToken, infixOperatorToken, multiLineStringLiteral, ofToken, portToken, prefixOperatorToken, stringLiteral, thenToken, typeName)
 import Elm.Parser.TypeAnnotation exposing (typeAnnotation)
 import Elm.Parser.Typings as Typings exposing (typeDeclaration)
-import Elm.Parser.Util exposing (asPointer, commentSequence, exactIndentWhitespace, moreThanIndentWhitespace, someComment, trimmed, unstrictIndentWhitespace)
 import Elm.Parser.Whitespace exposing (manySpaces)
 import Elm.Syntax.Declaration exposing (..)
 import Elm.Syntax.Expression exposing (..)
 import Elm.Syntax.Pattern exposing (..)
 import Elm.Syntax.Range exposing (Range)
 import Elm.Syntax.Ranged exposing (Ranged)
-import List.Extra as List
 
 
 declaration : Parser State Declaration
@@ -41,7 +41,7 @@ function =
         (\() ->
             succeed Function
                 <*> succeed Nothing
-                <*> maybe (ranged signature <* exactIndentWhitespace)
+                <*> maybe (ranged signature <* Layout.layoutStrict)
                 <*> functionDeclaration
         )
 
@@ -57,13 +57,13 @@ destructuringDeclaration =
         (\() ->
             succeed Destructuring
                 <*> declarablePattern
-                <*> (moreThanIndentWhitespace *> string "=" *> moreThanIndentWhitespace *> expression)
+                <*> (Layout.layout *> string "=" *> Layout.layout *> expression)
         )
 
 
 portDeclaration : Parser State Declaration
 portDeclaration =
-    portToken *> lazy (\() -> PortDeclaration <$> (moreThanIndentWhitespace *> signature))
+    portToken *> lazy (\() -> PortDeclaration <$> (Layout.layout *> signature))
 
 
 signature : Parser State FunctionSignature
@@ -71,7 +71,7 @@ signature =
     succeed FunctionSignature
         <*> (lookAhead anyChar >>= (\c -> succeed (c == '(')))
         <*> or functionName (parens prefixOperatorToken)
-        <*> (trimmed (string ":") *> maybe moreThanIndentWhitespace *> typeAnnotation)
+        <*> (Layout.maybeAroundBothSides (string ":") *> maybe Layout.layout *> typeAnnotation)
 
 
 functionDeclaration : Parser State FunctionDeclaration
@@ -80,11 +80,11 @@ functionDeclaration =
         (\() ->
             succeed FunctionDeclaration
                 <*> (lookAhead anyChar >>= (\c -> succeed (c == '(')))
-                <*> (asPointer <| or functionName (parens prefixOperatorToken))
-                <*> many (moreThanIndentWhitespace *> functionArgument)
-                <*> (maybe moreThanIndentWhitespace
+                <*> (variablePointer <| or functionName (parens prefixOperatorToken))
+                <*> many (Layout.layout *> functionArgument)
+                <*> (maybe Layout.layout
                         *> string "="
-                        *> maybe moreThanIndentWhitespace
+                        *> maybe Layout.layout
                         *> expression
                     )
         )
@@ -151,7 +151,7 @@ expression : Parser State (Ranged Expression)
 expression =
     lazy
         (\() ->
-            maybe (someComment *> manySpaces)
+            maybe Layout.layout
                 *> expressionNotApplication
                 >>= (\expr ->
                         or (promoteToApplicationExpression expr)
@@ -166,7 +166,7 @@ promoteToApplicationExpression expr =
         (\() ->
             rangedExpressionWithStart (Tuple.first expr) <|
                 succeed (\rest -> Application (expr :: rest))
-                    <*> lazy (\() -> many1 (maybe moreThanIndentWhitespace *> expressionNotApplication))
+                    <*> lazy (\() -> many1 (maybe Layout.layout *> expressionNotApplication))
         )
 
 
@@ -179,22 +179,6 @@ withIndentedState p =
     withLocation
         (\location ->
             (modifyState (pushIndent location.column) *> p)
-                <* modifyState popIndent
-        )
-
-
-withIndentedState2 : Parser State a -> Parser State a
-withIndentedState2 p =
-    withLocation
-        (\location ->
-            let
-                x =
-                    location.source
-                        |> String.toList
-                        |> List.takeWhile ((==) ' ')
-                        |> List.length
-            in
-            (modifyState (pushIndent x) *> p)
                 <* modifyState popIndent
         )
 
@@ -235,7 +219,7 @@ listExpression =
                             (string "[")
                             (string "]")
                             (sepBy (string ",")
-                                (trimmed expression)
+                                (Layout.maybeAroundBothSides expression)
                             )
                 )
         )
@@ -246,12 +230,7 @@ emptyListExpression =
     ListExpr []
         <$ (string "["
                 *> maybe
-                    (choice
-                        [ moreThanIndentWhitespace
-                        , exactIndentWhitespace
-                        , trimmed commentSequence
-                        ]
-                    )
+                    (or Layout.layout Layout.layoutAndNewLine)
                 *> string "]"
            )
 
@@ -266,9 +245,9 @@ recordExpressionField =
         (\() ->
             succeed (,)
                 <*> functionName
-                <*> (maybe moreThanIndentWhitespace
+                <*> (maybe Layout.layout
                         *> string "="
-                        *> maybe moreThanIndentWhitespace
+                        *> maybe Layout.layout
                         *> expression
                     )
         )
@@ -283,7 +262,7 @@ recordFields oneOrMore =
             else
                 sepBy
     in
-    p (string ",") (trimmed recordExpressionField)
+    p (string ",") (Layout.maybeAroundBothSides recordExpressionField)
 
 
 recordExpression : Parser State Expression
@@ -305,7 +284,7 @@ recordUpdateExpression =
                 (string "}")
                 (RecordUpdateExpression
                     <$> (succeed RecordUpdate
-                            <*> trimmed functionName
+                            <*> Layout.maybeAroundBothSides functionName
                             <*> (string "|" *> recordFields True)
                         )
                 )
@@ -335,8 +314,8 @@ lambdaExpression =
     lazy
         (\() ->
             succeed (\args expr -> Lambda args expr |> LambdaExpression)
-                <*> (string "\\" *> maybe moreThanIndentWhitespace *> sepBy1 moreThanIndentWhitespace functionArgument)
-                <*> (trimmed (string "->") *> expression)
+                <*> (string "\\" *> maybe Layout.layout *> sepBy1 Layout.layout functionArgument)
+                <*> (Layout.maybeAroundBothSides (string "->") *> expression)
         )
 
 
@@ -346,7 +325,7 @@ lambdaExpression =
 
 caseBlock : Parser State (Ranged Expression)
 caseBlock =
-    lazy (\() -> caseToken *> moreThanIndentWhitespace *> expression <* moreThanIndentWhitespace <* ofToken)
+    lazy (\() -> caseToken *> Layout.layout *> expression <* Layout.layout <* ofToken)
 
 
 caseStatement : Parser State Case
@@ -355,13 +334,13 @@ caseStatement =
         (\() ->
             succeed (,)
                 <*> pattern
-                <*> (maybe (or moreThanIndentWhitespace exactIndentWhitespace) *> string "->" *> maybe moreThanIndentWhitespace *> expression)
+                <*> (maybe (or Layout.layout Layout.layoutStrict) *> string "->" *> maybe Layout.layout *> expression)
         )
 
 
 caseStatements : Parser State Cases
 caseStatements =
-    lazy (\() -> sepBy1 exactIndentWhitespace caseStatement)
+    lazy (\() -> sepBy1 Layout.layoutStrict caseStatement)
 
 
 caseExpression : Parser State Expression
@@ -371,7 +350,7 @@ caseExpression =
             CaseExpression
                 <$> (succeed CaseBlock
                         <*> caseBlock
-                        <*> (moreThanIndentWhitespace *> withIndentedState caseStatements)
+                        <*> (Layout.layout *> withIndentedState caseStatements)
                     )
         )
 
@@ -384,7 +363,7 @@ letBody : Parser State (List (Ranged LetDeclaration))
 letBody =
     lazy
         (\() ->
-            sepBy1 exactIndentWhitespace (ranged (or letDestructuringDeclaration (LetFunction <$> function)))
+            sepBy1 Layout.layoutStrict (ranged (or letDestructuringDeclaration (LetFunction <$> function)))
         )
 
 
@@ -394,7 +373,7 @@ letDestructuringDeclaration =
         (\() ->
             succeed LetDestructuring
                 <*> declarablePattern
-                <*> (moreThanIndentWhitespace *> string "=" *> moreThanIndentWhitespace *> expression)
+                <*> (Layout.layout *> string "=" *> Layout.layout *> expression)
         )
 
 
@@ -402,11 +381,12 @@ letBlock : Parser State (List (Ranged LetDeclaration))
 letBlock =
     lazy
         (\() ->
-            (string "let" *> moreThanIndentWhitespace)
+            (string "let" *> Layout.layout)
                 *> withIndentedState letBody
+                <* (String.fromList <$> lookAhead (many anyChar))
                 <* (choice
-                        [ unstrictIndentWhitespace
-                        , List.singleton <$> manySpaces
+                        [ Layout.layout
+                        , () <$ manySpaces
                         ]
                         *> string "in"
                    )
@@ -418,8 +398,8 @@ letExpression =
     lazy
         (\() ->
             succeed (\decls -> LetBlock decls >> LetExpression)
-                <*> withIndentedState2 letBlock
-                <*> (moreThanIndentWhitespace *> expression)
+                <*> letBlock
+                <*> (Layout.layout *> expression)
         )
 
 
@@ -439,9 +419,9 @@ ifBlockExpression =
         *> lazy
             (\() ->
                 succeed IfBlock
-                    <*> trimmed expression
-                    <*> (thenToken *> trimmed expression)
-                    <*> (elseToken *> moreThanIndentWhitespace *> expression)
+                    <*> Layout.maybeAroundBothSides expression
+                    <*> (thenToken *> Layout.maybeAroundBothSides expression)
+                    <*> (elseToken *> Layout.layout *> expression)
             )
 
 
@@ -511,5 +491,5 @@ tupledExpression =
                     xs ->
                         TupledExpression xs
             )
-                <$> parens (sepBy1 (string ",") (trimmed expression))
+                <$> parens (sepBy1 (string ",") (Layout.maybeAroundBothSides expression))
         )

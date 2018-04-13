@@ -2,10 +2,11 @@ module Elm.Parser.Patterns exposing (declarablePattern, pattern)
 
 import Combine exposing ((*>), (<$), (<$>), (<*), (<*>), (>>=), Parser, between, choice, lazy, many, maybe, or, parens, sepBy, sepBy1, string, succeed)
 import Combine.Num
+import Elm.Parser.Base exposing (variablePointer)
+import Elm.Parser.Layout as Layout
 import Elm.Parser.Ranges exposing (ranged, rangedWithCustomStart)
 import Elm.Parser.State exposing (State)
 import Elm.Parser.Tokens exposing (asToken, characterLiteral, functionName, stringLiteral, typeName)
-import Elm.Parser.Util exposing (asPointer, moreThanIndentWhitespace, trimmed)
 import Elm.Syntax.Pattern exposing (Pattern(AllPattern, AsPattern, CharPattern, FloatPattern, IntPattern, ListPattern, NamedPattern, QualifiedNamePattern, RecordPattern, StringPattern, TuplePattern, UnConsPattern, UnitPattern, VarPattern), QualifiedNameRef)
 import Elm.Syntax.Ranged exposing (Ranged)
 
@@ -87,7 +88,7 @@ listPattern =
             between
                 (string "[")
                 (string "]")
-                (ListPattern <$> sepBy (string ",") (trimmed pattern))
+                (ListPattern <$> sepBy (string ",") (Layout.maybeAroundBothSides pattern))
         )
 
 
@@ -95,7 +96,7 @@ unConsPattern2 : Ranged Pattern -> Parser State Pattern
 unConsPattern2 p =
     lazy
         (\() ->
-            UnConsPattern p <$> (trimmed (string "::") *> pattern)
+            UnConsPattern p <$> (Layout.maybeAroundBothSides (string "::") *> pattern)
         )
 
 
@@ -124,8 +125,8 @@ asPattern =
     lazy
         (\() ->
             succeed AsPattern
-                <*> (maybe moreThanIndentWhitespace *> ranged nonAsPattern)
-                <*> (moreThanIndentWhitespace *> asToken *> moreThanIndentWhitespace *> asPointer functionName)
+                <*> (maybe Layout.layout *> ranged nonAsPattern)
+                <*> (Layout.layout *> asToken *> Layout.layout *> variablePointer functionName)
         )
 
 
@@ -134,7 +135,7 @@ asPattern2 p =
     lazy
         (\() ->
             AsPattern p
-                <$> (moreThanIndentWhitespace *> asToken *> moreThanIndentWhitespace *> asPointer functionName)
+                <$> (Layout.layout *> asToken *> Layout.layout *> variablePointer functionName)
         )
 
 
@@ -142,7 +143,7 @@ tuplePattern : Parser State Pattern
 tuplePattern =
     lazy
         (\() ->
-            TuplePattern <$> parens (sepBy1 (string ",") (trimmed pattern))
+            TuplePattern <$> parens (sepBy1 (string ",") (Layout.maybeAroundBothSides pattern))
         )
 
 
@@ -152,9 +153,9 @@ recordPattern =
         (\() ->
             RecordPattern
                 <$> between
-                        (string "{" *> maybe moreThanIndentWhitespace)
-                        (maybe moreThanIndentWhitespace *> string "}")
-                        (sepBy1 (string ",") (trimmed (asPointer functionName)))
+                        (string "{" *> maybe Layout.layout)
+                        (maybe Layout.layout *> string "}")
+                        (sepBy1 (string ",") (Layout.maybeAroundBothSides (variablePointer functionName)))
         )
 
 
@@ -181,7 +182,7 @@ namedPattern =
         (\() ->
             succeed NamedPattern
                 <*> qualifiedNameRef
-                <*> many (moreThanIndentWhitespace *> ranged (or qualifiedNamePattern nonNamedPattern))
+                <*> many (Layout.layout *> ranged (or qualifiedNamePattern nonNamedPattern))
         )
 
 

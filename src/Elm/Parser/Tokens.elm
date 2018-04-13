@@ -10,7 +10,6 @@ module Elm.Parser.Tokens
         , ifToken
         , importToken
         , infixOperatorToken
-        , moduleName
         , moduleToken
         , multiLineStringLiteral
         , ofToken
@@ -19,14 +18,12 @@ module Elm.Parser.Tokens
         , stringLiteral
         , thenToken
         , typeName
-        , unitToken
         )
 
 import Char exposing (fromCode)
-import Combine exposing ((*>), (<$), (<$>), (<*), (>>=), Parser, between, choice, count, fail, lookAhead, many, many1, or, regex, sepBy1, string, succeed)
+import Combine exposing ((*>), (<$), (<$>), (<*), (>>=), Parser, between, choice, count, fail, lookAhead, many, many1, or, regex, string, succeed)
 import Combine.Char exposing (anyChar, char, oneOf)
 import Dict exposing (Dict)
-import Elm.Syntax.Base exposing (ModuleName)
 import Hex
 
 
@@ -103,11 +100,6 @@ caseToken =
 ofToken : Parser s String
 ofToken =
     string "of"
-
-
-unitToken : Parser s String
-unitToken =
-    string "()"
 
 
 functionOrTypeName : Parser s String
@@ -216,11 +208,6 @@ functionName =
 typeName : Parser s String
 typeName =
     regex "[A-Z][a-zA-Z0-9_]*"
-
-
-moduleName : Parser s ModuleName
-moduleName =
-    sepBy1 (string ".") typeName
 
 
 excludedOperators : List String

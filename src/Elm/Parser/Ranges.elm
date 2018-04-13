@@ -1,4 +1,4 @@
-module Elm.Parser.Ranges exposing (ranged, rangedWithCustomStart, withRange, withRangeCustomStart, withRangeTuple)
+module Elm.Parser.Ranges exposing (ranged, rangedWithCustomStart, withRange, withRangeCustomStart)
 
 import Combine exposing ((<$>), (<*>), ParseLocation, Parser, succeed, withLocation)
 import Elm.Parser.State exposing (State)
@@ -36,11 +36,6 @@ withRange p =
                                 }
                         )
         )
-
-
-withRangeTuple : Parser State (Range -> a) -> Parser State ( Range, a )
-withRangeTuple p =
-    withRange (succeed (\pv r -> ( r, pv r )) <*> p)
 
 
 ranged : Parser State a -> Parser State (Ranged a)
