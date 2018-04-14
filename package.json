@@ -1,8 +1,7 @@
 {
     "name": "elm-syntax",
     "version": "0.13.0-dev",
-    "description":
-        "A tool that allows you analyse your Elm code and identifies deficiencies and best practices.",
+    "description": "A tool that allows you analyse your Elm code and identifies deficiencies and best practices.",
     "repository": {
         "type": "git",
         "url": "github.com/stil4m/elm-analyse"
@@ -13,19 +12,25 @@
     },
     "scripts": {
         "elm:test": "./node_modules/.bin/elm-test",
-        "elm:validate-format":
-            "./node_modules/.bin/elm-format --validate src/ tests/",
+        "elm:validate-format": "./node_modules/.bin/elm-format --validate src/ tests/",
         "elm:lint": "elm-analyse",
         "elm:build": "elm-package install -y && elm-make"
     },
     "author": "Mats Stijlaart",
     "license": "MIT",
-    "keywords": ["elm", "syntax", "ast"],
+    "keywords": [
+        "elm",
+        "syntax",
+        "ast"
+    ],
     "devDependencies": {
         "elm": "0.18.0",
+        "elm-analyse": "0.12.1",
         "elm-format": "0.7.0-exp",
         "elm-live": "2.7.5",
         "elm-test": "0.18.7",
-        "elm-analyse": "0.12.1"
+        "fs-extra": "^5.0.0",
+        "lodash": "^4.17.5",
+        "scan-dir-recursive": "^1.0.11"
     }
 }
