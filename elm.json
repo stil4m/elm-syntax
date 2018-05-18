@@ -1,4 +1,5 @@
 {
+    "type":"package",
     "version": "3.3.1",
     "summary": "Elm Syntax in Elm: for parsing and writing Elm in Elm",
     "repository": "https://github.com/stil4m/elm-syntax.git",
@@ -31,11 +32,9 @@
         "Elm.Syntax.Type"
     ],
     "dependencies": {
-        "elm-community/json-extra": "2.1.0 <= v < 3.0.0",
-        "elm-community/list-extra": "7.0.0 <= v < 8.0.0",
-        "elm-community/parser-combinators": "2.0.0 <= v < 3.0.0",
-        "elm-lang/core": "5.1.1 <= v < 6.0.0",
-        "rtfeldman/hex": "1.0.0 <= v < 2.0.0",
+        "elm-community/list-extra": "9.0.0 <= v < 10.0.0",
+        "elm-lang/core": "6.0.0 <= v < 7.0.0",
+        "rtfeldman/hex": "1.0.22<= v < 2.0.0",
         "stil4m/structured-writer": "1.0.0 <= v < 2.0.0"
     },
     "elm-version": "0.18.0 <= v < 0.19.0"
