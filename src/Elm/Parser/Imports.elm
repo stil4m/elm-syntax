@@ -1,6 +1,6 @@
 module Elm.Parser.Imports exposing (importDefinition)
 
-import Combine exposing ((*>), (<*>), Parser, maybe, succeed)
+import Combine exposing (Parser, maybe, succeed)
 import Elm.Parser.Base exposing (moduleName)
 import Elm.Parser.Expose exposing (exposable, exposeDefinition)
 import Elm.Parser.Layout as Layout
@@ -12,8 +12,24 @@ import Elm.Syntax.Module exposing (Import)
 
 importDefinition : Parser State Import
 importDefinition =
+    let
+        importAndModuleName =
+            importToken
+                |> Combine.continueWith Layout.layout
+                |> Combine.continueWith moduleName
+
+        asDefinition =
+            Layout.layout
+                |> Combine.continueWith asToken
+                |> Combine.continueWith Layout.layout
+                |> Combine.continueWith moduleName
+
+        importExposing =
+            exposeDefinition exposable
+    in
     withRange <|
-        succeed Import
-            <*> (importToken *> Layout.layout *> moduleName)
-            <*> maybe (Layout.layout *> asToken *> Layout.layout *> moduleName)
-            <*> maybe (exposeDefinition exposable)
+        (succeed Import
+            |> Combine.andMap importAndModuleName
+            |> Combine.andMap (maybe asDefinition)
+            |> Combine.andMap (maybe importExposing)
+        )

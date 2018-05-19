@@ -1,11 +1,6 @@
 module Elm.Interface
     exposing
-        ( Exposed
-            ( Alias
-            , Function
-            , Operator
-            , Type
-            )
+        ( Exposed(..)
         , Interface
         , build
         , exposesAlias
@@ -30,11 +25,11 @@ module Elm.Interface
 
 -}
 
-import Elm.Internal.RawFile exposing (RawFile(Raw))
+import Elm.Internal.RawFile exposing (RawFile(..))
 import Elm.Syntax.Declaration exposing (Declaration(..))
-import Elm.Syntax.Exposing exposing (Exposing(All, Explicit), TopLevelExpose(FunctionExpose, InfixExpose, TypeExpose, TypeOrAliasExpose))
+import Elm.Syntax.Exposing exposing (Exposing(..), TopLevelExpose(..))
 import Elm.Syntax.File exposing (File)
-import Elm.Syntax.Infix exposing (Infix, InfixDirection(Left))
+import Elm.Syntax.Infix exposing (Infix, InfixDirection(..))
 import Elm.Syntax.Module as Module
 import Elm.Syntax.Ranged exposing (Ranged)
 import List.Extra
@@ -198,6 +193,7 @@ fileToDefinitions file =
                                             , direction = Left
                                             }
                                         )
+
                                 else
                                     Just ( f.declaration.name.value, Function f.declaration.name.value )
 
@@ -214,6 +210,7 @@ fileToDefinitions file =
                 ( Operator x, Operator y ) ->
                     if x.precedence == 5 && x.direction == Left then
                         Just <| Operator y
+
                     else
                         Just <| Operator x
 
@@ -230,7 +227,7 @@ fileToDefinitions file =
 
                 [ ( n1, t1 ), ( _, t2 ) ] ->
                     getValidOperatorInterface t1 t2
-                        |> Maybe.map ((,) n1)
+                        |> Maybe.map (\a -> ( n1, a ))
 
                 _ ->
                     Nothing

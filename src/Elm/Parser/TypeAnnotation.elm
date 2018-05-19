@@ -29,12 +29,13 @@ typeAnnotation : Parser State (Ranged TypeAnnotation)
 typeAnnotation =
     lazy
         (\() ->
-            ranged <|
-                typeAnnotationNoFn
-                    >>= (\typeRef ->
-                            or (FunctionTypeAnnotation typeRef <$> (Layout.maybeAroundBothSides (string "->") *> typeAnnotation))
-                                (succeed (Tuple.second typeRef))
-                        )
+            typeAnnotationNoFn
+                |> Combine.andThen
+                    (\typeRef ->
+                        or (Combine.map (FunctionTypeAnnotation typeRef) (Layout.maybeAroundBothSides (string "->") |> Combine.continueWith typeAnnotation))
+                            (succeed (Tuple.second typeRef))
+                    )
+                |> ranged
         )
 
 
@@ -42,7 +43,7 @@ parensTypeAnnotation : Parser State TypeAnnotation
 parensTypeAnnotation =
     lazy
         (\() ->
-            parens (maybe Layout.layout *> sepBy (string ",") (Layout.maybeAroundBothSides typeAnnotation))
+            parens (maybe Layout.layout |> Combine.continueWith (sepBy (string ",") (Layout.maybeAroundBothSides typeAnnotation)))
                 |> map asTypeAnnotation
         )
 
@@ -62,7 +63,7 @@ asTypeAnnotation x =
 
 genericTypeAnnotation : Parser State TypeAnnotation
 genericTypeAnnotation =
-    lazy (\() -> GenericType <$> functionName)
+    lazy (\() -> Combine.map GenericType functionName)
 
 
 recordFieldsTypeAnnotation : Parser State RecordDefinition
@@ -76,10 +77,10 @@ genericRecordTypeAnnotation =
         (\() ->
             between
                 (string "{")
-                (maybe realNewLine *> string "}")
+                (maybe realNewLine |> Combine.continueWith (string "}"))
                 (succeed GenericRecord
-                    <*> (maybe whitespace *> functionName)
-                    <*> (maybe whitespace *> string "|" *> maybe whitespace *> recordFieldsTypeAnnotation)
+                    |> Combine.andMap (maybe whitespace |> Combine.continueWith functionName)
+                    |> Combine.andMap (maybe whitespace |> Combine.continueWith (string "|") |> Combine.continueWith (maybe whitespace) |> Combine.continueWith recordFieldsTypeAnnotation)
                 )
         )
 
@@ -90,8 +91,8 @@ recordTypeAnnotation =
         (\() ->
             between
                 (string "{")
-                (maybe realNewLine *> string "}")
-                (Record <$> recordFieldsTypeAnnotation)
+                (maybe realNewLine |> Combine.continueWith (string "}"))
+                (Combine.map Record recordFieldsTypeAnnotation)
         )
 
 
@@ -99,9 +100,14 @@ recordFieldDefinition : Parser State RecordField
 recordFieldDefinition =
     lazy
         (\() ->
-            succeed (,)
-                <*> (maybe Layout.layout *> functionName)
-                <*> (maybe Layout.layout *> string ":" *> maybe Layout.layout *> typeAnnotation)
+            succeed (\a b -> ( a, b ))
+                |> Combine.andMap (maybe Layout.layout |> Combine.continueWith functionName)
+                |> Combine.andMap
+                    (maybe Layout.layout
+                        |> Combine.continueWith (string ":")
+                        |> Combine.continueWith (maybe Layout.layout)
+                        |> Combine.continueWith typeAnnotation
+                    )
         )
 
 
@@ -110,9 +116,10 @@ typedTypeAnnotation =
     lazy
         (\() ->
             succeed Typed
-                <*> many (typeName <* string ".")
-                <*> typeName
-                <*> (Maybe.withDefault []
-                        <$> maybe (maybe Layout.layout *> sepBy Layout.layout typeAnnotationNoFn)
+                |> Combine.andMap (many (typeName |> Combine.ignore (string ".")))
+                |> Combine.andMap typeName
+                |> Combine.andMap
+                    (Combine.map (Maybe.withDefault [])
+                        (maybe (maybe Layout.layout |> Combine.continueWith (sepBy Layout.layout typeAnnotationNoFn)))
                     )
         )

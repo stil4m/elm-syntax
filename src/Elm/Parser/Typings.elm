@@ -1,6 +1,6 @@
 module Elm.Parser.Typings exposing (typeAlias, typeDeclaration)
 
-import Combine exposing ((*>), (<*), (<*>), Parser, many, maybe, sepBy, string, succeed)
+import Combine exposing (Parser, many, maybe, sepBy, string, succeed)
 import Elm.Parser.Layout as Layout
 import Elm.Parser.Ranges exposing (withRange)
 import Elm.Parser.State exposing (State)
@@ -13,43 +13,45 @@ import Elm.Syntax.TypeAlias exposing (TypeAlias)
 typeDeclaration : Parser State Type
 typeDeclaration =
     succeed Type
-        <*> (typePrefix *> typeName)
-        <*> genericList
-        <*> (Layout.around (string "=") *> valueConstructors)
+        |> Combine.andMap (typePrefix |> Combine.continueWith typeName)
+        |> Combine.andMap genericList
+        |> Combine.andMap (Layout.around (string "=") |> Combine.continueWith valueConstructors)
 
 
 valueConstructors : Parser State (List ValueConstructor)
 valueConstructors =
-    sepBy (string "|") (maybe Layout.layout *> valueConstructor <* maybe Layout.layout)
+    sepBy (string "|") (maybe Layout.layout |> Combine.continueWith valueConstructor |> Combine.ignore (maybe Layout.layout))
 
 
 valueConstructor : Parser State ValueConstructor
 valueConstructor =
     withRange
         (succeed ValueConstructor
-            <*> typeName
-            <*> many (Layout.layout *> typeAnnotation)
+            |> Combine.andMap typeName
+            |> Combine.andMap (many (Layout.layout |> Combine.continueWith typeAnnotation))
         )
 
 
 typeAlias : Parser State TypeAlias
 typeAlias =
     succeed (TypeAlias Nothing)
-        <*> (typeAliasPrefix *> typeName)
-        <*> genericList
-        <*> (Layout.around (string "=") *> typeAnnotation)
+        |> Combine.andMap (typeAliasPrefix |> Combine.continueWith typeName)
+        |> Combine.andMap genericList
+        |> Combine.andMap (Layout.around (string "=") |> Combine.continueWith typeAnnotation)
 
 
 genericList : Parser State (List String)
 genericList =
-    many (Layout.layout *> functionName)
+    many (Layout.layout |> Combine.continueWith functionName)
 
 
 typePrefix : Parser State ()
 typePrefix =
-    string "type" *> Layout.layout
+    string "type" |> Combine.continueWith Layout.layout
 
 
 typeAliasPrefix : Parser State ()
 typeAliasPrefix =
-    typePrefix *> string "alias" *> Layout.layout
+    typePrefix
+        |> Combine.continueWith (string "alias")
+        |> Combine.continueWith Layout.layout

@@ -1,6 +1,6 @@
 module Elm.Processing.Documentation exposing (postProcess)
 
-import Elm.Inspector as Inspector exposing (Order(Post), defaultConfig)
+import Elm.Inspector as Inspector exposing (Order(..), defaultConfig)
 import Elm.Syntax.Declaration exposing (Declaration(..))
 import Elm.Syntax.Documentation exposing (..)
 import Elm.Syntax.Expression exposing (..)
@@ -80,6 +80,7 @@ replaceDeclaration ( r1, new ) ( r2, old ) =
     ( r2
     , if r1 == r2 then
         new
+
       else
         old
     )
@@ -93,5 +94,6 @@ isDocumentationForRange range ( commentRange, commentText ) =
                 range.start.row
         in
         (commentRange.end.row + 1) == functionStartRow
+
     else
         False

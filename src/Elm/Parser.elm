@@ -9,7 +9,7 @@ module Elm.Parser exposing (parse)
 
 -}
 
-import Combine exposing ((<*), Parser, end, mapError, withLocation)
+import Combine exposing (Parser, end, mapError, withLocation)
 import Elm.Internal.RawFile as RawFile exposing (RawFile)
 import Elm.Parser.File exposing (file)
 import Elm.Parser.State exposing (State, emptyState)
@@ -31,4 +31,21 @@ parse input =
 
 withEnd : Parser State File -> Parser State File
 withEnd p =
-    p <* withLocation (\s -> end |> mapError (\_ -> [ "Could not continue parsing on location " ++ toString ( s.line, s.column ) ]))
+    p
+        |> Combine.ignore
+            (withLocation
+                (\s ->
+                    end |> mapError (\_ -> [ "Could not continue parsing on location " ++ formatLocation s ])
+                )
+            )
+
+
+formatLocation : Combine.ParseLocation -> String
+formatLocation { line, column } =
+    String.concat
+        [ "("
+        , String.fromInt line
+        , ","
+        , String.fromInt column
+        , ")"
+        ]

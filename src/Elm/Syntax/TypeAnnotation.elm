@@ -2,7 +2,7 @@ module Elm.Syntax.TypeAnnotation
     exposing
         ( RecordDefinition
         , RecordField
-        , TypeAnnotation(FunctionTypeAnnotation, GenericRecord, GenericType, Record, Tupled, Typed, Unit)
+        , TypeAnnotation(..)
         )
 
 {-| Type Annotation Syntax

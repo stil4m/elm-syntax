@@ -20,7 +20,6 @@ module Elm.Syntax.Range exposing (Location, Range, combine, decode, emptyRange, 
 -}
 
 import Json.Decode as JD exposing (Decoder)
-import Json.Decode.Extra exposing (fromResult)
 import Json.Encode as JE exposing (Value)
 
 
@@ -53,11 +52,11 @@ emptyRange =
 -}
 encode : Range -> Value
 encode { start, end } =
-    JE.list
-        [ JE.int start.row
-        , JE.int start.column
-        , JE.int end.row
-        , JE.int end.column
+    JE.list JE.int
+        [ start.row
+        , start.column
+        , end.row
+        , end.column
         ]
 
 
@@ -68,6 +67,16 @@ decode =
     JD.list JD.int
         |> JD.andThen
             (fromList >> fromResult)
+
+
+fromResult : Result String a -> Decoder a
+fromResult x =
+    case x of
+        Ok v ->
+            JD.succeed v
+
+        Err e ->
+            JD.fail e
 
 
 fromList : List Int -> Result String Range
@@ -109,7 +118,9 @@ compareLocations : Location -> Location -> Order
 compareLocations left right =
     if left.row < right.row then
         LT
+
     else if right.row < left.row then
         GT
+
     else
         compare left.column right.column
