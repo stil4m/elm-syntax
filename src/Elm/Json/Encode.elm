@@ -11,7 +11,7 @@ Encoding Elm Code to Json
 
 -}
 
-import Elm.Internal.RawFile exposing (RawFile(Raw))
+import Elm.Internal.RawFile exposing (RawFile(..))
 import Elm.Json.Util exposing (encodeTyped)
 import Elm.Syntax.Base exposing (..)
 import Elm.Syntax.Declaration exposing (..)
@@ -31,8 +31,8 @@ import Json.Encode as JE exposing (Value, float, int, list, object, string)
 
 
 asList : (a -> Value) -> List a -> Value
-asList f =
-    list << List.map f
+asList f xs =
+    list f xs
 
 
 nameField : String -> ( String, Value )
@@ -103,7 +103,7 @@ encodeDefaultModuleData { moduleName, exposingList } =
 
 encodeModuleName : ModuleName -> Value
 encodeModuleName =
-    List.map string >> list
+    list string
 
 
 encodeExpose : Ranged TopLevelExpose -> Value
@@ -338,7 +338,7 @@ encodeTypeAnnotation ( r, typeAnnotation ) =
 
 encodeRecordDefinition : RecordDefinition -> Value
 encodeRecordDefinition =
-    list << List.map encodeRecordField
+    list encodeRecordField
 
 
 encodeRecordField : RecordField -> Value

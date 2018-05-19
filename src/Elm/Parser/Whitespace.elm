@@ -5,7 +5,7 @@ import Combine exposing (Parser, regex)
 
 nSpaces : Int -> Parser s String
 nSpaces x =
-    regex (" {" ++ toString x ++ "}")
+    regex (" {" ++ String.fromInt x ++ "}")
 
 
 manySpaces : Parser s String
@@ -20,9 +20,9 @@ many1Spaces =
 
 realNewLine : Parser s String
 realNewLine =
-    regex "\x0D?\n"
+    regex "\u{000D}?\n"
 
 
 untilNewlineToken : Parser s String
 untilNewlineToken =
-    regex "[^\x0D\n]*"
+    regex "[^\u{000D}\n]*"

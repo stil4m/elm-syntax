@@ -1,13 +1,6 @@
 module Elm.Syntax.Declaration
     exposing
-        ( Declaration
-            ( AliasDecl
-            , Destructuring
-            , FuncDecl
-            , InfixDeclaration
-            , PortDeclaration
-            , TypeDecl
-            )
+        ( Declaration(..)
         )
 
 {-| Declarations Syntax

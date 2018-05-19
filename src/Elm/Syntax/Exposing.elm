@@ -1,8 +1,8 @@
 module Elm.Syntax.Exposing
     exposing
         ( ExposedType
-        , Exposing(All, Explicit)
-        , TopLevelExpose(FunctionExpose, InfixExpose, TypeExpose, TypeOrAliasExpose)
+        , Exposing(..)
+        , TopLevelExpose(..)
         , ValueConstructorExpose
         , exposesFunction
         , operators

@@ -21,7 +21,7 @@ module Elm.Parser.Tokens
         )
 
 import Char exposing (fromCode)
-import Combine exposing ((*>), (<$), (<$>), (<*), (>>=), Parser, between, choice, count, fail, lookAhead, many, many1, or, regex, string, succeed)
+import Combine exposing (Parser, between, choice, count, fail, lookAhead, many, many1, or, regex, string, succeed)
 import Combine.Char exposing (anyChar, char, oneOf)
 import Dict exposing (Dict)
 import Hex
@@ -48,7 +48,7 @@ reserved =
     --, "alias" Apparently this is not a reserved keyword
     , "where"
     ]
-        |> List.map (flip (,) True)
+        |> List.map (\c -> ( c, True ))
         |> Dict.fromList
 
 
@@ -111,6 +111,7 @@ notReserved : String -> Parser s String
 notReserved match =
     if Dict.member match reserved then
         fail "functionName is reserved"
+
     else
         succeed match
 
@@ -118,54 +119,58 @@ notReserved match =
 escapedChar : Parser s Char
 escapedChar =
     char '\\'
-        *> choice
-            [ '\'' <$ char '\''
-            , '"' <$ char '"'
-            , '\n' <$ char 'n'
-            , '\t' <$ char 't'
-            , '\\' <$ char '\\'
-            , '\x07' <$ char 'a'
-            , '\x08' <$ char 'b'
-            , '\x0C' <$ char 'f'
-            , '\x0D' <$ char 'r'
-            , '\x0B' <$ char 'v'
-            , (char 'x' *> regex "[0-9A-Fa-f]{2}")
-                >>= (\l ->
-                        case Hex.fromString <| String.toLower l of
-                            Ok x ->
-                                succeed (fromCode x)
+        |> Combine.continueWith
+            (choice
+                [ succeed '\'' |> Combine.ignore (char '\'')
+                , succeed '"' |> Combine.ignore (char '"')
+                , succeed '\n' |> Combine.ignore (char 'n')
+                , succeed '\t' |> Combine.ignore (char 't')
+                , succeed '\\' |> Combine.ignore (char '\\')
+                , succeed '\u{0007}' |> Combine.ignore (char 'a')
+                , succeed '\u{0008}' |> Combine.ignore (char 'b')
+                , succeed '\u{000C}' |> Combine.ignore (char 'f')
+                , succeed '\u{000D}' |> Combine.ignore (char 'r')
+                , succeed '\u{000B}' |> Combine.ignore (char 'v')
+                , (char 'x' |> Combine.continueWith (regex "[0-9A-Fa-f]{2}"))
+                    |> Combine.andThen
+                        (\l ->
+                            case Hex.fromString <| String.toLower l of
+                                Ok x ->
+                                    succeed (fromCode x)
 
-                            Err x ->
-                                fail x
-                    )
-            ]
+                                Err x ->
+                                    fail x
+                        )
+                ]
+            )
 
 
 quotedSingleQuote : Parser s Char
 quotedSingleQuote =
     char '\''
-        *> escapedChar
-        <* char '\''
+        |> Combine.continueWith escapedChar
+        |> Combine.ignore (char '\'')
 
 
 characterLiteral : Parser s Char
 characterLiteral =
     or quotedSingleQuote
-        (char '\'' *> anyChar <* char '\'')
+        (char '\'' |> Combine.continueWith anyChar |> Combine.ignore (char '\''))
 
 
 stringLiteral : Parser s String
 stringLiteral =
     char '"'
-        *> (String.concat
-                <$> many
-                        (choice
-                            [ regex "[^\\\\\\\"]+"
-                            , String.fromChar <$> escapedChar
-                            ]
-                        )
-           )
-        <* char '"'
+        |> Combine.continueWith
+            (many
+                (choice
+                    [ regex "[^\\\\\\\"]+"
+                    , Combine.map String.fromChar escapedChar
+                    ]
+                )
+                |> Combine.map String.concat
+            )
+        |> Combine.ignore (char '"')
 
 
 multiLineStringLiteral : Parser s String
@@ -173,18 +178,21 @@ multiLineStringLiteral =
     between
         (string "\"\"\"")
         (string "\"\"\"")
-        (String.concat
-            <$> many
-                    (or (regex "[^\\\\\\\"]+")
-                        (lookAhead (count 3 anyChar)
-                            >>= (\x ->
-                                    if x == [ '"', '"', '"' ] then
-                                        fail "end of input"
-                                    else
-                                        String.fromChar <$> or escapedChar anyChar
-                                )
-                        )
+        (Combine.map String.concat
+            (many
+                (or (regex "[^\\\\\\\"]+")
+                    (lookAhead (count 3 anyChar)
+                        |> Combine.andThen
+                            (\x ->
+                                if x == [ '"', '"', '"' ] then
+                                    fail "end of input"
+
+                                else
+                                    Combine.map String.fromChar (or escapedChar anyChar)
+                            )
                     )
+                )
+            )
         )
 
 
@@ -202,7 +210,7 @@ functionName : Parser s String
 functionName =
     or
         (regex functionNamePatternInfix)
-        (regex functionNamePattern >>= notReserved)
+        (regex functionNamePattern |> Combine.andThen notReserved)
 
 
 typeName : Parser s String
@@ -237,11 +245,13 @@ infixOperatorToken =
 
 operatorTokenFromList : List Char -> Parser s String
 operatorTokenFromList allowedChars =
-    String.fromList
-        <$> many1 (oneOf allowedChars)
-        >>= (\m ->
+    many1 (oneOf allowedChars)
+        |> Combine.map String.fromList
+        |> Combine.andThen
+            (\m ->
                 if List.member m excludedOperators then
                     fail "operator is not allowed"
+
                 else
                     succeed m
             )

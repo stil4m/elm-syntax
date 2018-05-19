@@ -23,15 +23,15 @@ import Dict exposing (Dict)
 import Elm.DefaultImports as DefaultImports
 import Elm.Dependency exposing (Dependency)
 import Elm.Interface as Interface exposing (Interface)
-import Elm.Internal.RawFile as RawFile exposing (RawFile(Raw))
+import Elm.Internal.RawFile as RawFile exposing (RawFile(..))
 import Elm.Processing.Documentation as Documentation
 import Elm.RawFile as RawFile
 import Elm.Syntax.Base exposing (ModuleName)
-import Elm.Syntax.Declaration exposing (Declaration(FuncDecl))
+import Elm.Syntax.Declaration exposing (Declaration(..))
 import Elm.Syntax.Exposing as Exposing exposing (..)
 import Elm.Syntax.Expression exposing (..)
 import Elm.Syntax.File exposing (File)
-import Elm.Syntax.Infix exposing (Infix, InfixDirection(Left))
+import Elm.Syntax.Infix exposing (Infix, InfixDirection(..))
 import Elm.Syntax.Module exposing (Import)
 import Elm.Syntax.Range as Range
 import Elm.Syntax.Ranged exposing (Ranged)
@@ -91,7 +91,7 @@ entryFromRawFile ((Raw _) as rawFile) =
 
 tableForFile : RawFile -> ProcessContext -> OperatorTable
 tableForFile rawFile (ProcessContext moduleIndex) =
-    List.concatMap (flip buildSingle moduleIndex) (DefaultImports.defaults ++ RawFile.imports rawFile)
+    List.concatMap (\a -> buildSingle a moduleIndex) (DefaultImports.defaults ++ RawFile.imports rawFile)
         |> Dict.fromList
 
 
@@ -118,7 +118,7 @@ buildSingle imp moduleIndex =
                 |> Maybe.withDefault []
                 |> Interface.operators
                 |> List.map (\x -> ( x.operator, x ))
-                |> List.filter (Tuple.first >> flip List.member selectedOperators)
+                |> List.filter (Tuple.first >> (\elem -> List.member elem selectedOperators))
 
 
 {-| Process a rawfile with a context.
@@ -184,6 +184,7 @@ fixApplication operators expressions =
         divideAndConquer exps =
             if Dict.isEmpty ops then
                 fixExprs exps
+
             else
                 findNextSplit ops exps
                     |> Maybe.map
@@ -207,7 +208,7 @@ findNextSplit dict exps =
                 |> List.takeWhile
                     (\x ->
                         expressionOperators x
-                            |> Maybe.andThen (flip Dict.get dict)
+                            |> Maybe.andThen (\key -> Dict.get key dict)
                             |> (==) Nothing
                     )
 
@@ -317,19 +318,19 @@ visitExpression visitor context expression =
         inner =
             visitExpressionInner visitor context
     in
-    (visitor |> Maybe.withDefault (\_ inner expr -> inner expr))
+    (visitor |> Maybe.withDefault (\_ nest expr -> nest expr))
         context
         inner
         expression
 
 
 visitExpressionInner : Visitor context -> context -> Ranged Expression -> Ranged Expression
-visitExpressionInner visitor context ( r, expression ) =
+visitExpressionInner visitor context ( range, expression ) =
     let
         subVisit =
             visitExpression visitor context
     in
-    (,) r <|
+    (\newExpr -> ( range, newExpr )) <|
         case expression of
             Application expressionList ->
                 expressionList

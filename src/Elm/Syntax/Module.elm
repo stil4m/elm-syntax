@@ -3,7 +3,7 @@ module Elm.Syntax.Module
         ( DefaultModuleData
         , EffectModuleData
         , Import
-        , Module(EffectModule, NormalModule, PortModule)
+        , Module(..)
         , exposingList
         , isPortModule
         , moduleName
