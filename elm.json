@@ -2,8 +2,8 @@
     "type":"package",
     "version": "3.4.1",
     "summary": "Elm Syntax in Elm: for parsing and writing Elm in Elm",
-    "repository": "https://github.com/stil4m/elm-syntax.git",
-    "license": "BSD3",
+    "name": "stil4m/elm-syntax",
+    "license": "MIT",
     "source-directories": [
         "src"
     ],
@@ -41,5 +41,6 @@
         "rtfeldman/hex": "1.0.2 <= v < 2.0.0",
         "stil4m/structured-writer": "1.0.1 <= v < 2.0.0"
     },
-    "elm-version": "0.18.0 <= v < 0.19.0"
+    "test-dependencies": {},
+    "elm-version": "0.19.0 <= v < 0.20.0"
 }
