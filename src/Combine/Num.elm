@@ -3,24 +3,25 @@ module Combine.Num exposing (float, int)
 import Combine exposing (Parser, string, succeed)
 
 
-unwrap : (String -> Maybe res) -> String -> res
-unwrap f s =
+unwrap : res -> (String -> Maybe res) -> String -> res
+unwrap default f s =
     case f s of
         Just res ->
             res
 
         Nothing ->
-            Debug.todo "impossible state in Combine.Num.unwrap"
+            -- Debug.todo "impossible state in Combine.Num.unwrap"
+            default
 
 
 toInt : String -> Int
 toInt =
-    unwrap String.toInt
+    unwrap 0 String.toInt
 
 
 toFloat : String -> Float
 toFloat =
-    unwrap String.toFloat
+    unwrap 0 String.toFloat
 
 
 sign : Parser s Int

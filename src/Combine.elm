@@ -1106,8 +1106,8 @@ brackets =
 -}
 whitespace : Parser s String
 whitespace =
-    -- regex "[ \t\u{000D}\n]*" <?> "whitespace"
-    Debug.todo "TODO"
+    regex "[ \t\u{000D}\n]*"
+        |> setError "whitespace"
 
 
 {-| Parse one or more whitespace characters.
@@ -1121,8 +1121,8 @@ whitespace =
 -}
 whitespace1 : Parser s String
 whitespace1 =
-    -- regex "[ \t\u{000D}\n]+" <?> "whitespace"
-    Debug.todo "TODO"
+    regex "[ \t\u{000D}\n]+"
+        |> setError "whitespace"
 
 
 setError : String -> Parser s a -> Parser s a

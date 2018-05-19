@@ -463,10 +463,10 @@ writeExpression ( range, inner ) =
             append (string "-") (writeExpression x)
 
         Literal s ->
-            string (Debug.toString s)
+            string ("\"" ++ s ++ "\"")
 
         CharLiteral c ->
-            string (Debug.toString c)
+            string ("'" ++ String.fromList [ c ] ++ "'")
 
         TupledExpression t ->
             sepHelper sepByComma (List.map recurRangeHelper t)
@@ -550,7 +550,7 @@ writePattern ( _, p ) =
             string "()"
 
         CharPattern c ->
-            string (Debug.toString c)
+            string ("'" ++ String.fromList [ c ] ++ "'")
 
         StringPattern s ->
             string s

@@ -6,7 +6,7 @@ import Combine exposing (Parser, primitive)
 char : Char -> Parser s Char
 char c =
     satisfy ((==) c)
-        |> Combine.setError ("expected " ++ Debug.toString c)
+        |> Combine.setError ("expected '" ++ String.fromList [ c ] ++ "'")
 
 
 anyChar : Parser s Char
@@ -18,7 +18,7 @@ anyChar =
 oneOf : List Char -> Parser s Char
 oneOf cs =
     satisfy (\a -> List.member a cs)
-        |> Combine.setError ("expected one of " ++ Debug.toString cs)
+        |> Combine.setError ("expected one of '" ++ String.fromList cs ++ "'")
 
 
 satisfy : (Char -> Bool) -> Parser s Char
