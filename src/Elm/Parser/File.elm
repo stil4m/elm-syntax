@@ -1,6 +1,6 @@
 module Elm.Parser.File exposing (file)
 
-import Combine exposing (Parser, maybe, sepBy, succeed, withState)
+import Combine exposing (Parser, many, maybe, sepBy, succeed, withState)
 import Elm.Parser.Declarations exposing (declaration)
 import Elm.Parser.Imports exposing (importDefinition)
 import Elm.Parser.Layout as Layout
@@ -15,10 +15,14 @@ import Elm.Syntax.Ranged exposing (Ranged)
 file : Parser State File
 file =
     succeed File
-        |> Combine.andMap (maybe Layout.layoutAndNewLine |> Combine.continueWith moduleDefinition |> Combine.ignore (maybe Layout.layoutAndNewLine))
-        |> Combine.andMap (sepBy Layout.layoutAndNewLine importDefinition |> Combine.ignore (maybe Layout.layoutAndNewLine))
+        |> Combine.ignore (maybe Layout.layoutStrict)
+        |> Combine.andMap moduleDefinition
+        |> Combine.ignore (maybe Layout.layoutStrict)
+        |> Combine.andMap (many (importDefinition |> Combine.ignore Layout.optimisticLayout))
+        |> Combine.ignore (maybe Layout.layoutStrict)
         |> Combine.andMap fileDeclarations
         |> Combine.andMap collectComments
+        |> Combine.ignore Layout.optimisticLayout
 
 
 collectComments : Parser State (List (Ranged String))
@@ -28,6 +32,7 @@ collectComments =
 
 fileDeclarations : Parser State (List (Ranged Declaration))
 fileDeclarations =
-    sepBy Layout.layoutAndNewLine (ranged declaration)
-        |> Combine.ignore (maybe Layout.layout)
-        |> Combine.ignore (maybe Layout.layoutAndNewLine)
+    many
+        (declaration
+            |> Combine.ignore (maybe Layout.layoutStrict)
+        )

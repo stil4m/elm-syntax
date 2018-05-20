@@ -43,7 +43,7 @@ type Module
 -}
 type alias DefaultModuleData =
     { moduleName : ModuleName
-    , exposingList : Exposing (Ranged TopLevelExpose)
+    , exposingList : Exposing
     }
 
 
@@ -51,7 +51,7 @@ type alias DefaultModuleData =
 -}
 type alias EffectModuleData =
     { moduleName : ModuleName
-    , exposingList : Exposing (Ranged TopLevelExpose)
+    , exposingList : Exposing
     , command : Maybe String
     , subscription : Maybe String
     }
@@ -62,7 +62,7 @@ type alias EffectModuleData =
 type alias Import =
     { moduleName : ModuleName
     , moduleAlias : Maybe ModuleName
-    , exposingList : Maybe (Exposing (Ranged TopLevelExpose))
+    , exposingList : Maybe Exposing
     , range : Range
     }
 
@@ -84,7 +84,7 @@ moduleName m =
 
 {-| Get the exposing list for a module.
 -}
-exposingList : Module -> Exposing (Ranged TopLevelExpose)
+exposingList : Module -> Exposing
 exposingList m =
     case m of
         NormalModule x ->

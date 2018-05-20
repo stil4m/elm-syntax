@@ -263,6 +263,9 @@ inspectInnerExpression config expression context =
         Operator _ ->
             context
 
+        Hex _ ->
+            context
+
         Integer _ ->
             context
 

@@ -26,6 +26,7 @@ onTypeAlias ( r, typeAlias ) file =
     let
         docs =
             List.filter (isDocumentationForRange r) file.comments
+                |> Debug.log "Docs"
     in
     case List.head docs of
         Just (( docRange, docString ) as doc) ->
@@ -92,8 +93,9 @@ isDocumentationForRange range ( commentRange, commentText ) =
         let
             functionStartRow =
                 range.start.row
+                    |> Debug.log "Start?"
         in
-        (commentRange.end.row + 1) == functionStartRow
+        (Debug.log "end" commentRange.end.row + 1) == functionStartRow
 
     else
         False

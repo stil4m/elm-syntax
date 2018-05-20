@@ -1,4 +1,4 @@
-module Elm.Parser.Ranges exposing (ranged, rangedWithCustomStart, withRange, withRangeCustomStart)
+module Elm.Parser.Ranges exposing (ranged, rangedWithCustomStart, withCurrentPoint, withRange, withRangeCustomStart)
 
 import Combine exposing (ParseLocation, Parser, andMap, succeed, withLocation)
 import Elm.Parser.State exposing (State)
@@ -39,6 +39,18 @@ withRange p =
                                 }
                         )
                     )
+        )
+
+
+withCurrentPoint : (Range -> Parser State a) -> Parser State a
+withCurrentPoint p =
+    withLocation
+        (\start ->
+            let
+                k =
+                    asPointerLocation start
+            in
+            p { start = k, end = k }
         )
 
 

@@ -1,6 +1,7 @@
 module Combine.Num exposing (float, int)
 
 import Combine exposing (Parser, string, succeed)
+import Parser as Core
 
 
 unwrap : res -> (String -> Maybe res) -> String -> res
@@ -10,7 +11,6 @@ unwrap default f s =
             res
 
         Nothing ->
-            -- Debug.todo "impossible state in Combine.Num.unwrap"
             default
 
 
@@ -36,15 +36,9 @@ sign =
 
 int : Parser s Int
 int =
-    Combine.succeed (*)
-        |> Combine.andMap sign
-        |> Combine.andMap (Combine.map toInt (Combine.regex "(0|[1-9][0-9]*)"))
-        |> Combine.setError "expected an integer"
+    Combine.fromCore Core.int
 
 
 float : Parser s Float
 float =
-    Combine.succeed ((*) << Basics.toFloat)
-        |> Combine.andMap sign
-        |> Combine.andMap (Combine.map toFloat (Combine.regex "(0|[1-9][0-9]*)(\\.[0-9]+)"))
-        |> Combine.setError "expected a float"
+    Combine.fromCore Core.float

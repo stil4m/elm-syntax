@@ -1,4 +1,4 @@
-module Elm.Parser.Expose exposing (definitionExpose, exposable, exposeDefinition, exposingListInner, infixExpose, typeExpose)
+module Elm.Parser.Expose exposing (exposable, exposeDefinition, exposingListInner, functionExpose, infixExpose, typeExpose)
 
 import Combine exposing (Parser, choice, maybe, or, parens, sepBy, string, succeed, while)
 import Combine.Char exposing (char)
@@ -10,40 +10,67 @@ import Elm.Syntax.Exposing exposing (ExposedType, Exposing(..), TopLevelExpose(.
 import Elm.Syntax.Ranged exposing (Ranged)
 
 
-exposeDefinition : Parser State a -> Parser State (Exposing a)
-exposeDefinition p =
-    Layout.layout
-        |> Combine.continueWith exposingToken
+exposeDefinition : Parser State Exposing
+exposeDefinition =
+    exposingToken
         |> Combine.continueWith (maybe Layout.layout)
-        |> Combine.continueWith (exposeListWith p)
+        |> Combine.continueWith exposeListWith
+
+
+exposeListWith : Parser State Exposing
+exposeListWith =
+    parens (Layout.optimisticLayout |> Combine.continueWith exposingListInner |> Combine.ignore Layout.optimisticLayout)
+
+
+exposingListInner : Parser State Exposing
+exposingListInner =
+    Combine.lazy
+        (\() ->
+            or (withRange (succeed All |> Combine.ignore (Layout.maybeAroundBothSides (string ".."))))
+                (Combine.map Explicit (sepBy (char ',') (Layout.maybeAroundBothSides exposable)))
+        )
 
 
 exposable : Parser State (Ranged TopLevelExpose)
 exposable =
-    choice
-        [ typeExpose
-        , infixExpose
-        , definitionExpose
-        ]
+    Combine.lazy
+        (\() ->
+            choice
+                [ typeExpose
+                , infixExpose
+                , functionExpose
+                ]
+        )
 
 
 infixExpose : Parser State (Ranged TopLevelExpose)
 infixExpose =
-    ranged (Combine.map InfixExpose (parens (while ((/=) ')'))))
+    Combine.lazy
+        (\() ->
+            ranged (Combine.map InfixExpose (parens (while ((/=) ')'))))
+        )
 
 
 typeExpose : Parser State (Ranged TopLevelExpose)
 typeExpose =
-    ranged (Combine.map TypeExpose exposedType)
+    Combine.lazy
+        (\() ->
+            ranged exposedType
+        )
 
 
-exposedType : Parser State ExposedType
+exposedType : Parser State TopLevelExpose
 exposedType =
-    succeed ExposedType
+    succeed identity
         |> Combine.andMap typeName
-        |> Combine.andMap
-            (maybe Layout.layout
-                |> Combine.continueWith (Combine.map Just (exposeListWith valueConstructorExpose))
+        |> Combine.ignore (maybe Layout.layout)
+        |> Combine.andThen
+            (\tipe ->
+                Combine.choice
+                    [ ranged (parens (Layout.maybeAroundBothSides (string "..")))
+                        |> Combine.map (Tuple.first >> Just >> (\v -> ExposedType tipe v) >> TypeExpose)
+                    , Combine.succeed (TypeOrAliasExpose tipe)
+                    ]
             )
 
 
@@ -52,20 +79,6 @@ valueConstructorExpose =
     ranged typeName
 
 
-exposingListInner : Parser State b -> Parser State (Exposing b)
-exposingListInner p =
-    or (withRange (succeed All |> Combine.ignore (Layout.maybeAroundBothSides (string ".."))))
-        (Combine.map Explicit (sepBy (char ',') (Layout.maybeAroundBothSides p)))
-
-
-exposeListWith : Parser State b -> Parser State (Exposing b)
-exposeListWith p =
-    parens (exposingListInner p)
-
-
-definitionExpose : Parser State (Ranged TopLevelExpose)
-definitionExpose =
-    ranged <|
-        or
-            (Combine.map FunctionExpose functionName)
-            (Combine.map TypeOrAliasExpose typeName)
+functionExpose : Parser State (Ranged TopLevelExpose)
+functionExpose =
+    ranged (Combine.map FunctionExpose functionName)

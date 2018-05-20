@@ -8,12 +8,17 @@ import Expect
 import Test exposing (..)
 
 
+main =
+    Tuple.second all
+
+
 all : Test
 all =
     describe "ImportTest"
         [ test "import with explicits" <|
             \() ->
                 parseFullStringWithNullState "import Foo exposing (Model, Msg(..))" Parser.importDefinition
+                    |> Debug.log "Foo"
                     |> Maybe.map noRangeImport
                     |> Expect.equal
                         (Just
@@ -23,7 +28,7 @@ all =
                                 Just <|
                                     Explicit
                                         [ ( emptyRange, TypeOrAliasExpose "Model" )
-                                        , ( emptyRange, TypeExpose (ExposedType "Msg" (Just <| All emptyRange)) )
+                                        , ( emptyRange, TypeExpose (ExposedType "Msg" (Just emptyRange)) )
                                         ]
                             , range = emptyRange
                             }

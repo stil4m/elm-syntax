@@ -31,6 +31,7 @@ type Pattern
     | CharPattern Char
     | StringPattern String
     | IntPattern Int
+    | HexPattern Int
     | FloatPattern Float
     | TuplePattern (List (Ranged Pattern))
     | RecordPattern (List VariablePointer)

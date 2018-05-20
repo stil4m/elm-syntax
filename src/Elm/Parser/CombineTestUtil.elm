@@ -6,6 +6,7 @@ import Elm.Syntax.Declaration exposing (..)
 import Elm.Syntax.Exposing exposing (..)
 import Elm.Syntax.Expression exposing (..)
 import Elm.Syntax.File exposing (..)
+import Elm.Syntax.Infix exposing (..)
 import Elm.Syntax.Module exposing (..)
 import Elm.Syntax.Pattern exposing (..)
 import Elm.Syntax.Range exposing (Range, emptyRange)
@@ -17,13 +18,13 @@ import Elm.Syntax.TypeAnnotation exposing (..)
 
 pushIndent : Int -> Parser State b -> Parser State b
 pushIndent x p =
-    modifyState (Elm.Parser.State.pushIndent x) *> p
+    modifyState (Elm.Parser.State.pushColumn (x + 1)) |> Combine.continueWith p
 
 
 parseFullStringState : State -> String -> Parser State b -> Maybe b
 parseFullStringState state s p =
-    case Combine.runParser (p <* Combine.end) state s of
-        Ok ( _, _, r ) ->
+    case Combine.runParser (p |> Combine.ignore Combine.end) state s of
+        Ok ( _, r ) ->
             Just r
 
         _ ->
@@ -32,8 +33,8 @@ parseFullStringState state s p =
 
 parseStateToMaybe : State -> String -> Parser State b -> Maybe ( b, State )
 parseStateToMaybe state s p =
-    case Combine.runParser (p <* Combine.end) state s of
-        Ok ( x, _, r ) ->
+    case Combine.runParser (p |> Combine.ignore Combine.end) state s of
+        Ok ( x, r ) ->
             Just ( r, x )
 
         _ ->
@@ -42,8 +43,8 @@ parseStateToMaybe state s p =
 
 parseFullStringWithNullState : String -> Parser State b -> Maybe b
 parseFullStringWithNullState s p =
-    case Combine.runParser (p <* Combine.end) emptyState s of
-        Ok ( _, _, r ) ->
+    case Combine.runParser (p |> Combine.ignore Combine.end) emptyState s |> Debug.log "Result" of
+        Ok ( _, r ) ->
             Just r
 
         _ ->
@@ -52,8 +53,28 @@ parseFullStringWithNullState s p =
 
 parseFullString : String -> Parser () b -> Maybe b
 parseFullString s p =
-    case Combine.parse (p <* Combine.end) s of
-        Ok ( _, _, r ) ->
+    case Combine.parse (p |> Combine.ignore Combine.end) s of
+        Ok ( _, r ) ->
+            Just r
+
+        _ ->
+            Nothing
+
+
+parseAsFarAsPossibleWithState : State -> String -> Parser State b -> Maybe b
+parseAsFarAsPossibleWithState state s p =
+    case Combine.runParser p state s of
+        Ok ( _, r ) ->
+            Just r
+
+        _ ->
+            Nothing
+
+
+parseAsFarAsPossible : String -> Parser () b -> Maybe b
+parseAsFarAsPossible s p =
+    case Combine.parse p s of
+        Ok ( _, r ) ->
             Just r
 
         _ ->
@@ -62,7 +83,7 @@ parseFullString s p =
 
 emptyRanged : Expression -> Ranged Expression
 emptyRanged =
-    (,) emptyRange
+    \a -> ( emptyRange, a )
 
 
 noRangeExpression : Ranged Expression -> Ranged Expression
@@ -99,7 +120,7 @@ noRangeImport imp =
     }
 
 
-noRangeExposingList : Exposing (Ranged TopLevelExpose) -> Exposing (Ranged TopLevelExpose)
+noRangeExposingList : Exposing -> Exposing
 noRangeExposingList x =
     case x of
         All r ->
@@ -141,6 +162,9 @@ noRangePattern ( r, p ) =
 
         StringPattern s ->
             StringPattern s
+
+        HexPattern h ->
+            HexPattern h
 
         FloatPattern f ->
             FloatPattern f
@@ -185,21 +209,18 @@ noRangeExpose ( _, l ) =
         TypeOrAliasExpose s ->
             TypeOrAliasExpose s
 
-        TypeExpose { name, constructors } ->
-            let
-                newT =
-                    case constructors of
-                        Nothing ->
-                            Nothing
-
-                        Just (All r) ->
-                            Just <| All emptyRange
-
-                        Just (Explicit list) ->
-                            Just <| Explicit <| List.map (Tuple.mapFirst (always emptyRange)) list
-            in
-            TypeExpose (ExposedType name newT)
+        TypeExpose { name, open } ->
+            TypeExpose (ExposedType name (Maybe.map (always emptyRange) open))
     )
+
+
+noRangeInfix : Infix -> Infix
+noRangeInfix { direction, precedence, operator, function } =
+    Infix
+        (unRanged identity direction)
+        (unRanged identity precedence)
+        (unRanged identity operator)
+        (unRanged identity function)
 
 
 noRangeDeclaration : Declaration -> Declaration
@@ -260,21 +281,16 @@ noRangeTypeReference ( _, typeAnnotation ) =
             Tupled (List.map noRangeTypeReference a)
 
         Record a ->
-            Record (List.map noRangeRecordField a)
+            Record (List.map (Tuple.mapSecond noRangeTypeReference) a)
 
         GenericRecord a b ->
-            GenericRecord a (List.map noRangeRecordField b)
+            GenericRecord a (List.map (Tuple.mapSecond noRangeTypeReference) b)
 
         FunctionTypeAnnotation a b ->
             FunctionTypeAnnotation
                 (noRangeTypeReference a)
                 (noRangeTypeReference b)
     )
-
-
-noRangeRecordField : RecordField -> RecordField
-noRangeRecordField =
-    Tuple.mapSecond noRangeTypeReference
 
 
 noRangeTypeDeclaration : Type -> Type
@@ -297,7 +313,7 @@ noRangeFunction f =
 
 noRangeSignature : FunctionSignature -> FunctionSignature
 noRangeSignature signature =
-    { signature | typeAnnotation = noRangeTypeReference signature.typeAnnotation }
+    { signature | typeAnnotation = noRangeTypeReference signature.typeAnnotation, name = unRange signature.name }
 
 
 noRangeFunctionDeclaration : FunctionDeclaration -> FunctionDeclaration

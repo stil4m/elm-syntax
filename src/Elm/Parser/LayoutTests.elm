@@ -7,6 +7,10 @@ import Expect
 import Test exposing (..)
 
 
+main =
+    Tuple.second all
+
+
 all : Test
 all =
     describe "LayoutTests"

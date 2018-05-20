@@ -1,41 +1,38 @@
 module Combine.Char exposing (anyChar, char, oneOf)
 
 import Combine exposing (Parser, primitive)
+import Parser as Core
 
 
 char : Char -> Parser s Char
 char c =
     satisfy ((==) c)
-        |> Combine.setError ("expected '" ++ String.fromList [ c ] ++ "'")
+        |> Combine.andThen (Maybe.map Combine.succeed >> Maybe.withDefault (Combine.fail ("expected '" ++ String.fromList [ c ] ++ "'")))
 
 
 anyChar : Parser s Char
 anyChar =
     satisfy (always True)
-        |> Combine.setError "expected any character"
+        |> Combine.andThen (Maybe.map Combine.succeed >> Maybe.withDefault (Combine.fail "expected any character"))
 
 
 oneOf : List Char -> Parser s Char
 oneOf cs =
     satisfy (\a -> List.member a cs)
-        |> Combine.setError ("expected one of '" ++ String.fromList cs ++ "'")
+        |> Combine.andThen (Maybe.map Combine.succeed >> Maybe.withDefault (Combine.fail ("expected one of '" ++ String.fromList cs ++ "'")))
 
 
-satisfy : (Char -> Bool) -> Parser s Char
+satisfy : (Char -> Bool) -> Parser s (Maybe Char)
 satisfy pred =
-    primitive <|
-        \state stream ->
-            let
-                message =
-                    "could not satisfy predicate"
-            in
-            case String.uncons stream.input of
-                Just ( h, rest ) ->
-                    if pred h then
-                        ( state, { stream | input = rest, position = stream.position + 1 }, Ok h )
+    Combine.fromCore
+        (Core.getChompedString (Core.chompIf pred)
+            |> Core.andThen
+                (\s ->
+                    case String.toList s of
+                        [] ->
+                            Core.succeed Nothing
 
-                    else
-                        ( state, stream, Err [ message ] )
-
-                Nothing ->
-                    ( state, stream, Err [ message ] )
+                        c :: _ ->
+                            Core.succeed (Just c)
+                )
+        )

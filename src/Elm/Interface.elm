@@ -81,7 +81,7 @@ exposesFunction k interface =
                         List.member k constructors
 
                     Operator inf ->
-                        inf.operator == k
+                        Tuple.second inf.operator == k
 
                     Alias _ ->
                         False
@@ -144,15 +144,12 @@ buildInterfaceFromExplicit x fileDefinitionList =
                         Just <| Function s
 
                     TypeExpose exposedType ->
-                        case exposedType.constructors of
+                        case exposedType.open of
                             Nothing ->
                                 Just <| Type ( exposedType.name, [] )
 
-                            Just (All _) ->
+                            Just _ ->
                                 lookupForDefinition exposedType.name fileDefinitionList
-
-                            Just (Explicit v) ->
-                                Just <| Type ( exposedType.name, List.map Tuple.second v )
             )
 
 
@@ -181,24 +178,13 @@ fileToDefinitions file =
                                 Just ( a.name, Alias a.name )
 
                             PortDeclaration p ->
-                                Just ( p.name, Function p.name )
+                                Just ( p.name.value, Function p.name.value )
 
                             FuncDecl f ->
-                                if f.declaration.operatorDefinition then
-                                    Just
-                                        ( f.declaration.name.value
-                                        , Operator
-                                            { operator = f.declaration.name.value
-                                            , precedence = 5
-                                            , direction = Left
-                                            }
-                                        )
-
-                                else
-                                    Just ( f.declaration.name.value, Function f.declaration.name.value )
+                                Just ( f.declaration.name.value, Function f.declaration.name.value )
 
                             InfixDeclaration i ->
-                                Just ( i.operator, Operator i )
+                                Just ( Tuple.second i.operator, Operator i )
 
                             Destructuring _ _ ->
                                 Nothing
@@ -208,7 +194,7 @@ fileToDefinitions file =
         getValidOperatorInterface t1 t2 =
             case ( t1, t2 ) of
                 ( Operator x, Operator y ) ->
-                    if x.precedence == 5 && x.direction == Left then
+                    if Tuple.second x.precedence == 5 && Tuple.second x.direction == Left then
                         Just <| Operator y
 
                     else

@@ -4,6 +4,7 @@ module Elm.Parser.Tokens
         , caseToken
         , characterLiteral
         , elseToken
+        , escapedCharValue
         , exposingToken
         , functionName
         , functionOrTypeName
@@ -21,14 +22,23 @@ module Elm.Parser.Tokens
         )
 
 import Char exposing (fromCode)
-import Combine exposing (Parser, between, choice, count, fail, lookAhead, many, many1, or, regex, string, succeed)
+import Combine exposing (Parser, between, choice, count, fail, many, many1, or, string, succeed)
 import Combine.Char exposing (anyChar, char, oneOf)
 import Dict exposing (Dict)
 import Hex
+import Parser as Core exposing ((|.), (|=), Nestable(..), Step(..))
+import Set
 
 
 reserved : Dict String Bool
 reserved =
+    reservedList
+        |> List.map (\c -> ( c, True ))
+        |> Dict.fromList
+
+
+reservedList : List String
+reservedList =
     [ "module"
     , "exposing"
     , "import"
@@ -43,13 +53,12 @@ reserved =
     , "port"
     , "infixr"
     , "infixl"
+    , "infix"
     , "type"
 
     --, "alias" Apparently this is not a reserved keyword
     , "where"
     ]
-        |> List.map (\c -> ( c, True ))
-        |> Dict.fromList
 
 
 portToken : Parser s String
@@ -131,25 +140,49 @@ escapedChar =
                 , succeed '\u{000C}' |> Combine.ignore (char 'f')
                 , succeed '\u{000D}' |> Combine.ignore (char 'r')
                 , succeed '\u{000B}' |> Combine.ignore (char 'v')
-                , (char 'x' |> Combine.continueWith (regex "[0-9A-Fa-f]{2}"))
-                    |> Combine.andThen
+                , (Core.succeed identity
+                    |. Core.symbol "x"
+                    |= Core.getChompedString
+                        (Core.succeed ()
+                            |. Core.chompIf Char.isHexDigit
+                            |. Core.chompIf Char.isHexDigit
+                        )
+                  )
+                    |> Core.andThen
                         (\l ->
                             case Hex.fromString <| String.toLower l of
                                 Ok x ->
-                                    succeed (fromCode x)
+                                    Core.succeed (fromCode x)
 
                                 Err x ->
-                                    fail x
+                                    Core.problem x
                         )
+                    |> Combine.fromCore
                 ]
             )
 
 
+escapedCharValue : Core.Parser Char
+escapedCharValue =
+    Core.oneOf
+        [ Core.succeed '\'' |. Core.symbol "'"
+        , Core.succeed '"' |. Core.symbol "\""
+        , Core.succeed '\n' |. Core.symbol "n"
+        , Core.succeed '\t' |. Core.symbol "t"
+        , Core.succeed '\\' |. Core.symbol "\\"
+        ]
+
+
 quotedSingleQuote : Parser s Char
 quotedSingleQuote =
-    char '\''
-        |> Combine.continueWith escapedChar
-        |> Combine.ignore (char '\'')
+    Core.succeed (String.toList >> List.head >> Maybe.withDefault ' ')
+        |. Core.symbol "'"
+        |= Core.oneOf
+            [ Core.succeed (List.singleton >> String.fromList) |. Core.symbol "\\" |= escapedCharValue
+            , Core.getChompedString (Core.chompIf (always True))
+            ]
+        |. Core.symbol "'"
+        |> Combine.fromCore
 
 
 characterLiteral : Parser s Char
@@ -158,64 +191,109 @@ characterLiteral =
         (char '\'' |> Combine.continueWith anyChar |> Combine.ignore (char '\''))
 
 
+type alias StringLiteralLoopState =
+    { escaped : Bool, parts : List String }
+
+
 stringLiteral : Parser s String
 stringLiteral =
-    char '"'
-        |> Combine.continueWith
-            (many
-                (choice
-                    [ regex "[^\\\\\\\"]+"
-                    , Combine.map String.fromChar escapedChar
+    let
+        helper : StringLiteralLoopState -> Core.Parser (Step StringLiteralLoopState String)
+        helper s =
+            if s.escaped then
+                escapedCharValue
+                    |> Core.map
+                        (\v ->
+                            Loop { s | escaped = False, parts = String.fromList [ v ] :: s.parts }
+                        )
+
+            else
+                Core.oneOf
+                    [ Core.symbol "\""
+                        |> Core.map (\_ -> Done (String.concat <| List.reverse s.parts))
+                    , Core.getChompedString (Core.symbol "\\")
+                        |> Core.map (\v -> Loop { s | escaped = True, parts = s.parts })
+                    , Core.succeed (\start value end -> ( start, value, end ))
+                        |= Core.getOffset
+                        |= Core.getChompedString (Core.chompWhile (\c -> c /= '"' && c /= '\\'))
+                        |= Core.getOffset
+                        |> Core.andThen
+                            (\( start, value, end ) ->
+                                if start == end then
+                                    Core.problem "Expected a string character or a double quote"
+
+                                else
+                                    Core.succeed (Loop { s | parts = value :: s.parts })
+                            )
                     ]
-                )
-                |> Combine.map String.concat
-            )
-        |> Combine.ignore (char '"')
+    in
+    Core.succeed identity
+        |. Core.symbol "\""
+        |= Core.loop { escaped = False, parts = [] } helper
+        |> Combine.fromCore
+
+
+type alias MultilineStringLiteralLoopState =
+    { escaped : Bool, parts : List String, counter : Int }
 
 
 multiLineStringLiteral : Parser s String
 multiLineStringLiteral =
-    between
-        (string "\"\"\"")
-        (string "\"\"\"")
-        (Combine.map String.concat
-            (many
-                (or (regex "[^\\\\\\\"]+")
-                    (lookAhead (count 3 anyChar)
-                        |> Combine.andThen
-                            (\x ->
-                                if x == [ '"', '"', '"' ] then
-                                    fail "end of input"
+    let
+        helper : MultilineStringLiteralLoopState -> Core.Parser (Step MultilineStringLiteralLoopState String)
+        helper s =
+            if s.escaped then
+                escapedCharValue
+                    |> Core.map (\v -> Loop { s | escaped = False, parts = String.fromList [ v ] :: s.parts })
+
+            else
+                Core.oneOf
+                    [ Core.symbol "\"\"\""
+                        |> Core.map (\_ -> Done (String.concat s.parts))
+                    , Core.symbol "\""
+                        |> Core.getChompedString
+                        |> Core.map (\v -> Loop { s | counter = s.counter + 1, parts = v :: s.parts })
+                    , Core.symbol "\\"
+                        |> Core.getChompedString
+                        |> Core.map (\v -> Loop { s | counter = s.counter + 1, escaped = True, parts = s.parts })
+                    , Core.succeed (\start value end -> ( start, value, end ))
+                        |= Core.getOffset
+                        |= Core.getChompedString (Core.chompWhile (\c -> c /= '"' && c /= '\\'))
+                        |= Core.getOffset
+                        |> Core.andThen
+                            (\( start, value, end ) ->
+                                if start == end then
+                                    Core.problem "Expected a string character or a triple double quote"
 
                                 else
-                                    Combine.map String.fromChar (or escapedChar anyChar)
+                                    Core.succeed (Loop { s | counter = s.counter + 1, parts = value :: s.parts })
                             )
-                    )
-                )
-            )
-        )
-
-
-functionNamePattern : String
-functionNamePattern =
-    "[a-z][a-zA-Z0-9_]*'?"
-
-
-functionNamePatternInfix : String
-functionNamePatternInfix =
-    "`([A-Z][a-zA-Z0-9_]*\\.)*[a-z][a-zA-Z0-9_]*'?`"
+                    ]
+    in
+    Core.succeed identity
+        |. Core.symbol "\"\"\""
+        |= Core.loop { escaped = False, parts = [], counter = 0 } helper
+        |> Combine.fromCore
 
 
 functionName : Parser s String
 functionName =
-    or
-        (regex functionNamePatternInfix)
-        (regex functionNamePattern |> Combine.andThen notReserved)
+    Core.variable
+        { start = Char.isLower
+        , inner = \c -> Char.isAlphaNum c || c == '_'
+        , reserved = Set.fromList reservedList
+        }
+        |> Combine.fromCore
 
 
 typeName : Parser s String
 typeName =
-    regex "[A-Z][a-zA-Z0-9_]*"
+    Core.variable
+        { start = Char.isUpper
+        , inner = \c -> Char.isAlphaNum c || c == '_'
+        , reserved = Set.fromList reservedList
+        }
+        |> Combine.fromCore
 
 
 excludedOperators : List String

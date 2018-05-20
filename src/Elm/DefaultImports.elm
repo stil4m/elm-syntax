@@ -28,14 +28,7 @@ defaults =
                 Explicit
                     [ ( Range.emptyRange
                       , TypeExpose
-                            (ExposedType "Maybe"
-                                (Just <|
-                                    Explicit
-                                        [ ( Range.emptyRange, "Just" )
-                                        , ( Range.emptyRange, "Nothing" )
-                                        ]
-                                )
-                            )
+                            (ExposedType "Maybe" (Just Range.emptyRange))
                       )
                     ]
       , moduleAlias = Nothing
@@ -47,14 +40,7 @@ defaults =
                 Explicit
                     [ ( Range.emptyRange
                       , TypeExpose
-                            (ExposedType "Result"
-                                (Just <|
-                                    Explicit
-                                        [ ( Range.emptyRange, "Ok" )
-                                        , ( Range.emptyRange, "Err" )
-                                        ]
-                                )
-                            )
+                            (ExposedType "Result" (Just Range.emptyRange))
                       )
                     ]
       , moduleAlias = Nothing

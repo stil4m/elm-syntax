@@ -10,6 +10,10 @@ import Expect
 import Test exposing (..)
 
 
+main =
+    Tuple.second all
+
+
 all : Test
 all =
     describe "Case expression tests"
@@ -107,21 +111,21 @@ all =
                         (Just
                             (CaseExpression
                                 { expression =
-                                    ( { start = { row = 0, column = 5 }, end = { row = 0, column = 6 } }
+                                    ( { start = { row = 1, column = 6 }, end = { row = 1, column = 7 } }
                                     , FunctionOrValue "f"
                                     )
                                 , cases =
-                                    [ ( ( { start = { row = 1, column = 2 }, end = { row = 1, column = 6 } }
+                                    [ ( ( { start = { row = 2, column = 3 }, end = { row = 2, column = 7 } }
                                         , NamedPattern (QualifiedNameRef [] "True") []
                                         )
-                                      , ( { start = { row = 1, column = 10 }, end = { row = 1, column = 11 } }
+                                      , ( { start = { row = 2, column = 11 }, end = { row = 2, column = 12 } }
                                         , Integer 1
                                         )
                                       )
-                                    , ( ( { start = { row = 2, column = 2 }, end = { row = 2, column = 7 } }
+                                    , ( ( { start = { row = 3, column = 3 }, end = { row = 3, column = 8 } }
                                         , NamedPattern (QualifiedNameRef [] "False") []
                                         )
-                                      , ( { start = { row = 2, column = 11 }, end = { row = 2, column = 12 } }
+                                      , ( { start = { row = 3, column = 12 }, end = { row = 3, column = 13 } }
                                         , Integer 2
                                         )
                                       )

@@ -10,6 +10,12 @@ import Elm.Parser.Tokens exposing (asToken, importToken)
 import Elm.Syntax.Module exposing (Import)
 
 
+log : String -> Parser State a -> Parser State a
+log n p =
+    -- Combine.map (Debug.log n)
+    p
+
+
 importDefinition : Parser State Import
 importDefinition =
     let
@@ -19,17 +25,28 @@ importDefinition =
                 |> Combine.continueWith moduleName
 
         asDefinition =
-            Layout.layout
-                |> Combine.continueWith asToken
+            asToken
                 |> Combine.continueWith Layout.layout
                 |> Combine.continueWith moduleName
 
-        importExposing =
-            exposeDefinition exposable
+        parseExposingDefinition mod asDef =
+            Combine.choice
+                [ exposeDefinition
+                    |> Combine.map (Just >> Import mod asDef)
+                , Combine.succeed (Import mod asDef Nothing)
+                ]
+
+        parseAsDefinition mod =
+            Combine.choice
+                [ asDefinition
+                    |> Combine.ignore Layout.optimisticLayout
+                    |> Combine.andThen (Just >> parseExposingDefinition mod)
+                , parseExposingDefinition mod Nothing
+                ]
     in
-    withRange <|
-        (succeed Import
-            |> Combine.andMap importAndModuleName
-            |> Combine.andMap (maybe asDefinition)
-            |> Combine.andMap (maybe importExposing)
-        )
+    log "import done" <|
+        withRange <|
+            (importAndModuleName
+                |> Combine.ignore Layout.optimisticLayout
+                |> Combine.andThen parseAsDefinition
+            )

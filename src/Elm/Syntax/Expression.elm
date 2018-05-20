@@ -12,6 +12,7 @@ module Elm.Syntax.Expression
         , LetDeclaration(..)
         , RecordSetter
         , RecordUpdate
+        , functionRange
         , isCase
         , isIfElse
         , isLambda
@@ -57,6 +58,7 @@ import Elm.Syntax.Base exposing (ModuleName, VariablePointer)
 import Elm.Syntax.Documentation exposing (Documentation)
 import Elm.Syntax.Infix exposing (InfixDirection)
 import Elm.Syntax.Pattern exposing (Pattern)
+import Elm.Syntax.Range as Range exposing (Range)
 import Elm.Syntax.Ranged exposing (Ranged)
 import Elm.Syntax.TypeAnnotation exposing (TypeAnnotation)
 
@@ -70,11 +72,25 @@ type alias Function =
     }
 
 
+functionRange : Function -> Range
+functionRange function =
+    Range.combine
+        [ case function.documentation of
+            Just d ->
+                d.range
+
+            Nothing ->
+                function.signature
+                    |> Maybe.map (Tuple.second >> .name >> .range)
+                    |> Maybe.withDefault function.declaration.name.range
+        , Tuple.first function.declaration.expression
+        ]
+
+
 {-| Type alias for declaring a function
 -}
 type alias FunctionDeclaration =
-    { operatorDefinition : Bool
-    , name : VariablePointer
+    { name : VariablePointer
     , arguments : List (Ranged Pattern)
     , expression : Ranged Expression
     }
@@ -83,8 +99,7 @@ type alias FunctionDeclaration =
 {-| Type alias for a function signature
 -}
 type alias FunctionSignature =
-    { operatorDefinition : Bool
-    , name : String
+    { name : VariablePointer
     , typeAnnotation : Ranged TypeAnnotation
     }
 
@@ -100,6 +115,7 @@ type Expression
     | PrefixOperator String
     | Operator String
     | Integer Int
+    | Hex Int
     | Floatable Float
     | Negation (Ranged Expression)
     | Literal String

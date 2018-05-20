@@ -137,14 +137,10 @@ encodeExpose ( range, exp ) =
 
 
 encodeExposedType : ExposedType -> Value
-encodeExposedType { name, constructors } =
+encodeExposedType { name, open } =
     object
         [ nameField name
-        , ( "inner"
-          , constructors
-                |> Maybe.map (\c -> encodeExposingList c encodeValueConstructorExpose)
-                |> Maybe.withDefault JE.null
-          )
+        , ( "open", open |> Maybe.map Range.encode |> Maybe.withDefault JE.null )
         ]
 
 
@@ -156,7 +152,7 @@ encodeValueConstructorExpose ( range, name ) =
         ]
 
 
-encodeExposingList : Exposing a -> (a -> Value) -> Value
+encodeExposingList : Exposing -> (Ranged TopLevelExpose -> Value) -> Value
 encodeExposingList exp f =
     case exp of
         All r ->
@@ -274,10 +270,9 @@ encodeRangedSignature ( range, functionSignature ) =
 
 
 encodeSignature : FunctionSignature -> Value
-encodeSignature { operatorDefinition, name, typeAnnotation } =
+encodeSignature { name, typeAnnotation } =
     object
-        [ ( "operatorDefinition", JE.bool operatorDefinition )
-        , nameField name
+        [ ( "name", encodeVariablePointer name )
         , ( "typeAnnotation", encodeTypeAnnotation typeAnnotation )
         ]
 
@@ -350,10 +345,9 @@ encodeRecordField ( name, ref ) =
 
 
 encodeFunctionDeclaration : FunctionDeclaration -> Value
-encodeFunctionDeclaration { operatorDefinition, name, arguments, expression } =
+encodeFunctionDeclaration { name, arguments, expression } =
     object
-        [ ( "operatorDefinition", JE.bool operatorDefinition )
-        , ( "name", encodeVariablePointer name )
+        [ ( "name", encodeVariablePointer name )
         , ( "arguments", asList encodePattern arguments )
         , ( "expression", encodeExpression expression )
         ]
@@ -390,6 +384,13 @@ encodePattern ( r, pattern ) =
                     encodeTyped "char"
                         (JE.object
                             [ ( "value", string v )
+                            ]
+                        )
+
+                HexPattern h ->
+                    encodeTyped "hex"
+                        (JE.object
+                            [ ( "value", JE.int h )
                             ]
                         )
 
@@ -512,6 +513,9 @@ encodeExpression ( range, inner ) =
 
                 Operator x ->
                     encodeTyped "operator" (string x)
+
+                Hex h ->
+                    encodeTyped "hex" (int h)
 
                 Integer x ->
                     encodeTyped "integer" (int x)

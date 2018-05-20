@@ -20,7 +20,7 @@ moduleDefinition =
 
 effectWhereClause : Parser State ( String, String )
 effectWhereClause =
-    succeed (\a b -> ( a, b ))
+    succeed Tuple.pair
         |> Combine.andMap functionName
         |> Combine.andMap (Layout.maybeAroundBothSides (string "=") |> Combine.continueWith typeName)
 
@@ -60,23 +60,26 @@ effectModuleDefinition =
                 }
     in
     succeed createEffectModule
-        |> Combine.andMap
-            (string "effect"
-                |> Combine.continueWith Layout.layout
-                |> Combine.continueWith moduleToken
-                |> Combine.continueWith Layout.layout
-                |> Combine.continueWith moduleName
-            )
-        |> Combine.andMap (Layout.layout |> Combine.continueWith effectWhereClauses)
-        |> Combine.andMap (exposeDefinition exposable)
+        |> Combine.ignore (string "effect")
+        |> Combine.ignore Layout.layout
+        |> Combine.ignore moduleToken
+        |> Combine.ignore Layout.layout
+        |> Combine.andMap moduleName
+        |> Combine.ignore Layout.layout
+        |> Combine.andMap effectWhereClauses
+        |> Combine.ignore Layout.layout
+        |> Combine.andMap exposeDefinition
 
 
 normalModuleDefinition : Parser State Module
 normalModuleDefinition =
     Combine.map NormalModule
         (succeed DefaultModuleData
-            |> Combine.andMap (moduleToken |> Combine.continueWith Layout.layout |> Combine.continueWith moduleName)
-            |> Combine.andMap (exposeDefinition exposable)
+            |> Combine.ignore moduleToken
+            |> Combine.ignore Layout.layout
+            |> Combine.andMap moduleName
+            |> Combine.ignore Layout.layout
+            |> Combine.andMap exposeDefinition
         )
 
 
@@ -84,12 +87,11 @@ portModuleDefinition : Parser State Module
 portModuleDefinition =
     Combine.map PortModule
         (succeed DefaultModuleData
-            |> Combine.andMap
-                (portToken
-                    |> Combine.continueWith Layout.layout
-                    |> Combine.continueWith moduleToken
-                    |> Combine.continueWith Layout.layout
-                    |> Combine.continueWith moduleName
-                )
-            |> Combine.andMap (exposeDefinition exposable)
+            |> Combine.ignore portToken
+            |> Combine.ignore Layout.layout
+            |> Combine.ignore moduleToken
+            |> Combine.ignore Layout.layout
+            |> Combine.andMap moduleName
+            |> Combine.ignore Layout.layout
+            |> Combine.andMap exposeDefinition
         )

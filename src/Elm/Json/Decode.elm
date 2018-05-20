@@ -59,7 +59,7 @@ decodeFile =
 
 decodeComment : Decoder (Ranged String)
 decodeComment =
-    succeed (\a b -> ( a, b ))
+    succeed Tuple.pair
         |> required "range" Range.decode
         |> required "text" string
 
@@ -96,7 +96,7 @@ decodeModuleName =
 
 decodeExpose : Decoder (Ranged TopLevelExpose)
 decodeExpose =
-    succeed (\a b -> ( a, b ))
+    succeed Tuple.pair
         |> required "range" Range.decode
         |> required "topLevel"
             (decodeTyped
@@ -115,17 +115,17 @@ decodeExposedType : Decoder ExposedType
 decodeExposedType =
     succeed ExposedType
         |> nameField
-        |> required "inner" (nullable (decodeExposingList decodeValueConstructorExpose))
+        |> required "open" (nullable Range.decode)
 
 
 decodeValueConstructorExpose : Decoder ValueConstructorExpose
 decodeValueConstructorExpose =
-    succeed (\a b -> ( a, b ))
+    succeed Tuple.pair
         |> rangeField
         |> nameField
 
 
-decodeExposingList : Decoder a -> Decoder (Exposing a)
+decodeExposingList : Decoder (Ranged TopLevelExpose) -> Decoder Exposing
 decodeExposingList x =
     lazy
         (\() ->
@@ -149,7 +149,7 @@ decodeDeclaration : Decoder (Ranged Declaration)
 decodeDeclaration =
     lazy
         (\() ->
-            succeed (\a b -> ( a, b ))
+            succeed Tuple.pair
                 |> rangeField
                 |> required "declaration"
                     (decodeTyped
@@ -209,7 +209,7 @@ decodeDocumentation =
 
 decodeRangedSignature : Decoder (Ranged FunctionSignature)
 decodeRangedSignature =
-    succeed (\a b -> ( a, b ))
+    succeed Tuple.pair
         |> rangeField
         |> required "signature" decodeSignature
 
@@ -217,8 +217,7 @@ decodeRangedSignature =
 decodeSignature : Decoder FunctionSignature
 decodeSignature =
     succeed FunctionSignature
-        |> required "operatorDefinition" bool
-        |> nameField
+        |> required "name" decodeVariablePointer
         |> required "typeAnnotation" decodeTypeAnnotation
 
 
@@ -226,7 +225,7 @@ decodeTypeAnnotation : Decoder (Ranged TypeAnnotation)
 decodeTypeAnnotation =
     lazy
         (\() ->
-            succeed (\a b -> ( a, b ))
+            succeed Tuple.pair
                 |> required "range" Range.decode
                 |> required "typeAnnotation"
                     (decodeTyped
@@ -264,7 +263,7 @@ decodeRecordField : Decoder RecordField
 decodeRecordField =
     lazy
         (\() ->
-            succeed (\a b -> ( a, b ))
+            succeed Tuple.pair
                 |> nameField
                 |> required "typeAnnotation" decodeTypeAnnotation
         )
@@ -275,7 +274,6 @@ decodeFunctionDeclaration =
     lazy
         (\() ->
             succeed FunctionDeclaration
-                |> required "operatorDefinition" bool
                 |> required "name" decodeVariablePointer
                 |> required "arguments" (list decodePattern)
                 |> required "expression" decodeExpression
@@ -307,7 +305,7 @@ decodePattern : Decoder (Ranged Pattern)
 decodePattern =
     lazy
         (\() ->
-            succeed (\a b -> ( a, b ))
+            succeed Tuple.pair
                 |> rangeField
                 |> required "pattern"
                     (decodeTyped
@@ -315,6 +313,7 @@ decodePattern =
                         , ( "unit", succeed UnitPattern )
                         , ( "char", field "value" decodeChar |> map CharPattern )
                         , ( "string", field "value" string |> map StringPattern )
+                        , ( "hex", int |> map HexPattern )
                         , ( "int", field "value" int |> map IntPattern )
                         , ( "float", field "value" float |> map FloatPattern )
                         , ( "tuple", field "value" (list decodePattern) |> map TuplePattern )
@@ -342,7 +341,7 @@ decodeExpression : Decoder (Ranged Expression)
 decodeExpression =
     lazy
         (\() ->
-            succeed (\a b -> ( a, b ))
+            succeed Tuple.pair
                 |> rangeField
                 |> required "inner" decodeInnerExpression
         )
@@ -360,6 +359,7 @@ decodeInnerExpression =
                 , ( "ifBlock", map3 IfBlock (field "clause" decodeExpression) (field "then" decodeExpression) (field "else" decodeExpression) )
                 , ( "prefixoperator", string |> map PrefixOperator )
                 , ( "operator", string |> map Operator )
+                , ( "hex", int |> map Hex )
                 , ( "integer", int |> map Integer )
                 , ( "float", float |> map Floatable )
                 , ( "negation", decodeExpression |> map Negation )
@@ -395,7 +395,7 @@ decodeRecordSetter : Decoder RecordSetter
 decodeRecordSetter =
     lazy
         (\() ->
-            succeed (\a b -> ( a, b ))
+            succeed Tuple.pair
                 |> required "field" string
                 |> required "expression" decodeExpression
         )
@@ -425,7 +425,7 @@ decodeCase : Decoder Case
 decodeCase =
     lazy
         (\() ->
-            succeed (\a b -> ( a, b ))
+            succeed Tuple.pair
                 |> required "pattern" decodePattern
                 |> required "expression" decodeExpression
         )
@@ -445,7 +445,7 @@ decodeLetDeclaration : Decoder (Ranged LetDeclaration)
 decodeLetDeclaration =
     lazy
         (\() ->
-            succeed (\a b -> ( a, b ))
+            succeed Tuple.pair
                 |> rangeField
                 |> required "declaration"
                     (decodeTyped

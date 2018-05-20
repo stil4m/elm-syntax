@@ -31,6 +31,7 @@
         "elm-test": "0.18.7",
         "fs-extra": "^5.0.0",
         "lodash": "^4.17.5",
+        "request": "^2.87.0",
         "scan-dir-recursive": "^1.0.11"
     }
 }

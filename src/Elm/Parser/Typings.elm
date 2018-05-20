@@ -1,48 +1,111 @@
-module Elm.Parser.Typings exposing (typeAlias, typeDeclaration)
+module Elm.Parser.Typings exposing (TypeDefinition(..), typeDefinition)
 
 import Combine exposing (Parser, many, maybe, sepBy, string, succeed)
 import Elm.Parser.Layout as Layout
-import Elm.Parser.Ranges exposing (withRange)
+import Elm.Parser.Ranges exposing (withCurrentPoint, withRange)
 import Elm.Parser.State exposing (State)
 import Elm.Parser.Tokens exposing (functionName, typeName)
-import Elm.Parser.TypeAnnotation exposing (typeAnnotation)
+import Elm.Parser.TypeAnnotation exposing (typeAnnotation, typeAnnotationNonGreedy)
+import Elm.Syntax.Range as Range exposing (Range)
 import Elm.Syntax.Type exposing (Type, ValueConstructor)
 import Elm.Syntax.TypeAlias exposing (TypeAlias)
 
 
-typeDeclaration : Parser State Type
-typeDeclaration =
-    succeed Type
-        |> Combine.andMap (typePrefix |> Combine.continueWith typeName)
-        |> Combine.andMap genericList
-        |> Combine.andMap (Layout.around (string "=") |> Combine.continueWith valueConstructors)
+type TypeDefinition
+    = DefinedType Range Type
+    | DefinedAlias Range TypeAlias
+
+
+typeDefinition : Parser State TypeDefinition
+typeDefinition =
+    withCurrentPoint
+        (\start ->
+            typePrefix
+                |> Combine.continueWith
+                    (Combine.choice
+                        [ succeed (TypeAlias Nothing)
+                            |> Combine.ignore (string "alias" |> Combine.continueWith Layout.layout)
+                            |> Combine.andMap (typeName |> Combine.ignore Layout.layout)
+                            |> Combine.andMap genericList
+                            |> Combine.ignore (string "=")
+                            |> Combine.ignore Layout.layout
+                            |> Combine.andMap typeAnnotation
+                            |> Combine.map
+                                (\typeAlias ->
+                                    DefinedAlias (Range.combine [ start, Tuple.first typeAlias.typeAnnotation ]) typeAlias
+                                )
+                        , succeed Type
+                            |> Combine.andMap typeName
+                            |> Combine.ignore (maybe Layout.layout)
+                            |> Combine.andMap genericList
+                            |> Combine.ignore (maybe Layout.layout)
+                            |> Combine.ignore (string "=" |> Combine.ignore (maybe Layout.layout))
+                            |> Combine.andMap valueConstructors
+                            |> Combine.map
+                                (\tipe ->
+                                    DefinedType (Range.combine (start :: List.map .range tipe.constructors)) tipe
+                                )
+                        ]
+                    )
+        )
 
 
 valueConstructors : Parser State (List ValueConstructor)
 valueConstructors =
-    sepBy (string "|") (maybe Layout.layout |> Combine.continueWith valueConstructor |> Combine.ignore (maybe Layout.layout))
+    Combine.lazy
+        (\() ->
+            Combine.succeed (::)
+                |> Combine.andMap valueConstructor
+                |> Combine.andMap
+                    (Combine.choice
+                        [ string "|"
+                            |> Combine.ignore (maybe Layout.layout)
+                            |> Combine.continueWith valueConstructors
+                        , Combine.succeed []
+                        ]
+                    )
+        )
 
 
 valueConstructor : Parser State ValueConstructor
 valueConstructor =
     withRange
         (succeed ValueConstructor
-            |> Combine.andMap typeName
-            |> Combine.andMap (many (Layout.layout |> Combine.continueWith typeAnnotation))
+            |> Combine.continueWith typeName
+            |> Combine.andThen
+                (\typeName ->
+                    let
+                        complete args =
+                            Combine.succeed (ValueConstructor typeName args)
+
+                        argHelper xs =
+                            Combine.succeed ()
+                                |> Combine.continueWith
+                                    (Combine.choice
+                                        [ typeAnnotationNonGreedy
+                                            |> Combine.andThen
+                                                (\ta ->
+                                                    Layout.optimisticLayoutWith
+                                                        (\() -> Combine.succeed (List.reverse (ta :: xs)))
+                                                        (\() -> argHelper (ta :: xs))
+                                                )
+                                        , Combine.succeed (List.reverse xs)
+                                        ]
+                                    )
+                    in
+                    Layout.optimisticLayoutWith
+                        (\() -> complete [])
+                        (\() ->
+                            argHelper []
+                                |> Combine.andThen complete
+                        )
+                )
         )
-
-
-typeAlias : Parser State TypeAlias
-typeAlias =
-    succeed (TypeAlias Nothing)
-        |> Combine.andMap (typeAliasPrefix |> Combine.continueWith typeName)
-        |> Combine.andMap genericList
-        |> Combine.andMap (Layout.around (string "=") |> Combine.continueWith typeAnnotation)
 
 
 genericList : Parser State (List String)
 genericList =
-    many (Layout.layout |> Combine.continueWith functionName)
+    many (functionName |> Combine.ignore Layout.layout)
 
 
 typePrefix : Parser State ()

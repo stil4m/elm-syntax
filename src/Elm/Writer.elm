@@ -118,7 +118,7 @@ writeModuleName moduleName =
     string (String.join "." moduleName)
 
 
-writeExposureExpose : Exposing (Ranged TopLevelExpose) -> Writer
+writeExposureExpose : Exposing -> Writer
 writeExposureExpose x =
     case x of
         All _ ->
@@ -148,31 +148,16 @@ writeExpose ( _, exp ) =
         TypeOrAliasExpose t ->
             string t
 
-        TypeExpose { name, constructors } ->
-            case constructors of
-                Just c ->
+        TypeExpose { name, open } ->
+            case open of
+                Just _ ->
                     spaced
                         [ string name
-                        , writeExposureValueConstructor c
+                        , string "(..)"
                         ]
 
                 Nothing ->
                     string name
-
-
-writeExposureValueConstructor : Exposing ValueConstructorExpose -> Writer
-writeExposureValueConstructor x =
-    case x of
-        All _ ->
-            string "(..)"
-
-        Explicit exposeList ->
-            let
-                diffLines =
-                    List.map Tuple.first exposeList
-                        |> startOnDifferentLines
-            in
-            parensComma diffLines (List.map (Tuple.second >> string) exposeList)
 
 
 startOnDifferentLines : List Range -> Bool
@@ -235,11 +220,7 @@ writeFunctionDeclaration : FunctionDeclaration -> Writer
 writeFunctionDeclaration declaration =
     breaked
         [ spaced
-            [ if declaration.operatorDefinition then
-                string ("(" ++ declaration.name.value ++ ")")
-
-              else
-                string declaration.name.value
+            [ string declaration.name.value
             , spaced (List.map writePattern declaration.arguments)
             , string "="
             ]
@@ -250,11 +231,7 @@ writeFunctionDeclaration declaration =
 writeSignature : FunctionSignature -> Writer
 writeSignature signature =
     spaced
-        [ if signature.operatorDefinition then
-            string ("(" ++ signature.name ++ ")")
-
-          else
-            string signature.name
+        [ string signature.name.value
         , string ":"
         , writeTypeAnnotation signature.typeAnnotation
         ]
@@ -312,16 +289,19 @@ writePortDeclaration signature =
 
 
 writeInfix : Infix -> Writer
-writeInfix { direction, precedence, operator } =
+writeInfix { direction, precedence, operator, function } =
     spaced
-        [ case direction of
+        [ string "infix"
+        , case Tuple.second direction of
             Left ->
-                string "infixl"
+                string "left"
 
             Right ->
-                string "infixr"
-        , string (String.fromInt precedence)
-        , string operator
+                string "right"
+        , string (String.fromInt (Tuple.second precedence))
+        , string (Tuple.second operator)
+        , string "="
+        , string (Tuple.second function)
         ]
 
 
@@ -453,6 +433,9 @@ writeExpression ( range, inner ) =
         Operator x ->
             string x
 
+        Hex h ->
+            string "TODO"
+
         Integer i ->
             string (String.fromInt i)
 
@@ -554,6 +537,9 @@ writePattern ( _, p ) =
 
         StringPattern s ->
             string s
+
+        HexPattern h ->
+            string "TODO"
 
         IntPattern i ->
             string (String.fromInt i)

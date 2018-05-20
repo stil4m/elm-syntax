@@ -1,11 +1,12 @@
 module Elm.Parser.Comments exposing (multilineComment, singleLineComment)
 
-import Combine exposing (Parser, count, lazy, lookAhead, manyTill, modifyState, sequence, string, succeed)
+import Combine exposing (Parser, count, lazy, modifyState, string, succeed)
 import Combine.Char exposing (anyChar)
 import Elm.Parser.Ranges exposing (withRange)
 import Elm.Parser.State exposing (State, addComment)
 import Elm.Parser.Whitespace exposing (untilNewlineToken)
 import Elm.Syntax.Ranged exposing (Ranged)
+import Parser as Core exposing (Nestable(..))
 
 
 addCommentToState : Parser State (Ranged String) -> Parser State ()
@@ -31,29 +32,8 @@ singleLineComment =
 
 multilineCommentInner : Parser State String
 multilineCommentInner =
-    lazy
-        (\() ->
-            Combine.map String.concat
-                (sequence
-                    [ string "{-"
-                    , Combine.map String.concat
-                        (manyTill
-                            (lookAhead (count 2 anyChar)
-                                |> Combine.andThen
-                                    (\x ->
-                                        if x == [ '{', '-' ] then
-                                            multilineCommentInner
-
-                                        else
-                                            Combine.map String.fromChar anyChar
-                                    )
-                            )
-                            (string "-}")
-                        )
-                    , succeed "-}"
-                    ]
-                )
-        )
+    Core.getChompedString (Core.multiComment "{-" "-}" Nestable)
+        |> Combine.fromCore
 
 
 multilineComment : Parser State ()

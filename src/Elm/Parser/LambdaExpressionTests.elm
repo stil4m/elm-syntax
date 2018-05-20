@@ -10,6 +10,10 @@ import Expect
 import Test exposing (..)
 
 
+main =
+    Tuple.second all
+
+
 all : Test
 all =
     describe "LambdaExpressionTests"
@@ -25,6 +29,12 @@ all =
                                 }
                             )
                         )
+        , test "function arg" <|
+            \() ->
+                parseAsFarAsPossibleWithState emptyState "a b" Parser.functionArgument
+                    |> Maybe.map Tuple.second
+                    |> Expect.equal
+                        (Just (VarPattern "a"))
         , test "args lambda" <|
             \() ->
                 parseFullStringState emptyState "\\a b -> a + b" Parser.expression

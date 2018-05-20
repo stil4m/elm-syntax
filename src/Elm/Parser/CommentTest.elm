@@ -7,6 +7,10 @@ import Expect
 import Test exposing (..)
 
 
+main =
+    Tuple.second all
+
+
 all : Test
 all =
     describe "CommentTests"
@@ -19,7 +23,7 @@ all =
             \() ->
                 parseStateToMaybe emptyState "--bar" Parser.singleLineComment
                     |> Maybe.map (Tuple.second >> State.getComments)
-                    |> Expect.equal (Just [ ( { start = { row = 0, column = 0 }, end = { row = 0, column = 5 } }, "--bar" ) ])
+                    |> Expect.equal (Just [ ( { start = { row = 1, column = 1 }, end = { row = 1, column = 6 } }, "--bar" ) ])
         , test "singleLineComment does not include new line" <|
             \() ->
                 parseFullStringWithNullState "--bar\n" Parser.singleLineComment
@@ -33,7 +37,7 @@ all =
             \() ->
                 parseStateToMaybe emptyState "{-foo\nbar-}" Parser.multilineComment
                     |> Maybe.map (Tuple.second >> State.getComments)
-                    |> Expect.equal (Just [ ( { start = { row = 0, column = 0 }, end = { row = 1, column = 5 } }, "{-foo\nbar-}" ) ])
+                    |> Expect.equal (Just [ ( { start = { row = 1, column = 1 }, end = { row = 2, column = 6 } }, "{-foo\nbar-}" ) ])
         , test "nested multilineComment only open" <|
             \() ->
                 parseFullStringWithNullState "{- {- -}" Parser.multilineComment
