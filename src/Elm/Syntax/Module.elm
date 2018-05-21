@@ -5,6 +5,7 @@ module Elm.Syntax.Module
         , Import
         , Module(..)
         , exposingList
+        , isEffectModule
         , isPortModule
         , moduleName
         )
@@ -16,7 +17,7 @@ module Elm.Syntax.Module
 
 @docs Module, DefaultModuleData, EffectModuleData
 
-@docs exposingList, moduleName, isPortModule
+@docs exposingList, moduleName, isPortModule, isEffectModule
 
 
 # Import
@@ -95,6 +96,18 @@ exposingList m =
 
         EffectModule x ->
             x.exposingList
+
+
+{-| Check whether a module is defined as an effect-module
+-}
+isEffectModule : Module -> Bool
+isEffectModule m =
+    case m of
+        EffectModule _ ->
+            True
+
+        _ ->
+            False
 
 
 {-| Check whether a module is defined as a port-module
