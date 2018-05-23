@@ -5,6 +5,7 @@ module Elm.Syntax.Exposing
         , TopLevelExpose(..)
         , ValueConstructorExpose
         , exposesFunction
+        , map
         , operators
         , topLevelExposeRange
         )
@@ -19,7 +20,7 @@ module Elm.Syntax.Exposing
 
 # Functions
 
-@docs topLevelExposeRange, exposesFunction, operators
+@docs topLevelExposeRange, exposesFunction, operators, map
 
 -}
 
@@ -100,3 +101,15 @@ operator t =
 
         _ ->
             Nothing
+
+
+{-| A mapping function in the spirit of List.map and others.
+-}
+map : (a -> b) -> Exposing a -> Exposing b
+map fn expo =
+    case expo of
+        All range ->
+            All range
+
+        Explicit xs ->
+            Explicit (List.map fn xs)
