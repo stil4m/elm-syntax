@@ -34,6 +34,7 @@ type alias Infix =
 type InfixDirection
     = Left
     | Right
+    | Non
 
 
 {-| Encode an infix
@@ -79,6 +80,9 @@ encodeDirection d =
         Right ->
             JE.string "right"
 
+        Non ->
+            JE.string "non"
+
 
 decodeRanged : Decoder a -> Decoder (Ranged a)
 decodeRanged sub =
@@ -111,6 +115,9 @@ decodeDirection =
 
                     "right" ->
                         JD.succeed Right
+
+                    "non" ->
+                        JD.succeed Non
 
                     _ ->
                         JD.fail "Invlalid direction"

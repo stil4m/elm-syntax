@@ -25,17 +25,20 @@ function handleModules(artifact, version, cb) {
     Elm.Elm.Main.worker(body);
     const after = new Date().getTime();
     console.log(after - before);
-    cb();
+    // cb();
+    handleModules(artifact, version, cb);
   })
 
 }
 
 function analyseVersion(artifact, version, definition, cb) {
-  modules = definition['exposed-modules'];
-  if (!Array.isArray(modules)) {
-    cb();
-    console.log(`${artifact.name}@${version} is a Core thingie`);
-    return;
+  modules = [];
+  if (!Array.isArray(definition['exposed-modules'])) {
+    Object.keys(definition['exposed-modules']).forEach(key => {
+      modules = modules.concat(definition['exposed-modules'][key]);
+    });
+  } else {
+    modules = definition['exposed-modules'];
   }
   handleModules(artifact, version, cb)
 }

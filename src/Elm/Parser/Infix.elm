@@ -30,4 +30,5 @@ infixDirection =
     choice
         [ succeed Right |> Combine.ignore (string "right")
         , succeed Left |> Combine.ignore (string "left")
+        , succeed Non |> Combine.ignore (string "non")
         ]

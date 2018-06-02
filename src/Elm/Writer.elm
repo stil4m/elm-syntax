@@ -298,6 +298,9 @@ writeInfix { direction, precedence, operator, function } =
 
             Right ->
                 string "right"
+
+            Non ->
+                string "non"
         , string (String.fromInt (Tuple.second precedence))
         , string (Tuple.second operator)
         , string "="
@@ -411,6 +414,12 @@ writeExpression ( range, inner ) =
                         ]
 
                 Right ->
+                    sepHelper sepBySpace
+                        [ ( Tuple.first left, spaced [ writeExpression left, string x ] )
+                        , ( Tuple.first right, writeExpression right )
+                        ]
+
+                Non ->
                     sepHelper sepBySpace
                         [ ( Tuple.first left, spaced [ writeExpression left, string x ] )
                         , ( Tuple.first right, writeExpression right )

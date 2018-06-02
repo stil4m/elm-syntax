@@ -40,4 +40,16 @@ all =
                             , function = ( emptyRange, "questionMark" )
                             }
                         )
+        , test "non infix" <|
+            \() ->
+                parseFullStringState emptyState "infix non   4 (==) = eq" Infix.infixDefinition
+                    |> Maybe.map noRangeInfix
+                    |> Expect.equal
+                        (Just
+                            { direction = ( emptyRange, Non )
+                            , precedence = ( emptyRange, 4 )
+                            , operator = ( emptyRange, "==" )
+                            , function = ( emptyRange, "eq" )
+                            }
+                        )
         ]
