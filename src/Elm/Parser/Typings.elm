@@ -9,6 +9,7 @@ import Elm.Parser.TypeAnnotation exposing (typeAnnotation, typeAnnotationNonGree
 import Elm.Syntax.Range as Range exposing (Range)
 import Elm.Syntax.Type exposing (Type, ValueConstructor)
 import Elm.Syntax.TypeAlias exposing (TypeAlias)
+import Parser as Core
 
 
 type TypeDefinition
@@ -110,7 +111,7 @@ genericList =
 
 typePrefix : Parser State ()
 typePrefix =
-    string "type" |> Combine.continueWith Layout.layout
+    (Core.keyword "type" |> Combine.fromCore) |> Combine.continueWith Layout.layout
 
 
 typeAliasPrefix : Parser State ()

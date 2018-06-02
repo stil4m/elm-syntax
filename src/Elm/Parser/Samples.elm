@@ -38,7 +38,21 @@ allSamples =
     , sample31
     , sample32
     , sample33
+    , sample34
     ]
+
+
+sample34 =
+    """
+module Foo exposing (..)
+
+
+{-|-}
+type_ : String -> Attribute msg
+type_ =
+  bar  "type"
+
+"""
 
 
 sample33 =

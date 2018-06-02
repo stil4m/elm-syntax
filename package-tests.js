@@ -20,12 +20,14 @@ function handleModules(artifact, version, cb) {
       cb();
       return;
     }
-    console.log(`${artifact.name}@${version} | ${mod}`);
+    const name = `${artifact.name}@${version} | ${mod}`;
     const before = new Date().getTime();
-    Elm.Elm.Main.worker(body);
+    Elm.Elm.Main.worker({
+      body: body,
+      name: name
+    });
     const after = new Date().getTime();
     console.log(after - before);
-    // cb();
     handleModules(artifact, version, cb);
   })
 

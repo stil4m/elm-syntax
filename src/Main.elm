@@ -12,13 +12,19 @@ type Msg
     = OnContent String
 
 
-init : String -> ( Model, Cmd Msg )
-init s =
-    case Elm.Parser.parse s of
+type alias Flags =
+    { body : String
+    , name : String
+    }
+
+
+init : Flags -> ( Model, Cmd Msg )
+init { body, name } =
+    case Elm.Parser.parse body of
         Ok v ->
             let
                 _ =
-                    Debug.log "Success!" <| always () <| v
+                    Debug.log "Success" <| always name <| v
             in
             ( Model
             , Cmd.none
@@ -27,7 +33,7 @@ init s =
         Err e ->
             let
                 _ =
-                    Debug.log "Error!" <| always () <| e
+                    Debug.log "Error" <| always name <| e
             in
             ( Model, Cmd.none )
 
@@ -42,7 +48,7 @@ subscriptions _ =
     Sub.none
 
 
-main : Program String Model Msg
+main : Program Flags Model Msg
 main =
     Platform.worker
         { init = init
