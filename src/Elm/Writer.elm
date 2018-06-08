@@ -1,4 +1,4 @@
-module Elm.Writer exposing (write, writeExpression, writeFile, writePattern, writeTypeAnnotation)
+module Elm.Writer exposing (write, writeDeclaration, writeExpression, writeFile, writePattern, writeTypeAnnotation)
 
 {-|
 
@@ -7,7 +7,7 @@ module Elm.Writer exposing (write, writeExpression, writeFile, writePattern, wri
 
 Write a file to a string.
 
-@docs write, writeFile, writePattern, writeExpression, writeTypeAnnotation
+@docs write, writeFile, writePattern, writeExpression, writeTypeAnnotation, writeDeclaration
 
 -}
 
@@ -200,6 +200,8 @@ writeLetDeclaration ( _, letDeclaration ) =
             writeDestructuring pattern expression
 
 
+{-| Write a declaration
+-}
 writeDeclaration : Ranged Declaration -> Writer
 writeDeclaration ( _, decl ) =
     case decl of
@@ -283,7 +285,6 @@ writeType type_ =
             [ string "type"
             , string type_.name
             , spaced (List.map string type_.generics)
-            , string "="
             ]
         , let
             diffLines =

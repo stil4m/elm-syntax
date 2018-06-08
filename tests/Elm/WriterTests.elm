@@ -1,9 +1,11 @@
 module Elm.WriterTests exposing (..)
 
+import Elm.Syntax.Declaration exposing (..)
 import Elm.Syntax.Exposing exposing (..)
 import Elm.Syntax.Expression exposing (..)
 import Elm.Syntax.Module exposing (..)
 import Elm.Syntax.Range exposing (emptyRange)
+import Elm.Syntax.Type exposing (..)
 import Elm.Syntax.TypeAnnotation
 import Elm.Writer as Writer
 import Expect
@@ -85,5 +87,24 @@ import B  """
                         |> Writer.writeTypeAnnotation
                         |> Writer.write
                         |> Expect.equal "List (Dict String Int)"
+            ]
+        , describe "Declaration"
+            [ test "write type declaration" <|
+                \() ->
+                    ( emptyRange
+                    , TypeDecl
+                        (Type "Sample"
+                            []
+                            [ ValueConstructor "Foo" [] emptyRange
+                            , ValueConstructor "Bar" [] emptyRange
+                            ]
+                        )
+                    )
+                        |> Writer.writeDeclaration
+                        |> Writer.write
+                        |> Expect.equal
+                            ("type Sample \n"
+                                ++ "=Foo |Bar "
+                            )
             ]
         ]
