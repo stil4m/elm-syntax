@@ -1,9 +1,11 @@
 module Elm.WriterTests exposing (..)
 
+import Elm.Syntax.Base exposing (..)
 import Elm.Syntax.Declaration exposing (..)
 import Elm.Syntax.Exposing exposing (..)
 import Elm.Syntax.Expression exposing (..)
 import Elm.Syntax.Module exposing (..)
+import Elm.Syntax.Pattern exposing (..)
 import Elm.Syntax.Range exposing (emptyRange)
 import Elm.Syntax.Type exposing (..)
 import Elm.Syntax.TypeAnnotation
@@ -105,6 +107,39 @@ import B  """
                         |> Expect.equal
                             ("type Sample \n"
                                 ++ "=Foo |Bar "
+                            )
+            , test "write function with case expression using the right indentations" <|
+                \() ->
+                    let
+                        body =
+                            CaseExpression
+                                (CaseBlock ( emptyRange, FunctionOrValue "someCase" )
+                                    [ ( ( emptyRange, IntPattern 1 ), ( emptyRange, FunctionOrValue "doSomething" ) )
+                                    , ( ( emptyRange, IntPattern 2 ), ( emptyRange, FunctionOrValue "doSomethingElse" ) )
+                                    ]
+                                )
+
+                        function =
+                            FuncDecl
+                                (Function Nothing
+                                    Nothing
+                                    (FunctionDeclaration False
+                                        (VariablePointer "functionName" emptyRange)
+                                        []
+                                        ( emptyRange, body )
+                                    )
+                                )
+                    in
+                    ( emptyRange, function )
+                        |> Writer.writeDeclaration
+                        |> Writer.write
+                        |> Expect.equal
+                            ("\n\nfunctionName  =\n"
+                                ++ "    case someCase of\n"
+                                ++ "          1 ->\n"
+                                ++ "              doSomething\n"
+                                ++ "          2 ->\n"
+                                ++ "              doSomethingElse"
                             )
             ]
         ]

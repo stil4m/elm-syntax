@@ -484,15 +484,15 @@ writeExpression ( range, inner ) =
         CaseExpression caseBlock ->
             let
                 writeCaseBranch ( pattern, expression ) =
-                    breaked
-                        [ spaced [ writePattern pattern, string "->" ]
-                        , indent 2 (writeExpression expression)
-                        ]
+                    indent 2 <|
+                        breaked
+                            [ spaced [ writePattern pattern, string "->" ]
+                            , indent 2 (writeExpression expression)
+                            ]
             in
             breaked
                 [ spaced [ string "case", writeExpression caseBlock.expression, string "of" ]
-                , indent 2
-                    (breaked (List.map writeCaseBranch caseBlock.cases))
+                , breaked (List.map writeCaseBranch caseBlock.cases)
                 ]
 
         LambdaExpression lambda ->
