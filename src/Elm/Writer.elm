@@ -512,7 +512,7 @@ writeExpression ( range, inner ) =
             sepHelper bracketsComma (List.map recurRangeHelper xs)
 
         QualifiedExpr moduleName name ->
-            join [ writeModuleName moduleName, string name ]
+            join [ writeModuleName moduleName, string ".", string name ]
 
         RecordAccess expression accessor ->
             join [ writeExpression expression, string ".", string accessor ]
