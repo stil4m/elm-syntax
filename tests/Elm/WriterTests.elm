@@ -48,12 +48,20 @@ import B  """
                             ++ """import C as D exposing (..)
 """
                         )
-        , test "write simple expression" <|
-            \() ->
-                ( Elm.Syntax.Range.emptyRange, Application [ ( Elm.Syntax.Range.emptyRange, FunctionOrValue "abc" ), ( Elm.Syntax.Range.emptyRange, UnitExpr ) ] )
-                    |> Writer.writeExpression
-                    |> Writer.write
-                    |> Expect.equal "abc ()"
+        , describe "Expression"
+            [ test "write simple expression" <|
+                \() ->
+                    ( Elm.Syntax.Range.emptyRange, Application [ ( Elm.Syntax.Range.emptyRange, FunctionOrValue "abc" ), ( Elm.Syntax.Range.emptyRange, UnitExpr ) ] )
+                        |> Writer.writeExpression
+                        |> Writer.write
+                        |> Expect.equal "abc ()"
+            , test "write qualified expression" <|
+                \() ->
+                    ( Elm.Syntax.Range.emptyRange, QualifiedExpr [ "Foo", "Bar" ] "baz" )
+                        |> Writer.writeExpression
+                        |> Writer.write
+                        |> Expect.equal "Foo.Bar.baz"
+            ]
         , describe "TypeAnnotation"
             [ test "write simple type" <|
                 \() ->
