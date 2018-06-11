@@ -10,26 +10,12 @@ import Elm.Parser.Whitespace exposing (realNewLine)
 import Elm.Syntax.Range as Range
 import Elm.Syntax.Ranged exposing (Ranged)
 import Elm.Syntax.TypeAnnotation exposing (..)
+import Parser as Core
 
 
 type Mode
     = Eager
     | Lazy
-
-
-typeAnnotationNoFn : Mode -> Parser State (Ranged TypeAnnotation)
-typeAnnotationNoFn mode =
-    lazy
-        (\() ->
-            ranged <|
-                choice
-                    [ parensTypeAnnotation
-                    , typedTypeAnnotation mode
-                    , recordTypeAnnotation
-                    , genericRecordTypeAnnotation
-                    , genericTypeAnnotation
-                    ]
-        )
 
 
 typeAnnotation : Parser State (Ranged TypeAnnotation)
@@ -59,19 +45,19 @@ typeAnnotationNonGreedy : Parser State (Ranged TypeAnnotation)
 typeAnnotationNonGreedy =
     choice
         [ parensTypeAnnotation
-        , typedTypeAnnotation False
+        , typedTypeAnnotation Lazy
         , genericTypeAnnotation
         , recordTypeAnnotation
         ]
 
 
-typeAnnotationNoFn : Parser State (Ranged TypeAnnotation)
-typeAnnotationNoFn =
+typeAnnotationNoFn : Mode -> Parser State (Ranged TypeAnnotation)
+typeAnnotationNoFn mode =
     lazy
         (\() ->
             choice
                 [ parensTypeAnnotation
-                , typedTypeAnnotation True
+                , typedTypeAnnotation mode
                 , genericTypeAnnotation
                 , recordTypeAnnotation
                 ]
@@ -216,7 +202,7 @@ typedTypeAnnotation mode =
                 genericHelper : List (Ranged TypeAnnotation) -> Parser State (List (Ranged TypeAnnotation))
                 genericHelper items =
                     or
-                        (typeAnnotationNoFn
+                        (typeAnnotationNoFn Lazy
                             |> Combine.andThen
                                 (\next ->
                                     Layout.optimisticLayoutWith
