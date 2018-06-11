@@ -158,10 +158,10 @@ import B  """
                         |> Expect.equal
                             ("\n\nfunctionName  =\n"
                                 ++ "    case someCase of\n"
-                                ++ "          1 ->\n"
-                                ++ "              doSomething\n"
-                                ++ "          2 ->\n"
-                                ++ "              doSomethingElse"
+                                ++ "      1 ->\n"
+                                ++ "        doSomething\n"
+                                ++ "      2 ->\n"
+                                ++ "        doSomethingElse"
                             )
             ]
         ]
