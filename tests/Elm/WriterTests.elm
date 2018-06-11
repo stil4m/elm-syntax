@@ -97,6 +97,20 @@ import B  """
                         |> Writer.writeTypeAnnotation
                         |> Writer.write
                         |> Expect.equal "List (Dict String Int)"
+            , test "write type arguments that are functions" <|
+                \() ->
+                    ( emptyRange
+                    , Elm.Syntax.TypeAnnotation.FunctionTypeAnnotation
+                        ( emptyRange
+                        , Elm.Syntax.TypeAnnotation.FunctionTypeAnnotation
+                            ( emptyRange, Elm.Syntax.TypeAnnotation.GenericType "a" )
+                            ( emptyRange, Elm.Syntax.TypeAnnotation.GenericType "b" )
+                        )
+                        ( emptyRange, Elm.Syntax.TypeAnnotation.Typed [] "Int" [] )
+                    )
+                        |> Writer.writeTypeAnnotation
+                        |> Writer.write
+                        |> Expect.equal "(a -> b) -> Int"
             ]
         , describe "Declaration"
             [ test "write type declaration" <|
