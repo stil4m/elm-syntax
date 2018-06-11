@@ -241,4 +241,18 @@ all =
                 parseFullStringWithNullState "List(String)" Parser.typeAnnotation
                     |> Maybe.map noRangeTypeReference
                     |> Expect.equal (Just ( emptyRange, Typed [] "List" [ ( emptyRange, Typed [] "String" [] ) ] ))
+        , test "parse type with multiple params" <|
+            \() ->
+                parseFullStringWithNullState "Dict String Int" Parser.typeAnnotation
+                    |> Maybe.map noRangeTypeReference
+                    |> Expect.equal
+                        (Just
+                            ( emptyRange
+                            , Typed []
+                                "Dict"
+                                [ ( emptyRange, Typed [] "String" [] )
+                                , ( emptyRange, Typed [] "Int" [] )
+                                ]
+                            )
+                        )
         ]

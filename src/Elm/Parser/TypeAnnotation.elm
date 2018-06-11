@@ -10,14 +10,19 @@ import Elm.Syntax.Ranged exposing (Ranged)
 import Elm.Syntax.TypeAnnotation exposing (..)
 
 
-typeAnnotationNoFn : Parser State (Ranged TypeAnnotation)
-typeAnnotationNoFn =
+type Mode
+    = Eager
+    | Lazy
+
+
+typeAnnotationNoFn : Mode -> Parser State (Ranged TypeAnnotation)
+typeAnnotationNoFn mode =
     lazy
         (\() ->
             ranged <|
                 choice
                     [ parensTypeAnnotation
-                    , typedTypeAnnotation
+                    , typedTypeAnnotation mode
                     , recordTypeAnnotation
                     , genericRecordTypeAnnotation
                     , genericTypeAnnotation
@@ -30,7 +35,7 @@ typeAnnotation =
     lazy
         (\() ->
             ranged <|
-                typeAnnotationNoFn
+                typeAnnotationNoFn Eager
                     >>= (\typeRef ->
                             or (FunctionTypeAnnotation typeRef <$> (Layout.maybeAroundBothSides (string "->") *> typeAnnotation))
                                 (succeed (Tuple.second typeRef))
@@ -105,14 +110,22 @@ recordFieldDefinition =
         )
 
 
-typedTypeAnnotation : Parser State TypeAnnotation
-typedTypeAnnotation =
+typedTypeAnnotation : Mode -> Parser State TypeAnnotation
+typedTypeAnnotation mode =
     lazy
         (\() ->
-            succeed Typed
-                <*> many (typeName <* string ".")
-                <*> typeName
-                <*> (Maybe.withDefault []
-                        <$> maybe (maybe Layout.layout *> sepBy Layout.layout typeAnnotationNoFn)
-                    )
+            case mode of
+                Eager ->
+                    succeed Typed
+                        <*> many (typeName <* string ".")
+                        <*> typeName
+                        <*> (Maybe.withDefault []
+                                <$> maybe (maybe Layout.layout *> sepBy Layout.layout (typeAnnotationNoFn Lazy))
+                            )
+
+                Lazy ->
+                    succeed Typed
+                        <*> many (typeName <* string ".")
+                        <*> typeName
+                        <*> succeed []
         )
