@@ -45,7 +45,7 @@ module Elm.Syntax.Expression
 
 # Functions
 
-@docs Function, FunctionDeclaration, FunctionSignature
+@docs Function, FunctionDeclaration, FunctionSignature, functionRange
 
 
 # Utiltity functions
@@ -72,6 +72,8 @@ type alias Function =
     }
 
 
+{-| Get the full range of a function
+-}
 functionRange : Function -> Range
 functionRange function =
     Range.combine

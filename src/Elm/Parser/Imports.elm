@@ -10,12 +10,6 @@ import Elm.Parser.Tokens exposing (asToken, importToken)
 import Elm.Syntax.Module exposing (Import)
 
 
-log : String -> Parser State a -> Parser State a
-log n p =
-    -- Combine.map (Debug.log n)
-    p
-
-
 importDefinition : Parser State Import
 importDefinition =
     let
@@ -44,9 +38,8 @@ importDefinition =
                 , parseExposingDefinition mod Nothing
                 ]
     in
-    log "import done" <|
-        withRange <|
-            (importAndModuleName
-                |> Combine.ignore Layout.optimisticLayout
-                |> Combine.andThen parseAsDefinition
-            )
+    withRange <|
+        (importAndModuleName
+            |> Combine.ignore Layout.optimisticLayout
+            |> Combine.andThen parseAsDefinition
+        )

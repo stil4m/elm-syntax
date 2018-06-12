@@ -18,7 +18,6 @@ all =
         [ test "import with explicits" <|
             \() ->
                 parseFullStringWithNullState "import Foo exposing (Model, Msg(..))" Parser.importDefinition
-                    |> Debug.log "Foo"
                     |> Maybe.map noRangeImport
                     |> Expect.equal
                         (Just

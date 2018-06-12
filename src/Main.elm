@@ -24,7 +24,7 @@ init { body, name } =
         Ok v ->
             let
                 _ =
-                    Debug.log "Success" <| always name <| v
+                    always name <| v
             in
             ( Model
             , Cmd.none
@@ -33,7 +33,7 @@ init { body, name } =
         Err e ->
             let
                 _ =
-                    Debug.log "Error" <| always name <| e
+                    always name <| e
             in
             ( Model, Cmd.none )
 
