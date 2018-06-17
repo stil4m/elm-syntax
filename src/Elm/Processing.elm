@@ -81,12 +81,8 @@ addDependency dep (ProcessContext x) =
 
 entryFromRawFile : RawFile -> Maybe ( ModuleName, Interface )
 entryFromRawFile ((Raw _) as rawFile) =
-    case RawFile.moduleName rawFile of
-        Just modName ->
-            Just ( modName, Interface.build rawFile )
-
-        Nothing ->
-            Nothing
+    RawFile.moduleName rawFile
+        |> Maybe.map (\modName -> ( modName, Interface.build rawFile ))
 
 
 tableForFile : RawFile -> ProcessContext -> OperatorTable

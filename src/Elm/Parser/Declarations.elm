@@ -1,33 +1,43 @@
-module Elm.Parser.Declarations exposing (caseBlock, caseStatement, caseStatements, declaration, expression, function, functionDeclaration, letBlock, letBody, letExpression, signature)
+module Elm.Parser.Declarations exposing (caseBlock, caseStatement, caseStatements, declaration, expression, function, functionArgument, functionSignature, letBlock, letBody, letExpression, signature)
 
-import Combine exposing ((*>), (<$), (<$>), (<*), (<*>), (>>=), Parser, between, choice, count, fail, lazy, lookAhead, many, many1, maybe, modifyState, or, parens, sepBy, sepBy1, string, succeed, withLocation)
+import Combine exposing (($>), (<$>), (>>=), Parser, between, choice, count, fail, lazy, lookAhead, many, maybe, modifyState, or, sepBy1, string, succeed, withLocation)
 import Combine.Char exposing (anyChar)
-import Combine.Num
+import Combine.Extra as Combine
 import Elm.Parser.Base exposing (variablePointer)
 import Elm.Parser.Infix as Infix
 import Elm.Parser.Layout as Layout
-import Elm.Parser.Patterns exposing (declarablePattern, pattern)
-import Elm.Parser.Ranges exposing (ranged, withRange, withRangeCustomStart)
-import Elm.Parser.State exposing (State, popIndent, pushIndent)
-import Elm.Parser.Tokens exposing (caseToken, characterLiteral, elseToken, functionName, ifToken, infixOperatorToken, multiLineStringLiteral, ofToken, portToken, prefixOperatorToken, stringLiteral, thenToken, typeName)
+import Elm.Parser.Numbers
+import Elm.Parser.Patterns exposing (pattern)
+import Elm.Parser.Ranges as Ranges exposing (ranged, withRange)
+import Elm.Parser.State as State exposing (State, popIndent, pushIndent)
+import Elm.Parser.Tokens as Tokens exposing (caseToken, characterLiteral, elseToken, functionName, ifToken, infixOperatorToken, multiLineStringLiteral, ofToken, portToken, prefixOperatorToken, stringLiteral, thenToken)
 import Elm.Parser.TypeAnnotation exposing (typeAnnotation)
-import Elm.Parser.Typings as Typings exposing (typeDeclaration)
+import Elm.Parser.Typings as Typings exposing (typeDefinition)
 import Elm.Parser.Whitespace exposing (manySpaces)
+import Elm.Syntax.Base exposing (ModuleName, VariablePointer)
 import Elm.Syntax.Declaration exposing (..)
-import Elm.Syntax.Expression exposing (..)
+import Elm.Syntax.Expression as Expression exposing (Case, CaseBlock, Cases, Expression(..), Function, FunctionDeclaration, FunctionSignature, Lambda, LetBlock, LetDeclaration(..), RecordUpdate)
 import Elm.Syntax.Pattern exposing (..)
-import Elm.Syntax.Range exposing (Range)
+import Elm.Syntax.Range as Range
 import Elm.Syntax.Ranged exposing (Ranged)
 
 
-declaration : Parser State Declaration
+declaration : Parser State (Ranged Declaration)
 declaration =
     lazy
         (\() ->
             choice
-                [ AliasDecl <$> Typings.typeAlias
-                , FuncDecl <$> function
-                , TypeDecl <$> typeDeclaration
+                [ typeDefinition
+                    |> Combine.map
+                        (\v ->
+                            case v of
+                                Typings.DefinedType r t ->
+                                    ( r, TypeDecl t )
+
+                                Typings.DefinedAlias r a ->
+                                    ( r, AliasDecl a )
+                        )
+                , function
                 , portDeclaration
                 , infixDeclaration
                 , destructuringDeclaration
@@ -35,58 +45,116 @@ declaration =
         )
 
 
-function : Parser State Function
+functionSignatureFromVarPointer : ( Bool, VariablePointer ) -> Parser State (Ranged FunctionSignature)
+functionSignatureFromVarPointer ( op, var ) =
+    succeed (\ta -> ( Range.combine [ var.range, Tuple.first ta ], FunctionSignature op var ta ))
+        |> Combine.ignore (string ":")
+        |> Combine.ignore (maybe Layout.layout)
+        |> Combine.andMap typeAnnotation
+
+
+functionSignature : Parser State (Ranged FunctionSignature)
+functionSignature =
+    succeed (\b var -> ( b, var ))
+        |> Combine.andMap (lookAhead anyChar >>= (\c -> succeed (c == '(')))
+        |> Combine.andMap (variablePointer (or functionName (Combine.parens prefixOperatorToken)))
+        |> Combine.ignore (maybe Layout.layout)
+        |> Combine.andThen functionSignatureFromVarPointer
+
+
+functionWithVariablePointer : ( Bool, VariablePointer ) -> Parser State Function
+functionWithVariablePointer pointer =
+    let
+        functionDeclFromVarPointer : ( Bool, VariablePointer ) -> Parser State FunctionDeclaration
+        functionDeclFromVarPointer ( op, var ) =
+            succeed (FunctionDeclaration op var)
+                |> Combine.andMap (many (functionArgument |> Combine.ignore (maybe Layout.layout)))
+                |> Combine.ignore (string "=")
+                |> Combine.ignore (maybe Layout.layout)
+                |> Combine.andMap expression
+
+        fromParts : Ranged FunctionSignature -> FunctionDeclaration -> Function
+        fromParts sig decl =
+            { documentation = Nothing
+            , signature = Just sig
+            , declaration = decl
+            }
+
+        functionWithSignature : ( Bool, VariablePointer ) -> Parser State Function
+        functionWithSignature varPointer =
+            functionSignatureFromVarPointer varPointer
+                |> Combine.andThen
+                    (\sig ->
+                        maybe Layout.layoutStrict
+                            |> Combine.continueWith (variablePointer (or functionName (Combine.parens prefixOperatorToken)))
+                            |> Combine.map (\v -> ( Tuple.first varPointer, v ))
+                            |> Combine.ignore (maybe Layout.layout)
+                            |> Combine.andThen functionDeclFromVarPointer
+                            |> Combine.map (fromParts sig)
+                    )
+
+        functionWithoutSignature : ( Bool, VariablePointer ) -> Parser State Function
+        functionWithoutSignature varPointer =
+            functionDeclFromVarPointer varPointer
+                |> Combine.map (Function Nothing Nothing)
+    in
+    Combine.choice
+        [ functionWithSignature pointer
+        , functionWithoutSignature pointer
+        ]
+
+
+function : Parser State (Ranged Declaration)
 function =
     lazy
         (\() ->
-            succeed Function
-                <*> succeed Nothing
-                <*> maybe (ranged signature <* Layout.layoutStrict)
-                <*> functionDeclaration
+            succeed (,)
+                |> Combine.andMap (lookAhead anyChar >>= (\c -> succeed (c == '(')))
+                |> Combine.andMap (variablePointer (or functionName (Combine.parens prefixOperatorToken)))
+                |> Combine.ignore (maybe Layout.layout)
+                |> Combine.andThen functionWithVariablePointer
+                |> Combine.map (\f -> ( Expression.functionRange f, FuncDecl f ))
         )
-
-
-infixDeclaration : Parser State Declaration
-infixDeclaration =
-    lazy (\() -> InfixDeclaration <$> Infix.infixDefinition)
-
-
-destructuringDeclaration : Parser State Declaration
-destructuringDeclaration =
-    lazy
-        (\() ->
-            succeed Destructuring
-                <*> declarablePattern
-                <*> (Layout.layout *> string "=" *> Layout.layout *> expression)
-        )
-
-
-portDeclaration : Parser State Declaration
-portDeclaration =
-    portToken *> lazy (\() -> PortDeclaration <$> (Layout.layout *> signature))
 
 
 signature : Parser State FunctionSignature
 signature =
     succeed FunctionSignature
-        <*> (lookAhead anyChar >>= (\c -> succeed (c == '(')))
-        <*> or functionName (parens prefixOperatorToken)
-        <*> (Layout.maybeAroundBothSides (string ":") *> maybe Layout.layout *> typeAnnotation)
+        |> Combine.andMap (lookAhead anyChar >>= (\c -> succeed (c == '(')))
+        |> Combine.andMap (variablePointer functionName)
+        |> Combine.andMap (Layout.maybeAroundBothSides (string ":") |> Combine.continueWith (maybe Layout.layout) |> Combine.continueWith typeAnnotation)
 
 
-functionDeclaration : Parser State FunctionDeclaration
-functionDeclaration =
+infixDeclaration : Parser State (Ranged Declaration)
+infixDeclaration =
+    lazy (\() -> ranged (InfixDeclaration <$> Infix.infixDefinition))
+
+
+destructuringDeclaration : Parser State (Ranged Declaration)
+destructuringDeclaration =
     lazy
         (\() ->
-            succeed FunctionDeclaration
-                <*> (lookAhead anyChar >>= (\c -> succeed (c == '(')))
-                <*> (variablePointer <| or functionName (parens prefixOperatorToken))
-                <*> many (Layout.layout *> functionArgument)
-                <*> (maybe Layout.layout
-                        *> string "="
-                        *> maybe Layout.layout
-                        *> expression
+            succeed
+                (\x y ->
+                    ( Range.combine [ Tuple.first x, Tuple.first y ]
+                    , Destructuring x y
                     )
+                )
+                |> Combine.andMap pattern
+                |> Combine.ignore (string "=")
+                |> Combine.ignore Layout.layout
+                |> Combine.andMap expression
+        )
+
+
+portDeclaration : Parser State (Ranged Declaration)
+portDeclaration =
+    Ranges.withCurrentPoint
+        (\current ->
+            portToken
+                |> Combine.ignore Layout.layout
+                |> Combine.continueWith signature
+                |> Combine.map (\sig -> ( Range.combine [ current, Tuple.first sig.typeAnnotation ], PortDeclaration sig ))
         )
 
 
@@ -101,12 +169,7 @@ functionArgument =
 
 rangedExpression : Parser State Expression -> Parser State (Ranged Expression)
 rangedExpression p =
-    withRange <| (flip (,) <$> p)
-
-
-rangedExpressionWithStart : Range -> Parser State Expression -> Parser State (Ranged Expression)
-rangedExpressionWithStart r p =
-    withRangeCustomStart r <| (flip (,) <$> p)
+    withRange <| Combine.map (\a b -> ( b, a )) p
 
 
 expressionNotApplication : Parser State (Ranged Expression)
@@ -115,35 +178,29 @@ expressionNotApplication =
         (\() ->
             (rangedExpression <|
                 choice
-                    [ unitExpression
-                    , qualifiedExpression
-                    , functionOrValueExpression
+                    [ numberExpression
+                    , referenceExpression
                     , ifBlockExpression
-                    , prefixOperatorExpression
                     , tupledExpression
                     , recordAccessFunctionExpression
-                    , negationExpression
                     , operatorExpression
-                    , floatableExpression
-                    , integerExpression
                     , letExpression
                     , lambdaExpression
                     , literalExpression
                     , charLiteralExpression
                     , recordExpression
-                    , recordUpdateExpression
                     , glslExpression
                     , listExpression
                     , caseExpression
                     ]
             )
-                >>= liftRecordAccess
+                |> Combine.andThen liftRecordAccess
         )
 
 
 liftRecordAccess : Ranged Expression -> Parser State (Ranged Expression)
 liftRecordAccess e =
-    or ((rangedExpression <| RecordAccess e <$> (string "." *> functionName)) >>= liftRecordAccess)
+    or ((rangedExpression <| Combine.map (RecordAccess e) (string "." |> Combine.continueWith functionName)) |> Combine.andThen liftRecordAccess)
         (succeed e)
 
 
@@ -151,22 +208,34 @@ expression : Parser State (Ranged Expression)
 expression =
     lazy
         (\() ->
-            maybe Layout.layout
-                *> expressionNotApplication
-                >>= (\expr ->
-                        or (promoteToApplicationExpression expr)
-                            (succeed expr)
+            expressionNotApplication
+                |> Combine.andThen
+                    (\first ->
+                        let
+                            complete rest =
+                                succeed <|
+                                    case rest of
+                                        [] ->
+                                            first
+
+                                        _ ->
+                                            ( Range.combine (Tuple.first first :: List.map Tuple.first rest)
+                                            , Application (first :: List.reverse rest)
+                                            )
+
+                            promoter rest =
+                                Layout.optimisticLayoutWith
+                                    (\() -> complete rest)
+                                    (\() ->
+                                        or
+                                            (expressionNotApplication
+                                                |> Combine.andThen (\next -> promoter (next :: rest))
+                                            )
+                                            (complete rest)
+                                    )
+                        in
+                        promoter []
                     )
-        )
-
-
-promoteToApplicationExpression : Ranged Expression -> Parser State (Ranged Expression)
-promoteToApplicationExpression expr =
-    lazy
-        (\() ->
-            rangedExpressionWithStart (Tuple.first expr) <|
-                succeed (\rest -> Application (expr :: rest))
-                    <*> lazy (\() -> many1 (maybe Layout.layout *> expressionNotApplication))
         )
 
 
@@ -178,14 +247,9 @@ withIndentedState : Parser State a -> Parser State a
 withIndentedState p =
     withLocation
         (\location ->
-            (modifyState (pushIndent location.column) *> p)
-                <* modifyState popIndent
+            (modifyState (pushIndent location.column) |> Combine.continueWith p)
+                |> Combine.ignore (modifyState popIndent)
         )
-
-
-unitExpression : Parser State Expression
-unitExpression =
-    UnitExpr <$ string "()"
 
 
 glslExpression : Parser State Expression
@@ -205,104 +269,101 @@ glslExpression =
                 )
 
 
-
--- listExpression
-
-
 listExpression : Parser State Expression
 listExpression =
     lazy
         (\() ->
-            or emptyListExpression
-                (ListExpr
-                    <$> between
-                            (string "[")
-                            (string "]")
-                            (sepBy (string ",")
-                                (Layout.maybeAroundBothSides expression)
-                            )
-                )
+            let
+                innerExpressions =
+                    succeed (::)
+                        |> Combine.andMap expression
+                        |> Combine.ignore (maybe Layout.layout)
+                        |> Combine.andMap (many (string "," |> Combine.ignore (maybe Layout.layout) |> Combine.continueWith expression))
+                        |> Combine.map ListExpr
+            in
+            string "["
+                |> Combine.ignore (maybe Layout.layout)
+                |> Combine.continueWith
+                    (Combine.choice
+                        [ string "]" |> Combine.map (always (ListExpr []))
+                        , innerExpressions |> Combine.ignore (string "]")
+                        ]
+                    )
         )
-
-
-emptyListExpression : Parser State Expression
-emptyListExpression =
-    ListExpr []
-        <$ (string "["
-                *> maybe
-                    (or Layout.layout Layout.layoutAndNewLine)
-                *> string "]"
-           )
 
 
 
 -- recordExpression
 
 
-recordExpressionField : Parser State ( String, Ranged Expression )
-recordExpressionField =
-    lazy
-        (\() ->
-            succeed (,)
-                <*> functionName
-                <*> (maybe Layout.layout
-                        *> string "="
-                        *> maybe Layout.layout
-                        *> expression
-                    )
-        )
-
-
-recordFields : Bool -> Parser State (List ( String, Ranged Expression ))
-recordFields oneOrMore =
-    let
-        p =
-            if oneOrMore then
-                sepBy1
-            else
-                sepBy
-    in
-    p (string ",") (Layout.maybeAroundBothSides recordExpressionField)
-
-
 recordExpression : Parser State Expression
 recordExpression =
     lazy
         (\() ->
-            RecordExpr
-                <$> between (string "{")
-                        (string "}")
-                        (recordFields False)
+            let
+                recordField : Parser State ( String, Ranged Expression )
+                recordField =
+                    succeed (,)
+                        |> Combine.andMap functionName
+                        |> Combine.ignore (maybe Layout.layout)
+                        |> Combine.ignore (string "=")
+                        |> Combine.ignore (maybe Layout.layout)
+                        |> Combine.andMap expression
+
+                recordFields : Parser State (List ( String, Ranged Expression ))
+                recordFields =
+                    succeed (::)
+                        |> Combine.andMap recordField
+                        |> Combine.ignore (maybe Layout.layout)
+                        |> Combine.andMap
+                            (many
+                                (string ","
+                                    |> Combine.ignore (maybe Layout.layout)
+                                    |> Combine.continueWith recordField
+                                    |> Combine.ignore (maybe Layout.layout)
+                                )
+                            )
+            in
+            string "{"
+                |> Combine.ignore (maybe Layout.layout)
+                |> Combine.continueWith functionName
+                |> Combine.ignore (maybe Layout.layout)
+                |> Combine.andThen
+                    (\fname ->
+                        Combine.choice
+                            [ string "|"
+                                |> Combine.ignore (maybe Layout.layout)
+                                |> Combine.continueWith recordFields
+                                |> Combine.map (RecordUpdate fname >> RecordUpdateExpression)
+                                |> Combine.ignore (string "}")
+                            , string "="
+                                |> Combine.ignore (maybe Layout.layout)
+                                |> Combine.continueWith (expression |> Combine.map (\e -> ( fname, e )))
+                                |> Combine.ignore (maybe Layout.layout)
+                                |> Combine.andThen
+                                    (\fieldUpdate ->
+                                        Combine.choice
+                                            [ string "}" |> Combine.map (always (RecordExpr [ fieldUpdate ]))
+                                            , string ","
+                                                |> Combine.ignore (maybe Layout.layout)
+                                                |> Combine.continueWith recordFields
+                                                |> Combine.map (\fieldUpdates -> RecordExpr (fieldUpdate :: fieldUpdates))
+                                                |> Combine.ignore (string "}")
+                                            ]
+                                    )
+                            ]
+                    )
         )
-
-
-recordUpdateExpression : Parser State Expression
-recordUpdateExpression =
-    lazy
-        (\() ->
-            between (string "{")
-                (string "}")
-                (RecordUpdateExpression
-                    <$> (succeed RecordUpdate
-                            <*> Layout.maybeAroundBothSides functionName
-                            <*> (string "|" *> recordFields True)
-                        )
-                )
-        )
-
-
-
--- literalExpression
 
 
 literalExpression : Parser State Expression
 literalExpression =
-    Literal <$> or multiLineStringLiteral stringLiteral
+    Combine.map Literal (or multiLineStringLiteral stringLiteral)
 
 
 charLiteralExpression : Parser State Expression
 charLiteralExpression =
-    CharLiteral <$> characterLiteral
+    Combine.map CharLiteral characterLiteral
 
 
 
@@ -314,8 +375,10 @@ lambdaExpression =
     lazy
         (\() ->
             succeed (\args expr -> Lambda args expr |> LambdaExpression)
-                <*> (string "\\" *> maybe Layout.layout *> sepBy1 Layout.layout functionArgument)
-                <*> (Layout.maybeAroundBothSides (string "->") *> expression)
+                |> Combine.ignore (string "\\")
+                |> Combine.ignore (maybe Layout.layout)
+                |> Combine.andMap (sepBy1 (maybe Layout.layout) functionArgument)
+                |> Combine.andMap (Layout.maybeAroundBothSides (string "->") |> Combine.continueWith expression)
         )
 
 
@@ -325,7 +388,13 @@ lambdaExpression =
 
 caseBlock : Parser State (Ranged Expression)
 caseBlock =
-    lazy (\() -> caseToken *> Layout.layout *> expression <* Layout.layout <* ofToken)
+    lazy
+        (\() ->
+            caseToken
+                |> Combine.continueWith Layout.layout
+                |> Combine.continueWith expression
+                |> Combine.ignore ofToken
+        )
 
 
 caseStatement : Parser State Case
@@ -333,25 +402,51 @@ caseStatement =
     lazy
         (\() ->
             succeed (,)
-                <*> pattern
-                <*> (maybe (or Layout.layout Layout.layoutStrict) *> string "->" *> maybe Layout.layout *> expression)
+                |> Combine.andMap pattern
+                |> Combine.andMap
+                    (maybe (or Layout.layout Layout.layoutStrict)
+                        |> Combine.continueWith (string "->")
+                        |> Combine.continueWith (maybe Layout.layout)
+                        |> Combine.continueWith expression
+                    )
         )
 
 
 caseStatements : Parser State Cases
 caseStatements =
-    lazy (\() -> sepBy1 Layout.layoutStrict caseStatement)
+    lazy
+        (\() ->
+            let
+                helper last =
+                    Combine.withState
+                        (\s ->
+                            Combine.withLocation
+                                (\l ->
+                                    if State.currentIndent s == l.column then
+                                        caseStatement
+                                            |> Combine.map (\c -> c :: last)
+                                            |> Combine.andThen helper
+                                    else
+                                        succeed last
+                                )
+                        )
+            in
+            caseStatement
+                |> Combine.map List.singleton
+                |> Combine.andThen helper
+                |> Combine.map List.reverse
+        )
 
 
 caseExpression : Parser State Expression
 caseExpression =
     lazy
         (\() ->
-            CaseExpression
-                <$> (succeed CaseBlock
-                        <*> caseBlock
-                        <*> (Layout.layout *> withIndentedState caseStatements)
-                    )
+            Combine.map CaseExpression
+                (succeed CaseBlock
+                    |> Combine.andMap caseBlock
+                    |> Combine.andMap (Layout.layout |> Combine.continueWith (withIndentedState caseStatements))
+                )
         )
 
 
@@ -363,33 +458,48 @@ letBody : Parser State (List (Ranged LetDeclaration))
 letBody =
     lazy
         (\() ->
-            sepBy1 Layout.layoutStrict (ranged (or letDestructuringDeclaration (LetFunction <$> function)))
+            let
+                blockElement =
+                    pattern
+                        |> Combine.andThen
+                            (\( r, p ) ->
+                                case p of
+                                    VarPattern v ->
+                                        functionWithVariablePointer ( False, VariablePointer v r )
+                                            |> Combine.map LetFunction
+
+                                    _ ->
+                                        letDestructuringDeclarationWithPattern ( r, p )
+                            )
+            in
+            Combine.succeed (::)
+                |> Combine.andMap (ranged blockElement)
+                |> Combine.andMap (many (ranged blockElement |> Combine.ignore (maybe Layout.layout)))
         )
 
 
-letDestructuringDeclaration : Parser State LetDeclaration
-letDestructuringDeclaration =
-    lazy
-        (\() ->
-            succeed LetDestructuring
-                <*> declarablePattern
-                <*> (Layout.layout *> string "=" *> Layout.layout *> expression)
-        )
+letDestructuringDeclarationWithPattern : Ranged Pattern -> Parser State LetDeclaration
+letDestructuringDeclarationWithPattern p =
+    succeed (LetDestructuring p)
+        |> Combine.ignore (maybe Layout.layout)
+        |> Combine.ignore (string "=")
+        |> Combine.ignore Layout.layout
+        |> Combine.andMap expression
 
 
 letBlock : Parser State (List (Ranged LetDeclaration))
 letBlock =
     lazy
         (\() ->
-            (string "let" *> Layout.layout)
-                *> withIndentedState letBody
-                <* (String.fromList <$> lookAhead (many anyChar))
-                <* (choice
+            (string "let" |> Combine.continueWith Layout.layout)
+                |> Combine.continueWith (withIndentedState letBody)
+                |> Combine.ignore
+                    (choice
                         [ Layout.layout
-                        , () <$ manySpaces
+                        , manySpaces $> ()
                         ]
-                        *> string "in"
-                   )
+                        |> Combine.continueWith (string "in")
+                    )
         )
 
 
@@ -398,98 +508,147 @@ letExpression =
     lazy
         (\() ->
             succeed (\decls -> LetBlock decls >> LetExpression)
-                <*> letBlock
-                <*> (Layout.layout *> expression)
+                |> Combine.andMap letBlock
+                |> Combine.andMap (Layout.layout |> Combine.continueWith expression)
         )
 
 
-integerExpression : Parser State Expression
-integerExpression =
-    Integer <$> Combine.Num.int
-
-
-floatableExpression : Parser State Expression
-floatableExpression =
-    Floatable <$> Combine.Num.float
+numberExpression : Parser State Expression
+numberExpression =
+    Elm.Parser.Numbers.number Floatable Integer
 
 
 ifBlockExpression : Parser State Expression
 ifBlockExpression =
     ifToken
-        *> lazy
-            (\() ->
-                succeed IfBlock
-                    <*> Layout.maybeAroundBothSides expression
-                    <*> (thenToken *> Layout.maybeAroundBothSides expression)
-                    <*> (elseToken *> Layout.layout *> expression)
+        |> Combine.continueWith
+            (lazy
+                (\() ->
+                    succeed IfBlock
+                        |> Combine.ignore (maybe Layout.layout)
+                        |> Combine.andMap expression
+                        |> Combine.ignore (maybe Layout.layout)
+                        |> Combine.ignore thenToken
+                        |> Combine.ignore (maybe Layout.layout)
+                        |> Combine.andMap expression
+                        |> Combine.ignore (maybe Layout.layout)
+                        |> Combine.andMap (elseToken |> Combine.continueWith Layout.layout |> Combine.continueWith expression)
+                )
             )
-
-
-prefixOperatorExpression : Parser State Expression
-prefixOperatorExpression =
-    PrefixOperator <$> parens prefixOperatorToken
-
-
-negationExpression : Parser State Expression
-negationExpression =
-    lazy
-        (\() ->
-            Negation
-                <$> (string "-"
-                        *> (rangedExpression
-                                (choice
-                                    [ qualifiedExpression
-                                    , functionOrValueExpression
-                                    , integerExpression
-                                    , floatableExpression
-                                    , tupledExpression
-                                    ]
-                                )
-                                >>= liftRecordAccess
-                           )
-                    )
-        )
 
 
 operatorExpression : Parser State Expression
 operatorExpression =
-    Operator <$> infixOperatorToken
+    let
+        negationExpression : Parser State Expression
+        negationExpression =
+            lazy
+                (\() ->
+                    Combine.map Negation
+                        (rangedExpression
+                            (choice
+                                [ referenceExpression
+                                , numberExpression
+                                , tupledExpression
+                                ]
+                            )
+                            |> Combine.andThen liftRecordAccess
+                        )
+                 -- )
+                )
+    in
+    Combine.choice
+        [ string "-"
+            |> Combine.continueWith (Combine.choice [ negationExpression, succeed (Operator "-") |> Combine.ignore Layout.layout ])
+        , Combine.map Operator infixOperatorToken
+        ]
 
 
-functionOrValueExpression : Parser State Expression
-functionOrValueExpression =
-    lazy
-        (\() ->
-            FunctionOrValue <$> choice [ functionName, typeName ]
-        )
+reference : Parser s ( ModuleName, String )
+reference =
+    let
+        helper ( n, xs ) =
+            Combine.choice
+                [ string "."
+                    |> Combine.continueWith (Combine.choice [ Tokens.typeName, Tokens.functionName ])
+                    |> Combine.andThen (\t -> helper ( t, n :: xs ))
+                , Combine.succeed ( n, xs )
+                ]
+    in
+    Combine.choice
+        [ Tokens.typeName
+            |> Combine.andThen (\t -> helper ( t, [] ))
+            |> Combine.map (\( t, xs ) -> ( List.reverse xs, t ))
+        , Tokens.functionName |> Combine.map (\v -> ( [], v ))
+        ]
 
 
-qualifiedExpression : Parser State Expression
-qualifiedExpression =
-    lazy
-        (\() ->
-            succeed QualifiedExpr
-                <*> many1 (typeName <* string ".")
-                <*> or functionName typeName
-        )
+referenceExpression : Parser State Expression
+referenceExpression =
+    reference
+        |> Combine.map
+            (\( xs, x ) ->
+                case xs of
+                    [] ->
+                        FunctionOrValue x
+
+                    _ ->
+                        QualifiedExpr xs x
+            )
 
 
 recordAccessFunctionExpression : Parser State Expression
 recordAccessFunctionExpression =
-    ((++) "." >> RecordAccessFunction) <$> (string "." *> functionName)
+    Combine.map ((++) "." >> RecordAccessFunction)
+        (string "."
+            |> Combine.continueWith functionName
+        )
 
 
 tupledExpression : Parser State Expression
 tupledExpression =
     lazy
         (\() ->
-            (\l ->
-                case l of
-                    [ x ] ->
-                        ParenthesizedExpression x
+            let
+                asExpression : Ranged Expression -> List (Ranged Expression) -> Expression
+                asExpression x xs =
+                    case xs of
+                        [] ->
+                            ParenthesizedExpression x
 
-                    xs ->
-                        TupledExpression xs
-            )
-                <$> parens (sepBy1 (string ",") (Layout.maybeAroundBothSides expression))
+                        _ ->
+                            TupledExpression (x :: xs)
+
+                commaSep : Parser State (List (Ranged Expression))
+                commaSep =
+                    many
+                        (string ","
+                            |> Combine.ignore (maybe Layout.layout)
+                            |> Combine.continueWith expression
+                            |> Combine.ignore (maybe Layout.layout)
+                        )
+
+                nested : Parser State Expression
+                nested =
+                    Combine.succeed asExpression
+                        |> Combine.ignore (maybe Layout.layout)
+                        |> Combine.andMap expression
+                        |> Combine.ignore (maybe Layout.layout)
+                        |> Combine.andMap commaSep
+
+                closingParen =
+                    Combine.string ")"
+            in
+            Combine.string "("
+                |> Combine.continueWith
+                    (Combine.choice
+                        [ closingParen |> Combine.map (always UnitExpr)
+                        , -- Backtracking needed for record access expression
+                          -- Combine.backtrackable
+                          prefixOperatorToken
+                            |> Combine.ignore closingParen
+                            |> Combine.map PrefixOperator
+                        , nested |> Combine.ignore closingParen
+                        ]
+                    )
         )

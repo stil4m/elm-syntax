@@ -215,7 +215,7 @@ decodeSignature : Decoder FunctionSignature
 decodeSignature =
     succeed FunctionSignature
         |: field "operatorDefinition" bool
-        |: nameField
+        |: field "name" decodeVariablePointer
         |: field "typeAnnotation" decodeTypeAnnotation
 
 
@@ -320,7 +320,6 @@ decodePattern =
                         , ( "list", field "value" (list decodePattern) |> map ListPattern )
                         , ( "var", field "value" string |> map VarPattern )
                         , ( "named", map2 NamedPattern (field "qualified" decodeQualifiedNameRef) (field "patterns" (list decodePattern)) )
-                        , ( "qualifiedName", map QualifiedNamePattern (field "value" decodeQualifiedNameRef) )
                         , ( "as", map2 AsPattern (field "pattern" decodePattern) (field "name" decodeVariablePointer) )
                         , ( "parentisized", map ParenthesizedPattern (field "value" decodePattern) )
                         ]

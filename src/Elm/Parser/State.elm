@@ -1,4 +1,4 @@
-module Elm.Parser.State exposing (State, addComment, currentIndent, emptyState, getComments, popIndent, pushIndent)
+module Elm.Parser.State exposing (State, addComment, currentIndent, emptyState, getComments, popIndent, pushIndent, storedIndents)
 
 import Elm.Syntax.Ranged exposing (Ranged)
 
@@ -31,6 +31,11 @@ popIndent (State s) =
 pushIndent : Int -> State -> State
 pushIndent x (State s) =
     State { s | indents = x :: s.indents }
+
+
+storedIndents : State -> List Int
+storedIndents (State { indents }) =
+    indents
 
 
 addComment : Ranged String -> State -> State

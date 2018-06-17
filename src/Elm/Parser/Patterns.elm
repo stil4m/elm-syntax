@@ -1,196 +1,172 @@
-module Elm.Parser.Patterns exposing (declarablePattern, pattern)
+module Elm.Parser.Patterns exposing (pattern)
 
-import Combine exposing ((*>), (<$), (<$>), (<*), (<*>), (>>=), Parser, between, choice, lazy, many, maybe, or, parens, sepBy, sepBy1, string, succeed)
-import Combine.Num
-import Elm.Parser.Base exposing (variablePointer)
+import Combine exposing (Parser, between, lazy, many, maybe, parens, sepBy, sepBy1, string)
+import Combine.Extra as Combine
+import Elm.Parser.Base as Base exposing (variablePointer)
 import Elm.Parser.Layout as Layout
-import Elm.Parser.Ranges exposing (ranged, rangedWithCustomStart)
+import Elm.Parser.Numbers
+import Elm.Parser.Ranges exposing (ranged)
 import Elm.Parser.State exposing (State)
-import Elm.Parser.Tokens exposing (asToken, characterLiteral, functionName, stringLiteral, typeName)
-import Elm.Syntax.Pattern exposing (Pattern(AllPattern, AsPattern, CharPattern, FloatPattern, IntPattern, ListPattern, NamedPattern, QualifiedNamePattern, RecordPattern, StringPattern, TuplePattern, UnConsPattern, UnitPattern, VarPattern), QualifiedNameRef)
+import Elm.Parser.Tokens exposing (characterLiteral, functionName, stringLiteral)
+import Elm.Syntax.Pattern exposing (Pattern(..), QualifiedNameRef)
+import Elm.Syntax.Range as Range exposing (Range)
 import Elm.Syntax.Ranged exposing (Ranged)
 
 
-declarablePattern : Parser State (Ranged Pattern)
-declarablePattern =
-    lazy (\() -> ranged declarablePatternRangeless)
+tryToCompose : Ranged Pattern -> Parser State (Ranged Pattern)
+tryToCompose x =
+    lazy
+        (\() ->
+            maybe Layout.layout
+                |> Combine.continueWith
+                    (Combine.choice
+                        [ Combine.string "as"
+                            |> Combine.ignore (maybe Layout.layout)
+                            |> Combine.continueWith (variablePointer functionName)
+                            |> Combine.map
+                                (\y ->
+                                    ( Range.combine [ Tuple.first x, y.range ]
+                                    , AsPattern x y
+                                    )
+                                )
+                        , Combine.string "::"
+                            |> Combine.ignore (maybe Layout.layout)
+                            |> Combine.continueWith pattern
+                            |> Combine.map
+                                (\y ->
+                                    ( Range.combine [ Tuple.first x, Tuple.first y ]
+                                    , UnConsPattern x y
+                                    )
+                                )
+                        , Combine.succeed x
+                        ]
+                    )
+        )
 
 
 pattern : Parser State (Ranged Pattern)
 pattern =
     lazy
         (\() ->
+            composablePattern |> Combine.andThen tryToCompose
+        )
+
+
+parensPattern : Parser State (Ranged Pattern)
+parensPattern =
+    Combine.lazy
+        (\() ->
             ranged
-                (choice
-                    [ declarablePatternRangeless
-                    , variablePattern
-                    , namedPattern
-                    ]
+                (parens (sepBy (string ",") (Layout.maybeAroundBothSides pattern))
+                    |> Combine.map
+                        (\c ->
+                            case c of
+                                [ x ] ->
+                                    ParenthesizedPattern x
+
+                                _ ->
+                                    TuplePattern c
+                        )
                 )
-                >>= promoteToCompositePattern
         )
 
 
-promoteToCompositePattern : Ranged Pattern -> Parser State (Ranged Pattern)
-promoteToCompositePattern (( range, _ ) as y) =
-    or
-        (rangedWithCustomStart range
-            (choice
-                [ unConsPattern2 y
-                , asPattern2 y
-                ]
-            )
-        )
-        (succeed y)
+variablePart : Parser State (Ranged Pattern)
+variablePart =
+    ranged (Combine.map VarPattern functionName)
 
 
-declarablePatternRangeless : Parser State Pattern
-declarablePatternRangeless =
-    lazy (\() -> choice [ allPattern, tuplePattern, recordPattern ])
+numberPart : Parser State Pattern
+numberPart =
+    Elm.Parser.Numbers.number FloatPattern IntPattern
 
 
-nonNamedPattern : Parser State Pattern
-nonNamedPattern =
-    lazy
-        (\() ->
-            choice
-                [ declarablePatternRangeless
-                , asPattern
-                , variablePattern
-                ]
-        )
-
-
-nonAsPattern : Parser State Pattern
-nonAsPattern =
-    lazy
-        (\() ->
-            choice
-                [ declarablePatternRangeless
-                , variablePattern
-                , namedPattern
-                ]
-        )
-
-
-variablePattern : Parser State Pattern
-variablePattern =
-    lazy
-        (\() ->
-            choice [ allPattern, charPattern, stringPattern, floatPattern, intPattern, unitPattern, varPattern, listPattern ]
-        )
-
-
-listPattern : Parser State Pattern
+listPattern : Parser State (Ranged Pattern)
 listPattern =
     lazy
         (\() ->
-            between
-                (string "[")
-                (string "]")
-                (ListPattern <$> sepBy (string ",") (Layout.maybeAroundBothSides pattern))
+            ranged <|
+                between
+                    (string "[")
+                    (string "]")
+                    (Combine.map ListPattern (sepBy (string ",") (Layout.maybeAroundBothSides pattern)))
         )
 
 
-unConsPattern2 : Ranged Pattern -> Parser State Pattern
-unConsPattern2 p =
+type alias ConsumeArgs =
+    Bool
+
+
+composablePattern : Parser State (Ranged Pattern)
+composablePattern =
     lazy
         (\() ->
-            UnConsPattern p <$> (Layout.maybeAroundBothSides (string "::") *> pattern)
+            Combine.choice
+                [ variablePart
+                , qualifiedPattern True
+                , ranged (stringLiteral |> Combine.map StringPattern)
+                , ranged (characterLiteral |> Combine.map CharPattern)
+                , ranged numberPart
+                , ranged (Combine.string "()" |> Combine.map (always UnitPattern))
+                , ranged (Combine.string "_" |> Combine.map (always AllPattern))
+                , recordPart
+                , listPattern
+                , parensPattern
+                ]
         )
 
 
-charPattern : Parser State Pattern
-charPattern =
-    lazy (\() -> CharPattern <$> characterLiteral)
-
-
-stringPattern : Parser State Pattern
-stringPattern =
-    lazy (\() -> StringPattern <$> stringLiteral)
-
-
-intPattern : Parser State Pattern
-intPattern =
-    lazy (\() -> IntPattern <$> Combine.Num.int)
-
-
-floatPattern : Parser State Pattern
-floatPattern =
-    lazy (\() -> FloatPattern <$> Combine.Num.float)
-
-
-asPattern : Parser State Pattern
-asPattern =
+qualifiedPatternArg : Parser State (Ranged Pattern)
+qualifiedPatternArg =
     lazy
         (\() ->
-            succeed AsPattern
-                <*> (maybe Layout.layout *> ranged nonAsPattern)
-                <*> (Layout.layout *> asToken *> Layout.layout *> variablePointer functionName)
+            Combine.choice
+                [ variablePart
+                , qualifiedPattern False
+                , ranged (stringLiteral |> Combine.map StringPattern)
+                , ranged (characterLiteral |> Combine.map CharPattern)
+                , ranged numberPart
+                , ranged (Combine.string "()" |> Combine.map (always UnitPattern))
+                , ranged (Combine.string "_" |> Combine.map (always AllPattern))
+                , recordPart
+                , listPattern
+                , parensPattern
+                ]
         )
 
 
-asPattern2 : Ranged Pattern -> Parser State Pattern
-asPattern2 p =
+qualifiedPattern : ConsumeArgs -> Parser State ( Range, Pattern )
+qualifiedPattern consumeArgs =
     lazy
         (\() ->
-            AsPattern p
-                <$> (Layout.layout *> asToken *> Layout.layout *> variablePointer functionName)
+            ranged Base.typeIndicator
+                |> Combine.ignore (maybe Layout.layout)
+                |> Combine.andThen
+                    (\( range, ( mod, name ) ) ->
+                        (if consumeArgs then
+                            many (qualifiedPatternArg |> Combine.ignore (maybe Layout.layout))
+                         else
+                            Combine.succeed []
+                        )
+                            |> Combine.map
+                                (\args ->
+                                    ( Range.combine (range :: List.map Tuple.first args)
+                                    , NamedPattern (QualifiedNameRef mod name) args
+                                    )
+                                )
+                    )
         )
 
 
-tuplePattern : Parser State Pattern
-tuplePattern =
+recordPart : Parser State (Ranged Pattern)
+recordPart =
     lazy
         (\() ->
-            TuplePattern <$> parens (sepBy1 (string ",") (Layout.maybeAroundBothSides pattern))
-        )
-
-
-recordPattern : Parser State Pattern
-recordPattern =
-    lazy
-        (\() ->
-            RecordPattern
-                <$> between
-                        (string "{" *> maybe Layout.layout)
-                        (maybe Layout.layout *> string "}")
+            ranged
+                (Combine.map RecordPattern <|
+                    between
+                        (string "{" |> Combine.continueWith (maybe Layout.layout))
+                        (maybe Layout.layout |> Combine.continueWith (string "}"))
                         (sepBy1 (string ",") (Layout.maybeAroundBothSides (variablePointer functionName)))
+                )
         )
-
-
-varPattern : Parser State Pattern
-varPattern =
-    lazy (\() -> VarPattern <$> functionName)
-
-
-qualifiedNameRef : Parser State QualifiedNameRef
-qualifiedNameRef =
-    succeed QualifiedNameRef
-        <*> many (typeName <* string ".")
-        <*> typeName
-
-
-qualifiedNamePattern : Parser State Pattern
-qualifiedNamePattern =
-    QualifiedNamePattern <$> qualifiedNameRef
-
-
-namedPattern : Parser State Pattern
-namedPattern =
-    lazy
-        (\() ->
-            succeed NamedPattern
-                <*> qualifiedNameRef
-                <*> many (Layout.layout *> ranged (or qualifiedNamePattern nonNamedPattern))
-        )
-
-
-allPattern : Parser State Pattern
-allPattern =
-    lazy (\() -> AllPattern <$ string "_")
-
-
-unitPattern : Parser State Pattern
-unitPattern =
-    lazy (\() -> UnitPattern <$ string "()")

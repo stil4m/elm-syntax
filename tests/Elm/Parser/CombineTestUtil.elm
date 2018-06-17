@@ -40,6 +40,16 @@ parseStateToMaybe state s p =
             Nothing
 
 
+parseAsFarAsPossibleWithState : State -> String -> Parser State b -> Maybe b
+parseAsFarAsPossibleWithState state s p =
+    case Combine.runParser p state s of
+        Ok ( _, _, r ) ->
+            Just r
+
+        _ ->
+            Nothing
+
+
 parseFullStringWithNullState : String -> Parser State b -> Maybe b
 parseFullStringWithNullState s p =
     case Combine.runParser (p <* Combine.end) emptyState s of
@@ -115,9 +125,6 @@ noRangePattern : Ranged Pattern -> Ranged Pattern
 noRangePattern ( r, p ) =
     ( emptyRange
     , case p of
-        QualifiedNamePattern x ->
-            QualifiedNamePattern x
-
         RecordPattern ls ->
             RecordPattern (List.map unRange ls)
 
@@ -297,7 +304,7 @@ noRangeFunction f =
 
 noRangeSignature : FunctionSignature -> FunctionSignature
 noRangeSignature signature =
-    { signature | typeAnnotation = noRangeTypeReference signature.typeAnnotation }
+    { signature | typeAnnotation = noRangeTypeReference signature.typeAnnotation, name = unRange signature.name }
 
 
 noRangeFunctionDeclaration : FunctionDeclaration -> FunctionDeclaration

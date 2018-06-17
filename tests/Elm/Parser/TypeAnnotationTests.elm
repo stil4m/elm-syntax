@@ -16,11 +16,6 @@ all =
                 parseFullStringWithNullState "()" Parser.typeAnnotation
                     |> Maybe.map noRangeTypeReference
                     |> Expect.equal (Just <| ( emptyRange, Unit ))
-        , test "unitTypeReference with spaces" <|
-            \() ->
-                parseFullStringWithNullState "( )" Parser.typeAnnotation
-                    |> Maybe.map noRangeTypeReference
-                    |> Expect.equal (Just <| ( emptyRange, Unit ))
         , test "tupledTypeReference" <|
             \() ->
                 parseFullStringWithNullState "( (), ())" Parser.typeAnnotation

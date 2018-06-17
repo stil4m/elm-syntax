@@ -252,9 +252,9 @@ writeSignature : FunctionSignature -> Writer
 writeSignature signature =
     spaced
         [ if signature.operatorDefinition then
-            string ("(" ++ signature.name ++ ")")
+            string ("(" ++ signature.name.value ++ ")")
           else
-            string signature.name
+            string signature.name.value
         , string ":"
         , writeTypeAnnotation signature.typeAnnotation
         ]
@@ -589,9 +589,6 @@ writePattern ( _, p ) =
                 [ writeQualifiedNameRef qnr
                 , spaced (List.map writePattern others)
                 ]
-
-        QualifiedNamePattern qnr ->
-            writeQualifiedNameRef qnr
 
         AsPattern innerPattern asName ->
             spaced [ writePattern innerPattern, string "as", string asName.value ]

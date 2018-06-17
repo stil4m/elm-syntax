@@ -1,6 +1,7 @@
-module Elm.Parser.Layout exposing (around, layout, layoutAndNewLine, layoutStrict, maybeAroundBothSides)
+module Elm.Parser.Layout exposing (LayoutStatus(..), around, layout, layoutAndNewLine, layoutStrict, maybeAroundBothSides, optimisticLayout, optimisticLayoutWith)
 
 import Combine exposing (($>), (*>), (<*), Parser, choice, fail, many1, maybe, or, succeed, withLocation, withState)
+import Combine.Extra as Combine
 import Elm.Parser.Comments as Comments
 import Elm.Parser.State as State exposing (State)
 import Elm.Parser.Whitespace exposing (many1Spaces, realNewLine)
@@ -28,6 +29,62 @@ layout =
         )
         *> verifyIndent (\stateIndent current -> stateIndent < current)
         $> ()
+
+
+type LayoutStatus
+    = Strict
+    | Indented
+
+
+optimisticLayoutWith : (() -> Parser State a) -> (() -> Parser State a) -> Parser State a
+optimisticLayoutWith onStrict onIndented =
+    optimisticLayout
+        |> Combine.andThen
+            (\ind ->
+                case ind of
+                    Strict ->
+                        onStrict ()
+
+                    Indented ->
+                        onIndented ()
+            )
+
+
+optimisticLayout : Parser State LayoutStatus
+optimisticLayout =
+    Combine.many
+        (choice
+            [ anyComment
+            , many1 realNewLine
+                |> Combine.continueWith
+                    (choice
+                        [ many1Spaces $> ()
+                        , anyComment $> ()
+                        , succeed ()
+                        ]
+                    )
+            , many1Spaces $> ()
+            ]
+        )
+        |> Combine.continueWith compute
+
+
+compute : Parser State LayoutStatus
+compute =
+    withState
+        (\s ->
+            withLocation
+                (\l ->
+                    let
+                        known =
+                            0 :: State.storedIndents s
+                    in
+                    if List.member l.column known then
+                        succeed Strict
+                    else
+                        succeed Indented
+                )
+        )
 
 
 layoutStrict : Parser State ()

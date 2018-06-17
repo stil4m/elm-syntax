@@ -277,7 +277,7 @@ encodeSignature : FunctionSignature -> Value
 encodeSignature { operatorDefinition, name, typeAnnotation } =
     object
         [ ( "operatorDefinition", JE.bool operatorDefinition )
-        , nameField name
+        , ( "name", encodeVariablePointer name )
         , ( "typeAnnotation", encodeTypeAnnotation typeAnnotation )
         ]
 
@@ -448,12 +448,6 @@ encodePattern ( r, pattern ) =
                         object
                             [ ( "qualified", encodeQualifiedNameRef qualifiedNameRef )
                             , ( "patterns", asList encodePattern patterns )
-                            ]
-
-                QualifiedNamePattern qualifiedNameRef ->
-                    encodeTyped "qualifiedName" <|
-                        JE.object
-                            [ ( "value", encodeQualifiedNameRef qualifiedNameRef )
                             ]
 
                 AsPattern destructured variablePointer ->

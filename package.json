@@ -14,6 +14,7 @@
         "elm:test": "./node_modules/.bin/elm-test",
         "elm:validate-format": "./node_modules/.bin/elm-format --validate src/ tests/",
         "elm:lint": "elm-analyse",
+        "elm:lint-server": "elm-analyse -s",
         "elm:build": "elm-package install -y && elm-make"
     },
     "author": "Mats Stijlaart",
@@ -25,7 +26,7 @@
     ],
     "devDependencies": {
         "elm": "0.18.0",
-        "elm-analyse": "0.12.1",
+        "elm-analyse": "0.14.2",
         "elm-format": "0.7.0-exp",
         "elm-live": "2.7.5",
         "elm-test": "0.18.7",

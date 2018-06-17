@@ -2,6 +2,7 @@ module Elm.ProcessingTests exposing (..)
 
 import Elm.Parser as Parser
 import Elm.Processing as Processing
+import Elm.Syntax.Base exposing (VariablePointer)
 import Elm.Syntax.Declaration exposing (..)
 import Elm.Syntax.Documentation exposing (..)
 import Elm.Syntax.Exposing exposing (..)
@@ -93,7 +94,11 @@ bar = 1
             [ ( { start = { row = 4, column = 0 }, end = { row = 5, column = 7 } }
               , FuncDecl
                     { documentation = Just { text = "{-| The docs\n-}", range = { start = { row = 2, column = 0 }, end = { row = 3, column = 2 } } }
-                    , signature = Just ( { start = { row = 4, column = 0 }, end = { row = 4, column = 9 } }, { operatorDefinition = False, name = "bar", typeAnnotation = ( { start = { row = 4, column = 6 }, end = { row = 4, column = 9 } }, Typed [] "Int" [] ) } )
+                    , signature =
+                        Just
+                            ( { start = { row = 4, column = 0 }, end = { row = 4, column = 9 } }
+                            , { operatorDefinition = False, name = VariablePointer "bar" { start = { row = 4, column = 0 }, end = { row = 4, column = 3 } }, typeAnnotation = ( { start = { row = 4, column = 6 }, end = { row = 4, column = 9 } }, Typed [] "Int" [] ) }
+                            )
                     , declaration =
                         { operatorDefinition = False
                         , name = { value = "bar", range = { start = { row = 5, column = 0 }, end = { row = 5, column = 3 } } }
@@ -186,7 +191,15 @@ type alias Foo
       , imports = []
       , declarations =
             [ ( { start = { row = 3, column = 0 }, end = { row = 4, column = 22 } }
-              , AliasDecl { documentation = Just { text = "{-| The Doc -}", range = { start = { row = 2, column = 0 }, end = { row = 2, column = 14 } } }, name = "Foo", generics = [], typeAnnotation = ( { start = { row = 4, column = 5 }, end = { row = 4, column = 22 } }, Record [ ( "name", ( { start = { row = 4, column = 14 }, end = { row = 4, column = 21 } }, Typed [] "String" [] ) ) ] ) }
+              , AliasDecl
+                    { documentation = Just { text = "{-| The Doc -}", range = { start = { row = 2, column = 0 }, end = { row = 2, column = 14 } } }
+                    , name = "Foo"
+                    , generics = []
+                    , typeAnnotation =
+                        ( { start = { row = 4, column = 5 }, end = { row = 4, column = 22 } }
+                        , Record [ ( "name", ( { start = { row = 4, column = 14 }, end = { row = 4, column = 20 } }, Typed [] "String" [] ) ) ]
+                        )
+                    }
               )
             ]
       , comments = []
@@ -217,9 +230,25 @@ bar = (x + 1) * (2 * y)
                             ( { start = { row = 2, column = 6 }, end = { row = 2, column = 23 } }
                             , OperatorApplication "*"
                                 Left
-                                ( { start = { row = 2, column = 6 }, end = { row = 2, column = 13 } }, ParenthesizedExpression ( { start = { row = 2, column = 7 }, end = { row = 2, column = 12 } }, OperatorApplication "+" Left ( { start = { row = 2, column = 7 }, end = { row = 2, column = 8 } }, FunctionOrValue "x" ) ( { start = { row = 2, column = 11 }, end = { row = 2, column = 12 } }, Integer 1 ) ) )
+                                ( { start = { row = 2, column = 6 }, end = { row = 2, column = 13 } }
+                                , ParenthesizedExpression
+                                    ( { start = { row = 2, column = 7 }, end = { row = 2, column = 12 } }
+                                    , OperatorApplication "+"
+                                        Left
+                                        ( { start = { row = 2, column = 7 }, end = { row = 2, column = 8 } }
+                                        , FunctionOrValue "x"
+                                        )
+                                        ( { start = { row = 2, column = 11 }, end = { row = 2, column = 12 } }, Integer 1 )
+                                    )
+                                )
                                 ( { start = { row = 2, column = 16 }, end = { row = 2, column = 23 } }
-                                , ParenthesizedExpression ( { start = { row = 2, column = 17 }, end = { row = 2, column = 22 } }, OperatorApplication "*" Left ( { start = { row = 2, column = 17 }, end = { row = 2, column = 18 } }, Integer 2 ) ( { start = { row = 2, column = 21 }, end = { row = 2, column = 22 } }, FunctionOrValue "y" ) )
+                                , ParenthesizedExpression
+                                    ( { start = { row = 2, column = 17 }, end = { row = 2, column = 22 } }
+                                    , OperatorApplication "*"
+                                        Left
+                                        ( { start = { row = 2, column = 17 }, end = { row = 2, column = 18 } }, Integer 2 )
+                                        ( { start = { row = 2, column = 21 }, end = { row = 2, column = 22 } }, FunctionOrValue "y" )
+                                    )
                                 )
                             )
                         }

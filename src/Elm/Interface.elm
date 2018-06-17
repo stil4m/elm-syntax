@@ -186,7 +186,7 @@ fileToDefinitions file =
                                 Just ( a.name, Alias a.name )
 
                             PortDeclaration p ->
-                                Just ( p.name, Function p.name )
+                                Just ( p.name.value, Function p.name.value )
 
                             FuncDecl f ->
                                 if f.declaration.operatorDefinition then

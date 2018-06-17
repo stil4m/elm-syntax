@@ -40,6 +40,7 @@ module Elm.Syntax.Expression
             )
         , RecordSetter
         , RecordUpdate
+        , functionRange
         , isCase
         , isIfElse
         , isLambda
@@ -72,7 +73,7 @@ module Elm.Syntax.Expression
 
 # Functions
 
-@docs Function, FunctionDeclaration, FunctionSignature
+@docs Function, FunctionDeclaration, FunctionSignature, functionRange
 
 
 # Utiltity functions
@@ -85,6 +86,7 @@ import Elm.Syntax.Base exposing (ModuleName, VariablePointer)
 import Elm.Syntax.Documentation exposing (Documentation)
 import Elm.Syntax.Infix exposing (InfixDirection)
 import Elm.Syntax.Pattern exposing (Pattern)
+import Elm.Syntax.Range as Range exposing (Range)
 import Elm.Syntax.Ranged exposing (Ranged)
 import Elm.Syntax.TypeAnnotation exposing (TypeAnnotation)
 
@@ -96,6 +98,23 @@ type alias Function =
     , signature : Maybe (Ranged FunctionSignature)
     , declaration : FunctionDeclaration
     }
+
+
+{-| Get the full range of a function
+-}
+functionRange : Function -> Range
+functionRange function =
+    Range.combine
+        [ case function.documentation of
+            Just d ->
+                d.range
+
+            Nothing ->
+                function.signature
+                    |> Maybe.map (Tuple.second >> .name >> .range)
+                    |> Maybe.withDefault function.declaration.name.range
+        , Tuple.first function.declaration.expression
+        ]
 
 
 {-| Type alias for declaring a function
@@ -112,7 +131,7 @@ type alias FunctionDeclaration =
 -}
 type alias FunctionSignature =
     { operatorDefinition : Bool
-    , name : String
+    , name : VariablePointer
     , typeAnnotation : Ranged TypeAnnotation
     }
 

@@ -9,7 +9,6 @@ module Elm.Syntax.Pattern
             , ListPattern
             , NamedPattern
             , ParenthesizedPattern
-            , QualifiedNamePattern
             , RecordPattern
             , StringPattern
             , TuplePattern
@@ -54,7 +53,6 @@ type Pattern
     | ListPattern (List (Ranged Pattern))
     | VarPattern String
     | NamedPattern QualifiedNameRef (List (Ranged Pattern))
-    | QualifiedNamePattern QualifiedNameRef
     | AsPattern (Ranged Pattern) VariablePointer
     | ParenthesizedPattern (Ranged Pattern)
 
@@ -90,9 +88,6 @@ moduleNames p =
 
         NamedPattern qualifiedNameRef subPatterns ->
             qualifiedNameRef.moduleName :: List.concatMap recur subPatterns
-
-        QualifiedNamePattern qualifiedNameRef ->
-            [ qualifiedNameRef.moduleName ]
 
         AsPattern inner _ ->
             recur inner

@@ -240,7 +240,7 @@ all =
                         )
         , test "listExpression empty" <|
             \() ->
-                parseFullStringWithNullState "[\n]" expression
+                parseFullStringWithNullState "[]" expression
                     |> Maybe.map Tuple.second
                     |> Expect.equal (Just (ListExpr []))
         , test "listExpression singleton with comment" <|
@@ -261,11 +261,6 @@ all =
             \() ->
                 parseFullStringWithNullState "[{-| Foo -}]" expression
                     |> Maybe.map noRangeExpression
-                    |> Maybe.map Tuple.second
-                    |> Expect.equal (Just (ListExpr []))
-        , test "listExpression on indent" <|
-            \() ->
-                parseFullStringWithNullState "  [\n]" (whitespace *> expression)
                     |> Maybe.map Tuple.second
                     |> Expect.equal (Just (ListExpr []))
         , test "qualified expression" <|
@@ -375,7 +370,7 @@ all =
                         (Just
                             (Application
                                 [ emptyRanged <| FunctionOrValue "toFloat"
-                                , emptyRanged <| Negation (emptyRanged <| Integer 5)
+                                , emptyRanged <| Integer -5
                                 ]
                             )
                         )
@@ -399,10 +394,4 @@ all =
                                 )
                             )
                         )
-        , test "preceded by multiline comment" <|
-            \() ->
-                parseFullStringWithNullState "{- x -} y" expression
-                    |> Maybe.map noRangeExpression
-                    |> Maybe.map Tuple.second
-                    |> Expect.equal (Just (FunctionOrValue "y"))
         ]

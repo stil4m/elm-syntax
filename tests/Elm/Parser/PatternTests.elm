@@ -34,12 +34,11 @@ all =
                     |> Expect.equal
                         (Just
                             ( Range (Location 0 0) (Location 0 5)
-                            , TuplePattern
-                                [ ( Range (Location 0 1) (Location 0 4)
-                                  , NamedPattern (QualifiedNameRef [] "X")
-                                        [ ( Range (Location 0 3) (Location 0 4), VarPattern "x" ) ]
-                                  )
-                                ]
+                            , ParenthesizedPattern
+                                ( Range (Location 0 1) (Location 0 4)
+                                , NamedPattern (QualifiedNameRef [] "X")
+                                    [ ( Range (Location 0 3) (Location 0 4), VarPattern "x" ) ]
+                                )
                             )
                         )
         , test "uncons with parens pattern" <|
@@ -50,12 +49,11 @@ all =
                             ( Range (Location 0 0) (Location 0 11)
                             , UnConsPattern
                                 ( Range (Location 0 0) (Location 0 5)
-                                , TuplePattern
-                                    [ ( Range (Location 0 1) (Location 0 4)
-                                      , NamedPattern (QualifiedNameRef [] "X")
-                                            [ ( Range (Location 0 3) (Location 0 4), VarPattern "x" ) ]
-                                      )
-                                    ]
+                                , ParenthesizedPattern
+                                    ( Range (Location 0 1) (Location 0 4)
+                                    , NamedPattern (QualifiedNameRef [] "X")
+                                        [ ( Range (Location 0 3) (Location 0 4), VarPattern "x" ) ]
+                                    )
                                 )
                                 ( Range (Location 0 9) (Location 0 11), VarPattern "xs" )
                             )
@@ -173,12 +171,13 @@ all =
                             ( emptyRange
                             , TuplePattern
                                 [ ( emptyRange
-                                  , NamedPattern (QualifiedNameRef [] "Index")
-                                        [ ( emptyRange
-                                          , AsPattern ( emptyRange, VarPattern "irec" )
-                                                { value = "index", range = emptyRange }
-                                          )
-                                        ]
+                                  , AsPattern
+                                        ( emptyRange
+                                        , NamedPattern
+                                            (QualifiedNameRef [] "Index")
+                                            [ ( emptyRange, VarPattern "irec" ) ]
+                                        )
+                                        { value = "index", range = emptyRange }
                                   )
                                 , ( emptyRange, VarPattern "docVector" )
                                 ]
@@ -194,23 +193,21 @@ all =
                             , NamedPattern (QualifiedNameRef [] "RBNode_elm_builtin")
                                 [ ( emptyRange, VarPattern "col" )
                                 , ( emptyRange
-                                  , TuplePattern
-                                        [ ( emptyRange
-                                          , NamedPattern (QualifiedNameRef [] "RBNode_elm_builtin")
-                                                [ ( emptyRange, QualifiedNamePattern (QualifiedNameRef [] "Red") )
-                                                , ( emptyRange
-                                                  , TuplePattern
-                                                        [ ( emptyRange
-                                                          , NamedPattern (QualifiedNameRef [] "RBNode_elm_builtin")
-                                                                [ ( emptyRange, QualifiedNamePattern (QualifiedNameRef [] "Red") )
-                                                                , ( emptyRange, VarPattern "xv" )
-                                                                ]
-                                                          )
+                                  , ParenthesizedPattern
+                                        ( emptyRange
+                                        , NamedPattern (QualifiedNameRef [] "RBNode_elm_builtin")
+                                            [ ( emptyRange, NamedPattern (QualifiedNameRef [] "Red") [] )
+                                            , ( emptyRange
+                                              , ParenthesizedPattern
+                                                    ( emptyRange
+                                                    , NamedPattern (QualifiedNameRef [] "RBNode_elm_builtin")
+                                                        [ ( emptyRange, NamedPattern (QualifiedNameRef [] "Red") [] )
+                                                        , ( emptyRange, VarPattern "xv" )
                                                         ]
-                                                  )
-                                                ]
-                                          )
-                                        ]
+                                                    )
+                                              )
+                                            ]
+                                        )
                                   )
                                 ]
                             )
