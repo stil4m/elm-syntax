@@ -3,13 +3,15 @@ module Elm.Parser.Typings exposing (TypeDefinition(..), typeDefinition)
 import Combine exposing (Parser, many, maybe, string, succeed)
 import Combine.Extra as Combine
 import Elm.Parser.Layout as Layout
-import Elm.Parser.Ranges exposing (withCurrentPoint, withRange)
+import Elm.Parser.Ranges exposing (ranged, withCurrentPoint, withRange)
 import Elm.Parser.State exposing (State)
 import Elm.Parser.Tokens exposing (functionName, typeName)
 import Elm.Parser.TypeAnnotation exposing (typeAnnotation, typeAnnotationNonGreedy)
 import Elm.Syntax.Range as Range exposing (Range)
+import Elm.Syntax.Ranged exposing (Ranged)
 import Elm.Syntax.Type exposing (Type, ValueConstructor)
 import Elm.Syntax.TypeAlias exposing (TypeAlias)
+import Elm.Syntax.TypeAnnotation exposing (TypeAnnotation)
 
 
 type TypeDefinition
@@ -70,38 +72,38 @@ valueConstructors =
 
 valueConstructor : Parser State ValueConstructor
 valueConstructor =
-    withRange
-        (succeed ValueConstructor
-            |> Combine.continueWith typeName
-            |> Combine.andThen
-                (\tn ->
-                    let
-                        complete args =
-                            Combine.succeed (ValueConstructor tn args)
+    succeed ValueConstructor
+        |> Combine.continueWith (ranged typeName)
+        |> Combine.andThen
+            (\( range, tn ) ->
+                let
+                    complete : List (Ranged TypeAnnotation) -> Parser State ValueConstructor
+                    complete args =
+                        Combine.succeed
+                            (ValueConstructor tn args (Range.combine (range :: List.map Tuple.first args)))
 
-                        argHelper xs =
-                            Combine.succeed ()
-                                |> Combine.continueWith
-                                    (Combine.choice
-                                        [ typeAnnotationNonGreedy
-                                            |> Combine.andThen
-                                                (\ta ->
-                                                    Layout.optimisticLayoutWith
-                                                        (\() -> Combine.succeed (List.reverse (ta :: xs)))
-                                                        (\() -> argHelper (ta :: xs))
-                                                )
-                                        , Combine.succeed (List.reverse xs)
-                                        ]
-                                    )
-                    in
-                    Layout.optimisticLayoutWith
-                        (\() -> complete [])
-                        (\() ->
-                            argHelper []
-                                |> Combine.andThen complete
-                        )
-                )
-        )
+                    argHelper xs =
+                        Combine.succeed ()
+                            |> Combine.continueWith
+                                (Combine.choice
+                                    [ typeAnnotationNonGreedy
+                                        |> Combine.andThen
+                                            (\ta ->
+                                                Layout.optimisticLayoutWith
+                                                    (\() -> Combine.succeed (List.reverse (ta :: xs)))
+                                                    (\() -> argHelper (ta :: xs))
+                                            )
+                                    , Combine.succeed (List.reverse xs)
+                                    ]
+                                )
+                in
+                Layout.optimisticLayoutWith
+                    (\() -> complete [])
+                    (\() ->
+                        argHelper []
+                            |> Combine.andThen complete
+                    )
+            )
 
 
 genericList : Parser State (List String)
