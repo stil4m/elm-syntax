@@ -367,4 +367,47 @@ all =
                                     }
                                 }
                         )
+        , test "function with case should not be eager on the whitespace" <|
+            \() ->
+                parseFullStringState emptyState "foo x =\n    case x of\n        False ->\n            x\n        _ -> not x\n\n\n" Parser.function
+                    |> Maybe.map Tuple.second
+                    |> Expect.equal
+                        (Just
+                            (FuncDecl
+                                { documentation = Nothing
+                                , signature = Nothing
+                                , declaration =
+                                    { operatorDefinition = False
+                                    , name = { value = "foo", range = { start = { row = 0, column = 0 }, end = { row = 0, column = 3 } } }
+                                    , arguments = [ ( { start = { row = 0, column = 4 }, end = { row = 0, column = 5 } }, VarPattern "x" ) ]
+                                    , expression =
+                                        ( { start = { row = 1, column = 4 }, end = { row = 4, column = 18 } }
+                                        , CaseExpression
+                                            { expression =
+                                                ( { start = { row = 1, column = 9 }, end = { row = 1, column = 10 } }
+                                                , FunctionOrValue "x"
+                                                )
+                                            , cases =
+                                                [ ( ( { start = { row = 2, column = 8 }, end = { row = 2, column = 13 } }
+                                                    , NamedPattern { moduleName = [], name = "False" } []
+                                                    )
+                                                  , ( { start = { row = 3, column = 12 }, end = { row = 3, column = 13 } }, FunctionOrValue "x" )
+                                                  )
+                                                , ( ( { start = { row = 4, column = 8 }, end = { row = 4, column = 9 } }
+                                                    , AllPattern
+                                                    )
+                                                  , ( { start = { row = 4, column = 13 }, end = { row = 4, column = 18 } }
+                                                    , Application
+                                                        [ ( { start = { row = 4, column = 13 }, end = { row = 4, column = 16 } }, FunctionOrValue "not" )
+                                                        , ( { start = { row = 4, column = 17 }, end = { row = 4, column = 18 } }, FunctionOrValue "x" )
+                                                        ]
+                                                    )
+                                                  )
+                                                ]
+                                            }
+                                        )
+                                    }
+                                }
+                            )
+                        )
         ]

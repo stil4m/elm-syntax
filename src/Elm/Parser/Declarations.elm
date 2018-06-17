@@ -194,8 +194,26 @@ expressionNotApplication =
                     , caseExpression
                     ]
             )
+                |> Combine.map fixRange
                 |> Combine.andThen liftRecordAccess
         )
+
+
+fixRange : Ranged Expression -> Ranged Expression
+fixRange ( r, e ) =
+    case e of
+        -- Needed while case blocks consume whitespace eagerly
+        CaseExpression caseExpr ->
+            ( caseExpr.cases
+                |> List.reverse
+                |> List.head
+                |> Maybe.map (\( _, ( lastCaseExprRange, _ ) ) -> { r | end = lastCaseExprRange.end })
+                |> Maybe.withDefault r
+            , e
+            )
+
+        _ ->
+            ( r, e )
 
 
 liftRecordAccess : Ranged Expression -> Parser State (Ranged Expression)
