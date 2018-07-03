@@ -129,7 +129,7 @@ escapedChar =
             , '\x0C' <$ char 'f'
             , '\x0D' <$ char 'r'
             , '\x0B' <$ char 'v'
-            , (char 'x' *> regex "[0-9A-Fa-f]{2}")
+            , (char 'x' *> regex "([0-9A-Fa-f]{2}){1,2}")
                 >>= (\l ->
                         case Hex.fromString <| String.toLower l of
                             Ok x ->
