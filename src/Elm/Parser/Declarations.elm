@@ -341,35 +341,44 @@ recordExpression =
                                     |> Combine.ignore (maybe Layout.layout)
                                 )
                             )
+
+                recordContents : Parser State Expression
+                recordContents =
+                    functionName
+                        |> Combine.ignore (maybe Layout.layout)
+                        |> Combine.andThen
+                            (\fname ->
+                                Combine.choice
+                                    [ string "|"
+                                        |> Combine.ignore (maybe Layout.layout)
+                                        |> Combine.continueWith recordFields
+                                        |> Combine.map (RecordUpdate fname >> RecordUpdateExpression)
+                                        |> Combine.ignore (string "}")
+                                    , string "="
+                                        |> Combine.ignore (maybe Layout.layout)
+                                        |> Combine.continueWith (expression |> Combine.map (\e -> ( fname, e )))
+                                        |> Combine.ignore (maybe Layout.layout)
+                                        |> Combine.andThen
+                                            (\fieldUpdate ->
+                                                Combine.choice
+                                                    [ string "}" |> Combine.map (always (RecordExpr [ fieldUpdate ]))
+                                                    , string ","
+                                                        |> Combine.ignore (maybe Layout.layout)
+                                                        |> Combine.continueWith recordFields
+                                                        |> Combine.map (\fieldUpdates -> RecordExpr (fieldUpdate :: fieldUpdates))
+                                                        |> Combine.ignore (string "}")
+                                                    ]
+                                            )
+                                    ]
+                            )
             in
             string "{"
                 |> Combine.ignore (maybe Layout.layout)
-                |> Combine.continueWith functionName
-                |> Combine.ignore (maybe Layout.layout)
-                |> Combine.andThen
-                    (\fname ->
-                        Combine.choice
-                            [ string "|"
-                                |> Combine.ignore (maybe Layout.layout)
-                                |> Combine.continueWith recordFields
-                                |> Combine.map (RecordUpdate fname >> RecordUpdateExpression)
-                                |> Combine.ignore (string "}")
-                            , string "="
-                                |> Combine.ignore (maybe Layout.layout)
-                                |> Combine.continueWith (expression |> Combine.map (\e -> ( fname, e )))
-                                |> Combine.ignore (maybe Layout.layout)
-                                |> Combine.andThen
-                                    (\fieldUpdate ->
-                                        Combine.choice
-                                            [ string "}" |> Combine.map (always (RecordExpr [ fieldUpdate ]))
-                                            , string ","
-                                                |> Combine.ignore (maybe Layout.layout)
-                                                |> Combine.continueWith recordFields
-                                                |> Combine.map (\fieldUpdates -> RecordExpr (fieldUpdate :: fieldUpdates))
-                                                |> Combine.ignore (string "}")
-                                            ]
-                                    )
-                            ]
+                |> Combine.continueWith
+                    (Combine.choice
+                        [ string "}" |> Combine.map (always (RecordExpr []))
+                        , recordContents
+                        ]
                     )
         )
 

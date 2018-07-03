@@ -76,6 +76,23 @@ all =
                                     }
                                 }
                         )
+        , test "function declaration with empty record" <|
+            \() ->
+                parseFullStringWithNullState "foo = {}" Parser.function
+                    |> Maybe.map (Tuple.second >> noRangeDeclaration)
+                    |> Expect.equal
+                        (Just <|
+                            FuncDecl
+                                { documentation = Nothing
+                                , signature = Nothing
+                                , declaration =
+                                    { operatorDefinition = False
+                                    , name = { value = "foo", range = emptyRange }
+                                    , arguments = []
+                                    , expression = emptyRanged <| RecordExpr []
+                                    }
+                                }
+                        )
         , test "operator declarations" <|
             \() ->
                 parseFullStringWithNullState "(&>) = flip Maybe.andThen" Parser.function
