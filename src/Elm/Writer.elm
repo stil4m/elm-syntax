@@ -465,6 +465,9 @@ writeExpression ( range, inner ) =
         Integer i ->
             string (toString i)
 
+        Hex h ->
+            writeHex h
+
         Floatable f ->
             string (toString f)
 
@@ -568,9 +571,7 @@ writePattern ( _, p ) =
             string (toString i)
 
         HexPattern h ->
-            append
-                (string "0x")
-                (string (Hex.toString h))
+            writeHex h
 
         FloatPattern f ->
             string (toString f)
@@ -627,3 +628,10 @@ parensIfContainsSpaces w =
         join [ string "(", w, string ")" ]
     else
         w
+
+
+writeHex : Int -> Writer
+writeHex h =
+    append
+        (string "0x")
+        (string (Hex.toString h))

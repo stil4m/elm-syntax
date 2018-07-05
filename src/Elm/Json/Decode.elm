@@ -358,6 +358,7 @@ decodeInnerExpression =
                 , ( "prefixoperator", string |> map PrefixOperator )
                 , ( "operator", string |> map Operator )
                 , ( "integer", int |> map Integer )
+                , ( "hex", int |> map Hex )
                 , ( "float", float |> map Floatable )
                 , ( "negation", decodeExpression |> map Negation )
                 , ( "literal", string |> map Literal )

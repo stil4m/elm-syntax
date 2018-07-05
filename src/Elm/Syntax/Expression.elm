@@ -10,6 +10,7 @@ module Elm.Syntax.Expression
             , Floatable
             , FunctionOrValue
             , GLSLExpression
+            , Hex
             , IfBlock
             , Integer
             , LambdaExpression
@@ -147,6 +148,7 @@ type Expression
     | PrefixOperator String
     | Operator String
     | Integer Int
+    | Hex Int
     | Floatable Float
     | Negation (Ranged Expression)
     | Literal String

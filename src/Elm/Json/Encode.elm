@@ -517,6 +517,9 @@ encodeExpression ( range, inner ) =
                 Integer x ->
                     encodeTyped "integer" (int x)
 
+                Hex h ->
+                    encodeTyped "hex" (int h)
+
                 Floatable x ->
                     encodeTyped "float" (float x)
 
