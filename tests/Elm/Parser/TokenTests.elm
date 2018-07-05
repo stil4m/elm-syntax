@@ -159,6 +159,18 @@ all =
             \() ->
                 parseFullString "'\\x0D'" Parser.characterLiteral
                     |> Expect.equal (Just '\x0D')
+        , test "character escaped 3" <|
+            \() ->
+                parseFullString "'\\n'" Parser.characterLiteral
+                    |> Expect.equal (Just '\n')
+        , test "character escaped 4" <|
+            \() ->
+                parseFullString "'\\x200B'" Parser.characterLiteral
+                    |> Expect.equal (Just '\x200B')
+        , test "string escaped" <|
+            \() ->
+                parseFullString "\"foo\\\\\"" Parser.stringLiteral
+                    |> Expect.equal (Just "foo\\")
         , test "string escaped 2" <|
             \() ->
                 parseFullString "\"\\x07\"" Parser.stringLiteral
@@ -167,14 +179,6 @@ all =
             \() ->
                 parseFullString "\"\\\"\"" Parser.stringLiteral
                     |> Expect.equal (Just "\"")
-        , test "string escaped" <|
-            \() ->
-                parseFullString "\"foo\\\\\"" Parser.stringLiteral
-                    |> Expect.equal (Just "foo\\")
-        , test "character escaped 3" <|
-            \() ->
-                parseFullString "'\\n'" Parser.characterLiteral
-                    |> Expect.equal (Just '\n')
         , test "long string" <|
             \() ->
                 parseFullString longString Parser.stringLiteral
