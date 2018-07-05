@@ -78,7 +78,7 @@ variablePart =
 
 numberPart : Parser State Pattern
 numberPart =
-    Elm.Parser.Numbers.number FloatPattern IntPattern
+    Elm.Parser.Numbers.number FloatPattern IntPattern HexPattern
 
 
 listPattern : Parser State (Ranged Pattern)
