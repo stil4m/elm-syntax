@@ -25,6 +25,7 @@ import Elm.Syntax.Ranged exposing (Ranged)
 import Elm.Syntax.Type exposing (..)
 import Elm.Syntax.TypeAlias exposing (..)
 import Elm.Syntax.TypeAnnotation exposing (..)
+import Hex
 import List.Extra as List
 import StructuredWriter as Writer exposing (..)
 
@@ -565,6 +566,11 @@ writePattern ( _, p ) =
 
         IntPattern i ->
             string (toString i)
+
+        HexPattern h ->
+            append
+                (string "0x")
+                (string (Hex.toString h))
 
         FloatPattern f ->
             string (toString f)

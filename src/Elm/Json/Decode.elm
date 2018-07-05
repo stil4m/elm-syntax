@@ -313,6 +313,7 @@ decodePattern =
                         , ( "char", field "value" decodeChar |> map CharPattern )
                         , ( "string", field "value" string |> map StringPattern )
                         , ( "int", field "value" int |> map IntPattern )
+                        , ( "hex", field "value" int |> map HexPattern )
                         , ( "float", field "value" float |> map FloatPattern )
                         , ( "tuple", field "value" (list decodePattern) |> map TuplePattern )
                         , ( "record", field "value" (list decodeVariablePointer) |> map RecordPattern )
