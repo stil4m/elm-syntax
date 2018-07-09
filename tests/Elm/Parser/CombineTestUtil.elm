@@ -155,6 +155,9 @@ noRangePattern ( r, p ) =
         IntPattern i ->
             IntPattern i
 
+        HexPattern i ->
+            HexPattern i
+
         AllPattern ->
             AllPattern
 

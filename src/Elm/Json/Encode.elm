@@ -400,6 +400,13 @@ encodePattern ( r, pattern ) =
                             ]
                         )
 
+                HexPattern h ->
+                    encodeTyped "hex"
+                        (JE.object
+                            [ ( "value", JE.int h )
+                            ]
+                        )
+
                 FloatPattern f ->
                     encodeTyped "float"
                         (JE.object
@@ -509,6 +516,9 @@ encodeExpression ( range, inner ) =
 
                 Integer x ->
                     encodeTyped "integer" (int x)
+
+                Hex h ->
+                    encodeTyped "hex" (int h)
 
                 Floatable x ->
                     encodeTyped "float" (float x)

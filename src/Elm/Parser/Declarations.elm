@@ -542,7 +542,7 @@ letExpression =
 
 numberExpression : Parser State Expression
 numberExpression =
-    Elm.Parser.Numbers.number Floatable Integer
+    Elm.Parser.Numbers.number Floatable Integer Hex
 
 
 ifBlockExpression : Parser State Expression

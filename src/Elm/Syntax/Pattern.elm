@@ -5,6 +5,7 @@ module Elm.Syntax.Pattern
             , AsPattern
             , CharPattern
             , FloatPattern
+            , HexPattern
             , IntPattern
             , ListPattern
             , NamedPattern
@@ -46,6 +47,7 @@ type Pattern
     | CharPattern Char
     | StringPattern String
     | IntPattern Int
+    | HexPattern Int
     | FloatPattern Float
     | TuplePattern (List (Ranged Pattern))
     | RecordPattern (List VariablePointer)
