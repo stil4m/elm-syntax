@@ -21,9 +21,9 @@ hex : Parser State Int
 hex =
     Combine.string "0x"
         |> Combine.continueWith (Combine.many1 Combine.Char.hexDigit)
-        |> Combine.map hexValueFromChars
+        |> Combine.andThen hexValueFromChars
 
 
-hexValueFromChars : List Char -> Int
+hexValueFromChars : List Char -> Parser State Int
 hexValueFromChars =
-    String.fromList >> Hex.fromString >> Result.withDefault 0
+    String.fromList >> String.toLower >> Hex.fromString >> Result.map Combine.succeed >> Result.withDefault (Combine.fail "This should not happen")
