@@ -146,6 +146,10 @@ all =
                                 ]
                             )
                         )
+        , test "as requires spacing" <|
+            \() ->
+                parseFullStringState emptyState "x aspect" Parser.pattern
+                    |> Expect.equal Nothing
         , test "record as pattern" <|
             \() ->
                 parseFullStringState emptyState "{model,context} as appState" Parser.pattern

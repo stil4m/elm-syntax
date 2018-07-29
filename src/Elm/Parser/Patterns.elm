@@ -21,7 +21,7 @@ tryToCompose x =
                 |> Combine.continueWith
                     (Combine.choice
                         [ Combine.string "as"
-                            |> Combine.ignore (maybe Layout.layout)
+                            |> Combine.ignore Layout.layout
                             |> Combine.continueWith (variablePointer functionName)
                             |> Combine.map
                                 (\y ->
