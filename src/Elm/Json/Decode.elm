@@ -11,7 +11,7 @@ Decoding Elm Code from Json
 
 -}
 
-import Elm.Internal.RawFile exposing (RawFile(Raw))
+import Elm.Internal.RawFile exposing (RawFile(..))
 import Elm.Json.Util exposing (decodeTyped)
 import Elm.Syntax.Base exposing (ModuleName, VariablePointer)
 import Elm.Syntax.Declaration exposing (..)
@@ -59,7 +59,7 @@ decodeFile =
 
 decodeComment : Decoder (Ranged String)
 decodeComment =
-    succeed (,)
+    succeed (\a b -> ( a, b ))
         |: field "range" Range.decode
         |: field "text" string
 
@@ -96,7 +96,7 @@ decodeModuleName =
 
 decodeExpose : Decoder (Ranged TopLevelExpose)
 decodeExpose =
-    succeed (,)
+    succeed (\a b -> ( a, b ))
         |: field "range" Range.decode
         |: field "topLevel"
             (decodeTyped
@@ -117,7 +117,7 @@ decodeExposedType =
 
 decodeValueConstructorExpose : Decoder ValueConstructorExpose
 decodeValueConstructorExpose =
-    succeed (,)
+    succeed (\a b -> ( a, b ))
         |: rangeField
         |: nameField
 
@@ -146,7 +146,7 @@ decodeDeclaration : Decoder (Ranged Declaration)
 decodeDeclaration =
     lazy
         (\() ->
-            succeed (,)
+            succeed (\a b -> ( a, b ))
                 |: rangeField
                 |: field "declaration"
                     (decodeTyped
@@ -206,7 +206,7 @@ decodeDocumentation =
 
 decodeRangedSignature : Decoder (Ranged FunctionSignature)
 decodeRangedSignature =
-    succeed (,)
+    succeed (\a b -> ( a, b ))
         |: rangeField
         |: field "signature" decodeSignature
 
@@ -223,7 +223,7 @@ decodeTypeAnnotation : Decoder (Ranged TypeAnnotation)
 decodeTypeAnnotation =
     lazy
         (\() ->
-            succeed (,)
+            succeed (\a b -> ( a, b ))
                 |: field "range" Range.decode
                 |: field "typeAnnotation"
                     (decodeTyped
@@ -261,7 +261,7 @@ decodeRecordField : Decoder RecordField
 decodeRecordField =
     lazy
         (\() ->
-            succeed (,)
+            succeed (\a b -> ( a, b ))
                 |: nameField
                 |: field "typeAnnotation" decodeTypeAnnotation
         )
@@ -304,7 +304,7 @@ decodePattern : Decoder (Ranged Pattern)
 decodePattern =
     lazy
         (\() ->
-            succeed (,)
+            succeed (\a b -> ( a, b ))
                 |: rangeField
                 |: field "pattern"
                     (decodeTyped
@@ -339,7 +339,7 @@ decodeExpression : Decoder (Ranged Expression)
 decodeExpression =
     lazy
         (\() ->
-            succeed (,)
+            succeed (\a b -> ( a, b ))
                 |: rangeField
                 |: field "inner" decodeInnerExpression
         )
@@ -393,7 +393,7 @@ decodeRecordSetter : Decoder RecordSetter
 decodeRecordSetter =
     lazy
         (\() ->
-            succeed (,)
+            succeed (\a b -> ( a, b ))
                 |: field "field" string
                 |: field "expression" decodeExpression
         )
@@ -423,7 +423,7 @@ decodeCase : Decoder Case
 decodeCase =
     lazy
         (\() ->
-            succeed (,)
+            succeed (\a b -> ( a, b ))
                 |: field "pattern" decodePattern
                 |: field "expression" decodeExpression
         )
@@ -443,7 +443,7 @@ decodeLetDeclaration : Decoder (Ranged LetDeclaration)
 decodeLetDeclaration =
     lazy
         (\() ->
-            succeed (,)
+            succeed (\a b -> ( a, b ))
                 |: rangeField
                 |: field "declaration"
                     (decodeTyped

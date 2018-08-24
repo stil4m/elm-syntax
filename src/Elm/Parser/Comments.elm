@@ -16,7 +16,7 @@ addCommentToState p =
 parseComment : Parser State String -> Parser State ()
 parseComment commentParser =
     withRange
-        (flip (,) <$> commentParser)
+        ((\b a -> (\a b -> ( a, b )) a b) <$> commentParser)
         |> addCommentToState
 
 
@@ -42,6 +42,7 @@ multilineCommentInner =
                                         >>= (\x ->
                                                 if x == [ '{', '-' ] then
                                                     multilineCommentInner
+
                                                 else
                                                     String.fromChar <$> anyChar
                                             )

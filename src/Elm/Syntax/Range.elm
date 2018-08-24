@@ -1,4 +1,8 @@
-module Elm.Syntax.Range exposing (Location, Range, combine, decode, emptyRange, encode)
+module Elm.Syntax.Range exposing
+    ( Range, Location
+    , emptyRange, combine
+    , encode, decode
+    )
 
 {-| Source Code Ranges
 
@@ -109,7 +113,9 @@ compareLocations : Location -> Location -> Order
 compareLocations left right =
     if left.row < right.row then
         LT
+
     else if right.row < left.row then
         GT
+
     else
         compare left.column right.column

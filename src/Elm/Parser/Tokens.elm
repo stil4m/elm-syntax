@@ -1,24 +1,23 @@
-module Elm.Parser.Tokens
-    exposing
-        ( asToken
-        , caseToken
-        , characterLiteral
-        , elseToken
-        , exposingToken
-        , functionName
-        , functionOrTypeName
-        , ifToken
-        , importToken
-        , infixOperatorToken
-        , moduleToken
-        , multiLineStringLiteral
-        , ofToken
-        , portToken
-        , prefixOperatorToken
-        , stringLiteral
-        , thenToken
-        , typeName
-        )
+module Elm.Parser.Tokens exposing
+    ( asToken
+    , caseToken
+    , characterLiteral
+    , elseToken
+    , exposingToken
+    , functionName
+    , functionOrTypeName
+    , ifToken
+    , importToken
+    , infixOperatorToken
+    , moduleToken
+    , multiLineStringLiteral
+    , ofToken
+    , portToken
+    , prefixOperatorToken
+    , stringLiteral
+    , thenToken
+    , typeName
+    )
 
 import Char exposing (fromCode)
 import Combine exposing ((*>), (<$), (<$>), (<*), (>>=), Parser, between, choice, count, fail, lookAhead, many, many1, or, regex, string, succeed)
@@ -48,7 +47,7 @@ reserved =
     --, "alias" Apparently this is not a reserved keyword
     , "where"
     ]
-        |> List.map (flip (,) True)
+        |> List.map (\a -> (\a b -> ( a, b )) a True)
         |> Dict.fromList
 
 
@@ -111,6 +110,7 @@ notReserved : String -> Parser s String
 notReserved match =
     if Dict.member match reserved then
         fail "functionName is reserved"
+
     else
         succeed match
 
@@ -124,11 +124,11 @@ escapedChar =
             , '\n' <$ char 'n'
             , '\t' <$ char 't'
             , '\\' <$ char '\\'
-            , '\x07' <$ char 'a'
-            , '\x08' <$ char 'b'
-            , '\x0C' <$ char 'f'
-            , '\x0D' <$ char 'r'
-            , '\x0B' <$ char 'v'
+            , '\u{0007}' <$ char 'a'
+            , '\u{0008}' <$ char 'b'
+            , '\u{000C}' <$ char 'f'
+            , '\u{000D}' <$ char 'r'
+            , '\u{000B}' <$ char 'v'
             , (char 'x' *> regex "([0-9A-Fa-f]{2}){1,2}")
                 >>= (\l ->
                         case Hex.fromString <| String.toLower l of
@@ -180,6 +180,7 @@ multiLineStringLiteral =
                             >>= (\x ->
                                     if x == [ '"', '"', '"' ] then
                                         fail "end of input"
+
                                     else
                                         String.fromChar <$> or escapedChar anyChar
                                 )
@@ -242,6 +243,7 @@ operatorTokenFromList allowedChars =
         >>= (\m ->
                 if List.member m excludedOperators then
                     fail "operator is not allowed"
+
                 else
                     succeed m
             )

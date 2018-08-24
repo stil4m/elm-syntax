@@ -1,4 +1,4 @@
-module Elm.Internal.RawFile exposing (RawFile(Raw), fromFile)
+module Elm.Internal.RawFile exposing (RawFile(..), fromFile)
 
 import Elm.Syntax.File exposing (File)
 

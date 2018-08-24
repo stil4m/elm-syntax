@@ -1,53 +1,11 @@
-module Elm.Syntax.Expression
-    exposing
-        ( Case
-        , CaseBlock
-        , Cases
-        , Expression
-            ( Application
-            , CaseExpression
-            , CharLiteral
-            , Floatable
-            , FunctionOrValue
-            , GLSLExpression
-            , Hex
-            , IfBlock
-            , Integer
-            , LambdaExpression
-            , LetExpression
-            , ListExpr
-            , Literal
-            , Negation
-            , Operator
-            , OperatorApplication
-            , ParenthesizedExpression
-            , PrefixOperator
-            , QualifiedExpr
-            , RecordAccess
-            , RecordAccessFunction
-            , RecordExpr
-            , RecordUpdateExpression
-            , TupledExpression
-            , UnitExpr
-            )
-        , Function
-        , FunctionDeclaration
-        , FunctionSignature
-        , Lambda
-        , LetBlock
-        , LetDeclaration
-            ( LetDestructuring
-            , LetFunction
-            )
-        , RecordSetter
-        , RecordUpdate
-        , functionRange
-        , isCase
-        , isIfElse
-        , isLambda
-        , isLet
-        , isOperatorApplication
-        )
+module Elm.Syntax.Expression exposing
+    ( Expression(..), Lambda
+    , LetBlock, LetDeclaration(..)
+    , RecordUpdate, RecordSetter
+    , CaseBlock, Cases, Case
+    , Function, FunctionDeclaration, FunctionSignature, functionRange
+    , isLambda, isLet, isIfElse, isCase, isOperatorApplication
+    )
 
 {-| Expression Syntax
 
@@ -64,7 +22,7 @@ module Elm.Syntax.Expression
 
 # Records
 
-@docs RecordUpdate,RecordSetter
+@docs RecordUpdate, RecordSetter
 
 
 # Cases

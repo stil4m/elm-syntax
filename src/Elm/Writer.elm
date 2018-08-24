@@ -1,4 +1,4 @@
-module Elm.Writer exposing (write, writeDeclaration, writeExpression, writeFile, writePattern, writeTypeAnnotation)
+module Elm.Writer exposing (write, writeFile, writePattern, writeExpression, writeTypeAnnotation, writeDeclaration)
 
 {-|
 
@@ -240,6 +240,7 @@ writeFunctionDeclaration declaration =
         [ spaced
             [ if declaration.operatorDefinition then
                 string ("(" ++ declaration.name.value ++ ")")
+
               else
                 string declaration.name.value
             , spaced (List.map writePattern declaration.arguments)
@@ -254,6 +255,7 @@ writeSignature signature =
     spaced
         [ if signature.operatorDefinition then
             string ("(" ++ signature.name.value ++ ")")
+
           else
             string signature.name.value
         , string ":"
@@ -626,6 +628,7 @@ parensIfContainsSpaces : Writer -> Writer
 parensIfContainsSpaces w =
     if Writer.write w |> String.contains " " then
         join [ string "(", w, string ")" ]
+
     else
         w
 

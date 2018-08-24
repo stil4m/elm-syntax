@@ -81,6 +81,7 @@ compute =
                     in
                     if List.member l.column known then
                         succeed Strict
+
                     else
                         succeed Indented
                 )
@@ -108,6 +109,7 @@ verifyIndent f =
                 (\l ->
                     if f (State.currentIndent s) l.column then
                         succeed ()
+
                     else
                         fail ("Expected higher indent than " ++ toString l.column)
                 )

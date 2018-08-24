@@ -108,7 +108,7 @@ function : Parser State (Ranged Declaration)
 function =
     lazy
         (\() ->
-            succeed (,)
+            succeed (\a b -> ( a, b ))
                 |> Combine.andMap (lookAhead anyChar >>= (\c -> succeed (c == '(')))
                 |> Combine.andMap (variablePointer (or functionName (Combine.parens prefixOperatorToken)))
                 |> Combine.ignore (maybe Layout.layout)
@@ -280,6 +280,7 @@ glslExpression =
                         >>= (\s ->
                                 if s == "|]" then
                                     fail "end symbol"
+
                                 else
                                     anyChar
                             )
@@ -321,7 +322,7 @@ recordExpression =
             let
                 recordField : Parser State ( String, Ranged Expression )
                 recordField =
-                    succeed (,)
+                    succeed (\a b -> ( a, b ))
                         |> Combine.andMap functionName
                         |> Combine.ignore (maybe Layout.layout)
                         |> Combine.ignore (string "=")
@@ -428,7 +429,7 @@ caseStatement : Parser State Case
 caseStatement =
     lazy
         (\() ->
-            succeed (,)
+            succeed (\a b -> ( a, b ))
                 |> Combine.andMap pattern
                 |> Combine.andMap
                     (maybe (or Layout.layout Layout.layoutStrict)
@@ -453,6 +454,7 @@ caseStatements =
                                         caseStatement
                                             |> Combine.map (\c -> c :: last)
                                             |> Combine.andThen helper
+
                                     else
                                         succeed last
                                 )

@@ -5,7 +5,7 @@ import Combine.Num exposing (int)
 import Elm.Parser.Layout as Layout
 import Elm.Parser.State exposing (State)
 import Elm.Parser.Tokens exposing (prefixOperatorToken)
-import Elm.Syntax.Infix exposing (Infix, InfixDirection(Left, Right))
+import Elm.Syntax.Infix exposing (Infix, InfixDirection(..))
 
 
 infixDefinition : Parser State Infix

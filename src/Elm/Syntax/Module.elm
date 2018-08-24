@@ -1,13 +1,8 @@
-module Elm.Syntax.Module
-    exposing
-        ( DefaultModuleData
-        , EffectModuleData
-        , Import
-        , Module(EffectModule, NormalModule, PortModule)
-        , exposingList
-        , isPortModule
-        , moduleName
-        )
+module Elm.Syntax.Module exposing
+    ( Module(..), DefaultModuleData, EffectModuleData
+    , exposingList, moduleName, isPortModule
+    , Import
+    )
 
 {-| Module Syntax
 

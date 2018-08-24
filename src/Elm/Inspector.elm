@@ -1,4 +1,4 @@
-module Elm.Inspector exposing (Config, Order(Continue, Inner, Post, Pre, Skip), defaultConfig, inspect)
+module Elm.Inspector exposing (Config, Order(..), defaultConfig, inspect)
 
 import Elm.Syntax.Declaration exposing (Declaration(..))
 import Elm.Syntax.Expression exposing (Case, Expression(..), Function, FunctionSignature, Lambda, LetBlock, LetDeclaration(..), RecordUpdate)
@@ -301,7 +301,7 @@ inspectInnerExpression config expression context =
 
         OperatorApplication op dir left right ->
             actionLambda config.onOperatorApplication
-                (flip (List.foldl (inspectExpression config)) [ left, right ])
+                (\a -> List.foldl (inspectExpression config) a [ left, right ])
                 ( op, dir, left, right )
                 context
 

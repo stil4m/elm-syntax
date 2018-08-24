@@ -127,7 +127,7 @@ recordTypeAnnotation =
             let
                 nextField : Parser State RecordField
                 nextField =
-                    Combine.succeed (,)
+                    Combine.succeed (\a b -> ( a, b ))
                         |> Combine.ignore (Combine.string ",")
                         |> Combine.ignore (maybe Layout.layout)
                         |> Combine.andMap functionName
@@ -182,7 +182,7 @@ recordFieldDefinition : Parser State RecordField
 recordFieldDefinition =
     lazy
         (\() ->
-            succeed (,)
+            succeed (\a b -> ( a, b ))
                 |> Combine.andMap (maybe Layout.layout |> Combine.continueWith functionName)
                 |> Combine.andMap
                     (maybe Layout.layout

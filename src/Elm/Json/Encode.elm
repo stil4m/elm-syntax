@@ -11,7 +11,7 @@ Encoding Elm Code to Json
 
 -}
 
-import Elm.Internal.RawFile exposing (RawFile(Raw))
+import Elm.Internal.RawFile exposing (RawFile(..))
 import Elm.Json.Util exposing (encodeTyped)
 import Elm.Syntax.Base exposing (..)
 import Elm.Syntax.Declaration exposing (..)

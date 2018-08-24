@@ -20,9 +20,9 @@ many1Spaces =
 
 realNewLine : Parser s String
 realNewLine =
-    regex "\x0D?\n"
+    regex "\u{000D}?\n"
 
 
 untilNewlineToken : Parser s String
 untilNewlineToken =
-    regex "[^\x0D\n]*"
+    regex "[^\u{000D}\n]*"

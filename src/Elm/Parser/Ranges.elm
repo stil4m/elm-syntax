@@ -54,7 +54,7 @@ ranged : Parser State a -> Parser State (Ranged a)
 ranged p =
     withLocation
         (\start ->
-            (flip (,) <$> p)
+            ((\b a -> (\a b -> ( a, b )) a b) <$> p)
                 <*> withLocation
                         (\end ->
                             succeed <|
@@ -67,7 +67,7 @@ ranged p =
 
 rangedWithCustomStart : Range -> Parser State a -> Parser State (Ranged a)
 rangedWithCustomStart { start } p =
-    (flip (,) <$> p)
+    ((\b a -> (\a b -> ( a, b )) a b) <$> p)
         <*> withLocation
                 (\end ->
                     succeed <|

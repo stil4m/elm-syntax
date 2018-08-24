@@ -6,7 +6,7 @@ import Elm.Parser.Expose exposing (exposable, exposeDefinition)
 import Elm.Parser.Layout as Layout
 import Elm.Parser.State exposing (State)
 import Elm.Parser.Tokens exposing (functionName, moduleToken, portToken, typeName)
-import Elm.Syntax.Module exposing (DefaultModuleData, Module(EffectModule, NormalModule, PortModule))
+import Elm.Syntax.Module exposing (DefaultModuleData, Module(..))
 
 
 moduleDefinition : Parser State Module
@@ -20,7 +20,7 @@ moduleDefinition =
 
 effectWhereClause : Parser State ( String, String )
 effectWhereClause =
-    succeed (,)
+    succeed (\a b -> ( a, b ))
         <*> functionName
         <*> (Layout.maybeAroundBothSides (string "=") *> typeName)
 

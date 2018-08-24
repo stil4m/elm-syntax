@@ -145,6 +145,7 @@ qualifiedPattern consumeArgs =
                     (\( range, ( mod, name ) ) ->
                         (if consumeArgs then
                             many (qualifiedPatternArg |> Combine.ignore (maybe Layout.layout))
+
                          else
                             Combine.succeed []
                         )

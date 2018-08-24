@@ -6,7 +6,7 @@ import Elm.Parser.Layout as Layout
 import Elm.Parser.Ranges exposing (ranged, withRange)
 import Elm.Parser.State exposing (State)
 import Elm.Parser.Tokens exposing (exposingToken, functionName, typeName)
-import Elm.Syntax.Exposing exposing (ExposedType, Exposing(All, Explicit), TopLevelExpose(FunctionExpose, InfixExpose, TypeExpose, TypeOrAliasExpose), ValueConstructorExpose)
+import Elm.Syntax.Exposing exposing (ExposedType, Exposing(..), TopLevelExpose(..), ValueConstructorExpose)
 import Elm.Syntax.Ranged exposing (Ranged)
 
 

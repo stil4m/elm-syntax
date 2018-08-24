@@ -1,4 +1,7 @@
-module Elm.Syntax.Infix exposing (Infix, InfixDirection(Left, Right), decode, decodeDirection, encode, encodeDirection)
+module Elm.Syntax.Infix exposing
+    ( Infix, InfixDirection(..)
+    , encode, encodeDirection, decode, decodeDirection
+    )
 
 {-| Infix Syntax
 

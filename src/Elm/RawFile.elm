@@ -1,4 +1,7 @@
-module Elm.RawFile exposing (RawFile, imports, moduleName)
+module Elm.RawFile exposing
+    ( RawFile
+    , moduleName, imports
+    )
 
 {-|
 
