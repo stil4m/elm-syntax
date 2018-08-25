@@ -29,7 +29,7 @@
         "elm-analyse": "0.14.2",
         "elm-format": "0.8.0",
         "elm-live": "2.7.5",
-        "elm-test": "0.18.7",
+        "elm-test": "0.19.0-beta4",
         "fs-extra": "^5.0.0",
         "lodash": "^4.17.5",
         "scan-dir-recursive": "^1.0.11"
