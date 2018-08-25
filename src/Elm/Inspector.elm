@@ -29,7 +29,7 @@ type alias Config context =
     , onTypeAlias : Order context (Ranged TypeAlias)
     , onDestructuring : Order context ( Ranged Pattern, Ranged Expression )
     , onExpression : Order context (Ranged Expression)
-    , onOperatorApplication : Order context ( String, InfixDirection, Ranged Expression, Ranged Expression )
+    , onOperatorApplication : Order context { operator : String, direction : InfixDirection, left : Ranged Expression, right : Ranged Expression }
     , onTypeAnnotation : Order context (Ranged TypeAnnotation)
     , onLambda : Order context Lambda
     , onLetBlock : Order context LetBlock
@@ -263,10 +263,10 @@ inspectInnerExpression config expression context =
         Operator _ ->
             context
 
-        Integer _ ->
+        Hex _ ->
             context
 
-        Hex _ ->
+        Integer _ ->
             context
 
         Floatable _ ->
@@ -301,8 +301,8 @@ inspectInnerExpression config expression context =
 
         OperatorApplication op dir left right ->
             actionLambda config.onOperatorApplication
-                (\a -> List.foldl (inspectExpression config) a [ left, right ])
-                ( op, dir, left, right )
+                (\base -> List.foldl (inspectExpression config) base [ left, right ])
+                { operator = op, direction = dir, left = left, right = right }
                 context
 
         IfBlock e1 e2 e3 ->
