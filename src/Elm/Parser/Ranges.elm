@@ -1,6 +1,6 @@
 module Elm.Parser.Ranges exposing (ranged, rangedWithCustomStart, withCurrentPoint, withRange, withRangeCustomStart)
 
-import Combine exposing ((<$>), (<*>), ParseLocation, Parser, succeed, withLocation)
+import Combine exposing (ParseLocation, Parser, andMap, succeed, withLocation)
 import Elm.Parser.State exposing (State)
 import Elm.Syntax.Range exposing (Location, Range)
 import Elm.Syntax.Ranged exposing (Ranged)
@@ -14,13 +14,32 @@ asPointerLocation { line, column } =
 withRangeCustomStart : Range -> Parser State (Range -> a) -> Parser State a
 withRangeCustomStart { start } p =
     p
-        <*> withLocation
+        |> andMap
+            (withLocation
                 (\end ->
                     succeed <|
                         { start = start
                         , end = asPointerLocation end
                         }
                 )
+            )
+
+
+withRange : Parser State (Range -> a) -> Parser State a
+withRange p =
+    withLocation
+        (\start ->
+            p
+                |> Combine.andMap
+                    (withLocation
+                        (\end ->
+                            succeed <|
+                                { start = asPointerLocation start
+                                , end = asPointerLocation end
+                                }
+                        )
+                    )
+        )
 
 
 withCurrentPoint : (Range -> Parser State a) -> Parser State a
@@ -35,43 +54,34 @@ withCurrentPoint p =
         )
 
 
-withRange : Parser State (Range -> a) -> Parser State a
-withRange p =
-    withLocation
-        (\start ->
-            p
-                <*> withLocation
-                        (\end ->
-                            succeed <|
-                                { start = asPointerLocation start
-                                , end = asPointerLocation end
-                                }
-                        )
-        )
-
-
 ranged : Parser State a -> Parser State (Ranged a)
 ranged p =
     withLocation
         (\start ->
-            ((\b a -> (\a b -> ( a, b )) a b) <$> p)
-                <*> withLocation
+            succeed (\v r -> ( r, v ))
+                |> Combine.andMap p
+                |> Combine.andMap
+                    (withLocation
                         (\end ->
                             succeed <|
                                 { start = asPointerLocation start
                                 , end = asPointerLocation end
                                 }
                         )
+                    )
         )
 
 
 rangedWithCustomStart : Range -> Parser State a -> Parser State (Ranged a)
 rangedWithCustomStart { start } p =
-    ((\b a -> (\a b -> ( a, b )) a b) <$> p)
-        <*> withLocation
+    succeed (\a b -> ( b, a ))
+        |> Combine.andMap p
+        |> Combine.andMap
+            (withLocation
                 (\end ->
                     succeed <|
                         { start = start
                         , end = asPointerLocation end
                         }
                 )
+            )
