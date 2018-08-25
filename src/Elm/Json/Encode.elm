@@ -381,7 +381,7 @@ encodePattern ( r, pattern ) =
                         )
 
                 StringPattern v ->
-                    encodeTyped "char"
+                    encodeTyped "string"
                         (JE.object
                             [ ( "value", string v )
                             ]

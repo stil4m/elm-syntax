@@ -126,6 +126,22 @@ all =
                                 , signature = Nothing
                                 }
                         )
+        , test "function declaration with empty record" <|
+            \() ->
+                parseFullStringWithNullState "foo = {}" Parser.function
+                    |> Maybe.map (Tuple.second >> noRangeDeclaration)
+                    |> Expect.equal
+                        (Just <|
+                            FuncDecl
+                                { documentation = Nothing
+                                , signature = Nothing
+                                , declaration =
+                                    { name = { value = "foo", range = emptyRange }
+                                    , arguments = []
+                                    , expression = emptyRanged <| RecordExpr []
+                                    }
+                                }
+                        )
         , test "function with case in let" <|
             \() ->
                 parseFullStringWithNullState "inc x =\n  let\n    y =\n      case x of\n        True -> z\n    a = b\n  in a" Parser.function
