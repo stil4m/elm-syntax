@@ -1,6 +1,6 @@
-module Elm.Parser.LetExpressionTests exposing (..)
+module Elm.Parser.LetExpressionTests exposing (all, main)
 
-import Combine exposing ((*>), string)
+import Combine exposing (string)
 import Elm.Parser.CombineTestUtil exposing (..)
 import Elm.Parser.Declarations as Parser exposing (..)
 import Elm.Parser.Layout as Layout
@@ -11,6 +11,10 @@ import Elm.Syntax.Pattern exposing (..)
 import Elm.Syntax.Range exposing (emptyRange)
 import Expect
 import Test exposing (..)
+
+
+main =
+    Tuple.second all
 
 
 all : Test
@@ -27,8 +31,7 @@ all =
                                     { documentation = Nothing
                                     , signature = Nothing
                                     , declaration =
-                                        { operatorDefinition = False
-                                        , name = { value = "foo", range = emptyRange }
+                                        { name = { value = "foo", range = emptyRange }
                                         , arguments = []
                                         , expression = emptyRanged <| FunctionOrValue "bar"
                                         }
@@ -39,8 +42,7 @@ all =
                                     { documentation = Nothing
                                     , signature = Nothing
                                     , declaration =
-                                        { operatorDefinition = False
-                                        , name = { value = "john", range = emptyRange }
+                                        { name = { value = "john", range = emptyRange }
                                         , arguments = []
                                         , expression = emptyRanged <| FunctionOrValue "doe"
                                         }
@@ -59,8 +61,7 @@ all =
                                     { documentation = Nothing
                                     , signature = Nothing
                                     , declaration =
-                                        { operatorDefinition = False
-                                        , name = { value = "foo", range = emptyRange }
+                                        { name = { value = "foo", range = emptyRange }
                                         , arguments = []
                                         , expression = emptyRanged <| FunctionOrValue "bar"
                                         }
@@ -71,8 +72,7 @@ all =
                                     { documentation = Nothing
                                     , signature = Nothing
                                     , declaration =
-                                        { operatorDefinition = False
-                                        , name = { value = "john", range = emptyRange }
+                                        { name = { value = "john", range = emptyRange }
                                         , arguments = []
                                         , expression = emptyRanged <| FunctionOrValue "doe"
                                         }
@@ -94,8 +94,7 @@ all =
                                             { documentation = Nothing
                                             , signature = Nothing
                                             , declaration =
-                                                { operatorDefinition = False
-                                                , name =
+                                                { name =
                                                     { value = "bar"
                                                     , range = emptyRange
                                                     }
@@ -123,8 +122,7 @@ all =
                                             { documentation = Nothing
                                             , signature = Nothing
                                             , declaration =
-                                                { operatorDefinition = False
-                                                , name = { value = "bar", range = emptyRange }
+                                                { name = { value = "bar", range = emptyRange }
                                                 , arguments = []
                                                 , expression = emptyRanged <| Integer 1
                                                 }
@@ -151,8 +149,7 @@ all =
                                                     { documentation = Nothing
                                                     , signature = Nothing
                                                     , declaration =
-                                                        { operatorDefinition = False
-                                                        , name = { value = "bar", range = emptyRange }
+                                                        { name = { value = "bar", range = emptyRange }
                                                         , arguments = []
                                                         , expression = emptyRanged <| Integer 1
                                                         }
@@ -197,8 +194,7 @@ all =
                                             { documentation = Nothing
                                             , signature = Nothing
                                             , declaration =
-                                                { operatorDefinition = False
-                                                , name = { value = "indent", range = emptyRange }
+                                                { name = { value = "indent", range = emptyRange }
                                                 , arguments = []
                                                 , expression =
                                                     emptyRanged <|
@@ -213,7 +209,7 @@ all =
                         )
         , test "let starting after definition" <|
             \() ->
-                parseFullStringState emptyState "foo = let\n  indent = 1\n in\n indent" (functionName *> string " = " *> Parser.expression)
+                parseFullStringState emptyState "foo = let\n  indent = 1\n in\n indent" (functionName |> Combine.continueWith (string " = ") |> Combine.continueWith Parser.expression)
                     |> Maybe.map noRangeExpression
                     |> Maybe.map Tuple.second
                     |> Expect.equal
@@ -226,8 +222,7 @@ all =
                                             , signature =
                                                 Nothing
                                             , declaration =
-                                                { operatorDefinition = False
-                                                , name =
+                                                { name =
                                                     { value = "indent"
                                                     , range = emptyRange
                                                     }
@@ -243,8 +238,8 @@ all =
                         )
         , test "let without indentation" <|
             \() ->
-                parseFullStringState emptyState " let\n b = 1\n in\n b" (Layout.layout *> Parser.letExpression)
-                    |> Maybe.map ((,) emptyRange >> noRangeExpression)
+                parseFullStringState emptyState " let\n b = 1\n in\n b" (Layout.layout |> Combine.continueWith Parser.letExpression)
+                    |> Maybe.map (\a -> ( emptyRange, a ) |> noRangeExpression)
                     |> Maybe.map Tuple.second
                     |> Expect.equal
                         (Just
@@ -256,8 +251,7 @@ all =
                                             , signature =
                                                 Nothing
                                             , declaration =
-                                                { operatorDefinition = False
-                                                , name =
+                                                { name =
                                                     { value = "b"
                                                     , range = emptyRange
                                                     }

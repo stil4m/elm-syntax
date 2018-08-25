@@ -1,4 +1,4 @@
-module Elm.Parser.ImportsTests exposing (..)
+module Elm.Parser.ImportsTests exposing (all, main)
 
 import Elm.Parser.CombineTestUtil exposing (..)
 import Elm.Parser.Imports as Parser
@@ -6,6 +6,10 @@ import Elm.Syntax.Exposing exposing (..)
 import Elm.Syntax.Range exposing (..)
 import Expect
 import Test exposing (..)
+
+
+main =
+    Tuple.second all
 
 
 all : Test
@@ -23,7 +27,7 @@ all =
                                 Just <|
                                     Explicit
                                         [ ( emptyRange, TypeOrAliasExpose "Model" )
-                                        , ( emptyRange, TypeExpose (ExposedType "Msg" (Just <| All emptyRange)) )
+                                        , ( emptyRange, TypeExpose (ExposedType "Msg" (Just emptyRange)) )
                                         ]
                             , range = emptyRange
                             }

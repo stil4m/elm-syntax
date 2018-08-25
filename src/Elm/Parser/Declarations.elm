@@ -28,7 +28,8 @@ declaration =
     lazy
         (\() ->
             choice
-                [ typeDefinition
+                [ function
+                , typeDefinition
                     |> Combine.map
                         (\v ->
                             case v of
@@ -38,7 +39,6 @@ declaration =
                                 Typings.DefinedAlias r a ->
                                     ( r, AliasDecl a )
                         )
-                , function
                 , portDeclaration
                 , infixDeclaration
                 , destructuringDeclaration

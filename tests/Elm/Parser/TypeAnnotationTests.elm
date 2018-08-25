@@ -1,11 +1,16 @@
-module Elm.Parser.TypeAnnotationTests exposing (..)
+module Elm.Parser.TypeAnnotationTests exposing (all, main)
 
 import Elm.Parser.CombineTestUtil exposing (..)
+import Elm.Parser.State exposing (emptyState)
 import Elm.Parser.TypeAnnotation as Parser
 import Elm.Syntax.Range exposing (emptyRange)
 import Elm.Syntax.TypeAnnotation exposing (..)
 import Expect
 import Test exposing (..)
+
+
+main =
+    Tuple.second all
 
 
 all : Test
@@ -16,6 +21,11 @@ all =
                 parseFullStringWithNullState "()" Parser.typeAnnotation
                     |> Maybe.map noRangeTypeReference
                     |> Expect.equal (Just <| ( emptyRange, Unit ))
+        , test "unitTypeReference with spaces" <|
+            \() ->
+                parseFullStringWithNullState "( )" Parser.typeAnnotation
+                    |> Maybe.map noRangeTypeReference
+                    |> Expect.equal Nothing
         , test "tupledTypeReference" <|
             \() ->
                 parseFullStringWithNullState "( (), ())" Parser.typeAnnotation
@@ -28,13 +38,13 @@ all =
                     |> Expect.equal (Just <| ( emptyRange, Unit ))
         , test "tupledTypeReference 3" <|
             \() ->
-                parseFullStringWithNullState "( Int , Maybe m )" Parser.typeAnnotation
+                parseFullStringWithNullState "( () , Maybe m )" Parser.typeAnnotation
                     |> Maybe.map noRangeTypeReference
                     |> Expect.equal
                         (Just
                             ( emptyRange
                             , Tupled
-                                [ ( emptyRange, Typed [] "Int" [] )
+                                [ ( emptyRange, Unit )
                                 , ( emptyRange, Typed [] "Maybe" [ ( emptyRange, GenericType "m" ) ] )
                                 ]
                             )
@@ -49,6 +59,17 @@ all =
                 parseFullStringWithNullState "Bar" Parser.typeAnnotation
                     |> Maybe.map noRangeTypeReference
                     |> Expect.equal (Just ( emptyRange, Typed [] "Bar" [] ))
+        , test "types with and without spacing should parse to the same" <|
+            \() ->
+                let
+                    a =
+                        parseFullStringWithNullState "Bar " Parser.typeAnnotation
+
+                    b =
+                        parseFullStringWithNullState "Bar" Parser.typeAnnotation
+                in
+                a
+                    |> Expect.equal b
         , test "typedTypeReference 1" <|
             \() ->
                 parseFullStringWithNullState "Foo () a Bar" Parser.typeAnnotation
@@ -94,6 +115,19 @@ all =
                     |> Expect.equal
                         (Just <|
                             ( emptyRange, Record [ ( "color", ( emptyRange, Typed [] "String" [] ) ) ] )
+                        )
+        , test "record with generic" <|
+            \() ->
+                parseFullStringWithNullState "{ attr | position : Vec2, texture : Vec2 }" Parser.typeAnnotation
+                    |> Maybe.map noRangeTypeReference
+                    |> Expect.equal
+                        (Just
+                            ( emptyRange
+                            , GenericRecord "attr"
+                                [ ( "position", ( emptyRange, Typed [] "Vec2" [] ) )
+                                , ( "texture", ( emptyRange, Typed [] "Vec2" [] ) )
+                                ]
+                            )
                         )
         , test "recordTypeReference nested record" <|
             \() ->
@@ -170,6 +204,44 @@ all =
                                 , FunctionTypeAnnotation
                                     ( emptyRange, GenericType "cModel" )
                                     ( emptyRange, GenericType "a" )
+                                )
+                            )
+                        )
+        , test "function with spacing on indent 0" <|
+            \() ->
+                parseAsFarAsPossibleWithState emptyState "Model\n\nsomeFunction" Parser.typeAnnotation
+                    |> Maybe.map noRangeTypeReference
+                    |> Expect.equal
+                        (Just ( emptyRange, Typed [] "Model" [] ))
+        , test "annotation with parens" <|
+            \() ->
+                parseAsFarAsPossibleWithState emptyState "Msg -> Model -> (Model, Cmd Msg)\n\n" Parser.typeAnnotation
+                    |> Maybe.map noRangeTypeReference
+                    |> Expect.equal
+                        (Just
+                            ( emptyRange
+                            , FunctionTypeAnnotation ( emptyRange, Typed [] "Msg" [] )
+                                ( emptyRange
+                                , FunctionTypeAnnotation ( emptyRange, Typed [] "Model" [] )
+                                    ( emptyRange
+                                    , Tupled
+                                        [ ( emptyRange, Typed [] "Model" [] )
+                                        , ( emptyRange, Typed [] "Cmd" [ ( emptyRange, Typed [] "Msg" [] ) ] )
+                                        ]
+                                    )
+                                )
+                            )
+                        )
+        , test "function with arrow with spacing on indent 0" <|
+            \() ->
+                parseAsFarAsPossibleWithState emptyState "msg -> Cmd model\n\nsomeFunction" Parser.typeAnnotation
+                    |> Maybe.map noRangeTypeReference
+                    |> Expect.equal
+                        (Just
+                            ( emptyRange
+                            , FunctionTypeAnnotation ( emptyRange, GenericType "msg" )
+                                ( emptyRange
+                                , Typed [] "Cmd" [ ( emptyRange, GenericType "model" ) ]
                                 )
                             )
                         )

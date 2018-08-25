@@ -1,9 +1,13 @@
-module Elm.Parser.NumbersTests exposing (..)
+module Elm.Parser.NumbersTests exposing (all)
 
 import Elm.Parser.CombineTestUtil exposing (..)
 import Elm.Parser.Numbers as Parser
 import Expect
 import Test exposing (..)
+
+
+main =
+    Tuple.second all
 
 
 all : Test

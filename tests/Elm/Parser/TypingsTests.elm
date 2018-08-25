@@ -1,4 +1,4 @@
-module Elm.Parser.TypingsTests exposing (..)
+module Elm.Parser.TypingsTests exposing (all, asType, asTypeAlias, main)
 
 import Elm.Parser.CombineTestUtil exposing (..)
 import Elm.Parser.State exposing (State, emptyState)
@@ -9,6 +9,10 @@ import Elm.Syntax.TypeAlias exposing (TypeAlias)
 import Elm.Syntax.TypeAnnotation exposing (..)
 import Expect
 import Test exposing (..)
+
+
+main =
+    Tuple.second all
 
 
 asType : TypeDefinition -> Maybe Type
@@ -103,22 +107,6 @@ all =
                                 ]
                             , generics = []
                             , name = "D"
-                            }
-                        )
-        , test "type with spacing afterwards" <|
-            \() ->
-                parseFullStringWithNullState "type D = Bar Int\n\n" Parser.typeDefinition
-                    |> Maybe.andThen asType
-                    |> Expect.equal
-                        (Just
-                            { name = "D"
-                            , generics = []
-                            , constructors =
-                                [ { name = "Bar"
-                                  , arguments = [ ( { start = { row = 0, column = 13 }, end = { row = 0, column = 16 } }, Typed [] "Int" [] ) ]
-                                  , range = { start = { row = 0, column = 9 }, end = { row = 0, column = 16 } }
-                                  }
-                                ]
                             }
                         )
         , test "type with multiple args and correct distribution of args" <|

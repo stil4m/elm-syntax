@@ -1,6 +1,6 @@
-module Elm.Parser.FileTests exposing (..)
+module Elm.Parser.FileTests exposing (all, main)
 
-import Elm.Internal.RawFile exposing (RawFile(Raw))
+import Elm.Internal.RawFile exposing (RawFile(..))
 import Elm.Json.Decode as Elm
 import Elm.Json.Encode
 import Elm.Parser as Parser
@@ -14,39 +14,42 @@ import Json.Encode
 import Test exposing (..)
 
 
+main =
+    Tuple.second all
+
+
 all : Test
 all =
     Test.concat
-        [ describe "FileTests"
-            [ Samples.allSamples
-                |> List.indexedMap
-                    (\n s ->
-                        test ("sample " ++ toString (n + 1)) <|
-                            \() ->
-                                parseFullStringState emptyState s Parser.file |> Expect.notEqual Nothing
-                    )
-                |> Test.concat
-            ]
-        , describe "Error messages" <|
-            [ test "failure on module name" <|
-                \() ->
-                    Parser.parse "module foo exposing (..)\nx = 1"
-                        |> Result.toMaybe
-                        |> Expect.equal Nothing
-            , test "failure on declaration" <|
-                \() ->
-                    Parser.parse "module Foo exposing (..)\n\ntype x = \n  1"
-                        |> Expect.equal (Err [ "Could not continue parsing on location (2,0)" ])
-            , test "failure on declaration expression" <|
-                \() ->
-                    Parser.parse "module Foo exposing (..) \nx = \n  x + _"
-                        |> Expect.equal (Err [ "Could not continue parsing on location (2,6)" ])
-            ]
+        [ describe "FileTests" <|
+            List.indexedMap
+                (\n s ->
+                    test ("sample " ++ String.fromInt (n + 1)) <|
+                        \() ->
+                            parseFullStringState emptyState s Parser.file |> Expect.notEqual Nothing
+                )
+                Samples.allSamples
+
+        -- , describe "Error messages" <|
+        --     [ test "failure on module name" <|
+        --         \() ->
+        --             Parser.parse "module foo exposing (..)\nx = 1"
+        --                 |> Result.toMaybe
+        --                 |> Expect.equal Nothing
+        --     , test "failure on declaration" <|
+        --         \() ->
+        --             Parser.parse "module Foo exposing (..)\n\ntype x = \n  1"
+        --                 |> Expect.equal (Err [ "Could not continue parsing on location (2,0)" ])
+        --     , test "failure on declaration expression" <|
+        --         \() ->
+        --             Parser.parse "module Foo exposing (..) \nx = \n  x + _"
+        --                 |> Expect.equal (Err [ "Could not continue parsing on location (2,6)" ])
+        --     ]
         , describe "FileTests - serialisation"
             [ Samples.allSamples
                 |> List.indexedMap
                     (\n s ->
-                        test ("sample " ++ toString (n + 1)) <|
+                        test ("sample " ++ String.fromInt (n + 1)) <|
                             \() ->
                                 let
                                     parsed =

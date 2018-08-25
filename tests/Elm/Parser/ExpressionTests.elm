@@ -1,12 +1,16 @@
-module Elm.Parser.ExpressionTests exposing (..)
+module Elm.Parser.ExpressionTests exposing (all, main)
 
-import Combine exposing ((*>), whitespace)
+import Combine exposing (whitespace)
 import Elm.Parser.CombineTestUtil exposing (..)
 import Elm.Parser.Declarations exposing (..)
 import Elm.Syntax.Expression exposing (..)
 import Elm.Syntax.Range exposing (..)
 import Expect
 import Test exposing (..)
+
+
+main =
+    Tuple.second all
 
 
 all : Test
@@ -42,16 +46,21 @@ all =
                 parseFullStringWithNullState "\"\"\"Bar foo \n a\"\"\"" expression
                     |> Maybe.map Tuple.second
                     |> Expect.equal (Just (Literal "Bar foo \n a"))
-        , test "Type expression for lower case" <|
+        , test "Type expression for upper case" <|
             \() ->
                 parseFullStringWithNullState "Bar" expression
                     |> Maybe.map Tuple.second
                     |> Expect.equal (Just (FunctionOrValue "Bar"))
-        , test "Type expression for upper case" <|
+        , test "Type expression for lower case" <|
             \() ->
                 parseFullStringWithNullState "bar" expression
                     |> Maybe.map Tuple.second
                     |> Expect.equal (Just (FunctionOrValue "bar"))
+        , test "Type expression for lower case but qualified" <|
+            \() ->
+                parseFullStringWithNullState "Bar.foo" expression
+                    |> Maybe.map Tuple.second
+                    |> Expect.equal (Just (QualifiedExpr [ "Bar" ] "foo"))
         , test "operator" <|
             \() ->
                 parseFullStringWithNullState "++" expression
@@ -73,10 +82,25 @@ all =
                 parseFullStringWithNullState "List.concat []" expression
                     |> Expect.equal
                         (Just
-                            ( { start = { row = 0, column = 0 }, end = { row = 0, column = 14 } }
+                            ( { start = { row = 1, column = 1 }, end = { row = 1, column = 15 } }
                             , Application
-                                [ ( { start = { row = 0, column = 0 }, end = { row = 0, column = 11 } }, QualifiedExpr [ "List" ] "concat" )
-                                , ( { start = { row = 0, column = 12 }, end = { row = 0, column = 14 } }, ListExpr [] )
+                                [ ( { start = { row = 1, column = 1 }, end = { row = 1, column = 12 } }, QualifiedExpr [ "List" ] "concat" )
+                                , ( { start = { row = 1, column = 13 }, end = { row = 1, column = 15 } }, ListExpr [] )
+                                ]
+                            )
+                        )
+        , test "application expression with operator" <|
+            \() ->
+                parseFullStringWithNullState "model + 1" expression
+                    |> Expect.equal
+                        (Just
+                            ( { end = { column = 10, row = 1 }
+                              , start = { column = 1, row = 1 }
+                              }
+                            , Application
+                                [ ( { end = { column = 6, row = 1 }, start = { column = 1, row = 1 } }, FunctionOrValue "model" )
+                                , ( { end = { column = 8, row = 1 }, start = { column = 7, row = 1 } }, Operator "+" )
+                                , ( { end = { column = 10, row = 1 }, start = { column = 9, row = 1 } }, Integer 1 )
                                 ]
                             )
                         )
@@ -85,29 +109,29 @@ all =
                 parseFullStringWithNullState "(\"\", always (List.concat [ [ fileName ], [] ]))" expression
                     |> Expect.equal
                         (Just
-                            ( { start = { row = 0, column = 0 }, end = { row = 0, column = 47 } }
+                            ( { start = { row = 1, column = 1 }, end = { row = 1, column = 48 } }
                             , TupledExpression
-                                [ ( { start = { row = 0, column = 1 }, end = { row = 0, column = 3 } }, Literal "" )
-                                , ( { start = { row = 0, column = 5 }, end = { row = 0, column = 46 } }
+                                [ ( { start = { row = 1, column = 2 }, end = { row = 1, column = 4 } }, Literal "" )
+                                , ( { start = { row = 1, column = 6 }, end = { row = 1, column = 47 } }
                                   , Application
-                                        [ ( { start = { row = 0, column = 5 }, end = { row = 0, column = 11 } }, FunctionOrValue "always" )
-                                        , ( { start = { row = 0, column = 12 }, end = { row = 0, column = 46 } }
+                                        [ ( { start = { row = 1, column = 6 }, end = { row = 1, column = 12 } }, FunctionOrValue "always" )
+                                        , ( { start = { row = 1, column = 13 }, end = { row = 1, column = 47 } }
                                           , ParenthesizedExpression
-                                                ( { start = { row = 0, column = 13 }, end = { row = 0, column = 45 } }
+                                                ( { start = { row = 1, column = 14 }, end = { row = 1, column = 46 } }
                                                 , Application
-                                                    [ ( { start = { row = 0, column = 13 }, end = { row = 0, column = 24 } }
+                                                    [ ( { start = { row = 1, column = 14 }, end = { row = 1, column = 25 } }
                                                       , QualifiedExpr [ "List" ] "concat"
                                                       )
-                                                    , ( { start = { row = 0, column = 25 }, end = { row = 0, column = 45 } }
+                                                    , ( { start = { row = 1, column = 26 }, end = { row = 1, column = 46 } }
                                                       , ListExpr
-                                                            [ ( { start = { row = 0, column = 27 }, end = { row = 0, column = 39 } }
+                                                            [ ( { start = { row = 1, column = 28 }, end = { row = 1, column = 40 } }
                                                               , ListExpr
-                                                                    [ ( { start = { row = 0, column = 29 }, end = { row = 0, column = 37 } }
+                                                                    [ ( { start = { row = 1, column = 30 }, end = { row = 1, column = 38 } }
                                                                       , FunctionOrValue "fileName"
                                                                       )
                                                                     ]
                                                               )
-                                                            , ( { start = { row = 0, column = 41 }, end = { row = 0, column = 43 } }
+                                                            , ( { start = { row = 1, column = 42 }, end = { row = 1, column = 44 } }
                                                               , ListExpr []
                                                               )
                                                             ]
@@ -238,11 +262,6 @@ all =
                                 ]
                             )
                         )
-        , test "listExpression empty" <|
-            \() ->
-                parseFullStringWithNullState "[]" expression
-                    |> Maybe.map Tuple.second
-                    |> Expect.equal (Just (ListExpr []))
         , test "listExpression singleton with comment" <|
             \() ->
                 parseFullStringWithNullState "[ 1 {- Foo-} ]" expression
@@ -343,6 +362,22 @@ all =
                                 ]
                             )
                         )
+        , test "record access direct" <|
+            \() ->
+                parseFullStringWithNullState "(.spaceEvenly Internal.Style.classes)" expression
+                    |> Maybe.map noRangeExpression
+                    |> Maybe.map Tuple.second
+                    |> Expect.equal
+                        (Just
+                            (ParenthesizedExpression
+                                ( emptyRange
+                                , Application
+                                    [ ( emptyRange, RecordAccessFunction ".spaceEvenly" )
+                                    , ( emptyRange, QualifiedExpr [ "Internal", "Style" ] "classes" )
+                                    ]
+                                )
+                            )
+                        )
         , test "prefix notation" <|
             \() ->
                 parseFullStringWithNullState "(::) x" expression
@@ -370,7 +405,7 @@ all =
                         (Just
                             (Application
                                 [ emptyRanged <| FunctionOrValue "toFloat"
-                                , emptyRanged <| Integer -5
+                                , emptyRanged <| Negation (emptyRanged <| Integer 5)
                                 ]
                             )
                         )

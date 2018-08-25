@@ -1,11 +1,16 @@
-module Elm.Parser.InfixTests exposing (..)
+module Elm.Parser.InfixTests exposing (all, main)
 
 import Elm.Parser.CombineTestUtil exposing (..)
 import Elm.Parser.Infix as Infix exposing (..)
 import Elm.Parser.State exposing (emptyState)
 import Elm.Syntax.Infix exposing (..)
+import Elm.Syntax.Range exposing (emptyRange)
 import Expect
 import Test exposing (..)
+
+
+main =
+    Tuple.second all
 
 
 all : Test
@@ -13,14 +18,38 @@ all =
     describe "InfixTests"
         [ test "right infix" <|
             \() ->
-                parseFullStringState emptyState "infixr 3 <<" Infix.infixDefinition
-                    |> Expect.equal (Just { direction = Right, precedence = 3, operator = "<<" })
+                parseFullStringState emptyState "infix right 7 (</>) = slash" Infix.infixDefinition
+                    |> Maybe.map noRangeInfix
+                    |> Expect.equal
+                        (Just
+                            { direction = ( emptyRange, Right )
+                            , precedence = ( emptyRange, 7 )
+                            , operator = ( emptyRange, "</>" )
+                            , function = ( emptyRange, "slash" )
+                            }
+                        )
         , test "left infix" <|
             \() ->
-                parseFullStringState emptyState "infixl 5 >>" Infix.infixDefinition
-                    |> Expect.equal (Just { direction = Left, precedence = 5, operator = ">>" })
-        , test "infix neutral" <|
+                parseFullStringState emptyState "infix left  8 (<?>) = questionMark" Infix.infixDefinition
+                    |> Maybe.map noRangeInfix
+                    |> Expect.equal
+                        (Just
+                            { direction = ( emptyRange, Left )
+                            , precedence = ( emptyRange, 8 )
+                            , operator = ( emptyRange, "<?>" )
+                            , function = ( emptyRange, "questionMark" )
+                            }
+                        )
+        , test "non infix" <|
             \() ->
-                parseFullStringState emptyState "infix 2 >>" Infix.infixDefinition
-                    |> Expect.equal (Just { direction = Left, precedence = 2, operator = ">>" })
+                parseFullStringState emptyState "infix non   4 (==) = eq" Infix.infixDefinition
+                    |> Maybe.map noRangeInfix
+                    |> Expect.equal
+                        (Just
+                            { direction = ( emptyRange, Non )
+                            , precedence = ( emptyRange, 4 )
+                            , operator = ( emptyRange, "==" )
+                            , function = ( emptyRange, "eq" )
+                            }
+                        )
         ]

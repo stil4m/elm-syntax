@@ -6,6 +6,10 @@ import Expect
 import Test exposing (..)
 
 
+main =
+    Tuple.second all
+
+
 longString : String
 longString =
     "\"" ++ String.repeat (5 * 10 ^ 5) "a" ++ "\""
@@ -23,6 +27,14 @@ all =
             \() ->
                 parseFullString "foo" Parser.functionName
                     |> Expect.equal (Just "foo")
+        , test "functionName may not be a keyword" <|
+            \() ->
+                parseFullString "type" Parser.functionName
+                    |> Expect.equal Nothing
+        , test "functionName may be a keyword suffixed with an underscore" <|
+            \() ->
+                parseFullString "type_" Parser.functionName
+                    |> Expect.equal (Just "type_")
         , test "functionName not empty" <|
             \() ->
                 parseFullString "" Parser.functionName
@@ -31,14 +43,6 @@ all =
             \() ->
                 parseFullString "n1" Parser.functionName
                     |> Expect.equal (Just "n1")
-        , test "functionName legacy with backticks" <|
-            \() ->
-                parseFullString "`n1`" Parser.functionName
-                    |> Expect.equal (Just "`n1`")
-        , test "functionName legacy with backticks and qualifier" <|
-            \() ->
-                parseFullString "`Maybe.Extra.apply`" Parser.functionName
-                    |> Expect.equal (Just "`Maybe.Extra.apply`")
         , test "alias can be a functionName (it is not reserved)" <|
             \() ->
                 parseFullString "alias" Parser.functionName
@@ -155,36 +159,29 @@ all =
             \() ->
                 parseFullString "'\\''" Parser.characterLiteral
                     |> Expect.equal (Just '\'')
-        , test "character escaped 2" <|
-            \() ->
-                parseFullString "'\\x0D'" Parser.characterLiteral
-                    |> Expect.equal (Just '\x0D')
-        , test "character escaped 3" <|
-            \() ->
-                parseFullString "'\\n'" Parser.characterLiteral
-                    |> Expect.equal (Just '\n')
-        , test "character escaped 4" <|
-            \() ->
-                parseFullString "'\\x200B'" Parser.characterLiteral
-                    |> Expect.equal (Just '\x200B')
-        , test "string escaped" <|
-            \() ->
-                parseFullString "\"foo\\\\\"" Parser.stringLiteral
-                    |> Expect.equal (Just "foo\\")
-        , test "string escaped 2" <|
-            \() ->
-                parseFullString "\"\\x07\"" Parser.stringLiteral
-                    |> Expect.equal (Just "\x07")
         , test "string escaped 3" <|
             \() ->
                 parseFullString "\"\\\"\"" Parser.stringLiteral
                     |> Expect.equal (Just "\"")
-        , test "long string" <|
+        , test "string escaped" <|
             \() ->
-                parseFullString longString Parser.stringLiteral
-                    |> Expect.notEqual Nothing
-        , test "long multi line string" <|
+                parseFullString "\"foo\\\\\"" Parser.stringLiteral
+                    |> Expect.equal (Just "foo\\")
+        , test "character escaped 3" <|
             \() ->
-                parseFullString longMultiLineString Parser.multiLineStringLiteral
-                    |> Expect.notEqual Nothing
+                parseFullString "'\\n'" Parser.characterLiteral
+                    |> Expect.equal (Just '\n')
+        , test "arrow operator" <|
+            \() ->
+                parseAsFarAsPossible "->" Parser.infixOperatorToken
+                    |> Expect.equal Nothing
+
+        -- , test "long string" <|
+        --     \() ->
+        --         parseFullString longString Parser.stringLiteral
+        --             |> Expect.notEqual Nothing
+        -- , test "long multi line string" <|
+        --     \() ->
+        --         parseFullString longMultiLineString Parser.multiLineStringLiteral
+        --             |> Expect.notEqual Nothing
         ]

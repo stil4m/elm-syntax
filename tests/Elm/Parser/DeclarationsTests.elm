@@ -1,9 +1,8 @@
-module Elm.Parser.DeclarationsTests exposing (..)
+module Elm.Parser.DeclarationsTests exposing (all, main)
 
 import Elm.Parser.CombineTestUtil exposing (..)
 import Elm.Parser.Declarations as Parser exposing (..)
 import Elm.Parser.State exposing (State, emptyState)
-import Elm.Syntax.Base exposing (VariablePointer)
 import Elm.Syntax.Declaration exposing (..)
 import Elm.Syntax.Expression exposing (..)
 import Elm.Syntax.Pattern exposing (..)
@@ -11,6 +10,10 @@ import Elm.Syntax.Range exposing (emptyRange)
 import Elm.Syntax.TypeAnnotation exposing (..)
 import Expect
 import Test exposing (..)
+
+
+main =
+    Tuple.second all
 
 
 all : Test
@@ -22,9 +25,58 @@ all =
                     |> Maybe.map noRangeSignature
                     |> Expect.equal
                         (Just
-                            { operatorDefinition = False
-                            , name = VariablePointer "foo" emptyRange
+                            { name = { value = "foo", range = emptyRange }
                             , typeAnnotation = ( emptyRange, Typed [] "Int" [] )
+                            }
+                        )
+        , test "complex signature" <|
+            \() ->
+                parseFullStringWithNullState "updateState : (msg -> model -> (model, Cmd msg)) -> SendPort msg model -> msg -> model -> (model, Cmd msg)" Parser.signature
+                    |> Maybe.map noRangeSignature
+                    |> Expect.equal
+                        (Just
+                            { name = { range = emptyRange, value = "updateState" }
+                            , typeAnnotation =
+                                ( emptyRange
+                                , FunctionTypeAnnotation
+                                    ( emptyRange
+                                    , FunctionTypeAnnotation
+                                        ( emptyRange
+                                        , GenericType "msg"
+                                        )
+                                        ( emptyRange
+                                        , FunctionTypeAnnotation
+                                            ( emptyRange
+                                            , GenericType "model"
+                                            )
+                                            ( emptyRange
+                                            , Tupled
+                                                [ ( emptyRange
+                                                  , GenericType "model"
+                                                  )
+                                                , ( emptyRange
+                                                  , Typed [] "Cmd" [ ( emptyRange, GenericType "msg" ) ]
+                                                  )
+                                                ]
+                                            )
+                                        )
+                                    )
+                                    ( emptyRange
+                                    , FunctionTypeAnnotation
+                                        ( emptyRange
+                                        , Typed []
+                                            "SendPort"
+                                            [ ( emptyRange
+                                              , GenericType "msg"
+                                              )
+                                            , ( emptyRange, GenericType "model" )
+                                            ]
+                                        )
+                                        ( emptyRange
+                                        , FunctionTypeAnnotation ( emptyRange, GenericType "msg" ) ( emptyRange, FunctionTypeAnnotation ( emptyRange, GenericType "model" ) ( emptyRange, Tupled [ ( emptyRange, GenericType "model" ), ( emptyRange, Typed [] "Cmd" [ ( emptyRange, GenericType "msg" ) ] ) ] ) )
+                                        )
+                                    )
+                                )
                             }
                         )
         , test "no spacing signature" <|
@@ -33,8 +85,7 @@ all =
                     |> Maybe.map noRangeSignature
                     |> Expect.equal
                         (Just
-                            { operatorDefinition = False
-                            , name = VariablePointer "foo" emptyRange
+                            { name = { value = "foo", range = emptyRange }
                             , typeAnnotation = ( emptyRange, Typed [] "Int" [] )
                             }
                         )
@@ -49,8 +100,7 @@ all =
                     |> Maybe.map noRangeSignature
                     |> Expect.equal
                         (Just
-                            { operatorDefinition = False
-                            , name = VariablePointer "foo" emptyRange
+                            { name = { value = "foo", range = emptyRange }
                             , typeAnnotation = ( emptyRange, Typed [] "Int" [] )
                             }
                         )
@@ -62,71 +112,87 @@ all =
         , test "function declaration" <|
             \() ->
                 parseFullStringWithNullState "foo = bar" Parser.function
-                    |> Maybe.map (Tuple.second >> noRangeDeclaration)
+                    |> Maybe.map Tuple.second
+                    |> Maybe.map noRangeDeclaration
                     |> Expect.equal
                         (Just <|
                             FuncDecl
-                                { documentation = Nothing
-                                , signature = Nothing
-                                , declaration =
-                                    { operatorDefinition = False
-                                    , name = { value = "foo", range = emptyRange }
+                                { declaration =
+                                    { name = { value = "foo", range = emptyRange }
                                     , arguments = []
                                     , expression = emptyRanged <| FunctionOrValue "bar"
                                     }
+                                , documentation = Nothing
+                                , signature = Nothing
                                 }
                         )
-        , test "function declaration with empty record" <|
+        , test "function with case in let" <|
             \() ->
-                parseFullStringWithNullState "foo = {}" Parser.function
-                    |> Maybe.map (Tuple.second >> noRangeDeclaration)
+                parseFullStringWithNullState "inc x =\n  let\n    y =\n      case x of\n        True -> z\n    a = b\n  in a" Parser.function
+                    |> Maybe.map Tuple.second
+                    |> Maybe.map noRangeDeclaration
                     |> Expect.equal
-                        (Just <|
-                            FuncDecl
-                                { documentation = Nothing
-                                , signature = Nothing
-                                , declaration =
-                                    { operatorDefinition = False
-                                    , name = { value = "foo", range = emptyRange }
-                                    , arguments = []
-                                    , expression = emptyRanged <| RecordExpr []
-                                    }
-                                }
-                        )
-        , test "operator declarations" <|
-            \() ->
-                parseFullStringWithNullState "(&>) = flip Maybe.andThen" Parser.function
-                    |> Maybe.map (Tuple.second >> noRangeDeclaration)
-                    |> Expect.equal
-                        (Just <|
-                            FuncDecl
-                                { documentation = Nothing
-                                , signature = Nothing
-                                , declaration =
-                                    { operatorDefinition = True
-                                    , name = { value = "&>", range = emptyRange }
-                                    , arguments = []
+                        (Just
+                            (FuncDecl
+                                { declaration =
+                                    { arguments = [ ( emptyRange, VarPattern "x" ) ]
                                     , expression =
-                                        emptyRanged <|
-                                            Application
-                                                [ emptyRanged <| FunctionOrValue "flip"
-                                                , emptyRanged <| QualifiedExpr [ "Maybe" ] "andThen"
+                                        ( emptyRange
+                                        , LetExpression
+                                            { declarations =
+                                                [ ( emptyRange
+                                                  , LetFunction
+                                                        { declaration =
+                                                            { arguments = []
+                                                            , expression =
+                                                                ( emptyRange
+                                                                , CaseExpression
+                                                                    { cases =
+                                                                        [ ( ( emptyRange, NamedPattern { moduleName = [], name = "True" } [] )
+                                                                          , ( emptyRange, FunctionOrValue "z" )
+                                                                          )
+                                                                        ]
+                                                                    , expression = ( emptyRange, FunctionOrValue "x" )
+                                                                    }
+                                                                )
+                                                            , name = { range = emptyRange, value = "y" }
+                                                            }
+                                                        , documentation = Nothing
+                                                        , signature = Nothing
+                                                        }
+                                                  )
+                                                , ( emptyRange
+                                                  , LetFunction
+                                                        { declaration =
+                                                            { arguments = []
+                                                            , expression = ( emptyRange, FunctionOrValue "b" )
+                                                            , name = { range = emptyRange, value = "a" }
+                                                            }
+                                                        , documentation = Nothing
+                                                        , signature = Nothing
+                                                        }
+                                                  )
                                                 ]
+                                            , expression = ( emptyRange, FunctionOrValue "a" )
+                                            }
+                                        )
+                                    , name = { range = emptyRange, value = "inc" }
                                     }
+                                , documentation = Nothing
+                                , signature = Nothing
                                 }
+                            )
                         )
         , test "function declaration with args" <|
             \() ->
                 parseFullStringWithNullState "inc x = x + 1" Parser.function
-                    |> Maybe.map (Tuple.second >> noRangeDeclaration)
+                    |> Maybe.map Tuple.second
+                    |> Maybe.map noRangeDeclaration
                     |> Expect.equal
                         (Just <|
                             FuncDecl
-                                { documentation = Nothing
-                                , signature = Nothing
-                                , declaration =
-                                    { operatorDefinition = False
-                                    , name = { value = "inc", range = emptyRange }
+                                { declaration =
+                                    { name = { value = "inc", range = emptyRange }
                                     , arguments = [ ( emptyRange, VarPattern "x" ) ]
                                     , expression =
                                         emptyRanged <|
@@ -136,16 +202,18 @@ all =
                                                 , emptyRanged <| Integer 1
                                                 ]
                                     }
+                                , documentation = Nothing
+                                , signature = Nothing
                                 }
                         )
         , test "some signature" <|
             \() ->
-                parseFullStringWithNullState "bar : List ( Int , Maybe m )" Parser.signature
+                parseFullStringWithNullState "bar : List ( Int , Maybe m )" Parser.functionSignature
+                    |> Maybe.map Tuple.second
                     |> Maybe.map noRangeSignature
                     |> Expect.equal
                         (Just
-                            { operatorDefinition = False
-                            , name = VariablePointer "bar" emptyRange
+                            { name = { value = "bar", range = emptyRange }
                             , typeAnnotation =
                                 ( emptyRange
                                 , Typed []
@@ -163,15 +231,15 @@ all =
         , test "function declaration with let" <|
             \() ->
                 parseFullStringWithNullState "foo =\n let\n  b = 1\n in\n  b" Parser.function
-                    |> Maybe.map (Tuple.second >> noRangeDeclaration)
+                    |> Maybe.map Tuple.second
+                    |> Maybe.map noRangeDeclaration
                     |> Expect.equal
                         (Just <|
                             FuncDecl
-                                { documentation = Nothing
-                                , signature = Nothing
+                                { signature = Nothing
+                                , documentation = Nothing
                                 , declaration =
-                                    { operatorDefinition = False
-                                    , name = { value = "foo", range = emptyRange }
+                                    { name = { value = "foo", range = emptyRange }
                                     , arguments = []
                                     , expression =
                                         emptyRanged <|
@@ -182,8 +250,7 @@ all =
                                                             { documentation = Nothing
                                                             , signature = Nothing
                                                             , declaration =
-                                                                { operatorDefinition = False
-                                                                , name =
+                                                                { name =
                                                                     { value = "b"
                                                                     , range = emptyRange
                                                                     }
@@ -201,15 +268,15 @@ all =
         , test "declaration with record" <|
             \() ->
                 parseFullStringWithNullState "main =\n  beginnerProgram { model = 0, view = view, update = update }" Parser.function
-                    |> Maybe.map (Tuple.second >> noRangeDeclaration)
+                    |> Maybe.map Tuple.second
+                    |> Maybe.map noRangeDeclaration
                     |> Expect.equal
                         (Just <|
                             FuncDecl
-                                { documentation = Nothing
-                                , signature = Nothing
+                                { signature = Nothing
+                                , documentation = Nothing
                                 , declaration =
-                                    { operatorDefinition = False
-                                    , name = { value = "main", range = emptyRange }
+                                    { name = { value = "main", range = emptyRange }
                                     , arguments = []
                                     , expression =
                                         emptyRanged <|
@@ -228,15 +295,15 @@ all =
         , test "update function" <|
             \() ->
                 parseFullStringWithNullState "update msg model =\n  case msg of\n    Increment ->\n      model + 1\n\n    Decrement ->\n      model - 1" Parser.function
-                    |> Maybe.map (Tuple.second >> noRangeDeclaration)
+                    |> Maybe.map Tuple.second
+                    |> Maybe.map noRangeDeclaration
                     |> Expect.equal
                         (Just <|
                             FuncDecl
-                                { documentation = Nothing
-                                , signature = Nothing
+                                { signature = Nothing
+                                , documentation = Nothing
                                 , declaration =
-                                    { operatorDefinition = False
-                                    , name = { value = "update", range = emptyRange }
+                                    { name = { value = "update", range = emptyRange }
                                     , arguments = [ ( emptyRange, VarPattern "msg" ), ( emptyRange, VarPattern "model" ) ]
                                     , expression =
                                         emptyRanged <|
@@ -267,12 +334,12 @@ all =
         , test "port declaration for command" <|
             \() ->
                 parseFullStringWithNullState "port parseResponse : ( String, String ) -> Cmd msg" Parser.declaration
-                    |> Maybe.map (Tuple.second >> noRangeDeclaration)
+                    |> Maybe.map Tuple.second
+                    |> Maybe.map noRangeDeclaration
                     |> Expect.equal
                         (Just
                             (PortDeclaration
-                                { operatorDefinition = False
-                                , name = VariablePointer "parseResponse" emptyRange
+                                { name = { value = "parseResponse", range = emptyRange }
                                 , typeAnnotation =
                                     ( emptyRange
                                     , FunctionTypeAnnotation
@@ -290,12 +357,12 @@ all =
         , test "port declaration for subscription" <|
             \() ->
                 parseFullStringWithNullState "port scroll : (Move -> msg) -> Sub msg" declaration
-                    |> Maybe.map (Tuple.second >> noRangeDeclaration)
+                    |> Maybe.map Tuple.second
+                    |> Maybe.map noRangeDeclaration
                     |> Expect.equal
                         (Just <|
                             PortDeclaration
-                                { operatorDefinition = False
-                                , name = VariablePointer "scroll" emptyRange
+                                { name = { value = "scroll", range = emptyRange }
                                 , typeAnnotation =
                                     ( emptyRange
                                     , FunctionTypeAnnotation
@@ -310,7 +377,8 @@ all =
         , test "Destructuring declaration" <|
             \() ->
                 parseFullStringWithNullState "_ = b" declaration
-                    |> Maybe.map (Tuple.second >> noRangeDeclaration)
+                    |> Maybe.map Tuple.second
+                    |> Maybe.map noRangeDeclaration
                     |> Expect.equal
                         (Just <|
                             Destructuring
@@ -320,15 +388,15 @@ all =
         , test "declaration" <|
             \() ->
                 parseFullStringState emptyState "main =\n  text \"Hello, World!\"" Parser.function
-                    |> Maybe.map (Tuple.second >> noRangeDeclaration)
+                    |> Maybe.map Tuple.second
+                    |> Maybe.map noRangeDeclaration
                     |> Expect.equal
                         (Just <|
                             FuncDecl
-                                { documentation = Nothing
-                                , signature = Nothing
+                                { signature = Nothing
+                                , documentation = Nothing
                                 , declaration =
-                                    { operatorDefinition = False
-                                    , name = { value = "main", range = emptyRange }
+                                    { name = { value = "main", range = emptyRange }
                                     , arguments = []
                                     , expression =
                                         emptyRanged <|
@@ -342,15 +410,15 @@ all =
         , test "function" <|
             \() ->
                 parseFullStringState emptyState "main =\n  text \"Hello, World!\"" Parser.function
-                    |> Maybe.map (Tuple.second >> noRangeDeclaration)
+                    |> Maybe.map Tuple.second
+                    |> Maybe.map noRangeDeclaration
                     |> Expect.equal
                         (Just <|
                             FuncDecl
                                 { documentation = Nothing
                                 , signature = Nothing
                                 , declaration =
-                                    { operatorDefinition = False
-                                    , name =
+                                    { name =
                                         { value = "main"
                                         , range = emptyRange
                                         }
@@ -367,15 +435,15 @@ all =
         , test "function starting with multi line comment" <|
             \() ->
                 parseFullStringState emptyState "main =\n  {- y -} x" Parser.function
-                    |> Maybe.map (Tuple.second >> noRangeDeclaration)
+                    |> Maybe.map Tuple.second
+                    |> Maybe.map noRangeDeclaration
                     |> Expect.equal
                         (Just <|
                             FuncDecl
                                 { documentation = Nothing
                                 , signature = Nothing
                                 , declaration =
-                                    { operatorDefinition = False
-                                    , name =
+                                    { name =
                                         { value = "main"
                                         , range = emptyRange
                                         }
@@ -384,47 +452,122 @@ all =
                                     }
                                 }
                         )
-        , test "function with case should not be eager on the whitespace" <|
+        , test "function with a lot of symbols" <|
             \() ->
-                parseFullStringState emptyState "foo x =\n    case x of\n        False ->\n            x\n        _ -> not x\n\n\n" Parser.function
+                parseFullStringState emptyState "updateState update sendPort = curry <| (uncurry update) >> batchStateCmds sendPort" Parser.function
                     |> Maybe.map Tuple.second
+                    |> Maybe.map noRangeDeclaration
                     |> Expect.equal
-                        (Just
-                            (FuncDecl
-                                { documentation = Nothing
-                                , signature = Nothing
-                                , declaration =
-                                    { operatorDefinition = False
-                                    , name = { value = "foo", range = { start = { row = 0, column = 0 }, end = { row = 0, column = 3 } } }
-                                    , arguments = [ ( { start = { row = 0, column = 4 }, end = { row = 0, column = 5 } }, VarPattern "x" ) ]
+                        (Just <|
+                            FuncDecl
+                                { declaration =
+                                    { arguments = [ ( emptyRange, VarPattern "update" ), ( emptyRange, VarPattern "sendPort" ) ]
                                     , expression =
-                                        ( { start = { row = 1, column = 4 }, end = { row = 4, column = 18 } }
-                                        , CaseExpression
-                                            { expression =
-                                                ( { start = { row = 1, column = 9 }, end = { row = 1, column = 10 } }
-                                                , FunctionOrValue "x"
-                                                )
-                                            , cases =
-                                                [ ( ( { start = { row = 2, column = 8 }, end = { row = 2, column = 13 } }
-                                                    , NamedPattern { moduleName = [], name = "False" } []
-                                                    )
-                                                  , ( { start = { row = 3, column = 12 }, end = { row = 3, column = 13 } }, FunctionOrValue "x" )
-                                                  )
-                                                , ( ( { start = { row = 4, column = 8 }, end = { row = 4, column = 9 } }
-                                                    , AllPattern
-                                                    )
-                                                  , ( { start = { row = 4, column = 13 }, end = { row = 4, column = 18 } }
+                                        ( emptyRange
+                                        , Application
+                                            [ ( emptyRange, FunctionOrValue "curry" )
+                                            , ( emptyRange, Operator "<|" )
+                                            , ( emptyRange
+                                              , ParenthesizedExpression
+                                                    ( emptyRange
                                                     , Application
-                                                        [ ( { start = { row = 4, column = 13 }, end = { row = 4, column = 16 } }, FunctionOrValue "not" )
-                                                        , ( { start = { row = 4, column = 17 }, end = { row = 4, column = 18 } }, FunctionOrValue "x" )
+                                                        [ ( emptyRange
+                                                          , FunctionOrValue "uncurry"
+                                                          )
+                                                        , ( emptyRange
+                                                          , FunctionOrValue "update"
+                                                          )
+                                                        ]
+                                                    )
+                                              )
+                                            , ( emptyRange, Operator ">>" )
+                                            , ( emptyRange, FunctionOrValue "batchStateCmds" )
+                                            , ( emptyRange, FunctionOrValue "sendPort" )
+                                            ]
+                                        )
+                                    , name = { range = emptyRange, value = "updateState" }
+                                    }
+                                , documentation = Nothing
+                                , signature = Nothing
+                                }
+                        )
+        , test "Some function" <|
+            \() ->
+                parseFullStringState emptyState "update msg model =\n  case msg of\n    Increment ->\n      model + 1\n\n    Decrement ->\n      model - 1" Parser.function
+                    |> Maybe.map Tuple.second
+                    |> Maybe.map noRangeDeclaration
+                    |> Expect.equal
+                        (Just <|
+                            FuncDecl
+                                { declaration =
+                                    { arguments =
+                                        [ ( emptyRange, VarPattern "msg" )
+                                        , ( emptyRange, VarPattern "model" )
+                                        ]
+                                    , expression =
+                                        ( emptyRange
+                                        , CaseExpression
+                                            { cases =
+                                                [ ( ( emptyRange
+                                                    , NamedPattern { moduleName = [], name = "Increment" } []
+                                                    )
+                                                  , ( emptyRange
+                                                    , Application
+                                                        [ ( emptyRange
+                                                          , FunctionOrValue "model"
+                                                          )
+                                                        , ( emptyRange, Operator "+" )
+                                                        , ( emptyRange, Integer 1 )
+                                                        ]
+                                                    )
+                                                  )
+                                                , ( ( emptyRange
+                                                    , NamedPattern { moduleName = [], name = "Decrement" } []
+                                                    )
+                                                  , ( emptyRange
+                                                    , Application
+                                                        [ ( emptyRange
+                                                          , FunctionOrValue "model"
+                                                          )
+                                                        , ( emptyRange, Operator "-" )
+                                                        , ( emptyRange, Integer 1 )
                                                         ]
                                                     )
                                                   )
                                                 ]
+                                            , expression = ( emptyRange, FunctionOrValue "msg" )
                                             }
                                         )
+                                    , name = { range = emptyRange, value = "update" }
                                     }
+                                , documentation = Nothing
+                                , signature = Nothing
                                 }
-                            )
+                        )
+        , test "some other function" <|
+            \() ->
+                parseFullStringState emptyState "update : Model\nupdate msg model =\n    msg" Parser.function
+                    |> Maybe.map Tuple.second
+                    |> Maybe.map noRangeDeclaration
+                    |> Expect.equal
+                        (Just <|
+                            FuncDecl
+                                { declaration =
+                                    { arguments =
+                                        [ ( emptyRange, VarPattern "msg" )
+                                        , ( emptyRange, VarPattern "model" )
+                                        ]
+                                    , expression = ( emptyRange, FunctionOrValue "msg" )
+                                    , name = { range = emptyRange, value = "update" }
+                                    }
+                                , documentation = Nothing
+                                , signature =
+                                    Just
+                                        ( emptyRange
+                                        , { name = { range = emptyRange, value = "update" }
+                                          , typeAnnotation = ( emptyRange, Typed [] "Model" [] )
+                                          }
+                                        )
+                                }
                         )
         ]
