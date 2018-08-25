@@ -4,6 +4,8 @@ var packages = [];
 var packageVersions = [];
 var modules = [];
 
+
+const charsPerMilli = [];
 const Elm = require('./parse');
 
 function handleModules(artifact, version, cb) {
@@ -15,7 +17,7 @@ function handleModules(artifact, version, cb) {
 
 
   const fileName= mod.replace(new RegExp('\\.', 'g'), '/');
-  
+
   request(`https://raw.githubusercontent.com/${artifact.name}/${version}/src/${fileName}.elm`, function(err, res, body) {
     if (res.statusCode != 200) {
       console.log(`> Could not load ${artifact.name}@${version} | ${mod}`);
@@ -29,7 +31,8 @@ function handleModules(artifact, version, cb) {
       name: name
     }});
     const after = new Date().getTime();
-    // console.log(after - before);
+    const millis = after - before
+    charsPerMilli.push(body.length / millis);
     handleModules(artifact, version, cb);
   })
 
@@ -81,6 +84,8 @@ function handleNextPackage() {
   const next = packages.shift();
 
   if (!next) {
+    const averageCharsPerMilli = charsPerMilli.reduce((a, b ) => a + b, 0) / charsPerMilli.length;
+    console.log("Average char per milli:",averageCharsPerMilli);
     return;
   }
 
