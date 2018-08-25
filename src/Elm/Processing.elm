@@ -105,7 +105,7 @@ buildSingle imp moduleIndex =
                 |> Dict.get imp.moduleName
                 |> Maybe.withDefault []
                 |> Interface.operators
-                |> List.map (\x -> ( x.operator, x ))
+                |> List.map (\x -> ( Tuple.second x.operator, x ))
 
         Just (Explicit l) ->
             let
@@ -116,8 +116,8 @@ buildSingle imp moduleIndex =
                 |> Dict.get imp.moduleName
                 |> Maybe.withDefault []
                 |> Interface.operators
-                |> List.map (\x -> ( x.operator, x ))
-                |> List.filter (Tuple.first >> (\a -> List.member a selectedOperators))
+                |> List.map (\x -> ( Tuple.second x.operator, x ))
+                |> List.filter (Tuple.first >> (\elem -> List.member elem selectedOperators))
 
 
 {-| Process a rawfile with a context.
@@ -162,9 +162,10 @@ fixApplication operators expressions =
                         ( x
                         , Dict.get x operators
                             |> Maybe.withDefault
-                                { operator = x
-                                , precedence = 5
-                                , direction = Left
+                                { operator = ( Range.emptyRange, x )
+                                , function = ( Range.emptyRange, "todo" )
+                                , precedence = ( Range.emptyRange, 5 )
+                                , direction = ( Range.emptyRange, Left )
                                 }
                         )
                     )
@@ -189,8 +190,8 @@ fixApplication operators expressions =
                     |> Maybe.map
                         (\( p, infix, s ) ->
                             OperatorApplication
-                                infix.operator
-                                infix.direction
+                                (Tuple.second infix.operator)
+                                (Tuple.second infix.direction)
                                 ( Range.combine <| List.map Tuple.first p, divideAndConquer p )
                                 ( Range.combine <| List.map Tuple.first s, divideAndConquer s )
                         )
@@ -207,7 +208,7 @@ findNextSplit dict exps =
                 |> List.takeWhile
                     (\x ->
                         expressionOperators x
-                            |> Maybe.andThen (\a -> Dict.get a dict)
+                            |> Maybe.andThen (\key -> Dict.get key dict)
                             |> (==) Nothing
                     )
 
@@ -227,11 +228,11 @@ highestPrecedence input =
     let
         maxi =
             input
-                |> List.map (Tuple.second >> .precedence)
+                |> List.map (Tuple.second >> .precedence >> Tuple.second)
                 |> maximum
     in
     maxi
-        |> Maybe.map (\m -> List.filter (Tuple.second >> .precedence >> (==) m) input)
+        |> Maybe.map (\m -> List.filter (Tuple.second >> .precedence >> Tuple.second >> (==) m) input)
         |> Maybe.withDefault []
         |> Dict.fromList
 
@@ -317,19 +318,19 @@ visitExpression visitor context expression =
         inner =
             visitExpressionInner visitor context
     in
-    (visitor |> Maybe.withDefault (\_ inner expr -> inner expr))
+    (visitor |> Maybe.withDefault (\_ nest expr -> nest expr))
         context
         inner
         expression
 
 
 visitExpressionInner : Visitor context -> context -> Ranged Expression -> Ranged Expression
-visitExpressionInner visitor context ( r, expression ) =
+visitExpressionInner visitor context ( range, expression ) =
     let
         subVisit =
             visitExpression visitor context
     in
-    (\b -> ( r, b )) <|
+    (\newExpr -> ( range, newExpr )) <|
         case expression of
             Application expressionList ->
                 expressionList
