@@ -1,7 +1,6 @@
 module Elm.Parser.TypeAnnotation exposing (typeAnnotation, typeAnnotationNonGreedy)
 
 import Combine exposing (..)
-import Combine.Extra as Combine
 import Elm.Parser.Base exposing (typeIndicator)
 import Elm.Parser.Layout as Layout
 import Elm.Parser.Ranges exposing (ranged)

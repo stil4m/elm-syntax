@@ -1,7 +1,6 @@
 module Elm.Parser.File exposing (file)
 
 import Combine exposing (Parser, many, maybe, succeed, withState)
-import Combine.Extra as Combine
 import Elm.Parser.Declarations exposing (declaration)
 import Elm.Parser.Imports exposing (importDefinition)
 import Elm.Parser.Layout as Layout
