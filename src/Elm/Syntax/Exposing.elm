@@ -23,9 +23,9 @@ import Elm.Syntax.Ranged exposing (Ranged)
 
 {-| Diffent kind of exposing declarations
 -}
-type Exposing a
+type Exposing
     = All Range
-    | Explicit (List a)
+    | Explicit (List (Ranged TopLevelExpose))
 
 
 {-| An exposed entity
@@ -41,7 +41,7 @@ type TopLevelExpose
 -}
 type alias ExposedType =
     { name : String
-    , constructors : Maybe (Exposing ValueConstructorExpose)
+    , open : Maybe Range
     }
 
 
@@ -60,7 +60,7 @@ topLevelExposeRange ( r, _ ) =
 
 {-| Check whether an import/module exposing list exposes a certain function
 -}
-exposesFunction : String -> Exposing TopLevelExpose -> Bool
+exposesFunction : String -> Exposing -> Bool
 exposesFunction s exposure =
     case exposure of
         All _ ->
@@ -68,13 +68,15 @@ exposesFunction s exposure =
 
         Explicit l ->
             List.any
-                (\x ->
-                    case x of
-                        FunctionExpose fun ->
-                            fun == s
+                (Tuple.second
+                    >> (\x ->
+                            case x of
+                                FunctionExpose fun ->
+                                    fun == s
 
-                        _ ->
-                            False
+                                _ ->
+                                    False
+                       )
                 )
                 l
 
