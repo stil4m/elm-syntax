@@ -1,11 +1,24 @@
-module Elm.Syntax.Expression exposing
-    ( Expression(..), Lambda
-    , LetBlock, LetDeclaration(..)
-    , RecordUpdate, RecordSetter
-    , CaseBlock, Cases, Case
-    , Function, FunctionDeclaration, FunctionSignature, functionRange
-    , isLambda, isLet, isIfElse, isCase, isOperatorApplication
-    )
+module Elm.Syntax.Expression
+    exposing
+        ( Case
+        , CaseBlock
+        , Cases
+        , Expression(..)
+        , Function
+        , FunctionDeclaration
+        , FunctionSignature
+        , Lambda
+        , LetBlock
+        , LetDeclaration(..)
+        , RecordSetter
+        , RecordUpdate
+        , functionRange
+        , isCase
+        , isIfElse
+        , isLambda
+        , isLet
+        , isOperatorApplication
+        )
 
 {-| Expression Syntax
 
@@ -79,8 +92,7 @@ functionRange function =
 {-| Type alias for declaring a function
 -}
 type alias FunctionDeclaration =
-    { operatorDefinition : Bool
-    , name : VariablePointer
+    { name : VariablePointer
     , arguments : List (Ranged Pattern)
     , expression : Ranged Expression
     }
@@ -89,8 +101,7 @@ type alias FunctionDeclaration =
 {-| Type alias for a function signature
 -}
 type alias FunctionSignature =
-    { operatorDefinition : Bool
-    , name : VariablePointer
+    { name : VariablePointer
     , typeAnnotation : Ranged TypeAnnotation
     }
 
