@@ -1,4 +1,4 @@
-module Elm.Writer exposing (write, writeFile, writePattern, writeExpression, writeTypeAnnotation, writeDeclaration)
+module Elm.Writer exposing (write, writeExpression, writeFile, writePattern, writeTypeAnnotation)
 
 {-|
 
@@ -7,7 +7,7 @@ module Elm.Writer exposing (write, writeFile, writePattern, writeExpression, wri
 
 Write a file to a string.
 
-@docs write, writeFile, writePattern, writeExpression, writeTypeAnnotation, writeDeclaration
+@docs write, writeFile, writePattern, writeExpression, writeTypeAnnotation
 
 -}
 
@@ -25,7 +25,6 @@ import Elm.Syntax.Ranged exposing (Ranged)
 import Elm.Syntax.Type exposing (..)
 import Elm.Syntax.TypeAlias exposing (..)
 import Elm.Syntax.TypeAnnotation exposing (..)
-import Hex
 import List.Extra as List
 import StructuredWriter as Writer exposing (..)
 
@@ -119,7 +118,7 @@ writeModuleName moduleName =
     string (String.join "." moduleName)
 
 
-writeExposureExpose : Exposing (Ranged TopLevelExpose) -> Writer
+writeExposureExpose : Exposing -> Writer
 writeExposureExpose x =
     case x of
         All _ ->
@@ -149,31 +148,16 @@ writeExpose ( _, exp ) =
         TypeOrAliasExpose t ->
             string t
 
-        TypeExpose { name, constructors } ->
-            case constructors of
-                Just c ->
+        TypeExpose { name, open } ->
+            case open of
+                Just _ ->
                     spaced
                         [ string name
-                        , writeExposureValueConstructor c
+                        , string "(..)"
                         ]
 
                 Nothing ->
                     string name
-
-
-writeExposureValueConstructor : Exposing ValueConstructorExpose -> Writer
-writeExposureValueConstructor x =
-    case x of
-        All _ ->
-            string "(..)"
-
-        Explicit exposeList ->
-            let
-                diffLines =
-                    List.map Tuple.first exposeList
-                        |> startOnDifferentLines
-            in
-            parensComma diffLines (List.map (Tuple.second >> string) exposeList)
 
 
 startOnDifferentLines : List Range -> Bool
@@ -201,8 +185,6 @@ writeLetDeclaration ( _, letDeclaration ) =
             writeDestructuring pattern expression
 
 
-{-| Write a declaration
--}
 writeDeclaration : Ranged Declaration -> Writer
 writeDeclaration ( _, decl ) =
     case decl of
@@ -238,11 +220,7 @@ writeFunctionDeclaration : FunctionDeclaration -> Writer
 writeFunctionDeclaration declaration =
     breaked
         [ spaced
-            [ if declaration.operatorDefinition then
-                string ("(" ++ declaration.name.value ++ ")")
-
-              else
-                string declaration.name.value
+            [ string declaration.name.value
             , spaced (List.map writePattern declaration.arguments)
             , string "="
             ]
@@ -253,11 +231,7 @@ writeFunctionDeclaration declaration =
 writeSignature : FunctionSignature -> Writer
 writeSignature signature =
     spaced
-        [ if signature.operatorDefinition then
-            string ("(" ++ signature.name.value ++ ")")
-
-          else
-            string signature.name.value
+        [ string signature.name.value
         , string ":"
         , writeTypeAnnotation signature.typeAnnotation
         ]
@@ -288,6 +262,7 @@ writeType type_ =
             [ string "type"
             , string type_.name
             , spaced (List.map string type_.generics)
+            , string "="
             ]
         , let
             diffLines =
@@ -314,16 +289,22 @@ writePortDeclaration signature =
 
 
 writeInfix : Infix -> Writer
-writeInfix { direction, precedence, operator } =
+writeInfix { direction, precedence, operator, function } =
     spaced
-        [ case direction of
+        [ string "infix"
+        , case Tuple.second direction of
             Left ->
-                string "infixl"
+                string "left"
 
             Right ->
-                string "infixr"
-        , string (toString precedence)
-        , string operator
+                string "right"
+
+            Non ->
+                string "non"
+        , string (String.fromInt (Tuple.second precedence))
+        , string (Tuple.second operator)
+        , string "="
+        , string (Tuple.second function)
         ]
 
 
@@ -368,19 +349,10 @@ writeTypeAnnotation ( _, typeAnnotation ) =
                 ]
 
         FunctionTypeAnnotation left right ->
-            let
-                addParensForSubTypeAnnotation type_ =
-                    case type_ of
-                        ( _, FunctionTypeAnnotation _ _ ) ->
-                            join [ string "(", writeTypeAnnotation type_, string ")" ]
-
-                        _ ->
-                            writeTypeAnnotation type_
-            in
             spaced
-                [ addParensForSubTypeAnnotation left
+                [ writeTypeAnnotation left
                 , string "->"
-                , addParensForSubTypeAnnotation right
+                , writeTypeAnnotation right
                 ]
 
 
@@ -447,6 +419,12 @@ writeExpression ( range, inner ) =
                         , ( Tuple.first right, writeExpression right )
                         ]
 
+                Non ->
+                    sepHelper sepBySpace
+                        [ ( Tuple.first left, spaced [ writeExpression left, string x ] )
+                        , ( Tuple.first right, writeExpression right )
+                        ]
+
         FunctionOrValue x ->
             string x
 
@@ -464,23 +442,23 @@ writeExpression ( range, inner ) =
         Operator x ->
             string x
 
-        Integer i ->
-            string (toString i)
-
         Hex h ->
-            writeHex h
+            string "TODO"
+
+        Integer i ->
+            string (String.fromInt i)
 
         Floatable f ->
-            string (toString f)
+            string (String.fromFloat f)
 
         Negation x ->
             append (string "-") (writeExpression x)
 
         Literal s ->
-            string (toString s)
+            string ("\"" ++ s ++ "\"")
 
         CharLiteral c ->
-            string (toString c)
+            string ("'" ++ String.fromList [ c ] ++ "'")
 
         TupledExpression t ->
             sepHelper sepByComma (List.map recurRangeHelper t)
@@ -499,15 +477,15 @@ writeExpression ( range, inner ) =
         CaseExpression caseBlock ->
             let
                 writeCaseBranch ( pattern, expression ) =
-                    indent 2 <|
-                        breaked
-                            [ spaced [ writePattern pattern, string "->" ]
-                            , indent 2 (writeExpression expression)
-                            ]
+                    breaked
+                        [ spaced [ writePattern pattern, string "->" ]
+                        , indent 2 (writeExpression expression)
+                        ]
             in
             breaked
                 [ spaced [ string "case", writeExpression caseBlock.expression, string "of" ]
-                , breaked (List.map writeCaseBranch caseBlock.cases)
+                , indent 2
+                    (breaked (List.map writeCaseBranch caseBlock.cases))
                 ]
 
         LambdaExpression lambda ->
@@ -527,7 +505,7 @@ writeExpression ( range, inner ) =
             sepHelper bracketsComma (List.map recurRangeHelper xs)
 
         QualifiedExpr moduleName name ->
-            join [ writeModuleName moduleName, string ".", string name ]
+            join [ writeModuleName moduleName, string name ]
 
         RecordAccess expression accessor ->
             join [ writeExpression expression, string ".", string accessor ]
@@ -564,19 +542,19 @@ writePattern ( _, p ) =
             string "()"
 
         CharPattern c ->
-            string (toString c)
+            string ("'" ++ String.fromList [ c ] ++ "'")
 
         StringPattern s ->
             string s
 
-        IntPattern i ->
-            string (toString i)
-
         HexPattern h ->
-            writeHex h
+            string "TODO"
+
+        IntPattern i ->
+            string (String.fromInt i)
 
         FloatPattern f ->
-            string (toString f)
+            string (String.fromFloat f)
 
         TuplePattern inner ->
             parensComma False (List.map writePattern inner)
@@ -598,6 +576,7 @@ writePattern ( _, p ) =
                 [ writeQualifiedNameRef qnr
                 , spaced (List.map writePattern others)
                 ]
+
 
         AsPattern innerPattern asName ->
             spaced [ writePattern innerPattern, string "as", string asName.value ]
@@ -631,10 +610,3 @@ parensIfContainsSpaces w =
 
     else
         w
-
-
-writeHex : Int -> Writer
-writeHex h =
-    append
-        (string "0x")
-        (string (Hex.toString h))
