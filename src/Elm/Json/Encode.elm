@@ -31,8 +31,8 @@ import Json.Encode as JE exposing (Value, float, int, list, object, string)
 
 
 asList : (a -> Value) -> List a -> Value
-asList f =
-    list << List.map f
+asList f xs =
+    list f xs
 
 
 nameField : String -> ( String, Value )
@@ -103,7 +103,7 @@ encodeDefaultModuleData { moduleName, exposingList } =
 
 encodeModuleName : ModuleName -> Value
 encodeModuleName =
-    List.map string >> list
+    list string
 
 
 encodeExpose : Ranged TopLevelExpose -> Value
@@ -137,14 +137,10 @@ encodeExpose ( range, exp ) =
 
 
 encodeExposedType : ExposedType -> Value
-encodeExposedType { name, constructors } =
+encodeExposedType { name, open } =
     object
         [ nameField name
-        , ( "inner"
-          , constructors
-                |> Maybe.map (\c -> encodeExposingList c encodeValueConstructorExpose)
-                |> Maybe.withDefault JE.null
-          )
+        , ( "open", open |> Maybe.map Range.encode |> Maybe.withDefault JE.null )
         ]
 
 
@@ -156,7 +152,7 @@ encodeValueConstructorExpose ( range, name ) =
         ]
 
 
-encodeExposingList : Exposing a -> (a -> Value) -> Value
+encodeExposingList : Exposing -> (Ranged TopLevelExpose -> Value) -> Value
 encodeExposingList exp f =
     case exp of
         All r ->
@@ -274,10 +270,9 @@ encodeRangedSignature ( range, functionSignature ) =
 
 
 encodeSignature : FunctionSignature -> Value
-encodeSignature { operatorDefinition, name, typeAnnotation } =
+encodeSignature { name, typeAnnotation } =
     object
-        [ ( "operatorDefinition", JE.bool operatorDefinition )
-        , ( "name", encodeVariablePointer name )
+        [ ( "name", encodeVariablePointer name )
         , ( "typeAnnotation", encodeTypeAnnotation typeAnnotation )
         ]
 
@@ -338,7 +333,7 @@ encodeTypeAnnotation ( r, typeAnnotation ) =
 
 encodeRecordDefinition : RecordDefinition -> Value
 encodeRecordDefinition =
-    list << List.map encodeRecordField
+    list encodeRecordField
 
 
 encodeRecordField : RecordField -> Value
@@ -350,10 +345,9 @@ encodeRecordField ( name, ref ) =
 
 
 encodeFunctionDeclaration : FunctionDeclaration -> Value
-encodeFunctionDeclaration { operatorDefinition, name, arguments, expression } =
+encodeFunctionDeclaration { name, arguments, expression } =
     object
-        [ ( "operatorDefinition", JE.bool operatorDefinition )
-        , ( "name", encodeVariablePointer name )
+        [ ( "name", encodeVariablePointer name )
         , ( "arguments", asList encodePattern arguments )
         , ( "expression", encodeExpression expression )
         ]
@@ -387,16 +381,9 @@ encodePattern ( r, pattern ) =
                         )
 
                 StringPattern v ->
-                    encodeTyped "string"
+                    encodeTyped "char"
                         (JE.object
                             [ ( "value", string v )
-                            ]
-                        )
-
-                IntPattern i ->
-                    encodeTyped "int"
-                        (JE.object
-                            [ ( "value", JE.int i )
                             ]
                         )
 
@@ -404,6 +391,13 @@ encodePattern ( r, pattern ) =
                     encodeTyped "hex"
                         (JE.object
                             [ ( "value", JE.int h )
+                            ]
+                        )
+
+                IntPattern i ->
+                    encodeTyped "int"
+                        (JE.object
+                            [ ( "value", JE.int i )
                             ]
                         )
 
@@ -514,11 +508,11 @@ encodeExpression ( range, inner ) =
                 Operator x ->
                     encodeTyped "operator" (string x)
 
-                Integer x ->
-                    encodeTyped "integer" (int x)
-
                 Hex h ->
                     encodeTyped "hex" (int h)
+
+                Integer x ->
+                    encodeTyped "integer" (int x)
 
                 Floatable x ->
                     encodeTyped "float" (float x)
