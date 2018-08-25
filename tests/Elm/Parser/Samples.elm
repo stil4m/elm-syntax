@@ -39,7 +39,18 @@ allSamples =
     , sample32
     , sample33
     , sample34
+    , sample35
     ]
+
+
+sample35 =
+    """
+module Validate exposing (isWhitespaceChar)
+
+isWhitespaceChar : Char -> Bool
+isWhitespaceChar char =
+    char == ' ' || char == '\\n' || char == '\\t' || char == '\\u{000D}'
+"""
 
 
 sample34 =

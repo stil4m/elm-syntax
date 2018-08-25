@@ -169,6 +169,11 @@ escapedCharValue =
         , Core.succeed '\n' |. Core.symbol "n"
         , Core.succeed '\t' |. Core.symbol "t"
         , Core.succeed '\\' |. Core.symbol "\\"
+        , Core.succeed (String.toLower >> Hex.fromString >> Result.withDefault 0 >> Char.fromCode)
+            |. Core.symbol "u"
+            |. Core.symbol "{"
+            |= (Core.chompWhile (\c -> String.any ((==) c) "0123456789ABCDEFabcdef") |> Core.getChompedString)
+            |. Core.symbol "}"
         ]
 
 
@@ -187,7 +192,10 @@ quotedSingleQuote =
 characterLiteral : Parser s Char
 characterLiteral =
     or quotedSingleQuote
-        (char '\'' |> Combine.continueWith anyChar |> Combine.ignore (char '\''))
+        (char '\''
+            |> Combine.continueWith anyChar
+            |> Combine.ignore (char '\'')
+        )
 
 
 type alias StringLiteralLoopState =
