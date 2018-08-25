@@ -57,11 +57,11 @@ emptyRange =
 -}
 encode : Range -> Value
 encode { start, end } =
-    JE.list
-        [ JE.int start.row
-        , JE.int start.column
-        , JE.int end.row
-        , JE.int end.column
+    JE.list JE.int
+        [ start.row
+        , start.column
+        , end.row
+        , end.column
         ]
 
 
