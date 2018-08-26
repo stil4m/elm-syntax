@@ -1,4 +1,4 @@
-module Elm.Parser.LayoutTests exposing (..)
+module Elm.Parser.LayoutTests exposing (all)
 
 import Elm.Parser.CombineTestUtil exposing (..)
 import Elm.Parser.Layout as Layout

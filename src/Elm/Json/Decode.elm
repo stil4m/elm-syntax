@@ -11,7 +11,7 @@ Decoding Elm Code from Json
 
 -}
 
-import Elm.Internal.RawFile exposing (RawFile(Raw))
+import Elm.Internal.RawFile exposing (RawFile(..))
 import Elm.Json.Util exposing (decodeTyped)
 import Elm.Syntax.Base exposing (ModuleName, VariablePointer)
 import Elm.Syntax.Declaration exposing (..)
@@ -28,17 +28,22 @@ import Elm.Syntax.Type exposing (..)
 import Elm.Syntax.TypeAlias exposing (..)
 import Elm.Syntax.TypeAnnotation exposing (..)
 import Json.Decode exposing (Decoder, andThen, bool, fail, field, float, int, lazy, list, map, map2, map3, nullable, string, succeed)
-import Json.Decode.Extra exposing ((|:))
+import Json.Decode.Extra exposing (andMap)
 
 
-rangeField : Decoder Range
+rangeField : Decoder (Range -> a) -> Decoder a
 rangeField =
-    field "range" Range.decode
+    andMap <| field "range" Range.decode
 
 
-nameField : Decoder String
+required : String -> Decoder a -> Decoder (a -> b) -> Decoder b
+required s d =
+    andMap (field s d)
+
+
+nameField : Decoder (String -> a) -> Decoder a
 nameField =
-    field "name" string
+    required "name" string
 
 
 {-| Decode a file stored in Json
@@ -51,17 +56,17 @@ decode =
 decodeFile : Decoder File
 decodeFile =
     succeed File
-        |: field "moduleDefinition" decodeModule
-        |: field "imports" (list decodeImport)
-        |: field "declarations" (list decodeDeclaration)
-        |: field "comments" (list decodeComment)
+        |> required "moduleDefinition" decodeModule
+        |> required "imports" (list decodeImport)
+        |> required "declarations" (list decodeDeclaration)
+        |> required "comments" (list decodeComment)
 
 
 decodeComment : Decoder (Ranged String)
 decodeComment =
-    succeed (,)
-        |: field "range" Range.decode
-        |: field "text" string
+    succeed Tuple.pair
+        |> required "range" Range.decode
+        |> required "text" string
 
 
 decodeModule : Decoder Module
@@ -76,17 +81,17 @@ decodeModule =
 decodeDefaultModuleData : Decoder DefaultModuleData
 decodeDefaultModuleData =
     succeed DefaultModuleData
-        |: field "moduleName" decodeModuleName
-        |: field "exposingList" (decodeExposingList decodeExpose)
+        |> required "moduleName" decodeModuleName
+        |> required "exposingList" (decodeExposingList decodeExpose)
 
 
 decodeEffectModuleData : Decoder EffectModuleData
 decodeEffectModuleData =
     succeed EffectModuleData
-        |: field "moduleName" decodeModuleName
-        |: field "exposingList" (decodeExposingList decodeExpose)
-        |: field "command" (nullable string)
-        |: field "subscription" (nullable string)
+        |> required "moduleName" decodeModuleName
+        |> required "exposingList" (decodeExposingList decodeExpose)
+        |> required "command" (nullable string)
+        |> required "subscription" (nullable string)
 
 
 decodeModuleName : Decoder ModuleName
@@ -96,13 +101,16 @@ decodeModuleName =
 
 decodeExpose : Decoder (Ranged TopLevelExpose)
 decodeExpose =
-    succeed (,)
-        |: field "range" Range.decode
-        |: field "topLevel"
+    succeed Tuple.pair
+        |> required "range" Range.decode
+        |> required "topLevel"
             (decodeTyped
-                [ ( "infix", map InfixExpose nameField )
-                , ( "function", map FunctionExpose nameField )
-                , ( "typeOrAlias", map TypeOrAliasExpose nameField )
+                [ ( "infix", succeed InfixExpose |> nameField )
+                , ( "function"
+                  , succeed FunctionExpose
+                        |> nameField
+                  )
+                , ( "typeOrAlias", succeed TypeOrAliasExpose |> nameField )
                 , ( "typeexpose", map TypeExpose decodeExposedType )
                 ]
             )
@@ -111,18 +119,18 @@ decodeExpose =
 decodeExposedType : Decoder ExposedType
 decodeExposedType =
     succeed ExposedType
-        |: nameField
-        |: field "inner" (nullable (decodeExposingList decodeValueConstructorExpose))
+        |> nameField
+        |> required "open" (nullable Range.decode)
 
 
 decodeValueConstructorExpose : Decoder ValueConstructorExpose
 decodeValueConstructorExpose =
-    succeed (,)
-        |: rangeField
-        |: nameField
+    succeed Tuple.pair
+        |> rangeField
+        |> nameField
 
 
-decodeExposingList : Decoder a -> Decoder (Exposing a)
+decodeExposingList : Decoder (Ranged TopLevelExpose) -> Decoder Exposing
 decodeExposingList x =
     lazy
         (\() ->
@@ -136,19 +144,19 @@ decodeExposingList x =
 decodeImport : Decoder Import
 decodeImport =
     succeed Import
-        |: field "moduleName" decodeModuleName
-        |: field "moduleAlias" (nullable decodeModuleName)
-        |: field "exposingList" (nullable (decodeExposingList decodeExpose))
-        |: rangeField
+        |> required "moduleName" decodeModuleName
+        |> required "moduleAlias" (nullable decodeModuleName)
+        |> required "exposingList" (nullable (decodeExposingList decodeExpose))
+        |> rangeField
 
 
 decodeDeclaration : Decoder (Ranged Declaration)
 decodeDeclaration =
     lazy
         (\() ->
-            succeed (,)
-                |: rangeField
-                |: field "declaration"
+            succeed Tuple.pair
+                |> rangeField
+                |> required "declaration"
                     (decodeTyped
                         [ ( "function", decodeFunction |> map FuncDecl )
                         , ( "typeAlias", decodeTypeAlias |> map AliasDecl )
@@ -164,26 +172,26 @@ decodeDeclaration =
 decodeType : Decoder Type
 decodeType =
     succeed Type
-        |: nameField
-        |: field "generics" (list string)
-        |: field "constructors" (list decodeValueConstructor)
+        |> nameField
+        |> required "generics" (list string)
+        |> required "constructors" (list decodeValueConstructor)
 
 
 decodeValueConstructor : Decoder ValueConstructor
 decodeValueConstructor =
     succeed ValueConstructor
-        |: nameField
-        |: field "arguments" (list decodeTypeAnnotation)
-        |: rangeField
+        |> nameField
+        |> required "arguments" (list decodeTypeAnnotation)
+        |> rangeField
 
 
 decodeTypeAlias : Decoder TypeAlias
 decodeTypeAlias =
     succeed TypeAlias
-        |: field "documentation" (nullable decodeDocumentation)
-        |: nameField
-        |: field "generics" (list string)
-        |: field "typeAnnotation" decodeTypeAnnotation
+        |> required "documentation" (nullable decodeDocumentation)
+        |> nameField
+        |> required "generics" (list string)
+        |> required "typeAnnotation" decodeTypeAnnotation
 
 
 decodeFunction : Decoder Function
@@ -191,48 +199,47 @@ decodeFunction =
     lazy
         (\() ->
             succeed Function
-                |: field "documentation" (nullable decodeDocumentation)
-                |: field "signature" (nullable decodeRangedSignature)
-                |: field "declaration" decodeFunctionDeclaration
+                |> required "documentation" (nullable decodeDocumentation)
+                |> required "signature" (nullable decodeRangedSignature)
+                |> required "declaration" decodeFunctionDeclaration
         )
 
 
 decodeDocumentation : Decoder Documentation
 decodeDocumentation =
     succeed Documentation
-        |: field "value" string
-        |: rangeField
+        |> required "value" string
+        |> rangeField
 
 
 decodeRangedSignature : Decoder (Ranged FunctionSignature)
 decodeRangedSignature =
-    succeed (,)
-        |: rangeField
-        |: field "signature" decodeSignature
+    succeed Tuple.pair
+        |> rangeField
+        |> required "signature" decodeSignature
 
 
 decodeSignature : Decoder FunctionSignature
 decodeSignature =
     succeed FunctionSignature
-        |: field "operatorDefinition" bool
-        |: field "name" decodeVariablePointer
-        |: field "typeAnnotation" decodeTypeAnnotation
+        |> required "name" decodeVariablePointer
+        |> required "typeAnnotation" decodeTypeAnnotation
 
 
 decodeTypeAnnotation : Decoder (Ranged TypeAnnotation)
 decodeTypeAnnotation =
     lazy
         (\() ->
-            succeed (,)
-                |: field "range" Range.decode
-                |: field "typeAnnotation"
+            succeed Tuple.pair
+                |> required "range" Range.decode
+                |> required "typeAnnotation"
                     (decodeTyped
                         [ ( "generic", map GenericType (field "value" string) )
                         , ( "typed"
-                          , map3 Typed
-                                (field "moduleName" decodeModuleName)
-                                nameField
-                                (field "args" <| list decodeTypeAnnotation)
+                          , succeed Typed
+                                |> required "moduleName" decodeModuleName
+                                |> nameField
+                                |> required "args" (list decodeTypeAnnotation)
                           )
                         , ( "unit", succeed Unit )
                         , ( "tupled", map Tupled (field "values" (list decodeTypeAnnotation)) )
@@ -243,9 +250,9 @@ decodeTypeAnnotation =
                           )
                         , ( "record", map Record (field "value" decodeRecordDefinition) )
                         , ( "genericRecord"
-                          , map2 GenericRecord
-                                nameField
-                                (field "values" decodeRecordDefinition)
+                          , succeed GenericRecord
+                                |> nameField
+                                |> required "values" decodeRecordDefinition
                           )
                         ]
                     )
@@ -261,9 +268,9 @@ decodeRecordField : Decoder RecordField
 decodeRecordField =
     lazy
         (\() ->
-            succeed (,)
-                |: nameField
-                |: field "typeAnnotation" decodeTypeAnnotation
+            succeed Tuple.pair
+                |> nameField
+                |> required "typeAnnotation" decodeTypeAnnotation
         )
 
 
@@ -272,18 +279,17 @@ decodeFunctionDeclaration =
     lazy
         (\() ->
             succeed FunctionDeclaration
-                |: field "operatorDefinition" bool
-                |: field "name" decodeVariablePointer
-                |: field "arguments" (list decodePattern)
-                |: field "expression" decodeExpression
+                |> required "name" decodeVariablePointer
+                |> required "arguments" (list decodePattern)
+                |> required "expression" decodeExpression
         )
 
 
 decodeVariablePointer : Decoder VariablePointer
 decodeVariablePointer =
     succeed VariablePointer
-        |: field "value" string
-        |: rangeField
+        |> required "value" string
+        |> rangeField
 
 
 decodeChar : Decoder Char
@@ -304,16 +310,16 @@ decodePattern : Decoder (Ranged Pattern)
 decodePattern =
     lazy
         (\() ->
-            succeed (,)
-                |: rangeField
-                |: field "pattern"
+            succeed Tuple.pair
+                |> rangeField
+                |> required "pattern"
                     (decodeTyped
                         [ ( "all", succeed AllPattern )
                         , ( "unit", succeed UnitPattern )
                         , ( "char", field "value" decodeChar |> map CharPattern )
                         , ( "string", field "value" string |> map StringPattern )
+                        , ( "hex", int |> map HexPattern )
                         , ( "int", field "value" int |> map IntPattern )
-                        , ( "hex", field "value" int |> map HexPattern )
                         , ( "float", field "value" float |> map FloatPattern )
                         , ( "tuple", field "value" (list decodePattern) |> map TuplePattern )
                         , ( "record", field "value" (list decodeVariablePointer) |> map RecordPattern )
@@ -331,17 +337,17 @@ decodePattern =
 decodeQualifiedNameRef : Decoder QualifiedNameRef
 decodeQualifiedNameRef =
     succeed QualifiedNameRef
-        |: field "moduleName" decodeModuleName
-        |: nameField
+        |> required "moduleName" decodeModuleName
+        |> nameField
 
 
 decodeExpression : Decoder (Ranged Expression)
 decodeExpression =
     lazy
         (\() ->
-            succeed (,)
-                |: rangeField
-                |: field "inner" decodeInnerExpression
+            succeed Tuple.pair
+                |> rangeField
+                |> required "inner" decodeInnerExpression
         )
 
 
@@ -357,8 +363,8 @@ decodeInnerExpression =
                 , ( "ifBlock", map3 IfBlock (field "clause" decodeExpression) (field "then" decodeExpression) (field "else" decodeExpression) )
                 , ( "prefixoperator", string |> map PrefixOperator )
                 , ( "operator", string |> map Operator )
-                , ( "integer", int |> map Integer )
                 , ( "hex", int |> map Hex )
+                , ( "integer", int |> map Integer )
                 , ( "float", float |> map Floatable )
                 , ( "negation", decodeExpression |> map Negation )
                 , ( "literal", string |> map Literal )
@@ -369,8 +375,8 @@ decodeInnerExpression =
                 , ( "let", decodeLetBlock |> map LetExpression )
                 , ( "case", decodeCaseBlock |> map CaseExpression )
                 , ( "lambda", decodeLambda |> map LambdaExpression )
-                , ( "qualified", map2 QualifiedExpr (field "moduleName" decodeModuleName) nameField )
-                , ( "recordAccess", map2 RecordAccess (field "expression" decodeExpression) nameField )
+                , ( "qualified", succeed QualifiedExpr |> required "moduleName" decodeModuleName |> nameField )
+                , ( "recordAccess", succeed RecordAccess |> required "expression" decodeExpression |> nameField )
                 , ( "recordAccessFunction", string |> map RecordAccessFunction )
                 , ( "record", list decodeRecordSetter |> map RecordExpr )
                 , ( "recordUpdate", decodeRecordUpdate |> map RecordUpdateExpression )
@@ -384,8 +390,8 @@ decodeRecordUpdate =
     lazy
         (\() ->
             succeed RecordUpdate
-                |: nameField
-                |: field "updates" (list decodeRecordSetter)
+                |> nameField
+                |> required "updates" (list decodeRecordSetter)
         )
 
 
@@ -393,9 +399,9 @@ decodeRecordSetter : Decoder RecordSetter
 decodeRecordSetter =
     lazy
         (\() ->
-            succeed (,)
-                |: field "field" string
-                |: field "expression" decodeExpression
+            succeed Tuple.pair
+                |> required "field" string
+                |> required "expression" decodeExpression
         )
 
 
@@ -404,8 +410,8 @@ decodeLambda =
     lazy
         (\() ->
             succeed Lambda
-                |: field "patterns" (list decodePattern)
-                |: field "expression" decodeExpression
+                |> required "patterns" (list decodePattern)
+                |> required "expression" decodeExpression
         )
 
 
@@ -414,8 +420,8 @@ decodeCaseBlock =
     lazy
         (\() ->
             succeed CaseBlock
-                |: field "expression" decodeExpression
-                |: field "cases" (list decodeCase)
+                |> required "expression" decodeExpression
+                |> required "cases" (list decodeCase)
         )
 
 
@@ -423,9 +429,9 @@ decodeCase : Decoder Case
 decodeCase =
     lazy
         (\() ->
-            succeed (,)
-                |: field "pattern" decodePattern
-                |: field "expression" decodeExpression
+            succeed Tuple.pair
+                |> required "pattern" decodePattern
+                |> required "expression" decodeExpression
         )
 
 
@@ -434,8 +440,8 @@ decodeLetBlock =
     lazy
         (\() ->
             succeed LetBlock
-                |: field "declarations" (list decodeLetDeclaration)
-                |: field "expression" decodeExpression
+                |> required "declarations" (list decodeLetDeclaration)
+                |> required "expression" decodeExpression
         )
 
 
@@ -443,9 +449,9 @@ decodeLetDeclaration : Decoder (Ranged LetDeclaration)
 decodeLetDeclaration =
     lazy
         (\() ->
-            succeed (,)
-                |: rangeField
-                |: field "declaration"
+            succeed Tuple.pair
+                |> rangeField
+                |> required "declaration"
                     (decodeTyped
                         [ ( "function", map LetFunction decodeFunction )
                         , ( "destructuring", map2 LetDestructuring (field "pattern" decodePattern) (field "expression" decodeExpression) )
@@ -459,8 +465,8 @@ decodeOperatorApplication =
     lazy
         (\() ->
             succeed OperatorApplication
-                |: field "operator" string
-                |: field "direction" Infix.decodeDirection
-                |: field "left" decodeExpression
-                |: field "right" decodeExpression
+                |> required "operator" string
+                |> required "direction" Infix.decodeDirection
+                |> required "left" decodeExpression
+                |> required "right" decodeExpression
         )

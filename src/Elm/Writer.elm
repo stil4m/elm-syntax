@@ -1,4 +1,4 @@
-module Elm.Writer exposing (write, writeDeclaration, writeExpression, writeFile, writePattern, writeTypeAnnotation)
+module Elm.Writer exposing (write, writeFile, writePattern, writeExpression, writeTypeAnnotation, writeDeclaration)
 
 {-|
 
@@ -25,7 +25,6 @@ import Elm.Syntax.Ranged exposing (Ranged)
 import Elm.Syntax.Type exposing (..)
 import Elm.Syntax.TypeAlias exposing (..)
 import Elm.Syntax.TypeAnnotation exposing (..)
-import Hex
 import List.Extra as List
 import StructuredWriter as Writer exposing (..)
 
@@ -119,7 +118,7 @@ writeModuleName moduleName =
     string (String.join "." moduleName)
 
 
-writeExposureExpose : Exposing (Ranged TopLevelExpose) -> Writer
+writeExposureExpose : Exposing -> Writer
 writeExposureExpose x =
     case x of
         All _ ->
@@ -149,31 +148,16 @@ writeExpose ( _, exp ) =
         TypeOrAliasExpose t ->
             string t
 
-        TypeExpose { name, constructors } ->
-            case constructors of
-                Just c ->
+        TypeExpose { name, open } ->
+            case open of
+                Just _ ->
                     spaced
                         [ string name
-                        , writeExposureValueConstructor c
+                        , string "(..)"
                         ]
 
                 Nothing ->
                     string name
-
-
-writeExposureValueConstructor : Exposing ValueConstructorExpose -> Writer
-writeExposureValueConstructor x =
-    case x of
-        All _ ->
-            string "(..)"
-
-        Explicit exposeList ->
-            let
-                diffLines =
-                    List.map Tuple.first exposeList
-                        |> startOnDifferentLines
-            in
-            parensComma diffLines (List.map (Tuple.second >> string) exposeList)
 
 
 startOnDifferentLines : List Range -> Bool
@@ -238,10 +222,7 @@ writeFunctionDeclaration : FunctionDeclaration -> Writer
 writeFunctionDeclaration declaration =
     breaked
         [ spaced
-            [ if declaration.operatorDefinition then
-                string ("(" ++ declaration.name.value ++ ")")
-              else
-                string declaration.name.value
+            [ string declaration.name.value
             , spaced (List.map writePattern declaration.arguments)
             , string "="
             ]
@@ -252,10 +233,7 @@ writeFunctionDeclaration declaration =
 writeSignature : FunctionSignature -> Writer
 writeSignature signature =
     spaced
-        [ if signature.operatorDefinition then
-            string ("(" ++ signature.name.value ++ ")")
-          else
-            string signature.name.value
+        [ string signature.name.value
         , string ":"
         , writeTypeAnnotation signature.typeAnnotation
         ]
@@ -312,16 +290,22 @@ writePortDeclaration signature =
 
 
 writeInfix : Infix -> Writer
-writeInfix { direction, precedence, operator } =
+writeInfix { direction, precedence, operator, function } =
     spaced
-        [ case direction of
+        [ string "infix"
+        , case Tuple.second direction of
             Left ->
-                string "infixl"
+                string "left"
 
             Right ->
-                string "infixr"
-        , string (toString precedence)
-        , string operator
+                string "right"
+
+            Non ->
+                string "non"
+        , string (String.fromInt (Tuple.second precedence))
+        , string (Tuple.second operator)
+        , string "="
+        , string (Tuple.second function)
         ]
 
 
@@ -445,6 +429,12 @@ writeExpression ( range, inner ) =
                         , ( Tuple.first right, writeExpression right )
                         ]
 
+                Non ->
+                    sepHelper sepBySpace
+                        [ ( Tuple.first left, spaced [ writeExpression left, string x ] )
+                        , ( Tuple.first right, writeExpression right )
+                        ]
+
         FunctionOrValue x ->
             string x
 
@@ -462,23 +452,23 @@ writeExpression ( range, inner ) =
         Operator x ->
             string x
 
-        Integer i ->
-            string (toString i)
-
         Hex h ->
-            writeHex h
+            string "TODO"
+
+        Integer i ->
+            string (String.fromInt i)
 
         Floatable f ->
-            string (toString f)
+            string (String.fromFloat f)
 
         Negation x ->
             append (string "-") (writeExpression x)
 
         Literal s ->
-            string (toString s)
+            string ("\"" ++ s ++ "\"")
 
         CharLiteral c ->
-            string (toString c)
+            string ("'" ++ String.fromList [ c ] ++ "'")
 
         TupledExpression t ->
             sepHelper sepByComma (List.map recurRangeHelper t)
@@ -562,19 +552,19 @@ writePattern ( _, p ) =
             string "()"
 
         CharPattern c ->
-            string (toString c)
+            string ("'" ++ String.fromList [ c ] ++ "'")
 
         StringPattern s ->
             string s
 
-        IntPattern i ->
-            string (toString i)
-
         HexPattern h ->
-            writeHex h
+            string "TODO"
+
+        IntPattern i ->
+            string (String.fromInt i)
 
         FloatPattern f ->
-            string (toString f)
+            string (String.fromFloat f)
 
         TuplePattern inner ->
             parensComma False (List.map writePattern inner)
@@ -626,12 +616,6 @@ parensIfContainsSpaces : Writer -> Writer
 parensIfContainsSpaces w =
     if Writer.write w |> String.contains " " then
         join [ string "(", w, string ")" ]
+
     else
         w
-
-
-writeHex : Int -> Writer
-writeHex h =
-    append
-        (string "0x")
-        (string (Hex.toString h))

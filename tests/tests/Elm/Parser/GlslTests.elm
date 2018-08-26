@@ -1,4 +1,4 @@
-module Elm.Parser.GlslTests exposing (..)
+module Elm.Parser.GlslTests exposing (all)
 
 import Elm.Parser.CombineTestUtil exposing (..)
 import Elm.Parser.Declarations as Parser exposing (..)

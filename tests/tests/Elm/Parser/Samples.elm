@@ -1,4 +1,6 @@
-module Elm.Parser.Samples exposing (..)
+module Elm.Parser.Samples exposing (allSamples, sample1, sample10, sample11, sample12, sample13, sample14, sample15, sample16, sample17, sample18, sample19, sample2, sample20, sample21, sample22, sample23, sample24, sample25, sample26, sample27, sample28, sample29, sample3, sample30, sample31, sample32, sample33, sample34, sample4, sample5, sample6, sample7, sample8, sample9)
+
+import Bitwise
 
 
 allSamples : List String
@@ -36,11 +38,58 @@ allSamples =
     , sample31
     , sample32
     , sample33
+    , sample34
+    , sample35
     ]
 
 
-sample33 : String
+sample35 =
+    """
+module Validate exposing (isWhitespaceChar)
+
+isWhitespaceChar : Char -> Bool
+isWhitespaceChar char =
+    char == ' ' || char == '\\n' || char == '\\t' || char == '\\u{000D}'
+"""
+
+
+sample34 =
+    """
+module Foo exposing (..)
+
+
+{-|-}
+type_ : String -> Attribute msg
+type_ =
+  bar  "type"
+
+"""
+
+
 sample33 =
+    """
+module Lazy.List  exposing (..)
+
+type D = C a B
+"""
+
+
+sample32 : String
+sample32 =
+    """module SomeModule exposing (..)
+
+x =
+  case y of
+      z ->
+          a
+
+toString num =
+    1
+"""
+
+
+sample31 : String
+sample31 =
     """
 module SomeModule exposing (..)
 
@@ -49,8 +98,8 @@ x =
 """
 
 
-sample31 : String
-sample31 =
+sample30 : String
+sample30 =
     """module Hex exposing (fromString, toString)
 
 {-| Convert to and from Hex strings.
@@ -183,91 +232,15 @@ unsafePositiveToDigits digits num =
     else
         unsafePositiveToDigits (unsafeToDigit (num % 16) :: digits) (num // 16)
 
-
-{-| ONLY EVER CALL THIS WITH INTEGERS BETWEEN 0 and 15!
--}
-unsafeToDigit : Int -> Char
-unsafeToDigit num =
-    case num of
-        0 ->
-            '0'
-
-        1 ->
-            '1'
-
-        2 ->
-            '2'
-
-        3 ->
-            '3'
-
-        4 ->
-            '4'
-
-        5 ->
-            '5'
-
-        6 ->
-            '6'
-
-        7 ->
-            '7'
-
-        8 ->
-            '8'
-
-        9 ->
-            '9'
-
-        10 ->
-            'a'
-
-        11 ->
-            'b'
-
-        12 ->
-            'c'
-
-        13 ->
-            'd'
-
-        14 ->
-            'e'
-
-        15 ->
-            'f'
-
-        _ ->
-            Debug.crash ("Tried to convert " ++ toString num ++ " to hexadecimal.")
-
-"""
-
-
-sample30 : String
-sample30 =
-    """module Bar exposing (..)
-
-type Color = Blue
-
-"""
-
-
-sample32 : String
-sample32 =
-    """module Foo exposing (..)
-
-y x =
-  case x of
-    _
-    -> 1
 """
 
 
 sample29 : String
 sample29 =
-    """module Foo exposing (..)
+    """module Bar exposing (..)
 
-x = '\\x0D'
+type Color = Blue
+
 """
 
 
@@ -391,8 +364,8 @@ sample4 : String
 sample4 =
     """module Operators exposing ()
 
-infixr 3 &&
-infixr 2 ||
+infix left 5 (|=) = keeper
+infix left 6 (|.) = ignorer
 """
 
 
@@ -415,7 +388,8 @@ updateState update sendPort = curry <| (uncurry update) >> batchStateCmds sendPo
 
 batchStateCmds : SendPort msg model -> (model, Cmd msg) -> (model, Cmd msg)
 batchStateCmds sendPort nextStateAndCmd =
-    1"""
+    1
+"""
 
 
 sample6 : String

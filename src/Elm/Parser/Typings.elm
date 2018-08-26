@@ -1,7 +1,6 @@
 module Elm.Parser.Typings exposing (TypeDefinition(..), typeDefinition)
 
 import Combine exposing (Parser, many, maybe, string, succeed)
-import Combine.Extra as Combine
 import Elm.Parser.Layout as Layout
 import Elm.Parser.Ranges exposing (ranged, withCurrentPoint)
 import Elm.Parser.State exposing (State)

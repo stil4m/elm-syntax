@@ -1,4 +1,7 @@
-module Elm.RawFile exposing (RawFile, imports, moduleName)
+module Elm.RawFile exposing
+    ( RawFile
+    , moduleName, imports
+    )
 
 {-|
 
@@ -24,7 +27,7 @@ type alias RawFile =
 
 {-| Retrieve the module name for a raw file
 -}
-moduleName : RawFile -> Maybe ModuleName
+moduleName : RawFile -> ModuleName
 moduleName (Internal.Raw file) =
     Module.moduleName file.moduleDefinition
 

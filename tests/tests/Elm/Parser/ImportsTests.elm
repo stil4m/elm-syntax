@@ -1,4 +1,4 @@
-module Elm.Parser.ImportsTests exposing (..)
+module Elm.Parser.ImportsTests exposing (all)
 
 import Elm.Parser.CombineTestUtil exposing (..)
 import Elm.Parser.Imports as Parser
@@ -23,7 +23,7 @@ all =
                                 Just <|
                                     Explicit
                                         [ ( emptyRange, TypeOrAliasExpose "Model" )
-                                        , ( emptyRange, TypeExpose (ExposedType "Msg" (Just <| All emptyRange)) )
+                                        , ( emptyRange, TypeExpose (ExposedType "Msg" (Just emptyRange)) )
                                         ]
                             , range = emptyRange
                             }

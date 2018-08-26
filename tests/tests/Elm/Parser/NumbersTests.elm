@@ -1,4 +1,4 @@
-module Elm.Parser.NumbersTests exposing (..)
+module Elm.Parser.NumbersTests exposing (all)
 
 import Elm.Parser.CombineTestUtil exposing (..)
 import Elm.Parser.Numbers as Parser

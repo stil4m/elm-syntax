@@ -1,4 +1,4 @@
-module Elm.Parser.LambdaExpressionTests exposing (..)
+module Elm.Parser.LambdaExpressionTests exposing (all)
 
 import Elm.Parser.CombineTestUtil exposing (..)
 import Elm.Parser.Declarations as Parser exposing (..)
@@ -25,6 +25,12 @@ all =
                                 }
                             )
                         )
+        , test "function arg" <|
+            \() ->
+                parseAsFarAsPossibleWithState emptyState "a b" Parser.functionArgument
+                    |> Maybe.map Tuple.second
+                    |> Expect.equal
+                        (Just (VarPattern "a"))
         , test "args lambda" <|
             \() ->
                 parseFullStringState emptyState "\\a b -> a + b" Parser.expression

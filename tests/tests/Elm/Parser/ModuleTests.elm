@@ -1,4 +1,4 @@
-module Elm.Parser.ModuleTests exposing (..)
+module Elm.Parser.ModuleTests exposing (all)
 
 import Elm.Parser.CombineTestUtil exposing (..)
 import Elm.Parser.Modules as Parser
@@ -27,6 +27,11 @@ all =
         , test "port moduleDefinition" <|
             \() ->
                 parseFullStringWithNullState "port module Foo exposing (Bar)" Parser.moduleDefinition
+                    |> Maybe.map noRangeModule
+                    |> Expect.equal (Just (PortModule { moduleName = [ "Foo" ], exposingList = Explicit [ ( emptyRange, TypeOrAliasExpose "Bar" ) ] }))
+        , test "port moduleDefinition with spacing" <|
+            \() ->
+                parseFullStringWithNullState "port module Foo exposing ( Bar )" Parser.moduleDefinition
                     |> Maybe.map noRangeModule
                     |> Expect.equal (Just (PortModule { moduleName = [ "Foo" ], exposingList = Explicit [ ( emptyRange, TypeOrAliasExpose "Bar" ) ] }))
         , test "effect moduleDefinition" <|

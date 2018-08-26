@@ -1,4 +1,7 @@
-module Elm.Processing exposing (ProcessContext, addDependency, addFile, init, process)
+module Elm.Processing exposing
+    ( ProcessContext
+    , init, addFile, addDependency, process
+    )
 
 {-|
 
@@ -23,15 +26,15 @@ import Dict exposing (Dict)
 import Elm.DefaultImports as DefaultImports
 import Elm.Dependency exposing (Dependency)
 import Elm.Interface as Interface exposing (Interface)
-import Elm.Internal.RawFile as RawFile exposing (RawFile(Raw))
+import Elm.Internal.RawFile as RawFile exposing (RawFile(..))
 import Elm.Processing.Documentation as Documentation
 import Elm.RawFile as RawFile
 import Elm.Syntax.Base exposing (ModuleName)
-import Elm.Syntax.Declaration exposing (Declaration(FuncDecl))
+import Elm.Syntax.Declaration exposing (Declaration(..))
 import Elm.Syntax.Exposing as Exposing exposing (..)
 import Elm.Syntax.Expression exposing (..)
 import Elm.Syntax.File exposing (File)
-import Elm.Syntax.Infix exposing (Infix, InfixDirection(Left))
+import Elm.Syntax.Infix exposing (Infix, InfixDirection(..))
 import Elm.Syntax.Module exposing (Import)
 import Elm.Syntax.Range as Range
 import Elm.Syntax.Ranged exposing (Ranged)
@@ -64,12 +67,11 @@ init =
 -}
 addFile : RawFile -> ProcessContext -> ProcessContext
 addFile file ((ProcessContext x) as m) =
-    case entryFromRawFile file of
-        Just ( k, v ) ->
-            ProcessContext (Dict.insert k v x)
-
-        Nothing ->
-            m
+    let
+        ( k, v ) =
+            entryFromRawFile file
+    in
+    ProcessContext (Dict.insert k v x)
 
 
 {-| Add a whole depenency with its modules to the context.
@@ -79,15 +81,14 @@ addDependency dep (ProcessContext x) =
     ProcessContext (Dict.foldl (\k v d -> Dict.insert k v d) x dep.interfaces)
 
 
-entryFromRawFile : RawFile -> Maybe ( ModuleName, Interface )
+entryFromRawFile : RawFile -> ( ModuleName, Interface )
 entryFromRawFile ((Raw _) as rawFile) =
-    RawFile.moduleName rawFile
-        |> Maybe.map (\modName -> ( modName, Interface.build rawFile ))
+    ( RawFile.moduleName rawFile, Interface.build rawFile )
 
 
 tableForFile : RawFile -> ProcessContext -> OperatorTable
 tableForFile rawFile (ProcessContext moduleIndex) =
-    List.concatMap (flip buildSingle moduleIndex) (DefaultImports.defaults ++ RawFile.imports rawFile)
+    List.concatMap (\a -> buildSingle a moduleIndex) (DefaultImports.defaults ++ RawFile.imports rawFile)
         |> Dict.fromList
 
 
@@ -102,7 +103,7 @@ buildSingle imp moduleIndex =
                 |> Dict.get imp.moduleName
                 |> Maybe.withDefault []
                 |> Interface.operators
-                |> List.map (\x -> ( x.operator, x ))
+                |> List.map (\x -> ( Tuple.second x.operator, x ))
 
         Just (Explicit l) ->
             let
@@ -113,8 +114,8 @@ buildSingle imp moduleIndex =
                 |> Dict.get imp.moduleName
                 |> Maybe.withDefault []
                 |> Interface.operators
-                |> List.map (\x -> ( x.operator, x ))
-                |> List.filter (Tuple.first >> flip List.member selectedOperators)
+                |> List.map (\x -> ( Tuple.second x.operator, x ))
+                |> List.filter (Tuple.first >> (\elem -> List.member elem selectedOperators))
 
 
 {-| Process a rawfile with a context.
@@ -159,9 +160,10 @@ fixApplication operators expressions =
                         ( x
                         , Dict.get x operators
                             |> Maybe.withDefault
-                                { operator = x
-                                , precedence = 5
-                                , direction = Left
+                                { operator = ( Range.emptyRange, x )
+                                , function = ( Range.emptyRange, "todo" )
+                                , precedence = ( Range.emptyRange, 5 )
+                                , direction = ( Range.emptyRange, Left )
                                 }
                         )
                     )
@@ -180,13 +182,14 @@ fixApplication operators expressions =
         divideAndConquer exps =
             if Dict.isEmpty ops then
                 fixExprs exps
+
             else
                 findNextSplit ops exps
                     |> Maybe.map
                         (\( p, infix, s ) ->
                             OperatorApplication
-                                infix.operator
-                                infix.direction
+                                (Tuple.second infix.operator)
+                                (Tuple.second infix.direction)
                                 ( Range.combine <| List.map Tuple.first p, divideAndConquer p )
                                 ( Range.combine <| List.map Tuple.first s, divideAndConquer s )
                         )
@@ -203,7 +206,7 @@ findNextSplit dict exps =
                 |> List.takeWhile
                     (\x ->
                         expressionOperators x
-                            |> Maybe.andThen (flip Dict.get dict)
+                            |> Maybe.andThen (\key -> Dict.get key dict)
                             |> (==) Nothing
                     )
 
@@ -223,11 +226,11 @@ highestPrecedence input =
     let
         maxi =
             input
-                |> List.map (Tuple.second >> .precedence)
+                |> List.map (Tuple.second >> .precedence >> Tuple.second)
                 |> maximum
     in
     maxi
-        |> Maybe.map (\m -> List.filter (Tuple.second >> .precedence >> (==) m) input)
+        |> Maybe.map (\m -> List.filter (Tuple.second >> .precedence >> Tuple.second >> (==) m) input)
         |> Maybe.withDefault []
         |> Dict.fromList
 
@@ -313,19 +316,19 @@ visitExpression visitor context expression =
         inner =
             visitExpressionInner visitor context
     in
-    (visitor |> Maybe.withDefault (\_ inner expr -> inner expr))
+    (visitor |> Maybe.withDefault (\_ nest expr -> nest expr))
         context
         inner
         expression
 
 
 visitExpressionInner : Visitor context -> context -> Ranged Expression -> Ranged Expression
-visitExpressionInner visitor context ( r, expression ) =
+visitExpressionInner visitor context ( range, expression ) =
     let
         subVisit =
             visitExpression visitor context
     in
-    (,) r <|
+    (\newExpr -> ( range, newExpr )) <|
         case expression of
             Application expressionList ->
                 expressionList

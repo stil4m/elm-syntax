@@ -1,17 +1,7 @@
-module Elm.Interface
-    exposing
-        ( Exposed
-            ( Alias
-            , Function
-            , Operator
-            , Type
-            )
-        , Interface
-        , build
-        , exposesAlias
-        , exposesFunction
-        , operators
-        )
+module Elm.Interface exposing
+    ( Interface, Exposed(..)
+    , build, exposesAlias, exposesFunction, operators
+    )
 
 {-|
 
@@ -30,11 +20,11 @@ module Elm.Interface
 
 -}
 
-import Elm.Internal.RawFile exposing (RawFile(Raw))
+import Elm.Internal.RawFile exposing (RawFile(..))
 import Elm.Syntax.Declaration exposing (Declaration(..))
-import Elm.Syntax.Exposing exposing (Exposing(All, Explicit), TopLevelExpose(FunctionExpose, InfixExpose, TypeExpose, TypeOrAliasExpose))
+import Elm.Syntax.Exposing exposing (Exposing(..), TopLevelExpose(..))
 import Elm.Syntax.File exposing (File)
-import Elm.Syntax.Infix exposing (Infix, InfixDirection(Left))
+import Elm.Syntax.Infix exposing (Infix, InfixDirection(..))
 import Elm.Syntax.Module as Module
 import Elm.Syntax.Ranged exposing (Ranged)
 import List.Extra
@@ -86,7 +76,7 @@ exposesFunction k interface =
                         List.member k constructors
 
                     Operator inf ->
-                        inf.operator == k
+                        Tuple.second inf.operator == k
 
                     Alias _ ->
                         False
@@ -149,15 +139,12 @@ buildInterfaceFromExplicit x fileDefinitionList =
                         Just <| Function s
 
                     TypeExpose exposedType ->
-                        case exposedType.constructors of
+                        case exposedType.open of
                             Nothing ->
                                 Just <| Type ( exposedType.name, [] )
 
-                            Just (All _) ->
+                            Just _ ->
                                 lookupForDefinition exposedType.name fileDefinitionList
-
-                            Just (Explicit v) ->
-                                Just <| Type ( exposedType.name, List.map Tuple.second v )
             )
 
 
@@ -189,20 +176,10 @@ fileToDefinitions file =
                                 Just ( p.name.value, Function p.name.value )
 
                             FuncDecl f ->
-                                if f.declaration.operatorDefinition then
-                                    Just
-                                        ( f.declaration.name.value
-                                        , Operator
-                                            { operator = f.declaration.name.value
-                                            , precedence = 5
-                                            , direction = Left
-                                            }
-                                        )
-                                else
-                                    Just ( f.declaration.name.value, Function f.declaration.name.value )
+                                Just ( f.declaration.name.value, Function f.declaration.name.value )
 
                             InfixDeclaration i ->
-                                Just ( i.operator, Operator i )
+                                Just ( Tuple.second i.operator, Operator i )
 
                             Destructuring _ _ ->
                                 Nothing
@@ -212,8 +189,9 @@ fileToDefinitions file =
         getValidOperatorInterface t1 t2 =
             case ( t1, t2 ) of
                 ( Operator x, Operator y ) ->
-                    if x.precedence == 5 && x.direction == Left then
+                    if Tuple.second x.precedence == 5 && Tuple.second x.direction == Left then
                         Just <| Operator y
+
                     else
                         Just <| Operator x
 
@@ -230,7 +208,7 @@ fileToDefinitions file =
 
                 [ ( n1, t1 ), ( _, t2 ) ] ->
                     getValidOperatorInterface t1 t2
-                        |> Maybe.map ((,) n1)
+                        |> Maybe.map (\a -> ( n1, a ))
 
                 _ ->
                     Nothing
