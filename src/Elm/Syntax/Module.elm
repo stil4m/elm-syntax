@@ -64,17 +64,17 @@ type alias Import =
 
 {-| Get the name for a module. For older modules this may not be present.
 -}
-moduleName : Module -> Maybe ModuleName
+moduleName : Module -> ModuleName
 moduleName m =
     case m of
         NormalModule x ->
-            Just x.moduleName
+            x.moduleName
 
         PortModule x ->
-            Just x.moduleName
+            x.moduleName
 
         EffectModule x ->
-            Just x.moduleName
+            x.moduleName
 
 
 {-| Get the exposing list for a module.
