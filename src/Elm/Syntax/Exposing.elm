@@ -1,6 +1,7 @@
 module Elm.Syntax.Exposing exposing
-    ( Exposing(..), TopLevelExpose(..), ExposedType, ValueConstructorExpose
+    ( Exposing(..), TopLevelExpose(..), ExposedType
     , topLevelExposeRange, exposesFunction, operators
+    , encode, decoder
     )
 
 {-| Exposing Syntax
@@ -8,24 +9,32 @@ module Elm.Syntax.Exposing exposing
 
 # Types
 
-@docs Exposing, TopLevelExpose, ExposedType, ValueConstructorExpose
+@docs Exposing, TopLevelExpose, ExposedType
 
 
 # Functions
 
 @docs topLevelExposeRange, exposesFunction, operators
 
+
+# Serialization
+
+@docs encode, decoder
+
 -}
 
-import Elm.Syntax.Range exposing (Range)
-import Elm.Syntax.Ranged exposing (Ranged)
+import Elm.Json.Util exposing (decodeTyped, encodeTyped)
+import Elm.Syntax.Node as Node exposing (Node(..))
+import Elm.Syntax.Range as Range exposing (Range)
+import Json.Decode as JD exposing (Decoder)
+import Json.Encode as JE exposing (Value)
 
 
 {-| Diffent kind of exposing declarations
 -}
 type Exposing
     = All Range
-    | Explicit (List (Ranged TopLevelExpose))
+    | Explicit (List (Node TopLevelExpose))
 
 
 {-| An exposed entity
@@ -45,17 +54,15 @@ type alias ExposedType =
     }
 
 
-{-| Exposed Value Constructor
--}
-type alias ValueConstructorExpose =
-    Ranged String
+
+-- Functions
 
 
 {-| Find out the range of a top level expose
 -}
-topLevelExposeRange : Ranged TopLevelExpose -> Range
-topLevelExposeRange ( r, _ ) =
-    r
+topLevelExposeRange : Node TopLevelExpose -> Range
+topLevelExposeRange =
+    Node.range
 
 
 {-| Check whether an import/module exposing list exposes a certain function
@@ -68,15 +75,13 @@ exposesFunction s exposure =
 
         Explicit l ->
             List.any
-                (Tuple.second
-                    >> (\x ->
-                            case x of
-                                FunctionExpose fun ->
-                                    fun == s
+                (\(Node range value) ->
+                    case value of
+                        FunctionExpose fun ->
+                            fun == s
 
-                                _ ->
-                                    False
-                       )
+                        _ ->
+                            False
                 )
                 l
 
@@ -96,3 +101,84 @@ operator t =
 
         _ ->
             Nothing
+
+
+
+-- Serialization
+
+
+{-| Encode an `Exposing` syntax element to JSON.
+-}
+encode : Exposing -> Value
+encode exp =
+    case exp of
+        All r ->
+            encodeTyped "all" <| Range.encode r
+
+        Explicit l ->
+            encodeTyped "explicit" (JE.list encodeTopLevelExpose l)
+
+
+{-| JSON decoder for an `Exposing` syntax element.
+-}
+decoder : Decoder Exposing
+decoder =
+    decodeTyped
+        [ ( "all", Range.decode |> JD.map All )
+        , ( "explicit", JD.list topLevelExposeDecoder |> JD.map Explicit )
+        ]
+
+
+encodeTopLevelExpose : Node TopLevelExpose -> Value
+encodeTopLevelExpose =
+    Node.encode
+        (\exp ->
+            case exp of
+                InfixExpose x ->
+                    encodeTyped "infix" <|
+                        JE.object
+                            [ ( "name", JE.string x )
+                            ]
+
+                FunctionExpose x ->
+                    encodeTyped "function" <|
+                        JE.object
+                            [ ( "name", JE.string x )
+                            ]
+
+                TypeOrAliasExpose x ->
+                    encodeTyped "typeOrAlias" <|
+                        JE.object
+                            [ ( "name", JE.string x )
+                            ]
+
+                TypeExpose exposedType ->
+                    encodeTyped "typeexpose" (encodeExposedType exposedType)
+        )
+
+
+encodeExposedType : ExposedType -> Value
+encodeExposedType { name, open } =
+    JE.object
+        [ ( "name", JE.string name )
+        , ( "open", open |> Maybe.map Range.encode |> Maybe.withDefault JE.null )
+        ]
+
+
+topLevelExposeDecoder : Decoder (Node TopLevelExpose)
+topLevelExposeDecoder =
+    Node.decoder
+        (decodeTyped
+            [ ( "infix", JD.map InfixExpose (JD.field "name" JD.string) )
+            , ( "function", JD.map FunctionExpose (JD.field "name" JD.string) )
+            , ( "typeOrAlias", JD.map TypeOrAliasExpose (JD.field "name" JD.string) )
+            , ( "typeexpose", JD.map TypeExpose exposedTypeDecoder )
+            ]
+        )
+
+
+exposedTypeDecoder : Decoder ExposedType
+exposedTypeDecoder =
+    JD.map2 ExposedType
+        (JD.field "name" JD.string)
+        (JD.field "open" (JD.nullable Range.decode))

@@ -4,9 +4,11 @@ import Combine exposing (Parser, between, choice, sepBy1, string, succeed)
 import Elm.Parser.Base exposing (moduleName)
 import Elm.Parser.Expose exposing (exposable, exposeDefinition)
 import Elm.Parser.Layout as Layout
+import Elm.Parser.Node as Node
 import Elm.Parser.State exposing (State)
 import Elm.Parser.Tokens exposing (functionName, moduleToken, portToken, typeName)
 import Elm.Syntax.Module exposing (DefaultModuleData, Module(..))
+import Elm.Syntax.Node as Node exposing (Node)
 
 
 moduleDefinition : Parser State Module
@@ -18,14 +20,14 @@ moduleDefinition =
         ]
 
 
-effectWhereClause : Parser State ( String, String )
+effectWhereClause : Parser State ( String, Node String )
 effectWhereClause =
     succeed Tuple.pair
         |> Combine.andMap functionName
-        |> Combine.andMap (Layout.maybeAroundBothSides (string "=") |> Combine.continueWith typeName)
+        |> Combine.andMap (Layout.maybeAroundBothSides (string "=") |> Combine.continueWith (Node.parser typeName))
 
 
-whereBlock : Parser State { command : Maybe String, subscription : Maybe String }
+whereBlock : Parser State { command : Maybe (Node String), subscription : Maybe (Node String) }
 whereBlock =
     between
         (string "{")
@@ -41,7 +43,7 @@ whereBlock =
             )
 
 
-effectWhereClauses : Parser State { command : Maybe String, subscription : Maybe String }
+effectWhereClauses : Parser State { command : Maybe (Node String), subscription : Maybe (Node String) }
 effectWhereClauses =
     string "where"
         |> Combine.continueWith Layout.layout
@@ -64,11 +66,11 @@ effectModuleDefinition =
         |> Combine.ignore Layout.layout
         |> Combine.ignore moduleToken
         |> Combine.ignore Layout.layout
-        |> Combine.andMap moduleName
+        |> Combine.andMap (Node.parser moduleName)
         |> Combine.ignore Layout.layout
         |> Combine.andMap effectWhereClauses
         |> Combine.ignore Layout.layout
-        |> Combine.andMap exposeDefinition
+        |> Combine.andMap (Node.parser exposeDefinition)
 
 
 normalModuleDefinition : Parser State Module
@@ -77,9 +79,9 @@ normalModuleDefinition =
         (succeed DefaultModuleData
             |> Combine.ignore moduleToken
             |> Combine.ignore Layout.layout
-            |> Combine.andMap moduleName
+            |> Combine.andMap (Node.parser moduleName)
             |> Combine.ignore Layout.layout
-            |> Combine.andMap exposeDefinition
+            |> Combine.andMap (Node.parser exposeDefinition)
         )
 
 
@@ -91,7 +93,7 @@ portModuleDefinition =
             |> Combine.ignore Layout.layout
             |> Combine.ignore moduleToken
             |> Combine.ignore Layout.layout
-            |> Combine.andMap moduleName
+            |> Combine.andMap (Node.parser moduleName)
             |> Combine.ignore Layout.layout
-            |> Combine.andMap exposeDefinition
+            |> Combine.andMap (Node.parser exposeDefinition)
         )

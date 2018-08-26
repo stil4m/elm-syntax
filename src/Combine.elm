@@ -157,8 +157,7 @@ or (Parser lp) (Parser rp) =
 
 backtrackable : Parser s a -> Parser s a
 backtrackable (Parser p) =
-    Parser <|
-        \state -> Core.backtrackable (p state)
+    Parser <| \state -> Core.backtrackable (p state)
 
 
 choice : List (Parser s a) -> Parser s a

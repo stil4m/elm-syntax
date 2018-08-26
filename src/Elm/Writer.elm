@@ -11,17 +11,19 @@ Write a file to a string.
 
 -}
 
-import Elm.Syntax.Base exposing (..)
 import Elm.Syntax.Declaration exposing (..)
 import Elm.Syntax.Documentation exposing (..)
 import Elm.Syntax.Exposing as Exposing exposing (..)
 import Elm.Syntax.Expression exposing (..)
 import Elm.Syntax.File exposing (..)
+import Elm.Syntax.Import exposing (Import)
 import Elm.Syntax.Infix exposing (..)
 import Elm.Syntax.Module exposing (..)
+import Elm.Syntax.ModuleName exposing (..)
+import Elm.Syntax.Node as Node exposing (Node(..))
 import Elm.Syntax.Pattern exposing (..)
 import Elm.Syntax.Range exposing (Range)
-import Elm.Syntax.Ranged exposing (Ranged)
+import Elm.Syntax.Signature exposing (Signature)
 import Elm.Syntax.Type exposing (..)
 import Elm.Syntax.TypeAlias exposing (..)
 import Elm.Syntax.TypeAnnotation exposing (..)
@@ -41,8 +43,8 @@ write =
 writeFile : File -> Writer
 writeFile file =
     breaked
-        [ writeModule file.moduleDefinition
-        , breaked (List.map writeImport file.imports)
+        [ writeModule <| Node.value file.moduleDefinition
+        , breaked (List.map (Node.value >> writeImport) file.imports)
         , breaked (List.map writeDeclaration file.declarations)
         ]
 
@@ -67,8 +69,8 @@ writeDefaultModuleData : DefaultModuleData -> Writer
 writeDefaultModuleData { moduleName, exposingList } =
     spaced
         [ string "module"
-        , writeModuleName moduleName
-        , writeExposureExpose exposingList
+        , writeModuleName <| Node.value moduleName
+        , writeExposureExpose <| Node.value exposingList
         ]
 
 
@@ -77,13 +79,13 @@ writeEffectModuleData { moduleName, exposingList, command, subscription } =
     spaced
         [ string "effect"
         , string "module"
-        , writeModuleName moduleName
+        , writeModuleName <| Node.value moduleName
         , writeWhere ( command, subscription )
-        , writeExposureExpose exposingList
+        , writeExposureExpose <| Node.value exposingList
         ]
 
 
-writeWhere : ( Maybe String, Maybe String ) -> Writer
+writeWhere : ( Maybe (Node String), Maybe (Node String) ) -> Writer
 writeWhere input =
     case input of
         ( Nothing, Nothing ) ->
@@ -92,23 +94,23 @@ writeWhere input =
         ( Just x, Nothing ) ->
             spaced
                 [ string "where { command ="
-                , string x
+                , string <| Node.value x
                 , string "}"
                 ]
 
         ( Nothing, Just x ) ->
             spaced
                 [ string "where { subscription ="
-                , string x
+                , string <| Node.value x
                 , string "}"
                 ]
 
         ( Just x, Just y ) ->
             spaced
                 [ string "where { command ="
-                , string x
+                , string <| Node.value x
                 , string ", subscription ="
-                , string y
+                , string <| Node.value y
                 , string "}"
                 ]
 
@@ -136,8 +138,8 @@ writeExposureExpose x =
                 ]
 
 
-writeExpose : Ranged TopLevelExpose -> Writer
-writeExpose ( _, exp ) =
+writeExpose : Node TopLevelExpose -> Writer
+writeExpose (Node _ exp) =
     case exp of
         InfixExpose x ->
             string ("(" ++ x ++ ")")
@@ -169,14 +171,14 @@ writeImport : Import -> Writer
 writeImport { moduleName, moduleAlias, exposingList } =
     spaced
         [ string "import"
-        , writeModuleName moduleName
-        , maybe (Maybe.map (writeModuleName >> (\x -> spaced [ string "as", x ])) moduleAlias)
+        , writeModuleName <| Node.value moduleName
+        , maybe (Maybe.map (Node.value >> writeModuleName >> (\x -> spaced [ string "as", x ])) moduleAlias)
         , maybe (Maybe.map writeExposureExpose exposingList)
         ]
 
 
-writeLetDeclaration : Ranged LetDeclaration -> Writer
-writeLetDeclaration ( _, letDeclaration ) =
+writeLetDeclaration : Node LetDeclaration -> Writer
+writeLetDeclaration (Node _ letDeclaration) =
     case letDeclaration of
         LetFunction function ->
             writeFunction function
@@ -187,16 +189,16 @@ writeLetDeclaration ( _, letDeclaration ) =
 
 {-| Write a declaration
 -}
-writeDeclaration : Ranged Declaration -> Writer
-writeDeclaration ( _, decl ) =
+writeDeclaration : Node Declaration -> Writer
+writeDeclaration (Node _ decl) =
     case decl of
-        FuncDecl function ->
+        FunctionDeclaration function ->
             writeFunction function
 
-        AliasDecl typeAlias ->
+        AliasDeclaration typeAlias ->
             writeTypeAlias typeAlias
 
-        TypeDecl type_ ->
+        CustomTypeDeclaration type_ ->
             writeType type_
 
         PortDeclaration p ->
@@ -213,16 +215,16 @@ writeFunction : Function -> Writer
 writeFunction { documentation, signature, declaration } =
     breaked
         [ maybe (Maybe.map writeDocumentation documentation)
-        , maybe (Maybe.map (Tuple.second >> writeSignature) signature)
-        , writeFunctionDeclaration declaration
+        , maybe (Maybe.map (Node.value >> writeSignature) signature)
+        , writeFunctionImplementation <| Node.value declaration
         ]
 
 
-writeFunctionDeclaration : FunctionDeclaration -> Writer
-writeFunctionDeclaration declaration =
+writeFunctionImplementation : FunctionImplementation -> Writer
+writeFunctionImplementation declaration =
     breaked
         [ spaced
-            [ string declaration.name.value
+            [ string <| Node.value declaration.name
             , spaced (List.map writePattern declaration.arguments)
             , string "="
             ]
@@ -230,10 +232,10 @@ writeFunctionDeclaration declaration =
         ]
 
 
-writeSignature : FunctionSignature -> Writer
+writeSignature : Signature -> Writer
 writeSignature signature =
     spaced
-        [ string signature.name.value
+        [ string <| Node.value signature.name
         , string ":"
         , writeTypeAnnotation signature.typeAnnotation
         ]
@@ -241,7 +243,7 @@ writeSignature signature =
 
 writeDocumentation : Documentation -> Writer
 writeDocumentation =
-    .text >> string
+    Node.value >> string
 
 
 writeTypeAlias : TypeAlias -> Writer
@@ -249,8 +251,8 @@ writeTypeAlias typeAlias =
     breaked
         [ spaced
             [ string "type alias"
-            , string typeAlias.name
-            , spaced (List.map string typeAlias.generics)
+            , string <| Node.value typeAlias.name
+            , spaced (List.map (Node.value >> string) typeAlias.generics)
             , string "="
             ]
         , indent 4 (writeTypeAnnotation typeAlias.typeAnnotation)
@@ -262,29 +264,29 @@ writeType type_ =
     breaked
         [ spaced
             [ string "type"
-            , string type_.name
-            , spaced (List.map string type_.generics)
+            , string <| Node.value type_.name
+            , spaced (List.map (Node.value >> string) type_.generics)
             ]
         , let
             diffLines =
-                List.map .range type_.constructors
+                List.map Node.range type_.constructors
                     |> startOnDifferentLines
           in
           sepBy ( "=", "|", "" )
             diffLines
-            (List.map writeValueConstructor type_.constructors)
+            (List.map (Node.value >> writeValueConstructor) type_.constructors)
         ]
 
 
 writeValueConstructor : ValueConstructor -> Writer
 writeValueConstructor { name, arguments } =
     spaced
-        [ string name
+        [ string <| Node.value name
         , spaced (List.map writeTypeAnnotation arguments)
         ]
 
 
-writePortDeclaration : FunctionSignature -> Writer
+writePortDeclaration : Signature -> Writer
 writePortDeclaration signature =
     spaced [ string "port", writeSignature signature ]
 
@@ -293,7 +295,7 @@ writeInfix : Infix -> Writer
 writeInfix { direction, precedence, operator, function } =
     spaced
         [ string "infix"
-        , case Tuple.second direction of
+        , case Node.value direction of
             Left ->
                 string "left"
 
@@ -302,14 +304,14 @@ writeInfix { direction, precedence, operator, function } =
 
             Non ->
                 string "non"
-        , string (String.fromInt (Tuple.second precedence))
-        , string (Tuple.second operator)
+        , string (String.fromInt (Node.value precedence))
+        , string (Node.value operator)
         , string "="
-        , string (Tuple.second function)
+        , string (Node.value function)
         ]
 
 
-writeDestructuring : Ranged Pattern -> Ranged Expression -> Writer
+writeDestructuring : Node Pattern -> Node Expression -> Writer
 writeDestructuring pattern expression =
     breaked
         [ spaced [ writePattern pattern, string "=" ]
@@ -319,13 +321,20 @@ writeDestructuring pattern expression =
 
 {-| Write a type annotation
 -}
-writeTypeAnnotation : Ranged TypeAnnotation -> Writer
-writeTypeAnnotation ( _, typeAnnotation ) =
+writeTypeAnnotation : Node TypeAnnotation -> Writer
+writeTypeAnnotation (Node _ typeAnnotation) =
     case typeAnnotation of
         GenericType s ->
             string s
 
-        Typed moduleName k args ->
+        Typed moduleNameAndName args ->
+            let
+                moduleName =
+                    Node.value moduleNameAndName |> Tuple.first
+
+                k =
+                    Node.value moduleNameAndName |> Tuple.second
+            in
             spaced
                 ((string <| String.join "." (moduleName ++ [ k ]))
                     :: List.map (writeTypeAnnotation >> parensIfContainsSpaces) args
@@ -343,9 +352,9 @@ writeTypeAnnotation ( _, typeAnnotation ) =
         GenericRecord name fields ->
             spaced
                 [ string "{"
-                , string name
+                , string <| Node.value name
                 , string "|"
-                , sepByComma False (List.map writeRecordField fields)
+                , sepByComma False (List.map writeRecordField <| Node.value fields)
                 , string "}"
                 ]
 
@@ -353,7 +362,7 @@ writeTypeAnnotation ( _, typeAnnotation ) =
             let
                 addParensForSubTypeAnnotation type_ =
                     case type_ of
-                        ( _, FunctionTypeAnnotation _ _ ) ->
+                        Node _ (FunctionTypeAnnotation _ _) ->
                             join [ string "(", writeTypeAnnotation type_, string ")" ]
 
                         _ ->
@@ -366,10 +375,10 @@ writeTypeAnnotation ( _, typeAnnotation ) =
                 ]
 
 
-writeRecordField : RecordField -> Writer
-writeRecordField ( name, ref ) =
+writeRecordField : Node RecordField -> Writer
+writeRecordField (Node _ ( name, ref )) =
     spaced
-        [ string name
+        [ string <| Node.value name
         , string ":"
         , writeTypeAnnotation ref
         ]
@@ -377,15 +386,16 @@ writeRecordField ( name, ref ) =
 
 {-| Writer an expression
 -}
-writeExpression : Ranged Expression -> Writer
-writeExpression ( range, inner ) =
+writeExpression : Node Expression -> Writer
+writeExpression (Node range inner) =
     let
-        recurRangeHelper =
-            \( x, y ) -> ( x, writeExpression ( x, y ) )
+        recurRangeHelper (Node x y) =
+            ( x, writeExpression (Node x y) )
 
+        writeRecordSetter : RecordSetter -> ( Range, Writer )
         writeRecordSetter ( name, expr ) =
-            ( Tuple.first expr
-            , spaced [ string name, string "=", writeExpression expr ]
+            ( Node.range expr
+            , spaced [ string <| Node.value name, string "=", writeExpression expr ]
             )
 
         sepHelper : (Bool -> List Writer -> Writer) -> List ( Range, Writer ) -> Writer
@@ -419,24 +429,33 @@ writeExpression ( range, inner ) =
             case dir of
                 Left ->
                     sepHelper sepBySpace
-                        [ ( Tuple.first left, writeExpression left )
+                        [ ( Node.range left, writeExpression left )
                         , ( range, spaced [ string x, writeExpression right ] )
                         ]
 
                 Right ->
                     sepHelper sepBySpace
-                        [ ( Tuple.first left, spaced [ writeExpression left, string x ] )
-                        , ( Tuple.first right, writeExpression right )
+                        [ ( Node.range left, spaced [ writeExpression left, string x ] )
+                        , ( Node.range right, writeExpression right )
                         ]
 
                 Non ->
                     sepHelper sepBySpace
-                        [ ( Tuple.first left, spaced [ writeExpression left, string x ] )
-                        , ( Tuple.first right, writeExpression right )
+                        [ ( Node.range left, spaced [ writeExpression left, string x ] )
+                        , ( Node.range right, writeExpression right )
                         ]
 
-        FunctionOrValue x ->
-            string x
+        FunctionOrValue moduleName name ->
+            case moduleName of
+                [] ->
+                    string name
+
+                _ ->
+                    join
+                        [ writeModuleName <| moduleName
+                        , string "."
+                        , string <| name
+                        ]
 
         IfBlock condition thenCase elseCase ->
             breaked
@@ -509,26 +528,23 @@ writeExpression ( range, inner ) =
                 ]
 
         RecordExpr setters ->
-            sepHelper bracesComma (List.map writeRecordSetter setters)
+            sepHelper bracesComma (List.map (Node.value >> writeRecordSetter) setters)
 
         ListExpr xs ->
             sepHelper bracketsComma (List.map recurRangeHelper xs)
 
-        QualifiedExpr moduleName name ->
-            join [ writeModuleName moduleName, string ".", string name ]
-
         RecordAccess expression accessor ->
-            join [ writeExpression expression, string ".", string accessor ]
+            join [ writeExpression expression, string ".", string <| Node.value accessor ]
 
         RecordAccessFunction s ->
             join [ string ".", string s ]
 
-        RecordUpdateExpression { name, updates } ->
+        RecordUpdateExpression name updates ->
             spaced
                 [ string "{"
-                , string name
+                , string <| Node.value name
                 , string "|"
-                , sepHelper sepByComma (List.map writeRecordSetter updates)
+                , sepHelper sepByComma (List.map (Node.value >> writeRecordSetter) updates)
                 , string "}"
                 ]
 
@@ -542,8 +558,8 @@ writeExpression ( range, inner ) =
 
 {-| Write a pattern
 -}
-writePattern : Ranged Pattern -> Writer
-writePattern ( _, p ) =
+writePattern : Node Pattern -> Writer
+writePattern (Node _ p) =
     case p of
         AllPattern ->
             string "_"
@@ -570,7 +586,7 @@ writePattern ( _, p ) =
             parensComma False (List.map writePattern inner)
 
         RecordPattern inner ->
-            bracesComma False (List.map (.value >> string) inner)
+            bracesComma False (List.map (Node.value >> string) inner)
 
         UnConsPattern left right ->
             spaced [ writePattern left, string "::", writePattern right ]
@@ -588,7 +604,7 @@ writePattern ( _, p ) =
                 ]
 
         AsPattern innerPattern asName ->
-            spaced [ writePattern innerPattern, string "as", string asName.value ]
+            spaced [ writePattern innerPattern, string "as", string <| Node.value asName ]
 
         ParenthesizedPattern innerPattern ->
             spaced [ string "(", writePattern innerPattern, string ")" ]

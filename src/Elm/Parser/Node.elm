@@ -1,20 +1,17 @@
-module Elm.Parser.Ranges exposing (withCurrentPoint, withRange)
+module Elm.Parser.Node exposing (parser)
 
 import Combine exposing (ParseLocation, Parser, andMap, succeed, withLocation)
 import Elm.Parser.State exposing (State)
+import Elm.Syntax.Node as Node exposing (Node(..))
 import Elm.Syntax.Range exposing (Location, Range)
 
 
-asPointerLocation : ParseLocation -> Location
-asPointerLocation { line, column } =
-    { row = line, column = column }
-
-
-withRange : Parser State (Range -> a) -> Parser State a
-withRange p =
+parser : Parser State a -> Parser State (Node a)
+parser p =
     withLocation
         (\start ->
-            p
+            succeed (\v r -> Node r v)
+                |> Combine.andMap p
                 |> Combine.andMap
                     (withLocation
                         (\end ->
@@ -27,13 +24,6 @@ withRange p =
         )
 
 
-withCurrentPoint : (Range -> Parser State a) -> Parser State a
-withCurrentPoint p =
-    withLocation
-        (\start ->
-            let
-                k =
-                    asPointerLocation start
-            in
-            p { start = k, end = k }
-        )
+asPointerLocation : ParseLocation -> Location
+asPointerLocation { line, column } =
+    { row = line, column = column }

@@ -3,27 +3,28 @@ module Elm.Parser.Declarations exposing (caseBlock, caseStatement, caseStatement
 import Combine exposing (Parser, between, choice, count, fail, lazy, many, many1, maybe, modifyState, or, sepBy, sepBy1, string, succeed, withLocation)
 import Combine.Char exposing (anyChar)
 import Combine.Num
-import Elm.Parser.Base exposing (variablePointer)
 import Elm.Parser.Infix as Infix
 import Elm.Parser.Layout as Layout
+import Elm.Parser.Node as Node
 import Elm.Parser.Numbers
 import Elm.Parser.Patterns exposing (pattern)
-import Elm.Parser.Ranges as Ranges exposing (ranged, withRange, withRangeCustomStart)
+import Elm.Parser.Ranges as Ranges exposing (withRange)
 import Elm.Parser.State as State exposing (State, popIndent, pushColumn)
 import Elm.Parser.Tokens as Tokens exposing (caseToken, characterLiteral, elseToken, functionName, ifToken, infixOperatorToken, multiLineStringLiteral, ofToken, portToken, prefixOperatorToken, stringLiteral, thenToken, typeName)
 import Elm.Parser.TypeAnnotation exposing (typeAnnotation)
 import Elm.Parser.Typings as Typings exposing (typeDefinition)
 import Elm.Parser.Whitespace exposing (manySpaces, realNewLine)
-import Elm.Syntax.Base exposing (ModuleName, VariablePointer)
 import Elm.Syntax.Declaration as Declaration exposing (..)
-import Elm.Syntax.Expression as Expression exposing (Case, CaseBlock, Cases, Expression(..), Function, FunctionDeclaration, FunctionSignature, Lambda, LetBlock, LetDeclaration(..), RecordUpdate)
+import Elm.Syntax.Expression as Expression exposing (Case, CaseBlock, Cases, Expression(..), Function, FunctionImplementation, Lambda, LetBlock, LetDeclaration(..), RecordSetter)
+import Elm.Syntax.ModuleName exposing (ModuleName)
+import Elm.Syntax.Node as Node exposing (Node(..))
 import Elm.Syntax.Pattern exposing (..)
 import Elm.Syntax.Range as Range exposing (Range, emptyRange)
-import Elm.Syntax.Ranged exposing (Ranged)
+import Elm.Syntax.Signature exposing (Signature)
 import Parser as Core exposing (Nestable(..))
 
 
-declaration : Parser State (Ranged Declaration)
+declaration : Parser State (Node Declaration)
 declaration =
     lazy
         (\() ->
@@ -34,10 +35,10 @@ declaration =
                         (\v ->
                             case v of
                                 Typings.DefinedType r t ->
-                                    ( r, TypeDecl t )
+                                    Node r (CustomTypeDeclaration t)
 
                                 Typings.DefinedAlias r a ->
-                                    ( r, AliasDecl a )
+                                    Node r (AliasDeclaration a)
                         )
                 , portDeclaration
                 , infixDeclaration
@@ -46,54 +47,54 @@ declaration =
         )
 
 
-functionSignatureFromVarPointer : VariablePointer -> Parser State (Ranged FunctionSignature)
+functionSignatureFromVarPointer : Node String -> Parser State (Node Signature)
 functionSignatureFromVarPointer varPointer =
-    succeed (\ta -> ( Range.combine [ varPointer.range, Tuple.first ta ], FunctionSignature varPointer ta ))
+    succeed (\ta -> Node.combine Signature varPointer ta)
         |> Combine.ignore (string ":")
         |> Combine.ignore (maybe Layout.layout)
         |> Combine.andMap typeAnnotation
 
 
-functionSignature : Parser State (Ranged FunctionSignature)
+functionSignature : Parser State (Node Signature)
 functionSignature =
-    variablePointer functionName
+    Node.parser functionName
         |> Combine.ignore (maybe Layout.layout)
         |> Combine.andThen functionSignatureFromVarPointer
 
 
-functionWithVariablePointer : VariablePointer -> Parser State Function
-functionWithVariablePointer pointer =
+functionWithNameNode : Node String -> Parser State Function
+functionWithNameNode pointer =
     let
-        functionDeclFromVarPointer : VariablePointer -> Parser State FunctionDeclaration
-        functionDeclFromVarPointer varPointer =
-            succeed (FunctionDeclaration varPointer)
+        functionImplementationFromVarPointer : Node String -> Parser State (Node FunctionImplementation)
+        functionImplementationFromVarPointer varPointer =
+            succeed (\args expr -> Node (Range.combine [ Node.range varPointer, Node.range expr ]) (FunctionImplementation varPointer args expr))
                 |> Combine.andMap (many (functionArgument |> Combine.ignore (maybe Layout.layout)))
                 |> Combine.ignore (string "=")
                 |> Combine.ignore (maybe Layout.layout)
                 |> Combine.andMap expression
 
-        fromParts : Ranged FunctionSignature -> FunctionDeclaration -> Function
+        fromParts : Node Signature -> Node FunctionImplementation -> Function
         fromParts sig decl =
             { documentation = Nothing
             , signature = Just sig
             , declaration = decl
             }
 
-        functionWithSignature : VariablePointer -> Parser State Function
+        functionWithSignature : Node String -> Parser State Function
         functionWithSignature varPointer =
             functionSignatureFromVarPointer varPointer
                 |> Combine.andThen
                     (\sig ->
                         maybe Layout.layoutStrict
-                            |> Combine.continueWith (variablePointer functionName)
+                            |> Combine.continueWith (Node.parser functionName)
                             |> Combine.ignore (maybe Layout.layout)
-                            |> Combine.andThen functionDeclFromVarPointer
+                            |> Combine.andThen functionImplementationFromVarPointer
                             |> Combine.map (fromParts sig)
                     )
 
-        functionWithoutSignature : VariablePointer -> Parser State Function
+        functionWithoutSignature : Node String -> Parser State Function
         functionWithoutSignature varPointer =
-            functionDeclFromVarPointer varPointer
+            functionImplementationFromVarPointer varPointer
                 |> Combine.map (Function Nothing Nothing)
     in
     Combine.choice
@@ -102,43 +103,39 @@ functionWithVariablePointer pointer =
         ]
 
 
-function : Parser State (Ranged Declaration)
+function : Parser State (Node Declaration)
 function =
     lazy
         (\() ->
-            variablePointer functionName
+            Node.parser functionName
                 |> Combine.ignore (maybe Layout.layout)
-                |> Combine.andThen functionWithVariablePointer
-                |> Combine.map (\f -> ( Expression.functionRange f, FuncDecl f ))
+                |> Combine.andThen functionWithNameNode
+                |> Combine.map (\f -> Node (Expression.functionRange f) (FunctionDeclaration f))
         )
 
 
-signature : Parser State FunctionSignature
+signature : Parser State Signature
 signature =
-    succeed FunctionSignature
-        |> Combine.andMap (variablePointer functionName)
+    succeed Signature
+        |> Combine.andMap (Node.parser functionName)
         |> Combine.andMap (Layout.maybeAroundBothSides (string ":") |> Combine.continueWith (maybe Layout.layout) |> Combine.continueWith typeAnnotation)
 
 
-infixDeclaration : Parser State (Ranged Declaration)
+infixDeclaration : Parser State (Node Declaration)
 infixDeclaration =
     Ranges.withCurrentPoint
         (\current ->
             Infix.infixDefinition
-                |> Combine.map (\inf -> ( Range.combine [ current, Tuple.first inf.function ], InfixDeclaration inf ))
+                |> Combine.map (\inf -> Node (Range.combine [ current, Node.range inf.function ]) (InfixDeclaration inf))
         )
 
 
-destructuringDeclaration : Parser State (Ranged Declaration)
+destructuringDeclaration : Parser State (Node Declaration)
 destructuringDeclaration =
     lazy
         (\() ->
             succeed
-                (\x y ->
-                    ( Range.combine [ Tuple.first x, Tuple.first y ]
-                    , Destructuring x y
-                    )
-                )
+                (\x y -> Node.combine Destructuring x y)
                 |> Combine.andMap pattern
                 |> Combine.ignore (string "=")
                 |> Combine.ignore Layout.layout
@@ -146,18 +143,18 @@ destructuringDeclaration =
         )
 
 
-portDeclaration : Parser State (Ranged Declaration)
+portDeclaration : Parser State (Node Declaration)
 portDeclaration =
     Ranges.withCurrentPoint
         (\current ->
             portToken
                 |> Combine.ignore Layout.layout
                 |> Combine.continueWith signature
-                |> Combine.map (\sig -> ( Range.combine [ current, Tuple.first sig.typeAnnotation ], PortDeclaration sig ))
+                |> Combine.map (\sig -> Node (Range.combine [ current, (\(Node r _) -> r) sig.typeAnnotation ]) (PortDeclaration sig))
         )
 
 
-functionArgument : Parser State (Ranged Pattern)
+functionArgument : Parser State (Node Pattern)
 functionArgument =
     pattern
 
@@ -166,21 +163,11 @@ functionArgument =
 -- Expressions
 
 
-rangedExpression : Parser State Expression -> Parser State (Ranged Expression)
-rangedExpression p =
-    withRange <| Combine.map (\a b -> ( b, a )) p
-
-
-rangedExpressionWithStart : Range -> Parser State Expression -> Parser State (Ranged Expression)
-rangedExpressionWithStart r p =
-    withRangeCustomStart r <| Combine.map (\a b -> ( b, a )) p
-
-
-expressionNotApplication : Parser State (Ranged Expression)
+expressionNotApplication : Parser State (Node Expression)
 expressionNotApplication =
     lazy
         (\() ->
-            (rangedExpression <|
+            (Node.parser <|
                 choice
                     [ numberExpression
                     , referenceExpression
@@ -202,13 +189,22 @@ expressionNotApplication =
         )
 
 
-liftRecordAccess : Ranged Expression -> Parser State (Ranged Expression)
+liftRecordAccess : Node Expression -> Parser State (Node Expression)
 liftRecordAccess e =
-    or ((rangedExpression <| Combine.map (RecordAccess e) (string "." |> Combine.continueWith functionName)) |> Combine.andThen liftRecordAccess)
-        (succeed e)
+    lazy
+        (\() ->
+            or
+                ((Node.parser <|
+                    Combine.map (RecordAccess e)
+                        (string "." |> Combine.continueWith (Node.parser functionName))
+                 )
+                    |> Combine.andThen liftRecordAccess
+                )
+                (succeed e)
+        )
 
 
-expression : Parser State (Ranged Expression)
+expression : Parser State (Node Expression)
 expression =
     lazy
         (\() ->
@@ -223,9 +219,9 @@ expression =
                                             first
 
                                         _ ->
-                                            ( Range.combine (Tuple.first first :: List.map Tuple.first rest)
-                                            , Application (first :: List.reverse rest)
-                                            )
+                                            Node
+                                                (Range.combine (Node.range first :: List.map Node.range rest))
+                                                (Application (first :: List.reverse rest))
 
                             promoter rest =
                                 Layout.optimisticLayoutWith
@@ -296,10 +292,13 @@ listExpression =
 
 emptyListExpression : Parser State Expression
 emptyListExpression =
-    Combine.map (always (ListExpr []))
-        (string "["
-            |> Combine.continueWith (maybe (or Layout.layout Layout.layoutAndNewLine))
-            |> Combine.continueWith (string "]")
+    lazy
+        (\() ->
+            Combine.map (always (ListExpr []))
+                (string "["
+                    |> Combine.continueWith (maybe (or Layout.layout Layout.layoutAndNewLine))
+                    |> Combine.continueWith (string "]")
+                )
         )
 
 
@@ -312,16 +311,18 @@ recordExpression =
     lazy
         (\() ->
             let
-                recordField : Parser State ( String, Ranged Expression )
+                recordField : Parser State (Node RecordSetter)
                 recordField =
-                    succeed Tuple.pair
-                        |> Combine.andMap functionName
-                        |> Combine.ignore (maybe Layout.layout)
-                        |> Combine.ignore (string "=")
-                        |> Combine.ignore (maybe Layout.layout)
-                        |> Combine.andMap expression
+                    Node.parser
+                        (succeed Tuple.pair
+                            |> Combine.andMap (Node.parser functionName)
+                            |> Combine.ignore (maybe Layout.layout)
+                            |> Combine.ignore (string "=")
+                            |> Combine.ignore (maybe Layout.layout)
+                            |> Combine.andMap expression
+                        )
 
-                recordFields : Parser State (List ( String, Ranged Expression ))
+                recordFields : Parser State (List (Node RecordSetter))
                 recordFields =
                     succeed (::)
                         |> Combine.andMap recordField
@@ -335,21 +336,25 @@ recordExpression =
                                 )
                             )
 
+                recordUpdateSyntaxParser : Node String -> Parser State Expression
+                recordUpdateSyntaxParser fname =
+                    string "|"
+                        |> Combine.ignore (maybe Layout.layout)
+                        |> Combine.continueWith recordFields
+                        |> Combine.map (\e -> RecordUpdateExpression fname e)
+                        |> Combine.ignore (string "}")
+
                 recordContents : Parser State Expression
                 recordContents =
-                    functionName
+                    Node.parser functionName
                         |> Combine.ignore (maybe Layout.layout)
                         |> Combine.andThen
                             (\fname ->
                                 Combine.choice
-                                    [ string "|"
-                                        |> Combine.ignore (maybe Layout.layout)
-                                        |> Combine.continueWith recordFields
-                                        |> Combine.map (RecordUpdate fname >> RecordUpdateExpression)
-                                        |> Combine.ignore (string "}")
+                                    [ recordUpdateSyntaxParser fname
                                     , string "="
                                         |> Combine.ignore (maybe Layout.layout)
-                                        |> Combine.continueWith (expression |> Combine.map (\e -> ( fname, e )))
+                                        |> Combine.continueWith (expression |> Combine.map (\e -> Node.combine Tuple.pair fname e))
                                         |> Combine.ignore (maybe Layout.layout)
                                         |> Combine.andThen
                                             (\fieldUpdate ->
@@ -378,7 +383,10 @@ recordExpression =
 
 literalExpression : Parser State Expression
 literalExpression =
-    Combine.map Literal (or multiLineStringLiteral stringLiteral)
+    lazy
+        (\() ->
+            Combine.map Literal (or multiLineStringLiteral stringLiteral)
+        )
 
 
 charLiteralExpression : Parser State Expression
@@ -406,7 +414,7 @@ lambdaExpression =
 -- Case Expression
 
 
-caseBlock : Parser State (Ranged Expression)
+caseBlock : Parser State (Node Expression)
 caseBlock =
     lazy
         (\() ->
@@ -475,7 +483,7 @@ caseExpression =
 -- Let Expression
 
 
-letBody : Parser State (List (Ranged LetDeclaration))
+letBody : Parser State (List (Node LetDeclaration))
 letBody =
     lazy
         (\() ->
@@ -483,29 +491,32 @@ letBody =
                 blockElement =
                     pattern
                         |> Combine.andThen
-                            (\( r, p ) ->
+                            (\(Node r p) ->
                                 case p of
                                     VarPattern v ->
-                                        functionWithVariablePointer (VariablePointer v r)
+                                        functionWithNameNode (Node r v)
                                             |> Combine.map LetFunction
 
                                     _ ->
-                                        letDestructuringDeclarationWithPattern ( r, p )
+                                        letDestructuringDeclarationWithPattern (Node r p)
                             )
             in
             Combine.succeed (::)
-                |> Combine.andMap (ranged blockElement)
-                |> Combine.andMap (many (ranged blockElement |> Combine.ignore (maybe Layout.layout)))
+                |> Combine.andMap (Node.parser blockElement)
+                |> Combine.andMap (many (Node.parser blockElement |> Combine.ignore (maybe Layout.layout)))
         )
 
 
-letDestructuringDeclarationWithPattern : Ranged Pattern -> Parser State LetDeclaration
+letDestructuringDeclarationWithPattern : Node Pattern -> Parser State LetDeclaration
 letDestructuringDeclarationWithPattern p =
-    succeed (LetDestructuring p)
-        |> Combine.ignore (maybe Layout.layout)
-        |> Combine.ignore (string "=")
-        |> Combine.ignore Layout.layout
-        |> Combine.andMap expression
+    lazy
+        (\() ->
+            succeed (LetDestructuring p)
+                |> Combine.ignore (maybe Layout.layout)
+                |> Combine.ignore (string "=")
+                |> Combine.ignore Layout.layout
+                |> Combine.andMap expression
+        )
 
 
 letDestructuringDeclaration : Parser State LetDeclaration
@@ -513,7 +524,7 @@ letDestructuringDeclaration =
     lazy (\() -> Combine.andThen letDestructuringDeclarationWithPattern pattern)
 
 
-letBlock : Parser State (List (Ranged LetDeclaration))
+letBlock : Parser State (List (Node LetDeclaration))
 letBlock =
     lazy
         (\() ->
@@ -571,7 +582,7 @@ operatorExpression =
             lazy
                 (\() ->
                     Combine.map Negation
-                        (rangedExpression
+                        (Node.parser
                             (choice
                                 [ referenceExpression
                                 , numberExpression
@@ -580,19 +591,22 @@ operatorExpression =
                             )
                             |> Combine.andThen liftRecordAccess
                         )
-                 -- )
                 )
     in
-    Combine.choice
-        [ string "-"
-            |> Combine.continueWith (Combine.choice [ negationExpression, succeed (Operator "-") |> Combine.ignore Layout.layout ])
-        , Combine.map Operator infixOperatorToken
-        ]
+    lazy
+        (\() ->
+            Combine.choice
+                [ string "-"
+                    |> Combine.continueWith (Combine.choice [ negationExpression, succeed (Operator "-") |> Combine.ignore Layout.layout ])
+                , Combine.map Operator infixOperatorToken
+                ]
+        )
 
 
-reference : Parser s ( ModuleName, String )
+reference : Parser State ( ModuleName, String )
 reference =
     let
+        helper : ( String, List String ) -> Parser State ( String, List String )
         helper ( n, xs ) =
             Combine.choice
                 [ string "."
@@ -600,12 +614,20 @@ reference =
                     |> Combine.andThen (\t -> helper ( t, n :: xs ))
                 , Combine.succeed ( n, xs )
                 ]
+
+        recurring : Parser State ( ModuleName, String )
+        recurring =
+            Tokens.typeName
+                |> Combine.andThen (\t -> helper ( t, [] ))
+                |> Combine.map (\( t, xs ) -> ( List.reverse xs, t ))
+
+        justFunction : Parser State ( ModuleName, String )
+        justFunction =
+            Tokens.functionName |> Combine.map (\v -> ( [], v ))
     in
     Combine.choice
-        [ Tokens.typeName
-            |> Combine.andThen (\t -> helper ( t, [] ))
-            |> Combine.map (\( t, xs ) -> ( List.reverse xs, t ))
-        , Tokens.functionName |> Combine.map (\v -> ( [], v ))
+        [ recurring
+        , justFunction
         ]
 
 
@@ -614,12 +636,7 @@ referenceExpression =
     reference
         |> Combine.map
             (\( xs, x ) ->
-                case xs of
-                    [] ->
-                        FunctionOrValue x
-
-                    _ ->
-                        QualifiedExpr xs x
+                FunctionOrValue xs x
             )
 
 
@@ -636,7 +653,7 @@ tupledExpression =
     lazy
         (\v ->
             let
-                asExpression : Ranged Expression -> List (Ranged Expression) -> Expression
+                asExpression : Node Expression -> List (Node Expression) -> Expression
                 asExpression x xs =
                     case xs of
                         [] ->
@@ -645,7 +662,7 @@ tupledExpression =
                         _ ->
                             TupledExpression (x :: xs)
 
-                commaSep : Parser State (List (Ranged Expression))
+                commaSep : Parser State (List (Node Expression))
                 commaSep =
                     many
                         (string ","

@@ -2,12 +2,13 @@ module Elm.Parser.Typings exposing (TypeDefinition(..), typeDefinition)
 
 import Combine exposing (Parser, many, maybe, string, succeed)
 import Elm.Parser.Layout as Layout
-import Elm.Parser.Ranges exposing (ranged, withCurrentPoint)
+import Elm.Parser.Node as Node
+import Elm.Parser.Ranges exposing (withCurrentPoint)
 import Elm.Parser.State exposing (State)
 import Elm.Parser.Tokens exposing (functionName, typeName)
 import Elm.Parser.TypeAnnotation exposing (typeAnnotation, typeAnnotationNonGreedy)
+import Elm.Syntax.Node exposing (Node(..))
 import Elm.Syntax.Range as Range exposing (Range)
-import Elm.Syntax.Ranged exposing (Ranged)
 import Elm.Syntax.Type exposing (Type, ValueConstructor)
 import Elm.Syntax.TypeAlias exposing (TypeAlias)
 import Elm.Syntax.TypeAnnotation exposing (TypeAnnotation)
@@ -27,17 +28,17 @@ typeDefinition =
                     (Combine.choice
                         [ succeed (TypeAlias Nothing)
                             |> Combine.ignore (string "alias" |> Combine.continueWith Layout.layout)
-                            |> Combine.andMap (typeName |> Combine.ignore Layout.layout)
+                            |> Combine.andMap (Node.parser typeName |> Combine.ignore Layout.layout)
                             |> Combine.andMap genericList
                             |> Combine.ignore (string "=")
                             |> Combine.ignore Layout.layout
                             |> Combine.andMap typeAnnotation
                             |> Combine.map
                                 (\typeAlias ->
-                                    DefinedAlias (Range.combine [ start, Tuple.first typeAlias.typeAnnotation ]) typeAlias
+                                    DefinedAlias (Range.combine [ start, (\(Node r v) -> r) typeAlias.typeAnnotation ]) typeAlias
                                 )
                         , succeed Type
-                            |> Combine.andMap typeName
+                            |> Combine.andMap (Node.parser typeName)
                             |> Combine.ignore (maybe Layout.layout)
                             |> Combine.andMap genericList
                             |> Combine.ignore (maybe Layout.layout)
@@ -45,19 +46,21 @@ typeDefinition =
                             |> Combine.andMap valueConstructors
                             |> Combine.map
                                 (\tipe ->
-                                    DefinedType (Range.combine (start :: List.map .range tipe.constructors)) tipe
+                                    DefinedType
+                                        (Range.combine (start :: List.map (\(Node r _) -> r) tipe.constructors))
+                                        tipe
                                 )
                         ]
                     )
         )
 
 
-valueConstructors : Parser State (List ValueConstructor)
+valueConstructors : Parser State (List (Node ValueConstructor))
 valueConstructors =
     Combine.lazy
         (\() ->
             Combine.succeed (::)
-                |> Combine.andMap valueConstructor
+                |> Combine.andMap (Node.parser valueConstructor)
                 |> Combine.andMap
                     (Combine.choice
                         [ string "|"
@@ -72,15 +75,15 @@ valueConstructors =
 valueConstructor : Parser State ValueConstructor
 valueConstructor =
     succeed ValueConstructor
-        |> Combine.continueWith (ranged typeName)
+        |> Combine.continueWith (Node.parser typeName)
         |> Combine.andThen
-            (\( range, tn ) ->
+            (\((Node range tn) as tnn) ->
                 let
-                    complete : List (Ranged TypeAnnotation) -> Parser State ValueConstructor
+                    complete : List (Node TypeAnnotation) -> Parser State ValueConstructor
                     complete args =
-                        Combine.succeed
-                            (ValueConstructor tn args (Range.combine (range :: List.map Tuple.first args)))
+                        Combine.succeed (ValueConstructor tnn args)
 
+                    argHelper : List (Node TypeAnnotation) -> Parser State (List (Node TypeAnnotation))
                     argHelper xs =
                         Combine.succeed ()
                             |> Combine.continueWith
@@ -105,9 +108,9 @@ valueConstructor =
             )
 
 
-genericList : Parser State (List String)
+genericList : Parser State (List (Node String))
 genericList =
-    many (functionName |> Combine.ignore Layout.layout)
+    many (Node.parser functionName |> Combine.ignore Layout.layout)
 
 
 typePrefix : Parser State ()

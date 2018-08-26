@@ -3,6 +3,7 @@ module Elm.Parser.ImportsTests exposing (all)
 import Elm.Parser.CombineTestUtil exposing (..)
 import Elm.Parser.Imports as Parser
 import Elm.Syntax.Exposing exposing (..)
+import Elm.Syntax.Node as Node exposing (Node(..))
 import Elm.Syntax.Range exposing (..)
 import Expect
 import Test exposing (..)
@@ -17,15 +18,14 @@ all =
                     |> Maybe.map noRangeImport
                     |> Expect.equal
                         (Just
-                            { moduleName = [ "Foo" ]
+                            { moduleName = Node emptyRange <| [ "Foo" ]
                             , moduleAlias = Nothing
                             , exposingList =
                                 Just <|
                                     Explicit
-                                        [ ( emptyRange, TypeOrAliasExpose "Model" )
-                                        , ( emptyRange, TypeExpose (ExposedType "Msg" (Just emptyRange)) )
+                                        [ Node emptyRange <| TypeOrAliasExpose "Model"
+                                        , Node emptyRange <| TypeExpose (ExposedType "Msg" (Just emptyRange))
                                         ]
-                            , range = emptyRange
                             }
                         )
         , test "import with explicits 2" <|
@@ -34,10 +34,9 @@ all =
                     |> Maybe.map noRangeImport
                     |> Expect.equal
                         (Just
-                            { moduleName = [ "Html" ]
+                            { moduleName = Node emptyRange <| [ "Html" ]
                             , moduleAlias = Nothing
-                            , exposingList = Just <| Explicit [ ( emptyRange, FunctionExpose "text" ) ]
-                            , range = emptyRange
+                            , exposingList = Just <| Explicit [ Node emptyRange <| FunctionExpose "text" ]
                             }
                         )
         , test "import minimal" <|
@@ -46,10 +45,9 @@ all =
                     |> Maybe.map noRangeImport
                     |> Expect.equal
                         (Just
-                            { moduleName = [ "Foo" ]
+                            { moduleName = Node emptyRange <| [ "Foo" ]
                             , moduleAlias = Nothing
                             , exposingList = Nothing
-                            , range = emptyRange
                             }
                         )
         , test "import with alias" <|
@@ -58,10 +56,9 @@ all =
                     |> Maybe.map noRangeImport
                     |> Expect.equal
                         (Just
-                            { moduleName = [ "Foo" ]
-                            , moduleAlias = Just [ "Bar" ]
+                            { moduleName = Node emptyRange <| [ "Foo" ]
+                            , moduleAlias = Just <| Node emptyRange <| [ "Bar" ]
                             , exposingList = Nothing
-                            , range = emptyRange
                             }
                         )
         ]

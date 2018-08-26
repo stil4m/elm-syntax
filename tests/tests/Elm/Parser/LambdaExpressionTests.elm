@@ -4,6 +4,7 @@ import Elm.Parser.CombineTestUtil exposing (..)
 import Elm.Parser.Declarations as Parser exposing (..)
 import Elm.Parser.State exposing (emptyState)
 import Elm.Syntax.Expression exposing (..)
+import Elm.Syntax.Node as Node exposing (Node(..))
 import Elm.Syntax.Pattern exposing (..)
 import Elm.Syntax.Range exposing (..)
 import Expect
@@ -16,38 +17,38 @@ all =
         [ test "unit lambda" <|
             \() ->
                 parseFullStringState emptyState "\\() -> foo" Parser.expression
-                    |> Maybe.map (Tuple.second >> noRangeInnerExpression)
+                    |> Maybe.map (Node.value >> noRangeInnerExpression)
                     |> Expect.equal
                         (Just
                             (LambdaExpression
-                                { args = [ ( emptyRange, UnitPattern ) ]
-                                , expression = emptyRanged <| FunctionOrValue "foo"
+                                { args = [ Node emptyRange UnitPattern ]
+                                , expression = Node emptyRange <| FunctionOrValue [] "foo"
                                 }
                             )
                         )
         , test "function arg" <|
             \() ->
                 parseAsFarAsPossibleWithState emptyState "a b" Parser.functionArgument
-                    |> Maybe.map Tuple.second
+                    |> Maybe.map Node.value
                     |> Expect.equal
                         (Just (VarPattern "a"))
         , test "args lambda" <|
             \() ->
                 parseFullStringState emptyState "\\a b -> a + b" Parser.expression
-                    |> Maybe.map (Tuple.second >> noRangeInnerExpression)
+                    |> Maybe.map (Node.value >> noRangeInnerExpression)
                     |> Expect.equal
                         (Just
                             (LambdaExpression
                                 { args =
-                                    [ ( emptyRange, VarPattern "a" )
-                                    , ( emptyRange, VarPattern "b" )
+                                    [ Node emptyRange <| VarPattern "a"
+                                    , Node emptyRange <| VarPattern "b"
                                     ]
                                 , expression =
-                                    emptyRanged <|
+                                    Node emptyRange <|
                                         Application
-                                            [ emptyRanged <| FunctionOrValue "a"
-                                            , emptyRanged <| Operator "+"
-                                            , emptyRanged <| FunctionOrValue "b"
+                                            [ Node emptyRange <| FunctionOrValue [] "a"
+                                            , Node emptyRange <| Operator "+"
+                                            , Node emptyRange <| FunctionOrValue [] "b"
                                             ]
                                 }
                             )
@@ -55,19 +56,18 @@ all =
         , test "tuple lambda" <|
             \() ->
                 parseFullStringState emptyState "\\(a,b) -> a + b" Parser.expression
-                    |> Maybe.map (Tuple.second >> noRangeInnerExpression)
+                    |> Maybe.map (Node.value >> noRangeInnerExpression)
                     |> Expect.equal
                         (Just
                             (LambdaExpression
                                 { args =
-                                    [ ( emptyRange
-                                      , TuplePattern
-                                            [ ( emptyRange, VarPattern "a" )
-                                            , ( emptyRange, VarPattern "b" )
+                                    [ Node emptyRange <|
+                                        TuplePattern
+                                            [ Node emptyRange <| VarPattern "a"
+                                            , Node emptyRange <| VarPattern "b"
                                             ]
-                                      )
                                     ]
-                                , expression = emptyRanged <| Application [ emptyRanged <| FunctionOrValue "a", emptyRanged <| Operator "+", emptyRanged <| FunctionOrValue "b" ]
+                                , expression = Node emptyRange <| Application [ Node emptyRange <| FunctionOrValue [] "a", Node emptyRange <| Operator "+", Node emptyRange <| FunctionOrValue [] "b" ]
                                 }
                             )
                         )

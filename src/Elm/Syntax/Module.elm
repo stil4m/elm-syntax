@@ -1,7 +1,7 @@
 module Elm.Syntax.Module exposing
     ( Module(..), DefaultModuleData, EffectModuleData
     , exposingList, moduleName, isPortModule, isEffectModule
-    , Import
+    , encode, decoder
     )
 
 {-| Module Syntax
@@ -14,16 +14,20 @@ module Elm.Syntax.Module exposing
 @docs exposingList, moduleName, isPortModule, isEffectModule
 
 
-# Import
+# Serialization
 
-@docs Import
+@docs encode, decoder
 
 -}
 
-import Elm.Syntax.Base exposing (ModuleName)
-import Elm.Syntax.Exposing exposing (Exposing(..), TopLevelExpose)
+import Elm.Json.Util exposing (decodeTyped, encodeTyped)
+import Elm.Syntax.Exposing as Exposing exposing (Exposing(..), TopLevelExpose)
+import Elm.Syntax.Import as Import exposing (Import)
+import Elm.Syntax.ModuleName as ModuleName exposing (ModuleName)
+import Elm.Syntax.Node as Node exposing (Node)
 import Elm.Syntax.Range exposing (Range)
-import Elm.Syntax.Ranged exposing (Ranged)
+import Json.Decode as JD exposing (Decoder)
+import Json.Encode as JE exposing (Value)
 
 
 {-| Union type for different kind of modules
@@ -37,28 +41,18 @@ type Module
 {-| Data for a default default
 -}
 type alias DefaultModuleData =
-    { moduleName : ModuleName
-    , exposingList : Exposing
+    { moduleName : Node ModuleName
+    , exposingList : Node Exposing
     }
 
 
 {-| Data for an effect module
 -}
 type alias EffectModuleData =
-    { moduleName : ModuleName
-    , exposingList : Exposing
-    , command : Maybe String
-    , subscription : Maybe String
-    }
-
-
-{-| Import definition
--}
-type alias Import =
-    { moduleName : ModuleName
-    , moduleAlias : Maybe ModuleName
-    , exposingList : Maybe Exposing
-    , range : Range
+    { moduleName : Node ModuleName
+    , exposingList : Node Exposing
+    , command : Maybe (Node String)
+    , subscription : Maybe (Node String)
     }
 
 
@@ -68,13 +62,13 @@ moduleName : Module -> ModuleName
 moduleName m =
     case m of
         NormalModule x ->
-            x.moduleName
+            Node.value x.moduleName
 
         PortModule x ->
-            x.moduleName
+            Node.value x.moduleName
 
         EffectModule x ->
-            x.moduleName
+            Node.value x.moduleName
 
 
 {-| Get the exposing list for a module.
@@ -83,13 +77,13 @@ exposingList : Module -> Exposing
 exposingList m =
     case m of
         NormalModule x ->
-            x.exposingList
+            Node.value x.exposingList
 
         PortModule x ->
-            x.exposingList
+            Node.value x.exposingList
 
         EffectModule x ->
-            x.exposingList
+            Node.value x.exposingList
 
 
 {-| Check whether a module is defined as a port-module
@@ -114,3 +108,63 @@ isEffectModule m =
 
         _ ->
             False
+
+
+
+-- Serialization
+
+
+encode : Module -> Value
+encode m =
+    case m of
+        NormalModule d ->
+            encodeTyped "normal" (encodeDefaultModuleData d)
+
+        PortModule d ->
+            encodeTyped "port" (encodeDefaultModuleData d)
+
+        EffectModule d ->
+            encodeTyped "effect" (encodeEffectModuleData d)
+
+
+encodeEffectModuleData : EffectModuleData -> Value
+encodeEffectModuleData moduleData =
+    JE.object
+        [ ( "moduleName", Node.encode ModuleName.encode moduleData.moduleName )
+        , ( "exposingList", Node.encode Exposing.encode moduleData.exposingList )
+        , ( "command", moduleData.command |> Maybe.map (Node.encode JE.string) |> Maybe.withDefault JE.null )
+        , ( "subscription", moduleData.subscription |> Maybe.map (Node.encode JE.string) |> Maybe.withDefault JE.null )
+        ]
+
+
+encodeDefaultModuleData : DefaultModuleData -> Value
+encodeDefaultModuleData moduleData =
+    JE.object
+        [ ( "moduleName", Node.encode ModuleName.encode moduleData.moduleName )
+        , ( "exposingList", Node.encode Exposing.encode moduleData.exposingList )
+        ]
+
+
+decoder : Decoder Module
+decoder =
+    decodeTyped
+        [ ( "normal", decodeDefaultModuleData |> JD.map NormalModule )
+        , ( "port", decodeDefaultModuleData |> JD.map PortModule )
+        , ( "effect", decodeEffectModuleData |> JD.map EffectModule )
+        ]
+
+
+decodeDefaultModuleData : Decoder DefaultModuleData
+decodeDefaultModuleData =
+    JD.map2 DefaultModuleData
+        (JD.field "moduleName" <| Node.decoder ModuleName.decoder)
+        (JD.field "exposingList" <| Node.decoder Exposing.decoder)
+
+
+decodeEffectModuleData : Decoder EffectModuleData
+decodeEffectModuleData =
+    JD.map4 EffectModuleData
+        (JD.field "moduleName" <| Node.decoder ModuleName.decoder)
+        (JD.field "exposingList" <| Node.decoder Exposing.decoder)
+        (JD.field "command" (JD.nullable <| Node.decoder JD.string))
+        (JD.field "subscription" (JD.nullable <| Node.decoder JD.string))

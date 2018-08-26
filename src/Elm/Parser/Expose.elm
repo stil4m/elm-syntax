@@ -1,13 +1,14 @@
-module Elm.Parser.Expose exposing (exposable, exposeDefinition, exposingListInner, functionExpose, infixExpose, typeExpose)
+module Elm.Parser.Expose exposing (exposable, exposeDefinition, exposingListInner, infixExpose, typeExpose)
 
 import Combine exposing (Parser, choice, maybe, or, parens, sepBy, string, succeed, while)
 import Combine.Char exposing (char)
 import Elm.Parser.Layout as Layout
-import Elm.Parser.Ranges exposing (ranged, withRange)
+import Elm.Parser.Node as Node
+import Elm.Parser.Ranges exposing (withRange)
 import Elm.Parser.State exposing (State)
 import Elm.Parser.Tokens exposing (exposingToken, functionName, typeName)
-import Elm.Syntax.Exposing exposing (ExposedType, Exposing(..), TopLevelExpose(..), ValueConstructorExpose)
-import Elm.Syntax.Ranged exposing (Ranged)
+import Elm.Syntax.Exposing exposing (ExposedType, Exposing(..), TopLevelExpose(..))
+import Elm.Syntax.Node as Node exposing (Node)
 
 
 exposeDefinition : Parser State Exposing
@@ -31,7 +32,7 @@ exposingListInner =
         )
 
 
-exposable : Parser State (Ranged TopLevelExpose)
+exposable : Parser State (Node TopLevelExpose)
 exposable =
     Combine.lazy
         (\() ->
@@ -43,19 +44,19 @@ exposable =
         )
 
 
-infixExpose : Parser State (Ranged TopLevelExpose)
+infixExpose : Parser State (Node TopLevelExpose)
 infixExpose =
     Combine.lazy
         (\() ->
-            ranged (Combine.map InfixExpose (parens (while ((/=) ')'))))
+            Node.parser (Combine.map InfixExpose (parens (while ((/=) ')'))))
         )
 
 
-typeExpose : Parser State (Ranged TopLevelExpose)
+typeExpose : Parser State (Node TopLevelExpose)
 typeExpose =
     Combine.lazy
         (\() ->
-            ranged exposedType
+            Node.parser exposedType
         )
 
 
@@ -67,18 +68,13 @@ exposedType =
         |> Combine.andThen
             (\tipe ->
                 Combine.choice
-                    [ ranged (parens (Layout.maybeAroundBothSides (string "..")))
-                        |> Combine.map (Tuple.first >> Just >> (\v -> ExposedType tipe v) >> TypeExpose)
+                    [ Node.parser (parens (Layout.maybeAroundBothSides (string "..")))
+                        |> Combine.map (Node.range >> Just >> (\v -> ExposedType tipe v) >> TypeExpose)
                     , Combine.succeed (TypeOrAliasExpose tipe)
                     ]
             )
 
 
-valueConstructorExpose : Parser State ValueConstructorExpose
-valueConstructorExpose =
-    ranged typeName
-
-
-functionExpose : Parser State (Ranged TopLevelExpose)
+functionExpose : Parser State (Node TopLevelExpose)
 functionExpose =
-    ranged (Combine.map FunctionExpose functionName)
+    Node.parser (Combine.map FunctionExpose functionName)
