@@ -1,24 +1,11 @@
-module Elm.Syntax.Expression
-    exposing
-        ( Case
-        , CaseBlock
-        , Cases
-        , Expression(..)
-        , Function
-        , FunctionDeclaration
-        , FunctionSignature
-        , Lambda
-        , LetBlock
-        , LetDeclaration(..)
-        , RecordSetter
-        , RecordUpdate
-        , functionRange
-        , isCase
-        , isIfElse
-        , isLambda
-        , isLet
-        , isOperatorApplication
-        )
+module Elm.Syntax.Expression exposing
+    ( Expression(..), Lambda
+    , LetBlock, LetDeclaration(..)
+    , RecordUpdate, RecordSetter
+    , CaseBlock, Cases, Case
+    , Function, FunctionDeclaration, FunctionSignature, functionRange
+    , isLambda, isLet, isIfElse, isCase, isOperatorApplication
+    )
 
 {-| Expression Syntax
 

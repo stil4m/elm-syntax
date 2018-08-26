@@ -1,12 +1,7 @@
-module Elm.Interface
-    exposing
-        ( Exposed(..)
-        , Interface
-        , build
-        , exposesAlias
-        , exposesFunction
-        , operators
-        )
+module Elm.Interface exposing
+    ( Interface, Exposed(..)
+    , build, exposesAlias, exposesFunction, operators
+    )
 
 {-|
 

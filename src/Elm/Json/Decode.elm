@@ -35,8 +35,10 @@ rangeField : Decoder (Range -> a) -> Decoder a
 rangeField =
     andMap <| field "range" Range.decode
 
+
 required : String -> Decoder a -> Decoder (a -> b) -> Decoder b
-required s d = andMap (field s d)
+required s d =
+    andMap (field s d)
 
 
 nameField : Decoder (String -> a) -> Decoder a
