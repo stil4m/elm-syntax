@@ -15,7 +15,7 @@
         "elm:validate-format": "./node_modules/.bin/elm-format --validate src/ tests/",
         "elm:lint": "elm-analyse",
         "elm:lint-server": "elm-analyse -s",
-        "elm:build": "elm-package install -y && elm-make"
+        "elm:build": "elm make"
     },
     "author": "Mats Stijlaart",
     "license": "MIT",

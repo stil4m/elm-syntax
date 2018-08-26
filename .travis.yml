@@ -28,4 +28,3 @@ script:
   - $TRAVIS_BUILD_DIR/sysconfcpus/bin/sysconfcpus -n 2 npm run elm:validate-format
   - $TRAVIS_BUILD_DIR/sysconfcpus/bin/sysconfcpus -n 2 npm run elm:test
   - $TRAVIS_BUILD_DIR/sysconfcpus/bin/sysconfcpus -n 2 npm run elm:build
-  - $TRAVIS_BUILD_DIR/sysconfcpus/bin/sysconfcpus -n 2 npm run elm:lint
