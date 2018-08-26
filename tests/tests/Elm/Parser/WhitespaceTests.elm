@@ -1,14 +1,10 @@
-module Elm.Parser.WhitespaceTests exposing (all, main)
+module Elm.Parser.WhitespaceTests exposing (all)
 
 import Elm.Parser.CombineTestUtil exposing (..)
 import Elm.Parser.State exposing (emptyState)
 import Elm.Parser.Whitespace as Whitespace
 import Expect
 import Test exposing (..)
-
-
-main =
-    Tuple.second all
 
 
 all : Test

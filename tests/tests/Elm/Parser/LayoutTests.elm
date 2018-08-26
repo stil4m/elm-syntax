@@ -1,14 +1,10 @@
-module Elm.Parser.LayoutTests exposing (all, main)
+module Elm.Parser.LayoutTests exposing (all)
 
 import Elm.Parser.CombineTestUtil exposing (..)
 import Elm.Parser.Layout as Layout
 import Elm.Parser.State exposing (emptyState)
 import Expect
 import Test exposing (..)
-
-
-main =
-    Tuple.second all
 
 
 all : Test

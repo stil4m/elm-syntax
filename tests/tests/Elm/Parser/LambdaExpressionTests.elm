@@ -1,4 +1,4 @@
-module Elm.Parser.LambdaExpressionTests exposing (all, main)
+module Elm.Parser.LambdaExpressionTests exposing (all)
 
 import Elm.Parser.CombineTestUtil exposing (..)
 import Elm.Parser.Declarations as Parser exposing (..)
@@ -8,10 +8,6 @@ import Elm.Syntax.Pattern exposing (..)
 import Elm.Syntax.Range exposing (..)
 import Expect
 import Test exposing (..)
-
-
-main =
-    Tuple.second all
 
 
 all : Test

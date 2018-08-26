@@ -1,4 +1,4 @@
-module Elm.Parser.TypeAnnotationTests exposing (all, main)
+module Elm.Parser.TypeAnnotationTests exposing (all)
 
 import Elm.Parser.CombineTestUtil exposing (..)
 import Elm.Parser.State exposing (emptyState)
@@ -7,10 +7,6 @@ import Elm.Syntax.Range exposing (emptyRange)
 import Elm.Syntax.TypeAnnotation exposing (..)
 import Expect
 import Test exposing (..)
-
-
-main =
-    Tuple.second all
 
 
 all : Test

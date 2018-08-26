@@ -1,4 +1,4 @@
-module Elm.Parser.InfixTests exposing (all, main)
+module Elm.Parser.InfixTests exposing (all)
 
 import Elm.Parser.CombineTestUtil exposing (..)
 import Elm.Parser.Infix as Infix exposing (..)
@@ -7,10 +7,6 @@ import Elm.Syntax.Infix exposing (..)
 import Elm.Syntax.Range exposing (emptyRange)
 import Expect
 import Test exposing (..)
-
-
-main =
-    Tuple.second all
 
 
 all : Test

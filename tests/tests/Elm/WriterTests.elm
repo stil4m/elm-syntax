@@ -1,4 +1,4 @@
-module Elm.WriterTests exposing (..)
+module Elm.WriterTests exposing (suite)
 
 import Elm.Syntax.Base exposing (..)
 import Elm.Syntax.Declaration exposing (..)
@@ -145,7 +145,7 @@ import B  """
                             FuncDecl
                                 (Function Nothing
                                     Nothing
-                                    (FunctionDeclaration False
+                                    (FunctionDeclaration
                                         (VariablePointer "functionName" emptyRange)
                                         []
                                         ( emptyRange, body )

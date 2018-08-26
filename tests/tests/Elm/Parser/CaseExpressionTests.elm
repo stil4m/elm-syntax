@@ -1,4 +1,4 @@
-module Elm.Parser.CaseExpressionTests exposing (all, main)
+module Elm.Parser.CaseExpressionTests exposing (all)
 
 import Elm.Parser.CombineTestUtil exposing (..)
 import Elm.Parser.Declarations as Parser exposing (..)
@@ -8,10 +8,6 @@ import Elm.Syntax.Pattern exposing (..)
 import Elm.Syntax.Range exposing (emptyRange)
 import Expect
 import Test exposing (..)
-
-
-main =
-    Tuple.second all
 
 
 all : Test

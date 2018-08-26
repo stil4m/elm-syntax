@@ -1,4 +1,4 @@
-module Elm.Writer exposing (write, writeExpression, writeFile, writePattern, writeTypeAnnotation)
+module Elm.Writer exposing (write, writeFile, writePattern, writeExpression, writeTypeAnnotation, writeDeclaration)
 
 {-|
 
@@ -7,7 +7,7 @@ module Elm.Writer exposing (write, writeExpression, writeFile, writePattern, wri
 
 Write a file to a string.
 
-@docs write, writeFile, writePattern, writeExpression, writeTypeAnnotation
+@docs write, writeFile, writePattern, writeExpression, writeTypeAnnotation, writeDeclaration
 
 -}
 
@@ -185,6 +185,8 @@ writeLetDeclaration ( _, letDeclaration ) =
             writeDestructuring pattern expression
 
 
+{-| Write a declaration
+-}
 writeDeclaration : Ranged Declaration -> Writer
 writeDeclaration ( _, decl ) =
     case decl of
@@ -262,7 +264,6 @@ writeType type_ =
             [ string "type"
             , string type_.name
             , spaced (List.map string type_.generics)
-            , string "="
             ]
         , let
             diffLines =
@@ -349,10 +350,19 @@ writeTypeAnnotation ( _, typeAnnotation ) =
                 ]
 
         FunctionTypeAnnotation left right ->
+            let
+                addParensForSubTypeAnnotation type_ =
+                    case type_ of
+                        ( _, FunctionTypeAnnotation _ _ ) ->
+                            join [ string "(", writeTypeAnnotation type_, string ")" ]
+
+                        _ ->
+                            writeTypeAnnotation type_
+            in
             spaced
-                [ writeTypeAnnotation left
+                [ addParensForSubTypeAnnotation left
                 , string "->"
-                , writeTypeAnnotation right
+                , addParensForSubTypeAnnotation right
                 ]
 
 
@@ -477,15 +487,15 @@ writeExpression ( range, inner ) =
         CaseExpression caseBlock ->
             let
                 writeCaseBranch ( pattern, expression ) =
-                    breaked
-                        [ spaced [ writePattern pattern, string "->" ]
-                        , indent 2 (writeExpression expression)
-                        ]
+                    indent 2 <|
+                        breaked
+                            [ spaced [ writePattern pattern, string "->" ]
+                            , indent 2 (writeExpression expression)
+                            ]
             in
             breaked
                 [ spaced [ string "case", writeExpression caseBlock.expression, string "of" ]
-                , indent 2
-                    (breaked (List.map writeCaseBranch caseBlock.cases))
+                , breaked (List.map writeCaseBranch caseBlock.cases)
                 ]
 
         LambdaExpression lambda ->
@@ -505,7 +515,7 @@ writeExpression ( range, inner ) =
             sepHelper bracketsComma (List.map recurRangeHelper xs)
 
         QualifiedExpr moduleName name ->
-            join [ writeModuleName moduleName, string name ]
+            join [ writeModuleName moduleName, string ".", string name ]
 
         RecordAccess expression accessor ->
             join [ writeExpression expression, string ".", string accessor ]
@@ -576,7 +586,6 @@ writePattern ( _, p ) =
                 [ writeQualifiedNameRef qnr
                 , spaced (List.map writePattern others)
                 ]
-
 
         AsPattern innerPattern asName ->
             spaced [ writePattern innerPattern, string "as", string asName.value ]

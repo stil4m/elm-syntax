@@ -6,10 +6,6 @@ import Expect
 import Test exposing (..)
 
 
-main =
-    Tuple.second all
-
-
 longString : String
 longString =
     "\"" ++ String.repeat (5 * 10 ^ 5) "a" ++ "\""

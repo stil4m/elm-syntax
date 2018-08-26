@@ -1,4 +1,4 @@
-module Elm.Parser.TypingsTests exposing (all, asType, asTypeAlias, main)
+module Elm.Parser.TypingsTests exposing (all, asType, asTypeAlias)
 
 import Elm.Parser.CombineTestUtil exposing (..)
 import Elm.Parser.State exposing (State, emptyState)
@@ -9,10 +9,6 @@ import Elm.Syntax.TypeAlias exposing (TypeAlias)
 import Elm.Syntax.TypeAnnotation exposing (..)
 import Expect
 import Test exposing (..)
-
-
-main =
-    Tuple.second all
 
 
 asType : TypeDefinition -> Maybe Type

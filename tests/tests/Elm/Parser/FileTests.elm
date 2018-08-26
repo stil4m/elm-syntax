@@ -1,4 +1,4 @@
-module Elm.Parser.FileTests exposing (all, main)
+module Elm.Parser.FileTests exposing (all)
 
 import Elm.Internal.RawFile exposing (RawFile(..))
 import Elm.Json.Decode as Elm
@@ -12,10 +12,6 @@ import Expect
 import Json.Decode
 import Json.Encode
 import Test exposing (..)
-
-
-main =
-    Tuple.second all
 
 
 all : Test

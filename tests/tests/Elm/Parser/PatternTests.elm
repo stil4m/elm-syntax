@@ -1,4 +1,4 @@
-module Elm.Parser.PatternsTests exposing (all, main)
+module Elm.Parser.PatternTests exposing (all)
 
 import Elm.Parser.CombineTestUtil exposing (..)
 import Elm.Parser.Patterns as Parser exposing (..)
@@ -7,10 +7,6 @@ import Elm.Syntax.Pattern exposing (..)
 import Elm.Syntax.Range exposing (Location, Range, emptyRange)
 import Expect
 import Test exposing (..)
-
-
-main =
-    Tuple.second all
 
 
 all : Test

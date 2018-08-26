@@ -43,7 +43,7 @@ parseStateToMaybe state s p =
 
 parseFullStringWithNullState : String -> Parser State b -> Maybe b
 parseFullStringWithNullState s p =
-    case Combine.runParser (p |> Combine.ignore Combine.end) emptyState s |> Debug.log "Result" of
+    case Combine.runParser (p |> Combine.ignore Combine.end) emptyState s of
         Ok ( _, r ) ->
             Just r
 
