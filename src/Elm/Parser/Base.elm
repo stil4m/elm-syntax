@@ -1,15 +1,10 @@
-module Elm.Parser.Base exposing (moduleName, typeIndicator, variablePointer)
+module Elm.Parser.Base exposing (moduleName, typeIndicator)
 
 import Combine exposing (Parser, sepBy1, string)
 import Elm.Parser.Ranges exposing (withRange)
 import Elm.Parser.State exposing (State)
 import Elm.Parser.Tokens as Tokens
-import Elm.Syntax.Base exposing (ModuleName, VariablePointer)
-
-
-variablePointer : Parser State String -> Parser State VariablePointer
-variablePointer p =
-    withRange (Combine.map VariablePointer p)
+import Elm.Syntax.ModuleName exposing (ModuleName)
 
 
 moduleName : Parser s ModuleName

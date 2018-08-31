@@ -4,10 +4,12 @@ import Combine exposing (Parser, maybe, succeed)
 import Elm.Parser.Base exposing (moduleName)
 import Elm.Parser.Expose exposing (exposable, exposeDefinition)
 import Elm.Parser.Layout as Layout
-import Elm.Parser.Ranges exposing (withRange)
+import Elm.Parser.Node as Node
 import Elm.Parser.State exposing (State)
 import Elm.Parser.Tokens exposing (asToken, importToken)
-import Elm.Syntax.Module exposing (Import)
+import Elm.Syntax.Import exposing (Import)
+import Elm.Syntax.ModuleName exposing (ModuleName)
+import Elm.Syntax.Node exposing (Node)
 
 
 importDefinition : Parser State Import
@@ -16,13 +18,15 @@ importDefinition =
         importAndModuleName =
             importToken
                 |> Combine.continueWith Layout.layout
-                |> Combine.continueWith moduleName
+                |> Combine.continueWith (Node.parser moduleName)
 
+        asDefinition : Parser State (Node ModuleName)
         asDefinition =
             asToken
                 |> Combine.continueWith Layout.layout
-                |> Combine.continueWith moduleName
+                |> Combine.continueWith (Node.parser moduleName)
 
+        parseExposingDefinition : Node ModuleName -> Maybe (Node ModuleName) -> Parser State Import
         parseExposingDefinition mod asDef =
             Combine.choice
                 [ exposeDefinition
@@ -38,8 +42,6 @@ importDefinition =
                 , parseExposingDefinition mod Nothing
                 ]
     in
-    withRange <|
-        (importAndModuleName
-            |> Combine.ignore Layout.optimisticLayout
-            |> Combine.andThen parseAsDefinition
-        )
+    importAndModuleName
+        |> Combine.ignore Layout.optimisticLayout
+        |> Combine.andThen parseAsDefinition

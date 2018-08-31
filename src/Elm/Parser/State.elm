@@ -1,12 +1,12 @@
 module Elm.Parser.State exposing (State, addComment, currentIndent, emptyState, expectedColumn, getComments, popIndent, pushColumn, storedColumns)
 
-import Elm.Syntax.Ranged exposing (Ranged)
+import Elm.Syntax.Node exposing (Node)
 
 
 type State
     = State
         { indents : List Int
-        , comments : List (Ranged String)
+        , comments : List (Node String)
         }
 
 
@@ -48,11 +48,11 @@ pushColumn col state =
     pushIndent (col - 1) state
 
 
-addComment : Ranged String -> State -> State
+addComment : Node String -> State -> State
 addComment pair (State s) =
     State { s | comments = pair :: s.comments }
 
 
-getComments : State -> List (Ranged String)
+getComments : State -> List (Node String)
 getComments (State s) =
     s.comments

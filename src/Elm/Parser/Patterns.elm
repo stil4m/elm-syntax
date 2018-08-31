@@ -1,58 +1,47 @@
-module Elm.Parser.Patterns exposing (ConsumeArgs, composablePattern, listPattern, numberPart, parensPattern, pattern, qualifiedPattern, qualifiedPatternArg, recordPart, tryToCompose, variablePart)
+module Elm.Parser.Patterns exposing (pattern)
 
 import Combine exposing (Parser, between, choice, lazy, many, maybe, or, parens, sepBy, sepBy1, string, succeed)
 import Combine.Num
-import Elm.Parser.Base as Base exposing (variablePointer)
+import Elm.Parser.Base as Base
 import Elm.Parser.Layout as Layout
+import Elm.Parser.Node as Node
 import Elm.Parser.Numbers
-import Elm.Parser.Ranges exposing (ranged, rangedWithCustomStart)
 import Elm.Parser.State exposing (State)
 import Elm.Parser.Tokens exposing (asToken, characterLiteral, functionName, stringLiteral, typeName)
-import Elm.Syntax.Base exposing (VariablePointer)
+import Elm.Syntax.Node as Node exposing (Node(..))
 import Elm.Syntax.Pattern exposing (Pattern(..), QualifiedNameRef)
 import Elm.Syntax.Range as Range exposing (Range)
-import Elm.Syntax.Ranged exposing (Ranged)
 import Parser as Core
 
 
-tryToCompose : Ranged Pattern -> Parser State (Ranged Pattern)
+tryToCompose : Node Pattern -> Parser State (Node Pattern)
 tryToCompose x =
     maybe Layout.layout
         |> Combine.continueWith
             (Combine.choice
                 [ Combine.fromCore (Core.keyword "as")
                     |> Combine.ignore Layout.layout
-                    |> Combine.continueWith (variablePointer functionName)
-                    |> Combine.map
-                        (\y ->
-                            ( Range.combine [ Tuple.first x, y.range ]
-                            , AsPattern x y
-                            )
-                        )
+                    |> Combine.continueWith (Node.parser functionName)
+                    |> Combine.map (\y -> Node.combine AsPattern x y)
                 , Combine.fromCore (Core.symbol "::")
                     |> Combine.ignore (maybe Layout.layout)
                     |> Combine.continueWith pattern
-                    |> Combine.map
-                        (\y ->
-                            ( Range.combine [ Tuple.first x, Tuple.first y ]
-                            , UnConsPattern x y
-                            )
-                        )
+                    |> Combine.map (\y -> Node.combine UnConsPattern x y)
                 , Combine.succeed x
                 ]
             )
 
 
-pattern : Parser State (Ranged Pattern)
+pattern : Parser State (Node Pattern)
 pattern =
     composablePattern |> Combine.andThen tryToCompose
 
 
-parensPattern : Parser State (Ranged Pattern)
+parensPattern : Parser State (Node Pattern)
 parensPattern =
     Combine.lazy
         (\() ->
-            ranged
+            Node.parser
                 (parens (sepBy (string ",") (Layout.maybeAroundBothSides pattern))
                     |> Combine.map
                         (\c ->
@@ -67,9 +56,9 @@ parensPattern =
         )
 
 
-variablePart : Parser State (Ranged Pattern)
+variablePart : Parser State (Node Pattern)
 variablePart =
-    ranged (Combine.map VarPattern functionName)
+    Node.parser (Combine.map VarPattern functionName)
 
 
 numberPart : Parser State Pattern
@@ -77,11 +66,11 @@ numberPart =
     Elm.Parser.Numbers.number FloatPattern IntPattern HexPattern
 
 
-listPattern : Parser State (Ranged Pattern)
+listPattern : Parser State (Node Pattern)
 listPattern =
     lazy
         (\() ->
-            ranged <|
+            Node.parser <|
                 between
                     (string "[")
                     (string "]")
@@ -93,44 +82,44 @@ type alias ConsumeArgs =
     Bool
 
 
-composablePattern : Parser State (Ranged Pattern)
+composablePattern : Parser State (Node Pattern)
 composablePattern =
     Combine.choice
         [ variablePart
         , qualifiedPattern True
-        , ranged (stringLiteral |> Combine.map StringPattern)
-        , ranged (characterLiteral |> Combine.map CharPattern)
-        , ranged numberPart
-        , ranged (Core.symbol "()" |> Combine.fromCore |> Combine.map (always UnitPattern))
-        , ranged (Core.symbol "_" |> Combine.fromCore |> Combine.map (always AllPattern))
+        , Node.parser (stringLiteral |> Combine.map StringPattern)
+        , Node.parser (characterLiteral |> Combine.map CharPattern)
+        , Node.parser numberPart
+        , Node.parser (Core.symbol "()" |> Combine.fromCore |> Combine.map (always UnitPattern))
+        , Node.parser (Core.symbol "_" |> Combine.fromCore |> Combine.map (always AllPattern))
         , recordPart
         , listPattern
         , parensPattern
         ]
 
 
-qualifiedPatternArg : Parser State (Ranged Pattern)
+qualifiedPatternArg : Parser State (Node Pattern)
 qualifiedPatternArg =
     Combine.choice
         [ variablePart
         , qualifiedPattern False
-        , ranged (stringLiteral |> Combine.map StringPattern)
-        , ranged (characterLiteral |> Combine.map CharPattern)
-        , ranged numberPart
-        , ranged (Core.symbol "()" |> Combine.fromCore |> Combine.map (always UnitPattern))
-        , ranged (Core.symbol "_" |> Combine.fromCore |> Combine.map (always AllPattern))
+        , Node.parser (stringLiteral |> Combine.map StringPattern)
+        , Node.parser (characterLiteral |> Combine.map CharPattern)
+        , Node.parser numberPart
+        , Node.parser (Core.symbol "()" |> Combine.fromCore |> Combine.map (always UnitPattern))
+        , Node.parser (Core.symbol "_" |> Combine.fromCore |> Combine.map (always AllPattern))
         , recordPart
         , listPattern
         , parensPattern
         ]
 
 
-qualifiedPattern : ConsumeArgs -> Parser State ( Range, Pattern )
+qualifiedPattern : ConsumeArgs -> Parser State (Node Pattern)
 qualifiedPattern consumeArgs =
-    ranged Base.typeIndicator
+    Node.parser Base.typeIndicator
         |> Combine.ignore (maybe Layout.layout)
         |> Combine.andThen
-            (\( range, ( mod, name ) ) ->
+            (\(Node range ( mod, name )) ->
                 (if consumeArgs then
                     many (qualifiedPatternArg |> Combine.ignore (maybe Layout.layout))
 
@@ -139,22 +128,22 @@ qualifiedPattern consumeArgs =
                 )
                     |> Combine.map
                         (\args ->
-                            ( Range.combine (range :: List.map Tuple.first args)
-                            , NamedPattern (QualifiedNameRef mod name) args
-                            )
+                            Node
+                                (Range.combine (range :: List.map (\(Node r _) -> r) args))
+                                (NamedPattern (QualifiedNameRef mod name) args)
                         )
             )
 
 
-recordPart : Parser State (Ranged Pattern)
+recordPart : Parser State (Node Pattern)
 recordPart =
     lazy
         (\() ->
-            ranged
+            Node.parser
                 (Combine.map RecordPattern <|
                     between
                         (string "{" |> Combine.continueWith (maybe Layout.layout))
                         (maybe Layout.layout |> Combine.continueWith (string "}"))
-                        (sepBy1 (string ",") (Layout.maybeAroundBothSides (variablePointer functionName)))
+                        (sepBy1 (string ",") (Layout.maybeAroundBothSides (Node.parser functionName)))
                 )
         )

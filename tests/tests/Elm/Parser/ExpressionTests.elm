@@ -4,6 +4,7 @@ import Combine exposing (whitespace)
 import Elm.Parser.CombineTestUtil exposing (..)
 import Elm.Parser.Declarations exposing (..)
 import Elm.Syntax.Expression exposing (..)
+import Elm.Syntax.Node as Node exposing (Node(..))
 import Elm.Syntax.Range exposing (..)
 import Expect
 import Test exposing (..)
@@ -19,58 +20,58 @@ all =
         , test "String literal" <|
             \() ->
                 parseFullStringWithNullState "\"Bar\"" expression
-                    |> Maybe.map Tuple.second
+                    |> Maybe.map Node.value
                     |> Expect.equal (Just (Literal "Bar"))
         , test "character literal" <|
             \() ->
                 parseFullStringWithNullState "'c'" expression
-                    |> Maybe.map Tuple.second
+                    |> Maybe.map Node.value
                     |> Expect.equal (Just (CharLiteral 'c'))
         , test "tuple expression" <|
             \() ->
                 parseFullStringWithNullState "(1,2)" expression
                     |> Maybe.map noRangeExpression
-                    |> Maybe.map Tuple.second
-                    |> Expect.equal (Just (TupledExpression [ emptyRanged <| Integer 1, emptyRanged <| Integer 2 ]))
+                    |> Maybe.map Node.value
+                    |> Expect.equal (Just (TupledExpression [ Node emptyRange <| Integer 1, Node emptyRange <| Integer 2 ]))
         , test "prefix expression" <|
             \() ->
                 parseFullStringWithNullState "(,)" expression
-                    |> Maybe.map Tuple.second
+                    |> Maybe.map Node.value
                     |> Expect.equal (Just (PrefixOperator ","))
         , test "String literal multiline" <|
             \() ->
                 parseFullStringWithNullState "\"\"\"Bar foo \n a\"\"\"" expression
-                    |> Maybe.map Tuple.second
+                    |> Maybe.map Node.value
                     |> Expect.equal (Just (Literal "Bar foo \n a"))
         , test "Type expression for upper case" <|
             \() ->
                 parseFullStringWithNullState "Bar" expression
-                    |> Maybe.map Tuple.second
-                    |> Expect.equal (Just (FunctionOrValue "Bar"))
+                    |> Maybe.map Node.value
+                    |> Expect.equal (Just (FunctionOrValue [] "Bar"))
         , test "Type expression for lower case" <|
             \() ->
                 parseFullStringWithNullState "bar" expression
-                    |> Maybe.map Tuple.second
-                    |> Expect.equal (Just (FunctionOrValue "bar"))
+                    |> Maybe.map Node.value
+                    |> Expect.equal (Just (FunctionOrValue [] "bar"))
         , test "Type expression for lower case but qualified" <|
             \() ->
                 parseFullStringWithNullState "Bar.foo" expression
-                    |> Maybe.map Tuple.second
-                    |> Expect.equal (Just (QualifiedExpr [ "Bar" ] "foo"))
+                    |> Maybe.map Node.value
+                    |> Expect.equal (Just (FunctionOrValue [ "Bar" ] "foo"))
         , test "operator" <|
             \() ->
                 parseFullStringWithNullState "++" expression
-                    |> Maybe.map Tuple.second
+                    |> Maybe.map Node.value
                     |> Expect.equal (Just (Operator "++"))
         , test "parenthesizedExpression" <|
             \() ->
                 parseFullStringWithNullState "(bar)" expression
                     |> Maybe.map noRangeExpression
-                    |> Maybe.map Tuple.second
+                    |> Maybe.map Node.value
                     |> Expect.equal
                         (Just
                             (ParenthesizedExpression
-                                (emptyRanged <| FunctionOrValue "bar")
+                                (Node emptyRange <| FunctionOrValue [] "bar")
                             )
                         )
         , test "application expression" <|
@@ -78,11 +79,11 @@ all =
                 parseFullStringWithNullState "List.concat []" expression
                     |> Expect.equal
                         (Just
-                            ( { start = { row = 1, column = 1 }, end = { row = 1, column = 15 } }
-                            , Application
-                                [ ( { start = { row = 1, column = 1 }, end = { row = 1, column = 12 } }, QualifiedExpr [ "List" ] "concat" )
-                                , ( { start = { row = 1, column = 13 }, end = { row = 1, column = 15 } }, ListExpr [] )
-                                ]
+                            (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 15 } } <|
+                                Application
+                                    [ Node { start = { row = 1, column = 1 }, end = { row = 1, column = 12 } } <| FunctionOrValue [ "List" ] "concat"
+                                    , Node { start = { row = 1, column = 13 }, end = { row = 1, column = 15 } } <| ListExpr []
+                                    ]
                             )
                         )
         , test "application expression with operator" <|
@@ -90,14 +91,12 @@ all =
                 parseFullStringWithNullState "model + 1" expression
                     |> Expect.equal
                         (Just
-                            ( { end = { column = 10, row = 1 }
-                              , start = { column = 1, row = 1 }
-                              }
-                            , Application
-                                [ ( { end = { column = 6, row = 1 }, start = { column = 1, row = 1 } }, FunctionOrValue "model" )
-                                , ( { end = { column = 8, row = 1 }, start = { column = 7, row = 1 } }, Operator "+" )
-                                , ( { end = { column = 10, row = 1 }, start = { column = 9, row = 1 } }, Integer 1 )
-                                ]
+                            (Node (Range { column = 1, row = 1 } { column = 10, row = 1 }) <|
+                                Application
+                                    [ Node { end = { column = 6, row = 1 }, start = { column = 1, row = 1 } } <| FunctionOrValue [] "model"
+                                    , Node { end = { column = 8, row = 1 }, start = { column = 7, row = 1 } } <| Operator "+"
+                                    , Node { end = { column = 10, row = 1 }, start = { column = 9, row = 1 } } <| Integer 1
+                                    ]
                             )
                         )
         , test "application expression 2" <|
@@ -105,58 +104,51 @@ all =
                 parseFullStringWithNullState "(\"\", always (List.concat [ [ fileName ], [] ]))" expression
                     |> Expect.equal
                         (Just
-                            ( { start = { row = 1, column = 1 }, end = { row = 1, column = 48 } }
-                            , TupledExpression
-                                [ ( { start = { row = 1, column = 2 }, end = { row = 1, column = 4 } }, Literal "" )
-                                , ( { start = { row = 1, column = 6 }, end = { row = 1, column = 47 } }
-                                  , Application
-                                        [ ( { start = { row = 1, column = 6 }, end = { row = 1, column = 12 } }, FunctionOrValue "always" )
-                                        , ( { start = { row = 1, column = 13 }, end = { row = 1, column = 47 } }
-                                          , ParenthesizedExpression
-                                                ( { start = { row = 1, column = 14 }, end = { row = 1, column = 46 } }
-                                                , Application
-                                                    [ ( { start = { row = 1, column = 14 }, end = { row = 1, column = 25 } }
-                                                      , QualifiedExpr [ "List" ] "concat"
-                                                      )
-                                                    , ( { start = { row = 1, column = 26 }, end = { row = 1, column = 46 } }
-                                                      , ListExpr
-                                                            [ ( { start = { row = 1, column = 28 }, end = { row = 1, column = 40 } }
-                                                              , ListExpr
-                                                                    [ ( { start = { row = 1, column = 30 }, end = { row = 1, column = 38 } }
-                                                                      , FunctionOrValue "fileName"
-                                                                      )
+                            (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 48 } } <|
+                                TupledExpression
+                                    [ Node { start = { row = 1, column = 2 }, end = { row = 1, column = 4 } } <| Literal ""
+                                    , Node { start = { row = 1, column = 6 }, end = { row = 1, column = 47 } } <|
+                                        Application
+                                            [ Node { start = { row = 1, column = 6 }, end = { row = 1, column = 12 } } <| FunctionOrValue [] "always"
+                                            , Node { start = { row = 1, column = 13 }, end = { row = 1, column = 47 } } <|
+                                                ParenthesizedExpression
+                                                    (Node { start = { row = 1, column = 14 }, end = { row = 1, column = 46 } } <|
+                                                        Application
+                                                            [ Node { start = { row = 1, column = 14 }, end = { row = 1, column = 25 } } <|
+                                                                FunctionOrValue [ "List" ] "concat"
+                                                            , Node { start = { row = 1, column = 26 }, end = { row = 1, column = 46 } } <|
+                                                                ListExpr
+                                                                    [ Node { start = { row = 1, column = 28 }, end = { row = 1, column = 40 } } <|
+                                                                        ListExpr
+                                                                            [ Node { start = { row = 1, column = 30 }, end = { row = 1, column = 38 } } <|
+                                                                                FunctionOrValue [] "fileName"
+                                                                            ]
+                                                                    , Node { start = { row = 1, column = 42 }, end = { row = 1, column = 44 } } <|
+                                                                        ListExpr []
                                                                     ]
-                                                              )
-                                                            , ( { start = { row = 1, column = 42 }, end = { row = 1, column = 44 } }
-                                                              , ListExpr []
-                                                              )
                                                             ]
-                                                      )
-                                                    ]
-                                                )
-                                          )
-                                        ]
-                                  )
-                                ]
+                                                    )
+                                            ]
+                                    ]
                             )
                         )
         , test "expressionNotApplication simple" <|
             \() ->
                 parseFullStringWithNullState "foo" expression
                     |> Maybe.map noRangeExpression
-                    |> Maybe.map Tuple.second
-                    |> Expect.equal (Just (FunctionOrValue "foo"))
+                    |> Maybe.map Node.value
+                    |> Expect.equal (Just (FunctionOrValue [] "foo"))
         , test "unit application" <|
             \() ->
                 parseFullStringWithNullState "Task.succeed ()" expression
                     |> Maybe.map noRangeExpression
-                    |> Maybe.map Tuple.second
+                    |> Maybe.map Node.value
                     |> Expect.equal
                         (Just
                             (Application
-                                [ emptyRanged <|
-                                    QualifiedExpr [ "Task" ] "succeed"
-                                , emptyRanged <| UnitExpr
+                                [ Node emptyRange <|
+                                    FunctionOrValue [ "Task" ] "succeed"
+                                , Node emptyRange <| UnitExpr
                                 ]
                             )
                         )
@@ -164,12 +156,12 @@ all =
             \() ->
                 parseFullStringWithNullState "foo bar" expression
                     |> Maybe.map noRangeExpression
-                    |> Maybe.map Tuple.second
+                    |> Maybe.map Node.value
                     |> Expect.equal
                         (Just
                             (Application
-                                [ emptyRanged <| FunctionOrValue "foo"
-                                , emptyRanged <| FunctionOrValue "bar"
+                                [ Node emptyRange <| FunctionOrValue [] "foo"
+                                , Node emptyRange <| FunctionOrValue [] "bar"
                                 ]
                             )
                         )
@@ -177,13 +169,13 @@ all =
             \() ->
                 parseFullStringWithNullState "{ key = value } ! []" expression
                     |> Maybe.map noRangeExpression
-                    |> Maybe.map Tuple.second
+                    |> Maybe.map Node.value
                     |> Expect.equal
                         (Just
                             (Application
-                                [ emptyRanged <| RecordExpr [ ( "key", emptyRanged <| FunctionOrValue "value" ) ]
-                                , emptyRanged <| Operator "!"
-                                , emptyRanged <| ListExpr []
+                                [ Node emptyRange <| RecordExpr [ Node emptyRange ( Node emptyRange "key", Node emptyRange <| FunctionOrValue [] "value" ) ]
+                                , Node emptyRange <| Operator "!"
+                                , Node emptyRange <| ListExpr []
                                 ]
                             )
                         )
@@ -191,44 +183,44 @@ all =
             \() ->
                 parseFullStringWithNullState "if True then foo else bar" expression
                     |> Maybe.map noRangeExpression
-                    |> Maybe.map Tuple.second
+                    |> Maybe.map Node.value
                     |> Expect.equal
                         (Just
                             (IfBlock
-                                (emptyRanged <| FunctionOrValue "True")
-                                (emptyRanged <| FunctionOrValue "foo")
-                                (emptyRanged <| FunctionOrValue "bar")
+                                (Node emptyRange <| FunctionOrValue [] "True")
+                                (Node emptyRange <| FunctionOrValue [] "foo")
+                                (Node emptyRange <| FunctionOrValue [] "bar")
                             )
                         )
         , test "nestedIfExpression" <|
             \() ->
                 parseFullStringWithNullState "if True then if False then foo else baz else bar" expression
                     |> Maybe.map noRangeExpression
-                    |> Maybe.map Tuple.second
+                    |> Maybe.map Node.value
                     |> Expect.equal
                         (Just
                             (IfBlock
-                                (emptyRanged <| FunctionOrValue "True")
-                                (emptyRanged <|
+                                (Node emptyRange <| FunctionOrValue [] "True")
+                                (Node emptyRange <|
                                     IfBlock
-                                        (emptyRanged <| FunctionOrValue "False")
-                                        (emptyRanged <| FunctionOrValue "foo")
-                                        (emptyRanged <| FunctionOrValue "baz")
+                                        (Node emptyRange <| FunctionOrValue [] "False")
+                                        (Node emptyRange <| FunctionOrValue [] "foo")
+                                        (Node emptyRange <| FunctionOrValue [] "baz")
                                 )
-                                (emptyRanged <| FunctionOrValue "bar")
+                                (Node emptyRange <| FunctionOrValue [] "bar")
                             )
                         )
         , test "recordExpression" <|
             \() ->
                 parseFullStringWithNullState "{ model = 0, view = view, update = update }" expression
                     |> Maybe.map noRangeExpression
-                    |> Maybe.map Tuple.second
+                    |> Maybe.map Node.value
                     |> Expect.equal
                         (Just
                             (RecordExpr
-                                [ ( "model", emptyRanged <| Integer 0 )
-                                , ( "view", emptyRanged <| FunctionOrValue "view" )
-                                , ( "update", emptyRanged <| FunctionOrValue "update" )
+                                [ Node emptyRange ( Node emptyRange "model", Node emptyRange <| Integer 0 )
+                                , Node emptyRange ( Node emptyRange "view", Node emptyRange <| FunctionOrValue [] "view" )
+                                , Node emptyRange ( Node emptyRange "update", Node emptyRange <| FunctionOrValue [] "update" )
                                 ]
                             )
                         )
@@ -236,12 +228,12 @@ all =
             \() ->
                 parseFullStringWithNullState "{ foo = 1 -- bar\n , baz = 2 }" expression
                     |> Maybe.map noRangeExpression
-                    |> Maybe.map Tuple.second
+                    |> Maybe.map Node.value
                     |> Expect.equal
                         (Just
                             (RecordExpr
-                                [ ( "foo", emptyRanged <| Integer 1 )
-                                , ( "baz", emptyRanged <| Integer 2 )
+                                [ Node emptyRange ( Node emptyRange "foo", Node emptyRange <| Integer 1 )
+                                , Node emptyRange ( Node emptyRange "baz", Node emptyRange <| Integer 2 )
                                 ]
                             )
                         )
@@ -249,12 +241,12 @@ all =
             \() ->
                 parseFullStringWithNullState "[ class \"a\", text \"Foo\"]" expression
                     |> Maybe.map noRangeExpression
-                    |> Maybe.map Tuple.second
+                    |> Maybe.map Node.value
                     |> Expect.equal
                         (Just
                             (ListExpr
-                                [ emptyRanged <| Application [ emptyRanged <| FunctionOrValue "class", emptyRanged <| Literal "a" ]
-                                , emptyRanged <| Application [ emptyRanged <| FunctionOrValue "text", emptyRanged <| Literal "Foo" ]
+                                [ Node emptyRange <| Application [ Node emptyRange <| FunctionOrValue [] "class", Node emptyRange <| Literal "a" ]
+                                , Node emptyRange <| Application [ Node emptyRange <| FunctionOrValue [] "text", Node emptyRange <| Literal "Foo" ]
                                 ]
                             )
                         )
@@ -262,13 +254,11 @@ all =
             \() ->
                 parseFullStringWithNullState "[ 1 {- Foo-} ]" expression
                     |> Maybe.map noRangeExpression
-                    |> Maybe.map Tuple.second
+                    |> Maybe.map Node.value
                     |> Expect.equal
                         (Just
                             (ListExpr
-                                [ ( emptyRange
-                                  , Integer 1
-                                  )
+                                [ Node emptyRange <| Integer 1
                                 ]
                             )
                         )
@@ -276,85 +266,77 @@ all =
             \() ->
                 parseFullStringWithNullState "[{-| Foo -}]" expression
                     |> Maybe.map noRangeExpression
-                    |> Maybe.map Tuple.second
+                    |> Maybe.map Node.value
                     |> Expect.equal (Just (ListExpr []))
         , test "qualified expression" <|
             \() ->
                 parseFullStringWithNullState "Html.text" expression
-                    |> Maybe.map Tuple.second
+                    |> Maybe.map Node.value
                     |> Expect.equal
                         (Just
-                            (QualifiedExpr [ "Html" ]
-                                "text"
-                            )
+                            (FunctionOrValue [ "Html" ] "text")
                         )
         , test "record access" <|
             \() ->
                 parseFullStringWithNullState "foo.bar" expression
                     |> Maybe.map noRangeExpression
-                    |> Maybe.map Tuple.second
-                    |> Expect.equal (Just (RecordAccess ( emptyRange, FunctionOrValue "foo" ) "bar"))
+                    |> Maybe.map Node.value
+                    |> Expect.equal (Just (RecordAccess (Node emptyRange <| FunctionOrValue [] "foo") (Node emptyRange "bar")))
         , test "record access multiple" <|
             \() ->
                 parseFullStringWithNullState "foo.bar.baz" expression
                     |> Maybe.map noRangeExpression
-                    |> Maybe.map Tuple.second
+                    |> Maybe.map Node.value
                     |> Expect.equal
                         (Just
                             (RecordAccess
-                                ( emptyRange
-                                , RecordAccess
-                                    ( emptyRange
-                                    , FunctionOrValue "foo"
-                                    )
-                                    "bar"
+                                (Node emptyRange <|
+                                    RecordAccess
+                                        (Node emptyRange <| FunctionOrValue [] "foo")
+                                        (Node emptyRange "bar")
                                 )
-                                "baz"
+                                (Node emptyRange "baz")
                             )
                         )
         , test "record update" <|
             \() ->
                 parseFullStringWithNullState "{ model | count = 1, loading = True }" expression
                     |> Maybe.map noRangeExpression
-                    |> Maybe.map Tuple.second
+                    |> Maybe.map Node.value
                     |> Expect.equal
                         (Just
                             (RecordUpdateExpression
-                                { name = "model"
-                                , updates =
-                                    [ ( "count", emptyRanged <| Integer 1 )
-                                    , ( "loading", emptyRanged <| FunctionOrValue "True" )
-                                    ]
-                                }
+                                (Node emptyRange "model")
+                                [ Node emptyRange ( Node emptyRange "count", Node emptyRange <| Integer 1 )
+                                , Node emptyRange ( Node emptyRange "loading", Node emptyRange <| FunctionOrValue [] "True" )
+                                ]
                             )
                         )
         , test "record update no spacing" <|
             \() ->
                 parseFullStringWithNullState "{model| count = 1, loading = True }" expression
                     |> Maybe.map noRangeExpression
-                    |> Maybe.map Tuple.second
+                    |> Maybe.map Node.value
                     |> Expect.equal
                         (Just
                             (RecordUpdateExpression
-                                { name = "model"
-                                , updates =
-                                    [ ( "count", emptyRanged <| Integer 1 )
-                                    , ( "loading", emptyRanged <| FunctionOrValue "True" )
-                                    ]
-                                }
+                                (Node emptyRange "model")
+                                [ Node emptyRange ( Node emptyRange "count", Node emptyRange <| Integer 1 )
+                                , Node emptyRange ( Node emptyRange "loading", Node emptyRange <| FunctionOrValue [] "True" )
+                                ]
                             )
                         )
         , test "record access as function" <|
             \() ->
                 parseFullStringWithNullState "List.map .name people" expression
                     |> Maybe.map noRangeExpression
-                    |> Maybe.map Tuple.second
+                    |> Maybe.map Node.value
                     |> Expect.equal
                         (Just
                             (Application
-                                [ emptyRanged <| QualifiedExpr [ "List" ] "map"
-                                , emptyRanged <| RecordAccessFunction ".name"
-                                , emptyRanged <| FunctionOrValue "people"
+                                [ Node emptyRange <| FunctionOrValue [ "List" ] "map"
+                                , Node emptyRange <| RecordAccessFunction ".name"
+                                , Node emptyRange <| FunctionOrValue [] "people"
                                 ]
                             )
                         )
@@ -362,15 +344,15 @@ all =
             \() ->
                 parseFullStringWithNullState "(.spaceEvenly Internal.Style.classes)" expression
                     |> Maybe.map noRangeExpression
-                    |> Maybe.map Tuple.second
+                    |> Maybe.map Node.value
                     |> Expect.equal
                         (Just
                             (ParenthesizedExpression
-                                ( emptyRange
-                                , Application
-                                    [ ( emptyRange, RecordAccessFunction ".spaceEvenly" )
-                                    , ( emptyRange, QualifiedExpr [ "Internal", "Style" ] "classes" )
-                                    ]
+                                (Node emptyRange <|
+                                    Application
+                                        [ Node emptyRange <| RecordAccessFunction ".spaceEvenly"
+                                        , Node emptyRange <| FunctionOrValue [ "Internal", "Style" ] "classes"
+                                        ]
                                 )
                             )
                         )
@@ -378,30 +360,30 @@ all =
             \() ->
                 parseFullStringWithNullState "(::) x" expression
                     |> Maybe.map noRangeExpression
-                    |> Maybe.map Tuple.second
+                    |> Maybe.map Node.value
                     |> Expect.equal
                         (Just <|
                             Application
-                                [ emptyRanged <| PrefixOperator "::"
-                                , emptyRanged <| FunctionOrValue "x"
+                                [ Node emptyRange <| PrefixOperator "::"
+                                , Node emptyRange <| FunctionOrValue [] "x"
                                 ]
                         )
         , test "negated expression for value" <|
             \() ->
                 parseFullStringWithNullState "-x" expression
                     |> Maybe.map noRangeExpression
-                    |> Maybe.map Tuple.second
-                    |> Expect.equal (Just (Negation (emptyRanged <| FunctionOrValue "x")))
+                    |> Maybe.map Node.value
+                    |> Expect.equal (Just (Negation (Node emptyRange <| FunctionOrValue [] "x")))
         , test "negated expression in application" <|
             \() ->
                 parseFullStringWithNullState "toFloat -5" expression
                     |> Maybe.map noRangeExpression
-                    |> Maybe.map Tuple.second
+                    |> Maybe.map Node.value
                     |> Expect.equal
                         (Just
                             (Application
-                                [ emptyRanged <| FunctionOrValue "toFloat"
-                                , emptyRanged <| Negation (emptyRanged <| Integer 5)
+                                [ Node emptyRange <| FunctionOrValue [] "toFloat"
+                                , Node emptyRange <| Negation (Node emptyRange <| Integer 5)
                                 ]
                             )
                         )
@@ -409,19 +391,19 @@ all =
             \() ->
                 parseFullStringWithNullState "-(x - y)" expression
                     |> Maybe.map noRangeExpression
-                    |> Maybe.map Tuple.second
+                    |> Maybe.map Node.value
                     |> Expect.equal
                         (Just
                             (Negation
-                                ( emptyRange
-                                , ParenthesizedExpression
-                                    ( emptyRange
-                                    , Application
-                                        [ ( emptyRange, FunctionOrValue "x" )
-                                        , ( emptyRange, Operator "-" )
-                                        , ( emptyRange, FunctionOrValue "y" )
-                                        ]
-                                    )
+                                (Node emptyRange <|
+                                    ParenthesizedExpression
+                                        (Node emptyRange <|
+                                            Application
+                                                [ Node emptyRange <| FunctionOrValue [] "x"
+                                                , Node emptyRange <| Operator "-"
+                                                , Node emptyRange <| FunctionOrValue [] "y"
+                                                ]
+                                        )
                                 )
                             )
                         )

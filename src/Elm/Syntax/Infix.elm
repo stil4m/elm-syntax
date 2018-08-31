@@ -16,8 +16,8 @@ module Elm.Syntax.Infix exposing
 
 -}
 
+import Elm.Syntax.Node as Node exposing (Node)
 import Elm.Syntax.Range as Range
-import Elm.Syntax.Ranged exposing (Ranged)
 import Json.Decode as JD exposing (Decoder)
 import Json.Encode as JE exposing (Value)
 
@@ -25,10 +25,10 @@ import Json.Encode as JE exposing (Value)
 {-| Type annotation for a infix definition
 -}
 type alias Infix =
-    { direction : Ranged InfixDirection
-    , precedence : Ranged Int
-    , operator : Ranged String
-    , function : Ranged String
+    { direction : Node InfixDirection
+    , precedence : Node Int
+    , operator : Node String
+    , function : Node String
     }
 
 
@@ -45,30 +45,10 @@ type InfixDirection
 encode : Infix -> Value
 encode inf =
     JE.object
-        [ ( "direction"
-          , JE.object
-                [ ( "range", Range.encode <| Tuple.first inf.direction )
-                , ( "value", encodeDirection <| Tuple.second inf.direction )
-                ]
-          )
-        , ( "precedence"
-          , JE.object
-                [ ( "range", Range.encode <| Tuple.first inf.precedence )
-                , ( "value", JE.int <| Tuple.second inf.precedence )
-                ]
-          )
-        , ( "operator"
-          , JE.object
-                [ ( "range", Range.encode <| Tuple.first inf.operator )
-                , ( "value", JE.string <| Tuple.second inf.operator )
-                ]
-          )
-        , ( "function"
-          , JE.object
-                [ ( "range", Range.encode <| Tuple.first inf.function )
-                , ( "value", JE.string <| Tuple.second inf.function )
-                ]
-          )
+        [ ( "direction", Node.encode encodeDirection inf.direction )
+        , ( "precedence", Node.encode JE.int inf.precedence )
+        , ( "operator", Node.encode JE.string inf.operator )
+        , ( "function", Node.encode JE.string inf.function )
         ]
 
 
@@ -87,22 +67,15 @@ encodeDirection d =
             JE.string "non"
 
 
-decodeRanged : Decoder a -> Decoder (Ranged a)
-decodeRanged sub =
-    JD.map2 Tuple.pair
-        (JD.field "range" Range.decode)
-        (JD.field "value" sub)
-
-
 {-| Decode an infix
 -}
 decode : Decoder Infix
 decode =
     JD.map4 Infix
-        (JD.field "direction" (decodeRanged decodeDirection))
-        (JD.field "precedence" (decodeRanged JD.int))
-        (JD.field "operator" (decodeRanged JD.string))
-        (JD.field "function" (decodeRanged JD.string))
+        (JD.field "direction" (Node.decoder decodeDirection))
+        (JD.field "precedence" (Node.decoder JD.int))
+        (JD.field "operator" (Node.decoder JD.string))
+        (JD.field "function" (Node.decoder JD.string))
 
 
 {-| Decode a infix direction

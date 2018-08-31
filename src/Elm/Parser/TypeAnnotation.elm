@@ -3,11 +3,12 @@ module Elm.Parser.TypeAnnotation exposing (typeAnnotation, typeAnnotationNonGree
 import Combine exposing (..)
 import Elm.Parser.Base exposing (typeIndicator)
 import Elm.Parser.Layout as Layout
-import Elm.Parser.Ranges exposing (ranged)
+import Elm.Parser.Node as Node
+import Elm.Parser.Ranges
 import Elm.Parser.State exposing (State)
 import Elm.Parser.Tokens exposing (functionName)
+import Elm.Syntax.Node as Node exposing (Node(..))
 import Elm.Syntax.Range as Range
-import Elm.Syntax.Ranged exposing (Ranged)
 import Elm.Syntax.TypeAnnotation exposing (..)
 
 
@@ -16,7 +17,7 @@ type Mode
     | Lazy
 
 
-typeAnnotation : Parser State (Ranged TypeAnnotation)
+typeAnnotation : Parser State (Node TypeAnnotation)
 typeAnnotation =
     lazy
         (\() ->
@@ -27,7 +28,7 @@ typeAnnotation =
                             (\() -> succeed typeRef)
                             (\() ->
                                 or
-                                    (Combine.map (\ta -> ( Range.combine [ Tuple.first typeRef, Tuple.first ta ], FunctionTypeAnnotation typeRef ta ))
+                                    (Combine.map (\ta -> Node.combine FunctionTypeAnnotation typeRef ta)
                                         (string "->"
                                             |> Combine.ignore (maybe Layout.layout)
                                             |> Combine.continueWith typeAnnotation
@@ -39,7 +40,7 @@ typeAnnotation =
         )
 
 
-typeAnnotationNonGreedy : Parser State (Ranged TypeAnnotation)
+typeAnnotationNonGreedy : Parser State (Node TypeAnnotation)
 typeAnnotationNonGreedy =
     choice
         [ parensTypeAnnotation
@@ -49,7 +50,7 @@ typeAnnotationNonGreedy =
         ]
 
 
-typeAnnotationNoFn : Mode -> Parser State (Ranged TypeAnnotation)
+typeAnnotationNoFn : Mode -> Parser State (Node TypeAnnotation)
 typeAnnotationNoFn mode =
     lazy
         (\() ->
@@ -62,12 +63,12 @@ typeAnnotationNoFn mode =
         )
 
 
-parensTypeAnnotation : Parser State (Ranged TypeAnnotation)
+parensTypeAnnotation : Parser State (Node TypeAnnotation)
 parensTypeAnnotation =
     lazy
         (\() ->
             let
-                commaSep : Parser State (List (Ranged TypeAnnotation))
+                commaSep : Parser State (List (Node TypeAnnotation))
                 commaSep =
                     many
                         (string ","
@@ -84,7 +85,7 @@ parensTypeAnnotation =
                         |> Combine.ignore (maybe Layout.layout)
                         |> Combine.andMap commaSep
             in
-            ranged
+            Node.parser
                 (Combine.string "("
                     |> Combine.continueWith
                         (Combine.choice
@@ -96,30 +97,30 @@ parensTypeAnnotation =
         )
 
 
-asTypeAnnotation : Ranged TypeAnnotation -> List (Ranged TypeAnnotation) -> TypeAnnotation
-asTypeAnnotation x xs =
+asTypeAnnotation : Node TypeAnnotation -> List (Node TypeAnnotation) -> TypeAnnotation
+asTypeAnnotation ((Node range value) as x) xs =
     case xs of
         [] ->
-            Tuple.second x
+            value
 
         _ ->
             Tupled (x :: xs)
 
 
-genericTypeAnnotation : Parser State (Ranged TypeAnnotation)
+genericTypeAnnotation : Parser State (Node TypeAnnotation)
 genericTypeAnnotation =
     lazy
         (\() ->
-            ranged (Combine.map GenericType functionName)
+            Node.parser (Combine.map GenericType functionName)
         )
 
 
 recordFieldsTypeAnnotation : Parser State RecordDefinition
 recordFieldsTypeAnnotation =
-    lazy (\() -> sepBy (string ",") (Layout.maybeAroundBothSides recordFieldDefinition))
+    lazy (\() -> sepBy (string ",") (Layout.maybeAroundBothSides <| Node.parser recordFieldDefinition))
 
 
-recordTypeAnnotation : Parser State (Ranged TypeAnnotation)
+recordTypeAnnotation : Parser State (Node TypeAnnotation)
 recordTypeAnnotation =
     lazy
         (\() ->
@@ -129,7 +130,7 @@ recordTypeAnnotation =
                     Combine.succeed (\a b -> ( a, b ))
                         |> Combine.ignore (Combine.string ",")
                         |> Combine.ignore (maybe Layout.layout)
-                        |> Combine.andMap functionName
+                        |> Combine.andMap (Node.parser functionName)
                         |> Combine.ignore (maybe Layout.layout)
                         |> Combine.ignore (string ":")
                         |> Combine.ignore (maybe Layout.layout)
@@ -139,25 +140,25 @@ recordTypeAnnotation =
                 additionalRecordFields : RecordDefinition -> Parser State RecordDefinition
                 additionalRecordFields items =
                     Combine.choice
-                        [ nextField
+                        [ Node.parser nextField
                             |> Combine.andThen (\next -> additionalRecordFields (next :: items))
                         , Combine.succeed (List.reverse items)
                         ]
             in
-            ranged
+            Node.parser
                 (string "{"
                     |> Combine.ignore (maybe Layout.layout)
                     |> Combine.continueWith
                         (Combine.choice
                             [ Combine.string "}" |> Combine.continueWith (Combine.succeed (Record []))
-                            , functionName
+                            , Node.parser functionName
                                 |> Combine.ignore (maybe Layout.layout)
                                 |> Combine.andThen
                                     (\fname ->
                                         Combine.choice
                                             [ Combine.succeed (GenericRecord fname)
                                                 |> Combine.ignore (Combine.string "|")
-                                                |> Combine.andMap recordFieldsTypeAnnotation
+                                                |> Combine.andMap (Node.parser recordFieldsTypeAnnotation)
                                                 |> Combine.ignore (Combine.string "}")
                                             , Combine.string ":"
                                                 |> Combine.ignore (maybe Layout.layout)
@@ -165,7 +166,7 @@ recordTypeAnnotation =
                                                 |> Combine.ignore (maybe Layout.layout)
                                                 |> Combine.andThen
                                                     (\ta ->
-                                                        additionalRecordFields [ ( fname, ta ) ]
+                                                        additionalRecordFields [ Node.combine Tuple.pair fname ta ]
                                                             |> Combine.map Record
                                                     )
                                                 |> Combine.ignore (Combine.string "}")
@@ -181,8 +182,8 @@ recordFieldDefinition : Parser State RecordField
 recordFieldDefinition =
     lazy
         (\() ->
-            succeed (\a b -> ( a, b ))
-                |> Combine.andMap (maybe Layout.layout |> Combine.continueWith functionName)
+            succeed Tuple.pair
+                |> Combine.andMap (maybe Layout.layout |> Combine.continueWith (Node.parser functionName))
                 |> Combine.andMap
                     (maybe Layout.layout
                         |> Combine.continueWith (string ":")
@@ -192,12 +193,12 @@ recordFieldDefinition =
         )
 
 
-typedTypeAnnotation : Mode -> Parser State (Ranged TypeAnnotation)
+typedTypeAnnotation : Mode -> Parser State (Node TypeAnnotation)
 typedTypeAnnotation mode =
     lazy
         (\() ->
             let
-                genericHelper : List (Ranged TypeAnnotation) -> Parser State (List (Ranged TypeAnnotation))
+                genericHelper : List (Node TypeAnnotation) -> Parser State (List (Node TypeAnnotation))
                 genericHelper items =
                     or
                         (typeAnnotationNoFn Lazy
@@ -210,25 +211,28 @@ typedTypeAnnotation mode =
                                 )
                         )
                         (Combine.succeed (List.reverse items))
+
+                nodeRanges =
+                    List.map (\(Node r _) -> r)
             in
-            ranged typeIndicator
+            Node.parser typeIndicator
                 |> Combine.andThen
-                    (\( tir, ( m, fn ) ) ->
+                    (\((Node tir ( m, fn )) as original) ->
                         Layout.optimisticLayoutWith
-                            (\() -> Combine.succeed ( tir, Typed m fn [] ))
+                            (\() -> Combine.succeed (Node tir (Typed original [])))
                             (\() ->
                                 case mode of
                                     Eager ->
-                                        genericHelper []
-                                            |> Combine.map
-                                                (\args ->
-                                                    ( Range.combine (tir :: List.map Tuple.first args)
-                                                    , Typed m fn args
-                                                    )
-                                                )
+                                        Combine.map
+                                            (\args ->
+                                                Node
+                                                    (Range.combine (tir :: nodeRanges args))
+                                                    (Typed original args)
+                                            )
+                                            (genericHelper [])
 
                                     Lazy ->
-                                        Combine.succeed ( tir, Typed m fn [] )
+                                        Combine.succeed (Node tir (Typed original []))
                             )
                     )
         )

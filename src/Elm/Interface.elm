@@ -8,6 +8,9 @@ module Elm.Interface exposing
 
 # Elm.Interface
 
+A type that represents the interface for an Elm module.
+You can see this as a trimmed down version for of a file that only caontains the header (`module X exposing (..)`) and some small set of additional data.
+
 
 ## Types
 
@@ -26,26 +29,33 @@ import Elm.Syntax.Exposing exposing (Exposing(..), TopLevelExpose(..))
 import Elm.Syntax.File exposing (File)
 import Elm.Syntax.Infix exposing (Infix, InfixDirection(..))
 import Elm.Syntax.Module as Module
-import Elm.Syntax.Ranged exposing (Ranged)
+import Elm.Syntax.Node as Node exposing (Node(..))
 import List.Extra
 
 
-{-| An interface
+{-| An interface is just a list of 'things' that are exposed by a module.
+
+    [ Type "Color" [ "Red", "Blue" ], Function "asRgb" ]
+
 -}
 type alias Interface =
     List Exposed
 
 
-{-| Union type for the things that a module can expose
+{-| Union type for the things that a module can expose. These are `Function`s, `CustomType`s, and `Alias`es.
+
+Elm core packages can also define `Operator`s, and thus we take that into account as well.
+The `Infix` type alias will contain all the information regarding the operator
+
 -}
 type Exposed
     = Function String
-    | Type ( String, List String )
+    | CustomType ( String, List String )
     | Alias String
     | Operator Infix
 
 
-{-| Interface property whether a certain alias is exposed.
+{-| A function to check whether an `Interface` exposes an certain type alias.
 -}
 exposesAlias : String -> Interface -> Bool
 exposesAlias k interface =
@@ -61,7 +71,13 @@ exposesAlias k interface =
             )
 
 
-{-| Interface property whether a certain function is exposed.
+{-| Check whether an `Interface` exposes an function.
+
+    exposesFunction "A" [ Function "A", CustomType "B", [ "C" ] ] == True
+    exposesFunction "B" [ Function "A", CustomType "B", [ "C" ] ] == False
+    exposesFunction "<" [ Infix { operator = "<" , ... } ] == True
+    exposesFunction "A" [ Alias "A" ] == False
+
 -}
 exposesFunction : String -> Interface -> Bool
 exposesFunction k interface =
@@ -72,18 +88,18 @@ exposesFunction k interface =
                     Function l ->
                         k == l
 
-                    Type ( _, constructors ) ->
+                    CustomType ( _, constructors ) ->
                         List.member k constructors
 
                     Operator inf ->
-                        Tuple.second inf.operator == k
+                        Node.value inf.operator == k
 
                     Alias _ ->
                         False
             )
 
 
-{-| Retrieve all infix operators exposed
+{-| Retrieve all operators exposed by the `Interface`
 -}
 operators : Interface -> List Infix
 operators =
@@ -105,16 +121,13 @@ build (Raw file) =
     let
         fileDefinitionList =
             fileToDefinitions file
-
-        moduleExposing =
-            Module.exposingList file.moduleDefinition
     in
-    case moduleExposing of
+    case Module.exposingList (Node.value file.moduleDefinition) of
         Explicit x ->
             buildInterfaceFromExplicit x fileDefinitionList
 
         All _ ->
-            fileDefinitionList |> List.map Tuple.second
+            List.map Tuple.second fileDefinitionList
 
 
 lookupForDefinition : String -> List ( String, Exposed ) -> Maybe Exposed
@@ -122,18 +135,18 @@ lookupForDefinition key =
     List.filter (Tuple.first >> (==) key) >> List.head >> Maybe.map Tuple.second
 
 
-buildInterfaceFromExplicit : List (Ranged TopLevelExpose) -> List ( String, Exposed ) -> Interface
+buildInterfaceFromExplicit : List (Node TopLevelExpose) -> List ( String, Exposed ) -> Interface
 buildInterfaceFromExplicit x fileDefinitionList =
     x
         |> List.filterMap
-            (\( _, expose ) ->
+            (\(Node _ expose) ->
                 case expose of
                     InfixExpose k ->
                         lookupForDefinition k fileDefinitionList
 
                     TypeOrAliasExpose s ->
                         lookupForDefinition s fileDefinitionList
-                            |> Maybe.map (ifType (\( name, _ ) -> Type ( name, [] )))
+                            |> Maybe.map (ifCustomType (\( name, _ ) -> CustomType ( name, [] )))
 
                     FunctionExpose s ->
                         Just <| Function s
@@ -141,17 +154,17 @@ buildInterfaceFromExplicit x fileDefinitionList =
                     TypeExpose exposedType ->
                         case exposedType.open of
                             Nothing ->
-                                Just <| Type ( exposedType.name, [] )
+                                Just <| CustomType ( exposedType.name, [] )
 
                             Just _ ->
                                 lookupForDefinition exposedType.name fileDefinitionList
             )
 
 
-ifType : (( String, List String ) -> Exposed) -> Exposed -> Exposed
-ifType f i =
+ifCustomType : (( String, List String ) -> Exposed) -> Exposed -> Exposed
+ifCustomType f i =
     case i of
-        Type t ->
+        CustomType t ->
             f t
 
         _ ->
@@ -164,22 +177,29 @@ fileToDefinitions file =
         allDeclarations =
             file.declarations
                 |> List.filterMap
-                    (\( _, decl ) ->
+                    (\(Node _ decl) ->
                         case decl of
-                            TypeDecl t ->
-                                Just ( t.name, Type ( t.name, t.constructors |> List.map .name ) )
+                            CustomTypeDeclaration t ->
+                                Just ( Node.value t.name, CustomType ( Node.value t.name, t.constructors |> List.map (Node.value >> .name >> Node.value) ) )
 
-                            AliasDecl a ->
-                                Just ( a.name, Alias a.name )
+                            AliasDeclaration a ->
+                                Just ( Node.value a.name, Alias <| Node.value a.name )
 
                             PortDeclaration p ->
-                                Just ( p.name.value, Function p.name.value )
+                                Just ( Node.value p.name, Function (Node.value p.name) )
 
-                            FuncDecl f ->
-                                Just ( f.declaration.name.value, Function f.declaration.name.value )
+                            FunctionDeclaration f ->
+                                let
+                                    declaration =
+                                        Node.value f.declaration
+
+                                    name =
+                                        Node.value declaration.name
+                                in
+                                Just ( name, Function <| name )
 
                             InfixDeclaration i ->
-                                Just ( Tuple.second i.operator, Operator i )
+                                Just ( Node.value i.operator, Operator i )
 
                             Destructuring _ _ ->
                                 Nothing
@@ -189,7 +209,7 @@ fileToDefinitions file =
         getValidOperatorInterface t1 t2 =
             case ( t1, t2 ) of
                 ( Operator x, Operator y ) ->
-                    if Tuple.second x.precedence == 5 && Tuple.second x.direction == Left then
+                    if Node.value x.precedence == 5 && Node.value x.direction == Left then
                         Just <| Operator y
 
                     else

@@ -3,6 +3,7 @@ module Elm.Parser.LayoutTests exposing (all)
 import Elm.Parser.CombineTestUtil exposing (..)
 import Elm.Parser.Layout as Layout
 import Elm.Parser.State exposing (emptyState)
+import Elm.Syntax.Node as Node exposing (Node(..))
 import Expect
 import Test exposing (..)
 

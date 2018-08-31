@@ -1,4 +1,4 @@
-module Elm.Parser.CombineTestUtil exposing (emptyRanged, noRangeDeclaration, noRangeExpose, noRangeExposingList, noRangeExpression, noRangeFile, noRangeFunction, noRangeFunctionDeclaration, noRangeImport, noRangeInfix, noRangeInnerExpression, noRangeLetDeclaration, noRangeModule, noRangePattern, noRangeSignature, noRangeTypeAlias, noRangeTypeDeclaration, noRangeTypeReference, noRangeValueConstructor, parseAsFarAsPossible, parseAsFarAsPossibleWithState, parseFullString, parseFullStringState, parseFullStringWithNullState, parseStateToMaybe, pushIndent, unRange, unRanged)
+module Elm.Parser.CombineTestUtil exposing (emptyRanged, noRangeDeclaration, noRangeExpose, noRangeExposingList, noRangeExpression, noRangeFile, noRangeFunction, noRangeFunctionImplementation, noRangeImport, noRangeInfix, noRangeInnerExpression, noRangeLetDeclaration, noRangeModule, noRangePattern, noRangeSignature, noRangeTypeAlias, noRangeTypeDeclaration, noRangeTypeReference, noRangeValueConstructor, parseAsFarAsPossible, parseAsFarAsPossibleWithState, parseFullString, parseFullStringState, parseFullStringWithNullState, parseStateToMaybe, pushIndent, unRanged)
 
 import Combine exposing (..)
 import Elm.Parser.State exposing (State, emptyState)
@@ -6,11 +6,13 @@ import Elm.Syntax.Declaration exposing (..)
 import Elm.Syntax.Exposing exposing (..)
 import Elm.Syntax.Expression exposing (..)
 import Elm.Syntax.File exposing (..)
+import Elm.Syntax.Import exposing (Import)
 import Elm.Syntax.Infix exposing (..)
 import Elm.Syntax.Module exposing (..)
+import Elm.Syntax.Node as Node exposing (Node(..))
 import Elm.Syntax.Pattern exposing (..)
 import Elm.Syntax.Range exposing (Range, emptyRange)
-import Elm.Syntax.Ranged exposing (Ranged)
+import Elm.Syntax.Signature as Signature exposing (Signature)
 import Elm.Syntax.Type exposing (..)
 import Elm.Syntax.TypeAlias exposing (..)
 import Elm.Syntax.TypeAnnotation exposing (..)
@@ -81,21 +83,21 @@ parseAsFarAsPossible s p =
             Nothing
 
 
-emptyRanged : Expression -> Ranged Expression
+emptyRanged : Expression -> Node Expression
 emptyRanged =
-    \a -> ( emptyRange, a )
+    Node emptyRange
 
 
-noRangeExpression : Ranged Expression -> Ranged Expression
-noRangeExpression ( _, inner ) =
-    ( emptyRange, noRangeInnerExpression inner )
+noRangeExpression : Node Expression -> Node Expression
+noRangeExpression (Node _ inner) =
+    Node emptyRange <| noRangeInnerExpression inner
 
 
 noRangeFile : File -> File
 noRangeFile file =
     { file
-        | moduleDefinition = noRangeModule file.moduleDefinition
-        , imports = List.map noRangeImport file.imports
+        | moduleDefinition = unRanged noRangeModule file.moduleDefinition
+        , imports = List.map (unRanged noRangeImport) file.imports
     }
 
 
@@ -103,20 +105,35 @@ noRangeModule : Module -> Module
 noRangeModule m =
     case m of
         NormalModule n ->
-            NormalModule { n | exposingList = noRangeExposingList n.exposingList }
+            NormalModule
+                { n
+                    | moduleName = unRanged identity n.moduleName
+                    , exposingList = unRanged noRangeExposingList n.exposingList
+                }
 
         PortModule n ->
-            PortModule { n | exposingList = noRangeExposingList n.exposingList }
+            PortModule
+                { n
+                    | moduleName = unRanged identity n.moduleName
+                    , exposingList = unRanged noRangeExposingList n.exposingList
+                }
 
         EffectModule n ->
-            EffectModule { n | exposingList = noRangeExposingList n.exposingList }
+            EffectModule
+                { n
+                    | moduleName = unRanged identity n.moduleName
+                    , exposingList = unRanged noRangeExposingList n.exposingList
+                    , command = Maybe.map (unRanged identity) n.command
+                    , subscription = Maybe.map (unRanged identity) n.subscription
+                }
 
 
 noRangeImport : Import -> Import
 noRangeImport imp =
     { imp
-        | range = emptyRange
-        , exposingList = Maybe.map noRangeExposingList imp.exposingList
+        | exposingList = Maybe.map noRangeExposingList imp.exposingList
+        , moduleName = unRanged identity imp.moduleName
+        , moduleAlias = Maybe.map (unRanged identity) imp.moduleAlias
     }
 
 
@@ -132,83 +149,76 @@ noRangeExposingList x =
                 |> Explicit
 
 
-noRangePattern : Ranged Pattern -> Ranged Pattern
-noRangePattern ( r, p ) =
-    ( emptyRange
-    , case p of
-        RecordPattern ls ->
-            RecordPattern (List.map unRange ls)
+noRangePattern : Node Pattern -> Node Pattern
+noRangePattern (Node r p) =
+    Node emptyRange <|
+        case p of
+            RecordPattern ls ->
+                RecordPattern (List.map (unRanged identity) ls)
 
-        VarPattern x ->
-            VarPattern x
+            VarPattern x ->
+                VarPattern x
 
-        NamedPattern x y ->
-            NamedPattern x (List.map noRangePattern y)
+            NamedPattern x y ->
+                NamedPattern x (List.map noRangePattern y)
 
-        ParenthesizedPattern x ->
-            ParenthesizedPattern (noRangePattern x)
+            ParenthesizedPattern x ->
+                ParenthesizedPattern (noRangePattern x)
 
-        AsPattern x y ->
-            AsPattern (noRangePattern x) (unRange y)
+            AsPattern x y ->
+                AsPattern (noRangePattern x) (unRanged identity y)
 
-        UnConsPattern x y ->
-            UnConsPattern (noRangePattern x) (noRangePattern y)
+            UnConsPattern x y ->
+                UnConsPattern (noRangePattern x) (noRangePattern y)
 
-        CharPattern c ->
-            CharPattern c
+            CharPattern c ->
+                CharPattern c
 
-        StringPattern s ->
-            StringPattern s
+            StringPattern s ->
+                StringPattern s
 
-        HexPattern h ->
-            HexPattern h
+            HexPattern h ->
+                HexPattern h
 
-        FloatPattern f ->
-            FloatPattern f
+            FloatPattern f ->
+                FloatPattern f
 
-        IntPattern i ->
-            IntPattern i
+            IntPattern i ->
+                IntPattern i
 
-        AllPattern ->
-            AllPattern
+            AllPattern ->
+                AllPattern
 
-        UnitPattern ->
-            UnitPattern
+            UnitPattern ->
+                UnitPattern
 
-        ListPattern x ->
-            ListPattern (List.map noRangePattern x)
+            ListPattern x ->
+                ListPattern (List.map noRangePattern x)
 
-        TuplePattern x ->
-            TuplePattern (List.map noRangePattern x)
-    )
-
-
-unRanged : (a -> a) -> Ranged a -> Ranged a
-unRanged f ( _, a ) =
-    ( emptyRange, f a )
+            TuplePattern x ->
+                TuplePattern (List.map noRangePattern x)
 
 
-unRange : { a | range : Range } -> { a | range : Range }
-unRange p =
-    { p | range = emptyRange }
+unRanged : (a -> a) -> Node a -> Node a
+unRanged f (Node _ a) =
+    Node emptyRange <| f a
 
 
-noRangeExpose : Ranged TopLevelExpose -> Ranged TopLevelExpose
-noRangeExpose ( _, l ) =
-    ( emptyRange
-    , case l of
-        InfixExpose s ->
-            InfixExpose s
+noRangeExpose : Node TopLevelExpose -> Node TopLevelExpose
+noRangeExpose (Node _ l) =
+    Node emptyRange <|
+        case l of
+            InfixExpose s ->
+                InfixExpose s
 
-        FunctionExpose s ->
-            FunctionExpose s
+            FunctionExpose s ->
+                FunctionExpose s
 
-        TypeOrAliasExpose s ->
-            TypeOrAliasExpose s
+            TypeOrAliasExpose s ->
+                TypeOrAliasExpose s
 
-        TypeExpose { name, open } ->
-            TypeExpose (ExposedType name (Maybe.map (always emptyRange) open))
-    )
+            TypeExpose { name, open } ->
+                TypeExpose (ExposedType name (Maybe.map (always emptyRange) open))
 
 
 noRangeInfix : Infix -> Infix
@@ -228,98 +238,120 @@ noRangeDeclaration decl =
                 (noRangePattern pattern)
                 (noRangeExpression expression)
 
-        FuncDecl f ->
-            FuncDecl <| noRangeFunction f
+        FunctionDeclaration f ->
+            FunctionDeclaration <| noRangeFunction f
 
-        TypeDecl d ->
-            TypeDecl <| noRangeTypeDeclaration d
+        CustomTypeDeclaration d ->
+            CustomTypeDeclaration <| noRangeTypeDeclaration d
 
         PortDeclaration d ->
             PortDeclaration (noRangeSignature d)
 
-        AliasDecl aliasDecl ->
-            AliasDecl (noRangeTypeAlias aliasDecl)
+        AliasDeclaration aliasDecl ->
+            AliasDeclaration (noRangeTypeAlias aliasDecl)
 
         InfixDeclaration infixDecl ->
             InfixDeclaration infixDecl
 
 
-noRangeLetDeclaration : Ranged LetDeclaration -> Ranged LetDeclaration
-noRangeLetDeclaration ( r, decl ) =
-    ( emptyRange
-    , case decl of
-        LetFunction function ->
-            LetFunction (noRangeFunction function)
+noRangeLetDeclaration : Node LetDeclaration -> Node LetDeclaration
+noRangeLetDeclaration (Node _ decl) =
+    Node emptyRange <|
+        case decl of
+            LetFunction function ->
+                LetFunction (noRangeFunction function)
 
-        LetDestructuring pattern expression ->
-            LetDestructuring (noRangePattern pattern) (noRangeExpression expression)
-    )
+            LetDestructuring pattern expression ->
+                LetDestructuring (noRangePattern pattern) (noRangeExpression expression)
 
 
 noRangeTypeAlias : TypeAlias -> TypeAlias
 noRangeTypeAlias typeAlias =
-    { typeAlias | typeAnnotation = noRangeTypeReference typeAlias.typeAnnotation }
+    { typeAlias
+        | generics = List.map (unRanged identity) typeAlias.generics
+        , name = unRanged identity typeAlias.name
+        , documentation = Maybe.map (unRanged identity) typeAlias.documentation
+        , typeAnnotation = noRangeTypeReference typeAlias.typeAnnotation
+    }
 
 
-noRangeTypeReference : Ranged TypeAnnotation -> Ranged TypeAnnotation
-noRangeTypeReference ( _, typeAnnotation ) =
-    ( emptyRange
-    , case typeAnnotation of
-        GenericType x ->
-            GenericType x
+noRangeRecordField : RecordField -> RecordField
+noRangeRecordField ( a, b ) =
+    ( unRanged identity a, noRangeTypeReference b )
 
-        Typed a b c ->
-            Typed a b (List.map noRangeTypeReference c)
 
-        Unit ->
-            Unit
+noRangeRecordDefinition : RecordDefinition -> RecordDefinition
+noRangeRecordDefinition =
+    List.map (unRanged noRangeRecordField)
 
-        Tupled a ->
-            Tupled (List.map noRangeTypeReference a)
 
-        Record a ->
-            Record (List.map (Tuple.mapSecond noRangeTypeReference) a)
+noRangeTypeReference : Node TypeAnnotation -> Node TypeAnnotation
+noRangeTypeReference (Node _ typeAnnotation) =
+    Node emptyRange <|
+        case typeAnnotation of
+            GenericType x ->
+                GenericType x
 
-        GenericRecord a b ->
-            GenericRecord a (List.map (Tuple.mapSecond noRangeTypeReference) b)
+            Typed (Node _ ( a, b )) c ->
+                Typed (Node emptyRange ( a, b )) (List.map noRangeTypeReference c)
 
-        FunctionTypeAnnotation a b ->
-            FunctionTypeAnnotation
-                (noRangeTypeReference a)
-                (noRangeTypeReference b)
-    )
+            Unit ->
+                Unit
+
+            Tupled a ->
+                Tupled (List.map noRangeTypeReference a)
+
+            Record a ->
+                Record (List.map (unRanged noRangeRecordField) a)
+
+            GenericRecord a b ->
+                GenericRecord (unRanged identity a) (unRanged noRangeRecordDefinition b)
+
+            FunctionTypeAnnotation a b ->
+                FunctionTypeAnnotation
+                    (noRangeTypeReference a)
+                    (noRangeTypeReference b)
 
 
 noRangeTypeDeclaration : Type -> Type
 noRangeTypeDeclaration x =
-    { x | constructors = List.map noRangeValueConstructor x.constructors }
+    { x
+        | constructors = List.map (unRanged noRangeValueConstructor) x.constructors
+        , generics = List.map (unRanged identity) x.generics
+        , name = unRanged identity x.name
+    }
 
 
 noRangeValueConstructor : ValueConstructor -> ValueConstructor
 noRangeValueConstructor valueConstructor =
-    unRange { valueConstructor | arguments = List.map noRangeTypeReference valueConstructor.arguments }
+    { valueConstructor | arguments = List.map noRangeTypeReference valueConstructor.arguments, name = unRanged identity valueConstructor.name }
 
 
 noRangeFunction : Function -> Function
 noRangeFunction f =
     { f
-        | declaration = noRangeFunctionDeclaration f.declaration
+        | declaration = unRanged noRangeFunctionImplementation f.declaration
         , signature = Maybe.map (unRanged noRangeSignature) f.signature
     }
 
 
-noRangeSignature : FunctionSignature -> FunctionSignature
+noRangeSignature : Signature -> Signature
 noRangeSignature signature =
-    { signature | typeAnnotation = noRangeTypeReference signature.typeAnnotation, name = unRange signature.name }
+    { signature | typeAnnotation = noRangeTypeReference signature.typeAnnotation, name = unRanged identity signature.name }
 
 
-noRangeFunctionDeclaration : FunctionDeclaration -> FunctionDeclaration
-noRangeFunctionDeclaration d =
+noRangeFunctionImplementation : FunctionImplementation -> FunctionImplementation
+noRangeFunctionImplementation d =
     { d
         | expression = noRangeExpression d.expression
         , arguments = List.map noRangePattern d.arguments
-        , name = unRange d.name
+        , name = unRanged identity d.name
     }
+
+
+noRangeRecordSetter : RecordSetter -> RecordSetter
+noRangeRecordSetter ( a, b ) =
+    ( unRanged identity a, unRanged noRangeInnerExpression b )
 
 
 noRangeInnerExpression : Expression -> Expression
@@ -341,7 +373,7 @@ noRangeInnerExpression inner =
                 (noRangeExpression c)
 
         RecordExpr fields ->
-            RecordExpr <| List.map (Tuple.mapSecond noRangeExpression) fields
+            RecordExpr <| List.map (unRanged noRangeRecordSetter) fields
 
         LambdaExpression lambda ->
             LambdaExpression
@@ -350,8 +382,8 @@ noRangeInnerExpression inner =
                     , args = List.map noRangePattern lambda.args
                 }
 
-        RecordUpdateExpression update ->
-            RecordUpdateExpression { update | updates = List.map (Tuple.mapSecond noRangeExpression) update.updates }
+        RecordUpdateExpression name updates ->
+            RecordUpdateExpression (unRanged identity name) (List.map (unRanged noRangeRecordSetter) updates)
 
         CaseExpression { cases, expression } ->
             CaseExpression
@@ -375,7 +407,7 @@ noRangeInnerExpression inner =
             ParenthesizedExpression <| noRangeExpression x
 
         RecordAccess e n ->
-            RecordAccess (noRangeExpression e) n
+            RecordAccess (noRangeExpression e) (unRanged identity n)
 
         Negation expr ->
             Negation (noRangeExpression expr)

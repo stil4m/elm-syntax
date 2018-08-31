@@ -2,23 +2,22 @@ module Elm.Parser.Comments exposing (multilineComment, singleLineComment)
 
 import Combine exposing (Parser, count, lazy, modifyState, string, succeed)
 import Combine.Char exposing (anyChar)
+import Elm.Parser.Node as Node
 import Elm.Parser.Ranges exposing (withRange)
 import Elm.Parser.State exposing (State, addComment)
 import Elm.Parser.Whitespace exposing (untilNewlineToken)
-import Elm.Syntax.Ranged exposing (Ranged)
+import Elm.Syntax.Node exposing (Node)
 import Parser as Core exposing (Nestable(..))
 
 
-addCommentToState : Parser State (Ranged String) -> Parser State ()
+addCommentToState : Parser State (Node String) -> Parser State ()
 addCommentToState p =
     p |> Combine.andThen (\pair -> modifyState (addComment pair) |> Combine.continueWith (succeed ()))
 
 
 parseComment : Parser State String -> Parser State ()
 parseComment commentParser =
-    withRange
-        (Combine.map (\a b -> ( b, a )) commentParser)
-        |> addCommentToState
+    Node.parser commentParser |> addCommentToState
 
 
 singleLineComment : Parser State ()

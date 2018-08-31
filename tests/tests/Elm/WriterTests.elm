@@ -1,10 +1,11 @@
 module Elm.WriterTests exposing (suite)
 
-import Elm.Syntax.Base exposing (..)
 import Elm.Syntax.Declaration exposing (..)
 import Elm.Syntax.Exposing exposing (..)
 import Elm.Syntax.Expression exposing (..)
 import Elm.Syntax.Module exposing (..)
+import Elm.Syntax.ModuleName exposing (..)
+import Elm.Syntax.Node exposing (Node(..))
 import Elm.Syntax.Pattern exposing (..)
 import Elm.Syntax.Range exposing (emptyRange)
 import Elm.Syntax.Type exposing (..)
@@ -20,21 +21,22 @@ suite =
         [ test "write file exposing all" <|
             \() ->
                 { moduleDefinition =
-                    NormalModule
-                        { moduleName = [ "A" ]
-                        , exposingList = All emptyRange
-                        }
+                    Node emptyRange <|
+                        NormalModule
+                            { moduleName = Node emptyRange <| [ "A" ]
+                            , exposingList = Node emptyRange <| All emptyRange
+                            }
                 , imports =
-                    [ { moduleName = [ "B" ]
-                      , moduleAlias = Nothing
-                      , exposingList = Nothing
-                      , range = emptyRange
-                      }
-                    , { moduleName = [ "C" ]
-                      , moduleAlias = Just [ "D" ]
-                      , exposingList = Just (All emptyRange)
-                      , range = emptyRange
-                      }
+                    [ Node emptyRange
+                        { moduleName = Node emptyRange <| [ "B" ]
+                        , moduleAlias = Nothing
+                        , exposingList = Nothing
+                        }
+                    , Node emptyRange
+                        { moduleName = Node emptyRange <| [ "C" ]
+                        , moduleAlias = Just (Node emptyRange [ "D" ])
+                        , exposingList = Just (All emptyRange)
+                        }
                     ]
                 , declarations = []
                 , comments = []
@@ -51,13 +53,13 @@ import B  """
         , describe "Expression"
             [ test "write simple expression" <|
                 \() ->
-                    ( Elm.Syntax.Range.emptyRange, Application [ ( Elm.Syntax.Range.emptyRange, FunctionOrValue "abc" ), ( Elm.Syntax.Range.emptyRange, UnitExpr ) ] )
+                    (Node emptyRange <| Application [ Node emptyRange <| FunctionOrValue [] "abc", Node emptyRange <| UnitExpr ])
                         |> Writer.writeExpression
                         |> Writer.write
                         |> Expect.equal "abc ()"
             , test "write qualified expression" <|
                 \() ->
-                    ( Elm.Syntax.Range.emptyRange, QualifiedExpr [ "Foo", "Bar" ] "baz" )
+                    (Node emptyRange <| FunctionOrValue [ "Foo", "Bar" ] "baz")
                         |> Writer.writeExpression
                         |> Writer.write
                         |> Expect.equal "Foo.Bar.baz"
@@ -65,48 +67,45 @@ import B  """
         , describe "TypeAnnotation"
             [ test "write simple type" <|
                 \() ->
-                    ( emptyRange, Elm.Syntax.TypeAnnotation.Typed [] "String" [] )
+                    Elm.Syntax.TypeAnnotation.Typed (Node emptyRange <| ( [], "String" )) []
+                        |> Node emptyRange
                         |> Writer.writeTypeAnnotation
                         |> Writer.write
                         |> Expect.equal "String"
             , test "write qualified type" <|
                 \() ->
-                    ( emptyRange
-                    , Elm.Syntax.TypeAnnotation.Typed
-                        [ "Json", "Decode" ]
-                        "Decoder"
-                        [ ( emptyRange, Elm.Syntax.TypeAnnotation.GenericType "a" ) ]
+                    (Node emptyRange <|
+                        Elm.Syntax.TypeAnnotation.Typed
+                            (Node emptyRange <| ( [ "Json", "Decode" ], "Decoder" ))
+                            [ Node emptyRange <| Elm.Syntax.TypeAnnotation.GenericType "a" ]
                     )
                         |> Writer.writeTypeAnnotation
                         |> Writer.write
                         |> Expect.equal "Json.Decode.Decoder a"
             , test "write type arguments that require parentheses" <|
                 \() ->
-                    ( emptyRange
-                    , Elm.Syntax.TypeAnnotation.Typed []
-                        "List"
-                        [ ( emptyRange
-                          , Elm.Syntax.TypeAnnotation.Typed []
-                                "Dict"
-                                [ ( emptyRange, Elm.Syntax.TypeAnnotation.Typed [] "String" [] )
-                                , ( emptyRange, Elm.Syntax.TypeAnnotation.Typed [] "Int" [] )
-                                ]
-                          )
-                        ]
+                    (Node emptyRange <|
+                        Elm.Syntax.TypeAnnotation.Typed (Node emptyRange ( [], "List" ))
+                            [ Node emptyRange <|
+                                Elm.Syntax.TypeAnnotation.Typed (Node emptyRange ( [], "Dict" ))
+                                    [ Node emptyRange <| Elm.Syntax.TypeAnnotation.Typed (Node emptyRange ( [], "String" )) []
+                                    , Node emptyRange <| Elm.Syntax.TypeAnnotation.Typed (Node emptyRange ( [], "Int" )) []
+                                    ]
+                            ]
                     )
                         |> Writer.writeTypeAnnotation
                         |> Writer.write
                         |> Expect.equal "List (Dict String Int)"
             , test "write type arguments that are functions" <|
                 \() ->
-                    ( emptyRange
-                    , Elm.Syntax.TypeAnnotation.FunctionTypeAnnotation
-                        ( emptyRange
-                        , Elm.Syntax.TypeAnnotation.FunctionTypeAnnotation
-                            ( emptyRange, Elm.Syntax.TypeAnnotation.GenericType "a" )
-                            ( emptyRange, Elm.Syntax.TypeAnnotation.GenericType "b" )
-                        )
-                        ( emptyRange, Elm.Syntax.TypeAnnotation.Typed [] "Int" [] )
+                    (Node emptyRange <|
+                        Elm.Syntax.TypeAnnotation.FunctionTypeAnnotation
+                            (Node emptyRange <|
+                                Elm.Syntax.TypeAnnotation.FunctionTypeAnnotation
+                                    (Node emptyRange <| Elm.Syntax.TypeAnnotation.GenericType "a")
+                                    (Node emptyRange <| Elm.Syntax.TypeAnnotation.GenericType "b")
+                            )
+                            (Node emptyRange <| Elm.Syntax.TypeAnnotation.Typed (Node emptyRange ( [], "Int" )) [])
                     )
                         |> Writer.writeTypeAnnotation
                         |> Writer.write
@@ -115,14 +114,14 @@ import B  """
         , describe "Declaration"
             [ test "write type declaration" <|
                 \() ->
-                    ( emptyRange
-                    , TypeDecl
-                        (Type "Sample"
-                            []
-                            [ ValueConstructor "Foo" [] emptyRange
-                            , ValueConstructor "Bar" [] emptyRange
-                            ]
-                        )
+                    (Node emptyRange <|
+                        CustomTypeDeclaration
+                            (Type (Node emptyRange "Sample")
+                                []
+                                [ Node emptyRange <| ValueConstructor (Node emptyRange "Foo") []
+                                , Node emptyRange <| ValueConstructor (Node emptyRange "Bar") []
+                                ]
+                            )
                     )
                         |> Writer.writeDeclaration
                         |> Writer.write
@@ -135,24 +134,25 @@ import B  """
                     let
                         body =
                             CaseExpression
-                                (CaseBlock ( emptyRange, FunctionOrValue "someCase" )
-                                    [ ( ( emptyRange, IntPattern 1 ), ( emptyRange, FunctionOrValue "doSomething" ) )
-                                    , ( ( emptyRange, IntPattern 2 ), ( emptyRange, FunctionOrValue "doSomethingElse" ) )
+                                (CaseBlock (Node emptyRange <| FunctionOrValue [] "someCase")
+                                    [ ( Node emptyRange <| IntPattern 1, Node emptyRange <| FunctionOrValue [] "doSomething" )
+                                    , ( Node emptyRange <| IntPattern 2, Node emptyRange <| FunctionOrValue [] "doSomethingElse" )
                                     ]
                                 )
 
                         function =
-                            FuncDecl
+                            FunctionDeclaration
                                 (Function Nothing
                                     Nothing
-                                    (FunctionDeclaration
-                                        (VariablePointer "functionName" emptyRange)
-                                        []
-                                        ( emptyRange, body )
+                                    (Node emptyRange <|
+                                        FunctionImplementation
+                                            (Node emptyRange <| "functionName")
+                                            []
+                                            (Node emptyRange body)
                                     )
                                 )
                     in
-                    ( emptyRange, function )
+                    Node emptyRange function
                         |> Writer.writeDeclaration
                         |> Writer.write
                         |> Expect.equal

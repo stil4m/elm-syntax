@@ -175,13 +175,12 @@ all =
             \() ->
                 parseAsFarAsPossible "->" Parser.infixOperatorToken
                     |> Expect.equal Nothing
-
-        -- , test "long string" <|
-        --     \() ->
-        --         parseFullString longString Parser.stringLiteral
-        --             |> Expect.notEqual Nothing
-        -- , test "long multi line string" <|
-        --     \() ->
-        --         parseFullString longMultiLineString Parser.multiLineStringLiteral
-        --             |> Expect.notEqual Nothing
+        , test "long string" <|
+            \() ->
+                parseFullString longString Parser.stringLiteral
+                    |> Expect.notEqual Nothing
+        , test "long multi line string" <|
+            \() ->
+                parseFullString longMultiLineString Parser.multiLineStringLiteral
+                    |> Expect.notEqual Nothing
         ]

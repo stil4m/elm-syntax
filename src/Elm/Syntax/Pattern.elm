@@ -1,6 +1,7 @@
 module Elm.Syntax.Pattern exposing
     ( Pattern(..), QualifiedNameRef
     , moduleNames
+    , encode, decoder
     )
 
 {-| Pattern Syntax
@@ -15,10 +16,18 @@ module Elm.Syntax.Pattern exposing
 
 @docs moduleNames
 
+
+# Serialization
+
+@docs encode, decoder
+
 -}
 
-import Elm.Syntax.Base exposing (ModuleName, VariablePointer)
-import Elm.Syntax.Ranged as Ranged exposing (Ranged)
+import Elm.Json.Util exposing (decodeTyped, encodeTyped)
+import Elm.Syntax.ModuleName as ModuleName exposing (ModuleName)
+import Elm.Syntax.Node as Node exposing (Node(..))
+import Json.Decode as JD exposing (Decoder)
+import Json.Encode as JE exposing (Value)
 
 
 {-| Union type for all the patterns
@@ -31,14 +40,14 @@ type Pattern
     | IntPattern Int
     | HexPattern Int
     | FloatPattern Float
-    | TuplePattern (List (Ranged Pattern))
-    | RecordPattern (List VariablePointer)
-    | UnConsPattern (Ranged Pattern) (Ranged Pattern)
-    | ListPattern (List (Ranged Pattern))
+    | TuplePattern (List (Node Pattern))
+    | RecordPattern (List (Node String))
+    | UnConsPattern (Node Pattern) (Node Pattern)
+    | ListPattern (List (Node Pattern))
     | VarPattern String
-    | NamedPattern QualifiedNameRef (List (Ranged Pattern))
-    | AsPattern (Ranged Pattern) VariablePointer
-    | ParenthesizedPattern (Ranged Pattern)
+    | NamedPattern QualifiedNameRef (List (Node Pattern))
+    | AsPattern (Node Pattern) (Node String)
+    | ParenthesizedPattern (Node Pattern)
 
 
 {-| Qualified name reference
@@ -55,7 +64,7 @@ moduleNames : Pattern -> List ModuleName
 moduleNames p =
     let
         recur =
-            Ranged.value >> moduleNames
+            Node.value >> moduleNames
     in
     case p of
         TuplePattern xs ->
@@ -81,3 +90,159 @@ moduleNames p =
 
         _ ->
             []
+
+
+
+-- Serialization
+
+
+encode : Pattern -> Value
+encode pattern =
+    case pattern of
+        AllPattern ->
+            encodeTyped "all" (JE.object [])
+
+        UnitPattern ->
+            encodeTyped "unit" (JE.object [])
+
+        CharPattern c ->
+            encodeTyped "char"
+                (JE.object
+                    [ ( "value", JE.string <| String.fromChar c )
+                    ]
+                )
+
+        StringPattern v ->
+            encodeTyped "string"
+                (JE.object
+                    [ ( "value", JE.string v )
+                    ]
+                )
+
+        HexPattern h ->
+            encodeTyped "hex"
+                (JE.object
+                    [ ( "value", JE.int h )
+                    ]
+                )
+
+        IntPattern i ->
+            encodeTyped "int"
+                (JE.object
+                    [ ( "value", JE.int i )
+                    ]
+                )
+
+        FloatPattern f ->
+            encodeTyped "float"
+                (JE.object
+                    [ ( "value", JE.float f )
+                    ]
+                )
+
+        TuplePattern patterns ->
+            encodeTyped "tuple"
+                (JE.object
+                    [ ( "value", JE.list (Node.encode encode) patterns )
+                    ]
+                )
+
+        RecordPattern pointers ->
+            encodeTyped "record"
+                (JE.object
+                    [ ( "value", JE.list (Node.encode JE.string) pointers )
+                    ]
+                )
+
+        UnConsPattern p1 p2 ->
+            encodeTyped "uncons"
+                (JE.object
+                    [ ( "left", Node.encode encode p1 )
+                    , ( "right", Node.encode encode p2 )
+                    ]
+                )
+
+        ListPattern patterns ->
+            encodeTyped "list"
+                (JE.object
+                    [ ( "value", JE.list (Node.encode encode) patterns )
+                    ]
+                )
+
+        VarPattern name ->
+            encodeTyped "var"
+                (JE.object
+                    [ ( "value", JE.string name )
+                    ]
+                )
+
+        NamedPattern qualifiedNameRef patterns ->
+            encodeTyped "named" <|
+                JE.object
+                    [ ( "qualified"
+                      , JE.object
+                            [ ( "moduleName", ModuleName.encode qualifiedNameRef.moduleName )
+                            , ( "name", JE.string qualifiedNameRef.name )
+                            ]
+                      )
+                    , ( "patterns", JE.list (Node.encode encode) patterns )
+                    ]
+
+        AsPattern destructured name ->
+            encodeTyped "as" <|
+                JE.object
+                    [ ( "name", Node.encode JE.string name )
+                    , ( "pattern", Node.encode encode destructured )
+                    ]
+
+        ParenthesizedPattern p1 ->
+            encodeTyped "parentisized"
+                (JE.object
+                    [ ( "value", Node.encode encode p1 )
+                    ]
+                )
+
+
+decoder : Decoder Pattern
+decoder =
+    JD.lazy
+        (\() ->
+            decodeTyped
+                [ ( "all", JD.succeed AllPattern )
+                , ( "unit", JD.succeed UnitPattern )
+                , ( "char", JD.field "value" decodeChar |> JD.map CharPattern )
+                , ( "string", JD.field "value" JD.string |> JD.map StringPattern )
+                , ( "hex", JD.int |> JD.map HexPattern )
+                , ( "int", JD.field "value" JD.int |> JD.map IntPattern )
+                , ( "float", JD.field "value" JD.float |> JD.map FloatPattern )
+                , ( "tuple", JD.field "value" (JD.list (Node.decoder decoder)) |> JD.map TuplePattern )
+                , ( "record", JD.field "value" (JD.list (Node.decoder JD.string)) |> JD.map RecordPattern )
+                , ( "uncons", JD.map2 UnConsPattern (JD.field "left" (Node.decoder decoder)) (JD.field "right" (Node.decoder decoder)) )
+                , ( "list", JD.field "value" (JD.list (Node.decoder decoder)) |> JD.map ListPattern )
+                , ( "var", JD.field "value" JD.string |> JD.map VarPattern )
+                , ( "named", JD.map2 NamedPattern (JD.field "qualified" decodeQualifiedNameRef) (JD.field "patterns" (JD.list (Node.decoder decoder))) )
+                , ( "as", JD.map2 AsPattern (JD.field "pattern" (Node.decoder decoder)) (JD.field "name" (Node.decoder JD.string)) )
+                , ( "parentisized", JD.map ParenthesizedPattern (JD.field "value" (Node.decoder decoder)) )
+                ]
+        )
+
+
+decodeQualifiedNameRef : Decoder QualifiedNameRef
+decodeQualifiedNameRef =
+    JD.map2 QualifiedNameRef
+        (JD.field "moduleName" ModuleName.decoder)
+        (JD.field "name" JD.string)
+
+
+decodeChar : Decoder Char
+decodeChar =
+    JD.string
+        |> JD.andThen
+            (\s ->
+                case String.uncons s of
+                    Just ( c, _ ) ->
+                        JD.succeed c
+
+                    Nothing ->
+                        JD.fail "Not a char"
+            )
