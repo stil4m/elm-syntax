@@ -43,7 +43,7 @@ moduleName (Internal.Raw file) =
     Module.moduleName <| Node.value file.moduleDefinition
 
 
-{-| Retrieve the imports for a raw file
+{-| Encode a `RawFile` syntax element to JSON.
 -}
 imports : RawFile -> List Import
 imports (Internal.Raw file) =
@@ -57,6 +57,8 @@ encode (Raw file) =
     File.encode file
 
 
+{-| JSON decoder for a `RawFile` syntax element.
+-}
 decoder : Decoder RawFile
 decoder =
     JD.map Raw File.decoder

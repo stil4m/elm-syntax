@@ -3,15 +3,28 @@ module Elm.Syntax.Declaration exposing
     , encode, decoder
     )
 
-{-| Declarations Syntax
+{-|
 
 
-# Types
+# Declarations Syntax
+
+Syntax for the different top-level declarations in Elm.
+These can be one of the following (all declared in `Declaration`):
+
+  - Functions: `add x y = x + y`
+  - Custom types: `type Color = Blue | Red`
+  - Type aliases: `type alias Status = Int`
+  - Port declaration: `port sendMessage: String -> Cmd msg`
+  - Destructuring: `{name, age} = person`
+  - Infix declarations. You will probably not need this, while only core packages can define these.
+
+
+## Types
 
 @docs Declaration
 
 
-# Serialization
+## Serialization
 
 @docs encode, decoder
 
@@ -29,7 +42,7 @@ import Json.Decode as JD exposing (Decoder)
 import Json.Encode as JE exposing (Value)
 
 
-{-| Union type that represents all different top level declarations.
+{-| Custom type that represents all different top-level declarations.
 -}
 type Declaration
     = FunctionDeclaration Function
@@ -44,6 +57,8 @@ type Declaration
 -- Serialization
 
 
+{-| Encode a `Declaration` syntax element to JSON.
+-}
 encode : Declaration -> Value
 encode decl =
     case decl of
@@ -72,6 +87,8 @@ encode decl =
                 )
 
 
+{-| JSON decoder for a `Declaration` syntax element.
+-}
 decoder : Decoder Declaration
 decoder =
     JD.lazy

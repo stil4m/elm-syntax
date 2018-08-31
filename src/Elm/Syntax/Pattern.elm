@@ -4,7 +4,16 @@ module Elm.Syntax.Pattern exposing
     , encode, decoder
     )
 
-{-| Pattern Syntax
+{-|
+
+
+# Pattern Syntax
+
+This syntax represents the patterns.
+For example:
+
+    Just x as someMaybe
+    {name, age}
 
 
 # Types
@@ -12,12 +21,12 @@ module Elm.Syntax.Pattern exposing
 @docs Pattern, QualifiedNameRef
 
 
-# Functions
+## Functions
 
 @docs moduleNames
 
 
-# Serialization
+## Serialization
 
 @docs encode, decoder
 
@@ -30,7 +39,22 @@ import Json.Decode as JD exposing (Decoder)
 import Json.Encode as JE exposing (Value)
 
 
-{-| Union type for all the patterns
+{-| Custom type for all patterns such as:
+
+  - `AllPattern`: `_`
+  - `UnitPattern`: `()`
+  - `CharPattern`: `'c'`
+  - `StringPattern`: `"hello"`
+  - `IntPattern`: `42`
+  - `HexPattern`: `0x11`
+  - `FloatPattern`: `42.0`
+  - `TuplePattern`: `(a, b)`
+  - `RecordPattern`: `{name, age}`
+  - `UnConsPattern`: `x :: xs`
+  - `ListPattern`: `[ x, y ]`
+  - `VarPattern`: `x`
+  - `ParenthesizedPattern`: `( _ )`
+
 -}
 type Pattern
     = AllPattern
@@ -50,7 +74,7 @@ type Pattern
     | ParenthesizedPattern (Node Pattern)
 
 
-{-| Qualified name reference
+{-| Qualified name reference such as `Maybe.Just`.
 -}
 type alias QualifiedNameRef =
     { moduleName : List String
@@ -58,7 +82,8 @@ type alias QualifiedNameRef =
     }
 
 
-{-| Get all the modules names that are used in the pattern match. Use this to collect qualified patterns, such as `Maybe.Just x`.
+{-| Get all the modules names that are used in the pattern (and its nested patterns).
+Use this to collect qualified patterns, such as `Maybe.Just x`.
 -}
 moduleNames : Pattern -> List ModuleName
 moduleNames p =
@@ -96,6 +121,8 @@ moduleNames p =
 -- Serialization
 
 
+{-| Encode a `Pattern` syntax element to JSON.
+-}
 encode : Pattern -> Value
 encode pattern =
     case pattern of
@@ -203,6 +230,8 @@ encode pattern =
                 )
 
 
+{-| JSON decoder for a `Pattern` syntax element.
+-}
 decoder : Decoder Pattern
 decoder =
     JD.lazy

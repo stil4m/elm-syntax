@@ -3,15 +3,23 @@ module Elm.Syntax.TypeAnnotation exposing
     , encode, decoder
     )
 
-{-| Type Annotation Syntax
+{-|
 
 
-# Types
+# Type Annotation Syntax
+
+This syntax represents the type annotation syntax.
+For example:
+
+    Int -> String
+
+
+## Types
 
 @docs TypeAnnotation, RecordDefinition, RecordField
 
 
-# Serialization
+## Serialization
 
 @docs encode, decoder
 
@@ -24,7 +32,16 @@ import Json.Decode as JD exposing (Decoder)
 import Json.Encode as JE exposing (Value)
 
 
-{-| Union type for different type aliases
+{-| Custom type for different type annotations. For example:
+
+  - `GenericType`: `a`
+  - `Typed`: `Maybe (Int -> String)`
+  - `Unit`: `()`
+  - `Tuples`: `(a, b, c)`
+  - `Record`: `{ name : String}`
+  - `GenericRecord`: `{ a | name : String}`
+  - `FunctionTypeAnnotation`: `Int -> String`
+
 -}
 type TypeAnnotation
     = GenericType String
@@ -36,13 +53,13 @@ type TypeAnnotation
     | FunctionTypeAnnotation (Node TypeAnnotation) (Node TypeAnnotation)
 
 
-{-| List of fields for a record
+{-| A list of fields in-order of a record type annotation.
 -}
 type alias RecordDefinition =
     List (Node RecordField)
 
 
-{-| Single field of a record. A name and its type
+{-| Single field of a record. A name and its type.
 -}
 type alias RecordField =
     ( Node String, Node TypeAnnotation )
@@ -52,6 +69,8 @@ type alias RecordField =
 -- Serialization
 
 
+{-| Encode a `TypeAnnotation` syntax element to JSON.
+-}
 encode : TypeAnnotation -> Value
 encode typeAnnotation =
     case typeAnnotation of
@@ -125,6 +144,8 @@ decodeModuleNameAndName =
         (JD.field "name" <| JD.string)
 
 
+{-| JSON decoder for a `TypeAnnotation` syntax element.
+-}
 decoder : Decoder TypeAnnotation
 decoder =
     JD.lazy

@@ -1,7 +1,6 @@
 module Elm.Parser.Declarations exposing (caseBlock, caseStatement, caseStatements, declaration, expression, function, functionArgument, functionSignature, letBlock, letBody, letExpression, signature)
 
 import Combine exposing (Parser, between, choice, count, fail, lazy, many, many1, maybe, modifyState, or, sepBy, sepBy1, string, succeed, withLocation)
-import Combine.Char exposing (anyChar)
 import Combine.Num
 import Elm.Parser.Infix as Infix
 import Elm.Parser.Layout as Layout

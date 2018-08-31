@@ -1,47 +1,29 @@
 module Elm.Syntax.Expression exposing
-    ( Expression(..), Lambda
-    , LetBlock, LetDeclaration(..)
-    , RecordSetter
-    , CaseBlock, Cases, Case
-    , Function, FunctionImplementation, functionRange
-    , isLambda, isLet, isIfElse, isCase, isOperatorApplication
+    ( Expression(..), Lambda, LetBlock, LetDeclaration(..), RecordSetter, CaseBlock, Cases, Case, Function, FunctionImplementation
+    , functionRange, isLambda, isLet, isIfElse, isCase, isOperatorApplication
     , encode, encodeFunction, decoder, functionDecoder
     )
 
-{-| Expression Syntax
+{-|
 
 
-# Expression
+# Expression Syntax
 
-@docs Expression, Lambda
-
-
-# Lets
-
-@docs LetBlock, LetDeclaration
+This syntax represens all that you can express in Elm.
+Although it is a easy and simple language, you can express a lot! See the `Expression` type for all the things you can express.
 
 
-# Records
+## Types
 
-@docs RecordSetter
-
-
-# Cases
-
-@docs CaseBlock, Cases, Case
+@docs Expression, Lambda, LetBlock, LetDeclaration, RecordSetter, CaseBlock, Cases, Case, Function, FunctionImplementation
 
 
-# Functions
+## Functions
 
-@docs Function, FunctionImplementation, functionRange
-
-
-# Utiltity functions
-
-@docs isLambda, isLet, isIfElse, isCase, isOperatorApplication
+@docs functionRange, isLambda, isLet, isIfElse, isCase, isOperatorApplication
 
 
-# Serialization
+## Serialization
 
 @docs encode, encodeFunction, decoder, functionDecoder
 
@@ -63,7 +45,7 @@ import Json.Encode as JE exposing (Value)
 {-| Type alias for a full function
 -}
 type alias Function =
-    { documentation : Maybe Documentation
+    { documentation : Maybe (Node Documentation)
     , signature : Maybe (Node Signature)
     , declaration : Node FunctionImplementation
     }
@@ -76,7 +58,7 @@ functionRange function =
     Range.combine
         [ case function.documentation of
             Just documentation ->
-                Documentation.range documentation
+                Node.range documentation
 
             Nothing ->
                 function.signature
@@ -242,6 +224,8 @@ isOperatorApplication e =
 -- Serialization
 
 
+{-| Encode an `Expression` syntax element to JSON.
+-}
 encode : Expression -> Value
 encode expr =
     case expr of
@@ -376,10 +360,12 @@ encodeLetDeclaration letDeclaration =
             encodeTyped "destructuring" (encodeDestructuring pattern expression)
 
 
+{-| Encode a `Function` syntax element to JSON.
+-}
 encodeFunction : Function -> Value
 encodeFunction { documentation, signature, declaration } =
     JE.object
-        [ ( "documentation", Maybe.map Documentation.encode documentation |> Maybe.withDefault JE.null )
+        [ ( "documentation", Maybe.map (Node.encode Documentation.encode) documentation |> Maybe.withDefault JE.null )
         , ( "signature", Maybe.map (Node.encode Signature.encode) signature |> Maybe.withDefault JE.null )
         , ( "declaration", Node.encode encodeFunctionDeclaration declaration )
         ]
@@ -431,6 +417,8 @@ decodeNested =
     JD.lazy (\() -> Node.decoder decoder)
 
 
+{-| JSON decoder for an `Expression` syntax element.
+-}
 decoder : Decoder Expression
 decoder =
     JD.lazy
@@ -557,12 +545,14 @@ decodeChar =
             )
 
 
+{-| JSON decoder for an `Function` syntax element.
+-}
 functionDecoder : Decoder Function
 functionDecoder =
     JD.lazy
         (\() ->
             JD.map3 Function
-                (JD.field "documentation" (JD.nullable Documentation.decoder))
+                (JD.field "documentation" (JD.nullable <| Node.decoder Documentation.decoder))
                 (JD.field "signature" (JD.nullable (Node.decoder Signature.decoder)))
                 (JD.field "declaration" (Node.decoder decodeFunctionDeclaration))
         )

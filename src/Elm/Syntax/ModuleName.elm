@@ -1,20 +1,35 @@
 module Elm.Syntax.ModuleName exposing
     ( ModuleName
-    , encode
-    , decoder
+    , encode, decoder
     )
 
-{-| Base Syntax
+{-|
 
 
-# Types
+# Module Name Syntax
+
+This syntax represents the module names in Elm. These can be used for imports, module names (duh), and for qualified access.
+For example:
+
+    module Elm.Syntax.ModuleName ...
+
+    import Foo.Bar ...
+
+    import ... as Something
+
+    My.Module.something
+
+    My.Module.SomeType
+
+
+## Types
 
 @docs ModuleName
 
 
-# Serialization
+## Serialization
 
-@docs encode, decode
+@docs encode, decoder
 
 -}
 
@@ -33,11 +48,15 @@ type alias ModuleName =
 -- Serialization
 
 
+{-| Encode a `ModuleName` syntax element to JSON.
+-}
 encode : ModuleName -> Value
 encode =
     JE.list JE.string
 
 
+{-| JSON decoder for a `ModuleName` syntax element.
+-}
 decoder : Decoder ModuleName
 decoder =
     JD.list JD.string

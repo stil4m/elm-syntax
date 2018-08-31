@@ -3,15 +3,20 @@ module Elm.Syntax.File exposing
     , encode, decoder
     )
 
-{-| File Syntax
+{-|
 
 
-# Types
+# File Syntax
+
+This syntax represents a whole Elm file.
+
+
+## Types
 
 @docs File
 
 
-# Serialization
+## Serialization
 
 @docs encode, decoder
 
@@ -36,6 +41,8 @@ type alias File =
     }
 
 
+{-| Encode a `File` syntax element to JSON.
+-}
 encode : File -> Value
 encode { moduleDefinition, imports, declarations, comments } =
     JE.object
@@ -46,6 +53,8 @@ encode { moduleDefinition, imports, declarations, comments } =
         ]
 
 
+{-| JSON decoder for a `File` syntax element.
+-}
 decoder : Decoder File
 decoder =
     JD.map4 File

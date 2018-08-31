@@ -3,15 +3,24 @@ module Elm.Syntax.Type exposing
     , encode, decoder
     )
 
-{-| Type Syntax
+{-| #Type Syntax
+
+This syntax represents custom types.
+For example:
+
+    {-| This is a person
+    -}
+    type Color
+        = Blue
+        | Red
 
 
-# Types
+## Types
 
 @docs Type, ValueConstructor
 
 
-# Serialization
+## Serialization
 
 @docs encode, decoder
 
@@ -24,7 +33,8 @@ import Json.Decode as JD exposing (Decoder)
 import Json.Encode as JE exposing (Value)
 
 
-{-| Syntax for a type
+{-| Type alias that deines the syntax for a custom type.
+All information that you can define in on type alias is embedded.
 -}
 type alias Type =
     { name : Node String
@@ -33,7 +43,7 @@ type alias Type =
     }
 
 
-{-| Syntax for a type value constructor
+{-| Syntax for a custom type value constructor
 -}
 type alias ValueConstructor =
     { name : Node String
@@ -45,6 +55,8 @@ type alias ValueConstructor =
 -- Serialization
 
 
+{-| Encode a `Type` syntax element to JSON.
+-}
 encode : Type -> Value
 encode { name, generics, constructors } =
     JE.object
@@ -62,6 +74,8 @@ encodeValueConstructor { name, arguments } =
         ]
 
 
+{-| JSON decoder for a `Type` syntax element.
+-}
 decoder : Decoder Type
 decoder =
     JD.map3 Type

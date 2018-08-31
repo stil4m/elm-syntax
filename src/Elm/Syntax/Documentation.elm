@@ -1,23 +1,22 @@
 module Elm.Syntax.Documentation exposing
     ( Documentation
-    , range
     , encode, decoder
     )
 
-{-| Documenation Syntax
+{-|
 
 
-# Types
+# Documenation Syntax
+
+This syntax represents documentation comments in Elm.
+
+
+## Types
 
 @docs Documentation
 
 
-# Functions
-
-@docs range
-
-
-# Serialization
+## Serialization
 
 @docs encode, decoder
 
@@ -29,21 +28,10 @@ import Json.Decode as JD exposing (Decoder)
 import Json.Encode as JE exposing (Value)
 
 
-{-| Documentation comment
+{-| Type representing the documentation syntax
 -}
 type alias Documentation =
-    Node String
-
-
-
--- Functions
-
-
-{-| Get the source range of the documentation
--}
-range : Documentation -> Range
-range (Node r _) =
-    r
+    String
 
 
 
@@ -54,11 +42,11 @@ range (Node r _) =
 -}
 encode : Documentation -> Value
 encode =
-    Node.encode JE.string
+    JE.string
 
 
 {-| JSON decoder for a `Documentation` syntax element.
 -}
 decoder : Decoder Documentation
 decoder =
-    Node.decoder JD.string
+    JD.string

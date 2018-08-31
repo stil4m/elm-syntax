@@ -1,10 +1,19 @@
 module Elm.Syntax.Exposing exposing
     ( Exposing(..), TopLevelExpose(..), ExposedType
-    , topLevelExposeRange, exposesFunction, operators
+    , exposesFunction, operators
     , encode, decoder
     )
 
-{-| Exposing Syntax
+{-|
+
+
+# Exposing Syntax
+
+This syntax represents the exposing declaration for both imports and module headers.
+For example:
+
+    exposing (Foo(..))
+    exposing (..)
 
 
 # Types
@@ -14,7 +23,7 @@ module Elm.Syntax.Exposing exposing
 
 # Functions
 
-@docs topLevelExposeRange, exposesFunction, operators
+@docs exposesFunction, operators
 
 
 # Serialization
@@ -58,14 +67,14 @@ type alias ExposedType =
 -- Functions
 
 
-{-| Find out the range of a top level expose
--}
-topLevelExposeRange : Node TopLevelExpose -> Range
-topLevelExposeRange =
-    Node.range
+{-| Check whether an import/module exposing list exposes a certain function. Will yield `True` if `Exposing` is exposing everything (`All`).
 
+    exposesFunction "something" (All someRange) == True
 
-{-| Check whether an import/module exposing list exposes a certain function
+    exposesFunction "divide" (Explicit [ Node someRange (FunctionExpose "add") ]) == False
+
+    exposesFunction "add" (Explicit [ Node someRange (FunctionExpose "add") ]) == True
+
 -}
 exposesFunction : String -> Exposing -> Bool
 exposesFunction s exposure =
@@ -86,7 +95,7 @@ exposesFunction s exposure =
                 l
 
 
-{-| Get all operator names from a list of TopLevelExposes
+{-| Collect all operator names from a list of TopLevelExposes
 -}
 operators : List TopLevelExpose -> List String
 operators l =

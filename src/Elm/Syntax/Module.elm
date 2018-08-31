@@ -4,17 +4,25 @@ module Elm.Syntax.Module exposing
     , encode, decoder
     )
 
-{-| Module Syntax
+{-|
 
 
-# Module
+# Module Syntax
+
+This syntax represents module definitions in Elm.
+For example:
+
+    module Html.Attributes (style)
+
+
+## Module
 
 @docs Module, DefaultModuleData, EffectModuleData
 
 @docs exposingList, moduleName, isPortModule, isEffectModule
 
 
-# Serialization
+## Serialization
 
 @docs encode, decoder
 
@@ -114,6 +122,8 @@ isEffectModule m =
 -- Serialization
 
 
+{-| Encode a `Module` syntax element to JSON.
+-}
 encode : Module -> Value
 encode m =
     case m of
@@ -145,6 +155,8 @@ encodeDefaultModuleData moduleData =
         ]
 
 
+{-| JSON decoder for a `Module` syntax element.
+-}
 decoder : Decoder Module
 decoder =
     decodeTyped

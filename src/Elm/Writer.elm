@@ -129,7 +129,7 @@ writeExposureExpose x =
         Explicit exposeList ->
             let
                 diffLines =
-                    List.map Exposing.topLevelExposeRange exposeList
+                    List.map Node.range exposeList
                         |> startOnDifferentLines
             in
             spaced
@@ -241,7 +241,7 @@ writeSignature signature =
         ]
 
 
-writeDocumentation : Documentation -> Writer
+writeDocumentation : Node Documentation -> Writer
 writeDocumentation =
     Node.value >> string
 

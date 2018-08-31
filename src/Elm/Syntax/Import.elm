@@ -3,7 +3,15 @@ module Elm.Syntax.Import exposing
     , encode, decoder
     )
 
-{-| Import Syntax
+{-|
+
+
+# Import Syntax
+
+This syntax represents imports in Elm.
+For example:
+
+    import Html.Attributes as HA exposing (style)
 
 
 # Types
@@ -24,7 +32,7 @@ import Json.Decode as JD exposing (Decoder)
 import Json.Encode as JE exposing (Value)
 
 
-{-| Import definition
+{-| Type alias representing an Import
 -}
 type alias Import =
     { moduleName : Node ModuleName
@@ -33,6 +41,8 @@ type alias Import =
     }
 
 
+{-| Encode a `Import` syntax element to JSON.
+-}
 encode : Import -> Value
 encode { moduleName, moduleAlias, exposingList } =
     JE.object
@@ -50,6 +60,8 @@ encode { moduleName, moduleAlias, exposingList } =
         ]
 
 
+{-| JSON decoder for a `Import` syntax element.
+-}
 decoder : Decoder Import
 decoder =
     JD.map3 Import
