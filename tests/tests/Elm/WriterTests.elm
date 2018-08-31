@@ -116,7 +116,9 @@ import B  """
                 \() ->
                     (Node emptyRange <|
                         CustomTypeDeclaration
-                            (Type (Node emptyRange "Sample")
+                            (Type
+                                Nothing
+                                (Node emptyRange "Sample")
                                 []
                                 [ Node emptyRange <| ValueConstructor (Node emptyRange "Foo") []
                                 , Node emptyRange <| ValueConstructor (Node emptyRange "Bar") []

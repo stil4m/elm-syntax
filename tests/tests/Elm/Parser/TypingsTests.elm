@@ -82,7 +82,8 @@ all =
                     |> Maybe.map noRangeTypeDeclaration
                     |> Expect.equal
                         (Just <|
-                            { name = Node emptyRange <| "Color"
+                            { documentation = Nothing
+                            , name = Node emptyRange <| "Color"
                             , generics = []
                             , constructors =
                                 [ Node emptyRange
@@ -107,7 +108,8 @@ all =
                     |> Maybe.map noRangeTypeDeclaration
                     |> Expect.equal
                         (Just
-                            { constructors =
+                            { documentation = Nothing
+                            , constructors =
                                 [ Node emptyRange
                                     { arguments =
                                         [ Node emptyRange <| GenericType "a"
@@ -127,7 +129,8 @@ all =
                     |> Maybe.map noRangeTypeDeclaration
                     |> Expect.equal
                         (Just
-                            { constructors =
+                            { documentation = Nothing
+                            , constructors =
                                 [ Node emptyRange
                                     { arguments =
                                         [ Node emptyRange <| Typed (Node emptyRange <| ( [], "B" )) []
@@ -147,7 +150,8 @@ all =
                     |> Maybe.map noRangeTypeDeclaration
                     |> Expect.equal
                         (Just
-                            { constructors =
+                            { documentation = Nothing
+                            , constructors =
                                 [ Node emptyRange
                                     { arguments =
                                         [ Node emptyRange <| Typed (Node emptyRange <| ( [], "B" )) []
@@ -166,7 +170,8 @@ all =
                     |> Maybe.map noRangeTypeDeclaration
                     |> Expect.equal
                         (Just
-                            { constructors =
+                            { documentation = Nothing
+                            , constructors =
                                 [ Node emptyRange
                                     { arguments = []
                                     , name = Node emptyRange <| "Blue"
@@ -183,7 +188,8 @@ all =
                     |> Maybe.map noRangeTypeDeclaration
                     |> Expect.equal
                         (Just <|
-                            { name = Node emptyRange <| "Maybe"
+                            { documentation = Nothing
+                            , name = Node emptyRange <| "Maybe"
                             , generics = [ Node emptyRange <| "a" ]
                             , constructors =
                                 [ Node emptyRange

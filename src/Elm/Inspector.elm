@@ -34,6 +34,7 @@ type alias Config context =
     , onExpression : Order context (Node Expression)
     , onOperatorApplication : Order context { operator : String, direction : InfixDirection, left : Node Expression, right : Node Expression }
     , onTypeAnnotation : Order context (Node TypeAnnotation)
+    , onType : Order context (Node Type)
     , onLambda : Order context Lambda
     , onLetBlock : Order context LetBlock
     , onCase : Order context Case
@@ -51,6 +52,7 @@ defaultConfig =
     , onPortDeclaration = Continue
     , onSignature = Continue
     , onTypeAnnotation = Continue
+    , onType = Continue
     , onTypeAlias = Continue
     , onDestructuring = Continue
     , onExpression = Continue
@@ -134,7 +136,7 @@ inspectDeclaration config (Node r declaration) context =
             inspectTypeAlias config (Node r typeAlias) context
 
         CustomTypeDeclaration typeDecl ->
-            inspectType config typeDecl context
+            inspectType config (Node r typeDecl) context
 
         PortDeclaration signature ->
             inspectPortDeclaration config (Node r signature) context
@@ -146,8 +148,17 @@ inspectDeclaration config (Node r declaration) context =
             inspectDestructuring config ( pattern, expresion ) context
 
 
-inspectType : Config context -> Type -> context -> context
-inspectType config typeDecl context =
+inspectType : Config context -> Node Type -> context -> context
+inspectType config tipe context =
+    actionLambda
+        config.onType
+        (inspectTypeInner config <| Node.value tipe)
+        tipe
+        context
+
+
+inspectTypeInner : Config context -> Type -> context -> context
+inspectTypeInner config typeDecl context =
     List.foldl (inspectValueConstructor config) context typeDecl.constructors
 
 

@@ -7,6 +7,7 @@ import Elm.Syntax.Expression exposing (..)
 import Elm.Syntax.File exposing (File)
 import Elm.Syntax.Node as Node exposing (Node(..))
 import Elm.Syntax.Range exposing (Range)
+import Elm.Syntax.Type exposing (Type)
 import Elm.Syntax.TypeAlias exposing (TypeAlias)
 
 
@@ -16,9 +17,34 @@ postProcess file =
         { defaultConfig
             | onFunction = Post onFunction
             , onTypeAlias = Post onTypeAlias
+            , onType = Post onType
         }
         file
         file
+
+
+onType : Node Type -> File -> File
+onType (Node r customType) file =
+    let
+        docs =
+            List.filter (isDocumentationForRange r) file.comments
+    in
+    case List.head docs of
+        Just ((Node docRange docString) as doc) ->
+            { file
+                | comments =
+                    file.comments
+                        |> List.filter ((/=) doc)
+                , declarations =
+                    List.map
+                        (replaceDeclaration
+                            (Node r (CustomTypeDeclaration <| { customType | documentation = Just (Node docRange docString) }))
+                        )
+                        file.declarations
+            }
+
+        Nothing ->
+            file
 
 
 onTypeAlias : Node TypeAlias -> File -> File
