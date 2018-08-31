@@ -210,6 +210,42 @@ type alias Foo
     )
 
 
+typeWithDocumentation : ( String, String, File )
+typeWithDocumentation =
+    ( "typeWithDocumentation"
+    , """
+module Bar exposing (..)
+
+{-| The Doc -}
+type Foo
+   = Red
+   | Blue
+"""
+    , { comments = []
+      , declarations =
+            [ Node { end = { column = 1, row = 7 }, start = { column = 1, row = 4 } }
+                (CustomTypeDeclaration
+                    { constructors =
+                        [ Node { end = { column = 4, row = 6 }, start = { column = 6, row = 5 } }
+                            { arguments = [], name = Node { end = { column = 9, row = 5 }, start = { column = 6, row = 5 } } "Red" }
+                        , Node { end = { column = 1, row = 7 }, start = { column = 6, row = 6 } } { arguments = [], name = Node { end = { column = 10, row = 6 }, start = { column = 6, row = 6 } } "Blue" }
+                        ]
+                    , documentation =
+                        Just
+                            (Node { end = { column = 15, row = 3 }, start = { column = 1, row = 3 } }
+                                "{-| The Doc -}"
+                            )
+                    , generics = []
+                    , name = Node { end = { column = 9, row = 4 }, start = { column = 6, row = 4 } } "Foo"
+                    }
+                )
+            ]
+      , imports = []
+      , moduleDefinition = Node { end = { column = 25, row = 1 }, start = { column = 1, row = 1 } } (NormalModule { exposingList = Node { end = { column = 25, row = 1 }, start = { column = 12, row = 1 } } (All { end = { column = 24, row = 1 }, start = { column = 22, row = 1 } }), moduleName = Node { end = { column = 11, row = 1 }, start = { column = 8, row = 1 } } [ "Bar" ] })
+      }
+    )
+
+
 postProcessInfixOperators : ( String, String, File )
 postProcessInfixOperators =
     ( "postProcessInfixOperators"
@@ -283,5 +319,6 @@ suite =
             , functionWithMultiLineCommentAsDoc
             , postProcessInfixOperators
             , typeAliasWithDocumentation
+            , typeWithDocumentation
             ]
         )
