@@ -26,6 +26,7 @@ For example:
 
 -}
 
+import Elm.Syntax.Documentation as Documentation exposing (Documentation)
 import Elm.Syntax.Node as Node exposing (Node)
 import Elm.Syntax.Range exposing (Range)
 import Elm.Syntax.TypeAnnotation as TypeAnnotation exposing (TypeAnnotation)
@@ -37,7 +38,8 @@ import Json.Encode as JE exposing (Value)
 All information that you can define in on type alias is embedded.
 -}
 type alias Type =
-    { name : Node String
+    { documentation : Maybe (Node Documentation)
+    , name : Node String
     , generics : List (Node String)
     , constructors : List (Node ValueConstructor)
     }
@@ -58,9 +60,10 @@ type alias ValueConstructor =
 {-| Encode a `Type` syntax element to JSON.
 -}
 encode : Type -> Value
-encode { name, generics, constructors } =
+encode { documentation, name, generics, constructors } =
     JE.object
-        [ ( "name", Node.encode JE.string name )
+        [ ( "documentation", Maybe.map (Node.encode Documentation.encode) documentation |> Maybe.withDefault JE.null )
+        , ( "name", Node.encode JE.string name )
         , ( "generics", JE.list (Node.encode JE.string) generics )
         , ( "constructors", JE.list (Node.encode encodeValueConstructor) constructors )
         ]
@@ -78,7 +81,8 @@ encodeValueConstructor { name, arguments } =
 -}
 decoder : Decoder Type
 decoder =
-    JD.map3 Type
+    JD.map4 Type
+        (JD.field "documentation" <| JD.nullable <| Node.decoder JD.string)
         (JD.field "name" <| Node.decoder JD.string)
         (JD.field "generics" (JD.list (Node.decoder JD.string)))
         (JD.field "constructors" (JD.list (Node.decoder valueConstructorDecoder)))

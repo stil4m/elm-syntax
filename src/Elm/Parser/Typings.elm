@@ -37,7 +37,7 @@ typeDefinition =
                                 (\typeAlias ->
                                     DefinedAlias (Range.combine [ start, (\(Node r v) -> r) typeAlias.typeAnnotation ]) typeAlias
                                 )
-                        , succeed Type
+                        , succeed (Type Nothing)
                             |> Combine.andMap (Node.parser typeName)
                             |> Combine.ignore (maybe Layout.layout)
                             |> Combine.andMap genericList
