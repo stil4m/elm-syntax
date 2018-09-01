@@ -40,7 +40,24 @@ allSamples =
     , sample33
     , sample34
     , sample35
+    , sample36
     ]
+
+
+sample36 =
+    """module Parser.Advanced exposing( Parser)
+
+
+-- WHITESPACE
+
+
+{-| Just like [`Parser.spaces`](Parser#spaces)
+-}
+spaces : Parser c x ()
+spaces =
+  chompWhile (\\c -> c == ' ' || c == '\\n' || c == '\\r')
+
+"""
 
 
 sample35 =

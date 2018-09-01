@@ -155,6 +155,10 @@ all =
             \() ->
                 parseFullString "'\\''" Parser.characterLiteral
                     |> Expect.equal (Just '\'')
+        , test "character escaped - 2" <|
+            \() ->
+                parseFullString "'\\r'" Parser.characterLiteral
+                    |> Expect.equal (Just '\u{000D}')
         , test "unicode char" <|
             \() ->
                 parseFullString "'\\u{000D}'" Parser.characterLiteral

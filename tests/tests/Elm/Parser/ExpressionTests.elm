@@ -5,6 +5,7 @@ import Elm.Parser.CombineTestUtil exposing (..)
 import Elm.Parser.Declarations exposing (..)
 import Elm.Syntax.Expression exposing (..)
 import Elm.Syntax.Node as Node exposing (Node(..))
+import Elm.Syntax.Pattern exposing (..)
 import Elm.Syntax.Range exposing (..)
 import Expect
 import Test exposing (..)
@@ -405,6 +406,43 @@ all =
                                                 ]
                                         )
                                 )
+                            )
+                        )
+        , test "function with higher order" <|
+            \() ->
+                parseFullStringWithNullState "chompWhile (\\c -> c == ' ' || c == '\\n' || c == '\\r')" expression
+                    |> Maybe.map noRangeExpression
+                    |> Maybe.map Node.value
+                    |> Expect.equal
+                        (Just
+                            (Application
+                                [ Node emptyRange (FunctionOrValue [] "chompWhile")
+                                , Node emptyRange
+                                    (ParenthesizedExpression
+                                        (Node emptyRange
+                                            (LambdaExpression
+                                                { args = [ Node emptyRange (VarPattern "c") ]
+                                                , expression =
+                                                    Node emptyRange
+                                                        (Application
+                                                            [ Node emptyRange (FunctionOrValue [] "c")
+                                                            , Node emptyRange (Operator "==")
+                                                            , Node emptyRange (CharLiteral ' ')
+                                                            , Node emptyRange (Operator "||")
+                                                            , Node emptyRange (FunctionOrValue [] "c")
+                                                            , Node emptyRange (Operator "==")
+                                                            , Node emptyRange (CharLiteral '\n')
+                                                            , Node emptyRange (Operator "||")
+                                                            , Node emptyRange (FunctionOrValue [] "c")
+                                                            , Node emptyRange (Operator "==")
+                                                            , Node emptyRange (CharLiteral '\u{000D}')
+                                                            ]
+                                                        )
+                                                }
+                                            )
+                                        )
+                                    )
+                                ]
                             )
                         )
         ]

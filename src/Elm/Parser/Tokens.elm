@@ -168,6 +168,8 @@ escapedCharValue =
         , Core.succeed '"' |. Core.symbol "\""
         , Core.succeed '\n' |. Core.symbol "n"
         , Core.succeed '\t' |. Core.symbol "t"
+        , -- Eventhough Elm-format will change \r to a unicode version. When you dont use elm-format, this will not happen.
+          Core.succeed '\u{000D}' |. Core.symbol "r"
         , Core.succeed '\\' |. Core.symbol "\\"
         , Core.succeed (String.toLower >> Hex.fromString >> Result.withDefault 0 >> Char.fromCode)
             |. Core.symbol "u"
