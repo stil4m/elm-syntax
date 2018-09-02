@@ -3,15 +3,22 @@ module Elm.Syntax.Signature exposing
     , encode, decoder
     )
 
-{-| Signature Syntax
+{-|
 
 
-# Types
+# Signature Syntax
+
+For example :
+
+    add : Int -> Int -> Int
+
+
+## Types
 
 @docs Signature
 
 
-# Serialization
+## Serialization
 
 @docs encode, decoder
 
@@ -23,12 +30,16 @@ import Json.Decode as JD exposing (Decoder)
 import Json.Encode as JE exposing (Value)
 
 
+{-| Type alias representing a signature in Elm.
+-}
 type alias Signature =
     { name : Node String
     , typeAnnotation : Node TypeAnnotation
     }
 
 
+{-| Encode a `Signature` syntax element to JSON.
+-}
 encode : Signature -> Value
 encode { name, typeAnnotation } =
     JE.object
@@ -37,6 +48,8 @@ encode { name, typeAnnotation } =
         ]
 
 
+{-| JSON decoder for a `Signature` syntax element.
+-}
 decoder : Decoder Signature
 decoder =
     JD.map2 Signature

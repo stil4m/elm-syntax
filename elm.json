@@ -20,8 +20,10 @@
         "Elm.Syntax.Infix",
         "Elm.Syntax.Module",
         "Elm.Syntax.ModuleName",
+        "Elm.Syntax.Node",
         "Elm.Syntax.Pattern",
         "Elm.Syntax.Range",
+        "Elm.Syntax.Signature",
         "Elm.Syntax.TypeAlias",
         "Elm.Syntax.TypeAnnotation",
         "Elm.Syntax.Type"
