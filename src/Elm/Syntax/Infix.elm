@@ -1,6 +1,6 @@
 module Elm.Syntax.Infix exposing
     ( Infix, InfixDirection(..)
-    , encode, encodeDirection, decode, decodeDirection
+    , encode, encodeDirection, decoder, decodeDirection
     )
 
 {-| Infix Syntax
@@ -12,7 +12,7 @@ module Elm.Syntax.Infix exposing
 
 # Json
 
-@docs encode, encodeDirection, decode, decodeDirection
+@docs encode, encodeDirection, decoder, decodeDirection
 
 -}
 
@@ -69,8 +69,8 @@ encodeDirection d =
 
 {-| Decode an infix
 -}
-decode : Decoder Infix
-decode =
+decoder : Decoder Infix
+decoder =
     JD.map4 Infix
         (JD.field "direction" (Node.decoder decodeDirection))
         (JD.field "precedence" (Node.decoder JD.int))

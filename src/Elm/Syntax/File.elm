@@ -61,4 +61,4 @@ decoder =
         (JD.field "moduleDefinition" (Node.decoder Module.decoder))
         (JD.field "imports" (JD.list (Node.decoder Import.decoder)))
         (JD.field "declarations" (JD.list (Node.decoder Declaration.decoder)))
-        (JD.field "comments" (JD.list (Node.decoder Comments.decode)))
+        (JD.field "comments" (JD.list (Node.decoder Comments.decoder)))

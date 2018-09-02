@@ -79,5 +79,5 @@ encode f (Node r v) =
 decoder : Decoder a -> Decoder (Node a)
 decoder sub =
     JD.map2 Node
-        (JD.field "range" Range.decode)
+        (JD.field "range" Range.decoder)
         (JD.field "value" sub)

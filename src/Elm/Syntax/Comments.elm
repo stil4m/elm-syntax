@@ -1,7 +1,6 @@
 module Elm.Syntax.Comments exposing
     ( Comment
-    , encode
-    , decode
+    , encode, decoder
     )
 
 {-|
@@ -53,6 +52,6 @@ encode =
 
 {-| JSON decoder for a `Comment` syntax element.
 -}
-decode : Decoder Comment
-decode =
+decoder : Decoder Comment
+decoder =
     JD.string

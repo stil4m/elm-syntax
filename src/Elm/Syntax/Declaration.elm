@@ -98,7 +98,7 @@ decoder =
                 , ( "typeAlias", TypeAlias.decoder |> JD.map AliasDeclaration )
                 , ( "typedecl", Type.decoder |> JD.map CustomTypeDeclaration )
                 , ( "port", Signature.decoder |> JD.map PortDeclaration )
-                , ( "infix", Infix.decode |> JD.map InfixDeclaration )
+                , ( "infix", Infix.decoder |> JD.map InfixDeclaration )
                 , ( "destructuring", JD.map2 Destructuring (JD.field "pattern" (Node.decoder Pattern.decoder)) (JD.field "expression" (Node.decoder Expression.decoder)) )
                 ]
         )

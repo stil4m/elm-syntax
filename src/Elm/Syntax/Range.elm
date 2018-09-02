@@ -1,7 +1,7 @@
 module Elm.Syntax.Range exposing
     ( Range, Location
     , emptyRange, combine
-    , encode, decode
+    , encode, decoder
     )
 
 {-| Source Code Ranges
@@ -19,7 +19,7 @@ module Elm.Syntax.Range exposing
 
 # Json
 
-@docs encode, decode
+@docs encode, decoder
 
 -}
 
@@ -67,8 +67,8 @@ encode { start, end } =
 
 {-| Decode a range
 -}
-decode : Decoder Range
-decode =
+decoder : Decoder Range
+decoder =
     JD.list JD.int
         |> JD.andThen
             (fromList >> fromResult)

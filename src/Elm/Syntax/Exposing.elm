@@ -133,7 +133,7 @@ encode exp =
 decoder : Decoder Exposing
 decoder =
     decodeTyped
-        [ ( "all", Range.decode |> JD.map All )
+        [ ( "all", Range.decoder |> JD.map All )
         , ( "explicit", JD.list topLevelExposeDecoder |> JD.map Explicit )
         ]
 
@@ -190,4 +190,4 @@ exposedTypeDecoder : Decoder ExposedType
 exposedTypeDecoder =
     JD.map2 ExposedType
         (JD.field "name" JD.string)
-        (JD.field "open" (JD.nullable Range.decode))
+        (JD.field "open" (JD.nullable Range.decoder))
