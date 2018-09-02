@@ -2,8 +2,8 @@
     "type": "package",
     "name": "stil4m/elm-syntax",
     "summary": "Elm Syntax in Elm: for parsing and writing Elm in Elm",
-    "license": "BSD-3-Clause",
-    "version": "5.0.1",
+    "license": "MIT",
+    "version": "6.0.0",
     "exposed-modules": [
         "Elm.Dependency",
         "Elm.Interface",
