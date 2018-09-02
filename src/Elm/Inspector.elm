@@ -4,7 +4,7 @@ import Elm.Syntax.Declaration exposing (Declaration(..))
 import Elm.Syntax.Expression exposing (Case, Expression(..), Function, Lambda, LetBlock, LetDeclaration(..), RecordSetter)
 import Elm.Syntax.File exposing (File)
 import Elm.Syntax.Import exposing (Import)
-import Elm.Syntax.Infix exposing (InfixDirection)
+import Elm.Syntax.Infix exposing (Infix, InfixDirection)
 import Elm.Syntax.Module
 import Elm.Syntax.ModuleName exposing (ModuleName)
 import Elm.Syntax.Node as Node exposing (Node(..))
@@ -27,14 +27,15 @@ type alias Config context =
     { onFile : Order context File
     , onImport : Order context (Node Import)
     , onFunction : Order context (Node Function)
-    , onSignature : Order context (Node Signature)
-    , onPortDeclaration : Order context (Node Signature)
     , onTypeAlias : Order context (Node TypeAlias)
-    , onDestructuring : Order context ( Node Pattern, Node Expression )
+    , onType : Order context (Node Type)
+    , onPortDeclaration : Order context (Node Signature)
+    , onInfixDeclaration : Order context (Node Infix)
+    , onDestructuring : Order context (Node ( Node Pattern, Node Expression ))
+    , onSignature : Order context (Node Signature)
     , onExpression : Order context (Node Expression)
     , onOperatorApplication : Order context { operator : String, direction : InfixDirection, left : Node Expression, right : Node Expression }
     , onTypeAnnotation : Order context (Node TypeAnnotation)
-    , onType : Order context (Node Type)
     , onLambda : Order context Lambda
     , onLetBlock : Order context LetBlock
     , onCase : Order context Case
@@ -50,6 +51,7 @@ defaultConfig =
     , onImport = Continue
     , onFunction = Continue
     , onPortDeclaration = Continue
+    , onInfixDeclaration = Continue
     , onSignature = Continue
     , onTypeAnnotation = Continue
     , onType = Continue
@@ -123,7 +125,7 @@ inspectLetDeclaration config (Node range declaration) context =
             inspectFunction config (Node range function) context
 
         LetDestructuring pattern expression ->
-            inspectDestructuring config ( pattern, expression ) context
+            inspectDestructuring config (Node range ( pattern, expression )) context
 
 
 inspectDeclaration : Config context -> Node Declaration -> context -> context
@@ -141,11 +143,15 @@ inspectDeclaration config (Node r declaration) context =
         PortDeclaration signature ->
             inspectPortDeclaration config (Node r signature) context
 
-        InfixDeclaration _ ->
-            context
+        InfixDeclaration inf ->
+            actionLambda
+                config.onInfixDeclaration
+                identity
+                (Node r inf)
+                context
 
         Destructuring pattern expresion ->
-            inspectDestructuring config ( pattern, expresion ) context
+            inspectDestructuring config (Node r ( pattern, expresion )) context
 
 
 inspectType : Config context -> Node Type -> context -> context
@@ -176,11 +182,14 @@ inspectTypeAlias config ((Node _ typeAlias) as pair) context =
         context
 
 
-inspectDestructuring : Config context -> ( Node Pattern, Node Expression ) -> context -> context
+inspectDestructuring : Config context -> Node ( Node Pattern, Node Expression ) -> context -> context
 inspectDestructuring config destructuring context =
     actionLambda
         config.onDestructuring
-        (inspectExpression config (Tuple.second destructuring))
+        (\c ->
+            c
+                |> inspectExpression config (Tuple.second <| Node.value destructuring)
+        )
         destructuring
         context
 
