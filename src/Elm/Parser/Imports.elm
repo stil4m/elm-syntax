@@ -9,10 +9,11 @@ import Elm.Parser.State exposing (State)
 import Elm.Parser.Tokens exposing (asToken, importToken)
 import Elm.Syntax.Import exposing (Import)
 import Elm.Syntax.ModuleName exposing (ModuleName)
-import Elm.Syntax.Node exposing (Node)
+import Elm.Syntax.Node as Node exposing (Node(..))
+import Elm.Syntax.Range as Range exposing (Range)
 
 
-importDefinition : Parser State Import
+importDefinition : Parser State (Node Import)
 importDefinition =
     let
         importAndModuleName =
@@ -29,7 +30,7 @@ importDefinition =
         parseExposingDefinition : Node ModuleName -> Maybe (Node ModuleName) -> Parser State Import
         parseExposingDefinition mod asDef =
             Combine.choice
-                [ exposeDefinition
+                [ Node.parser exposeDefinition
                     |> Combine.map (Just >> Import mod asDef)
                 , Combine.succeed (Import mod asDef Nothing)
                 ]
@@ -42,6 +43,26 @@ importDefinition =
                 , parseExposingDefinition mod Nothing
                 ]
     in
-    importAndModuleName
-        |> Combine.ignore Layout.optimisticLayout
-        |> Combine.andThen parseAsDefinition
+    Node.parser (Combine.succeed ())
+        |> Combine.andThen
+            (\(Node start ()) ->
+                importAndModuleName
+                    |> Combine.ignore Layout.optimisticLayout
+                    |> Combine.andThen parseAsDefinition
+                    |> Combine.map (setupNode start)
+            )
+
+
+setupNode : Range -> Import -> Node Import
+setupNode start imp =
+    let
+        allRanges =
+            [ Just start
+            , Just (Node.range imp.moduleName)
+            , Maybe.map Node.range imp.exposingList
+            , Maybe.map Node.range imp.moduleAlias
+            ]
+    in
+    Node
+        (Range.combine (List.filterMap identity allRanges))
+        imp

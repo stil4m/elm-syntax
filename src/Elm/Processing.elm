@@ -99,14 +99,14 @@ buildSingle imp moduleIndex =
         Nothing ->
             []
 
-        Just (All _) ->
+        Just (Node _ (All _)) ->
             moduleIndex
                 |> Dict.get (Node.value imp.moduleName)
                 |> Maybe.withDefault []
                 |> Interface.operators
                 |> List.map (\x -> ( Node.value x.operator, x ))
 
-        Just (Explicit l) ->
+        Just (Node _ (Explicit l)) ->
             let
                 selectedOperators =
                     Exposing.operators <| List.map Node.value l

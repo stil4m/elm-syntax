@@ -35,7 +35,7 @@ suite =
                     , Node emptyRange
                         { moduleName = Node emptyRange <| [ "C" ]
                         , moduleAlias = Just (Node emptyRange [ "D" ])
-                        , exposingList = Just (All emptyRange)
+                        , exposingList = Just (Node emptyRange <| All emptyRange)
                         }
                     ]
                 , declarations = []

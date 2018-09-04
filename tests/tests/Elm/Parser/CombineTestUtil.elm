@@ -131,7 +131,7 @@ noRangeModule m =
 noRangeImport : Import -> Import
 noRangeImport imp =
     { imp
-        | exposingList = Maybe.map noRangeExposingList imp.exposingList
+        | exposingList = Maybe.map (unRanged noRangeExposingList) imp.exposingList
         , moduleName = unRanged identity imp.moduleName
         , moduleAlias = Maybe.map (unRanged identity) imp.moduleAlias
     }

@@ -19,7 +19,7 @@ file =
         |> Combine.ignore (maybe Layout.layoutStrict)
         |> Combine.andMap (Node.parser moduleDefinition)
         |> Combine.ignore (maybe Layout.layoutStrict)
-        |> Combine.andMap (many (Node.parser importDefinition |> Combine.ignore Layout.optimisticLayout))
+        |> Combine.andMap (many (importDefinition |> Combine.ignore Layout.optimisticLayout))
         |> Combine.ignore (maybe Layout.layoutStrict)
         |> Combine.andMap fileDeclarations
         |> Combine.andMap collectComments

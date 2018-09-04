@@ -28,7 +28,7 @@ suite =
         [ describe "serialization"
             [ test "case 1" <|
                 \() ->
-                    symmetric (Import (Node emptyRange [ "A", "B" ]) (Just <| Node emptyRange [ "C" ]) (Just <| All emptyRange))
+                    symmetric (Import (Node emptyRange [ "A", "B" ]) (Just <| Node emptyRange [ "C" ]) (Just <| Node emptyRange <| All emptyRange))
                         Import.encode
                         Import.decoder
             , test "import Html exposing (beginnerProgram, div, button, text)" <|
@@ -37,12 +37,13 @@ suite =
                         (Import (Node emptyRange [ "Html" ])
                             Nothing
                             (Just <|
-                                Explicit
-                                    [ Node emptyRange (FunctionExpose "beginnerProgram")
-                                    , Node emptyRange (FunctionExpose "div")
-                                    , Node emptyRange (FunctionExpose "button")
-                                    , Node emptyRange (FunctionExpose "text")
-                                    ]
+                                Node emptyRange <|
+                                    Explicit
+                                        [ Node emptyRange (FunctionExpose "beginnerProgram")
+                                        , Node emptyRange (FunctionExpose "div")
+                                        , Node emptyRange (FunctionExpose "button")
+                                        , Node emptyRange (FunctionExpose "text")
+                                        ]
                             )
                         )
                         Import.encode

@@ -173,7 +173,7 @@ writeImport { moduleName, moduleAlias, exposingList } =
         [ string "import"
         , writeModuleName <| Node.value moduleName
         , maybe (Maybe.map (Node.value >> writeModuleName >> (\x -> spaced [ string "as", x ])) moduleAlias)
-        , maybe (Maybe.map writeExposureExpose exposingList)
+        , maybe (Maybe.map (Node.value >> writeExposureExpose) exposingList)
         ]
 
 
