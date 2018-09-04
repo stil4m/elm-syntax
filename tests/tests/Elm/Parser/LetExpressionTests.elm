@@ -232,7 +232,7 @@ all =
         , test "let without indentation" <|
             \() ->
                 parseFullStringState emptyState " let\n b = 1\n in\n b" (Layout.layout |> Combine.continueWith Parser.letExpression)
-                    |> Maybe.map (\a -> Node emptyRange a |> noRangeExpression)
+                    |> Maybe.map noRangeExpression
                     |> Maybe.map Node.value
                     |> Expect.equal
                         (Just

@@ -166,24 +166,22 @@ expressionNotApplication : Parser State (Node Expression)
 expressionNotApplication =
     lazy
         (\() ->
-            (Node.parser <|
-                choice
-                    [ numberExpression
-                    , referenceExpression
-                    , ifBlockExpression
-                    , tupledExpression
-                    , recordAccessFunctionExpression
-                    , operatorExpression
-                    , letExpression
-                    , lambdaExpression
-                    , literalExpression
-                    , charLiteralExpression
-                    , recordExpression
-                    , glslExpression
-                    , listExpression
-                    , caseExpression
-                    ]
-            )
+            choice
+                [ numberExpression
+                , referenceExpression
+                , ifBlockExpression
+                , tupledExpression
+                , recordAccessFunctionExpression
+                , operatorExpression
+                , letExpression
+                , lambdaExpression
+                , literalExpression
+                , charLiteralExpression
+                , recordExpression
+                , glslExpression
+                , listExpression
+                , caseExpression
+                ]
                 |> Combine.andThen liftRecordAccess
         )
 
@@ -251,7 +249,7 @@ withIndentedState p =
         )
 
 
-glslExpression : Parser State Expression
+glslExpression : Parser State (Node Expression)
 glslExpression =
     let
         start =
@@ -264,9 +262,10 @@ glslExpression =
         |> Combine.fromCore
         |> Combine.map (String.dropLeft (String.length start) >> GLSLExpression)
         |> Combine.ignore (Combine.string end)
+        |> Node.parser
 
 
-listExpression : Parser State Expression
+listExpression : Parser State (Node Expression)
 listExpression =
     lazy
         (\() ->
@@ -286,18 +285,7 @@ listExpression =
                         , innerExpressions |> Combine.ignore (string "]")
                         ]
                     )
-        )
-
-
-emptyListExpression : Parser State Expression
-emptyListExpression =
-    lazy
-        (\() ->
-            Combine.map (always (ListExpr []))
-                (string "["
-                    |> Combine.continueWith (maybe (or Layout.layout Layout.layoutAndNewLine))
-                    |> Combine.continueWith (string "]")
-                )
+                |> Node.parser
         )
 
 
@@ -305,7 +293,7 @@ emptyListExpression =
 -- recordExpression
 
 
-recordExpression : Parser State Expression
+recordExpression : Parser State (Node Expression)
 recordExpression =
     lazy
         (\() ->
@@ -378,26 +366,28 @@ recordExpression =
                         ]
                     )
         )
+        |> Node.parser
 
 
-literalExpression : Parser State Expression
+literalExpression : Parser State (Node Expression)
 literalExpression =
     lazy
         (\() ->
             Combine.map Literal (or multiLineStringLiteral stringLiteral)
+                |> Node.parser
         )
 
 
-charLiteralExpression : Parser State Expression
+charLiteralExpression : Parser State (Node Expression)
 charLiteralExpression =
-    Combine.map CharLiteral characterLiteral
+    Node.parser (Combine.map CharLiteral characterLiteral)
 
 
 
 -- lambda
 
 
-lambdaExpression : Parser State Expression
+lambdaExpression : Parser State (Node Expression)
 lambdaExpression =
     lazy
         (\() ->
@@ -406,6 +396,7 @@ lambdaExpression =
                 |> Combine.ignore (maybe Layout.layout)
                 |> Combine.andMap (sepBy1 (maybe Layout.layout) functionArgument)
                 |> Combine.andMap (Layout.maybeAroundBothSides (string "->") |> Combine.continueWith expression)
+                |> Node.parser
         )
 
 
@@ -466,15 +457,23 @@ caseStatements =
         )
 
 
-caseExpression : Parser State Expression
+caseExpression : Parser State (Node Expression)
 caseExpression =
     lazy
         (\() ->
-            Combine.map CaseExpression
-                (succeed CaseBlock
-                    |> Combine.andMap caseBlock
-                    |> Combine.andMap (Layout.layout |> Combine.continueWith (withIndentedState caseStatements))
-                )
+            Node.parser (Combine.succeed ())
+                |> Combine.andThen
+                    (\(Node start ()) ->
+                        Combine.map
+                            (\cb ->
+                                Node (Range.combine (start :: List.map (Tuple.second >> Node.range) cb.cases))
+                                    (CaseExpression cb)
+                            )
+                            (succeed CaseBlock
+                                |> Combine.andMap caseBlock
+                                |> Combine.andMap (Layout.layout |> Combine.continueWith (withIndentedState caseStatements))
+                            )
+                    )
         )
 
 
@@ -539,41 +538,44 @@ letBlock =
         )
 
 
-letExpression : Parser State Expression
+letExpression : Parser State (Node Expression)
 letExpression =
     lazy
         (\() ->
             succeed (\decls -> LetBlock decls >> LetExpression)
                 |> Combine.andMap letBlock
                 |> Combine.andMap (Layout.layout |> Combine.continueWith expression)
+                |> Node.parser
         )
 
 
-numberExpression : Parser State Expression
+numberExpression : Parser State (Node Expression)
 numberExpression =
-    Elm.Parser.Numbers.forgivingNumber Floatable Integer Hex
+    Node.parser (Elm.Parser.Numbers.forgivingNumber Floatable Integer Hex)
 
 
-ifBlockExpression : Parser State Expression
+ifBlockExpression : Parser State (Node Expression)
 ifBlockExpression =
-    ifToken
-        |> Combine.continueWith
-            (lazy
-                (\() ->
-                    succeed IfBlock
-                        |> Combine.ignore (maybe Layout.layout)
-                        |> Combine.andMap expression
-                        |> Combine.ignore (maybe Layout.layout)
-                        |> Combine.ignore thenToken
-                        |> Combine.ignore (maybe Layout.layout)
-                        |> Combine.andMap expression
-                        |> Combine.ignore (maybe Layout.layout)
-                        |> Combine.andMap (elseToken |> Combine.continueWith Layout.layout |> Combine.continueWith expression)
+    Node.parser
+        (ifToken
+            |> Combine.continueWith
+                (lazy
+                    (\() ->
+                        succeed IfBlock
+                            |> Combine.ignore (maybe Layout.layout)
+                            |> Combine.andMap expression
+                            |> Combine.ignore (maybe Layout.layout)
+                            |> Combine.ignore thenToken
+                            |> Combine.ignore (maybe Layout.layout)
+                            |> Combine.andMap expression
+                            |> Combine.ignore (maybe Layout.layout)
+                            |> Combine.andMap (elseToken |> Combine.continueWith Layout.layout |> Combine.continueWith expression)
+                    )
                 )
-            )
+        )
 
 
-operatorExpression : Parser State Expression
+operatorExpression : Parser State (Node Expression)
 operatorExpression =
     let
         negationExpression : Parser State Expression
@@ -581,13 +583,11 @@ operatorExpression =
             lazy
                 (\() ->
                     Combine.map Negation
-                        (Node.parser
-                            (choice
-                                [ referenceExpression
-                                , numberExpression
-                                , tupledExpression
-                                ]
-                            )
+                        (choice
+                            [ referenceExpression
+                            , numberExpression
+                            , tupledExpression
+                            ]
                             |> Combine.andThen liftRecordAccess
                         )
                 )
@@ -597,7 +597,9 @@ operatorExpression =
             Combine.choice
                 [ string "-"
                     |> Combine.continueWith (Combine.choice [ negationExpression, succeed (Operator "-") |> Combine.ignore Layout.layout ])
+                    |> Node.parser
                 , Combine.map Operator infixOperatorToken
+                    |> Node.parser
                 ]
         )
 
@@ -630,24 +632,27 @@ reference =
         ]
 
 
-referenceExpression : Parser State Expression
+referenceExpression : Parser State (Node Expression)
 referenceExpression =
-    reference
-        |> Combine.map
-            (\( xs, x ) ->
-                FunctionOrValue xs x
-            )
+    Node.parser
+        (reference
+            |> Combine.map
+                (\( xs, x ) ->
+                    FunctionOrValue xs x
+                )
+        )
 
 
-recordAccessFunctionExpression : Parser State Expression
+recordAccessFunctionExpression : Parser State (Node Expression)
 recordAccessFunctionExpression =
     Combine.map ((++) "." >> RecordAccessFunction)
         (string "."
             |> Combine.continueWith functionName
         )
+        |> Node.parser
 
 
-tupledExpression : Parser State Expression
+tupledExpression : Parser State (Node Expression)
 tupledExpression =
     lazy
         (\v ->
@@ -681,17 +686,19 @@ tupledExpression =
                 closingParen =
                     Combine.fromCore (Core.symbol ")")
             in
-            Combine.fromCore (Core.symbol "(")
-                |> Combine.continueWith
-                    (Combine.choice
-                        [ closingParen |> Combine.map (always UnitExpr)
-                        , -- Backtracking needed for record access expression
-                          Combine.backtrackable
-                            (prefixOperatorToken
-                                |> Combine.ignore closingParen
-                                |> Combine.map PrefixOperator
-                            )
-                        , nested |> Combine.ignore closingParen
-                        ]
-                    )
+            Node.parser
+                (Combine.fromCore (Core.symbol "(")
+                    |> Combine.continueWith
+                        (Combine.choice
+                            [ closingParen |> Combine.map (always UnitExpr)
+                            , -- Backtracking needed for record access expression
+                              Combine.backtrackable
+                                (prefixOperatorToken
+                                    |> Combine.ignore closingParen
+                                    |> Combine.map PrefixOperator
+                                )
+                            , nested |> Combine.ignore closingParen
+                            ]
+                        )
+                )
         )
