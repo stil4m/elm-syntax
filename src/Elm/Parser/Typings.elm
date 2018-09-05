@@ -7,7 +7,7 @@ import Elm.Parser.Ranges exposing (withCurrentPoint)
 import Elm.Parser.State exposing (State)
 import Elm.Parser.Tokens exposing (functionName, typeName)
 import Elm.Parser.TypeAnnotation exposing (typeAnnotation, typeAnnotationNonGreedy)
-import Elm.Syntax.Node exposing (Node(..))
+import Elm.Syntax.Node as Node exposing (Node(..))
 import Elm.Syntax.Range as Range exposing (Range)
 import Elm.Syntax.Type exposing (Type, ValueConstructor)
 import Elm.Syntax.TypeAlias exposing (TypeAlias)
@@ -35,7 +35,7 @@ typeDefinition =
                             |> Combine.andMap typeAnnotation
                             |> Combine.map
                                 (\typeAlias ->
-                                    DefinedAlias (Range.combine [ start, (\(Node r v) -> r) typeAlias.typeAnnotation ]) typeAlias
+                                    DefinedAlias (Range.combine [ start, Node.range typeAlias.typeAnnotation ]) typeAlias
                                 )
                         , succeed (Type Nothing)
                             |> Combine.andMap (Node.parser typeName)
@@ -60,7 +60,7 @@ valueConstructors =
     Combine.lazy
         (\() ->
             Combine.succeed (::)
-                |> Combine.andMap (Node.parser valueConstructor)
+                |> Combine.andMap valueConstructor
                 |> Combine.andMap
                     (Combine.choice
                         [ string "|"
@@ -72,16 +72,16 @@ valueConstructors =
         )
 
 
-valueConstructor : Parser State ValueConstructor
+valueConstructor : Parser State (Node ValueConstructor)
 valueConstructor =
     succeed ValueConstructor
         |> Combine.continueWith (Node.parser typeName)
         |> Combine.andThen
             (\((Node range tn) as tnn) ->
                 let
-                    complete : List (Node TypeAnnotation) -> Parser State ValueConstructor
+                    complete : List (Node TypeAnnotation) -> Parser State (Node ValueConstructor)
                     complete args =
-                        Combine.succeed (ValueConstructor tnn args)
+                        Combine.succeed (Node (Range.combine (range :: List.map Node.range args)) (ValueConstructor tnn args))
 
                     argHelper : List (Node TypeAnnotation) -> Parser State (List (Node TypeAnnotation))
                     argHelper xs =

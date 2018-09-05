@@ -223,12 +223,13 @@ type Foo
 """
     , { comments = []
       , declarations =
-            [ Node { end = { column = 1, row = 7 }, start = { column = 1, row = 4 } }
+            [ Node { end = { column = 10, row = 6 }, start = { column = 1, row = 4 } }
                 (CustomTypeDeclaration
                     { constructors =
-                        [ Node { end = { column = 4, row = 6 }, start = { column = 6, row = 5 } }
+                        [ Node { end = { column = 9, row = 5 }, start = { column = 6, row = 5 } }
                             { arguments = [], name = Node { end = { column = 9, row = 5 }, start = { column = 6, row = 5 } } "Red" }
-                        , Node { end = { column = 1, row = 7 }, start = { column = 6, row = 6 } } { arguments = [], name = Node { end = { column = 10, row = 6 }, start = { column = 6, row = 6 } } "Blue" }
+                        , Node { end = { column = 10, row = 6 }, start = { column = 6, row = 6 } }
+                            { arguments = [], name = Node { end = { column = 10, row = 6 }, start = { column = 6, row = 6 } } "Blue" }
                         ]
                     , documentation =
                         Just

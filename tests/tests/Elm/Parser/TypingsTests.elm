@@ -208,4 +208,20 @@ all =
                 parseFullStringWithNullState "type Maybe a = Just a |\nNothing" Parser.typeDefinition
                     |> Maybe.andThen asType
                     |> Expect.equal Nothing
+        , test "type with spacing after " <|
+            \() ->
+                parseAsFarAsPossibleWithState emptyState "type A = B\n\n" Parser.typeDefinition
+                    |> Expect.equal
+                        (Just
+                            (DefinedType { end = { column = 11, row = 1 }, start = { column = 1, row = 1 } }
+                                { constructors =
+                                    [ Node { end = { column = 11, row = 1 }, start = { column = 10, row = 1 } }
+                                        { arguments = [], name = Node { end = { column = 11, row = 1 }, start = { column = 10, row = 1 } } "B" }
+                                    ]
+                                , documentation = Nothing
+                                , generics = []
+                                , name = Node { end = { column = 7, row = 1 }, start = { column = 6, row = 1 } } "A"
+                                }
+                            )
+                        )
         ]
