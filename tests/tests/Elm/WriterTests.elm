@@ -166,4 +166,17 @@ import B  """
                                 ++ "        doSomethingElse"
                             )
             ]
+        , describe "Tuple"
+            [ test "write tuple" <|
+                \() ->
+                    (Node emptyRange <|
+                        TupledExpression
+                            [ Node emptyRange <| Integer 1
+                            , Node emptyRange <| Integer 2
+                            ]
+                    )
+                        |> Writer.writeExpression
+                        |> Writer.write
+                        |> Expect.equal "(1, 2)"
+            ]
         ]
