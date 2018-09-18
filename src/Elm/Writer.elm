@@ -490,7 +490,7 @@ writeExpression (Node range inner) =
             string ("'" ++ String.fromList [ c ] ++ "'")
 
         TupledExpression t ->
-            sepHelper sepByComma (List.map recurRangeHelper t)
+            join [ string "(", sepHelper sepByComma (List.map recurRangeHelper t), string ")" ]
 
         ParenthesizedExpression x ->
             join [ string "(", writeExpression x, string ")" ]
