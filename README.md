@@ -25,8 +25,7 @@ parse input =
     Err e ->
       "Failed: " ++ Debug.toString e
     Ok v ->
-      Err e ->
-        "Success: " ++ Debug.toString v
+      "Success: " ++ Debug.toString v
 
 main =
   parse src
