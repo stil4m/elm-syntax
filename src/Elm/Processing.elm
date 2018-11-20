@@ -35,7 +35,6 @@ import Elm.Syntax.Expression exposing (..)
 import Elm.Syntax.File exposing (File)
 import Elm.Syntax.Import exposing (Import)
 import Elm.Syntax.Infix exposing (Infix, InfixDirection(..))
-import Elm.Syntax.Module
 import Elm.Syntax.ModuleName exposing (ModuleName)
 import Elm.Syntax.Node as Node exposing (Node(..))
 import Elm.Syntax.Range as Range
@@ -67,7 +66,7 @@ init =
 {-| Add a file to the context that may be a dependency for the file that will be processed.
 -}
 addFile : RawFile -> ProcessContext -> ProcessContext
-addFile file ((ProcessContext x) as m) =
+addFile file (ProcessContext x) =
     let
         ( k, v ) =
             entryFromRawFile file
