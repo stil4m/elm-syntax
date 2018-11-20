@@ -41,7 +41,19 @@ allSamples =
     , sample34
     , sample35
     , sample36
+    , sample37
     ]
+
+
+sample37 =
+    """
+module Elm.Parser.Imports exposing (importDefinition)
+
+importX : A
+importX =
+    B
+
+"""
 
 
 sample36 =

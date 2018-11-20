@@ -67,9 +67,9 @@ exposingToken =
     string "exposing"
 
 
-importToken : Parser s String
+importToken : Parser s ()
 importToken =
-    string "import"
+    Combine.fromCore (Core.keyword "import")
 
 
 asToken : Parser s String
