@@ -44,9 +44,9 @@ reservedList =
     , "port"
     , "infixr"
     , "infixl"
-    , "infix"
     , "type"
 
+    --, "infix" Apparently this is not a reserved keyword
     --, "alias" Apparently this is not a reserved keyword
     , "where"
     ]

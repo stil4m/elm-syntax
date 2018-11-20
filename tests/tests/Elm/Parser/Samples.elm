@@ -42,7 +42,24 @@ allSamples =
     , sample35
     , sample36
     , sample37
+    , sample38
     ]
+
+
+sample38 =
+    """
+module B exposing (x)
+
+c =
+  Maybe.map
+      (\\( p, v, s ) ->
+          OperatorApplication
+      )
+
+
+
+
+"""
 
 
 sample37 =

@@ -27,7 +27,8 @@ declaration =
     lazy
         (\() ->
             choice
-                [ function
+                [ infixDeclaration
+                , function
                 , typeDefinition
                     |> Combine.map
                         (\v ->
@@ -39,7 +40,6 @@ declaration =
                                     Node r (AliasDeclaration a)
                         )
                 , portDeclaration
-                , infixDeclaration
                 , destructuringDeclaration
                 ]
         )

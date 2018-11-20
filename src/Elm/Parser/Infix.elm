@@ -7,12 +7,13 @@ import Elm.Parser.Node as Node
 import Elm.Parser.State exposing (State)
 import Elm.Parser.Tokens exposing (prefixOperatorToken)
 import Elm.Syntax.Infix exposing (Infix, InfixDirection(..))
+import Parser as Core
 
 
 infixDefinition : Parser State Infix
 infixDefinition =
     succeed Infix
-        |> Combine.ignore (string "infix")
+        |> Combine.ignore (Combine.fromCore (Core.keyword "infix"))
         |> Combine.ignore Layout.layout
         |> Combine.andMap (Node.parser infixDirection)
         |> Combine.ignore Layout.layout
