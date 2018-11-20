@@ -13,7 +13,7 @@ Write a file to a string.
 
 import Elm.Syntax.Declaration exposing (..)
 import Elm.Syntax.Documentation exposing (..)
-import Elm.Syntax.Exposing as Exposing exposing (..)
+import Elm.Syntax.Exposing exposing (..)
 import Elm.Syntax.Expression exposing (..)
 import Elm.Syntax.File exposing (..)
 import Elm.Syntax.Import exposing (Import)
@@ -27,6 +27,7 @@ import Elm.Syntax.Signature exposing (Signature)
 import Elm.Syntax.Type exposing (..)
 import Elm.Syntax.TypeAlias exposing (..)
 import Elm.Syntax.TypeAnnotation exposing (..)
+import Hex
 import List.Extra as List
 import StructuredWriter as Writer exposing (..)
 
@@ -472,7 +473,7 @@ writeExpression (Node range inner) =
             string x
 
         Hex h ->
-            string "TODO"
+            join [ string "0x", string (Hex.toString h) ]
 
         Integer i ->
             string (String.fromInt i)
@@ -574,7 +575,7 @@ writePattern (Node _ p) =
             string s
 
         HexPattern h ->
-            string "TODO"
+            join [ string "0x", string (Hex.toString h) ]
 
         IntPattern i ->
             string (String.fromInt i)

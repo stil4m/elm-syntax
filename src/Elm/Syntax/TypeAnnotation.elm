@@ -138,6 +138,7 @@ encodeRecordField ( name, ref ) =
         ]
 
 
+decodeModuleNameAndName : Decoder ( ModuleName, String )
 decodeModuleNameAndName =
     JD.map2 Tuple.pair
         (JD.field "moduleName" <| ModuleName.decoder)

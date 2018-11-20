@@ -1,16 +1,15 @@
 module Elm.Parser.Patterns exposing (pattern)
 
-import Combine exposing (Parser, between, choice, lazy, many, maybe, or, parens, sepBy, sepBy1, string, succeed)
-import Combine.Num
+import Combine exposing (Parser, between, choice, lazy, many, maybe, parens, sepBy, sepBy1, string, succeed)
 import Elm.Parser.Base as Base
 import Elm.Parser.Layout as Layout
 import Elm.Parser.Node as Node
 import Elm.Parser.Numbers
 import Elm.Parser.State exposing (State)
-import Elm.Parser.Tokens exposing (asToken, characterLiteral, functionName, stringLiteral, typeName)
+import Elm.Parser.Tokens exposing (characterLiteral, functionName, stringLiteral)
 import Elm.Syntax.Node as Node exposing (Node(..))
 import Elm.Syntax.Pattern exposing (Pattern(..), QualifiedNameRef)
-import Elm.Syntax.Range as Range exposing (Range)
+import Elm.Syntax.Range as Range
 import Parser as Core
 
 

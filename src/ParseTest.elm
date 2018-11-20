@@ -1,5 +1,6 @@
 module ParseTest exposing (main)
 
+import Debug as SafeDebug
 import Elm.Parser
 import Platform
 
@@ -8,8 +9,8 @@ type Model
     = Model
 
 
-type Msg
-    = OnContent String
+type alias Msg =
+    ()
 
 
 type alias Flags =
@@ -24,7 +25,7 @@ init { body, name } =
         Ok v ->
             let
                 _ =
-                    Debug.log "OK " <| always name <| v
+                    SafeDebug.log "OK " <| always name <| v
             in
             ( Model
             , Cmd.none
@@ -33,13 +34,13 @@ init { body, name } =
         Err e ->
             let
                 _ =
-                    Debug.log "ERR" <| always name <| e
+                    SafeDebug.log "ERR" <| always name <| e
             in
             ( Model, Cmd.none )
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
-update msg model =
+update _ model =
     ( model, Cmd.none )
 
 

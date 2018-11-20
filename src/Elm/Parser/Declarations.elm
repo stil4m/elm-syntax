@@ -1,24 +1,23 @@
 module Elm.Parser.Declarations exposing (caseBlock, caseStatement, caseStatements, declaration, expression, function, functionArgument, functionSignature, letBlock, letBody, letExpression, signature)
 
-import Combine exposing (Parser, between, choice, count, fail, lazy, many, many1, maybe, modifyState, or, sepBy, sepBy1, string, succeed, withLocation)
-import Combine.Num
+import Combine exposing (Parser, choice, lazy, many, maybe, modifyState, or, sepBy1, string, succeed, withLocation)
 import Elm.Parser.Infix as Infix
 import Elm.Parser.Layout as Layout
 import Elm.Parser.Node as Node
 import Elm.Parser.Numbers
 import Elm.Parser.Patterns exposing (pattern)
-import Elm.Parser.Ranges as Ranges exposing (withRange)
+import Elm.Parser.Ranges as Ranges
 import Elm.Parser.State as State exposing (State, popIndent, pushColumn)
 import Elm.Parser.Tokens as Tokens exposing (caseToken, characterLiteral, elseToken, functionName, ifToken, infixOperatorToken, multiLineStringLiteral, ofToken, portToken, prefixOperatorToken, stringLiteral, thenToken, typeName)
 import Elm.Parser.TypeAnnotation exposing (typeAnnotation)
 import Elm.Parser.Typings as Typings exposing (typeDefinition)
-import Elm.Parser.Whitespace exposing (manySpaces, realNewLine)
-import Elm.Syntax.Declaration as Declaration exposing (..)
+import Elm.Parser.Whitespace exposing (manySpaces)
+import Elm.Syntax.Declaration exposing (..)
 import Elm.Syntax.Expression as Expression exposing (Case, CaseBlock, Cases, Expression(..), Function, FunctionImplementation, Lambda, LetBlock, LetDeclaration(..), RecordSetter)
 import Elm.Syntax.ModuleName exposing (ModuleName)
 import Elm.Syntax.Node as Node exposing (Node(..))
 import Elm.Syntax.Pattern exposing (..)
-import Elm.Syntax.Range as Range exposing (Range, emptyRange)
+import Elm.Syntax.Range as Range
 import Elm.Syntax.Signature exposing (Signature)
 import Parser as Core exposing (Nestable(..))
 
@@ -517,11 +516,6 @@ letDestructuringDeclarationWithPattern p =
         )
 
 
-letDestructuringDeclaration : Parser State LetDeclaration
-letDestructuringDeclaration =
-    lazy (\() -> Combine.andThen letDestructuringDeclarationWithPattern pattern)
-
-
 letBlock : Parser State (List (Node LetDeclaration))
 letBlock =
     lazy
@@ -655,7 +649,7 @@ recordAccessFunctionExpression =
 tupledExpression : Parser State (Node Expression)
 tupledExpression =
     lazy
-        (\v ->
+        (\() ->
             let
                 asExpression : Node Expression -> List (Node Expression) -> Expression
                 asExpression x xs =

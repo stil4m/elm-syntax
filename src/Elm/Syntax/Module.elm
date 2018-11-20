@@ -29,11 +29,9 @@ For example:
 -}
 
 import Elm.Json.Util exposing (decodeTyped, encodeTyped)
-import Elm.Syntax.Exposing as Exposing exposing (Exposing(..), TopLevelExpose)
-import Elm.Syntax.Import as Import exposing (Import)
+import Elm.Syntax.Exposing as Exposing exposing (Exposing(..))
 import Elm.Syntax.ModuleName as ModuleName exposing (ModuleName)
 import Elm.Syntax.Node as Node exposing (Node)
-import Elm.Syntax.Range exposing (Range)
 import Json.Decode as JD exposing (Decoder)
 import Json.Encode as JE exposing (Value)
 

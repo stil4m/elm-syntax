@@ -1,8 +1,6 @@
-module Combine exposing (ParseError, ParseFn, ParseLocation, ParseOk, ParseResult, Parser(..), andMap, andThen, app, backtrackable, between, butTake, choice, continueWith, count, end, fail, fromCore, ignore, lazy, many, many1, map, maybe, modifyState, optional, or, parens, parse, primitive, runParser, sepBy, sepBy1, setError, string, succeed, while, whitespace, withLocation, withState)
+module Combine exposing (ParseError, ParseFn, ParseLocation, ParseOk, ParseResult, Parser(..), andMap, andThen, app, backtrackable, between, butTake, choice, continueWith, count, end, fail, fromCore, ignore, lazy, many, many1, map, maybe, modifyState, optional, or, parens, parse, primitive, runParser, sepBy, sepBy1, string, succeed, while, whitespace, withLocation, withState)
 
-import Lazy as L
-import Parser as Core exposing ((|.), (|=), Step(..))
-import String
+import Parser as Core exposing ((|=), Step(..))
 
 
 type alias ParseLocation =
@@ -249,11 +247,6 @@ whitespace : Parser s String
 whitespace =
     Core.getChompedString (Core.chompWhile (\c -> c == ' ' || c == '\t' || c == '\u{000D}' || c == '\n'))
         |> fromCore
-
-
-setError : String -> Parser s a -> Parser s a
-setError m p =
-    Parser <| \state -> Core.problem m |> Core.map (\v -> ( state, v ))
 
 
 butTake : a -> Parser s x -> Parser s a

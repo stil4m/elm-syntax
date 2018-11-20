@@ -1,6 +1,6 @@
 module Combine.Char exposing (anyChar, char, oneOf)
 
-import Combine exposing (Parser, primitive)
+import Combine exposing (Parser)
 import Parser as Core
 
 

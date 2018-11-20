@@ -84,7 +84,7 @@ exposesFunction s exposure =
 
         Explicit l ->
             List.any
-                (\(Node range value) ->
+                (\(Node _ value) ->
                     case value of
                         FunctionExpose fun ->
                             fun == s

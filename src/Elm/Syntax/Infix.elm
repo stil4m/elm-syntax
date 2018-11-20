@@ -17,7 +17,6 @@ module Elm.Syntax.Infix exposing
 -}
 
 import Elm.Syntax.Node as Node exposing (Node)
-import Elm.Syntax.Range as Range
 import Json.Decode as JD exposing (Decoder)
 import Json.Encode as JE exposing (Value)
 

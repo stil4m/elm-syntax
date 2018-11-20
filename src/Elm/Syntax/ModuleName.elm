@@ -33,7 +33,6 @@ For example:
 
 -}
 
-import Elm.Syntax.Range as Range exposing (Range)
 import Json.Decode as JD exposing (Decoder)
 import Json.Encode as JE exposing (Value)
 

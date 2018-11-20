@@ -77,7 +77,7 @@ valueConstructor =
     succeed ValueConstructor
         |> Combine.continueWith (Node.parser typeName)
         |> Combine.andThen
-            (\((Node range tn) as tnn) ->
+            (\((Node range _) as tnn) ->
                 let
                     complete : List (Node TypeAnnotation) -> Parser State (Node ValueConstructor)
                     complete args =

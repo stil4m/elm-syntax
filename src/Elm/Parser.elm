@@ -15,7 +15,6 @@ import Elm.Parser.File exposing (file)
 import Elm.Parser.State exposing (State, emptyState)
 import Elm.Syntax.File exposing (File)
 import Parser exposing (DeadEnd)
-import Platform
 
 
 {-| Parse some text as if it is an Elm source file.
@@ -37,4 +36,4 @@ parse input =
 
 withEnd : Parser State File -> Parser State File
 withEnd p =
-    p |> Combine.ignore (withLocation (\s -> end))
+    p |> Combine.ignore (withLocation (\_ -> end))

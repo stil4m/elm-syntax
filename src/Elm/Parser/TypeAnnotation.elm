@@ -4,7 +4,6 @@ import Combine exposing (..)
 import Elm.Parser.Base exposing (typeIndicator)
 import Elm.Parser.Layout as Layout
 import Elm.Parser.Node as Node
-import Elm.Parser.Ranges
 import Elm.Parser.State exposing (State)
 import Elm.Parser.Tokens exposing (functionName)
 import Elm.Syntax.Node as Node exposing (Node(..))
@@ -98,7 +97,7 @@ parensTypeAnnotation =
 
 
 asTypeAnnotation : Node TypeAnnotation -> List (Node TypeAnnotation) -> TypeAnnotation
-asTypeAnnotation ((Node range value) as x) xs =
+asTypeAnnotation ((Node _ value) as x) xs =
     case xs of
         [] ->
             value
@@ -217,7 +216,7 @@ typedTypeAnnotation mode =
             in
             Node.parser typeIndicator
                 |> Combine.andThen
-                    (\((Node tir ( m, fn )) as original) ->
+                    (\((Node tir _) as original) ->
                         Layout.optimisticLayoutWith
                             (\() -> Combine.succeed (Node tir (Typed original [])))
                             (\() ->

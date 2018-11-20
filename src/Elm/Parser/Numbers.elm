@@ -2,7 +2,7 @@ module Elm.Parser.Numbers exposing (forgivingNumber, number)
 
 import Combine exposing (Parser)
 import Elm.Parser.State exposing (State)
-import Parser as Core exposing ((|.), (|=))
+import Parser as Core
 
 
 raw : (Float -> a) -> (Int -> a) -> (Int -> a) -> Core.Parser a

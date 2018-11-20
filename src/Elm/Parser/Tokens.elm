@@ -21,19 +21,11 @@ module Elm.Parser.Tokens exposing
     )
 
 import Char exposing (fromCode)
-import Combine exposing (Parser, between, choice, count, fail, many, many1, or, string, succeed)
+import Combine exposing (Parser, fail, many1, or, string, succeed)
 import Combine.Char exposing (anyChar, char, oneOf)
-import Dict exposing (Dict)
 import Hex
 import Parser as Core exposing ((|.), (|=), Nestable(..), Step(..))
 import Set
-
-
-reserved : Dict String Bool
-reserved =
-    reservedList
-        |> List.map (\c -> ( c, True ))
-        |> Dict.fromList
 
 
 reservedList : List String
@@ -115,52 +107,6 @@ functionOrTypeName =
     or functionName typeName
 
 
-notReserved : String -> Parser s String
-notReserved match =
-    if Dict.member match reserved then
-        fail "functionName is reserved"
-
-    else
-        succeed match
-
-
-escapedChar : Parser s Char
-escapedChar =
-    char '\\'
-        |> Combine.continueWith
-            (choice
-                [ succeed '\'' |> Combine.ignore (char '\'')
-                , succeed '"' |> Combine.ignore (char '"')
-                , succeed '\n' |> Combine.ignore (char 'n')
-                , succeed '\t' |> Combine.ignore (char 't')
-                , succeed '\\' |> Combine.ignore (char '\\')
-                , succeed '\u{0007}' |> Combine.ignore (char 'a')
-                , succeed '\u{0008}' |> Combine.ignore (char 'b')
-                , succeed '\u{000C}' |> Combine.ignore (char 'f')
-                , succeed '\u{000D}' |> Combine.ignore (char 'r')
-                , succeed '\u{000B}' |> Combine.ignore (char 'v')
-                , (Core.succeed identity
-                    |. Core.symbol "x"
-                    |= Core.getChompedString
-                        (Core.succeed ()
-                            |. Core.chompIf Char.isHexDigit
-                            |. Core.chompIf Char.isHexDigit
-                        )
-                  )
-                    |> Core.andThen
-                        (\l ->
-                            case Hex.fromString <| String.toLower l of
-                                Ok x ->
-                                    Core.succeed (fromCode x)
-
-                                Err x ->
-                                    Core.problem x
-                        )
-                    |> Combine.fromCore
-                ]
-            )
-
-
 escapedCharValue : Core.Parser Char
 escapedCharValue =
     Core.oneOf
@@ -201,7 +147,9 @@ characterLiteral =
 
 
 type alias StringLiteralLoopState =
-    { escaped : Bool, parts : List String }
+    { escaped : Bool
+    , parts : List String
+    }
 
 
 stringLiteral : Parser s String
@@ -221,7 +169,7 @@ stringLiteral =
                     [ Core.symbol "\""
                         |> Core.map (\_ -> Done (String.concat <| List.reverse s.parts))
                     , Core.getChompedString (Core.symbol "\\")
-                        |> Core.map (\v -> Loop { s | escaped = True, parts = s.parts })
+                        |> Core.map (\_ -> Loop { s | escaped = True, parts = s.parts })
                     , Core.succeed (\start value end -> ( start, value, end ))
                         |= Core.getOffset
                         |= Core.getChompedString (Core.chompWhile (\c -> c /= '"' && c /= '\\'))
@@ -243,7 +191,10 @@ stringLiteral =
 
 
 type alias MultilineStringLiteralLoopState =
-    { escaped : Bool, parts : List String, counter : Int }
+    { escaped : Bool
+    , parts : List String
+    , counter : Int
+    }
 
 
 multiLineStringLiteral : Parser s String
@@ -264,7 +215,7 @@ multiLineStringLiteral =
                         |> Core.map (\v -> Loop { s | counter = s.counter + 1, parts = v :: s.parts })
                     , Core.symbol "\\"
                         |> Core.getChompedString
-                        |> Core.map (\v -> Loop { s | counter = s.counter + 1, escaped = True, parts = s.parts })
+                        |> Core.map (\_ -> Loop { s | counter = s.counter + 1, escaped = True, parts = s.parts })
                     , Core.succeed (\start value end -> ( start, value, end ))
                         |= Core.getOffset
                         |= Core.getChompedString (Core.chompWhile (\c -> c /= '"' && c /= '\\'))

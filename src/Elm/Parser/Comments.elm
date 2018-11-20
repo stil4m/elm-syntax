@@ -1,8 +1,7 @@
 module Elm.Parser.Comments exposing (multilineComment, singleLineComment)
 
-import Combine exposing (Parser, count, lazy, modifyState, string, succeed)
+import Combine exposing (Parser, lazy, modifyState, string, succeed)
 import Elm.Parser.Node as Node
-import Elm.Parser.Ranges exposing (withRange)
 import Elm.Parser.State exposing (State, addComment)
 import Elm.Parser.Whitespace exposing (untilNewlineToken)
 import Elm.Syntax.Node exposing (Node)
