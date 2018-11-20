@@ -1,6 +1,6 @@
 # CHANGELOG
 
-## Version 6.x.x
+## Version 7.x.x
 
 This version implements compatibility to parse source files for Elm 0.19.
 Elm 0.18 is not supported from this point on.
