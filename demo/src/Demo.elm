@@ -105,7 +105,7 @@ view m =
                 , Html.Attributes.value m.src
                 , Html.Attributes.cols 50
                 , Html.Attributes.rows 20
-                , Html.Attributes.style "font-family" "ourier New,Courier,Lucida Sans Typewriter,Lucida Typewriter,monospace"
+                , Html.Attributes.style "font-family" "Courier New,Courier,Lucida Sans Typewriter,Lucida Typewriter,monospace"
                 ]
                 []
             ]
