@@ -283,7 +283,7 @@ all =
                     |> Maybe.map noRangeExpression
                     |> Maybe.map Node.value
                     |> Expect.equal (Just (RecordAccess (Node emptyRange <| FunctionOrValue [] "foo") (Node emptyRange "bar")))
-        , test "record access multiple" <|
+        , test "multiple record access operations" <|
             \() ->
                 parseFullStringWithNullState "foo.bar.baz" expression
                     |> Maybe.map noRangeExpression
@@ -294,6 +294,22 @@ all =
                                 (Node emptyRange <|
                                     RecordAccess
                                         (Node emptyRange <| FunctionOrValue [] "foo")
+                                        (Node emptyRange "bar")
+                                )
+                                (Node emptyRange "baz")
+                            )
+                        )
+        , test "multiple record access operations with module name" <|
+            \() ->
+                parseFullStringWithNullState "A.B.foo.bar.baz" expression
+                    |> Maybe.map noRangeExpression
+                    |> Maybe.map Node.value
+                    |> Expect.equal
+                        (Just
+                            (RecordAccess
+                                (Node emptyRange <|
+                                    RecordAccess
+                                        (Node emptyRange <| FunctionOrValue [ "A", "B" ] "foo")
                                         (Node emptyRange "bar")
                                 )
                                 (Node emptyRange "baz")

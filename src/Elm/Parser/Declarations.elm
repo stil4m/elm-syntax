@@ -605,8 +605,12 @@ reference =
         helper ( n, xs ) =
             Combine.choice
                 [ string "."
-                    |> Combine.continueWith (Combine.choice [ Tokens.typeName, Tokens.functionName ])
-                    |> Combine.andThen (\t -> helper ( t, n :: xs ))
+                    |> Combine.continueWith
+                        (Combine.choice
+                            [ Tokens.typeName |> Combine.andThen (\t -> helper ( t, n :: xs ))
+                            , Tokens.functionName |> Combine.map (\t -> ( t, n :: xs ))
+                            ]
+                        )
                 , Combine.succeed ( n, xs )
                 ]
 
