@@ -11,6 +11,7 @@
         "Elm.Processing",
         "Elm.RawFile",
         "Elm.Writer",
+        "Elm.Syntax.Comments",
         "Elm.Syntax.Declaration",
         "Elm.Syntax.Documentation",
         "Elm.Syntax.Exposing",
