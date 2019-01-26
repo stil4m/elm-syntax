@@ -43,7 +43,21 @@ allSamples =
     , sample36
     , sample37
     , sample38
+    , sample39
     ]
+
+
+sample39 =
+    """
+module Test exposing (asSomething)
+
+import Import
+
+
+asSomething : Int
+asSomething =
+    123
+"""
 
 
 sample38 =

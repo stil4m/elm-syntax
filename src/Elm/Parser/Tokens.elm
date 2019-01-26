@@ -72,9 +72,9 @@ importToken =
     Combine.fromCore (Core.keyword "import")
 
 
-asToken : Parser s String
+asToken : Parser s ()
 asToken =
-    string "as"
+    Combine.fromCore (Core.keyword "as")
 
 
 ifToken : Parser s String
