@@ -11,6 +11,7 @@ import Html.Events
 import Json.Encode exposing (Value)
 import JsonTree
 import NodeCollector
+import Parser exposing (DeadEnd)
 
 
 main =
@@ -31,7 +32,7 @@ type Msg
 type alias Model =
     { src : String
     , parseResult :
-        Maybe (Result (List String) File)
+        Maybe (Result (List DeadEnd) File)
     , value : Value
     , treeState : JsonTree.State
     , treeValue : Maybe JsonTree.Node
@@ -91,7 +92,8 @@ update msg model =
 
 
 config =
-    { onSelect = Just SelectPath
+    { colors = JsonTree.defaultColors
+    , onSelect = Just SelectPath
     , toMsg = TreeMsg
     }
 
