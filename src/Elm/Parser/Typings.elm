@@ -57,19 +57,7 @@ typeDefinition =
 
 valueConstructors : Parser State (List (Node ValueConstructor))
 valueConstructors =
-    Combine.lazy
-        (\() ->
-            Combine.succeed (::)
-                |> Combine.andMap valueConstructor
-                |> Combine.andMap
-                    (Combine.choice
-                        [ string "|"
-                            |> Combine.ignore (maybe Layout.layout)
-                            |> Combine.continueWith valueConstructors
-                        , Combine.succeed []
-                        ]
-                    )
-        )
+    Combine.sepBy1 (Combine.ignore (maybe Layout.layout) (string "|")) valueConstructor
 
 
 valueConstructor : Parser State (Node ValueConstructor)

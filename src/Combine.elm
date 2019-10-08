@@ -1,6 +1,6 @@
-module Combine exposing (ParseError, ParseFn, ParseLocation, ParseOk, ParseResult, Parser(..), andMap, andThen, app, backtrackable, between, butTake, choice, continueWith, count, end, fail, fromCore, ignore, lazy, many, many1, map, maybe, modifyState, optional, or, parens, parse, primitive, runParser, sepBy, sepBy1, string, succeed, while, whitespace, withLocation, withState)
+module Combine exposing (ParseError, ParseFn, ParseLocation, ParseOk, ParseResult, Parser(..), Step(..), andMap, andThen, app, backtrackable, between, butTake, choice, continueWith, count, end, fail, fromCore, ignore, lazy, loop, many, many1, map, maybe, modifyState, optional, or, parens, parse, primitive, runParser, sepBy, sepBy1, string, succeed, while, whitespace, withLocation, withState)
 
-import Parser as Core exposing ((|=), Step(..))
+import Parser as Core exposing ((|=))
 
 
 type alias ParseLocation =
@@ -181,18 +181,45 @@ maybe (Parser p) =
 many : Parser s a -> Parser s (List a)
 many p =
     let
-        helper : ( s, List a ) -> Core.Parser (Step ( s, List a ) ( s, List a ))
+        helper : ( s, List a ) -> Core.Parser (Core.Step ( s, List a ) ( s, List a ))
         helper ( oldState, items ) =
             Core.oneOf
-                [ Core.succeed (\( newState, item ) -> Loop ( newState, item :: items ))
+                [ Core.succeed (\( newState, item ) -> Core.Loop ( newState, item :: items ))
                     |= app p oldState
                 , Core.succeed ()
-                    |> Core.map (\_ -> Done ( oldState, List.reverse items ))
+                    |> Core.map (\_ -> Core.Done ( oldState, List.reverse items ))
                 ]
     in
     Parser <|
         \state ->
             Core.loop ( state, [] ) helper
+
+
+type Step a b
+    = Loop a
+    | Done b
+
+
+loop : a -> (a -> Parser s (Step a b)) -> Parser s b
+loop init stepper =
+    let
+        wrapper ( oldState, v ) =
+            let
+                (Parser p) =
+                    stepper v
+            in
+            p oldState
+                |> Core.map
+                    (\( newState, r ) ->
+                        case r of
+                            Loop l ->
+                                Core.Loop ( newState, l )
+
+                            Done d ->
+                                Core.Done ( newState, d )
+                    )
+    in
+    Parser <| \state -> Core.loop ( state, init ) wrapper
 
 
 many1 : Parser s a -> Parser s (List a)
@@ -217,13 +244,13 @@ sepBy1 sep p =
 count : Int -> Parser s a -> Parser s (List a)
 count x p =
     let
-        helper : ( s, Int, List a ) -> Core.Parser (Step ( s, Int, List a ) ( s, List a ))
+        helper : ( s, Int, List a ) -> Core.Parser (Core.Step ( s, Int, List a ) ( s, List a ))
         helper ( oldState, remaining, items ) =
             if remaining == 0 then
-                Core.succeed (Done ( oldState, List.reverse items ))
+                Core.succeed (Core.Done ( oldState, List.reverse items ))
 
             else
-                Core.succeed (\( newState, item ) -> Loop ( newState, remaining - 1, item :: items ))
+                Core.succeed (\( newState, item ) -> Core.Loop ( newState, remaining - 1, item :: items ))
                     |= app p oldState
     in
     Parser <|
