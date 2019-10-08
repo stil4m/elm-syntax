@@ -450,7 +450,6 @@ caseStatements =
             caseStatement
                 |> Combine.map List.singleton
                 |> Combine.andThen (\v -> Combine.loop v helper)
-         -- |> Combine.map List.reverse
         )
 
 
