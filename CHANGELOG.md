@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## Version 7.1.1
+
+* Improve stability for very large case statments.
+
 ## Version 7.x.x
 
 This version implements compatibility to parse source files for Elm 0.19.
