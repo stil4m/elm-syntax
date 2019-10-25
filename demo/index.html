@@ -4425,7 +4425,9 @@ function _Browser_load(url)
 		}
 	}));
 }
-var author$project$Demo$init = {src: 'module Foo\n'};
+var author$project$Demo$Change = function (a) {
+	return {$: 'Change', a: a};
+};
 var elm$core$Basics$EQ = {$: 'EQ'};
 var elm$core$Basics$LT = {$: 'LT'};
 var elm$core$Elm$JsArray$foldr = _JsArray_foldr;
@@ -4894,7 +4896,7 @@ var author$project$Elm$Parser$withEnd = function (p) {
 	return A2(
 		author$project$Combine$ignore,
 		author$project$Combine$withLocation(
-			function (s) {
+			function (_n0) {
 				return author$project$Combine$end;
 			}),
 		p);
@@ -5270,6 +5272,12 @@ var author$project$Combine$string = function (s) {
 					elm$parser$Parser$token(s)));
 		});
 };
+var author$project$Combine$Done = function (a) {
+	return {$: 'Done', a: a};
+};
+var author$project$Combine$Loop = function (a) {
+	return {$: 'Loop', a: a};
+};
 var author$project$Combine$andThen = F2(
 	function (f, _n0) {
 		var p = _n0.a;
@@ -5338,6 +5346,38 @@ var author$project$Combine$fromCore = function (p) {
 				p);
 		});
 };
+var author$project$Combine$loop = F2(
+	function (init, stepper) {
+		var wrapper = function (_n3) {
+			var oldState = _n3.a;
+			var v = _n3.b;
+			var _n0 = stepper(v);
+			var p = _n0.a;
+			return A2(
+				elm$parser$Parser$map,
+				function (_n1) {
+					var newState = _n1.a;
+					var r = _n1.b;
+					if (r.$ === 'Loop') {
+						var l = r.a;
+						return elm$parser$Parser$Loop(
+							_Utils_Tuple2(newState, l));
+					} else {
+						var d = r.a;
+						return elm$parser$Parser$Done(
+							_Utils_Tuple2(newState, d));
+					}
+				},
+				p(oldState));
+		};
+		return author$project$Combine$Parser(
+			function (state) {
+				return A2(
+					elm$parser$Parser$loop,
+					_Utils_Tuple2(state, init),
+					wrapper);
+			});
+	});
 var author$project$Combine$or = F2(
 	function (_n0, _n1) {
 		var lp = _n0.a;
@@ -5363,6 +5403,38 @@ var author$project$Combine$sepBy1 = F2(
 				p,
 				author$project$Combine$succeed(elm$core$List$cons)));
 	});
+var author$project$Elm$Parser$Node$asPointerLocation = function (_n0) {
+	var line = _n0.line;
+	var column = _n0.column;
+	return {column: column, row: line};
+};
+var author$project$Elm$Syntax$Node$Node = F2(
+	function (a, b) {
+		return {$: 'Node', a: a, b: b};
+	});
+var author$project$Elm$Parser$Node$parser = function (p) {
+	return author$project$Combine$withLocation(
+		function (start) {
+			return A2(
+				author$project$Combine$andMap,
+				author$project$Combine$withLocation(
+					function (end) {
+						return author$project$Combine$succeed(
+							{
+								end: author$project$Elm$Parser$Node$asPointerLocation(end),
+								start: author$project$Elm$Parser$Node$asPointerLocation(start)
+							});
+					}),
+				A2(
+					author$project$Combine$andMap,
+					p,
+					author$project$Combine$succeed(
+						F2(
+							function (v, r) {
+								return A2(author$project$Elm$Syntax$Node$Node, r, v);
+							}))));
+		});
+};
 var elm$parser$Parser$Problem = function (a) {
 	return {$: 'Problem', a: a};
 };
@@ -5920,7 +5992,8 @@ var author$project$Elm$Parser$Tokens$characterLiteral = A2(
 var author$project$Elm$Syntax$Expression$CharLiteral = function (a) {
 	return {$: 'CharLiteral', a: a};
 };
-var author$project$Elm$Parser$Declarations$charLiteralExpression = A2(author$project$Combine$map, author$project$Elm$Syntax$Expression$CharLiteral, author$project$Elm$Parser$Tokens$characterLiteral);
+var author$project$Elm$Parser$Declarations$charLiteralExpression = author$project$Elm$Parser$Node$parser(
+	A2(author$project$Combine$map, author$project$Elm$Syntax$Expression$CharLiteral, author$project$Elm$Parser$Tokens$characterLiteral));
 var author$project$Combine$between = F3(
 	function (lp, rp, p) {
 		return A2(
@@ -5940,7 +6013,7 @@ var author$project$Combine$sepBy = F2(
 			author$project$Combine$succeed(_List_Nil));
 	});
 var author$project$Elm$Parser$Tokens$reservedList = _List_fromArray(
-	['module', 'exposing', 'import', 'as', 'if', 'then', 'else', 'let', 'in', 'case', 'of', 'port', 'infixr', 'infixl', 'infix', 'type', 'where']);
+	['module', 'exposing', 'import', 'as', 'if', 'then', 'else', 'let', 'in', 'case', 'of', 'port', 'infixr', 'infixl', 'type', 'where']);
 var elm$core$Basics$and = _Basics_and;
 var elm$core$Basics$le = _Utils_le;
 var elm$core$Char$toCode = _Char_toCode;
@@ -6425,38 +6498,6 @@ var author$project$Elm$Parser$Comments$addCommentToState = function (p) {
 		},
 		p);
 };
-var author$project$Elm$Parser$Node$asPointerLocation = function (_n0) {
-	var line = _n0.line;
-	var column = _n0.column;
-	return {column: column, row: line};
-};
-var author$project$Elm$Syntax$Node$Node = F2(
-	function (a, b) {
-		return {$: 'Node', a: a, b: b};
-	});
-var author$project$Elm$Parser$Node$parser = function (p) {
-	return author$project$Combine$withLocation(
-		function (start) {
-			return A2(
-				author$project$Combine$andMap,
-				author$project$Combine$withLocation(
-					function (end) {
-						return author$project$Combine$succeed(
-							{
-								end: author$project$Elm$Parser$Node$asPointerLocation(end),
-								start: author$project$Elm$Parser$Node$asPointerLocation(start)
-							});
-					}),
-				A2(
-					author$project$Combine$andMap,
-					p,
-					author$project$Combine$succeed(
-						F2(
-							function (v, r) {
-								return A2(author$project$Elm$Syntax$Node$Node, r, v);
-							}))));
-		});
-};
 var author$project$Elm$Parser$Comments$parseComment = function (commentParser) {
 	return author$project$Elm$Parser$Comments$addCommentToState(
 		author$project$Elm$Parser$Node$parser(commentParser));
@@ -6841,7 +6882,7 @@ var author$project$Elm$Parser$Tokens$stringLiteral = function () {
 					elm$parser$Parser$symbol('\"')),
 					A2(
 					elm$parser$Parser$map,
-					function (v) {
+					function (_n1) {
 						return elm$parser$Parser$Loop(
 							_Utils_update(
 								s,
@@ -6851,10 +6892,10 @@ var author$project$Elm$Parser$Tokens$stringLiteral = function () {
 						elm$parser$Parser$symbol('\\'))),
 					A2(
 					elm$parser$Parser$andThen,
-					function (_n1) {
-						var start = _n1.a;
-						var value = _n1.b;
-						var end = _n1.c;
+					function (_n2) {
+						var start = _n2.a;
+						var value = _n2.b;
+						var end = _n2.c;
 						return _Utils_eq(start, end) ? elm$parser$Parser$problem('Expected a string character or a double quote') : elm$parser$Parser$succeed(
 							elm$parser$Parser$Loop(
 								_Utils_update(
@@ -7327,7 +7368,6 @@ var author$project$Elm$Syntax$TypeAnnotation$Tupled = function (a) {
 };
 var author$project$Elm$Parser$TypeAnnotation$asTypeAnnotation = F2(
 	function (x, xs) {
-		var range = x.a;
 		var value = x.b;
 		if (!xs.b) {
 			return value;
@@ -7366,7 +7406,7 @@ var elm$core$Tuple$pair = F2(
 	});
 var author$project$Elm$Parser$TypeAnnotation$typeAnnotationNoFn = function (mode) {
 	return author$project$Combine$lazy(
-		function (_n8) {
+		function (_n7) {
 			return author$project$Combine$choice(
 				_List_fromArray(
 					[
@@ -7381,8 +7421,8 @@ var author$project$Elm$Parser$TypeAnnotation$typedTypeAnnotation = function (mod
 	return author$project$Combine$lazy(
 		function (_n0) {
 			var nodeRanges = elm$core$List$map(
-				function (_n7) {
-					var r = _n7.a;
+				function (_n6) {
+					var r = _n6.a;
 					return r;
 				});
 			var genericHelper = function (items) {
@@ -7414,19 +7454,16 @@ var author$project$Elm$Parser$TypeAnnotation$typedTypeAnnotation = function (mod
 				author$project$Combine$andThen,
 				function (original) {
 					var tir = original.a;
-					var _n3 = original.b;
-					var m = _n3.a;
-					var fn = _n3.b;
 					return A2(
 						author$project$Elm$Parser$Layout$optimisticLayoutWith,
-						function (_n4) {
+						function (_n3) {
 							return author$project$Combine$succeed(
 								A2(
 									author$project$Elm$Syntax$Node$Node,
 									tir,
 									A2(author$project$Elm$Syntax$TypeAnnotation$Typed, original, _List_Nil)));
 						},
-						function (_n5) {
+						function (_n4) {
 							if (mode.$ === 'Eager') {
 								return A2(
 									author$project$Combine$map,
@@ -7455,7 +7492,7 @@ var author$project$Elm$Parser$TypeAnnotation$typedTypeAnnotation = function (mod
 };
 function author$project$Elm$Parser$TypeAnnotation$cyclic$parensTypeAnnotation() {
 	return author$project$Combine$lazy(
-		function (_n15) {
+		function (_n14) {
 			var commaSep = author$project$Combine$many(
 				A2(
 					author$project$Combine$ignore,
@@ -7500,7 +7537,7 @@ function author$project$Elm$Parser$TypeAnnotation$cyclic$parensTypeAnnotation() 
 }
 function author$project$Elm$Parser$TypeAnnotation$cyclic$recordFieldDefinition() {
 	return author$project$Combine$lazy(
-		function (_n14) {
+		function (_n13) {
 			return A2(
 				author$project$Combine$andMap,
 				A2(
@@ -7524,7 +7561,7 @@ function author$project$Elm$Parser$TypeAnnotation$cyclic$recordFieldDefinition()
 }
 function author$project$Elm$Parser$TypeAnnotation$cyclic$recordFieldsTypeAnnotation() {
 	return author$project$Combine$lazy(
-		function (_n13) {
+		function (_n12) {
 			return A2(
 				author$project$Combine$sepBy,
 				author$project$Combine$string(','),
@@ -7535,7 +7572,7 @@ function author$project$Elm$Parser$TypeAnnotation$cyclic$recordFieldsTypeAnnotat
 }
 function author$project$Elm$Parser$TypeAnnotation$cyclic$recordTypeAnnotation() {
 	return author$project$Combine$lazy(
-		function (_n12) {
+		function (_n11) {
 			var nextField = A2(
 				author$project$Combine$ignore,
 				author$project$Elm$Parser$Layout$optimisticLayout,
@@ -7649,16 +7686,16 @@ function author$project$Elm$Parser$TypeAnnotation$cyclic$recordTypeAnnotation() 
 }
 function author$project$Elm$Parser$TypeAnnotation$cyclic$typeAnnotation() {
 	return author$project$Combine$lazy(
-		function (_n9) {
+		function (_n8) {
 			return A2(
 				author$project$Combine$andThen,
 				function (typeRef) {
 					return A2(
 						author$project$Elm$Parser$Layout$optimisticLayoutWith,
-						function (_n10) {
+						function (_n9) {
 							return author$project$Combine$succeed(typeRef);
 						},
-						function (_n11) {
+						function (_n10) {
 							return A2(
 								author$project$Combine$or,
 								A2(
@@ -7736,19 +7773,20 @@ var elm$parser$Parser$NotNestable = {$: 'NotNestable'};
 var author$project$Elm$Parser$Declarations$glslExpression = function () {
 	var start = '[glsl|';
 	var end = '|]';
-	return A2(
-		author$project$Combine$ignore,
-		author$project$Combine$string(end),
+	return author$project$Elm$Parser$Node$parser(
 		A2(
-			author$project$Combine$map,
+			author$project$Combine$ignore,
+			author$project$Combine$string(end),
 			A2(
-				elm$core$Basics$composeR,
-				elm$core$String$dropLeft(
-					elm$core$String$length(start)),
-				author$project$Elm$Syntax$Expression$GLSLExpression),
-			author$project$Combine$fromCore(
-				elm$parser$Parser$getChompedString(
-					A3(elm$parser$Parser$multiComment, start, end, elm$parser$Parser$NotNestable)))));
+				author$project$Combine$map,
+				A2(
+					elm$core$Basics$composeR,
+					elm$core$String$dropLeft(
+						elm$core$String$length(start)),
+					author$project$Elm$Syntax$Expression$GLSLExpression),
+				author$project$Combine$fromCore(
+					elm$parser$Parser$getChompedString(
+						A3(elm$parser$Parser$multiComment, start, end, elm$parser$Parser$NotNestable))))));
 }();
 var author$project$Elm$Syntax$Expression$RecordAccess = F2(
 	function (a, b) {
@@ -7816,7 +7854,7 @@ var author$project$Elm$Parser$Tokens$multiLineStringLiteral = function () {
 						elm$parser$Parser$symbol('\"'))),
 					A2(
 					elm$parser$Parser$map,
-					function (v) {
+					function (_n1) {
 						return elm$parser$Parser$Loop(
 							_Utils_update(
 								s,
@@ -7826,10 +7864,10 @@ var author$project$Elm$Parser$Tokens$multiLineStringLiteral = function () {
 						elm$parser$Parser$symbol('\\'))),
 					A2(
 					elm$parser$Parser$andThen,
-					function (_n1) {
-						var start = _n1.a;
-						var value = _n1.b;
-						var end = _n1.c;
+					function (_n2) {
+						var start = _n2.a;
+						var value = _n2.b;
+						var end = _n2.c;
 						return _Utils_eq(start, end) ? elm$parser$Parser$problem('Expected a string character or a triple double quote') : elm$parser$Parser$succeed(
 							elm$parser$Parser$Loop(
 								_Utils_update(
@@ -7880,10 +7918,11 @@ var author$project$Elm$Syntax$Expression$Literal = function (a) {
 };
 var author$project$Elm$Parser$Declarations$literalExpression = author$project$Combine$lazy(
 	function (_n0) {
-		return A2(
-			author$project$Combine$map,
-			author$project$Elm$Syntax$Expression$Literal,
-			A2(author$project$Combine$or, author$project$Elm$Parser$Tokens$multiLineStringLiteral, author$project$Elm$Parser$Tokens$stringLiteral));
+		return author$project$Elm$Parser$Node$parser(
+			A2(
+				author$project$Combine$map,
+				author$project$Elm$Syntax$Expression$Literal,
+				A2(author$project$Combine$or, author$project$Elm$Parser$Tokens$multiLineStringLiteral, author$project$Elm$Parser$Tokens$stringLiteral)));
 	});
 var author$project$Elm$Parser$Numbers$forgivingNumber = F3(
 	function (floatf, intf, hexf) {
@@ -7900,20 +7939,22 @@ var author$project$Elm$Syntax$Expression$Hex = function (a) {
 var author$project$Elm$Syntax$Expression$Integer = function (a) {
 	return {$: 'Integer', a: a};
 };
-var author$project$Elm$Parser$Declarations$numberExpression = A3(author$project$Elm$Parser$Numbers$forgivingNumber, author$project$Elm$Syntax$Expression$Floatable, author$project$Elm$Syntax$Expression$Integer, author$project$Elm$Syntax$Expression$Hex);
+var author$project$Elm$Parser$Declarations$numberExpression = author$project$Elm$Parser$Node$parser(
+	A3(author$project$Elm$Parser$Numbers$forgivingNumber, author$project$Elm$Syntax$Expression$Floatable, author$project$Elm$Syntax$Expression$Integer, author$project$Elm$Syntax$Expression$Hex));
 var author$project$Elm$Syntax$Expression$RecordAccessFunction = function (a) {
 	return {$: 'RecordAccessFunction', a: a};
 };
-var author$project$Elm$Parser$Declarations$recordAccessFunctionExpression = A2(
-	author$project$Combine$map,
+var author$project$Elm$Parser$Declarations$recordAccessFunctionExpression = author$project$Elm$Parser$Node$parser(
 	A2(
-		elm$core$Basics$composeR,
-		elm$core$Basics$append('.'),
-		author$project$Elm$Syntax$Expression$RecordAccessFunction),
-	A2(
-		author$project$Combine$continueWith,
-		author$project$Elm$Parser$Tokens$functionName,
-		author$project$Combine$string('.')));
+		author$project$Combine$map,
+		A2(
+			elm$core$Basics$composeR,
+			elm$core$Basics$append('.'),
+			author$project$Elm$Syntax$Expression$RecordAccessFunction),
+		A2(
+			author$project$Combine$continueWith,
+			author$project$Elm$Parser$Tokens$functionName,
+			author$project$Combine$string('.'))));
 var author$project$Elm$Parser$Declarations$reference = function () {
 	var justFunction = A2(
 		author$project$Combine$map,
@@ -7928,19 +7969,29 @@ var author$project$Elm$Parser$Declarations$reference = function () {
 			_List_fromArray(
 				[
 					A2(
-					author$project$Combine$andThen,
-					function (t) {
-						return helper(
-							_Utils_Tuple2(
-								t,
-								A2(elm$core$List$cons, n, xs)));
-					},
-					A2(
-						author$project$Combine$continueWith,
-						author$project$Combine$choice(
-							_List_fromArray(
-								[author$project$Elm$Parser$Tokens$typeName, author$project$Elm$Parser$Tokens$functionName])),
-						author$project$Combine$string('.'))),
+					author$project$Combine$continueWith,
+					author$project$Combine$choice(
+						_List_fromArray(
+							[
+								A2(
+								author$project$Combine$andThen,
+								function (t) {
+									return helper(
+										_Utils_Tuple2(
+											t,
+											A2(elm$core$List$cons, n, xs)));
+								},
+								author$project$Elm$Parser$Tokens$typeName),
+								A2(
+								author$project$Combine$map,
+								function (t) {
+									return _Utils_Tuple2(
+										t,
+										A2(elm$core$List$cons, n, xs));
+								},
+								author$project$Elm$Parser$Tokens$functionName)
+							])),
+					author$project$Combine$string('.')),
 					author$project$Combine$succeed(
 					_Utils_Tuple2(n, xs))
 				]));
@@ -7969,14 +8020,15 @@ var author$project$Elm$Syntax$Expression$FunctionOrValue = F2(
 	function (a, b) {
 		return {$: 'FunctionOrValue', a: a, b: b};
 	});
-var author$project$Elm$Parser$Declarations$referenceExpression = A2(
-	author$project$Combine$map,
-	function (_n0) {
-		var xs = _n0.a;
-		var x = _n0.b;
-		return A2(author$project$Elm$Syntax$Expression$FunctionOrValue, xs, x);
-	},
-	author$project$Elm$Parser$Declarations$reference);
+var author$project$Elm$Parser$Declarations$referenceExpression = author$project$Elm$Parser$Node$parser(
+	A2(
+		author$project$Combine$map,
+		function (_n0) {
+			var xs = _n0.a;
+			var x = _n0.b;
+			return A2(author$project$Elm$Syntax$Expression$FunctionOrValue, xs, x);
+		},
+		author$project$Elm$Parser$Declarations$reference));
 var elm$core$List$drop = F2(
 	function (n, list) {
 		drop:
@@ -8195,6 +8247,10 @@ var author$project$Elm$Syntax$Node$range = function (_n0) {
 	var r = _n0.a;
 	return r;
 };
+var elm$core$Tuple$second = function (_n0) {
+	var y = _n0.b;
+	return y;
+};
 var author$project$Elm$Parser$Declarations$functionWithNameNode = function (pointer) {
 	var functionImplementationFromVarPointer = function (varPointer) {
 		return A2(
@@ -8270,7 +8326,7 @@ var author$project$Elm$Parser$Declarations$functionWithNameNode = function (poin
 };
 var author$project$Elm$Parser$Declarations$letDestructuringDeclarationWithPattern = function (p) {
 	return author$project$Combine$lazy(
-		function (_n6) {
+		function (_n7) {
 			return A2(
 				author$project$Combine$andMap,
 				author$project$Elm$Parser$Declarations$cyclic$expression(),
@@ -8289,7 +8345,7 @@ var author$project$Elm$Parser$Declarations$letDestructuringDeclarationWithPatter
 };
 function author$project$Elm$Parser$Declarations$cyclic$caseBlock() {
 	return author$project$Combine$lazy(
-		function (_n21) {
+		function (_n23) {
 			return A2(
 				author$project$Combine$ignore,
 				author$project$Elm$Parser$Tokens$ofToken,
@@ -8301,26 +8357,45 @@ function author$project$Elm$Parser$Declarations$cyclic$caseBlock() {
 }
 function author$project$Elm$Parser$Declarations$cyclic$caseExpression() {
 	return author$project$Combine$lazy(
-		function (_n20) {
+		function (_n21) {
 			return A2(
-				author$project$Combine$map,
-				author$project$Elm$Syntax$Expression$CaseExpression,
-				A2(
-					author$project$Combine$andMap,
-					A2(
-						author$project$Combine$continueWith,
-						author$project$Elm$Parser$Declarations$withIndentedState(
-							author$project$Elm$Parser$Declarations$cyclic$caseStatements()),
-						author$project$Elm$Parser$Layout$layout),
-					A2(
-						author$project$Combine$andMap,
-						author$project$Elm$Parser$Declarations$cyclic$caseBlock(),
-						author$project$Combine$succeed(author$project$Elm$Syntax$Expression$CaseBlock))));
+				author$project$Combine$andThen,
+				function (_n22) {
+					var start = _n22.a;
+					return A2(
+						author$project$Combine$map,
+						function (cb) {
+							return A2(
+								author$project$Elm$Syntax$Node$Node,
+								author$project$Elm$Syntax$Range$combine(
+									A2(
+										elm$core$List$cons,
+										start,
+										A2(
+											elm$core$List$map,
+											A2(elm$core$Basics$composeR, elm$core$Tuple$second, author$project$Elm$Syntax$Node$range),
+											cb.cases))),
+								author$project$Elm$Syntax$Expression$CaseExpression(cb));
+						},
+						A2(
+							author$project$Combine$andMap,
+							A2(
+								author$project$Combine$continueWith,
+								author$project$Elm$Parser$Declarations$withIndentedState(
+									author$project$Elm$Parser$Declarations$cyclic$caseStatements()),
+								author$project$Elm$Parser$Layout$layout),
+							A2(
+								author$project$Combine$andMap,
+								author$project$Elm$Parser$Declarations$cyclic$caseBlock(),
+								author$project$Combine$succeed(author$project$Elm$Syntax$Expression$CaseBlock))));
+				},
+				author$project$Elm$Parser$Node$parser(
+					author$project$Combine$succeed(_Utils_Tuple0)));
 		});
 }
 function author$project$Elm$Parser$Declarations$cyclic$caseStatement() {
 	return author$project$Combine$lazy(
-		function (_n19) {
+		function (_n20) {
 			return A2(
 				author$project$Combine$andMap,
 				A2(
@@ -8342,7 +8417,7 @@ function author$project$Elm$Parser$Declarations$cyclic$caseStatement() {
 }
 function author$project$Elm$Parser$Declarations$cyclic$caseStatements() {
 	return author$project$Combine$lazy(
-		function (_n18) {
+		function (_n19) {
 			var helper = function (last) {
 				return author$project$Combine$withState(
 					function (s) {
@@ -8351,32 +8426,31 @@ function author$project$Elm$Parser$Declarations$cyclic$caseStatements() {
 								return _Utils_eq(
 									author$project$Elm$Parser$State$expectedColumn(s),
 									l.column) ? A2(
-									author$project$Combine$andThen,
-									helper,
-									A2(
-										author$project$Combine$map,
-										function (c) {
-											return A2(elm$core$List$cons, c, last);
-										},
-										author$project$Elm$Parser$Declarations$cyclic$caseStatement())) : author$project$Combine$succeed(last);
+									author$project$Combine$map,
+									function (c) {
+										return author$project$Combine$Loop(
+											A2(elm$core$List$cons, c, last));
+									},
+									author$project$Elm$Parser$Declarations$cyclic$caseStatement()) : author$project$Combine$succeed(
+									author$project$Combine$Done(
+										elm$core$List$reverse(last)));
 							});
 					});
 			};
 			return A2(
-				author$project$Combine$map,
-				elm$core$List$reverse,
+				author$project$Combine$andThen,
+				function (v) {
+					return A2(author$project$Combine$loop, v, helper);
+				},
 				A2(
-					author$project$Combine$andThen,
-					helper,
-					A2(
-						author$project$Combine$map,
-						elm$core$List$singleton,
-						author$project$Elm$Parser$Declarations$cyclic$caseStatement())));
+					author$project$Combine$map,
+					elm$core$List$singleton,
+					author$project$Elm$Parser$Declarations$cyclic$caseStatement()));
 		});
 }
 function author$project$Elm$Parser$Declarations$cyclic$expression() {
 	return author$project$Combine$lazy(
-		function (_n14) {
+		function (_n15) {
 			return A2(
 				author$project$Combine$andThen,
 				function (first) {
@@ -8404,10 +8478,10 @@ function author$project$Elm$Parser$Declarations$cyclic$expression() {
 					var promoter = function (rest) {
 						return A2(
 							author$project$Elm$Parser$Layout$optimisticLayoutWith,
-							function (_n15) {
+							function (_n16) {
 								return complete(rest);
 							},
-							function (_n16) {
+							function (_n17) {
 								return A2(
 									author$project$Combine$or,
 									A2(
@@ -8427,100 +8501,101 @@ function author$project$Elm$Parser$Declarations$cyclic$expression() {
 }
 function author$project$Elm$Parser$Declarations$cyclic$expressionNotApplication() {
 	return author$project$Combine$lazy(
-		function (_n13) {
+		function (_n14) {
 			return A2(
 				author$project$Combine$andThen,
 				author$project$Elm$Parser$Declarations$liftRecordAccess,
-				author$project$Elm$Parser$Node$parser(
-					author$project$Combine$choice(
-						_List_fromArray(
-							[
-								author$project$Elm$Parser$Declarations$numberExpression,
-								author$project$Elm$Parser$Declarations$referenceExpression,
-								author$project$Elm$Parser$Declarations$cyclic$ifBlockExpression(),
-								author$project$Elm$Parser$Declarations$cyclic$tupledExpression(),
-								author$project$Elm$Parser$Declarations$recordAccessFunctionExpression,
-								author$project$Elm$Parser$Declarations$cyclic$operatorExpression(),
-								author$project$Elm$Parser$Declarations$cyclic$letExpression(),
-								author$project$Elm$Parser$Declarations$cyclic$lambdaExpression(),
-								author$project$Elm$Parser$Declarations$literalExpression,
-								author$project$Elm$Parser$Declarations$charLiteralExpression,
-								author$project$Elm$Parser$Declarations$cyclic$recordExpression(),
-								author$project$Elm$Parser$Declarations$glslExpression,
-								author$project$Elm$Parser$Declarations$cyclic$listExpression(),
-								author$project$Elm$Parser$Declarations$cyclic$caseExpression()
-							]))));
+				author$project$Combine$choice(
+					_List_fromArray(
+						[
+							author$project$Elm$Parser$Declarations$numberExpression,
+							author$project$Elm$Parser$Declarations$referenceExpression,
+							author$project$Elm$Parser$Declarations$cyclic$ifBlockExpression(),
+							author$project$Elm$Parser$Declarations$cyclic$tupledExpression(),
+							author$project$Elm$Parser$Declarations$recordAccessFunctionExpression,
+							author$project$Elm$Parser$Declarations$cyclic$operatorExpression(),
+							author$project$Elm$Parser$Declarations$cyclic$letExpression(),
+							author$project$Elm$Parser$Declarations$cyclic$lambdaExpression(),
+							author$project$Elm$Parser$Declarations$literalExpression,
+							author$project$Elm$Parser$Declarations$charLiteralExpression,
+							author$project$Elm$Parser$Declarations$cyclic$recordExpression(),
+							author$project$Elm$Parser$Declarations$glslExpression,
+							author$project$Elm$Parser$Declarations$cyclic$listExpression(),
+							author$project$Elm$Parser$Declarations$cyclic$caseExpression()
+						])));
 		});
 }
 function author$project$Elm$Parser$Declarations$cyclic$ifBlockExpression() {
-	return A2(
-		author$project$Combine$continueWith,
-		author$project$Combine$lazy(
-			function (_n12) {
-				return A2(
+	return author$project$Elm$Parser$Node$parser(
+		A2(
+			author$project$Combine$continueWith,
+			author$project$Combine$lazy(
+				function (_n13) {
+					return A2(
+						author$project$Combine$andMap,
+						A2(
+							author$project$Combine$continueWith,
+							author$project$Elm$Parser$Declarations$cyclic$expression(),
+							A2(author$project$Combine$continueWith, author$project$Elm$Parser$Layout$layout, author$project$Elm$Parser$Tokens$elseToken)),
+						A2(
+							author$project$Combine$ignore,
+							author$project$Combine$maybe(author$project$Elm$Parser$Layout$layout),
+							A2(
+								author$project$Combine$andMap,
+								author$project$Elm$Parser$Declarations$cyclic$expression(),
+								A2(
+									author$project$Combine$ignore,
+									author$project$Combine$maybe(author$project$Elm$Parser$Layout$layout),
+									A2(
+										author$project$Combine$ignore,
+										author$project$Elm$Parser$Tokens$thenToken,
+										A2(
+											author$project$Combine$ignore,
+											author$project$Combine$maybe(author$project$Elm$Parser$Layout$layout),
+											A2(
+												author$project$Combine$andMap,
+												author$project$Elm$Parser$Declarations$cyclic$expression(),
+												A2(
+													author$project$Combine$ignore,
+													author$project$Combine$maybe(author$project$Elm$Parser$Layout$layout),
+													author$project$Combine$succeed(author$project$Elm$Syntax$Expression$IfBlock)))))))));
+				}),
+			author$project$Elm$Parser$Tokens$ifToken));
+}
+function author$project$Elm$Parser$Declarations$cyclic$lambdaExpression() {
+	return author$project$Combine$lazy(
+		function (_n12) {
+			return author$project$Elm$Parser$Node$parser(
+				A2(
 					author$project$Combine$andMap,
 					A2(
 						author$project$Combine$continueWith,
 						author$project$Elm$Parser$Declarations$cyclic$expression(),
-						A2(author$project$Combine$continueWith, author$project$Elm$Parser$Layout$layout, author$project$Elm$Parser$Tokens$elseToken)),
+						author$project$Elm$Parser$Layout$maybeAroundBothSides(
+							author$project$Combine$string('->'))),
 					A2(
-						author$project$Combine$ignore,
-						author$project$Combine$maybe(author$project$Elm$Parser$Layout$layout),
+						author$project$Combine$andMap,
 						A2(
-							author$project$Combine$andMap,
-							author$project$Elm$Parser$Declarations$cyclic$expression(),
-							A2(
-								author$project$Combine$ignore,
-								author$project$Combine$maybe(author$project$Elm$Parser$Layout$layout),
-								A2(
-									author$project$Combine$ignore,
-									author$project$Elm$Parser$Tokens$thenToken,
-									A2(
-										author$project$Combine$ignore,
-										author$project$Combine$maybe(author$project$Elm$Parser$Layout$layout),
-										A2(
-											author$project$Combine$andMap,
-											author$project$Elm$Parser$Declarations$cyclic$expression(),
-											A2(
-												author$project$Combine$ignore,
-												author$project$Combine$maybe(author$project$Elm$Parser$Layout$layout),
-												author$project$Combine$succeed(author$project$Elm$Syntax$Expression$IfBlock)))))))));
-			}),
-		author$project$Elm$Parser$Tokens$ifToken);
-}
-function author$project$Elm$Parser$Declarations$cyclic$lambdaExpression() {
-	return author$project$Combine$lazy(
-		function (_n11) {
-			return A2(
-				author$project$Combine$andMap,
-				A2(
-					author$project$Combine$continueWith,
-					author$project$Elm$Parser$Declarations$cyclic$expression(),
-					author$project$Elm$Parser$Layout$maybeAroundBothSides(
-						author$project$Combine$string('->'))),
-				A2(
-					author$project$Combine$andMap,
-					A2(
-						author$project$Combine$sepBy1,
-						author$project$Combine$maybe(author$project$Elm$Parser$Layout$layout),
-						author$project$Elm$Parser$Declarations$functionArgument),
-					A2(
-						author$project$Combine$ignore,
-						author$project$Combine$maybe(author$project$Elm$Parser$Layout$layout),
+							author$project$Combine$sepBy1,
+							author$project$Combine$maybe(author$project$Elm$Parser$Layout$layout),
+							author$project$Elm$Parser$Declarations$functionArgument),
 						A2(
 							author$project$Combine$ignore,
-							author$project$Combine$string('\\'),
-							author$project$Combine$succeed(
-								F2(
-									function (args, expr) {
-										return author$project$Elm$Syntax$Expression$LambdaExpression(
-											A2(author$project$Elm$Syntax$Expression$Lambda, args, expr));
-									}))))));
+							author$project$Combine$maybe(author$project$Elm$Parser$Layout$layout),
+							A2(
+								author$project$Combine$ignore,
+								author$project$Combine$string('\\'),
+								author$project$Combine$succeed(
+									F2(
+										function (args, expr) {
+											return author$project$Elm$Syntax$Expression$LambdaExpression(
+												A2(author$project$Elm$Syntax$Expression$Lambda, args, expr));
+										})))))));
 		});
 }
 function author$project$Elm$Parser$Declarations$cyclic$letBlock() {
 	return author$project$Combine$lazy(
-		function (_n10) {
+		function (_n11) {
 			return A2(
 				author$project$Combine$ignore,
 				A2(
@@ -8541,12 +8616,12 @@ function author$project$Elm$Parser$Declarations$cyclic$letBlock() {
 }
 function author$project$Elm$Parser$Declarations$cyclic$letBody() {
 	return author$project$Combine$lazy(
-		function (_n7) {
+		function (_n8) {
 			var blockElement = A2(
 				author$project$Combine$andThen,
-				function (_n8) {
-					var r = _n8.a;
-					var p = _n8.b;
+				function (_n9) {
+					var r = _n9.a;
+					var p = _n9.b;
 					if (p.$ === 'VarPattern') {
 						var v = p.a;
 						return A2(
@@ -8575,28 +8650,29 @@ function author$project$Elm$Parser$Declarations$cyclic$letBody() {
 }
 function author$project$Elm$Parser$Declarations$cyclic$letExpression() {
 	return author$project$Combine$lazy(
-		function (_n5) {
-			return A2(
-				author$project$Combine$andMap,
-				A2(
-					author$project$Combine$continueWith,
-					author$project$Elm$Parser$Declarations$cyclic$expression(),
-					author$project$Elm$Parser$Layout$layout),
+		function (_n6) {
+			return author$project$Elm$Parser$Node$parser(
 				A2(
 					author$project$Combine$andMap,
-					author$project$Elm$Parser$Declarations$cyclic$letBlock(),
-					author$project$Combine$succeed(
-						function (decls) {
-							return A2(
-								elm$core$Basics$composeR,
-								author$project$Elm$Syntax$Expression$LetBlock(decls),
-								author$project$Elm$Syntax$Expression$LetExpression);
-						})));
+					A2(
+						author$project$Combine$continueWith,
+						author$project$Elm$Parser$Declarations$cyclic$expression(),
+						author$project$Elm$Parser$Layout$layout),
+					A2(
+						author$project$Combine$andMap,
+						author$project$Elm$Parser$Declarations$cyclic$letBlock(),
+						author$project$Combine$succeed(
+							function (decls) {
+								return A2(
+									elm$core$Basics$composeR,
+									author$project$Elm$Syntax$Expression$LetBlock(decls),
+									author$project$Elm$Syntax$Expression$LetExpression);
+							}))));
 		});
 }
 function author$project$Elm$Parser$Declarations$cyclic$listExpression() {
 	return author$project$Combine$lazy(
-		function (_n4) {
+		function (_n5) {
 			var innerExpressions = A2(
 				author$project$Combine$map,
 				author$project$Elm$Syntax$Expression$ListExpr,
@@ -8617,204 +8693,207 @@ function author$project$Elm$Parser$Declarations$cyclic$listExpression() {
 							author$project$Combine$andMap,
 							author$project$Elm$Parser$Declarations$cyclic$expression(),
 							author$project$Combine$succeed(elm$core$List$cons)))));
-			return A2(
-				author$project$Combine$continueWith,
-				author$project$Combine$choice(
-					_List_fromArray(
-						[
-							A2(
-							author$project$Combine$map,
-							elm$core$Basics$always(
-								author$project$Elm$Syntax$Expression$ListExpr(_List_Nil)),
-							author$project$Combine$string(']')),
-							A2(
-							author$project$Combine$ignore,
-							author$project$Combine$string(']'),
-							innerExpressions)
-						])),
+			return author$project$Elm$Parser$Node$parser(
 				A2(
-					author$project$Combine$ignore,
-					author$project$Combine$maybe(author$project$Elm$Parser$Layout$layout),
-					author$project$Combine$string('[')));
+					author$project$Combine$continueWith,
+					author$project$Combine$choice(
+						_List_fromArray(
+							[
+								A2(
+								author$project$Combine$map,
+								elm$core$Basics$always(
+									author$project$Elm$Syntax$Expression$ListExpr(_List_Nil)),
+								author$project$Combine$string(']')),
+								A2(
+								author$project$Combine$ignore,
+								author$project$Combine$string(']'),
+								innerExpressions)
+							])),
+					A2(
+						author$project$Combine$ignore,
+						author$project$Combine$maybe(author$project$Elm$Parser$Layout$layout),
+						author$project$Combine$string('['))));
 		});
 }
 function author$project$Elm$Parser$Declarations$cyclic$operatorExpression() {
 	var negationExpression = author$project$Combine$lazy(
-		function (_n3) {
+		function (_n4) {
 			return A2(
 				author$project$Combine$map,
 				author$project$Elm$Syntax$Expression$Negation,
 				A2(
 					author$project$Combine$andThen,
 					author$project$Elm$Parser$Declarations$liftRecordAccess,
-					author$project$Elm$Parser$Node$parser(
-						author$project$Combine$choice(
-							_List_fromArray(
-								[
-									author$project$Elm$Parser$Declarations$referenceExpression,
-									author$project$Elm$Parser$Declarations$numberExpression,
-									author$project$Elm$Parser$Declarations$cyclic$tupledExpression()
-								])))));
+					author$project$Combine$choice(
+						_List_fromArray(
+							[
+								author$project$Elm$Parser$Declarations$referenceExpression,
+								author$project$Elm$Parser$Declarations$numberExpression,
+								author$project$Elm$Parser$Declarations$cyclic$tupledExpression()
+							]))));
 		});
 	return author$project$Combine$lazy(
-		function (_n2) {
+		function (_n3) {
 			return author$project$Combine$choice(
 				_List_fromArray(
 					[
+						author$project$Elm$Parser$Node$parser(
 						A2(
-						author$project$Combine$continueWith,
-						author$project$Combine$choice(
-							_List_fromArray(
-								[
-									negationExpression,
-									A2(
-									author$project$Combine$ignore,
-									author$project$Elm$Parser$Layout$layout,
-									author$project$Combine$succeed(
-										author$project$Elm$Syntax$Expression$Operator('-')))
-								])),
-						author$project$Combine$string('-')),
-						A2(author$project$Combine$map, author$project$Elm$Syntax$Expression$Operator, author$project$Elm$Parser$Tokens$infixOperatorToken)
+							author$project$Combine$continueWith,
+							author$project$Combine$choice(
+								_List_fromArray(
+									[
+										negationExpression,
+										A2(
+										author$project$Combine$ignore,
+										author$project$Elm$Parser$Layout$layout,
+										author$project$Combine$succeed(
+											author$project$Elm$Syntax$Expression$Operator('-')))
+									])),
+							author$project$Combine$string('-'))),
+						author$project$Elm$Parser$Node$parser(
+						A2(author$project$Combine$map, author$project$Elm$Syntax$Expression$Operator, author$project$Elm$Parser$Tokens$infixOperatorToken))
 					]));
 		});
 }
 function author$project$Elm$Parser$Declarations$cyclic$recordExpression() {
-	return author$project$Combine$lazy(
-		function (_n1) {
-			var recordField = author$project$Elm$Parser$Node$parser(
-				A2(
-					author$project$Combine$andMap,
-					author$project$Elm$Parser$Declarations$cyclic$expression(),
-					A2(
-						author$project$Combine$ignore,
-						author$project$Combine$maybe(author$project$Elm$Parser$Layout$layout),
-						A2(
-							author$project$Combine$ignore,
-							author$project$Combine$string('='),
-							A2(
-								author$project$Combine$ignore,
-								author$project$Combine$maybe(author$project$Elm$Parser$Layout$layout),
-								A2(
-									author$project$Combine$andMap,
-									author$project$Elm$Parser$Node$parser(author$project$Elm$Parser$Tokens$functionName),
-									author$project$Combine$succeed(elm$core$Tuple$pair)))))));
-			var recordFields = A2(
-				author$project$Combine$andMap,
-				author$project$Combine$many(
-					A2(
-						author$project$Combine$ignore,
-						author$project$Combine$maybe(author$project$Elm$Parser$Layout$layout),
-						A2(
-							author$project$Combine$continueWith,
-							recordField,
-							A2(
-								author$project$Combine$ignore,
-								author$project$Combine$maybe(author$project$Elm$Parser$Layout$layout),
-								author$project$Combine$string(','))))),
-				A2(
-					author$project$Combine$ignore,
-					author$project$Combine$maybe(author$project$Elm$Parser$Layout$layout),
+	return author$project$Elm$Parser$Node$parser(
+		author$project$Combine$lazy(
+			function (_n2) {
+				var recordField = author$project$Elm$Parser$Node$parser(
 					A2(
 						author$project$Combine$andMap,
-						recordField,
-						author$project$Combine$succeed(elm$core$List$cons))));
-			var recordUpdateSyntaxParser = function (fname) {
-				return A2(
-					author$project$Combine$ignore,
-					author$project$Combine$string('}'),
-					A2(
-						author$project$Combine$map,
-						function (e) {
-							return A2(author$project$Elm$Syntax$Expression$RecordUpdateExpression, fname, e);
-						},
+						author$project$Elm$Parser$Declarations$cyclic$expression(),
 						A2(
-							author$project$Combine$continueWith,
-							recordFields,
+							author$project$Combine$ignore,
+							author$project$Combine$maybe(author$project$Elm$Parser$Layout$layout),
 							A2(
 								author$project$Combine$ignore,
-								author$project$Combine$maybe(author$project$Elm$Parser$Layout$layout),
-								author$project$Combine$string('|')))));
-			};
-			var recordContents = A2(
-				author$project$Combine$andThen,
-				function (fname) {
-					return author$project$Combine$choice(
-						_List_fromArray(
-							[
-								recordUpdateSyntaxParser(fname),
-								A2(
-								author$project$Combine$andThen,
-								function (fieldUpdate) {
-									return author$project$Combine$choice(
-										_List_fromArray(
-											[
-												A2(
-												author$project$Combine$map,
-												elm$core$Basics$always(
-													author$project$Elm$Syntax$Expression$RecordExpr(
-														_List_fromArray(
-															[fieldUpdate]))),
-												author$project$Combine$string('}')),
-												A2(
-												author$project$Combine$ignore,
-												author$project$Combine$string('}'),
-												A2(
-													author$project$Combine$map,
-													function (fieldUpdates) {
-														return author$project$Elm$Syntax$Expression$RecordExpr(
-															A2(elm$core$List$cons, fieldUpdate, fieldUpdates));
-													},
-													A2(
-														author$project$Combine$continueWith,
-														recordFields,
-														A2(
-															author$project$Combine$ignore,
-															author$project$Combine$maybe(author$project$Elm$Parser$Layout$layout),
-															author$project$Combine$string(',')))))
-											]));
-								},
+								author$project$Combine$string('='),
 								A2(
 									author$project$Combine$ignore,
 									author$project$Combine$maybe(author$project$Elm$Parser$Layout$layout),
 									A2(
-										author$project$Combine$continueWith,
-										A2(
-											author$project$Combine$map,
-											function (e) {
-												return A3(author$project$Elm$Syntax$Node$combine, elm$core$Tuple$pair, fname, e);
-											},
-											author$project$Elm$Parser$Declarations$cyclic$expression()),
-										A2(
-											author$project$Combine$ignore,
-											author$project$Combine$maybe(author$project$Elm$Parser$Layout$layout),
-											author$project$Combine$string('=')))))
-							]));
-				},
-				A2(
-					author$project$Combine$ignore,
-					author$project$Combine$maybe(author$project$Elm$Parser$Layout$layout),
-					author$project$Elm$Parser$Node$parser(author$project$Elm$Parser$Tokens$functionName)));
-			return A2(
-				author$project$Combine$continueWith,
-				author$project$Combine$choice(
-					_List_fromArray(
-						[
+										author$project$Combine$andMap,
+										author$project$Elm$Parser$Node$parser(author$project$Elm$Parser$Tokens$functionName),
+										author$project$Combine$succeed(elm$core$Tuple$pair)))))));
+				var recordFields = A2(
+					author$project$Combine$andMap,
+					author$project$Combine$many(
+						A2(
+							author$project$Combine$ignore,
+							author$project$Combine$maybe(author$project$Elm$Parser$Layout$layout),
 							A2(
+								author$project$Combine$continueWith,
+								recordField,
+								A2(
+									author$project$Combine$ignore,
+									author$project$Combine$maybe(author$project$Elm$Parser$Layout$layout),
+									author$project$Combine$string(','))))),
+					A2(
+						author$project$Combine$ignore,
+						author$project$Combine$maybe(author$project$Elm$Parser$Layout$layout),
+						A2(
+							author$project$Combine$andMap,
+							recordField,
+							author$project$Combine$succeed(elm$core$List$cons))));
+				var recordUpdateSyntaxParser = function (fname) {
+					return A2(
+						author$project$Combine$ignore,
+						author$project$Combine$string('}'),
+						A2(
 							author$project$Combine$map,
-							elm$core$Basics$always(
-								author$project$Elm$Syntax$Expression$RecordExpr(_List_Nil)),
-							author$project$Combine$string('}')),
-							recordContents
-						])),
-				A2(
-					author$project$Combine$ignore,
-					author$project$Combine$maybe(author$project$Elm$Parser$Layout$layout),
-					author$project$Combine$string('{')));
-		});
+							function (e) {
+								return A2(author$project$Elm$Syntax$Expression$RecordUpdateExpression, fname, e);
+							},
+							A2(
+								author$project$Combine$continueWith,
+								recordFields,
+								A2(
+									author$project$Combine$ignore,
+									author$project$Combine$maybe(author$project$Elm$Parser$Layout$layout),
+									author$project$Combine$string('|')))));
+				};
+				var recordContents = A2(
+					author$project$Combine$andThen,
+					function (fname) {
+						return author$project$Combine$choice(
+							_List_fromArray(
+								[
+									recordUpdateSyntaxParser(fname),
+									A2(
+									author$project$Combine$andThen,
+									function (fieldUpdate) {
+										return author$project$Combine$choice(
+											_List_fromArray(
+												[
+													A2(
+													author$project$Combine$map,
+													elm$core$Basics$always(
+														author$project$Elm$Syntax$Expression$RecordExpr(
+															_List_fromArray(
+																[fieldUpdate]))),
+													author$project$Combine$string('}')),
+													A2(
+													author$project$Combine$ignore,
+													author$project$Combine$string('}'),
+													A2(
+														author$project$Combine$map,
+														function (fieldUpdates) {
+															return author$project$Elm$Syntax$Expression$RecordExpr(
+																A2(elm$core$List$cons, fieldUpdate, fieldUpdates));
+														},
+														A2(
+															author$project$Combine$continueWith,
+															recordFields,
+															A2(
+																author$project$Combine$ignore,
+																author$project$Combine$maybe(author$project$Elm$Parser$Layout$layout),
+																author$project$Combine$string(',')))))
+												]));
+									},
+									A2(
+										author$project$Combine$ignore,
+										author$project$Combine$maybe(author$project$Elm$Parser$Layout$layout),
+										A2(
+											author$project$Combine$continueWith,
+											A2(
+												author$project$Combine$map,
+												function (e) {
+													return A3(author$project$Elm$Syntax$Node$combine, elm$core$Tuple$pair, fname, e);
+												},
+												author$project$Elm$Parser$Declarations$cyclic$expression()),
+											A2(
+												author$project$Combine$ignore,
+												author$project$Combine$maybe(author$project$Elm$Parser$Layout$layout),
+												author$project$Combine$string('=')))))
+								]));
+					},
+					A2(
+						author$project$Combine$ignore,
+						author$project$Combine$maybe(author$project$Elm$Parser$Layout$layout),
+						author$project$Elm$Parser$Node$parser(author$project$Elm$Parser$Tokens$functionName)));
+				return A2(
+					author$project$Combine$continueWith,
+					author$project$Combine$choice(
+						_List_fromArray(
+							[
+								A2(
+								author$project$Combine$map,
+								elm$core$Basics$always(
+									author$project$Elm$Syntax$Expression$RecordExpr(_List_Nil)),
+								author$project$Combine$string('}')),
+								recordContents
+							])),
+					A2(
+						author$project$Combine$ignore,
+						author$project$Combine$maybe(author$project$Elm$Parser$Layout$layout),
+						author$project$Combine$string('{')));
+			}));
 }
 function author$project$Elm$Parser$Declarations$cyclic$tupledExpression() {
 	return author$project$Combine$lazy(
-		function (v) {
+		function (_n0) {
 			var commaSep = author$project$Combine$many(
 				A2(
 					author$project$Combine$ignore,
@@ -8850,24 +8929,25 @@ function author$project$Elm$Parser$Declarations$cyclic$tupledExpression() {
 							author$project$Combine$ignore,
 							author$project$Combine$maybe(author$project$Elm$Parser$Layout$layout),
 							author$project$Combine$succeed(asExpression)))));
-			return A2(
-				author$project$Combine$continueWith,
-				author$project$Combine$choice(
-					_List_fromArray(
-						[
-							A2(
-							author$project$Combine$map,
-							elm$core$Basics$always(author$project$Elm$Syntax$Expression$UnitExpr),
-							closingParen),
-							author$project$Combine$backtrackable(
-							A2(
+			return author$project$Elm$Parser$Node$parser(
+				A2(
+					author$project$Combine$continueWith,
+					author$project$Combine$choice(
+						_List_fromArray(
+							[
+								A2(
 								author$project$Combine$map,
-								author$project$Elm$Syntax$Expression$PrefixOperator,
-								A2(author$project$Combine$ignore, closingParen, author$project$Elm$Parser$Tokens$prefixOperatorToken))),
-							A2(author$project$Combine$ignore, closingParen, nested)
-						])),
-				author$project$Combine$fromCore(
-					elm$parser$Parser$symbol('(')));
+								elm$core$Basics$always(author$project$Elm$Syntax$Expression$UnitExpr),
+								closingParen),
+								author$project$Combine$backtrackable(
+								A2(
+									author$project$Combine$map,
+									author$project$Elm$Syntax$Expression$PrefixOperator,
+									A2(author$project$Combine$ignore, closingParen, author$project$Elm$Parser$Tokens$prefixOperatorToken))),
+								A2(author$project$Combine$ignore, closingParen, nested)
+							])),
+					author$project$Combine$fromCore(
+						elm$parser$Parser$symbol('('))));
 		});
 }
 try {
@@ -9088,7 +9168,8 @@ var author$project$Elm$Parser$Infix$infixDefinition = A2(
 										author$project$Elm$Parser$Layout$layout,
 										A2(
 											author$project$Combine$ignore,
-											author$project$Combine$string('infix'),
+											author$project$Combine$fromCore(
+												elm$parser$Parser$keyword('infix')),
 											author$project$Combine$succeed(author$project$Elm$Syntax$Infix$Infix))))))))))));
 var author$project$Elm$Parser$Ranges$asPointerLocation = function (_n0) {
 	var line = _n0.line;
@@ -9197,10 +9278,16 @@ var author$project$Elm$Parser$Typings$valueConstructor = A2(
 	author$project$Combine$andThen,
 	function (tnn) {
 		var range = tnn.a;
-		var tn = tnn.b;
 		var complete = function (args) {
 			return author$project$Combine$succeed(
-				A2(author$project$Elm$Syntax$Type$ValueConstructor, tnn, args));
+				A2(
+					author$project$Elm$Syntax$Node$Node,
+					author$project$Elm$Syntax$Range$combine(
+						A2(
+							elm$core$List$cons,
+							range,
+							A2(elm$core$List$map, author$project$Elm$Syntax$Node$range, args))),
+					A2(author$project$Elm$Syntax$Type$ValueConstructor, tnn, args)));
 		};
 		var argHelper = function (xs) {
 			return A2(
@@ -9245,36 +9332,13 @@ var author$project$Elm$Parser$Typings$valueConstructor = A2(
 		author$project$Combine$continueWith,
 		author$project$Elm$Parser$Node$parser(author$project$Elm$Parser$Tokens$typeName),
 		author$project$Combine$succeed(author$project$Elm$Syntax$Type$ValueConstructor)));
-function author$project$Elm$Parser$Typings$cyclic$valueConstructors() {
-	return author$project$Combine$lazy(
-		function (_n0) {
-			return A2(
-				author$project$Combine$andMap,
-				author$project$Combine$choice(
-					_List_fromArray(
-						[
-							A2(
-							author$project$Combine$continueWith,
-							author$project$Elm$Parser$Typings$cyclic$valueConstructors(),
-							A2(
-								author$project$Combine$ignore,
-								author$project$Combine$maybe(author$project$Elm$Parser$Layout$layout),
-								author$project$Combine$string('|'))),
-							author$project$Combine$succeed(_List_Nil)
-						])),
-				A2(
-					author$project$Combine$andMap,
-					author$project$Elm$Parser$Node$parser(author$project$Elm$Parser$Typings$valueConstructor),
-					author$project$Combine$succeed(elm$core$List$cons)));
-		});
-}
-try {
-	var author$project$Elm$Parser$Typings$valueConstructors = author$project$Elm$Parser$Typings$cyclic$valueConstructors();
-	author$project$Elm$Parser$Typings$cyclic$valueConstructors = function () {
-		return author$project$Elm$Parser$Typings$valueConstructors;
-	};
-} catch ($) {
-throw 'Some top-level definitions from `Elm.Parser.Typings` are causing infinite recursion:\n\n  ┌─────┐\n  │    valueConstructors\n  └─────┘\n\nThese errors are very tricky, so read https://elm-lang.org/0.19.0/halting-problem to learn how to fix it!';}
+var author$project$Elm$Parser$Typings$valueConstructors = A2(
+	author$project$Combine$sepBy1,
+	A2(
+		author$project$Combine$ignore,
+		author$project$Combine$maybe(author$project$Elm$Parser$Layout$layout),
+		author$project$Combine$string('|')),
+	author$project$Elm$Parser$Typings$valueConstructor);
 var author$project$Elm$Syntax$Type$Type = F4(
 	function (documentation, name, generics, constructors) {
 		return {constructors: constructors, documentation: documentation, generics: generics, name: name};
@@ -9299,11 +9363,7 @@ var author$project$Elm$Parser$Typings$typeDefinition = author$project$Elm$Parser
 									_List_fromArray(
 										[
 											start,
-											function (_n0) {
-											var r = _n0.a;
-											var v = _n0.b;
-											return r;
-										}(typeAlias.typeAnnotation)
+											author$project$Elm$Syntax$Node$range(typeAlias.typeAnnotation)
 										])),
 								typeAlias);
 						},
@@ -9344,8 +9404,8 @@ var author$project$Elm$Parser$Typings$typeDefinition = author$project$Elm$Parser
 										start,
 										A2(
 											elm$core$List$map,
-											function (_n1) {
-												var r = _n1.a;
+											function (_n0) {
+												var r = _n0.a;
 												return r;
 											},
 											tipe.constructors))),
@@ -9388,6 +9448,7 @@ var author$project$Elm$Parser$Declarations$declaration = author$project$Combine$
 		return author$project$Combine$choice(
 			_List_fromArray(
 				[
+					author$project$Elm$Parser$Declarations$infixDeclaration,
 					author$project$Elm$Parser$Declarations$function,
 					A2(
 					author$project$Combine$map,
@@ -9410,7 +9471,6 @@ var author$project$Elm$Parser$Declarations$declaration = author$project$Combine$
 					},
 					author$project$Elm$Parser$Typings$typeDefinition),
 					author$project$Elm$Parser$Declarations$portDeclaration,
-					author$project$Elm$Parser$Declarations$infixDeclaration,
 					author$project$Elm$Parser$Declarations$destructuringDeclaration
 				]));
 	});
@@ -9563,8 +9623,44 @@ var author$project$Elm$Parser$Expose$exposeDefinition = A2(
 		author$project$Combine$continueWith,
 		author$project$Combine$maybe(author$project$Elm$Parser$Layout$layout),
 		author$project$Elm$Parser$Tokens$exposingToken));
-var author$project$Elm$Parser$Tokens$asToken = author$project$Combine$string('as');
-var author$project$Elm$Parser$Tokens$importToken = author$project$Combine$string('import');
+var elm$core$List$maybeCons = F3(
+	function (f, mx, xs) {
+		var _n0 = f(mx);
+		if (_n0.$ === 'Just') {
+			var x = _n0.a;
+			return A2(elm$core$List$cons, x, xs);
+		} else {
+			return xs;
+		}
+	});
+var elm$core$List$filterMap = F2(
+	function (f, xs) {
+		return A3(
+			elm$core$List$foldr,
+			elm$core$List$maybeCons(f),
+			_List_Nil,
+			xs);
+	});
+var author$project$Elm$Parser$Imports$setupNode = F2(
+	function (start, imp) {
+		var allRanges = _List_fromArray(
+			[
+				elm$core$Maybe$Just(start),
+				elm$core$Maybe$Just(
+				author$project$Elm$Syntax$Node$range(imp.moduleName)),
+				A2(elm$core$Maybe$map, author$project$Elm$Syntax$Node$range, imp.exposingList),
+				A2(elm$core$Maybe$map, author$project$Elm$Syntax$Node$range, imp.moduleAlias)
+			]);
+		return A2(
+			author$project$Elm$Syntax$Node$Node,
+			author$project$Elm$Syntax$Range$combine(
+				A2(elm$core$List$filterMap, elm$core$Basics$identity, allRanges)),
+			imp);
+	});
+var author$project$Elm$Parser$Tokens$asToken = author$project$Combine$fromCore(
+	elm$parser$Parser$keyword('as'));
+var author$project$Elm$Parser$Tokens$importToken = author$project$Combine$fromCore(
+	elm$parser$Parser$keyword('import'));
 var author$project$Elm$Syntax$Import$Import = F3(
 	function (moduleName, moduleAlias, exposingList) {
 		return {exposingList: exposingList, moduleAlias: moduleAlias, moduleName: moduleName};
@@ -9581,7 +9677,7 @@ var author$project$Elm$Parser$Imports$importDefinition = function () {
 							elm$core$Basics$composeR,
 							elm$core$Maybe$Just,
 							A2(author$project$Elm$Syntax$Import$Import, mod, asDef)),
-						author$project$Elm$Parser$Expose$exposeDefinition),
+						author$project$Elm$Parser$Node$parser(author$project$Elm$Parser$Expose$exposeDefinition)),
 						author$project$Combine$succeed(
 						A3(author$project$Elm$Syntax$Import$Import, mod, asDef, elm$core$Maybe$Nothing))
 					]));
@@ -9610,8 +9706,18 @@ var author$project$Elm$Parser$Imports$importDefinition = function () {
 	};
 	return A2(
 		author$project$Combine$andThen,
-		parseAsDefinition,
-		A2(author$project$Combine$ignore, author$project$Elm$Parser$Layout$optimisticLayout, importAndModuleName));
+		function (_n0) {
+			var start = _n0.a;
+			return A2(
+				author$project$Combine$map,
+				author$project$Elm$Parser$Imports$setupNode(start),
+				A2(
+					author$project$Combine$andThen,
+					parseAsDefinition,
+					A2(author$project$Combine$ignore, author$project$Elm$Parser$Layout$optimisticLayout, importAndModuleName)));
+		},
+		author$project$Elm$Parser$Node$parser(
+			author$project$Combine$succeed(_Utils_Tuple0)));
 }();
 var author$project$Elm$Parser$Modules$effectWhereClause = A2(
 	author$project$Combine$andMap,
@@ -9635,10 +9741,6 @@ var elm$core$List$filter = F2(
 			_List_Nil,
 			list);
 	});
-var elm$core$Tuple$second = function (_n0) {
-	var y = _n0.b;
-	return y;
-};
 var author$project$Elm$Parser$Modules$whereBlock = A2(
 	author$project$Combine$map,
 	function (pairs) {
@@ -9797,10 +9899,7 @@ var author$project$Elm$Parser$File$file = A2(
 				A2(
 					author$project$Combine$andMap,
 					author$project$Combine$many(
-						A2(
-							author$project$Combine$ignore,
-							author$project$Elm$Parser$Layout$optimisticLayout,
-							author$project$Elm$Parser$Node$parser(author$project$Elm$Parser$Imports$importDefinition))),
+						A2(author$project$Combine$ignore, author$project$Elm$Parser$Layout$optimisticLayout, author$project$Elm$Parser$Imports$importDefinition)),
 					A2(
 						author$project$Combine$ignore,
 						author$project$Combine$maybe(author$project$Elm$Parser$Layout$layoutStrict),
@@ -9826,30 +9925,1388 @@ var author$project$Elm$Parser$parse = function (input) {
 			author$project$Elm$Internal$RawFile$fromFile(r));
 	} else {
 		var s = _n0.a;
-		return elm$core$Result$Err(
-			_List_fromArray(
-				['Some error']));
+		return elm$core$Result$Err(s);
 	}
 };
-var author$project$Demo$update = F2(
-	function (msg, model) {
-		var v = msg.a;
-		var parseResult = author$project$Elm$Parser$parse(v);
-		return _Utils_update(
-			model,
-			{src: v});
-	});
-var author$project$Demo$Change = function (a) {
-	return {$: 'Change', a: a};
+var author$project$Elm$Processing$ProcessContext = function (a) {
+	return {$: 'ProcessContext', a: a};
 };
-var elm$core$Debug$toString = _Debug_toString;
-var elm$core$Result$isOk = function (result) {
-	if (result.$ === 'Ok') {
+var author$project$Elm$Processing$init = author$project$Elm$Processing$ProcessContext(elm$core$Dict$empty);
+var author$project$Elm$Processing$expressionOperators = function (_n0) {
+	var expression = _n0.b;
+	if (expression.$ === 'Operator') {
+		var s = expression.a;
+		return elm$core$Maybe$Just(s);
+	} else {
+		return elm$core$Maybe$Nothing;
+	}
+};
+var elm$core$Maybe$andThen = F2(
+	function (callback, maybeValue) {
+		if (maybeValue.$ === 'Just') {
+			var value = maybeValue.a;
+			return callback(value);
+		} else {
+			return elm$core$Maybe$Nothing;
+		}
+	});
+var elm_community$list_extra$List$Extra$takeWhile = function (predicate) {
+	var takeWhileMemo = F2(
+		function (memo, list) {
+			takeWhileMemo:
+			while (true) {
+				if (!list.b) {
+					return elm$core$List$reverse(memo);
+				} else {
+					var x = list.a;
+					var xs = list.b;
+					if (predicate(x)) {
+						var $temp$memo = A2(elm$core$List$cons, x, memo),
+							$temp$list = xs;
+						memo = $temp$memo;
+						list = $temp$list;
+						continue takeWhileMemo;
+					} else {
+						return elm$core$List$reverse(memo);
+					}
+				}
+			}
+		});
+	return takeWhileMemo(_List_Nil);
+};
+var author$project$Elm$Processing$findNextSplit = F2(
+	function (dict, exps) {
+		var prefix = A2(
+			elm_community$list_extra$List$Extra$takeWhile,
+			function (x) {
+				return _Utils_eq(
+					elm$core$Maybe$Nothing,
+					A2(
+						elm$core$Maybe$andThen,
+						function (key) {
+							return A2(elm$core$Dict$get, key, dict);
+						},
+						author$project$Elm$Processing$expressionOperators(x)));
+			},
+			exps);
+		var suffix = A2(
+			elm$core$List$drop,
+			elm$core$List$length(prefix) + 1,
+			exps);
+		return A2(
+			elm$core$Maybe$map,
+			function (x) {
+				return _Utils_Tuple3(prefix, x, suffix);
+			},
+			A2(
+				elm$core$Maybe$andThen,
+				function (x) {
+					return A2(elm$core$Dict$get, x, dict);
+				},
+				A2(
+					elm$core$Maybe$andThen,
+					author$project$Elm$Processing$expressionOperators,
+					elm$core$List$head(
+						A2(
+							elm$core$List$drop,
+							elm$core$List$length(prefix),
+							exps)))));
+	});
+var elm$core$Dict$fromList = function (assocs) {
+	return A3(
+		elm$core$List$foldl,
+		F2(
+			function (_n0, dict) {
+				var key = _n0.a;
+				var value = _n0.b;
+				return A3(elm$core$Dict$insert, key, value, dict);
+			}),
+		elm$core$Dict$empty,
+		assocs);
+};
+var elm$core$Basics$max = F2(
+	function (x, y) {
+		return (_Utils_cmp(x, y) > 0) ? x : y;
+	});
+var elm$core$List$maximum = function (list) {
+	if (list.b) {
+		var x = list.a;
+		var xs = list.b;
+		return elm$core$Maybe$Just(
+			A3(elm$core$List$foldl, elm$core$Basics$max, x, xs));
+	} else {
+		return elm$core$Maybe$Nothing;
+	}
+};
+var author$project$Elm$Processing$highestPrecedence = function (input) {
+	var maxi = elm$core$List$maximum(
+		A2(
+			elm$core$List$map,
+			A2(
+				elm$core$Basics$composeR,
+				elm$core$Tuple$second,
+				A2(
+					elm$core$Basics$composeR,
+					function ($) {
+						return $.precedence;
+					},
+					author$project$Elm$Syntax$Node$value)),
+			input));
+	return elm$core$Dict$fromList(
+		A2(
+			elm$core$Maybe$withDefault,
+			_List_Nil,
+			A2(
+				elm$core$Maybe$map,
+				function (m) {
+					return A2(
+						elm$core$List$filter,
+						A2(
+							elm$core$Basics$composeR,
+							elm$core$Tuple$second,
+							A2(
+								elm$core$Basics$composeR,
+								function ($) {
+									return $.precedence;
+								},
+								A2(
+									elm$core$Basics$composeR,
+									author$project$Elm$Syntax$Node$value,
+									elm$core$Basics$eq(m)))),
+						input);
+				},
+				maxi)));
+};
+var author$project$Elm$Syntax$Expression$OperatorApplication = F4(
+	function (a, b, c, d) {
+		return {$: 'OperatorApplication', a: a, b: b, c: c, d: d};
+	});
+var elm$core$Dict$isEmpty = function (dict) {
+	if (dict.$ === 'RBEmpty_elm_builtin') {
 		return true;
 	} else {
 		return false;
 	}
 };
+var author$project$Elm$Processing$fixApplication = F2(
+	function (operators, expressions) {
+		var ops = author$project$Elm$Processing$highestPrecedence(
+			A2(
+				elm$core$List$map,
+				function (x) {
+					return _Utils_Tuple2(
+						x,
+						A2(
+							elm$core$Maybe$withDefault,
+							{
+								direction: A2(author$project$Elm$Syntax$Node$Node, author$project$Elm$Syntax$Range$emptyRange, author$project$Elm$Syntax$Infix$Left),
+								_function: A2(author$project$Elm$Syntax$Node$Node, author$project$Elm$Syntax$Range$emptyRange, 'todo'),
+								operator: A2(author$project$Elm$Syntax$Node$Node, author$project$Elm$Syntax$Range$emptyRange, x),
+								precedence: A2(author$project$Elm$Syntax$Node$Node, author$project$Elm$Syntax$Range$emptyRange, 5)
+							},
+							A2(elm$core$Dict$get, x, operators)));
+				},
+				A2(elm$core$List$filterMap, author$project$Elm$Processing$expressionOperators, expressions)));
+		var fixExprs = function (exps) {
+			if (exps.b && (!exps.b.b)) {
+				var _n2 = exps.a;
+				var x = _n2.b;
+				return x;
+			} else {
+				return author$project$Elm$Syntax$Expression$Application(exps);
+			}
+		};
+		var divideAndConquer = function (exps) {
+			return elm$core$Dict$isEmpty(ops) ? fixExprs(exps) : A2(
+				elm$core$Maybe$withDefault,
+				fixExprs(exps),
+				A2(
+					elm$core$Maybe$map,
+					function (_n0) {
+						var p = _n0.a;
+						var infix = _n0.b;
+						var s = _n0.c;
+						return A4(
+							author$project$Elm$Syntax$Expression$OperatorApplication,
+							author$project$Elm$Syntax$Node$value(infix.operator),
+							author$project$Elm$Syntax$Node$value(infix.direction),
+							A2(
+								author$project$Elm$Syntax$Node$Node,
+								author$project$Elm$Syntax$Range$combine(
+									A2(elm$core$List$map, author$project$Elm$Syntax$Node$range, p)),
+								divideAndConquer(p)),
+							A2(
+								author$project$Elm$Syntax$Node$Node,
+								author$project$Elm$Syntax$Range$combine(
+									A2(elm$core$List$map, author$project$Elm$Syntax$Node$range, s)),
+								divideAndConquer(s)));
+					},
+					A2(author$project$Elm$Processing$findNextSplit, ops, exps)));
+		};
+		return divideAndConquer(expressions);
+	});
+var author$project$Elm$DefaultImports$defaults = _List_fromArray(
+	[
+		{
+		exposingList: elm$core$Maybe$Just(
+			A2(
+				author$project$Elm$Syntax$Node$Node,
+				author$project$Elm$Syntax$Range$emptyRange,
+				author$project$Elm$Syntax$Exposing$All(author$project$Elm$Syntax$Range$emptyRange))),
+		moduleAlias: elm$core$Maybe$Nothing,
+		moduleName: A2(
+			author$project$Elm$Syntax$Node$Node,
+			author$project$Elm$Syntax$Range$emptyRange,
+			_List_fromArray(
+				['Basics']))
+	},
+		{
+		exposingList: elm$core$Maybe$Just(
+			A2(
+				author$project$Elm$Syntax$Node$Node,
+				author$project$Elm$Syntax$Range$emptyRange,
+				author$project$Elm$Syntax$Exposing$Explicit(
+					_List_fromArray(
+						[
+							A2(
+							author$project$Elm$Syntax$Node$Node,
+							author$project$Elm$Syntax$Range$emptyRange,
+							author$project$Elm$Syntax$Exposing$TypeExpose(
+								A2(author$project$Elm$Syntax$Exposing$ExposedType, 'List', elm$core$Maybe$Nothing))),
+							A2(
+							author$project$Elm$Syntax$Node$Node,
+							author$project$Elm$Syntax$Range$emptyRange,
+							author$project$Elm$Syntax$Exposing$InfixExpose('::'))
+						])))),
+		moduleAlias: elm$core$Maybe$Nothing,
+		moduleName: A2(
+			author$project$Elm$Syntax$Node$Node,
+			author$project$Elm$Syntax$Range$emptyRange,
+			_List_fromArray(
+				['List']))
+	},
+		{
+		exposingList: elm$core$Maybe$Just(
+			A2(
+				author$project$Elm$Syntax$Node$Node,
+				author$project$Elm$Syntax$Range$emptyRange,
+				author$project$Elm$Syntax$Exposing$Explicit(
+					_List_fromArray(
+						[
+							A2(
+							author$project$Elm$Syntax$Node$Node,
+							author$project$Elm$Syntax$Range$emptyRange,
+							author$project$Elm$Syntax$Exposing$TypeExpose(
+								A2(
+									author$project$Elm$Syntax$Exposing$ExposedType,
+									'Maybe',
+									elm$core$Maybe$Just(author$project$Elm$Syntax$Range$emptyRange))))
+						])))),
+		moduleAlias: elm$core$Maybe$Nothing,
+		moduleName: A2(
+			author$project$Elm$Syntax$Node$Node,
+			author$project$Elm$Syntax$Range$emptyRange,
+			_List_fromArray(
+				['Maybe']))
+	},
+		{
+		exposingList: elm$core$Maybe$Just(
+			A2(
+				author$project$Elm$Syntax$Node$Node,
+				author$project$Elm$Syntax$Range$emptyRange,
+				author$project$Elm$Syntax$Exposing$Explicit(
+					_List_fromArray(
+						[
+							A2(
+							author$project$Elm$Syntax$Node$Node,
+							author$project$Elm$Syntax$Range$emptyRange,
+							author$project$Elm$Syntax$Exposing$TypeExpose(
+								A2(
+									author$project$Elm$Syntax$Exposing$ExposedType,
+									'Result',
+									elm$core$Maybe$Just(author$project$Elm$Syntax$Range$emptyRange))))
+						])))),
+		moduleAlias: elm$core$Maybe$Nothing,
+		moduleName: A2(
+			author$project$Elm$Syntax$Node$Node,
+			author$project$Elm$Syntax$Range$emptyRange,
+			_List_fromArray(
+				['Result']))
+	},
+		{
+		exposingList: elm$core$Maybe$Nothing,
+		moduleAlias: elm$core$Maybe$Nothing,
+		moduleName: A2(
+			author$project$Elm$Syntax$Node$Node,
+			author$project$Elm$Syntax$Range$emptyRange,
+			_List_fromArray(
+				['String']))
+	},
+		{
+		exposingList: elm$core$Maybe$Nothing,
+		moduleAlias: elm$core$Maybe$Nothing,
+		moduleName: A2(
+			author$project$Elm$Syntax$Node$Node,
+			author$project$Elm$Syntax$Range$emptyRange,
+			_List_fromArray(
+				['Tuple']))
+	},
+		{
+		exposingList: elm$core$Maybe$Nothing,
+		moduleAlias: elm$core$Maybe$Nothing,
+		moduleName: A2(
+			author$project$Elm$Syntax$Node$Node,
+			author$project$Elm$Syntax$Range$emptyRange,
+			_List_fromArray(
+				['Debug']))
+	},
+		{
+		exposingList: elm$core$Maybe$Just(
+			A2(
+				author$project$Elm$Syntax$Node$Node,
+				author$project$Elm$Syntax$Range$emptyRange,
+				author$project$Elm$Syntax$Exposing$Explicit(
+					_List_fromArray(
+						[
+							A2(
+							author$project$Elm$Syntax$Node$Node,
+							author$project$Elm$Syntax$Range$emptyRange,
+							author$project$Elm$Syntax$Exposing$TypeExpose(
+								A2(author$project$Elm$Syntax$Exposing$ExposedType, 'Program', elm$core$Maybe$Nothing)))
+						])))),
+		moduleAlias: elm$core$Maybe$Nothing,
+		moduleName: A2(
+			author$project$Elm$Syntax$Node$Node,
+			author$project$Elm$Syntax$Range$emptyRange,
+			_List_fromArray(
+				['Platform']))
+	},
+		{
+		exposingList: elm$core$Maybe$Just(
+			A2(
+				author$project$Elm$Syntax$Node$Node,
+				author$project$Elm$Syntax$Range$emptyRange,
+				author$project$Elm$Syntax$Exposing$Explicit(
+					_List_fromArray(
+						[
+							A2(
+							author$project$Elm$Syntax$Node$Node,
+							author$project$Elm$Syntax$Range$emptyRange,
+							author$project$Elm$Syntax$Exposing$TypeExpose(
+								A2(author$project$Elm$Syntax$Exposing$ExposedType, 'Cmd', elm$core$Maybe$Nothing))),
+							A2(
+							author$project$Elm$Syntax$Node$Node,
+							author$project$Elm$Syntax$Range$emptyRange,
+							author$project$Elm$Syntax$Exposing$InfixExpose('!'))
+						])))),
+		moduleAlias: elm$core$Maybe$Nothing,
+		moduleName: A2(
+			author$project$Elm$Syntax$Node$Node,
+			author$project$Elm$Syntax$Range$emptyRange,
+			_List_fromArray(
+				['Platform', 'Cmd']))
+	},
+		{
+		exposingList: elm$core$Maybe$Just(
+			A2(
+				author$project$Elm$Syntax$Node$Node,
+				author$project$Elm$Syntax$Range$emptyRange,
+				author$project$Elm$Syntax$Exposing$Explicit(
+					_List_fromArray(
+						[
+							A2(
+							author$project$Elm$Syntax$Node$Node,
+							author$project$Elm$Syntax$Range$emptyRange,
+							author$project$Elm$Syntax$Exposing$TypeExpose(
+								A2(author$project$Elm$Syntax$Exposing$ExposedType, 'Sub', elm$core$Maybe$Nothing)))
+						])))),
+		moduleAlias: elm$core$Maybe$Nothing,
+		moduleName: A2(
+			author$project$Elm$Syntax$Node$Node,
+			author$project$Elm$Syntax$Range$emptyRange,
+			_List_fromArray(
+				['Platform', 'Sub']))
+	}
+	]);
+var author$project$Elm$Interface$operators = elm$core$List$filterMap(
+	function (i) {
+		if (i.$ === 'Operator') {
+			var o = i.a;
+			return elm$core$Maybe$Just(o);
+		} else {
+			return elm$core$Maybe$Nothing;
+		}
+	});
+var author$project$Elm$Syntax$Exposing$operator = function (t) {
+	if (t.$ === 'InfixExpose') {
+		var s = t.a;
+		return elm$core$Maybe$Just(s);
+	} else {
+		return elm$core$Maybe$Nothing;
+	}
+};
+var author$project$Elm$Syntax$Exposing$operators = function (l) {
+	return A2(elm$core$List$filterMap, author$project$Elm$Syntax$Exposing$operator, l);
+};
+var author$project$Elm$Processing$buildSingle = F2(
+	function (imp, moduleIndex) {
+		var _n0 = imp.exposingList;
+		if (_n0.$ === 'Nothing') {
+			return _List_Nil;
+		} else {
+			if (_n0.a.b.$ === 'All') {
+				var _n1 = _n0.a;
+				return A2(
+					elm$core$List$map,
+					function (x) {
+						return _Utils_Tuple2(
+							author$project$Elm$Syntax$Node$value(x.operator),
+							x);
+					},
+					author$project$Elm$Interface$operators(
+						A2(
+							elm$core$Maybe$withDefault,
+							_List_Nil,
+							A2(
+								elm$core$Dict$get,
+								author$project$Elm$Syntax$Node$value(imp.moduleName),
+								moduleIndex))));
+			} else {
+				var _n2 = _n0.a;
+				var l = _n2.b.a;
+				var selectedOperators = author$project$Elm$Syntax$Exposing$operators(
+					A2(elm$core$List$map, author$project$Elm$Syntax$Node$value, l));
+				return A2(
+					elm$core$List$filter,
+					A2(
+						elm$core$Basics$composeR,
+						elm$core$Tuple$first,
+						function (elem) {
+							return A2(elm$core$List$member, elem, selectedOperators);
+						}),
+					A2(
+						elm$core$List$map,
+						function (x) {
+							return _Utils_Tuple2(
+								author$project$Elm$Syntax$Node$value(x.operator),
+								x);
+						},
+						author$project$Elm$Interface$operators(
+							A2(
+								elm$core$Maybe$withDefault,
+								_List_Nil,
+								A2(
+									elm$core$Dict$get,
+									author$project$Elm$Syntax$Node$value(imp.moduleName),
+									moduleIndex)))));
+			}
+		}
+	});
+var author$project$Elm$RawFile$imports = function (_n0) {
+	var file = _n0.a;
+	return A2(elm$core$List$map, author$project$Elm$Syntax$Node$value, file.imports);
+};
+var elm$core$List$append = F2(
+	function (xs, ys) {
+		if (!ys.b) {
+			return xs;
+		} else {
+			return A3(elm$core$List$foldr, elm$core$List$cons, ys, xs);
+		}
+	});
+var elm$core$List$concat = function (lists) {
+	return A3(elm$core$List$foldr, elm$core$List$append, _List_Nil, lists);
+};
+var elm$core$List$concatMap = F2(
+	function (f, list) {
+		return elm$core$List$concat(
+			A2(elm$core$List$map, f, list));
+	});
+var author$project$Elm$Processing$tableForFile = F2(
+	function (rawFile, _n0) {
+		var moduleIndex = _n0.a;
+		return elm$core$Dict$fromList(
+			A2(
+				elm$core$List$concatMap,
+				function (a) {
+					return A2(author$project$Elm$Processing$buildSingle, a, moduleIndex);
+				},
+				_Utils_ap(
+					author$project$Elm$DefaultImports$defaults,
+					author$project$Elm$RawFile$imports(rawFile))));
+	});
+var author$project$Elm$Syntax$Node$map = F2(
+	function (f, _n0) {
+		var r = _n0.a;
+		var a = _n0.b;
+		return A2(
+			author$project$Elm$Syntax$Node$Node,
+			r,
+			f(a));
+	});
+var author$project$Elm$Processing$visitExpression = F3(
+	function (visitor, context, expression) {
+		var inner = A2(author$project$Elm$Processing$visitExpressionInner, visitor, context);
+		return A3(
+			A2(
+				elm$core$Maybe$withDefault,
+				F3(
+					function (_n4, nest, expr) {
+						return nest(expr);
+					}),
+				visitor),
+			context,
+			inner,
+			expression);
+	});
+var author$project$Elm$Processing$visitExpressionInner = F3(
+	function (visitor, context, _n2) {
+		var range = _n2.a;
+		var expression = _n2.b;
+		var subVisit = A2(author$project$Elm$Processing$visitExpression, visitor, context);
+		return function (newExpr) {
+			return A2(author$project$Elm$Syntax$Node$Node, range, newExpr);
+		}(
+			function () {
+				switch (expression.$) {
+					case 'Application':
+						var expressionList = expression.a;
+						return author$project$Elm$Syntax$Expression$Application(
+							A2(elm$core$List$map, subVisit, expressionList));
+					case 'OperatorApplication':
+						var op = expression.a;
+						var dir = expression.b;
+						var left = expression.c;
+						var right = expression.d;
+						return A4(
+							author$project$Elm$Syntax$Expression$OperatorApplication,
+							op,
+							dir,
+							subVisit(left),
+							subVisit(right));
+					case 'IfBlock':
+						var e1 = expression.a;
+						var e2 = expression.b;
+						var e3 = expression.c;
+						return A3(
+							author$project$Elm$Syntax$Expression$IfBlock,
+							subVisit(e1),
+							subVisit(e2),
+							subVisit(e3));
+					case 'TupledExpression':
+						var expressionList = expression.a;
+						return author$project$Elm$Syntax$Expression$TupledExpression(
+							A2(elm$core$List$map, subVisit, expressionList));
+					case 'ParenthesizedExpression':
+						var expr1 = expression.a;
+						return author$project$Elm$Syntax$Expression$ParenthesizedExpression(
+							subVisit(expr1));
+					case 'LetExpression':
+						var letBlock = expression.a;
+						return author$project$Elm$Syntax$Expression$LetExpression(
+							{
+								declarations: A3(author$project$Elm$Processing$visitLetDeclarations, visitor, context, letBlock.declarations),
+								expression: subVisit(letBlock.expression)
+							});
+					case 'CaseExpression':
+						var caseBlock = expression.a;
+						return author$project$Elm$Syntax$Expression$CaseExpression(
+							{
+								cases: A2(
+									elm$core$List$map,
+									elm$core$Tuple$mapSecond(subVisit),
+									caseBlock.cases),
+								expression: subVisit(caseBlock.expression)
+							});
+					case 'LambdaExpression':
+						var lambda = expression.a;
+						return author$project$Elm$Syntax$Expression$LambdaExpression(
+							_Utils_update(
+								lambda,
+								{
+									expression: subVisit(lambda.expression)
+								}));
+					case 'RecordExpr':
+						var expressionStringList = expression.a;
+						return author$project$Elm$Syntax$Expression$RecordExpr(
+							A2(
+								elm$core$List$map,
+								author$project$Elm$Syntax$Node$map(
+									elm$core$Tuple$mapSecond(subVisit)),
+								expressionStringList));
+					case 'ListExpr':
+						var expressionList = expression.a;
+						return author$project$Elm$Syntax$Expression$ListExpr(
+							A2(elm$core$List$map, subVisit, expressionList));
+					case 'RecordUpdateExpression':
+						var name = expression.a;
+						var updates = expression.b;
+						return A2(
+							author$project$Elm$Syntax$Expression$RecordUpdateExpression,
+							name,
+							A2(
+								elm$core$List$map,
+								author$project$Elm$Syntax$Node$map(
+									elm$core$Tuple$mapSecond(subVisit)),
+								updates));
+					default:
+						return expression;
+				}
+			}());
+	});
+var author$project$Elm$Processing$visitFunctionDecl = F3(
+	function (visitor, context, _function) {
+		var newFunctionDeclaration = A2(
+			author$project$Elm$Syntax$Node$map,
+			A2(author$project$Elm$Processing$visitFunctionDeclaration, visitor, context),
+			_function.declaration);
+		return _Utils_update(
+			_function,
+			{declaration: newFunctionDeclaration});
+	});
+var author$project$Elm$Processing$visitFunctionDeclaration = F3(
+	function (visitor, context, functionDeclaration) {
+		var newExpression = A3(author$project$Elm$Processing$visitExpression, visitor, context, functionDeclaration.expression);
+		return _Utils_update(
+			functionDeclaration,
+			{expression: newExpression});
+	});
+var author$project$Elm$Processing$visitLetDeclaration = F3(
+	function (visitor, context, _n0) {
+		var range = _n0.a;
+		var declaration = _n0.b;
+		return A2(
+			author$project$Elm$Syntax$Node$Node,
+			range,
+			function () {
+				if (declaration.$ === 'LetFunction') {
+					var _function = declaration.a;
+					return author$project$Elm$Syntax$Expression$LetFunction(
+						A3(author$project$Elm$Processing$visitFunctionDecl, visitor, context, _function));
+				} else {
+					var pattern = declaration.a;
+					var expression = declaration.b;
+					return A2(
+						author$project$Elm$Syntax$Expression$LetDestructuring,
+						pattern,
+						A3(author$project$Elm$Processing$visitExpression, visitor, context, expression));
+				}
+			}());
+	});
+var author$project$Elm$Processing$visitLetDeclarations = F3(
+	function (visitor, context, declarations) {
+		return A2(
+			elm$core$List$map,
+			A2(author$project$Elm$Processing$visitLetDeclaration, visitor, context),
+			declarations);
+	});
+var author$project$Elm$Processing$visitDeclaration = F3(
+	function (visitor, context, _n0) {
+		var range = _n0.a;
+		var declaration = _n0.b;
+		return A2(
+			author$project$Elm$Syntax$Node$Node,
+			range,
+			function () {
+				if (declaration.$ === 'FunctionDeclaration') {
+					var _function = declaration.a;
+					return author$project$Elm$Syntax$Declaration$FunctionDeclaration(
+						A3(author$project$Elm$Processing$visitFunctionDecl, visitor, context, _function));
+				} else {
+					return declaration;
+				}
+			}());
+	});
+var author$project$Elm$Processing$visitDeclarations = F3(
+	function (visitor, context, declarations) {
+		return A2(
+			elm$core$List$map,
+			A2(author$project$Elm$Processing$visitDeclaration, visitor, context),
+			declarations);
+	});
+var author$project$Elm$Processing$visit = F3(
+	function (visitor, context, file) {
+		var newDeclarations = A3(author$project$Elm$Processing$visitDeclarations, visitor, context, file.declarations);
+		return _Utils_update(
+			file,
+			{declarations: newDeclarations});
+	});
+var author$project$Elm$Inspector$Post = function (a) {
+	return {$: 'Post', a: a};
+};
+var author$project$Elm$Inspector$Continue = {$: 'Continue'};
+var author$project$Elm$Inspector$defaultConfig = {onCase: author$project$Elm$Inspector$Continue, onDestructuring: author$project$Elm$Inspector$Continue, onExpression: author$project$Elm$Inspector$Continue, onFile: author$project$Elm$Inspector$Continue, onFunction: author$project$Elm$Inspector$Continue, onFunctionOrValue: author$project$Elm$Inspector$Continue, onImport: author$project$Elm$Inspector$Continue, onInfixDeclaration: author$project$Elm$Inspector$Continue, onLambda: author$project$Elm$Inspector$Continue, onLetBlock: author$project$Elm$Inspector$Continue, onOperatorApplication: author$project$Elm$Inspector$Continue, onPortDeclaration: author$project$Elm$Inspector$Continue, onRecordAccess: author$project$Elm$Inspector$Continue, onRecordUpdate: author$project$Elm$Inspector$Continue, onSignature: author$project$Elm$Inspector$Continue, onType: author$project$Elm$Inspector$Continue, onTypeAlias: author$project$Elm$Inspector$Continue, onTypeAnnotation: author$project$Elm$Inspector$Continue};
+var author$project$Elm$Inspector$actionLambda = function (act) {
+	switch (act.$) {
+		case 'Skip':
+			return F3(
+				function (_n1, _n2, c) {
+					return c;
+				});
+		case 'Continue':
+			return F3(
+				function (f, _n3, c) {
+					return f(c);
+				});
+		case 'Pre':
+			var g = act.a;
+			return F3(
+				function (f, x, c) {
+					return f(
+						A2(g, x, c));
+				});
+		case 'Post':
+			var g = act.a;
+			return F3(
+				function (f, x, c) {
+					return A2(
+						g,
+						x,
+						f(c));
+				});
+		default:
+			var g = act.a;
+			return F3(
+				function (f, x, c) {
+					return A3(g, f, x, c);
+				});
+	}
+};
+var author$project$Elm$Inspector$inspectTypeAnnotation = F3(
+	function (config, typeAnnotation, context) {
+		return A4(
+			author$project$Elm$Inspector$actionLambda,
+			config.onTypeAnnotation,
+			A2(author$project$Elm$Inspector$inspectTypeAnnotationInner, config, typeAnnotation),
+			typeAnnotation,
+			context);
+	});
+var author$project$Elm$Inspector$inspectTypeAnnotationInner = F3(
+	function (config, _n0, context) {
+		var typeRefence = _n0.b;
+		switch (typeRefence.$) {
+			case 'Typed':
+				var typeArgs = typeRefence.b;
+				return A3(
+					elm$core$List$foldl,
+					author$project$Elm$Inspector$inspectTypeAnnotation(config),
+					context,
+					typeArgs);
+			case 'Tupled':
+				var typeAnnotations = typeRefence.a;
+				return A3(
+					elm$core$List$foldl,
+					author$project$Elm$Inspector$inspectTypeAnnotation(config),
+					context,
+					typeAnnotations);
+			case 'Record':
+				var recordDefinition = typeRefence.a;
+				return A3(
+					elm$core$List$foldl,
+					author$project$Elm$Inspector$inspectTypeAnnotation(config),
+					context,
+					A2(
+						elm$core$List$map,
+						A2(elm$core$Basics$composeR, author$project$Elm$Syntax$Node$value, elm$core$Tuple$second),
+						recordDefinition));
+			case 'GenericRecord':
+				var recordDefinition = typeRefence.b;
+				return A3(
+					elm$core$List$foldl,
+					author$project$Elm$Inspector$inspectTypeAnnotation(config),
+					context,
+					A2(
+						elm$core$List$map,
+						A2(elm$core$Basics$composeR, author$project$Elm$Syntax$Node$value, elm$core$Tuple$second),
+						author$project$Elm$Syntax$Node$value(recordDefinition)));
+			case 'FunctionTypeAnnotation':
+				var left = typeRefence.a;
+				var right = typeRefence.b;
+				return A3(
+					elm$core$List$foldl,
+					author$project$Elm$Inspector$inspectTypeAnnotation(config),
+					context,
+					_List_fromArray(
+						[left, right]));
+			case 'Unit':
+				return context;
+			default:
+				return context;
+		}
+	});
+var author$project$Elm$Inspector$inspectSignature = F3(
+	function (config, node, context) {
+		var signature = node.b;
+		return A4(
+			author$project$Elm$Inspector$actionLambda,
+			config.onSignature,
+			A2(author$project$Elm$Inspector$inspectTypeAnnotation, config, signature.typeAnnotation),
+			node,
+			context);
+	});
+var author$project$Elm$Inspector$inspectCase = F3(
+	function (config, caze, context) {
+		return A4(
+			author$project$Elm$Inspector$actionLambda,
+			config.onCase,
+			A2(author$project$Elm$Inspector$inspectExpression, config, caze.b),
+			caze,
+			context);
+	});
+var author$project$Elm$Inspector$inspectDestructuring = F3(
+	function (config, destructuring, context) {
+		return A4(
+			author$project$Elm$Inspector$actionLambda,
+			config.onDestructuring,
+			function (c) {
+				return A3(
+					author$project$Elm$Inspector$inspectExpression,
+					config,
+					author$project$Elm$Syntax$Node$value(destructuring).b,
+					c);
+			},
+			destructuring,
+			context);
+	});
+var author$project$Elm$Inspector$inspectExpression = F3(
+	function (config, node, context) {
+		var expression = node.b;
+		return A4(
+			author$project$Elm$Inspector$actionLambda,
+			config.onExpression,
+			A2(author$project$Elm$Inspector$inspectInnerExpression, config, expression),
+			node,
+			context);
+	});
+var author$project$Elm$Inspector$inspectFunction = F3(
+	function (config, node, context) {
+		var _function = node.b;
+		return A4(
+			author$project$Elm$Inspector$actionLambda,
+			config.onFunction,
+			A2(
+				elm$core$Basics$composeR,
+				A2(
+					author$project$Elm$Inspector$inspectExpression,
+					config,
+					author$project$Elm$Syntax$Node$value(_function.declaration).expression),
+				A2(
+					elm$core$Maybe$withDefault,
+					elm$core$Basics$identity,
+					A2(
+						elm$core$Maybe$map,
+						author$project$Elm$Inspector$inspectSignature(config),
+						_function.signature))),
+			node,
+			context);
+	});
+var author$project$Elm$Inspector$inspectInnerExpression = F3(
+	function (config, expression, context) {
+		switch (expression.$) {
+			case 'UnitExpr':
+				return context;
+			case 'FunctionOrValue':
+				var moduleName = expression.a;
+				var functionOrVal = expression.b;
+				return A4(
+					author$project$Elm$Inspector$actionLambda,
+					config.onFunctionOrValue,
+					elm$core$Basics$identity,
+					_Utils_Tuple2(moduleName, functionOrVal),
+					context);
+			case 'PrefixOperator':
+				return context;
+			case 'Operator':
+				return context;
+			case 'Hex':
+				return context;
+			case 'Integer':
+				return context;
+			case 'Floatable':
+				return context;
+			case 'Negation':
+				var x = expression.a;
+				return A3(author$project$Elm$Inspector$inspectExpression, config, x, context);
+			case 'Literal':
+				return context;
+			case 'CharLiteral':
+				return context;
+			case 'RecordAccess':
+				var ex1 = expression.a;
+				var key = expression.b;
+				return A4(
+					author$project$Elm$Inspector$actionLambda,
+					config.onRecordAccess,
+					A2(author$project$Elm$Inspector$inspectExpression, config, ex1),
+					_Utils_Tuple2(ex1, key),
+					context);
+			case 'RecordAccessFunction':
+				return context;
+			case 'GLSLExpression':
+				return context;
+			case 'Application':
+				var expressionList = expression.a;
+				return A3(
+					elm$core$List$foldl,
+					author$project$Elm$Inspector$inspectExpression(config),
+					context,
+					expressionList);
+			case 'OperatorApplication':
+				var op = expression.a;
+				var dir = expression.b;
+				var left = expression.c;
+				var right = expression.d;
+				return A4(
+					author$project$Elm$Inspector$actionLambda,
+					config.onOperatorApplication,
+					function (base) {
+						return A3(
+							elm$core$List$foldl,
+							author$project$Elm$Inspector$inspectExpression(config),
+							base,
+							_List_fromArray(
+								[left, right]));
+					},
+					{direction: dir, left: left, operator: op, right: right},
+					context);
+			case 'IfBlock':
+				var e1 = expression.a;
+				var e2 = expression.b;
+				var e3 = expression.c;
+				return A3(
+					elm$core$List$foldl,
+					author$project$Elm$Inspector$inspectExpression(config),
+					context,
+					_List_fromArray(
+						[e1, e2, e3]));
+			case 'TupledExpression':
+				var expressionList = expression.a;
+				return A3(
+					elm$core$List$foldl,
+					author$project$Elm$Inspector$inspectExpression(config),
+					context,
+					expressionList);
+			case 'ParenthesizedExpression':
+				var inner = expression.a;
+				return A3(author$project$Elm$Inspector$inspectExpression, config, inner, context);
+			case 'LetExpression':
+				var letBlock = expression.a;
+				var next = A2(
+					elm$core$Basics$composeR,
+					A2(author$project$Elm$Inspector$inspectLetDeclarations, config, letBlock.declarations),
+					A2(author$project$Elm$Inspector$inspectExpression, config, letBlock.expression));
+				return A4(author$project$Elm$Inspector$actionLambda, config.onLetBlock, next, letBlock, context);
+			case 'CaseExpression':
+				var caseBlock = expression.a;
+				var context2 = A3(author$project$Elm$Inspector$inspectExpression, config, caseBlock.expression, context);
+				var context3 = A3(
+					elm$core$List$foldl,
+					F2(
+						function (a, b) {
+							return A3(author$project$Elm$Inspector$inspectCase, config, a, b);
+						}),
+					context2,
+					caseBlock.cases);
+				return context3;
+			case 'LambdaExpression':
+				var lambda = expression.a;
+				return A4(
+					author$project$Elm$Inspector$actionLambda,
+					config.onLambda,
+					A2(author$project$Elm$Inspector$inspectExpression, config, lambda.expression),
+					lambda,
+					context);
+			case 'ListExpr':
+				var expressionList = expression.a;
+				return A3(
+					elm$core$List$foldl,
+					author$project$Elm$Inspector$inspectExpression(config),
+					context,
+					expressionList);
+			case 'RecordExpr':
+				var expressionStringList = expression.a;
+				return A3(
+					elm$core$List$foldl,
+					F2(
+						function (a, b) {
+							return A3(
+								author$project$Elm$Inspector$inspectExpression,
+								config,
+								author$project$Elm$Syntax$Node$value(a).b,
+								b);
+						}),
+					context,
+					expressionStringList);
+			default:
+				var name = expression.a;
+				var updates = expression.b;
+				return A4(
+					author$project$Elm$Inspector$actionLambda,
+					config.onRecordUpdate,
+					function (c) {
+						return A3(
+							elm$core$List$foldl,
+							F2(
+								function (a, b) {
+									return A3(
+										author$project$Elm$Inspector$inspectExpression,
+										config,
+										author$project$Elm$Syntax$Node$value(a).b,
+										b);
+								}),
+							c,
+							updates);
+					},
+					_Utils_Tuple2(name, updates),
+					context);
+		}
+	});
+var author$project$Elm$Inspector$inspectLetDeclaration = F3(
+	function (config, _n0, context) {
+		var range = _n0.a;
+		var declaration = _n0.b;
+		if (declaration.$ === 'LetFunction') {
+			var _function = declaration.a;
+			return A3(
+				author$project$Elm$Inspector$inspectFunction,
+				config,
+				A2(author$project$Elm$Syntax$Node$Node, range, _function),
+				context);
+		} else {
+			var pattern = declaration.a;
+			var expression = declaration.b;
+			return A3(
+				author$project$Elm$Inspector$inspectDestructuring,
+				config,
+				A2(
+					author$project$Elm$Syntax$Node$Node,
+					range,
+					_Utils_Tuple2(pattern, expression)),
+				context);
+		}
+	});
+var author$project$Elm$Inspector$inspectLetDeclarations = F3(
+	function (config, declarations, context) {
+		return A3(
+			elm$core$List$foldl,
+			author$project$Elm$Inspector$inspectLetDeclaration(config),
+			context,
+			declarations);
+	});
+var author$project$Elm$Inspector$inspectPortDeclaration = F3(
+	function (config, signature, context) {
+		return A4(
+			author$project$Elm$Inspector$actionLambda,
+			config.onPortDeclaration,
+			A2(author$project$Elm$Inspector$inspectSignature, config, signature),
+			signature,
+			context);
+	});
+var author$project$Elm$Inspector$inspectValueConstructor = F3(
+	function (config, _n0, context) {
+		var valueConstructor = _n0.b;
+		return A3(
+			elm$core$List$foldl,
+			author$project$Elm$Inspector$inspectTypeAnnotation(config),
+			context,
+			valueConstructor._arguments);
+	});
+var author$project$Elm$Inspector$inspectTypeInner = F3(
+	function (config, typeDecl, context) {
+		return A3(
+			elm$core$List$foldl,
+			author$project$Elm$Inspector$inspectValueConstructor(config),
+			context,
+			typeDecl.constructors);
+	});
+var author$project$Elm$Inspector$inspectType = F3(
+	function (config, tipe, context) {
+		return A4(
+			author$project$Elm$Inspector$actionLambda,
+			config.onType,
+			A2(
+				author$project$Elm$Inspector$inspectTypeInner,
+				config,
+				author$project$Elm$Syntax$Node$value(tipe)),
+			tipe,
+			context);
+	});
+var author$project$Elm$Inspector$inspectTypeAlias = F3(
+	function (config, pair, context) {
+		var typeAlias = pair.b;
+		return A4(
+			author$project$Elm$Inspector$actionLambda,
+			config.onTypeAlias,
+			A2(author$project$Elm$Inspector$inspectTypeAnnotation, config, typeAlias.typeAnnotation),
+			pair,
+			context);
+	});
+var author$project$Elm$Inspector$inspectDeclaration = F3(
+	function (config, _n0, context) {
+		var r = _n0.a;
+		var declaration = _n0.b;
+		switch (declaration.$) {
+			case 'FunctionDeclaration':
+				var _function = declaration.a;
+				return A3(
+					author$project$Elm$Inspector$inspectFunction,
+					config,
+					A2(author$project$Elm$Syntax$Node$Node, r, _function),
+					context);
+			case 'AliasDeclaration':
+				var typeAlias = declaration.a;
+				return A3(
+					author$project$Elm$Inspector$inspectTypeAlias,
+					config,
+					A2(author$project$Elm$Syntax$Node$Node, r, typeAlias),
+					context);
+			case 'CustomTypeDeclaration':
+				var typeDecl = declaration.a;
+				return A3(
+					author$project$Elm$Inspector$inspectType,
+					config,
+					A2(author$project$Elm$Syntax$Node$Node, r, typeDecl),
+					context);
+			case 'PortDeclaration':
+				var signature = declaration.a;
+				return A3(
+					author$project$Elm$Inspector$inspectPortDeclaration,
+					config,
+					A2(author$project$Elm$Syntax$Node$Node, r, signature),
+					context);
+			case 'InfixDeclaration':
+				var inf = declaration.a;
+				return A4(
+					author$project$Elm$Inspector$actionLambda,
+					config.onInfixDeclaration,
+					elm$core$Basics$identity,
+					A2(author$project$Elm$Syntax$Node$Node, r, inf),
+					context);
+			default:
+				var pattern = declaration.a;
+				var expresion = declaration.b;
+				return A3(
+					author$project$Elm$Inspector$inspectDestructuring,
+					config,
+					A2(
+						author$project$Elm$Syntax$Node$Node,
+						r,
+						_Utils_Tuple2(pattern, expresion)),
+					context);
+		}
+	});
+var author$project$Elm$Inspector$inspectDeclarations = F3(
+	function (config, declarations, context) {
+		return A3(
+			elm$core$List$foldl,
+			author$project$Elm$Inspector$inspectDeclaration(config),
+			context,
+			declarations);
+	});
+var author$project$Elm$Inspector$inspectImport = F3(
+	function (config, imp, context) {
+		return A4(author$project$Elm$Inspector$actionLambda, config.onImport, elm$core$Basics$identity, imp, context);
+	});
+var author$project$Elm$Inspector$inspectImports = F3(
+	function (config, imports, context) {
+		return A3(
+			elm$core$List$foldl,
+			author$project$Elm$Inspector$inspectImport(config),
+			context,
+			imports);
+	});
+var author$project$Elm$Inspector$inspect = F3(
+	function (config, file, context) {
+		return A4(
+			author$project$Elm$Inspector$actionLambda,
+			config.onFile,
+			A2(
+				elm$core$Basics$composeR,
+				A2(author$project$Elm$Inspector$inspectImports, config, file.imports),
+				A2(author$project$Elm$Inspector$inspectDeclarations, config, file.declarations)),
+			file,
+			context);
+	});
+var author$project$Elm$Processing$Documentation$isDocumentationForRange = F2(
+	function (range, _n0) {
+		var commentRange = _n0.a;
+		var commentText = _n0.b;
+		if (A2(elm$core$String$startsWith, '{-|', commentText)) {
+			var functionStartRow = range.start.row;
+			return _Utils_eq(commentRange.end.row + 1, functionStartRow);
+		} else {
+			return false;
+		}
+	});
+var author$project$Elm$Processing$Documentation$replaceDeclaration = F2(
+	function (_n0, _n1) {
+		var r1 = _n0.a;
+		var _new = _n0.b;
+		var r2 = _n1.a;
+		var old = _n1.b;
+		return A2(
+			author$project$Elm$Syntax$Node$Node,
+			r2,
+			_Utils_eq(r1, r2) ? _new : old);
+	});
+var author$project$Elm$Processing$Documentation$onFunction = F2(
+	function (_n0, file) {
+		var functionRange = _n0.a;
+		var _function = _n0.b;
+		var docs = A2(
+			elm$core$List$filter,
+			author$project$Elm$Processing$Documentation$isDocumentationForRange(functionRange),
+			file.comments);
+		var _n1 = elm$core$List$head(docs);
+		if (_n1.$ === 'Just') {
+			var doc = _n1.a;
+			var docRange = doc.a;
+			var docString = doc.b;
+			return _Utils_update(
+				file,
+				{
+					comments: A2(
+						elm$core$List$filter,
+						elm$core$Basics$neq(doc),
+						file.comments),
+					declarations: A2(
+						elm$core$List$map,
+						author$project$Elm$Processing$Documentation$replaceDeclaration(
+							A2(
+								author$project$Elm$Syntax$Node$Node,
+								functionRange,
+								author$project$Elm$Syntax$Declaration$FunctionDeclaration(
+									_Utils_update(
+										_function,
+										{
+											documentation: elm$core$Maybe$Just(
+												A2(author$project$Elm$Syntax$Node$Node, docRange, docString))
+										})))),
+						file.declarations)
+				});
+		} else {
+			return file;
+		}
+	});
+var author$project$Elm$Processing$Documentation$onType = F2(
+	function (_n0, file) {
+		var r = _n0.a;
+		var customType = _n0.b;
+		var docs = A2(
+			elm$core$List$filter,
+			author$project$Elm$Processing$Documentation$isDocumentationForRange(r),
+			file.comments);
+		var _n1 = elm$core$List$head(docs);
+		if (_n1.$ === 'Just') {
+			var doc = _n1.a;
+			var docRange = doc.a;
+			var docString = doc.b;
+			return _Utils_update(
+				file,
+				{
+					comments: A2(
+						elm$core$List$filter,
+						elm$core$Basics$neq(doc),
+						file.comments),
+					declarations: A2(
+						elm$core$List$map,
+						author$project$Elm$Processing$Documentation$replaceDeclaration(
+							A2(
+								author$project$Elm$Syntax$Node$Node,
+								r,
+								author$project$Elm$Syntax$Declaration$CustomTypeDeclaration(
+									_Utils_update(
+										customType,
+										{
+											documentation: elm$core$Maybe$Just(
+												A2(author$project$Elm$Syntax$Node$Node, docRange, docString))
+										})))),
+						file.declarations)
+				});
+		} else {
+			return file;
+		}
+	});
+var author$project$Elm$Processing$Documentation$onTypeAlias = F2(
+	function (_n0, file) {
+		var r = _n0.a;
+		var typeAlias = _n0.b;
+		var docs = A2(
+			elm$core$List$filter,
+			author$project$Elm$Processing$Documentation$isDocumentationForRange(r),
+			file.comments);
+		var _n1 = elm$core$List$head(docs);
+		if (_n1.$ === 'Just') {
+			var doc = _n1.a;
+			var docRange = doc.a;
+			var docString = doc.b;
+			return _Utils_update(
+				file,
+				{
+					comments: A2(
+						elm$core$List$filter,
+						elm$core$Basics$neq(doc),
+						file.comments),
+					declarations: A2(
+						elm$core$List$map,
+						author$project$Elm$Processing$Documentation$replaceDeclaration(
+							A2(
+								author$project$Elm$Syntax$Node$Node,
+								r,
+								author$project$Elm$Syntax$Declaration$AliasDeclaration(
+									_Utils_update(
+										typeAlias,
+										{
+											documentation: elm$core$Maybe$Just(
+												A2(author$project$Elm$Syntax$Node$Node, docRange, docString))
+										})))),
+						file.declarations)
+				});
+		} else {
+			return file;
+		}
+	});
+var author$project$Elm$Processing$Documentation$postProcess = function (file) {
+	return A3(
+		author$project$Elm$Inspector$inspect,
+		_Utils_update(
+			author$project$Elm$Inspector$defaultConfig,
+			{
+				onFunction: author$project$Elm$Inspector$Post(author$project$Elm$Processing$Documentation$onFunction),
+				onType: author$project$Elm$Inspector$Post(author$project$Elm$Processing$Documentation$onType),
+				onTypeAlias: author$project$Elm$Inspector$Post(author$project$Elm$Processing$Documentation$onTypeAlias)
+			}),
+		file,
+		file);
+};
+var author$project$Elm$Processing$process = F2(
+	function (processContext, rawFile) {
+		var file = rawFile.a;
+		var table = A2(author$project$Elm$Processing$tableForFile, rawFile, processContext);
+		var operatorFixed = A3(
+			author$project$Elm$Processing$visit,
+			elm$core$Maybe$Just(
+				F3(
+					function (context, inner, expression) {
+						return inner(
+							function () {
+								if (expression.b.$ === 'Application') {
+									var r = expression.a;
+									var args = expression.b.a;
+									return A2(
+										author$project$Elm$Syntax$Node$Node,
+										r,
+										A2(author$project$Elm$Processing$fixApplication, context, args));
+								} else {
+									return expression;
+								}
+							}());
+					})),
+			table,
+			file);
+		var documentationFixed = author$project$Elm$Processing$Documentation$postProcess(operatorFixed);
+		return documentationFixed;
+	});
 var elm$core$Array$branchFactor = 32;
 var elm$core$Array$Array_elm_builtin = F4(
 	function (a, b, c, d) {
@@ -9912,10 +11369,6 @@ var elm$core$Array$treeFromBuilder = F2(
 		}
 	});
 var elm$core$Basics$floor = _Basics_floor;
-var elm$core$Basics$max = F2(
-	function (x, y) {
-		return (_Utils_cmp(x, y) > 0) ? x : y;
-	});
 var elm$core$Elm$JsArray$length = _JsArray_length;
 var elm$core$Array$builderToArray = F2(
 	function (reverseNodeList, builder) {
@@ -9980,6 +11433,13 @@ var elm$core$Array$initialize = F2(
 			return A5(elm$core$Array$initializeHelp, fn, initialFromIndex, len, _List_Nil, tail);
 		}
 	});
+var elm$core$Result$isOk = function (result) {
+	if (result.$ === 'Ok') {
+		return true;
+	} else {
+		return false;
+	}
+};
 var elm$json$Json$Decode$Failure = F2(
 	function (a, b) {
 		return {$: 'Failure', a: a, b: b};
@@ -10147,9 +11607,1478 @@ var elm$json$Json$Decode$errorToStringHelp = F2(
 			}
 		}
 	});
+var elm$json$Json$Encode$string = _Json_wrap;
+var author$project$Elm$Syntax$Comments$encode = elm$json$Json$Encode$string;
+var elm$json$Json$Encode$object = function (pairs) {
+	return _Json_wrap(
+		A3(
+			elm$core$List$foldl,
+			F2(
+				function (_n0, obj) {
+					var k = _n0.a;
+					var v = _n0.b;
+					return A3(_Json_addField, k, v, obj);
+				}),
+			_Json_emptyObject(_Utils_Tuple0),
+			pairs));
+};
+var author$project$Elm$Json$Util$encodeTyped = F2(
+	function (x, v) {
+		return elm$json$Json$Encode$object(
+			_List_fromArray(
+				[
+					_Utils_Tuple2(
+					'type',
+					elm$json$Json$Encode$string(x)),
+					_Utils_Tuple2(x, v)
+				]));
+	});
+var author$project$Elm$Syntax$Documentation$encode = elm$json$Json$Encode$string;
+var author$project$Elm$Syntax$Infix$encodeDirection = function (d) {
+	switch (d.$) {
+		case 'Left':
+			return elm$json$Json$Encode$string('left');
+		case 'Right':
+			return elm$json$Json$Encode$string('right');
+		default:
+			return elm$json$Json$Encode$string('non');
+	}
+};
+var elm$json$Json$Encode$list = F2(
+	function (func, entries) {
+		return _Json_wrap(
+			A3(
+				elm$core$List$foldl,
+				_Json_addEntry(func),
+				_Json_emptyArray(_Utils_Tuple0),
+				entries));
+	});
+var author$project$Elm$Syntax$ModuleName$encode = elm$json$Json$Encode$list(elm$json$Json$Encode$string);
+var elm$json$Json$Encode$int = _Json_wrap;
+var author$project$Elm$Syntax$Range$encode = function (_n0) {
+	var start = _n0.start;
+	var end = _n0.end;
+	return A2(
+		elm$json$Json$Encode$list,
+		elm$json$Json$Encode$int,
+		_List_fromArray(
+			[start.row, start.column, end.row, end.column]));
+};
+var author$project$Elm$Syntax$Node$encode = F2(
+	function (f, _n0) {
+		var r = _n0.a;
+		var v = _n0.b;
+		return elm$json$Json$Encode$object(
+			_List_fromArray(
+				[
+					_Utils_Tuple2(
+					'range',
+					author$project$Elm$Syntax$Range$encode(r)),
+					_Utils_Tuple2(
+					'value',
+					f(v))
+				]));
+	});
+var elm$json$Json$Encode$float = _Json_wrap;
+var author$project$Elm$Syntax$Pattern$encode = function (pattern) {
+	switch (pattern.$) {
+		case 'AllPattern':
+			return A2(
+				author$project$Elm$Json$Util$encodeTyped,
+				'all',
+				elm$json$Json$Encode$object(_List_Nil));
+		case 'UnitPattern':
+			return A2(
+				author$project$Elm$Json$Util$encodeTyped,
+				'unit',
+				elm$json$Json$Encode$object(_List_Nil));
+		case 'CharPattern':
+			var c = pattern.a;
+			return A2(
+				author$project$Elm$Json$Util$encodeTyped,
+				'char',
+				elm$json$Json$Encode$object(
+					_List_fromArray(
+						[
+							_Utils_Tuple2(
+							'value',
+							elm$json$Json$Encode$string(
+								elm$core$String$fromChar(c)))
+						])));
+		case 'StringPattern':
+			var v = pattern.a;
+			return A2(
+				author$project$Elm$Json$Util$encodeTyped,
+				'string',
+				elm$json$Json$Encode$object(
+					_List_fromArray(
+						[
+							_Utils_Tuple2(
+							'value',
+							elm$json$Json$Encode$string(v))
+						])));
+		case 'HexPattern':
+			var h = pattern.a;
+			return A2(
+				author$project$Elm$Json$Util$encodeTyped,
+				'hex',
+				elm$json$Json$Encode$object(
+					_List_fromArray(
+						[
+							_Utils_Tuple2(
+							'value',
+							elm$json$Json$Encode$int(h))
+						])));
+		case 'IntPattern':
+			var i = pattern.a;
+			return A2(
+				author$project$Elm$Json$Util$encodeTyped,
+				'int',
+				elm$json$Json$Encode$object(
+					_List_fromArray(
+						[
+							_Utils_Tuple2(
+							'value',
+							elm$json$Json$Encode$int(i))
+						])));
+		case 'FloatPattern':
+			var f = pattern.a;
+			return A2(
+				author$project$Elm$Json$Util$encodeTyped,
+				'float',
+				elm$json$Json$Encode$object(
+					_List_fromArray(
+						[
+							_Utils_Tuple2(
+							'value',
+							elm$json$Json$Encode$float(f))
+						])));
+		case 'TuplePattern':
+			var patterns = pattern.a;
+			return A2(
+				author$project$Elm$Json$Util$encodeTyped,
+				'tuple',
+				elm$json$Json$Encode$object(
+					_List_fromArray(
+						[
+							_Utils_Tuple2(
+							'value',
+							A2(
+								elm$json$Json$Encode$list,
+								author$project$Elm$Syntax$Node$encode(author$project$Elm$Syntax$Pattern$encode),
+								patterns))
+						])));
+		case 'RecordPattern':
+			var pointers = pattern.a;
+			return A2(
+				author$project$Elm$Json$Util$encodeTyped,
+				'record',
+				elm$json$Json$Encode$object(
+					_List_fromArray(
+						[
+							_Utils_Tuple2(
+							'value',
+							A2(
+								elm$json$Json$Encode$list,
+								author$project$Elm$Syntax$Node$encode(elm$json$Json$Encode$string),
+								pointers))
+						])));
+		case 'UnConsPattern':
+			var p1 = pattern.a;
+			var p2 = pattern.b;
+			return A2(
+				author$project$Elm$Json$Util$encodeTyped,
+				'uncons',
+				elm$json$Json$Encode$object(
+					_List_fromArray(
+						[
+							_Utils_Tuple2(
+							'left',
+							A2(author$project$Elm$Syntax$Node$encode, author$project$Elm$Syntax$Pattern$encode, p1)),
+							_Utils_Tuple2(
+							'right',
+							A2(author$project$Elm$Syntax$Node$encode, author$project$Elm$Syntax$Pattern$encode, p2))
+						])));
+		case 'ListPattern':
+			var patterns = pattern.a;
+			return A2(
+				author$project$Elm$Json$Util$encodeTyped,
+				'list',
+				elm$json$Json$Encode$object(
+					_List_fromArray(
+						[
+							_Utils_Tuple2(
+							'value',
+							A2(
+								elm$json$Json$Encode$list,
+								author$project$Elm$Syntax$Node$encode(author$project$Elm$Syntax$Pattern$encode),
+								patterns))
+						])));
+		case 'VarPattern':
+			var name = pattern.a;
+			return A2(
+				author$project$Elm$Json$Util$encodeTyped,
+				'var',
+				elm$json$Json$Encode$object(
+					_List_fromArray(
+						[
+							_Utils_Tuple2(
+							'value',
+							elm$json$Json$Encode$string(name))
+						])));
+		case 'NamedPattern':
+			var qualifiedNameRef = pattern.a;
+			var patterns = pattern.b;
+			return A2(
+				author$project$Elm$Json$Util$encodeTyped,
+				'named',
+				elm$json$Json$Encode$object(
+					_List_fromArray(
+						[
+							_Utils_Tuple2(
+							'qualified',
+							elm$json$Json$Encode$object(
+								_List_fromArray(
+									[
+										_Utils_Tuple2(
+										'moduleName',
+										author$project$Elm$Syntax$ModuleName$encode(qualifiedNameRef.moduleName)),
+										_Utils_Tuple2(
+										'name',
+										elm$json$Json$Encode$string(qualifiedNameRef.name))
+									]))),
+							_Utils_Tuple2(
+							'patterns',
+							A2(
+								elm$json$Json$Encode$list,
+								author$project$Elm$Syntax$Node$encode(author$project$Elm$Syntax$Pattern$encode),
+								patterns))
+						])));
+		case 'AsPattern':
+			var destructured = pattern.a;
+			var name = pattern.b;
+			return A2(
+				author$project$Elm$Json$Util$encodeTyped,
+				'as',
+				elm$json$Json$Encode$object(
+					_List_fromArray(
+						[
+							_Utils_Tuple2(
+							'name',
+							A2(author$project$Elm$Syntax$Node$encode, elm$json$Json$Encode$string, name)),
+							_Utils_Tuple2(
+							'pattern',
+							A2(author$project$Elm$Syntax$Node$encode, author$project$Elm$Syntax$Pattern$encode, destructured))
+						])));
+		default:
+			var p1 = pattern.a;
+			return A2(
+				author$project$Elm$Json$Util$encodeTyped,
+				'parentisized',
+				elm$json$Json$Encode$object(
+					_List_fromArray(
+						[
+							_Utils_Tuple2(
+							'value',
+							A2(author$project$Elm$Syntax$Node$encode, author$project$Elm$Syntax$Pattern$encode, p1))
+						])));
+	}
+};
+var author$project$Elm$Syntax$TypeAnnotation$encode = function (typeAnnotation) {
+	switch (typeAnnotation.$) {
+		case 'GenericType':
+			var name = typeAnnotation.a;
+			return A2(
+				author$project$Elm$Json$Util$encodeTyped,
+				'generic',
+				elm$json$Json$Encode$object(
+					_List_fromArray(
+						[
+							_Utils_Tuple2(
+							'value',
+							elm$json$Json$Encode$string(name))
+						])));
+		case 'Typed':
+			var moduleNameAndName = typeAnnotation.a;
+			var args = typeAnnotation.b;
+			var inner = function (_n2) {
+				var mod = _n2.a;
+				var n = _n2.b;
+				return elm$json$Json$Encode$object(
+					_List_fromArray(
+						[
+							_Utils_Tuple2(
+							'moduleName',
+							author$project$Elm$Syntax$ModuleName$encode(mod)),
+							_Utils_Tuple2(
+							'name',
+							elm$json$Json$Encode$string(n))
+						]));
+			};
+			return A2(
+				author$project$Elm$Json$Util$encodeTyped,
+				'typed',
+				elm$json$Json$Encode$object(
+					_List_fromArray(
+						[
+							_Utils_Tuple2(
+							'moduleNameAndName',
+							A2(author$project$Elm$Syntax$Node$encode, inner, moduleNameAndName)),
+							_Utils_Tuple2(
+							'args',
+							A2(
+								elm$json$Json$Encode$list,
+								author$project$Elm$Syntax$Node$encode(author$project$Elm$Syntax$TypeAnnotation$encode),
+								args))
+						])));
+		case 'Unit':
+			return A2(
+				author$project$Elm$Json$Util$encodeTyped,
+				'unit',
+				elm$json$Json$Encode$object(_List_Nil));
+		case 'Tupled':
+			var t = typeAnnotation.a;
+			return A2(
+				author$project$Elm$Json$Util$encodeTyped,
+				'tupled',
+				elm$json$Json$Encode$object(
+					_List_fromArray(
+						[
+							_Utils_Tuple2(
+							'values',
+							A2(
+								elm$json$Json$Encode$list,
+								author$project$Elm$Syntax$Node$encode(author$project$Elm$Syntax$TypeAnnotation$encode),
+								t))
+						])));
+		case 'FunctionTypeAnnotation':
+			var left = typeAnnotation.a;
+			var right = typeAnnotation.b;
+			return A2(
+				author$project$Elm$Json$Util$encodeTyped,
+				'function',
+				elm$json$Json$Encode$object(
+					_List_fromArray(
+						[
+							_Utils_Tuple2(
+							'left',
+							A2(author$project$Elm$Syntax$Node$encode, author$project$Elm$Syntax$TypeAnnotation$encode, left)),
+							_Utils_Tuple2(
+							'right',
+							A2(author$project$Elm$Syntax$Node$encode, author$project$Elm$Syntax$TypeAnnotation$encode, right))
+						])));
+		case 'Record':
+			var recordDefinition = typeAnnotation.a;
+			return A2(
+				author$project$Elm$Json$Util$encodeTyped,
+				'record',
+				elm$json$Json$Encode$object(
+					_List_fromArray(
+						[
+							_Utils_Tuple2(
+							'value',
+							author$project$Elm$Syntax$TypeAnnotation$cyclic$encodeRecordDefinition()(recordDefinition))
+						])));
+		default:
+			var name = typeAnnotation.a;
+			var recordDefinition = typeAnnotation.b;
+			return A2(
+				author$project$Elm$Json$Util$encodeTyped,
+				'genericRecord',
+				elm$json$Json$Encode$object(
+					_List_fromArray(
+						[
+							_Utils_Tuple2(
+							'name',
+							A2(author$project$Elm$Syntax$Node$encode, elm$json$Json$Encode$string, name)),
+							_Utils_Tuple2(
+							'values',
+							A2(
+								author$project$Elm$Syntax$Node$encode,
+								author$project$Elm$Syntax$TypeAnnotation$cyclic$encodeRecordDefinition(),
+								recordDefinition))
+						])));
+	}
+};
+var author$project$Elm$Syntax$TypeAnnotation$encodeRecordField = function (_n0) {
+	var name = _n0.a;
+	var ref = _n0.b;
+	return elm$json$Json$Encode$object(
+		_List_fromArray(
+			[
+				_Utils_Tuple2(
+				'name',
+				A2(author$project$Elm$Syntax$Node$encode, elm$json$Json$Encode$string, name)),
+				_Utils_Tuple2(
+				'typeAnnotation',
+				A2(author$project$Elm$Syntax$Node$encode, author$project$Elm$Syntax$TypeAnnotation$encode, ref))
+			]));
+};
+function author$project$Elm$Syntax$TypeAnnotation$cyclic$encodeRecordDefinition() {
+	return elm$json$Json$Encode$list(
+		author$project$Elm$Syntax$Node$encode(author$project$Elm$Syntax$TypeAnnotation$encodeRecordField));
+}
+try {
+	var author$project$Elm$Syntax$TypeAnnotation$encodeRecordDefinition = author$project$Elm$Syntax$TypeAnnotation$cyclic$encodeRecordDefinition();
+	author$project$Elm$Syntax$TypeAnnotation$cyclic$encodeRecordDefinition = function () {
+		return author$project$Elm$Syntax$TypeAnnotation$encodeRecordDefinition;
+	};
+} catch ($) {
+throw 'Some top-level definitions from `Elm.Syntax.TypeAnnotation` are causing infinite recursion:\n\n  ┌─────┐\n  │    encode\n  │     ↓\n  │    encodeRecordDefinition\n  │     ↓\n  │    encodeRecordField\n  └─────┘\n\nThese errors are very tricky, so read https://elm-lang.org/0.19.0/halting-problem to learn how to fix it!';}
+var author$project$Elm$Syntax$Signature$encode = function (_n0) {
+	var name = _n0.name;
+	var typeAnnotation = _n0.typeAnnotation;
+	return elm$json$Json$Encode$object(
+		_List_fromArray(
+			[
+				_Utils_Tuple2(
+				'name',
+				A2(author$project$Elm$Syntax$Node$encode, elm$json$Json$Encode$string, name)),
+				_Utils_Tuple2(
+				'typeAnnotation',
+				A2(author$project$Elm$Syntax$Node$encode, author$project$Elm$Syntax$TypeAnnotation$encode, typeAnnotation))
+			]));
+};
+var elm$json$Json$Encode$null = _Json_encodeNull;
+var author$project$Elm$Syntax$Expression$encode = function (expr) {
+	switch (expr.$) {
+		case 'UnitExpr':
+			return A2(author$project$Elm$Json$Util$encodeTyped, 'unit', elm$json$Json$Encode$null);
+		case 'Application':
+			var l = expr.a;
+			return A2(
+				author$project$Elm$Json$Util$encodeTyped,
+				'application',
+				A2(
+					elm$json$Json$Encode$list,
+					author$project$Elm$Syntax$Node$encode(author$project$Elm$Syntax$Expression$encode),
+					l));
+		case 'OperatorApplication':
+			var op = expr.a;
+			var dir = expr.b;
+			var left = expr.c;
+			var right = expr.d;
+			return A2(
+				author$project$Elm$Json$Util$encodeTyped,
+				'operatorapplication',
+				A4(author$project$Elm$Syntax$Expression$encodeOperatorApplication, op, dir, left, right));
+		case 'FunctionOrValue':
+			var moduleName = expr.a;
+			var name = expr.b;
+			return A2(
+				author$project$Elm$Json$Util$encodeTyped,
+				'functionOrValue',
+				elm$json$Json$Encode$object(
+					_List_fromArray(
+						[
+							_Utils_Tuple2(
+							'moduleName',
+							author$project$Elm$Syntax$ModuleName$encode(moduleName)),
+							_Utils_Tuple2(
+							'name',
+							elm$json$Json$Encode$string(name))
+						])));
+		case 'IfBlock':
+			var c = expr.a;
+			var t = expr.b;
+			var e = expr.c;
+			return A2(
+				author$project$Elm$Json$Util$encodeTyped,
+				'ifBlock',
+				elm$json$Json$Encode$object(
+					_List_fromArray(
+						[
+							_Utils_Tuple2(
+							'clause',
+							A2(author$project$Elm$Syntax$Node$encode, author$project$Elm$Syntax$Expression$encode, c)),
+							_Utils_Tuple2(
+							'then',
+							A2(author$project$Elm$Syntax$Node$encode, author$project$Elm$Syntax$Expression$encode, t)),
+							_Utils_Tuple2(
+							'else',
+							A2(author$project$Elm$Syntax$Node$encode, author$project$Elm$Syntax$Expression$encode, e))
+						])));
+		case 'PrefixOperator':
+			var x = expr.a;
+			return A2(
+				author$project$Elm$Json$Util$encodeTyped,
+				'prefixoperator',
+				elm$json$Json$Encode$string(x));
+		case 'Operator':
+			var x = expr.a;
+			return A2(
+				author$project$Elm$Json$Util$encodeTyped,
+				'operator',
+				elm$json$Json$Encode$string(x));
+		case 'Hex':
+			var h = expr.a;
+			return A2(
+				author$project$Elm$Json$Util$encodeTyped,
+				'hex',
+				elm$json$Json$Encode$int(h));
+		case 'Integer':
+			var x = expr.a;
+			return A2(
+				author$project$Elm$Json$Util$encodeTyped,
+				'integer',
+				elm$json$Json$Encode$int(x));
+		case 'Floatable':
+			var x = expr.a;
+			return A2(
+				author$project$Elm$Json$Util$encodeTyped,
+				'float',
+				elm$json$Json$Encode$float(x));
+		case 'Negation':
+			var x = expr.a;
+			return A2(
+				author$project$Elm$Json$Util$encodeTyped,
+				'negation',
+				A2(author$project$Elm$Syntax$Node$encode, author$project$Elm$Syntax$Expression$encode, x));
+		case 'Literal':
+			var x = expr.a;
+			return A2(
+				author$project$Elm$Json$Util$encodeTyped,
+				'literal',
+				elm$json$Json$Encode$string(x));
+		case 'CharLiteral':
+			var c = expr.a;
+			return A2(
+				author$project$Elm$Json$Util$encodeTyped,
+				'charLiteral',
+				elm$json$Json$Encode$string(
+					elm$core$String$fromChar(c)));
+		case 'TupledExpression':
+			var xs = expr.a;
+			return A2(
+				author$project$Elm$Json$Util$encodeTyped,
+				'tupled',
+				A2(
+					elm$json$Json$Encode$list,
+					author$project$Elm$Syntax$Node$encode(author$project$Elm$Syntax$Expression$encode),
+					xs));
+		case 'ListExpr':
+			var xs = expr.a;
+			return A2(
+				author$project$Elm$Json$Util$encodeTyped,
+				'list',
+				A2(
+					elm$json$Json$Encode$list,
+					author$project$Elm$Syntax$Node$encode(author$project$Elm$Syntax$Expression$encode),
+					xs));
+		case 'ParenthesizedExpression':
+			var x = expr.a;
+			return A2(
+				author$project$Elm$Json$Util$encodeTyped,
+				'parenthesized',
+				A2(author$project$Elm$Syntax$Node$encode, author$project$Elm$Syntax$Expression$encode, x));
+		case 'LetExpression':
+			var x = expr.a;
+			return A2(
+				author$project$Elm$Json$Util$encodeTyped,
+				'let',
+				author$project$Elm$Syntax$Expression$encodeLetBlock(x));
+		case 'CaseExpression':
+			var x = expr.a;
+			return A2(
+				author$project$Elm$Json$Util$encodeTyped,
+				'case',
+				author$project$Elm$Syntax$Expression$encodeCaseBlock(x));
+		case 'LambdaExpression':
+			var x = expr.a;
+			return A2(
+				author$project$Elm$Json$Util$encodeTyped,
+				'lambda',
+				author$project$Elm$Syntax$Expression$encodeLambda(x));
+		case 'RecordAccess':
+			var exp = expr.a;
+			var name = expr.b;
+			return A2(
+				author$project$Elm$Json$Util$encodeTyped,
+				'recordAccess',
+				elm$json$Json$Encode$object(
+					_List_fromArray(
+						[
+							_Utils_Tuple2(
+							'expression',
+							A2(author$project$Elm$Syntax$Node$encode, author$project$Elm$Syntax$Expression$encode, exp)),
+							_Utils_Tuple2(
+							'name',
+							A2(author$project$Elm$Syntax$Node$encode, elm$json$Json$Encode$string, name))
+						])));
+		case 'RecordAccessFunction':
+			var x = expr.a;
+			return A2(
+				author$project$Elm$Json$Util$encodeTyped,
+				'recordAccessFunction',
+				elm$json$Json$Encode$string(x));
+		case 'RecordExpr':
+			var xs = expr.a;
+			return A2(
+				author$project$Elm$Json$Util$encodeTyped,
+				'record',
+				A2(
+					elm$json$Json$Encode$list,
+					author$project$Elm$Syntax$Node$encode(author$project$Elm$Syntax$Expression$encodeRecordSetter),
+					xs));
+		case 'RecordUpdateExpression':
+			var name = expr.a;
+			var updates = expr.b;
+			return A2(
+				author$project$Elm$Json$Util$encodeTyped,
+				'recordUpdate',
+				A2(author$project$Elm$Syntax$Expression$encodeRecordUpdate, name, updates));
+		default:
+			var x = expr.a;
+			return A2(
+				author$project$Elm$Json$Util$encodeTyped,
+				'glsl',
+				elm$json$Json$Encode$string(x));
+	}
+};
+var author$project$Elm$Syntax$Expression$encodeCase = function (_n7) {
+	var pattern = _n7.a;
+	var expression = _n7.b;
+	return elm$json$Json$Encode$object(
+		_List_fromArray(
+			[
+				_Utils_Tuple2(
+				'pattern',
+				A2(author$project$Elm$Syntax$Node$encode, author$project$Elm$Syntax$Pattern$encode, pattern)),
+				_Utils_Tuple2(
+				'expression',
+				A2(author$project$Elm$Syntax$Node$encode, author$project$Elm$Syntax$Expression$encode, expression))
+			]));
+};
+var author$project$Elm$Syntax$Expression$encodeCaseBlock = function (_n6) {
+	var cases = _n6.cases;
+	var expression = _n6.expression;
+	return elm$json$Json$Encode$object(
+		_List_fromArray(
+			[
+				_Utils_Tuple2(
+				'cases',
+				A2(elm$json$Json$Encode$list, author$project$Elm$Syntax$Expression$encodeCase, cases)),
+				_Utils_Tuple2(
+				'expression',
+				A2(author$project$Elm$Syntax$Node$encode, author$project$Elm$Syntax$Expression$encode, expression))
+			]));
+};
+var author$project$Elm$Syntax$Expression$encodeDestructuring = F2(
+	function (pattern, expression) {
+		return elm$json$Json$Encode$object(
+			_List_fromArray(
+				[
+					_Utils_Tuple2(
+					'pattern',
+					A2(author$project$Elm$Syntax$Node$encode, author$project$Elm$Syntax$Pattern$encode, pattern)),
+					_Utils_Tuple2(
+					'expression',
+					A2(author$project$Elm$Syntax$Node$encode, author$project$Elm$Syntax$Expression$encode, expression))
+				]));
+	});
+var author$project$Elm$Syntax$Expression$encodeFunction = function (_n5) {
+	var documentation = _n5.documentation;
+	var signature = _n5.signature;
+	var declaration = _n5.declaration;
+	return elm$json$Json$Encode$object(
+		_List_fromArray(
+			[
+				_Utils_Tuple2(
+				'documentation',
+				A2(
+					elm$core$Maybe$withDefault,
+					elm$json$Json$Encode$null,
+					A2(
+						elm$core$Maybe$map,
+						author$project$Elm$Syntax$Node$encode(author$project$Elm$Syntax$Documentation$encode),
+						documentation))),
+				_Utils_Tuple2(
+				'signature',
+				A2(
+					elm$core$Maybe$withDefault,
+					elm$json$Json$Encode$null,
+					A2(
+						elm$core$Maybe$map,
+						author$project$Elm$Syntax$Node$encode(author$project$Elm$Syntax$Signature$encode),
+						signature))),
+				_Utils_Tuple2(
+				'declaration',
+				A2(author$project$Elm$Syntax$Node$encode, author$project$Elm$Syntax$Expression$encodeFunctionDeclaration, declaration))
+			]));
+};
+var author$project$Elm$Syntax$Expression$encodeFunctionDeclaration = function (_n4) {
+	var name = _n4.name;
+	var _arguments = _n4._arguments;
+	var expression = _n4.expression;
+	return elm$json$Json$Encode$object(
+		_List_fromArray(
+			[
+				_Utils_Tuple2(
+				'name',
+				A2(author$project$Elm$Syntax$Node$encode, elm$json$Json$Encode$string, name)),
+				_Utils_Tuple2(
+				'arguments',
+				A2(
+					elm$json$Json$Encode$list,
+					author$project$Elm$Syntax$Node$encode(author$project$Elm$Syntax$Pattern$encode),
+					_arguments)),
+				_Utils_Tuple2(
+				'expression',
+				A2(author$project$Elm$Syntax$Node$encode, author$project$Elm$Syntax$Expression$encode, expression))
+			]));
+};
+var author$project$Elm$Syntax$Expression$encodeLambda = function (_n3) {
+	var args = _n3.args;
+	var expression = _n3.expression;
+	return elm$json$Json$Encode$object(
+		_List_fromArray(
+			[
+				_Utils_Tuple2(
+				'patterns',
+				A2(
+					elm$json$Json$Encode$list,
+					author$project$Elm$Syntax$Node$encode(author$project$Elm$Syntax$Pattern$encode),
+					args)),
+				_Utils_Tuple2(
+				'expression',
+				A2(author$project$Elm$Syntax$Node$encode, author$project$Elm$Syntax$Expression$encode, expression))
+			]));
+};
+var author$project$Elm$Syntax$Expression$encodeLetBlock = function (_n2) {
+	var declarations = _n2.declarations;
+	var expression = _n2.expression;
+	return elm$json$Json$Encode$object(
+		_List_fromArray(
+			[
+				_Utils_Tuple2(
+				'declarations',
+				A2(
+					elm$json$Json$Encode$list,
+					author$project$Elm$Syntax$Node$encode(author$project$Elm$Syntax$Expression$encodeLetDeclaration),
+					declarations)),
+				_Utils_Tuple2(
+				'expression',
+				A2(author$project$Elm$Syntax$Node$encode, author$project$Elm$Syntax$Expression$encode, expression))
+			]));
+};
+var author$project$Elm$Syntax$Expression$encodeLetDeclaration = function (letDeclaration) {
+	if (letDeclaration.$ === 'LetFunction') {
+		var f = letDeclaration.a;
+		return A2(
+			author$project$Elm$Json$Util$encodeTyped,
+			'function',
+			author$project$Elm$Syntax$Expression$encodeFunction(f));
+	} else {
+		var pattern = letDeclaration.a;
+		var expression = letDeclaration.b;
+		return A2(
+			author$project$Elm$Json$Util$encodeTyped,
+			'destructuring',
+			A2(author$project$Elm$Syntax$Expression$encodeDestructuring, pattern, expression));
+	}
+};
+var author$project$Elm$Syntax$Expression$encodeOperatorApplication = F4(
+	function (operator, direction, left, right) {
+		return elm$json$Json$Encode$object(
+			_List_fromArray(
+				[
+					_Utils_Tuple2(
+					'operator',
+					elm$json$Json$Encode$string(operator)),
+					_Utils_Tuple2(
+					'direction',
+					author$project$Elm$Syntax$Infix$encodeDirection(direction)),
+					_Utils_Tuple2(
+					'left',
+					A2(author$project$Elm$Syntax$Node$encode, author$project$Elm$Syntax$Expression$encode, left)),
+					_Utils_Tuple2(
+					'right',
+					A2(author$project$Elm$Syntax$Node$encode, author$project$Elm$Syntax$Expression$encode, right))
+				]));
+	});
+var author$project$Elm$Syntax$Expression$encodeRecordSetter = function (_n0) {
+	var field = _n0.a;
+	var expression = _n0.b;
+	return elm$json$Json$Encode$object(
+		_List_fromArray(
+			[
+				_Utils_Tuple2(
+				'field',
+				A2(author$project$Elm$Syntax$Node$encode, elm$json$Json$Encode$string, field)),
+				_Utils_Tuple2(
+				'expression',
+				A2(author$project$Elm$Syntax$Node$encode, author$project$Elm$Syntax$Expression$encode, expression))
+			]));
+};
+var author$project$Elm$Syntax$Expression$encodeRecordUpdate = F2(
+	function (name, updates) {
+		return elm$json$Json$Encode$object(
+			_List_fromArray(
+				[
+					_Utils_Tuple2(
+					'name',
+					A2(author$project$Elm$Syntax$Node$encode, elm$json$Json$Encode$string, name)),
+					_Utils_Tuple2(
+					'updates',
+					A2(
+						elm$json$Json$Encode$list,
+						author$project$Elm$Syntax$Node$encode(author$project$Elm$Syntax$Expression$encodeRecordSetter),
+						updates))
+				]));
+	});
+var author$project$Elm$Syntax$Infix$encode = function (inf) {
+	return elm$json$Json$Encode$object(
+		_List_fromArray(
+			[
+				_Utils_Tuple2(
+				'direction',
+				A2(author$project$Elm$Syntax$Node$encode, author$project$Elm$Syntax$Infix$encodeDirection, inf.direction)),
+				_Utils_Tuple2(
+				'precedence',
+				A2(author$project$Elm$Syntax$Node$encode, elm$json$Json$Encode$int, inf.precedence)),
+				_Utils_Tuple2(
+				'operator',
+				A2(author$project$Elm$Syntax$Node$encode, elm$json$Json$Encode$string, inf.operator)),
+				_Utils_Tuple2(
+				'function',
+				A2(author$project$Elm$Syntax$Node$encode, elm$json$Json$Encode$string, inf._function))
+			]));
+};
+var author$project$Elm$Syntax$Type$encodeValueConstructor = function (_n0) {
+	var name = _n0.name;
+	var _arguments = _n0._arguments;
+	return elm$json$Json$Encode$object(
+		_List_fromArray(
+			[
+				_Utils_Tuple2(
+				'name',
+				A2(author$project$Elm$Syntax$Node$encode, elm$json$Json$Encode$string, name)),
+				_Utils_Tuple2(
+				'arguments',
+				A2(
+					elm$json$Json$Encode$list,
+					author$project$Elm$Syntax$Node$encode(author$project$Elm$Syntax$TypeAnnotation$encode),
+					_arguments))
+			]));
+};
+var author$project$Elm$Syntax$Type$encode = function (_n0) {
+	var documentation = _n0.documentation;
+	var name = _n0.name;
+	var generics = _n0.generics;
+	var constructors = _n0.constructors;
+	return elm$json$Json$Encode$object(
+		_List_fromArray(
+			[
+				_Utils_Tuple2(
+				'documentation',
+				A2(
+					elm$core$Maybe$withDefault,
+					elm$json$Json$Encode$null,
+					A2(
+						elm$core$Maybe$map,
+						author$project$Elm$Syntax$Node$encode(author$project$Elm$Syntax$Documentation$encode),
+						documentation))),
+				_Utils_Tuple2(
+				'name',
+				A2(author$project$Elm$Syntax$Node$encode, elm$json$Json$Encode$string, name)),
+				_Utils_Tuple2(
+				'generics',
+				A2(
+					elm$json$Json$Encode$list,
+					author$project$Elm$Syntax$Node$encode(elm$json$Json$Encode$string),
+					generics)),
+				_Utils_Tuple2(
+				'constructors',
+				A2(
+					elm$json$Json$Encode$list,
+					author$project$Elm$Syntax$Node$encode(author$project$Elm$Syntax$Type$encodeValueConstructor),
+					constructors))
+			]));
+};
+var author$project$Elm$Syntax$TypeAlias$encode = function (_n0) {
+	var documentation = _n0.documentation;
+	var name = _n0.name;
+	var generics = _n0.generics;
+	var typeAnnotation = _n0.typeAnnotation;
+	return elm$json$Json$Encode$object(
+		_List_fromArray(
+			[
+				_Utils_Tuple2(
+				'documentation',
+				A2(
+					elm$core$Maybe$withDefault,
+					elm$json$Json$Encode$null,
+					A2(
+						elm$core$Maybe$map,
+						author$project$Elm$Syntax$Node$encode(author$project$Elm$Syntax$Documentation$encode),
+						documentation))),
+				_Utils_Tuple2(
+				'name',
+				A2(author$project$Elm$Syntax$Node$encode, elm$json$Json$Encode$string, name)),
+				_Utils_Tuple2(
+				'generics',
+				A2(
+					elm$json$Json$Encode$list,
+					author$project$Elm$Syntax$Node$encode(elm$json$Json$Encode$string),
+					generics)),
+				_Utils_Tuple2(
+				'typeAnnotation',
+				A2(author$project$Elm$Syntax$Node$encode, author$project$Elm$Syntax$TypeAnnotation$encode, typeAnnotation))
+			]));
+};
+var author$project$Elm$Syntax$Declaration$encode = function (decl) {
+	switch (decl.$) {
+		case 'FunctionDeclaration':
+			var _function = decl.a;
+			return A2(
+				author$project$Elm$Json$Util$encodeTyped,
+				'function',
+				author$project$Elm$Syntax$Expression$encodeFunction(_function));
+		case 'AliasDeclaration':
+			var typeAlias = decl.a;
+			return A2(
+				author$project$Elm$Json$Util$encodeTyped,
+				'typeAlias',
+				author$project$Elm$Syntax$TypeAlias$encode(typeAlias));
+		case 'CustomTypeDeclaration':
+			var typeDeclaration = decl.a;
+			return A2(
+				author$project$Elm$Json$Util$encodeTyped,
+				'typedecl',
+				author$project$Elm$Syntax$Type$encode(typeDeclaration));
+		case 'PortDeclaration':
+			var sig = decl.a;
+			return A2(
+				author$project$Elm$Json$Util$encodeTyped,
+				'port',
+				author$project$Elm$Syntax$Signature$encode(sig));
+		case 'InfixDeclaration':
+			var inf = decl.a;
+			return A2(
+				author$project$Elm$Json$Util$encodeTyped,
+				'infix',
+				author$project$Elm$Syntax$Infix$encode(inf));
+		default:
+			var pattern = decl.a;
+			var expression = decl.b;
+			return A2(
+				author$project$Elm$Json$Util$encodeTyped,
+				'destructuring',
+				elm$json$Json$Encode$object(
+					_List_fromArray(
+						[
+							_Utils_Tuple2(
+							'pattern',
+							A2(author$project$Elm$Syntax$Node$encode, author$project$Elm$Syntax$Pattern$encode, pattern)),
+							_Utils_Tuple2(
+							'expression',
+							A2(author$project$Elm$Syntax$Node$encode, author$project$Elm$Syntax$Expression$encode, expression))
+						])));
+	}
+};
+var author$project$Elm$Syntax$Exposing$encodeExposedType = function (_n0) {
+	var name = _n0.name;
+	var open = _n0.open;
+	return elm$json$Json$Encode$object(
+		_List_fromArray(
+			[
+				_Utils_Tuple2(
+				'name',
+				elm$json$Json$Encode$string(name)),
+				_Utils_Tuple2(
+				'open',
+				A2(
+					elm$core$Maybe$withDefault,
+					elm$json$Json$Encode$null,
+					A2(elm$core$Maybe$map, author$project$Elm$Syntax$Range$encode, open)))
+			]));
+};
+var author$project$Elm$Syntax$Exposing$encodeTopLevelExpose = author$project$Elm$Syntax$Node$encode(
+	function (exp) {
+		switch (exp.$) {
+			case 'InfixExpose':
+				var x = exp.a;
+				return A2(
+					author$project$Elm$Json$Util$encodeTyped,
+					'infix',
+					elm$json$Json$Encode$object(
+						_List_fromArray(
+							[
+								_Utils_Tuple2(
+								'name',
+								elm$json$Json$Encode$string(x))
+							])));
+			case 'FunctionExpose':
+				var x = exp.a;
+				return A2(
+					author$project$Elm$Json$Util$encodeTyped,
+					'function',
+					elm$json$Json$Encode$object(
+						_List_fromArray(
+							[
+								_Utils_Tuple2(
+								'name',
+								elm$json$Json$Encode$string(x))
+							])));
+			case 'TypeOrAliasExpose':
+				var x = exp.a;
+				return A2(
+					author$project$Elm$Json$Util$encodeTyped,
+					'typeOrAlias',
+					elm$json$Json$Encode$object(
+						_List_fromArray(
+							[
+								_Utils_Tuple2(
+								'name',
+								elm$json$Json$Encode$string(x))
+							])));
+			default:
+				var exposedType = exp.a;
+				return A2(
+					author$project$Elm$Json$Util$encodeTyped,
+					'typeexpose',
+					author$project$Elm$Syntax$Exposing$encodeExposedType(exposedType));
+		}
+	});
+var author$project$Elm$Syntax$Exposing$encode = function (exp) {
+	if (exp.$ === 'All') {
+		var r = exp.a;
+		return A2(
+			author$project$Elm$Json$Util$encodeTyped,
+			'all',
+			author$project$Elm$Syntax$Range$encode(r));
+	} else {
+		var l = exp.a;
+		return A2(
+			author$project$Elm$Json$Util$encodeTyped,
+			'explicit',
+			A2(elm$json$Json$Encode$list, author$project$Elm$Syntax$Exposing$encodeTopLevelExpose, l));
+	}
+};
+var author$project$Elm$Syntax$Import$encode = function (_n0) {
+	var moduleName = _n0.moduleName;
+	var moduleAlias = _n0.moduleAlias;
+	var exposingList = _n0.exposingList;
+	return elm$json$Json$Encode$object(
+		_List_fromArray(
+			[
+				_Utils_Tuple2(
+				'moduleName',
+				A2(author$project$Elm$Syntax$Node$encode, author$project$Elm$Syntax$ModuleName$encode, moduleName)),
+				_Utils_Tuple2(
+				'moduleAlias',
+				A2(
+					elm$core$Maybe$withDefault,
+					elm$json$Json$Encode$null,
+					A2(
+						elm$core$Maybe$map,
+						author$project$Elm$Syntax$Node$encode(author$project$Elm$Syntax$ModuleName$encode),
+						moduleAlias))),
+				_Utils_Tuple2(
+				'exposingList',
+				A2(
+					elm$core$Maybe$withDefault,
+					elm$json$Json$Encode$null,
+					A2(
+						elm$core$Maybe$map,
+						author$project$Elm$Syntax$Node$encode(author$project$Elm$Syntax$Exposing$encode),
+						exposingList)))
+			]));
+};
+var author$project$Elm$Syntax$Module$encodeDefaultModuleData = function (moduleData) {
+	return elm$json$Json$Encode$object(
+		_List_fromArray(
+			[
+				_Utils_Tuple2(
+				'moduleName',
+				A2(author$project$Elm$Syntax$Node$encode, author$project$Elm$Syntax$ModuleName$encode, moduleData.moduleName)),
+				_Utils_Tuple2(
+				'exposingList',
+				A2(author$project$Elm$Syntax$Node$encode, author$project$Elm$Syntax$Exposing$encode, moduleData.exposingList))
+			]));
+};
+var author$project$Elm$Syntax$Module$encodeEffectModuleData = function (moduleData) {
+	return elm$json$Json$Encode$object(
+		_List_fromArray(
+			[
+				_Utils_Tuple2(
+				'moduleName',
+				A2(author$project$Elm$Syntax$Node$encode, author$project$Elm$Syntax$ModuleName$encode, moduleData.moduleName)),
+				_Utils_Tuple2(
+				'exposingList',
+				A2(author$project$Elm$Syntax$Node$encode, author$project$Elm$Syntax$Exposing$encode, moduleData.exposingList)),
+				_Utils_Tuple2(
+				'command',
+				A2(
+					elm$core$Maybe$withDefault,
+					elm$json$Json$Encode$null,
+					A2(
+						elm$core$Maybe$map,
+						author$project$Elm$Syntax$Node$encode(elm$json$Json$Encode$string),
+						moduleData.command))),
+				_Utils_Tuple2(
+				'subscription',
+				A2(
+					elm$core$Maybe$withDefault,
+					elm$json$Json$Encode$null,
+					A2(
+						elm$core$Maybe$map,
+						author$project$Elm$Syntax$Node$encode(elm$json$Json$Encode$string),
+						moduleData.subscription)))
+			]));
+};
+var author$project$Elm$Syntax$Module$encode = function (m) {
+	switch (m.$) {
+		case 'NormalModule':
+			var d = m.a;
+			return A2(
+				author$project$Elm$Json$Util$encodeTyped,
+				'normal',
+				author$project$Elm$Syntax$Module$encodeDefaultModuleData(d));
+		case 'PortModule':
+			var d = m.a;
+			return A2(
+				author$project$Elm$Json$Util$encodeTyped,
+				'port',
+				author$project$Elm$Syntax$Module$encodeDefaultModuleData(d));
+		default:
+			var d = m.a;
+			return A2(
+				author$project$Elm$Json$Util$encodeTyped,
+				'effect',
+				author$project$Elm$Syntax$Module$encodeEffectModuleData(d));
+	}
+};
+var author$project$Elm$Syntax$File$encode = function (_n0) {
+	var moduleDefinition = _n0.moduleDefinition;
+	var imports = _n0.imports;
+	var declarations = _n0.declarations;
+	var comments = _n0.comments;
+	return elm$json$Json$Encode$object(
+		_List_fromArray(
+			[
+				_Utils_Tuple2(
+				'moduleDefinition',
+				A2(author$project$Elm$Syntax$Node$encode, author$project$Elm$Syntax$Module$encode, moduleDefinition)),
+				_Utils_Tuple2(
+				'imports',
+				A2(
+					elm$json$Json$Encode$list,
+					author$project$Elm$Syntax$Node$encode(author$project$Elm$Syntax$Import$encode),
+					imports)),
+				_Utils_Tuple2(
+				'declarations',
+				A2(
+					elm$json$Json$Encode$list,
+					author$project$Elm$Syntax$Node$encode(author$project$Elm$Syntax$Declaration$encode),
+					declarations)),
+				_Utils_Tuple2(
+				'comments',
+				A2(
+					elm$json$Json$Encode$list,
+					author$project$Elm$Syntax$Node$encode(author$project$Elm$Syntax$Comments$encode),
+					comments))
+			]));
+};
+var elm$core$Debug$toString = _Debug_toString;
+var elm$core$Result$toMaybe = function (result) {
+	if (result.$ === 'Ok') {
+		var v = result.a;
+		return elm$core$Maybe$Just(v);
+	} else {
+		return elm$core$Maybe$Nothing;
+	}
+};
+var klazuka$elm_json_tree_view$JsonTree$State = function (a) {
+	return {$: 'State', a: a};
+};
+var klazuka$elm_json_tree_view$JsonTree$stateFullyExpanded = klazuka$elm_json_tree_view$JsonTree$State(
+	elm$core$Set$fromList(_List_Nil));
+var klazuka$elm_json_tree_view$JsonTree$defaultState = klazuka$elm_json_tree_view$JsonTree$stateFullyExpanded;
+var elm$json$Json$Decode$decodeValue = _Json_run;
 var elm$json$Json$Decode$map = _Json_map1;
-var elm$json$Json$Decode$map2 = _Json_map2;
+var elm$core$Dict$map = F2(
+	function (func, dict) {
+		if (dict.$ === 'RBEmpty_elm_builtin') {
+			return elm$core$Dict$RBEmpty_elm_builtin;
+		} else {
+			var color = dict.a;
+			var key = dict.b;
+			var value = dict.c;
+			var left = dict.d;
+			var right = dict.e;
+			return A5(
+				elm$core$Dict$RBNode_elm_builtin,
+				color,
+				key,
+				A2(func, key, value),
+				A2(elm$core$Dict$map, func, left),
+				A2(elm$core$Dict$map, func, right));
+		}
+	});
+var klazuka$elm_json_tree_view$JsonTree$TDict = function (a) {
+	return {$: 'TDict', a: a};
+};
+var klazuka$elm_json_tree_view$JsonTree$TList = function (a) {
+	return {$: 'TList', a: a};
+};
+var klazuka$elm_json_tree_view$JsonTree$annotate = F2(
+	function (pathSoFar, node) {
+		var annotateList = F2(
+			function (index, val) {
+				return A2(
+					klazuka$elm_json_tree_view$JsonTree$annotate,
+					pathSoFar + ('[' + (elm$core$String$fromInt(index) + ']')),
+					val);
+			});
+		var annotateDict = F2(
+			function (fieldName, val) {
+				return A2(klazuka$elm_json_tree_view$JsonTree$annotate, pathSoFar + ('.' + fieldName), val);
+			});
+		var _n0 = node.value;
+		switch (_n0.$) {
+			case 'TString':
+				return _Utils_update(
+					node,
+					{keyPath: pathSoFar});
+			case 'TFloat':
+				return _Utils_update(
+					node,
+					{keyPath: pathSoFar});
+			case 'TBool':
+				return _Utils_update(
+					node,
+					{keyPath: pathSoFar});
+			case 'TNull':
+				return _Utils_update(
+					node,
+					{keyPath: pathSoFar});
+			case 'TList':
+				var children = _n0.a;
+				return _Utils_update(
+					node,
+					{
+						keyPath: pathSoFar,
+						value: klazuka$elm_json_tree_view$JsonTree$TList(
+							A2(elm$core$List$indexedMap, annotateList, children))
+					});
+			default:
+				var dict = _n0.a;
+				return _Utils_update(
+					node,
+					{
+						keyPath: pathSoFar,
+						value: klazuka$elm_json_tree_view$JsonTree$TDict(
+							A2(elm$core$Dict$map, annotateDict, dict))
+					});
+		}
+	});
+var elm$core$Basics$composeL = F3(
+	function (g, f, x) {
+		return g(
+			f(x));
+	});
+var elm$json$Json$Decode$bool = _Json_decodeBool;
+var elm$json$Json$Decode$keyValuePairs = _Json_decodeKeyValuePairs;
+var elm$json$Json$Decode$dict = function (decoder) {
+	return A2(
+		elm$json$Json$Decode$map,
+		elm$core$Dict$fromList,
+		elm$json$Json$Decode$keyValuePairs(decoder));
+};
+var elm$json$Json$Decode$float = _Json_decodeFloat;
+var elm$json$Json$Decode$andThen = _Json_andThen;
 var elm$json$Json$Decode$succeed = _Json_succeed;
+var elm$json$Json$Decode$lazy = function (thunk) {
+	return A2(
+		elm$json$Json$Decode$andThen,
+		thunk,
+		elm$json$Json$Decode$succeed(_Utils_Tuple0));
+};
+var elm$json$Json$Decode$list = _Json_decodeList;
+var elm$json$Json$Decode$null = _Json_decodeNull;
+var elm$json$Json$Decode$oneOf = _Json_oneOf;
+var elm$json$Json$Decode$string = _Json_decodeString;
+var klazuka$elm_json_tree_view$JsonTree$TBool = function (a) {
+	return {$: 'TBool', a: a};
+};
+var klazuka$elm_json_tree_view$JsonTree$TFloat = function (a) {
+	return {$: 'TFloat', a: a};
+};
+var klazuka$elm_json_tree_view$JsonTree$TNull = {$: 'TNull'};
+var klazuka$elm_json_tree_view$JsonTree$TString = function (a) {
+	return {$: 'TString', a: a};
+};
+function klazuka$elm_json_tree_view$JsonTree$cyclic$coreDecoder() {
+	var makeNode = function (v) {
+		return {keyPath: '', value: v};
+	};
+	return elm$json$Json$Decode$oneOf(
+		_List_fromArray(
+			[
+				A2(
+				elm$json$Json$Decode$map,
+				A2(elm$core$Basics$composeL, makeNode, klazuka$elm_json_tree_view$JsonTree$TString),
+				elm$json$Json$Decode$string),
+				A2(
+				elm$json$Json$Decode$map,
+				A2(elm$core$Basics$composeL, makeNode, klazuka$elm_json_tree_view$JsonTree$TFloat),
+				elm$json$Json$Decode$float),
+				A2(
+				elm$json$Json$Decode$map,
+				A2(elm$core$Basics$composeL, makeNode, klazuka$elm_json_tree_view$JsonTree$TBool),
+				elm$json$Json$Decode$bool),
+				A2(
+				elm$json$Json$Decode$map,
+				A2(elm$core$Basics$composeL, makeNode, klazuka$elm_json_tree_view$JsonTree$TList),
+				elm$json$Json$Decode$list(
+					elm$json$Json$Decode$lazy(
+						function (_n0) {
+							return klazuka$elm_json_tree_view$JsonTree$cyclic$coreDecoder();
+						}))),
+				A2(
+				elm$json$Json$Decode$map,
+				A2(elm$core$Basics$composeL, makeNode, klazuka$elm_json_tree_view$JsonTree$TDict),
+				elm$json$Json$Decode$dict(
+					elm$json$Json$Decode$lazy(
+						function (_n1) {
+							return klazuka$elm_json_tree_view$JsonTree$cyclic$coreDecoder();
+						}))),
+				elm$json$Json$Decode$null(
+				makeNode(klazuka$elm_json_tree_view$JsonTree$TNull))
+			]));
+}
+try {
+	var klazuka$elm_json_tree_view$JsonTree$coreDecoder = klazuka$elm_json_tree_view$JsonTree$cyclic$coreDecoder();
+	klazuka$elm_json_tree_view$JsonTree$cyclic$coreDecoder = function () {
+		return klazuka$elm_json_tree_view$JsonTree$coreDecoder;
+	};
+} catch ($) {
+throw 'Some top-level definitions from `JsonTree` are causing infinite recursion:\n\n  ┌─────┐\n  │    coreDecoder\n  └─────┘\n\nThese errors are very tricky, so read https://elm-lang.org/0.19.0/halting-problem to learn how to fix it!';}
+var klazuka$elm_json_tree_view$JsonTree$parseValue = function (json) {
+	var rootKeyPath = '';
+	var decoder = A2(
+		elm$json$Json$Decode$map,
+		klazuka$elm_json_tree_view$JsonTree$annotate(rootKeyPath),
+		klazuka$elm_json_tree_view$JsonTree$coreDecoder);
+	return A2(elm$json$Json$Decode$decodeValue, decoder, json);
+};
+var author$project$Demo$update = F2(
+	function (msg, model) {
+		switch (msg.$) {
+			case 'SelectPath':
+				var p = msg.a;
+				return _Utils_update(
+					model,
+					{
+						path: elm$core$Maybe$Just(p)
+					});
+			case 'TreeMsg':
+				var s = msg.a;
+				return _Utils_update(
+					model,
+					{treeState: s});
+			case 'NoOp':
+				return model;
+			default:
+				var v = msg.a;
+				var parseResult = A2(
+					elm$core$Result$mapError,
+					elm$core$List$map(elm$core$Debug$toString),
+					A2(
+						elm$core$Result$map,
+						author$project$Elm$Processing$process(author$project$Elm$Processing$init),
+						author$project$Elm$Parser$parse(v)));
+				var value = A2(
+					elm$core$Maybe$withDefault,
+					elm$json$Json$Encode$null,
+					A2(
+						elm$core$Maybe$map,
+						author$project$Elm$Syntax$File$encode,
+						elm$core$Result$toMaybe(parseResult)));
+				return _Utils_update(
+					model,
+					{
+						parseResult: elm$core$Maybe$Just(parseResult),
+						src: v,
+						treeState: klazuka$elm_json_tree_view$JsonTree$defaultState,
+						treeValue: elm$core$Result$toMaybe(
+							klazuka$elm_json_tree_view$JsonTree$parseValue(value)),
+						value: value
+					});
+		}
+	});
+var author$project$Demo$init = A2(
+	author$project$Demo$update,
+	author$project$Demo$Change('module Foo exposing (foo)\n\n-- some comment\n\n{-| Docs -}\nfoo = 1\n'),
+	{parseResult: elm$core$Maybe$Nothing, path: elm$core$Maybe$Nothing, src: '', treeState: klazuka$elm_json_tree_view$JsonTree$defaultState, treeValue: elm$core$Maybe$Nothing, value: elm$json$Json$Encode$null});
+var author$project$Demo$SelectPath = function (a) {
+	return {$: 'SelectPath', a: a};
+};
+var author$project$Demo$TreeMsg = function (a) {
+	return {$: 'TreeMsg', a: a};
+};
+var author$project$Demo$config = {
+	onSelect: elm$core$Maybe$Just(author$project$Demo$SelectPath),
+	toMsg: author$project$Demo$TreeMsg
+};
+var author$project$NodeCollector$addNode = F2(
+	function (n, c) {
+		return A2(
+			elm$core$List$cons,
+			A2(author$project$Elm$Syntax$Node$map, elm$core$Debug$toString, n),
+			c);
+	});
+var author$project$NodeCollector$nodeTransformer = author$project$Elm$Inspector$Post(author$project$NodeCollector$addNode);
+var author$project$NodeCollector$onDestructuring = F2(
+	function (c, context) {
+		var _n0 = c.b;
+		var a = _n0.a;
+		var b = _n0.b;
+		return A2(
+			author$project$NodeCollector$addNode,
+			b,
+			A2(
+				author$project$NodeCollector$addNode,
+				a,
+				A2(author$project$NodeCollector$addNode, c, context)));
+	});
+var author$project$NodeCollector$onFile = F2(
+	function (f, c) {
+		return A2(
+			author$project$NodeCollector$addNode,
+			f.moduleDefinition,
+			function (context) {
+				return A3(elm$core$List$foldl, author$project$NodeCollector$addNode, context, f.comments);
+			}(c));
+	});
+var author$project$NodeCollector$collect = function (file) {
+	return A3(
+		author$project$Elm$Inspector$inspect,
+		{
+			onCase: author$project$Elm$Inspector$Continue,
+			onDestructuring: author$project$Elm$Inspector$Post(author$project$NodeCollector$onDestructuring),
+			onExpression: author$project$NodeCollector$nodeTransformer,
+			onFile: author$project$Elm$Inspector$Post(author$project$NodeCollector$onFile),
+			onFunction: author$project$NodeCollector$nodeTransformer,
+			onFunctionOrValue: author$project$Elm$Inspector$Continue,
+			onImport: author$project$NodeCollector$nodeTransformer,
+			onInfixDeclaration: author$project$NodeCollector$nodeTransformer,
+			onLambda: author$project$Elm$Inspector$Continue,
+			onLetBlock: author$project$Elm$Inspector$Continue,
+			onOperatorApplication: author$project$Elm$Inspector$Continue,
+			onPortDeclaration: author$project$NodeCollector$nodeTransformer,
+			onRecordAccess: author$project$Elm$Inspector$Continue,
+			onRecordUpdate: author$project$Elm$Inspector$Continue,
+			onSignature: author$project$NodeCollector$nodeTransformer,
+			onType: author$project$NodeCollector$nodeTransformer,
+			onTypeAlias: author$project$NodeCollector$nodeTransformer,
+			onTypeAnnotation: author$project$NodeCollector$nodeTransformer
+		},
+		file,
+		_List_Nil);
+};
+var elm$json$Json$Decode$map2 = _Json_map2;
 var elm$virtual_dom$VirtualDom$toHandlerInt = function (handler) {
 	switch (handler.$) {
 		case 'Normal':
@@ -10163,9 +13092,11 @@ var elm$virtual_dom$VirtualDom$toHandlerInt = function (handler) {
 	}
 };
 var elm$html$Html$div = _VirtualDom_node('div');
+var elm$html$Html$li = _VirtualDom_node('li');
 var elm$virtual_dom$VirtualDom$text = _VirtualDom_text;
 var elm$html$Html$text = elm$virtual_dom$VirtualDom$text;
 var elm$html$Html$textarea = _VirtualDom_node('textarea');
+var elm$html$Html$ul = _VirtualDom_node('ul');
 var elm$html$Html$Attributes$cols = function (n) {
 	return A2(
 		_VirtualDom_attribute,
@@ -10180,7 +13111,6 @@ var elm$html$Html$Attributes$rows = function (n) {
 };
 var elm$virtual_dom$VirtualDom$style = _VirtualDom_style;
 var elm$html$Html$Attributes$style = elm$virtual_dom$VirtualDom$style;
-var elm$json$Json$Encode$string = _Json_wrap;
 var elm$html$Html$Attributes$stringProperty = F2(
 	function (key, string) {
 		return A2(
@@ -10208,7 +13138,6 @@ var elm$json$Json$Decode$at = F2(
 	function (fields, decoder) {
 		return A3(elm$core$List$foldr, elm$json$Json$Decode$field, decoder, fields);
 	});
-var elm$json$Json$Decode$string = _Json_decodeString;
 var elm$html$Html$Events$targetValue = A2(
 	elm$json$Json$Decode$at,
 	_List_fromArray(
@@ -10223,6 +13152,722 @@ var elm$html$Html$Events$onInput = function (tagger) {
 			elm$html$Html$Events$alwaysStop,
 			A2(elm$json$Json$Decode$map, tagger, elm$html$Html$Events$targetValue)));
 };
+var klazuka$elm_json_tree_view$JsonTree$css = {
+	bool: _List_fromArray(
+		[
+			_Utils_Tuple2('color', 'firebrick')
+		]),
+	collapser: _List_fromArray(
+		[
+			_Utils_Tuple2('position', 'absolute'),
+			_Utils_Tuple2('cursor', 'pointer'),
+			_Utils_Tuple2('top', '1px'),
+			_Utils_Tuple2('left', '-15px')
+		]),
+	fieldName: _List_fromArray(
+		[
+			_Utils_Tuple2('font-weight', 'bold')
+		]),
+	li: _List_fromArray(
+		[
+			_Utils_Tuple2('position', 'relative')
+		]),
+	_null: _List_fromArray(
+		[
+			_Utils_Tuple2('color', 'gray')
+		]),
+	number: _List_fromArray(
+		[
+			_Utils_Tuple2('color', 'blue')
+		]),
+	root: _List_fromArray(
+		[
+			_Utils_Tuple2('font-family', 'monospace'),
+			_Utils_Tuple2('white-space', 'pre')
+		]),
+	selectable: _List_fromArray(
+		[
+			_Utils_Tuple2('background-color', '#fafad2'),
+			_Utils_Tuple2('cursor', 'pointer')
+		]),
+	string: _List_fromArray(
+		[
+			_Utils_Tuple2('color', 'green')
+		]),
+	ul: _List_fromArray(
+		[
+			_Utils_Tuple2('list-style-type', 'none'),
+			_Utils_Tuple2('margin-left', '26px'),
+			_Utils_Tuple2('padding-left', '0px')
+		])
+};
+var elm$virtual_dom$VirtualDom$node = function (tag) {
+	return _VirtualDom_node(
+		_VirtualDom_noScript(tag));
+};
+var elm$html$Html$node = elm$virtual_dom$VirtualDom$node;
+var klazuka$elm_json_tree_view$JsonTree$selectableNodeClass = 'selectableJsonTreeNode';
+var klazuka$elm_json_tree_view$JsonTree$hoverStyles = function () {
+	var selectableStyleString = A2(
+		elm$core$String$join,
+		'\n',
+		A2(
+			elm$core$List$map,
+			function (_n0) {
+				var name = _n0.a;
+				var value = _n0.b;
+				return name + (': ' + (value + ';'));
+			},
+			klazuka$elm_json_tree_view$JsonTree$css.selectable));
+	var styleBody = '.' + (klazuka$elm_json_tree_view$JsonTree$selectableNodeClass + (':hover {\n' + (selectableStyleString + '\n}\n')));
+	return A3(
+		elm$html$Html$node,
+		'style',
+		_List_Nil,
+		_List_fromArray(
+			[
+				elm$html$Html$text(styleBody)
+			]));
+}();
+var klazuka$elm_json_tree_view$JsonTree$styleList = function (styles) {
+	return A2(
+		elm$core$List$map,
+		function (_n0) {
+			var name = _n0.a;
+			var value = _n0.b;
+			return A2(elm$html$Html$Attributes$style, name, value);
+		},
+		styles);
+};
+var elm$core$List$isEmpty = function (xs) {
+	if (!xs.b) {
+		return true;
+	} else {
+		return false;
+	}
+};
+var elm$core$String$fromFloat = _String_fromNumber;
+var elm$html$Html$span = _VirtualDom_node('span');
+var klazuka$elm_json_tree_view$JsonTree$isCollapsed = F2(
+	function (keyPath, state) {
+		var hiddenPaths = state.a;
+		return A2(elm$core$Set$member, keyPath, hiddenPaths);
+	});
+var klazuka$elm_json_tree_view$JsonTree$collapse = F2(
+	function (keyPath, state) {
+		var hiddenPaths = state.a;
+		return klazuka$elm_json_tree_view$JsonTree$State(
+			A2(elm$core$Set$insert, keyPath, hiddenPaths));
+	});
+var elm$virtual_dom$VirtualDom$Normal = function (a) {
+	return {$: 'Normal', a: a};
+};
+var elm$html$Html$Events$on = F2(
+	function (event, decoder) {
+		return A2(
+			elm$virtual_dom$VirtualDom$on,
+			event,
+			elm$virtual_dom$VirtualDom$Normal(decoder));
+	});
+var klazuka$elm_json_tree_view$JsonTree$lazyStateChangeOnClick = F2(
+	function (newStateThunk, toMsg) {
+		var force = function (thunk) {
+			return thunk(_Utils_Tuple0);
+		};
+		return A2(
+			elm$html$Html$Events$on,
+			'click',
+			A2(
+				elm$json$Json$Decode$map,
+				A2(elm$core$Basics$composeR, force, toMsg),
+				elm$json$Json$Decode$succeed(newStateThunk)));
+	});
+var klazuka$elm_json_tree_view$JsonTree$viewCollapser = F4(
+	function (depth, config, newStateThunk, displayText) {
+		return (!depth) ? elm$html$Html$text('') : A2(
+			elm$html$Html$span,
+			A2(
+				elm$core$List$cons,
+				A2(klazuka$elm_json_tree_view$JsonTree$lazyStateChangeOnClick, newStateThunk, config.toMsg),
+				klazuka$elm_json_tree_view$JsonTree$styleList(klazuka$elm_json_tree_view$JsonTree$css.collapser)),
+			_List_fromArray(
+				[
+					elm$html$Html$text(displayText)
+				]));
+	});
+var klazuka$elm_json_tree_view$JsonTree$viewCollapseButton = F4(
+	function (depth, keyPath, config, state) {
+		return A4(
+			klazuka$elm_json_tree_view$JsonTree$viewCollapser,
+			depth,
+			config,
+			function (_n0) {
+				return A2(klazuka$elm_json_tree_view$JsonTree$collapse, keyPath, state);
+			},
+			'-');
+	});
+var elm$core$Dict$getMin = function (dict) {
+	getMin:
+	while (true) {
+		if ((dict.$ === 'RBNode_elm_builtin') && (dict.d.$ === 'RBNode_elm_builtin')) {
+			var left = dict.d;
+			var $temp$dict = left;
+			dict = $temp$dict;
+			continue getMin;
+		} else {
+			return dict;
+		}
+	}
+};
+var elm$core$Dict$moveRedLeft = function (dict) {
+	if (((dict.$ === 'RBNode_elm_builtin') && (dict.d.$ === 'RBNode_elm_builtin')) && (dict.e.$ === 'RBNode_elm_builtin')) {
+		if ((dict.e.d.$ === 'RBNode_elm_builtin') && (dict.e.d.a.$ === 'Red')) {
+			var clr = dict.a;
+			var k = dict.b;
+			var v = dict.c;
+			var _n1 = dict.d;
+			var lClr = _n1.a;
+			var lK = _n1.b;
+			var lV = _n1.c;
+			var lLeft = _n1.d;
+			var lRight = _n1.e;
+			var _n2 = dict.e;
+			var rClr = _n2.a;
+			var rK = _n2.b;
+			var rV = _n2.c;
+			var rLeft = _n2.d;
+			var _n3 = rLeft.a;
+			var rlK = rLeft.b;
+			var rlV = rLeft.c;
+			var rlL = rLeft.d;
+			var rlR = rLeft.e;
+			var rRight = _n2.e;
+			return A5(
+				elm$core$Dict$RBNode_elm_builtin,
+				elm$core$Dict$Red,
+				rlK,
+				rlV,
+				A5(
+					elm$core$Dict$RBNode_elm_builtin,
+					elm$core$Dict$Black,
+					k,
+					v,
+					A5(elm$core$Dict$RBNode_elm_builtin, elm$core$Dict$Red, lK, lV, lLeft, lRight),
+					rlL),
+				A5(elm$core$Dict$RBNode_elm_builtin, elm$core$Dict$Black, rK, rV, rlR, rRight));
+		} else {
+			var clr = dict.a;
+			var k = dict.b;
+			var v = dict.c;
+			var _n4 = dict.d;
+			var lClr = _n4.a;
+			var lK = _n4.b;
+			var lV = _n4.c;
+			var lLeft = _n4.d;
+			var lRight = _n4.e;
+			var _n5 = dict.e;
+			var rClr = _n5.a;
+			var rK = _n5.b;
+			var rV = _n5.c;
+			var rLeft = _n5.d;
+			var rRight = _n5.e;
+			if (clr.$ === 'Black') {
+				return A5(
+					elm$core$Dict$RBNode_elm_builtin,
+					elm$core$Dict$Black,
+					k,
+					v,
+					A5(elm$core$Dict$RBNode_elm_builtin, elm$core$Dict$Red, lK, lV, lLeft, lRight),
+					A5(elm$core$Dict$RBNode_elm_builtin, elm$core$Dict$Red, rK, rV, rLeft, rRight));
+			} else {
+				return A5(
+					elm$core$Dict$RBNode_elm_builtin,
+					elm$core$Dict$Black,
+					k,
+					v,
+					A5(elm$core$Dict$RBNode_elm_builtin, elm$core$Dict$Red, lK, lV, lLeft, lRight),
+					A5(elm$core$Dict$RBNode_elm_builtin, elm$core$Dict$Red, rK, rV, rLeft, rRight));
+			}
+		}
+	} else {
+		return dict;
+	}
+};
+var elm$core$Dict$moveRedRight = function (dict) {
+	if (((dict.$ === 'RBNode_elm_builtin') && (dict.d.$ === 'RBNode_elm_builtin')) && (dict.e.$ === 'RBNode_elm_builtin')) {
+		if ((dict.d.d.$ === 'RBNode_elm_builtin') && (dict.d.d.a.$ === 'Red')) {
+			var clr = dict.a;
+			var k = dict.b;
+			var v = dict.c;
+			var _n1 = dict.d;
+			var lClr = _n1.a;
+			var lK = _n1.b;
+			var lV = _n1.c;
+			var _n2 = _n1.d;
+			var _n3 = _n2.a;
+			var llK = _n2.b;
+			var llV = _n2.c;
+			var llLeft = _n2.d;
+			var llRight = _n2.e;
+			var lRight = _n1.e;
+			var _n4 = dict.e;
+			var rClr = _n4.a;
+			var rK = _n4.b;
+			var rV = _n4.c;
+			var rLeft = _n4.d;
+			var rRight = _n4.e;
+			return A5(
+				elm$core$Dict$RBNode_elm_builtin,
+				elm$core$Dict$Red,
+				lK,
+				lV,
+				A5(elm$core$Dict$RBNode_elm_builtin, elm$core$Dict$Black, llK, llV, llLeft, llRight),
+				A5(
+					elm$core$Dict$RBNode_elm_builtin,
+					elm$core$Dict$Black,
+					k,
+					v,
+					lRight,
+					A5(elm$core$Dict$RBNode_elm_builtin, elm$core$Dict$Red, rK, rV, rLeft, rRight)));
+		} else {
+			var clr = dict.a;
+			var k = dict.b;
+			var v = dict.c;
+			var _n5 = dict.d;
+			var lClr = _n5.a;
+			var lK = _n5.b;
+			var lV = _n5.c;
+			var lLeft = _n5.d;
+			var lRight = _n5.e;
+			var _n6 = dict.e;
+			var rClr = _n6.a;
+			var rK = _n6.b;
+			var rV = _n6.c;
+			var rLeft = _n6.d;
+			var rRight = _n6.e;
+			if (clr.$ === 'Black') {
+				return A5(
+					elm$core$Dict$RBNode_elm_builtin,
+					elm$core$Dict$Black,
+					k,
+					v,
+					A5(elm$core$Dict$RBNode_elm_builtin, elm$core$Dict$Red, lK, lV, lLeft, lRight),
+					A5(elm$core$Dict$RBNode_elm_builtin, elm$core$Dict$Red, rK, rV, rLeft, rRight));
+			} else {
+				return A5(
+					elm$core$Dict$RBNode_elm_builtin,
+					elm$core$Dict$Black,
+					k,
+					v,
+					A5(elm$core$Dict$RBNode_elm_builtin, elm$core$Dict$Red, lK, lV, lLeft, lRight),
+					A5(elm$core$Dict$RBNode_elm_builtin, elm$core$Dict$Red, rK, rV, rLeft, rRight));
+			}
+		}
+	} else {
+		return dict;
+	}
+};
+var elm$core$Dict$removeHelpPrepEQGT = F7(
+	function (targetKey, dict, color, key, value, left, right) {
+		if ((left.$ === 'RBNode_elm_builtin') && (left.a.$ === 'Red')) {
+			var _n1 = left.a;
+			var lK = left.b;
+			var lV = left.c;
+			var lLeft = left.d;
+			var lRight = left.e;
+			return A5(
+				elm$core$Dict$RBNode_elm_builtin,
+				color,
+				lK,
+				lV,
+				lLeft,
+				A5(elm$core$Dict$RBNode_elm_builtin, elm$core$Dict$Red, key, value, lRight, right));
+		} else {
+			_n2$2:
+			while (true) {
+				if ((right.$ === 'RBNode_elm_builtin') && (right.a.$ === 'Black')) {
+					if (right.d.$ === 'RBNode_elm_builtin') {
+						if (right.d.a.$ === 'Black') {
+							var _n3 = right.a;
+							var _n4 = right.d;
+							var _n5 = _n4.a;
+							return elm$core$Dict$moveRedRight(dict);
+						} else {
+							break _n2$2;
+						}
+					} else {
+						var _n6 = right.a;
+						var _n7 = right.d;
+						return elm$core$Dict$moveRedRight(dict);
+					}
+				} else {
+					break _n2$2;
+				}
+			}
+			return dict;
+		}
+	});
+var elm$core$Dict$removeMin = function (dict) {
+	if ((dict.$ === 'RBNode_elm_builtin') && (dict.d.$ === 'RBNode_elm_builtin')) {
+		var color = dict.a;
+		var key = dict.b;
+		var value = dict.c;
+		var left = dict.d;
+		var lColor = left.a;
+		var lLeft = left.d;
+		var right = dict.e;
+		if (lColor.$ === 'Black') {
+			if ((lLeft.$ === 'RBNode_elm_builtin') && (lLeft.a.$ === 'Red')) {
+				var _n3 = lLeft.a;
+				return A5(
+					elm$core$Dict$RBNode_elm_builtin,
+					color,
+					key,
+					value,
+					elm$core$Dict$removeMin(left),
+					right);
+			} else {
+				var _n4 = elm$core$Dict$moveRedLeft(dict);
+				if (_n4.$ === 'RBNode_elm_builtin') {
+					var nColor = _n4.a;
+					var nKey = _n4.b;
+					var nValue = _n4.c;
+					var nLeft = _n4.d;
+					var nRight = _n4.e;
+					return A5(
+						elm$core$Dict$balance,
+						nColor,
+						nKey,
+						nValue,
+						elm$core$Dict$removeMin(nLeft),
+						nRight);
+				} else {
+					return elm$core$Dict$RBEmpty_elm_builtin;
+				}
+			}
+		} else {
+			return A5(
+				elm$core$Dict$RBNode_elm_builtin,
+				color,
+				key,
+				value,
+				elm$core$Dict$removeMin(left),
+				right);
+		}
+	} else {
+		return elm$core$Dict$RBEmpty_elm_builtin;
+	}
+};
+var elm$core$Dict$removeHelp = F2(
+	function (targetKey, dict) {
+		if (dict.$ === 'RBEmpty_elm_builtin') {
+			return elm$core$Dict$RBEmpty_elm_builtin;
+		} else {
+			var color = dict.a;
+			var key = dict.b;
+			var value = dict.c;
+			var left = dict.d;
+			var right = dict.e;
+			if (_Utils_cmp(targetKey, key) < 0) {
+				if ((left.$ === 'RBNode_elm_builtin') && (left.a.$ === 'Black')) {
+					var _n4 = left.a;
+					var lLeft = left.d;
+					if ((lLeft.$ === 'RBNode_elm_builtin') && (lLeft.a.$ === 'Red')) {
+						var _n6 = lLeft.a;
+						return A5(
+							elm$core$Dict$RBNode_elm_builtin,
+							color,
+							key,
+							value,
+							A2(elm$core$Dict$removeHelp, targetKey, left),
+							right);
+					} else {
+						var _n7 = elm$core$Dict$moveRedLeft(dict);
+						if (_n7.$ === 'RBNode_elm_builtin') {
+							var nColor = _n7.a;
+							var nKey = _n7.b;
+							var nValue = _n7.c;
+							var nLeft = _n7.d;
+							var nRight = _n7.e;
+							return A5(
+								elm$core$Dict$balance,
+								nColor,
+								nKey,
+								nValue,
+								A2(elm$core$Dict$removeHelp, targetKey, nLeft),
+								nRight);
+						} else {
+							return elm$core$Dict$RBEmpty_elm_builtin;
+						}
+					}
+				} else {
+					return A5(
+						elm$core$Dict$RBNode_elm_builtin,
+						color,
+						key,
+						value,
+						A2(elm$core$Dict$removeHelp, targetKey, left),
+						right);
+				}
+			} else {
+				return A2(
+					elm$core$Dict$removeHelpEQGT,
+					targetKey,
+					A7(elm$core$Dict$removeHelpPrepEQGT, targetKey, dict, color, key, value, left, right));
+			}
+		}
+	});
+var elm$core$Dict$removeHelpEQGT = F2(
+	function (targetKey, dict) {
+		if (dict.$ === 'RBNode_elm_builtin') {
+			var color = dict.a;
+			var key = dict.b;
+			var value = dict.c;
+			var left = dict.d;
+			var right = dict.e;
+			if (_Utils_eq(targetKey, key)) {
+				var _n1 = elm$core$Dict$getMin(right);
+				if (_n1.$ === 'RBNode_elm_builtin') {
+					var minKey = _n1.b;
+					var minValue = _n1.c;
+					return A5(
+						elm$core$Dict$balance,
+						color,
+						minKey,
+						minValue,
+						left,
+						elm$core$Dict$removeMin(right));
+				} else {
+					return elm$core$Dict$RBEmpty_elm_builtin;
+				}
+			} else {
+				return A5(
+					elm$core$Dict$balance,
+					color,
+					key,
+					value,
+					left,
+					A2(elm$core$Dict$removeHelp, targetKey, right));
+			}
+		} else {
+			return elm$core$Dict$RBEmpty_elm_builtin;
+		}
+	});
+var elm$core$Dict$remove = F2(
+	function (key, dict) {
+		var _n0 = A2(elm$core$Dict$removeHelp, key, dict);
+		if ((_n0.$ === 'RBNode_elm_builtin') && (_n0.a.$ === 'Red')) {
+			var _n1 = _n0.a;
+			var k = _n0.b;
+			var v = _n0.c;
+			var l = _n0.d;
+			var r = _n0.e;
+			return A5(elm$core$Dict$RBNode_elm_builtin, elm$core$Dict$Black, k, v, l, r);
+		} else {
+			var x = _n0;
+			return x;
+		}
+	});
+var elm$core$Set$remove = F2(
+	function (key, _n0) {
+		var dict = _n0.a;
+		return elm$core$Set$Set_elm_builtin(
+			A2(elm$core$Dict$remove, key, dict));
+	});
+var klazuka$elm_json_tree_view$JsonTree$expand = F2(
+	function (keyPath, state) {
+		var hiddenPaths = state.a;
+		return klazuka$elm_json_tree_view$JsonTree$State(
+			A2(elm$core$Set$remove, keyPath, hiddenPaths));
+	});
+var klazuka$elm_json_tree_view$JsonTree$viewExpandButton = F4(
+	function (depth, keyPath, config, state) {
+		return A4(
+			klazuka$elm_json_tree_view$JsonTree$viewCollapser,
+			depth,
+			config,
+			function (_n0) {
+				return A2(klazuka$elm_json_tree_view$JsonTree$expand, keyPath, state);
+			},
+			'+');
+	});
+var elm$html$Html$Attributes$class = elm$html$Html$Attributes$stringProperty('className');
+var elm$html$Html$Attributes$id = elm$html$Html$Attributes$stringProperty('id');
+var elm$html$Html$Events$onClick = function (msg) {
+	return A2(
+		elm$html$Html$Events$on,
+		'click',
+		elm$json$Json$Decode$succeed(msg));
+};
+var klazuka$elm_json_tree_view$JsonTree$viewScalar = F4(
+	function (someCss, str, node, config) {
+		return elm$core$List$singleton(
+			A2(
+				elm$html$Html$span,
+				_Utils_ap(
+					_List_fromArray(
+						[
+							elm$html$Html$Attributes$id(node.keyPath)
+						]),
+					_Utils_ap(
+						klazuka$elm_json_tree_view$JsonTree$styleList(someCss),
+						function () {
+							var _n0 = config.onSelect;
+							if (_n0.$ === 'Just') {
+								var onSelect = _n0.a;
+								return _List_fromArray(
+									[
+										elm$html$Html$Events$onClick(
+										onSelect(node.keyPath)),
+										elm$html$Html$Attributes$class(klazuka$elm_json_tree_view$JsonTree$selectableNodeClass)
+									]);
+							} else {
+								return _List_Nil;
+							}
+						}())),
+				_List_fromArray(
+					[
+						elm$html$Html$text(str)
+					])));
+	});
+var klazuka$elm_json_tree_view$JsonTree$viewArray = F5(
+	function (depth, nodes, keyPath, config, state) {
+		var viewListItem = function (node) {
+			return A2(
+				elm$html$Html$li,
+				klazuka$elm_json_tree_view$JsonTree$styleList(klazuka$elm_json_tree_view$JsonTree$css.li),
+				A2(
+					elm$core$List$append,
+					A4(klazuka$elm_json_tree_view$JsonTree$viewNodeInternal, depth + 1, config, node, state),
+					_List_fromArray(
+						[
+							elm$html$Html$text(',')
+						])));
+		};
+		var innerContent = elm$core$List$isEmpty(nodes) ? _List_Nil : (A2(klazuka$elm_json_tree_view$JsonTree$isCollapsed, keyPath, state) ? _List_fromArray(
+			[
+				A4(klazuka$elm_json_tree_view$JsonTree$viewExpandButton, depth, keyPath, config, state),
+				elm$html$Html$text('…')
+			]) : _List_fromArray(
+			[
+				A4(klazuka$elm_json_tree_view$JsonTree$viewCollapseButton, depth, keyPath, config, state),
+				A2(
+				elm$html$Html$ul,
+				klazuka$elm_json_tree_view$JsonTree$styleList(klazuka$elm_json_tree_view$JsonTree$css.ul),
+				A2(elm$core$List$map, viewListItem, nodes))
+			]));
+		return _Utils_ap(
+			_List_fromArray(
+				[
+					elm$html$Html$text('[')
+				]),
+			_Utils_ap(
+				innerContent,
+				_List_fromArray(
+					[
+						elm$html$Html$text(']')
+					])));
+	});
+var klazuka$elm_json_tree_view$JsonTree$viewDict = F5(
+	function (depth, dict, keyPath, config, state) {
+		var viewListItem = function (_n1) {
+			var fieldName = _n1.a;
+			var node = _n1.b;
+			return A2(
+				elm$html$Html$li,
+				klazuka$elm_json_tree_view$JsonTree$styleList(klazuka$elm_json_tree_view$JsonTree$css.li),
+				_Utils_ap(
+					_List_fromArray(
+						[
+							A2(
+							elm$html$Html$span,
+							klazuka$elm_json_tree_view$JsonTree$styleList(klazuka$elm_json_tree_view$JsonTree$css.fieldName),
+							_List_fromArray(
+								[
+									elm$html$Html$text(fieldName)
+								])),
+							elm$html$Html$text(': ')
+						]),
+					_Utils_ap(
+						A4(klazuka$elm_json_tree_view$JsonTree$viewNodeInternal, depth + 1, config, node, state),
+						_List_fromArray(
+							[
+								elm$html$Html$text(',')
+							]))));
+		};
+		var innerContent = elm$core$Dict$isEmpty(dict) ? _List_Nil : (A2(klazuka$elm_json_tree_view$JsonTree$isCollapsed, keyPath, state) ? _List_fromArray(
+			[
+				A4(klazuka$elm_json_tree_view$JsonTree$viewExpandButton, depth, keyPath, config, state),
+				elm$html$Html$text('…')
+			]) : _List_fromArray(
+			[
+				A4(klazuka$elm_json_tree_view$JsonTree$viewCollapseButton, depth, keyPath, config, state),
+				A2(
+				elm$html$Html$ul,
+				klazuka$elm_json_tree_view$JsonTree$styleList(klazuka$elm_json_tree_view$JsonTree$css.ul),
+				A2(
+					elm$core$List$map,
+					viewListItem,
+					elm$core$Dict$toList(dict)))
+			]));
+		return _Utils_ap(
+			_List_fromArray(
+				[
+					elm$html$Html$text('{')
+				]),
+			_Utils_ap(
+				innerContent,
+				_List_fromArray(
+					[
+						elm$html$Html$text('}')
+					])));
+	});
+var klazuka$elm_json_tree_view$JsonTree$viewNodeInternal = F4(
+	function (depth, config, node, state) {
+		var boolToString = function (bool) {
+			return bool ? 'true' : 'false';
+		};
+		var _n0 = node.value;
+		switch (_n0.$) {
+			case 'TString':
+				var str = _n0.a;
+				return A4(klazuka$elm_json_tree_view$JsonTree$viewScalar, klazuka$elm_json_tree_view$JsonTree$css.string, '\"' + (str + '\"'), node, config);
+			case 'TFloat':
+				var x = _n0.a;
+				return A4(
+					klazuka$elm_json_tree_view$JsonTree$viewScalar,
+					klazuka$elm_json_tree_view$JsonTree$css.number,
+					elm$core$String$fromFloat(x),
+					node,
+					config);
+			case 'TBool':
+				var bool = _n0.a;
+				return A4(
+					klazuka$elm_json_tree_view$JsonTree$viewScalar,
+					klazuka$elm_json_tree_view$JsonTree$css.bool,
+					boolToString(bool),
+					node,
+					config);
+			case 'TNull':
+				return A4(klazuka$elm_json_tree_view$JsonTree$viewScalar, klazuka$elm_json_tree_view$JsonTree$css._null, 'null', node, config);
+			case 'TList':
+				var nodes = _n0.a;
+				return A5(klazuka$elm_json_tree_view$JsonTree$viewArray, depth, nodes, node.keyPath, config, state);
+			default:
+				var dict = _n0.a;
+				return A5(klazuka$elm_json_tree_view$JsonTree$viewDict, depth, dict, node.keyPath, config, state);
+		}
+	});
+var klazuka$elm_json_tree_view$JsonTree$view = F3(
+	function (node, config, state) {
+		return A2(
+			elm$html$Html$div,
+			klazuka$elm_json_tree_view$JsonTree$styleList(klazuka$elm_json_tree_view$JsonTree$css.root),
+			A2(
+				elm$core$List$cons,
+				klazuka$elm_json_tree_view$JsonTree$hoverStyles,
+				A4(klazuka$elm_json_tree_view$JsonTree$viewNodeInternal, 0, config, node, state)));
+	});
 var author$project$Demo$view = function (m) {
 	return A2(
 		elm$html$Html$div,
@@ -10240,12 +13885,43 @@ var author$project$Demo$view = function (m) {
 							[
 								elm$html$Html$Events$onInput(author$project$Demo$Change),
 								elm$html$Html$Attributes$value(m.src),
-								elm$html$Html$Attributes$cols(80),
-								elm$html$Html$Attributes$rows(48),
-								A2(elm$html$Html$Attributes$style, 'font-family', 'ourier New,Courier,Lucida Sans Typewriter,Lucida Typewriter,monospace')
+								elm$html$Html$Attributes$cols(50),
+								elm$html$Html$Attributes$rows(20),
+								A2(elm$html$Html$Attributes$style, 'font-family', 'Courier New,Courier,Lucida Sans Typewriter,Lucida Typewriter,monospace')
 							]),
 						_List_Nil)
 					])),
+				A2(
+				elm$html$Html$ul,
+				_List_Nil,
+				A2(
+					elm$core$List$map,
+					function (v) {
+						return A2(
+							elm$html$Html$li,
+							_List_Nil,
+							_List_fromArray(
+								[
+									elm$html$Html$text(
+									elm$core$Debug$toString(v))
+								]));
+					},
+					A2(
+						elm$core$Maybe$withDefault,
+						_List_Nil,
+						A2(
+							elm$core$Maybe$map,
+							author$project$NodeCollector$collect,
+							A2(elm$core$Maybe$andThen, elm$core$Result$toMaybe, m.parseResult))))),
+				A2(
+				elm$core$Maybe$withDefault,
+				elm$html$Html$text('Failed to parse JSON'),
+				A2(
+					elm$core$Maybe$map,
+					function (tree) {
+						return A3(klazuka$elm_json_tree_view$JsonTree$view, tree, author$project$Demo$config, m.treeState);
+					},
+					m.treeValue)),
 				A2(
 				elm$html$Html$div,
 				_List_Nil,
