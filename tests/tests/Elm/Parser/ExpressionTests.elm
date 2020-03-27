@@ -280,9 +280,16 @@ all =
         , test "record access" <|
             \() ->
                 parseFullStringWithNullState "foo.bar" expression
-                    |> Maybe.map noRangeExpression
-                    |> Maybe.map Node.value
-                    |> Expect.equal (Just (RecordAccess (Node emptyRange <| FunctionOrValue [] "foo") (Node emptyRange "bar")))
+                    |> Expect.equal
+                        (Just
+                            (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 8 } } <|
+                                RecordAccess
+                                    (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 4 } } <|
+                                        FunctionOrValue [] "foo"
+                                    )
+                                    (Node { start = { row = 1, column = 5 }, end = { row = 1, column = 8 } } "bar")
+                            )
+                        )
         , test "multiple record access operations" <|
             \() ->
                 parseFullStringWithNullState "foo.bar.baz" expression
