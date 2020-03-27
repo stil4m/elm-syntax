@@ -190,10 +190,9 @@ liftRecordAccess e =
     lazy
         (\() ->
             or
-                ((Node.parser <|
-                    Combine.map (RecordAccess e)
-                        (string "." |> Combine.continueWith (Node.parser functionName))
-                 )
+                (string "."
+                    |> Combine.continueWith (Node.parser functionName)
+                    |> Combine.map (\f -> Node.combine RecordAccess e f)
                     |> Combine.andThen liftRecordAccess
                 )
                 (succeed e)
