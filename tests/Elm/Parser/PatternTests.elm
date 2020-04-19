@@ -42,7 +42,7 @@ all =
                                 )
                             )
                         )
-        , test "quaified pattern without and with spacing should parse to the same" <|
+        , test "qualified pattern without and with spacing should parse to the same" <|
             \() ->
                 let
                     a =
