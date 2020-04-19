@@ -42,7 +42,7 @@ all =
                                 )
                             )
                         )
-        , test "quaified pattern without and with spacing should parse to the same" <|
+        , test "qualified pattern without and with spacing should parse to the same" <|
             \() ->
                 let
                     a =
@@ -112,6 +112,11 @@ all =
                                 ListPattern [ Node (Range (Location 1 2) (Location 1 3)) <| IntPattern 1 ]
                             )
                         )
+        , test "empty list pattern" <|
+            \() ->
+                parseFullStringState emptyState "[]" Parser.pattern
+                    |> Maybe.map noRangePattern
+                    |> Expect.equal (Just (Node emptyRange (ListPattern [])))
         , test "float pattern" <|
             \() ->
                 parseFullStringState emptyState "1.2" Parser.pattern
@@ -129,6 +134,11 @@ all =
                                     ]
                             )
                         )
+        , test "empty record pattern" <|
+            \() ->
+                parseFullStringState emptyState "{}" Parser.pattern
+                    |> Maybe.map noRangePattern
+                    |> Expect.equal (Just (Node emptyRange (RecordPattern [])))
         , test "named pattern" <|
             \() ->
                 parseFullStringState emptyState "True" Parser.pattern
