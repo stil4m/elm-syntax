@@ -205,7 +205,7 @@ expression =
                                 succeed
                                     (Node
                                         (Range.combine (Node.range first :: List.map Node.range rest))
-                                        (Application (first :: List.reverse rest))
+                                        (Application first (List.reverse rest))
                                     )
 
                     promoter rest =

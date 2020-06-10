@@ -190,9 +190,8 @@ all =
                                                     , expression =
                                                         Node empty <|
                                                             Application
-                                                                [ Node empty <| FunctionOrValue [ "String" ] "length"
-                                                                , Node empty <| FunctionOrValue [] "s"
-                                                                ]
+                                                                (Node empty <| FunctionOrValue [ "String" ] "length")
+                                                                [ Node empty <| FunctionOrValue [] "s" ]
                                                     }
                                             }
                                     ]

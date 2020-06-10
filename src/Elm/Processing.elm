@@ -223,8 +223,12 @@ fixExprs exps =
         [ Node _ x ] ->
             x
 
-        _ ->
-            Application exps
+        head_ :: rest ->
+            Application head_ rest
+
+        [] ->
+            -- This case should never happen
+            UnitExpr
 
 
 findNextSplit : ( String, SimpleInfix ) -> List ( String, SimpleInfix ) -> List (Node Expression) -> Maybe ( List (Node Expression), SimpleInfix, List (Node Expression) )
@@ -412,8 +416,8 @@ visitExpression : Node Expression -> Node Expression
 visitExpression expression =
     visitExpressionInner <|
         case expression of
-            Node r (Application args) ->
-                Node r (fixApplication args)
+            Node r (Application function args) ->
+                Node r (fixApplication (function :: args))
 
             _ ->
                 expression
@@ -423,10 +427,8 @@ visitExpressionInner : Node Expression -> Node Expression
 visitExpressionInner (Node range expression) =
     Node range <|
         case expression of
-            Application args ->
-                args
-                    |> List.map visitExpression
-                    |> Application
+            Application function args ->
+                Application (visitExpression function) (List.map visitExpression args)
 
             OperatorApplication op dir left right ->
                 OperatorApplication op

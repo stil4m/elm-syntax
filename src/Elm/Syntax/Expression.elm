@@ -106,7 +106,7 @@ type alias FunctionImplementation =
 -}
 type Expression
     = UnitExpr
-    | Application (List (Node Expression))
+    | Application (Node Expression) (List (Node Expression))
     | OperatorApplication String InfixDirection (Node Expression) (Node Expression)
     | FunctionOrValue ModuleName String
     | IfBlock (Node Expression) (Node Expression) (Node Expression)
@@ -252,8 +252,8 @@ encode expr =
         UnitExpr ->
             encodeTyped "unit" JE.null
 
-        Application l ->
-            encodeTyped "application" (JE.list (Node.encode encode) l)
+        Application head l ->
+            encodeTyped "application" (JE.list (Node.encode encode) (head :: l))
 
         OperatorApplication op dir left right ->
             encodeTyped "operatorapplication" (encodeOperatorApplication op dir left right)
@@ -445,7 +445,18 @@ decoder =
         (\() ->
             decodeTyped
                 [ ( "unit", JD.succeed UnitExpr )
-                , ( "application", JD.list decodeNested |> JD.map Application )
+                , ( "application"
+                  , JD.list decodeNested
+                        |> JD.andThen
+                            (\list ->
+                                case list of
+                                    head :: rest ->
+                                        Application head rest |> JD.succeed
+
+                                    [] ->
+                                        JD.fail "Application expression must have at least one subexpression."
+                            )
+                  )
                 , ( "operatorapplication", decodeOperatorApplication )
                 , ( "functionOrValue", JD.map2 FunctionOrValue (JD.field "moduleName" ModuleName.decoder) (JD.field "name" JD.string) )
                 , ( "ifBlock", JD.map3 IfBlock (JD.field "clause" decodeNested) (JD.field "then" decodeNested) (JD.field "else" decodeNested) )

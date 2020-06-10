@@ -53,7 +53,10 @@ suite =
         , describe "Expression"
             [ test "write simple expression" <|
                 \() ->
-                    (Node empty <| Application [ Node empty <| FunctionOrValue [] "abc", Node empty <| UnitExpr ])
+                    (Node empty <|
+                        Application (Node empty <| FunctionOrValue [] "abc")
+                            [ Node empty <| UnitExpr ]
+                    )
                         |> Writer.writeExpression
                         |> Writer.write
                         |> Expect.equal "abc ()"
@@ -78,8 +81,8 @@ suite =
                 \() ->
                     (Node empty <|
                         Application
-                            [ Node empty <| FunctionOrValue [ "List" ] "map"
-                            , Node empty <| RecordAccessFunction "name"
+                            (Node empty <| FunctionOrValue [ "List" ] "map")
+                            [ Node empty <| RecordAccessFunction "name"
                             , Node empty <| FunctionOrValue [] "people"
                             ]
                     )
