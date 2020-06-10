@@ -103,7 +103,7 @@ type alias FunctionImplementation =
 -}
 type Expression
     = UnitExpr
-    | Application (List (Node Expression))
+    | Application (Node Expression) (List (Node Expression))
     | OperatorApplication String InfixDirection (Node Expression) (Node Expression)
     | FunctionOrValue ModuleName String
     | IfBlock (Node Expression) (Node Expression) (Node Expression)
