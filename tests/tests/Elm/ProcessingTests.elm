@@ -19,13 +19,10 @@ import Test exposing (..)
 functionWithDocs : ( String, String, File )
 functionWithDocs =
     ( "functionWithDocs"
-    , """
-module Bar exposing (..)
-
-{-| The docs
--}
-bar = 1
-"""
+    , "\nmodule Bar exposing (..)\n\n"
+        ++ "{-| The docs\n"
+        ++ "-}\n"
+        ++ "bar = 1\n"
     , { moduleDefinition =
             Node { start = { row = 1, column = 1 }, end = { row = 1, column = 25 } } <|
                 NormalModule
@@ -56,14 +53,11 @@ bar = 1
 functionWithDocsAndSignature : ( String, String, File )
 functionWithDocsAndSignature =
     ( "functionWithDocsAndSignature"
-    , """
-module Bar exposing (..)
-
-{-| The docs
--}
-bar : Int
-bar = 1
-"""
+    , "\nmodule Bar exposing (..)\n\n"
+        ++ "{-| The docs\n"
+        ++ "-}\n"
+        ++ "bar : Int\n"
+        ++ "bar = 1\n"
     , { moduleDefinition =
             Node { start = { row = 1, column = 1 }, end = { row = 1, column = 25 } } <|
                 NormalModule
@@ -101,12 +95,9 @@ bar = 1
 functionWithSingleLineCommentAsDoc : ( String, String, File )
 functionWithSingleLineCommentAsDoc =
     ( "functionWithSingleLineCommentAsDoc"
-    , """
-module Bar exposing (..)
-
---The Doc
-bar = 1
-"""
+    , "\nmodule Bar exposing (..)\n\n"
+        ++ "--The Doc\n"
+        ++ "bar = 1\n"
     , { moduleDefinition =
             Node { start = { row = 1, column = 1 }, end = { row = 1, column = 25 } } <|
                 NormalModule

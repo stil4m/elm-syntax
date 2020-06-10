@@ -321,8 +321,8 @@ inspectInnerExpression config expression context =
         GLSLExpression _ ->
             context
 
-        Application expressionList ->
-            List.foldl (inspectExpression config) context expressionList
+        Application head expressionList ->
+            List.foldl (inspectExpression config) context (head :: expressionList)
 
         OperatorApplication op dir left right ->
             actionLambda config.onOperatorApplication

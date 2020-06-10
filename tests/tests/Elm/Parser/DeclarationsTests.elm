@@ -209,8 +209,8 @@ all =
                                         , expression =
                                             Node emptyRange <|
                                                 Application
-                                                    [ Node emptyRange <| FunctionOrValue [] "x"
-                                                    , Node emptyRange <| Operator "+"
+                                                    (Node emptyRange <| FunctionOrValue [] "x")
+                                                    [ Node emptyRange <| Operator "+"
                                                     , Node emptyRange <| Integer 1
                                                     ]
                                         }
@@ -289,8 +289,8 @@ all =
                                         , expression =
                                             Node emptyRange <|
                                                 Application
-                                                    [ Node emptyRange <| FunctionOrValue [] "beginnerProgram"
-                                                    , Node emptyRange <|
+                                                    (Node emptyRange <| FunctionOrValue [] "beginnerProgram")
+                                                    [ Node emptyRange <|
                                                         RecordExpr
                                                             [ Node emptyRange ( Node emptyRange "model", Node emptyRange <| Integer 0 )
                                                             , Node emptyRange ( Node emptyRange "view", Node emptyRange <| FunctionOrValue [] "view" )
@@ -322,16 +322,16 @@ all =
                                                         [ ( Node emptyRange <| NamedPattern (QualifiedNameRef [] "Increment") []
                                                           , Node emptyRange <|
                                                                 Application
-                                                                    [ Node emptyRange <| FunctionOrValue [] "model"
-                                                                    , Node emptyRange <| Operator "+"
+                                                                    (Node emptyRange <| FunctionOrValue [] "model")
+                                                                    [ Node emptyRange <| Operator "+"
                                                                     , Node emptyRange <| Integer 1
                                                                     ]
                                                           )
                                                         , ( Node emptyRange <| NamedPattern (QualifiedNameRef [] "Decrement") []
                                                           , Node emptyRange <|
                                                                 Application
-                                                                    [ Node emptyRange <| FunctionOrValue [] "model"
-                                                                    , Node emptyRange <| Operator "-"
+                                                                    (Node emptyRange <| FunctionOrValue [] "model")
+                                                                    [ Node emptyRange <| Operator "-"
                                                                     , Node emptyRange <| Integer 1
                                                                     ]
                                                           )
@@ -409,9 +409,8 @@ all =
                                         , expression =
                                             Node emptyRange <|
                                                 Application
-                                                    [ Node emptyRange <| FunctionOrValue [] "text"
-                                                    , Node emptyRange <| Literal "Hello, World!"
-                                                    ]
+                                                    (Node emptyRange <| FunctionOrValue [] "text")
+                                                    [ Node emptyRange <| Literal "Hello, World!" ]
                                         }
                                 }
                         )
@@ -433,9 +432,8 @@ all =
                                         , expression =
                                             Node emptyRange <|
                                                 Application
-                                                    [ Node emptyRange <| FunctionOrValue [] "text"
-                                                    , Node emptyRange <| Literal "Hello, World!"
-                                                    ]
+                                                    (Node emptyRange <| FunctionOrValue [] "text")
+                                                    [ Node emptyRange <| Literal "Hello, World!" ]
                                         }
                                 }
                         )
@@ -472,15 +470,14 @@ all =
                                         , expression =
                                             Node emptyRange <|
                                                 Application
-                                                    [ Node emptyRange <| FunctionOrValue [] "curry"
-                                                    , Node emptyRange <| Operator "<|"
+                                                    (Node emptyRange <| FunctionOrValue [] "curry")
+                                                    [ Node emptyRange <| Operator "<|"
                                                     , Node emptyRange <|
                                                         ParenthesizedExpression
                                                             (Node emptyRange <|
                                                                 Application
-                                                                    [ Node emptyRange <| FunctionOrValue [] "uncurry"
-                                                                    , Node emptyRange <| FunctionOrValue [] "update"
-                                                                    ]
+                                                                    (Node emptyRange <| FunctionOrValue [] "uncurry")
+                                                                    [ Node emptyRange <| FunctionOrValue [] "update" ]
                                                             )
                                                     , Node emptyRange <| Operator ">>"
                                                     , Node emptyRange <| FunctionOrValue [] "batchStateCmds"
@@ -513,16 +510,16 @@ all =
                                                         [ ( Node emptyRange <| NamedPattern { moduleName = [], name = "Increment" } []
                                                           , Node emptyRange <|
                                                                 Application
-                                                                    [ Node emptyRange <| FunctionOrValue [] "model"
-                                                                    , Node emptyRange <| Operator "+"
+                                                                    (Node emptyRange <| FunctionOrValue [] "model")
+                                                                    [ Node emptyRange <| Operator "+"
                                                                     , Node emptyRange <| Integer 1
                                                                     ]
                                                           )
                                                         , ( Node emptyRange <| NamedPattern { moduleName = [], name = "Decrement" } []
                                                           , Node emptyRange <|
                                                                 Application
-                                                                    [ Node emptyRange <| FunctionOrValue [] "model"
-                                                                    , Node emptyRange <| Operator "-"
+                                                                    (Node emptyRange <| FunctionOrValue [] "model")
+                                                                    [ Node emptyRange <| Operator "-"
                                                                     , Node emptyRange <| Integer 1
                                                                     ]
                                                           )

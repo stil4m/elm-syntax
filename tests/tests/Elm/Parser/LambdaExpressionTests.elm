@@ -46,8 +46,8 @@ all =
                                 , expression =
                                     Node emptyRange <|
                                         Application
-                                            [ Node emptyRange <| FunctionOrValue [] "a"
-                                            , Node emptyRange <| Operator "+"
+                                            (Node emptyRange <| FunctionOrValue [] "a")
+                                            [ Node emptyRange <| Operator "+"
                                             , Node emptyRange <| FunctionOrValue [] "b"
                                             ]
                                 }
@@ -67,7 +67,7 @@ all =
                                             , Node emptyRange <| VarPattern "b"
                                             ]
                                     ]
-                                , expression = Node emptyRange <| Application [ Node emptyRange <| FunctionOrValue [] "a", Node emptyRange <| Operator "+", Node emptyRange <| FunctionOrValue [] "b" ]
+                                , expression = Node emptyRange <| Application (Node emptyRange <| FunctionOrValue [] "a") [ Node emptyRange <| Operator "+", Node emptyRange <| FunctionOrValue [] "b" ]
                                 }
                             )
                         )

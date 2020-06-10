@@ -357,8 +357,8 @@ noRangeRecordSetter ( a, b ) =
 noRangeInnerExpression : Expression -> Expression
 noRangeInnerExpression inner =
     case inner of
-        Application xs ->
-            Application <| List.map noRangeExpression xs
+        Application head xs ->
+            Application (noRangeExpression head) (List.map noRangeExpression xs)
 
         OperatorApplication op dir left right ->
             OperatorApplication op dir (noRangeExpression left) (noRangeExpression right)
