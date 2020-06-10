@@ -449,15 +449,15 @@ fun2 n =
                                                             Left
                                                             (Node { start = { row = 4, column = 3 }, end = { row = 4, column = 9 } }
                                                                 (Application
-                                                                    [ Node { start = { row = 4, column = 3 }, end = { row = 4, column = 7 } } (FunctionOrValue [] "fun2")
-                                                                    , Node { start = { row = 4, column = 8 }, end = { row = 4, column = 9 } } (FunctionOrValue [] "n")
+                                                                    (Node { start = { row = 4, column = 3 }, end = { row = 4, column = 7 } } (FunctionOrValue [] "fun2"))
+                                                                    [ Node { start = { row = 4, column = 8 }, end = { row = 4, column = 9 } } (FunctionOrValue [] "n")
                                                                     ]
                                                                 )
                                                             )
                                                             (Node { start = { row = 5, column = 5 }, end = { row = 5, column = 11 } }
                                                                 (Application
-                                                                    [ Node { start = { row = 5, column = 5 }, end = { row = 5, column = 9 } } (FunctionOrValue [] "fun2")
-                                                                    , Node { start = { row = 5, column = 10 }, end = { row = 5, column = 11 } } (FunctionOrValue [] "n")
+                                                                    (Node { start = { row = 5, column = 5 }, end = { row = 5, column = 9 } } (FunctionOrValue [] "fun2"))
+                                                                    [ Node { start = { row = 5, column = 10 }, end = { row = 5, column = 11 } } (FunctionOrValue [] "n")
                                                                     ]
                                                                 )
                                                             )
@@ -476,8 +476,8 @@ fun2 n =
                                                 , expression =
                                                     Node { start = { row = 8, column = 3 }, end = { row = 8, column = 9 } }
                                                         (Application
-                                                            [ Node { start = { row = 8, column = 3 }, end = { row = 8, column = 7 } } (FunctionOrValue [] "fun1")
-                                                            , Node { start = { row = 8, column = 8 }, end = { row = 8, column = 9 } } (FunctionOrValue [] "n")
+                                                            (Node { start = { row = 8, column = 3 }, end = { row = 8, column = 7 } } (FunctionOrValue [] "fun1"))
+                                                            [ Node { start = { row = 8, column = 8 }, end = { row = 8, column = 9 } } (FunctionOrValue [] "n")
                                                             ]
                                                         )
                                                 , name = Node { start = { row = 7, column = 1 }, end = { row = 7, column = 5 } } "fun2"
