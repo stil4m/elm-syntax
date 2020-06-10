@@ -134,11 +134,11 @@ functionCall =
             Node
                 { start = start, end = end }
                 (case leftValue of
-                    Expression.Application args ->
-                        Expression.Application (args ++ [ right ])
+                    Application first args ->
+                        Application first (args ++ [ right ])
 
                     _ ->
-                        Expression.Application [ left, right ]
+                        Application left [ right ]
                 )
         )
 

@@ -298,8 +298,8 @@ all =
                                                     , expression =
                                                         Node { start = { row = 1, column = 14 }, end = { row = 1, column = 29 } }
                                                             (Application
-                                                                [ Node { start = { row = 1, column = 14 }, end = { row = 1, column = 27 } } (FunctionOrValue [ "String" ] "length")
-                                                                , Node { start = { row = 1, column = 28 }, end = { row = 1, column = 29 } } (FunctionOrValue [] "s")
+                                                                (Node { start = { row = 1, column = 14 }, end = { row = 1, column = 27 } } (FunctionOrValue [ "String" ] "length"))
+                                                                [ Node { start = { row = 1, column = 28 }, end = { row = 1, column = 29 } } (FunctionOrValue [] "s")
                                                                 ]
                                                             )
                                                     }
