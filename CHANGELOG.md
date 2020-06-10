@@ -11,6 +11,9 @@
   - `Elm.Processing` and `Elm.RawFile` modules
   - All `encode` and `decode` functions
 
+- Changed `Elm.Syntax.Expression.Expression`:
+  - `Application (List (Node Expression))` -> `Application (Node Expression) (List (Node Expression))` (takes a non-empty list of arguments)
+
 ## [7.3.4] - 2024-07-26
 
 Parsing is faster by ~90%. A big thank you to [@lue-bird](https://github.com/lue-bird) for finding and introducing a huge amount of performance improvements.
