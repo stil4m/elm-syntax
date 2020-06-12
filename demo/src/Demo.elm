@@ -32,7 +32,7 @@ type Msg
 type alias Model =
     { src : String
     , parseResult :
-        Maybe (Result (List DeadEnd) File)
+        Maybe (Result (List String) File)
     , value : Value
     , treeState : JsonTree.State
     , treeValue : Maybe JsonTree.Node
