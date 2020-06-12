@@ -1,6 +1,6 @@
 module Elm.Parser.Patterns exposing (pattern)
 
-import Combine exposing (Parser, between, choice, lazy, many, maybe, parens, sepBy, sepBy1, string, succeed)
+import Combine exposing (Parser, between, choice, lazy, many, maybe, parens, sepBy, string, succeed)
 import Elm.Parser.Base as Base
 import Elm.Parser.Layout as Layout
 import Elm.Parser.Node as Node
