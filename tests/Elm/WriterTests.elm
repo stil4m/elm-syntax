@@ -168,7 +168,7 @@ suite =
                         |> Writer.write
                         |> Expect.equal
                             ("type Sample \n"
-                                ++ "    =Foo |Bar "
+                                ++ "    = Foo | Bar"
                             )
             , test "write type declaration > constructors with arguments" <|
                 \() ->
@@ -197,7 +197,7 @@ suite =
                         |> Writer.write
                         |> Expect.equal
                             ("type Sample \n"
-                                ++ "    =Foo (List String) String|Bar "
+                                ++ "    = Foo (List String) String | Bar"
                             )
             , test "write type declaration > constructors with functions as arguments" <|
                 \() ->
@@ -229,7 +229,7 @@ suite =
                         |> Writer.write
                         |> Expect.equal
                             ("type Sample \n"
-                                ++ "    =Foo (String -> Int) String|Bar "
+                                ++ "    = Foo (String -> Int) String | Bar"
                             )
             , test "write function with case expression using the right indentations" <|
                 \() ->
