@@ -15,6 +15,7 @@ install:
 test_script:
   - npm run elm:validate-format
   - npm run elm:test
+  - npm run elm:lint
   - npm run elm:build
 
 build: off
