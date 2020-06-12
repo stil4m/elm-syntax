@@ -273,18 +273,20 @@ writeType type_ =
                 List.map Node.range type_.constructors
                     |> startOnDifferentLines
           in
-          sepBy ( "=", "|", "" )
-            diffLines
-            (List.map (Node.value >> writeValueConstructor) type_.constructors)
+          indent 4
+            (sepBy ( "= ", " | ", "" )
+                diffLines
+                (List.map (Node.value >> writeValueConstructor) type_.constructors)
+            )
         ]
 
 
 writeValueConstructor : ValueConstructor -> Writer
 writeValueConstructor { name, arguments } =
     spaced
-        [ string <| Node.value name
-        , spaced (List.map writeTypeAnnotation arguments)
-        ]
+        ((string <| Node.value name)
+            :: List.map writeTypeAnnotation arguments
+        )
 
 
 writePortDeclaration : Signature -> Writer
