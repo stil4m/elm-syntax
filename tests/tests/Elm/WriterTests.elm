@@ -44,16 +44,14 @@ suite =
                     |> Writer.writeFile
                     |> Writer.write
                     |> Expect.equal
-                        ("""module A exposing (..)
-import B  """
-                            ++ "\n"
-                            ++ """import C as D exposing (..)
-"""
+                        ("module A exposing (..)\n"
+                            ++ "import B  \n"
+                            ++ "import C as D exposing (..)\n"
                         )
         , describe "Expression"
             [ test "write simple expression" <|
                 \() ->
-                    (Node emptyRange <| Application [ Node emptyRange <| FunctionOrValue [] "abc", Node emptyRange <| UnitExpr ])
+                    (Node emptyRange <| Application (Node emptyRange <| FunctionOrValue [] "abc") [ Node emptyRange <| UnitExpr ])
                         |> Writer.writeExpression
                         |> Writer.write
                         |> Expect.equal "abc ()"

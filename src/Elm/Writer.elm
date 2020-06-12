@@ -412,17 +412,14 @@ writeExpression (Node range inner) =
         UnitExpr ->
             string "()"
 
-        Application xs ->
+        Application head xs ->
             case xs of
                 [] ->
-                    epsilon
+                    writeExpression head
 
-                [ x ] ->
-                    writeExpression x
-
-                x :: rest ->
+                rest ->
                     spaced
-                        [ writeExpression x
+                        [ writeExpression head
                         , sepHelper sepBySpace (List.map recurRangeHelper rest)
                         ]
 

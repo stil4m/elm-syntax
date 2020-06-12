@@ -82,8 +82,8 @@ all =
                         (Just
                             (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 15 } } <|
                                 Application
-                                    [ Node { start = { row = 1, column = 1 }, end = { row = 1, column = 12 } } <| FunctionOrValue [ "List" ] "concat"
-                                    , Node { start = { row = 1, column = 13 }, end = { row = 1, column = 15 } } <| ListExpr []
+                                    (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 12 } } <| FunctionOrValue [ "List" ] "concat")
+                                    [ Node { start = { row = 1, column = 13 }, end = { row = 1, column = 15 } } <| ListExpr []
                                     ]
                             )
                         )
@@ -94,8 +94,8 @@ all =
                         (Just
                             (Node (Range { column = 1, row = 1 } { column = 10, row = 1 }) <|
                                 Application
-                                    [ Node { end = { column = 6, row = 1 }, start = { column = 1, row = 1 } } <| FunctionOrValue [] "model"
-                                    , Node { end = { column = 8, row = 1 }, start = { column = 7, row = 1 } } <| Operator "+"
+                                    (Node { end = { column = 6, row = 1 }, start = { column = 1, row = 1 } } <| FunctionOrValue [] "model")
+                                    [ Node { end = { column = 8, row = 1 }, start = { column = 7, row = 1 } } <| Operator "+"
                                     , Node { end = { column = 10, row = 1 }, start = { column = 9, row = 1 } } <| Integer 1
                                     ]
                             )
@@ -110,14 +110,15 @@ all =
                                     [ Node { start = { row = 1, column = 2 }, end = { row = 1, column = 4 } } <| Literal ""
                                     , Node { start = { row = 1, column = 6 }, end = { row = 1, column = 47 } } <|
                                         Application
-                                            [ Node { start = { row = 1, column = 6 }, end = { row = 1, column = 12 } } <| FunctionOrValue [] "always"
-                                            , Node { start = { row = 1, column = 13 }, end = { row = 1, column = 47 } } <|
+                                            (Node { start = { row = 1, column = 6 }, end = { row = 1, column = 12 } } <| FunctionOrValue [] "always")
+                                            [ Node { start = { row = 1, column = 13 }, end = { row = 1, column = 47 } } <|
                                                 ParenthesizedExpression
                                                     (Node { start = { row = 1, column = 14 }, end = { row = 1, column = 46 } } <|
                                                         Application
-                                                            [ Node { start = { row = 1, column = 14 }, end = { row = 1, column = 25 } } <|
+                                                            (Node { start = { row = 1, column = 14 }, end = { row = 1, column = 25 } } <|
                                                                 FunctionOrValue [ "List" ] "concat"
-                                                            , Node { start = { row = 1, column = 26 }, end = { row = 1, column = 46 } } <|
+                                                            )
+                                                            [ Node { start = { row = 1, column = 26 }, end = { row = 1, column = 46 } } <|
                                                                 ListExpr
                                                                     [ Node { start = { row = 1, column = 28 }, end = { row = 1, column = 40 } } <|
                                                                         ListExpr
@@ -147,10 +148,10 @@ all =
                     |> Expect.equal
                         (Just
                             (Application
-                                [ Node emptyRange <|
+                                (Node emptyRange <|
                                     FunctionOrValue [ "Task" ] "succeed"
-                                , Node emptyRange <| UnitExpr
-                                ]
+                                )
+                                [ Node emptyRange <| UnitExpr ]
                             )
                         )
         , test "compoundExpression" <|
@@ -161,9 +162,8 @@ all =
                     |> Expect.equal
                         (Just
                             (Application
-                                [ Node emptyRange <| FunctionOrValue [] "foo"
-                                , Node emptyRange <| FunctionOrValue [] "bar"
-                                ]
+                                (Node emptyRange <| FunctionOrValue [] "foo")
+                                [ Node emptyRange <| FunctionOrValue [] "bar" ]
                             )
                         )
         , test "compoundExpression 2" <|
@@ -174,8 +174,8 @@ all =
                     |> Expect.equal
                         (Just
                             (Application
-                                [ Node emptyRange <| RecordExpr [ Node emptyRange ( Node emptyRange "key", Node emptyRange <| FunctionOrValue [] "value" ) ]
-                                , Node emptyRange <| Operator "!"
+                                (Node emptyRange <| RecordExpr [ Node emptyRange ( Node emptyRange "key", Node emptyRange <| FunctionOrValue [] "value" ) ])
+                                [ Node emptyRange <| Operator "!"
                                 , Node emptyRange <| ListExpr []
                                 ]
                             )
@@ -246,8 +246,8 @@ all =
                     |> Expect.equal
                         (Just
                             (ListExpr
-                                [ Node emptyRange <| Application [ Node emptyRange <| FunctionOrValue [] "class", Node emptyRange <| Literal "a" ]
-                                , Node emptyRange <| Application [ Node emptyRange <| FunctionOrValue [] "text", Node emptyRange <| Literal "Foo" ]
+                                [ Node emptyRange <| Application (Node emptyRange <| FunctionOrValue [] "class") [ Node emptyRange <| Literal "a" ]
+                                , Node emptyRange <| Application (Node emptyRange <| FunctionOrValue [] "text") [ Node emptyRange <| Literal "Foo" ]
                                 ]
                             )
                         )
@@ -351,8 +351,8 @@ all =
                     |> Expect.equal
                         (Just
                             (Application
-                                [ Node emptyRange <| FunctionOrValue [ "List" ] "map"
-                                , Node emptyRange <| RecordAccessFunction ".name"
+                                (Node emptyRange <| FunctionOrValue [ "List" ] "map")
+                                [ Node emptyRange <| RecordAccessFunction ".name"
                                 , Node emptyRange <| FunctionOrValue [] "people"
                                 ]
                             )
@@ -367,9 +367,8 @@ all =
                             (ParenthesizedExpression
                                 (Node emptyRange <|
                                     Application
-                                        [ Node emptyRange <| RecordAccessFunction ".spaceEvenly"
-                                        , Node emptyRange <| FunctionOrValue [ "Internal", "Style" ] "classes"
-                                        ]
+                                        (Node emptyRange <| RecordAccessFunction ".spaceEvenly")
+                                        [ Node emptyRange <| FunctionOrValue [ "Internal", "Style" ] "classes" ]
                                 )
                             )
                         )
@@ -381,9 +380,8 @@ all =
                     |> Expect.equal
                         (Just <|
                             Application
-                                [ Node emptyRange <| PrefixOperator "::"
-                                , Node emptyRange <| FunctionOrValue [] "x"
-                                ]
+                                (Node emptyRange <| PrefixOperator "::")
+                                [ Node emptyRange <| FunctionOrValue [] "x" ]
                         )
         , test "negated expression for value" <|
             \() ->
@@ -399,9 +397,8 @@ all =
                     |> Expect.equal
                         (Just
                             (Application
-                                [ Node emptyRange <| FunctionOrValue [] "toFloat"
-                                , Node emptyRange <| Negation (Node emptyRange <| Integer 5)
-                                ]
+                                (Node emptyRange <| FunctionOrValue [] "toFloat")
+                                [ Node emptyRange <| Negation (Node emptyRange <| Integer 5) ]
                             )
                         )
         , test "negated expression for parenthesized" <|
@@ -416,8 +413,8 @@ all =
                                     ParenthesizedExpression
                                         (Node emptyRange <|
                                             Application
-                                                [ Node emptyRange <| FunctionOrValue [] "x"
-                                                , Node emptyRange <| Operator "-"
+                                                (Node emptyRange <| FunctionOrValue [] "x")
+                                                [ Node emptyRange <| Operator "-"
                                                 , Node emptyRange <| FunctionOrValue [] "y"
                                                 ]
                                         )
@@ -432,8 +429,8 @@ all =
                     |> Expect.equal
                         (Just
                             (Application
-                                [ Node emptyRange (FunctionOrValue [] "chompWhile")
-                                , Node emptyRange
+                                (Node emptyRange (FunctionOrValue [] "chompWhile"))
+                                [ Node emptyRange
                                     (ParenthesizedExpression
                                         (Node emptyRange
                                             (LambdaExpression
@@ -441,8 +438,8 @@ all =
                                                 , expression =
                                                     Node emptyRange
                                                         (Application
-                                                            [ Node emptyRange (FunctionOrValue [] "c")
-                                                            , Node emptyRange (Operator "==")
+                                                            (Node emptyRange (FunctionOrValue [] "c"))
+                                                            [ Node emptyRange (Operator "==")
                                                             , Node emptyRange (CharLiteral ' ')
                                                             , Node emptyRange (Operator "||")
                                                             , Node emptyRange (FunctionOrValue [] "c")

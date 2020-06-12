@@ -169,16 +169,16 @@ all =
                                     [ ( Node emptyRange <| NamedPattern (QualifiedNameRef [] "Increment") []
                                       , Node emptyRange <|
                                             Application
-                                                [ Node emptyRange <| FunctionOrValue [] "model"
-                                                , Node emptyRange <| Operator "+"
+                                                (Node emptyRange <| FunctionOrValue [] "model")
+                                                [ Node emptyRange <| Operator "+"
                                                 , Node emptyRange <| Integer 1
                                                 ]
                                       )
                                     , ( Node emptyRange <| NamedPattern (QualifiedNameRef [] "Decrement") []
                                       , Node emptyRange <|
                                             Application
-                                                [ Node emptyRange <| FunctionOrValue [] "model"
-                                                , Node emptyRange <| Operator "-"
+                                                (Node emptyRange <| FunctionOrValue [] "model")
+                                                [ Node emptyRange <| Operator "-"
                                                 , Node emptyRange <| Integer 1
                                                 ]
                                       )
