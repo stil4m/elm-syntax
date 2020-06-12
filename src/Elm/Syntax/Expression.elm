@@ -81,7 +81,7 @@ type alias FunctionImplementation =
     }
 
 
-{-| Wrapper type for an expresion on a certain range
+{-| Wrapper type for an expression on a certain range
 -}
 type Expression
     = UnitExpr
