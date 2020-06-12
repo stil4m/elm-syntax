@@ -193,9 +193,8 @@ all =
                                                     , expression =
                                                         Node emptyRange <|
                                                             Application
-                                                                [ Node emptyRange <| FunctionOrValue [ "String" ] "length"
-                                                                , Node emptyRange <| FunctionOrValue [] "s"
-                                                                ]
+                                                                (Node emptyRange <| FunctionOrValue [ "String" ] "length")
+                                                                [ Node emptyRange <| FunctionOrValue [] "s" ]
                                                     }
                                             }
                                     ]

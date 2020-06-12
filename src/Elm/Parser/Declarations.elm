@@ -217,7 +217,7 @@ expression =
                                         _ ->
                                             Node
                                                 (Range.combine (Node.range first :: List.map Node.range rest))
-                                                (Application (first :: List.reverse rest))
+                                                (Application first (List.reverse rest))
 
                             promoter rest =
                                 Layout.optimisticLayoutWith
@@ -440,19 +440,16 @@ caseStatements =
                             Combine.withLocation
                                 (\l ->
                                     if State.expectedColumn s == l.column then
-                                        caseStatement
-                                            |> Combine.map (\c -> c :: last)
-                                            |> Combine.andThen helper
+                                        Combine.map (\c -> Combine.Loop (c :: last)) caseStatement
 
                                     else
-                                        succeed last
+                                        Combine.succeed (Combine.Done (List.reverse last))
                                 )
                         )
             in
             caseStatement
                 |> Combine.map List.singleton
-                |> Combine.andThen helper
-                |> Combine.map List.reverse
+                |> Combine.andThen (\v -> Combine.loop v helper)
         )
 
 

@@ -133,8 +133,8 @@ process processContext ((Raw file) as rawFile) =
                     (\context inner expression ->
                         inner <|
                             case expression of
-                                Node r (Application args) ->
-                                    Node r (fixApplication context args)
+                                Node r (Application head args) ->
+                                    Node r (fixApplication context head args)
 
                                 _ ->
                                     expression
@@ -149,12 +149,12 @@ process processContext ((Raw file) as rawFile) =
     documentationFixed
 
 
-fixApplication : OperatorTable -> List (Node Expression) -> Expression
-fixApplication operators expressions =
+fixApplication : OperatorTable -> Node Expression -> List (Node Expression) -> Expression
+fixApplication operators head expressions =
     let
         ops : Dict String Infix
         ops =
-            List.filterMap expressionOperators expressions
+            List.filterMap expressionOperators (head :: expressions)
                 |> List.map
                     (\x ->
                         ( x
@@ -175,8 +175,12 @@ fixApplication operators expressions =
                 [ Node _ x ] ->
                     x
 
-                _ ->
-                    Application exps
+                head_ :: rest ->
+                    Application head_ rest
+
+                [] ->
+                    -- This case should never happen
+                    UnitExpr
 
         divideAndConquer : List (Node Expression) -> Expression
         divideAndConquer exps =
@@ -186,16 +190,16 @@ fixApplication operators expressions =
             else
                 findNextSplit ops exps
                     |> Maybe.map
-                        (\( p, infix, s ) ->
+                        (\( p, infix_, s ) ->
                             OperatorApplication
-                                (Node.value infix.operator)
-                                (Node.value infix.direction)
+                                (Node.value infix_.operator)
+                                (Node.value infix_.direction)
                                 (Node (Range.combine <| List.map Node.range p) (divideAndConquer p))
                                 (Node (Range.combine <| List.map Node.range s) (divideAndConquer s))
                         )
                     |> Maybe.withDefault (fixExprs exps)
     in
-    divideAndConquer expressions
+    divideAndConquer (head :: expressions)
 
 
 findNextSplit : Dict String Infix -> List (Node Expression) -> Maybe ( List (Node Expression), Infix, List (Node Expression) )
@@ -328,10 +332,8 @@ visitExpressionInner visitor context (Node range expression) =
     in
     (\newExpr -> Node range newExpr) <|
         case expression of
-            Application expressionList ->
-                expressionList
-                    |> List.map subVisit
-                    |> Application
+            Application head expressionList ->
+                Application (subVisit head) (List.map subVisit expressionList)
 
             OperatorApplication op dir left right ->
                 OperatorApplication op

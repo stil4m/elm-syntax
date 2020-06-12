@@ -15,6 +15,7 @@
             "elm/parser": "1.1.0",
             "elm-community/json-extra": "4.0.0",
             "elm-community/list-extra": "8.0.0",
+            "klazuka/elm-json-tree-view": "1.0.0",
             "rtfeldman/elm-hex": "1.0.0"
         },
         "indirect": {

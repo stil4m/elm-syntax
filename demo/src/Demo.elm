@@ -75,6 +75,7 @@ update msg model =
                 parseResult =
                     Elm.Parser.parse v
                         |> Result.map (Elm.Processing.process Elm.Processing.init)
+                        |> Result.mapError (List.map Debug.toString)
 
                 value =
                     parseResult
