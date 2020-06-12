@@ -21,13 +21,13 @@ importDefinition =
                 |> Combine.continueWith Layout.layout
                 |> Combine.continueWith (Node.parser moduleName)
 
-        asDefinition : Parser State (Node ModuleName)
+        asDefinition : Parser State (Node String)
         asDefinition =
             asToken
                 |> Combine.continueWith Layout.layout
-                |> Combine.continueWith (Node.parser moduleName)
+                |> Combine.continueWith (Node.parser Elm.Parser.Tokens.typeName)
 
-        parseExposingDefinition : Node ModuleName -> Maybe (Node ModuleName) -> Parser State Import
+        parseExposingDefinition : Node ModuleName -> Maybe (Node String) -> Parser State Import
         parseExposingDefinition mod asDef =
             Combine.choice
                 [ Node.parser exposeDefinition

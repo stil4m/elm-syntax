@@ -64,7 +64,7 @@ all =
                         (Just <|
                             Node emptyRange <|
                                 { moduleName = Node emptyRange <| [ "Foo" ]
-                                , moduleAlias = Just <| Node emptyRange <| [ "Bar" ]
+                                , moduleAlias = Just <| Node emptyRange <| "Bar"
                                 , exposingList = Nothing
                                 }
                         )
