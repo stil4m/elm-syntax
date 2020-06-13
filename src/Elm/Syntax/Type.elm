@@ -6,7 +6,7 @@ module Elm.Syntax.Type exposing
 {-| This syntax represents custom types.
 For example:
 
-    {-| This is a person
+    {-| This is a color
     -}
     type Color
         = Blue
@@ -42,7 +42,7 @@ type alias Type =
     }
 
 
-{-| Syntax for a custom type value constructor
+{-| Syntax for a custom type value constructor.
 -}
 type alias ValueConstructor =
     { name : Node String
