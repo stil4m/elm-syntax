@@ -3,12 +3,15 @@ module Elm.Syntax.Type exposing
     , encode, decoder
     )
 
-{-| #Type Syntax
+{-|
+
+
+# Type Syntax
 
 This syntax represents custom types.
 For example:
 
-    {-| This is a person
+    {-| This is a color
     -}
     type Color
         = Blue
@@ -33,7 +36,7 @@ import Json.Decode as JD exposing (Decoder)
 import Json.Encode as JE exposing (Value)
 
 
-{-| Type alias that deines the syntax for a custom type.
+{-| Type alias that defines the syntax for a custom type.
 All information that you can define in on type alias is embedded.
 -}
 type alias Type =
@@ -44,7 +47,7 @@ type alias Type =
     }
 
 
-{-| Syntax for a custom type value constructor
+{-| Syntax for a custom type value constructor.
 -}
 type alias ValueConstructor =
     { name : Node String
