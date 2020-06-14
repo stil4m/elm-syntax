@@ -13,6 +13,7 @@ import Elm.Syntax.Node as Node exposing (Node(..))
 import Elm.Syntax.Range exposing (emptyRange)
 import Elm.Syntax.TypeAnnotation exposing (..)
 import Expect
+import Parser exposing (DeadEnd)
 import Test exposing (..)
 
 
@@ -294,6 +295,238 @@ bar = (x + 1) * (2 * y)
     )
 
 
+postProcessInfixOperators2 : ( String, String, File )
+postProcessInfixOperators2 =
+    ( "postProcessInfixOperators2"
+    , """
+module Bar exposing (..)
+
+bar = x + 1 * 2
+"""
+    , { moduleDefinition =
+            Node { start = { row = 1, column = 1 }, end = { row = 1, column = 25 } } <|
+                NormalModule
+                    { moduleName = Node { end = { column = 11, row = 1 }, start = { column = 8, row = 1 } } [ "Bar" ]
+                    , exposingList = Node { end = { column = 25, row = 1 }, start = { column = 12, row = 1 } } <| All { start = { row = 1, column = 22 }, end = { row = 1, column = 24 } }
+                    }
+      , imports = []
+      , declarations =
+            [ Node { start = { row = 3, column = 1 }, end = { row = 3, column = 16 } } <|
+                FunctionDeclaration
+                    { documentation = Nothing
+                    , signature = Nothing
+                    , declaration =
+                        Node { end = { column = 16, row = 3 }, start = { column = 1, row = 3 } }
+                            { name = Node { start = { row = 3, column = 1 }, end = { row = 3, column = 4 } } "bar"
+                            , arguments = []
+                            , expression =
+                                Node { start = { row = 3, column = 7 }, end = { row = 3, column = 16 } } <|
+                                    OperatorApplication "+"
+                                        Left
+                                        (Node { start = { row = 3, column = 7 }, end = { row = 3, column = 8 } } <|
+                                            FunctionOrValue [] "x"
+                                        )
+                                        (Node { start = { row = 3, column = 11 }, end = { row = 3, column = 16 } } <|
+                                            OperatorApplication "*"
+                                                Left
+                                                (Node { start = { row = 3, column = 11 }, end = { row = 3, column = 12 } } <| Integer 1)
+                                                (Node { start = { row = 3, column = 15 }, end = { row = 3, column = 16 } } <| Integer 2)
+                                        )
+                            }
+                    }
+            ]
+      , comments = []
+      }
+    )
+
+
+postProcessInfixOperators3 : ( String, String, File )
+postProcessInfixOperators3 =
+    ( "postProcessInfixOperators3"
+    , """
+module Bar exposing (..)
+
+bar = x * 1 + 2
+"""
+    , { moduleDefinition =
+            Node
+                { start = { row = 1, column = 1 }, end = { row = 1, column = 25 } }
+            <|
+                NormalModule
+                    { moduleName = Node { end = { column = 11, row = 1 }, start = { column = 8, row = 1 } } [ "Bar" ]
+                    , exposingList = Node { end = { column = 25, row = 1 }, start = { column = 12, row = 1 } } <| All { start = { row = 1, column = 22 }, end = { row = 1, column = 24 } }
+                    }
+      , imports = []
+      , declarations =
+            [ Node { start = { row = 3, column = 1 }, end = { row = 3, column = 16 } } <|
+                FunctionDeclaration
+                    { documentation = Nothing
+                    , signature = Nothing
+                    , declaration =
+                        Node { end = { column = 16, row = 3 }, start = { column = 1, row = 3 } }
+                            { name = Node { start = { row = 3, column = 1 }, end = { row = 3, column = 4 } } "bar"
+                            , arguments = []
+                            , expression =
+                                Node { start = { row = 3, column = 7 }, end = { row = 3, column = 16 } } <|
+                                    OperatorApplication "+"
+                                        Left
+                                        (Node { start = { row = 3, column = 7 }, end = { row = 3, column = 12 } } <|
+                                            OperatorApplication "*"
+                                                Left
+                                                (Node { start = { row = 3, column = 7 }, end = { row = 3, column = 8 } } <| FunctionOrValue [] "x")
+                                                (Node { start = { row = 3, column = 11 }, end = { row = 3, column = 12 } } <| Integer 1)
+                                        )
+                                        (Node { start = { row = 3, column = 15 }, end = { row = 3, column = 16 } } <| Integer 2)
+                            }
+                    }
+            ]
+      , comments = []
+      }
+    )
+
+
+{-| Check to make sure this issue is fixed <https://github.com/stil4m/elm-syntax/issues/41>
+-}
+postProcessInfixOperatorsRegressionTest : ( String, String, File )
+postProcessInfixOperatorsRegressionTest =
+    ( "postProcessInfixOperatorsRegressionTest"
+    , """
+module A exposing (..)
+
+bool1 = True && True || True
+bool2 = True || True && True
+
+numeric1 = 1 ^ 2 * 3 + 4
+numeric2 = 1 + 2 * 3 ^ 4
+"""
+    , { comments = []
+      , declarations =
+            [ Node { end = { column = 29, row = 3 }, start = { column = 1, row = 3 } }
+                (FunctionDeclaration
+                    { declaration =
+                        Node { end = { column = 29, row = 3 }, start = { column = 1, row = 3 } }
+                            { arguments = []
+                            , expression =
+                                Node { end = { column = 29, row = 3 }, start = { column = 9, row = 3 } }
+                                    (OperatorApplication "||"
+                                        Right
+                                        (Node { end = { column = 21, row = 3 }, start = { column = 9, row = 3 } }
+                                            (OperatorApplication "&&"
+                                                Right
+                                                (Node { end = { column = 13, row = 3 }, start = { column = 9, row = 3 } } (FunctionOrValue [] "True"))
+                                                (Node { end = { column = 21, row = 3 }, start = { column = 17, row = 3 } } (FunctionOrValue [] "True"))
+                                            )
+                                        )
+                                        (Node { end = { column = 29, row = 3 }, start = { column = 25, row = 3 } } (FunctionOrValue [] "True"))
+                                    )
+                            , name = Node { end = { column = 6, row = 3 }, start = { column = 1, row = 3 } } "bool1"
+                            }
+                    , documentation = Nothing
+                    , signature = Nothing
+                    }
+                )
+            , Node { end = { column = 29, row = 4 }, start = { column = 1, row = 4 } }
+                (FunctionDeclaration
+                    { declaration =
+                        Node { end = { column = 29, row = 4 }, start = { column = 1, row = 4 } }
+                            { arguments = []
+                            , expression =
+                                Node { end = { column = 29, row = 4 }, start = { column = 9, row = 4 } }
+                                    (OperatorApplication "||"
+                                        Right
+                                        (Node { end = { column = 13, row = 4 }, start = { column = 9, row = 4 } } (FunctionOrValue [] "True"))
+                                        (Node { end = { column = 29, row = 4 }, start = { column = 17, row = 4 } }
+                                            (OperatorApplication "&&"
+                                                Right
+                                                (Node { end = { column = 21, row = 4 }, start = { column = 17, row = 4 } } (FunctionOrValue [] "True"))
+                                                (Node { end = { column = 29, row = 4 }, start = { column = 25, row = 4 } } (FunctionOrValue [] "True"))
+                                            )
+                                        )
+                                    )
+                            , name = Node { end = { column = 6, row = 4 }, start = { column = 1, row = 4 } } "bool2"
+                            }
+                    , documentation = Nothing
+                    , signature = Nothing
+                    }
+                )
+            , Node { end = { column = 25, row = 6 }, start = { column = 1, row = 6 } }
+                (FunctionDeclaration
+                    { declaration =
+                        Node { end = { column = 25, row = 6 }, start = { column = 1, row = 6 } }
+                            { arguments = []
+                            , expression =
+                                Node { end = { column = 25, row = 6 }, start = { column = 12, row = 6 } }
+                                    (OperatorApplication "+"
+                                        Left
+                                        (Node { end = { column = 21, row = 6 }, start = { column = 12, row = 6 } }
+                                            (OperatorApplication "*"
+                                                Left
+                                                (Node { end = { column = 17, row = 6 }, start = { column = 12, row = 6 } }
+                                                    (OperatorApplication "^"
+                                                        Right
+                                                        (Node { end = { column = 13, row = 6 }, start = { column = 12, row = 6 } } (Integer 1))
+                                                        (Node { end = { column = 17, row = 6 }, start = { column = 16, row = 6 } } (Integer 2))
+                                                    )
+                                                )
+                                                (Node { end = { column = 21, row = 6 }, start = { column = 20, row = 6 } } (Integer 3))
+                                            )
+                                        )
+                                        (Node
+                                            { end = { column = 25, row = 6 }, start = { column = 24, row = 6 } }
+                                            (Integer 4)
+                                        )
+                                    )
+                            , name = Node { end = { column = 9, row = 6 }, start = { column = 1, row = 6 } } "numeric1"
+                            }
+                    , documentation = Nothing
+                    , signature = Nothing
+                    }
+                )
+            , Node { end = { column = 25, row = 7 }, start = { column = 1, row = 7 } }
+                (FunctionDeclaration
+                    { declaration =
+                        Node { end = { column = 25, row = 7 }, start = { column = 1, row = 7 } }
+                            { arguments = []
+                            , expression =
+                                Node { end = { column = 25, row = 7 }, start = { column = 12, row = 7 } }
+                                    (OperatorApplication "+"
+                                        Left
+                                        (Node { end = { column = 13, row = 7 }, start = { column = 12, row = 7 } } (Integer 1))
+                                        (Node { end = { column = 25, row = 7 }, start = { column = 16, row = 7 } }
+                                            (OperatorApplication "*"
+                                                Left
+                                                (Node { end = { column = 17, row = 7 }, start = { column = 16, row = 7 } } (Integer 2))
+                                                (Node { end = { column = 25, row = 7 }, start = { column = 20, row = 7 } }
+                                                    (OperatorApplication "^"
+                                                        Right
+                                                        (Node { end = { column = 21, row = 7 }, start = { column = 20, row = 7 } } (Integer 3))
+                                                        (Node { end = { column = 25, row = 7 }, start = { column = 24, row = 7 } } (Integer 4))
+                                                    )
+                                                )
+                                            )
+                                        )
+                                    )
+                            , name = Node { end = { column = 9, row = 7 }, start = { column = 1, row = 7 } } "numeric2"
+                            }
+                    , documentation = Nothing
+                    , signature = Nothing
+                    }
+                )
+            ]
+      , imports = []
+      , moduleDefinition =
+            Node { end = { column = 23, row = 1 }, start = { column = 1, row = 1 } }
+                (NormalModule
+                    { exposingList =
+                        Node { end = { column = 23, row = 1 }, start = { column = 10, row = 1 } }
+                            (All { end = { column = 22, row = 1 }, start = { column = 20, row = 1 } })
+                    , moduleName = Node { end = { column = 9, row = 1 }, start = { column = 8, row = 1 } } [ "A" ]
+                    }
+                )
+      }
+    )
+
+
 suite : Test
 suite =
     describe "Elm.Processing"
@@ -301,16 +534,54 @@ suite =
             (\( name, input, output ) ->
                 test name <|
                     \() ->
-                        Parser.parse (String.trim input)
-                            |> Result.map (Processing.process Processing.init)
-                            |> Expect.equal (Ok output)
+                        case context of
+                            Ok context_ ->
+                                Parser.parse (String.trim input)
+                                    |> Result.map (Processing.process context_)
+                                    |> Expect.equal (Ok output)
+
+                            Err _ ->
+                                Expect.fail "Failed to generate context."
             )
             [ functionWithDocs
             , functionWithDocsAndSignature
             , functionWithSingleLineCommentAsDoc
             , functionWithMultiLineCommentAsDoc
             , postProcessInfixOperators
+            , postProcessInfixOperators2
+            , postProcessInfixOperators3
+            , postProcessInfixOperatorsRegressionTest
             , typeAliasWithDocumentation
             , typeWithDocumentation
             ]
         )
+
+
+context : Result (List DeadEnd) Processing.ProcessContext
+context =
+    """
+module Basics exposing ((+), (-), (*), (/), (//), (^), (==), (/=), (<), (>), (<=), (>=), (&&), (||), (++), (<|), (|>), (<<), (>>))
+         
+         
+infix right 0 (<|) = apL
+infix left  0 (|>) = apR
+infix right 2 (||) = or
+infix right 3 (&&) = and
+infix non   4 (==) = eq
+infix non   4 (/=) = neq
+infix non   4 (<)  = lt
+infix non   4 (>)  = gt
+infix non   4 (<=) = le
+infix non   4 (>=) = ge
+infix right 5 (++) = append
+infix left  6 (+)  = add
+infix left  6 (-)  = sub
+infix left  7 (*)  = mul
+infix left  7 (/)  = fdiv
+infix left  7 (//) = idiv
+infix right 8 (^)  = pow
+infix left  9 (<<) = composeL
+infix right 9 (>>) = composeR"""
+        |> String.trim
+        |> Parser.parse
+        |> Result.map (\a -> Processing.addFile a Processing.init)
