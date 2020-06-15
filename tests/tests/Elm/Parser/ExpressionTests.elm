@@ -331,7 +331,7 @@ all =
                         (Just
                             (RecordUpdateExpression
                                 (Node emptyRange "model")
-                                ( Node emptyRange ( Node emptyRange "count", Node emptyRange <| Integer 1 ))
+                                (Node emptyRange ( Node emptyRange "count", Node emptyRange <| Integer 1 ))
                                 [ Node emptyRange ( Node emptyRange "loading", Node emptyRange <| FunctionOrValue [] "True" ) ]
                             )
                         )
@@ -344,7 +344,7 @@ all =
                         (Just
                             (RecordUpdateExpression
                                 (Node emptyRange "model")
-                                ( Node emptyRange ( Node emptyRange "count", Node emptyRange <| Integer 1 ) )
+                                (Node emptyRange ( Node emptyRange "count", Node emptyRange <| Integer 1 ))
                                 [ Node emptyRange ( Node emptyRange "loading", Node emptyRange <| FunctionOrValue [] "True" ) ]
                             )
                         )
