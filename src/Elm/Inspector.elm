@@ -371,10 +371,10 @@ inspectInnerExpression config expression context =
         RecordExpr expressionStringList ->
             List.foldl (\a b -> inspectExpression config (Tuple.second <| Node.value a) b) context expressionStringList
 
-        RecordUpdateExpression name updates ->
+        RecordUpdateExpression name firstUpdate updates ->
             actionLambda config.onRecordUpdate
-                (\c -> List.foldl (\a b -> inspectExpression config (Tuple.second <| Node.value a) b) c updates)
-                ( name, updates )
+                (\c -> List.foldl (\a b -> inspectExpression config (Tuple.second <| Node.value a) b) c (firstUpdate :: updates))
+                ( name, firstUpdate :: updates )
                 context
 
 

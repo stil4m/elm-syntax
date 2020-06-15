@@ -106,7 +106,7 @@ type Expression
     | ListExpr (List (Node Expression))
     | RecordAccess (Node Expression) (Node String)
     | RecordAccessFunction String
-    | RecordUpdateExpression (Node String) (List (Node RecordSetter))
+    | RecordUpdateExpression (Node String) (Node RecordSetter) (List (Node RecordSetter))
     | GLSLExpression String
 
 
@@ -308,8 +308,8 @@ encode expr =
         RecordExpr xs ->
             encodeTyped "record" (JE.list (Node.encode encodeRecordSetter) xs)
 
-        RecordUpdateExpression name updates ->
-            encodeTyped "recordUpdate" (encodeRecordUpdate name updates)
+        RecordUpdateExpression name firstUpdate updates ->
+            encodeTyped "recordUpdate" (encodeRecordUpdate name firstUpdate updates)
 
         GLSLExpression x ->
             encodeTyped "glsl" (JE.string x)
@@ -333,11 +333,11 @@ encodeLetBlock { declarations, expression } =
         ]
 
 
-encodeRecordUpdate : Node String -> List (Node RecordSetter) -> Value
-encodeRecordUpdate name updates =
+encodeRecordUpdate : Node String -> Node RecordSetter -> List (Node RecordSetter) -> Value
+encodeRecordUpdate name firstUpdate updates =
     JE.object
         [ ( "name", Node.encode JE.string name )
-        , ( "updates", JE.list (Node.encode encodeRecordSetter) updates )
+        , ( "updates", JE.list (Node.encode encodeRecordSetter) (firstUpdate :: updates) )
         ]
 
 
@@ -416,6 +416,20 @@ decodeNested =
     JD.lazy (\() -> Node.decoder decoder)
 
 
+decodeNonemptyList : Decoder a -> Decoder ( a, List a )
+decodeNonemptyList decodeA =
+    JD.list decodeA
+        |> JD.andThen
+            (\list ->
+                case list of
+                    head :: rest ->
+                        JD.succeed ( head, rest )
+
+                    [] ->
+                        JD.fail "List must have at least one element."
+            )
+
+
 {-| JSON decoder for an `Expression` syntax element.
 -}
 decoder : Decoder Expression
@@ -425,16 +439,7 @@ decoder =
             decodeTyped
                 [ ( "unit", JD.succeed UnitExpr )
                 , ( "application"
-                  , JD.list decodeNested
-                        |> JD.andThen
-                            (\list ->
-                                case list of
-                                    head :: rest ->
-                                        Application head rest |> JD.succeed
-
-                                    [] ->
-                                        JD.fail "Application expression must have at least one subexpression."
-                            )
+                  , decodeNonemptyList decodeNested |> JD.map (\( head, rest ) -> Application head rest)
                   )
                 , ( "operatorapplication", decodeOperatorApplication )
                 , ( "functionOrValue", JD.map2 FunctionOrValue (JD.field "moduleName" ModuleName.decoder) (JD.field "name" JD.string) )
@@ -457,9 +462,9 @@ decoder =
                 , ( "recordAccessFunction", JD.string |> JD.map RecordAccessFunction )
                 , ( "record", JD.list (Node.decoder decodeRecordSetter) |> JD.map RecordExpr )
                 , ( "recordUpdate"
-                  , JD.map2 RecordUpdateExpression
+                  , JD.map2 (\name ( firstUpdate, restOfUpdates ) -> RecordUpdateExpression name firstUpdate restOfUpdates)
                         (JD.field "name" <| Node.decoder JD.string)
-                        (JD.field "updates" (JD.list <| Node.decoder decodeRecordSetter))
+                        (JD.field "updates" (decodeNonemptyList <| Node.decoder decodeRecordSetter))
                   )
                 , ( "glsl", JD.string |> JD.map GLSLExpression )
                 ]
