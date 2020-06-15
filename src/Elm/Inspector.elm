@@ -257,9 +257,6 @@ inspectTypeAnnotationInner config (Node _ typeRefence) context =
         FunctionTypeAnnotation left right ->
             List.foldl (inspectTypeAnnotation config) context [ left, right ]
 
-        Unit ->
-            context
-
         GenericType _ ->
             context
 

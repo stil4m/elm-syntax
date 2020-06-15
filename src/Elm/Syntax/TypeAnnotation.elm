@@ -36,8 +36,7 @@ import Json.Encode as JE exposing (Value)
 
   - `GenericType`: `a`
   - `Typed`: `Maybe (Int -> String)`
-  - `Unit`: `()`
-  - `Tuples`: `(a, b, c)`
+  - `Tuples`: `(a, b, c)` or Unit `()`
   - `Record`: `{ name : String}`
   - `GenericRecord`: `{ a | name : String}`
   - `FunctionTypeAnnotation`: `Int -> String`
@@ -46,7 +45,6 @@ import Json.Encode as JE exposing (Value)
 type TypeAnnotation
     = GenericType String
     | Typed (Node ( ModuleName, String )) (List (Node TypeAnnotation))
-    | Unit
     | Tupled (List (Node TypeAnnotation))
     | Record RecordDefinition
     | GenericRecord (Node String) (Node RecordDefinition)
@@ -94,9 +92,6 @@ encode typeAnnotation =
                     [ ( "moduleNameAndName", Node.encode inner moduleNameAndName )
                     , ( "args", JE.list (Node.encode encode) args )
                     ]
-
-        Unit ->
-            encodeTyped "unit" (JE.object [])
 
         Tupled t ->
             encodeTyped "tupled" <|
@@ -158,7 +153,6 @@ decoder =
                         (JD.field "moduleNameAndName" <| Node.decoder decodeModuleNameAndName)
                         (JD.field "args" (JD.list nestedDecoder))
                   )
-                , ( "unit", JD.succeed Unit )
                 , ( "tupled", JD.map Tupled (JD.field "values" (JD.list nestedDecoder)) )
                 , ( "function"
                   , JD.map2 FunctionTypeAnnotation

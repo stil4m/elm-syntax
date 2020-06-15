@@ -343,9 +343,6 @@ writeTypeAnnotation (Node _ typeAnnotation) =
                     :: List.map (writeTypeAnnotation >> parensIfContainsSpaces) args
                 )
 
-        Unit ->
-            string "()"
-
         Tupled xs ->
             parensComma False (List.map writeTypeAnnotation xs)
 

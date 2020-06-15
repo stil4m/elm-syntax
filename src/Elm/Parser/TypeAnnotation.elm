@@ -88,7 +88,7 @@ parensTypeAnnotation =
                 (Combine.string "("
                     |> Combine.continueWith
                         (Combine.choice
-                            [ Combine.string ")" |> Combine.map (always Unit)
+                            [ Combine.string ")" |> Combine.map (always (Tupled []))
                             , nested |> Combine.ignore (Combine.string ")")
                             ]
                         )
