@@ -200,7 +200,7 @@ recordContents =
                 \tailFields ->
                     case afterNameBeforeFields of
                         RecordUpdateFirstSetter firstField ->
-                            RecordUpdateExpression nameNode (firstField :: tailFields)
+                            RecordUpdateExpression nameNode firstField tailFields
 
                         FieldsFirstValue firstFieldValue ->
                             RecordExpr (Node.combine Tuple.pair nameNode firstFieldValue :: tailFields)

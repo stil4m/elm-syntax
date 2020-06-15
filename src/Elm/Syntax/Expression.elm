@@ -124,7 +124,7 @@ type Expression
     | ListExpr (List (Node Expression))
     | RecordAccess (Node Expression) (Node String)
     | RecordAccessFunction String
-    | RecordUpdateExpression (Node String) (List (Node RecordSetter))
+    | RecordUpdateExpression (Node String) (Node RecordSetter) (List (Node RecordSetter))
     | GLSLExpression String
 
 
