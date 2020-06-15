@@ -340,9 +340,8 @@ all =
                         (Just
                             (RecordUpdateExpression
                                 (Node empty "model")
-                                [ Node empty ( Node empty "count", Node empty <| Integer 1 )
-                                , Node empty ( Node empty "loading", Node empty <| FunctionOrValue [] "True" )
-                                ]
+                                (Node empty ( Node empty "count", Node empty <| Integer 1 ))
+                                [ Node empty ( Node empty "loading", Node empty <| FunctionOrValue [] "True" ) ]
                             )
                         )
         , test "record update no spacing" <|
@@ -354,9 +353,8 @@ all =
                         (Just
                             (RecordUpdateExpression
                                 (Node empty "model")
-                                [ Node empty ( Node empty "count", Node empty <| Integer 1 )
-                                , Node empty ( Node empty "loading", Node empty <| FunctionOrValue [] "True" )
-                                ]
+                                (Node empty ( Node empty "count", Node empty <| Integer 1 ))
+                                [ Node empty ( Node empty "loading", Node empty <| FunctionOrValue [] "True" ) ]
                             )
                         )
         , test "record access as function" <|

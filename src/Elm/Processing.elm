@@ -470,10 +470,11 @@ visitExpressionInner (Node range expression) =
             ListExpr expressionList ->
                 ListExpr (List.map visitExpression expressionList)
 
-            RecordUpdateExpression name updates ->
-                updates
-                    |> List.map (Node.map (Tuple.mapSecond visitExpression))
-                    |> RecordUpdateExpression name
+            RecordUpdateExpression name firstUpdate updates ->
+                RecordUpdateExpression
+                    name
+                    (Node.map (Tuple.mapSecond visitExpression) firstUpdate)
+                    (List.map (Node.map (Tuple.mapSecond visitExpression)) updates)
 
             Negation expr ->
                 Negation (visitExpression expr)

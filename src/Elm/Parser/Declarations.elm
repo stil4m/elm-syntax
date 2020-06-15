@@ -315,7 +315,15 @@ recordExpression =
             string "|"
                 |> Combine.ignore (maybe Layout.layout)
                 |> Combine.continueWith recordFields
-                |> Combine.map (\e -> RecordUpdateExpression fname e)
+                |> Combine.andThen
+                    (\e ->
+                        case e of
+                            head :: rest ->
+                                RecordUpdateExpression fname head rest |> Combine.succeed
+
+                            [] ->
+                                Combine.fail "Record update must have at least one field being updated."
+                    )
                 |> Combine.ignore (string "}")
 
         recordContents : Parser State Expression
