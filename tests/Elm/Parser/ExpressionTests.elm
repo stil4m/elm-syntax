@@ -426,11 +426,12 @@ all =
                         (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 38 } }
                             (RecordUpdateExpression
                                 (Node { start = { row = 1, column = 3 }, end = { row = 1, column = 8 } } "model")
-                                [ Node { start = { row = 1, column = 11 }, end = { row = 1, column = 20 } }
+                                (Node { start = { row = 1, column = 11 }, end = { row = 1, column = 20 } }
                                     ( Node { start = { row = 1, column = 11 }, end = { row = 1, column = 16 } } "count"
                                     , Node { start = { row = 1, column = 19 }, end = { row = 1, column = 20 } } (Integer 1)
                                     )
-                                , Node { start = { row = 1, column = 22 }, end = { row = 1, column = 37 } }
+                                )
+                                [ Node { start = { row = 1, column = 22 }, end = { row = 1, column = 37 } }
                                     ( Node { start = { row = 1, column = 22 }, end = { row = 1, column = 29 } } "loading"
                                     , Node { start = { row = 1, column = 32 }, end = { row = 1, column = 36 } } (FunctionOrValue [] "True")
                                     )
@@ -444,11 +445,12 @@ all =
                         (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 36 } }
                             (RecordUpdateExpression
                                 (Node { start = { row = 1, column = 2 }, end = { row = 1, column = 7 } } "model")
-                                [ Node { start = { row = 1, column = 9 }, end = { row = 1, column = 18 } }
+                                (Node { start = { row = 1, column = 9 }, end = { row = 1, column = 18 } }
                                     ( Node { start = { row = 1, column = 9 }, end = { row = 1, column = 14 } } "count"
                                     , Node { start = { row = 1, column = 17 }, end = { row = 1, column = 18 } } (Integer 1)
                                     )
-                                , Node { start = { row = 1, column = 20 }, end = { row = 1, column = 35 } }
+                                )
+                                [ Node { start = { row = 1, column = 20 }, end = { row = 1, column = 35 } }
                                     ( Node { start = { row = 1, column = 20 }, end = { row = 1, column = 27 } } "loading"
                                     , Node { start = { row = 1, column = 30 }, end = { row = 1, column = 34 } } (FunctionOrValue [] "True")
                                     )
@@ -724,7 +726,7 @@ all =
                                     (RecordAccess
                                         (Node { start = { row = 1, column = 5 }, end = { row = 1, column = 22 } }
                                             (RecordUpdateExpression (Node { start = { row = 1, column = 7 }, end = { row = 1, column = 8 } } "d")
-                                                [ Node { start = { row = 1, column = 11 }, end = { row = 1, column = 21 } }
+                                                (Node { start = { row = 1, column = 11 }, end = { row = 1, column = 21 } }
                                                     ( Node { start = { row = 1, column = 11 }, end = { row = 1, column = 12 } } "b"
                                                     , Node { start = { row = 1, column = 15 }, end = { row = 1, column = 20 } }
                                                         (Application (Node { start = { row = 1, column = 15 }, end = { row = 1, column = 16 } } (FunctionOrValue [] "f"))
@@ -733,7 +735,8 @@ all =
                                                             ]
                                                         )
                                                     )
-                                                ]
+                                                )
+                                                []
                                             )
                                         )
                                         (Node { start = { row = 1, column = 23 }, end = { row = 1, column = 24 } } "b")
