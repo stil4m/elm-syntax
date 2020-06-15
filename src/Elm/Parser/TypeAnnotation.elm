@@ -78,7 +78,7 @@ parensTypeAnnotation =
                             { start = { row = end.row, column = end.column - 2 }
                             , end = end
                             }
-                            TypeAnnotation.Unit
+                            unit
                     }
                 )
             )
@@ -162,6 +162,11 @@ parensTypeAnnotation =
                 )
             )
         )
+
+
+unit : TypeAnnotation
+unit =
+    TypeAnnotation.Tupled []
 
 
 genericTypeAnnotation : Parser (WithComments (Node TypeAnnotation))
