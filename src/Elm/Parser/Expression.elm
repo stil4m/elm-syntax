@@ -198,13 +198,13 @@ recordContents =
                                     fieldUpdate =
                                         Node.combine Tuple.pair fname e
 
-                                    toRecordExpr : List (Node RecordSetter) -> Expression
-                                    toRecordExpr fieldUpdates =
-                                        RecordExpr (fieldUpdate :: fieldUpdates)
+                                    toRecordExpr : ( Node RecordSetter, List (Node RecordSetter) ) -> Expression
+                                    toRecordExpr ( head, tail ) =
+                                        RecordExpr (fieldUpdate :: head :: tail)
                                 in
                                 Combine.oneOf
                                     [ Tokens.curlyEnd
-                                        |> Core.map (\() -> toRecordExpr [])
+                                        |> Core.map (\() -> RecordExpr [ fieldUpdate ])
                                         |> Combine.fromCore
                                     , Combine.succeed toRecordExpr
                                         |> Combine.ignoreEntirely Tokens.comma
@@ -219,16 +219,16 @@ recordContents =
 
 recordUpdateSyntaxParser : Node String -> Parser State Expression
 recordUpdateSyntaxParser fname =
-    Combine.succeed (\e -> RecordUpdateExpression fname e)
+    Combine.succeed (\( head, tail ) -> RecordUpdateExpression fname head tail)
         |> Combine.ignoreEntirely Tokens.pipe
         |> Combine.ignore (Combine.maybeIgnore Layout.layout)
         |> Combine.keep recordFields
         |> Combine.ignoreEntirely Tokens.curlyEnd
 
 
-recordFields : Parser State (List (Node RecordSetter))
+recordFields : Parser State ( Node RecordSetter, List (Node RecordSetter) )
 recordFields =
-    Combine.succeed (\first -> \rest -> first :: rest)
+    Combine.succeed Tuple.pair
         |> Combine.keep recordField
         |> Combine.ignore (Combine.maybeIgnore Layout.layout)
         |> Combine.keep

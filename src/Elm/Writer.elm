@@ -542,12 +542,12 @@ writeExpression (Node range inner) =
             else
                 join [ string ".", string s ]
 
-        RecordUpdateExpression name updates ->
+        RecordUpdateExpression name firstUpdate updates ->
             spaced
                 [ string "{"
                 , string <| Node.value name
                 , string "|"
-                , sepHelper sepByComma (List.map (Node.value >> writeRecordSetter) updates)
+                , sepHelper sepByComma (List.map (Node.value >> writeRecordSetter) (firstUpdate :: updates))
                 , string "}"
                 ]
 
