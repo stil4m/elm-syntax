@@ -38,7 +38,7 @@ import Elm.Syntax.Infix exposing (Infix, InfixDirection(..))
 import Elm.Syntax.ModuleName exposing (ModuleName)
 import Elm.Syntax.Node as Node exposing (Node(..))
 import Elm.Syntax.Range as Range
-import List exposing (maximum)
+import List
 import List.Extra as List
 
 
@@ -167,7 +167,7 @@ fixApplication operators head expressions =
                                 }
                         )
                     )
-                |> highestPrecedence
+                |> lowestPrecedence
 
         fixExprs : List (Node Expression) -> Expression
         fixExprs exps =
@@ -225,15 +225,11 @@ findNextSplit dict exps =
         |> Maybe.map (\x -> ( prefix, x, suffix ))
 
 
-highestPrecedence : List ( String, Infix ) -> Dict String Infix
-highestPrecedence input =
-    let
-        maxi =
-            input
-                |> List.map (Tuple.second >> .precedence >> Node.value)
-                |> maximum
-    in
-    maxi
+lowestPrecedence : List ( String, Infix ) -> Dict String Infix
+lowestPrecedence input =
+    input
+        |> List.map (Tuple.second >> .precedence >> Node.value)
+        |> List.minimum
         |> Maybe.map (\m -> List.filter (Tuple.second >> .precedence >> Node.value >> (==) m) input)
         |> Maybe.withDefault []
         |> Dict.fromList
