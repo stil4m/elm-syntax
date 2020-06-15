@@ -13,6 +13,7 @@
 
 - Changed `Elm.Syntax.Expression.Expression`:
   - `Application (List (Node Expression))` -> `Application (Node Expression) (List (Node Expression))` (takes a non-empty list of arguments)
+  - `RecordUpdateExpression (Node String) (List (Node RecordSetter))` -> `RecordUpdateExpression (Node String) (Node RecordSetter) (List (Node RecordSetter))` (takes a non-empty list of fields)
 
 ## [7.3.4] - 2024-07-26
 

@@ -287,7 +287,7 @@ recordContents =
                                     , syntax =
                                         case afterNameBeforeFields.syntax of
                                             RecordUpdateFirstSetter firstField ->
-                                                RecordUpdateExpression nameNode (firstField :: tailFields.syntax)
+                                                RecordUpdateExpression nameNode firstField tailFields.syntax
 
                                             FieldsFirstValue firstFieldValue ->
                                                 RecordExpr (Node.combine Tuple.pair nameNode firstFieldValue :: tailFields.syntax)
