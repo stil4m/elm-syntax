@@ -46,7 +46,7 @@ type alias Config context =
     , onCase : Order context Case
     , onFunctionOrValue : Order context ( ModuleName, String )
     , onRecordAccess : Order context ( Node Expression, Node String )
-    , onRecordUpdate : Order context ( Node String, List (Node RecordSetter) )
+    , onRecordUpdate : Order context ( Node String, Node RecordSetter, List (Node RecordSetter) )
     }
 
 
@@ -374,7 +374,7 @@ inspectInnerExpression config expression context =
         RecordUpdateExpression name firstUpdate updates ->
             actionLambda config.onRecordUpdate
                 (\c -> List.foldl (\a b -> inspectExpression config (Tuple.second <| Node.value a) b) c (firstUpdate :: updates))
-                ( name, firstUpdate :: updates )
+                ( name, firstUpdate, updates )
                 context
 
 
