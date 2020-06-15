@@ -223,13 +223,9 @@ findNextSplit dict exps =
 
 lowestPrecedence : List ( String, Infix ) -> Dict String Infix
 lowestPrecedence input =
-    let
-        maxi =
-            input
-                |> List.map (Tuple.second >> .precedence >> Node.value)
-                |> List.minimum
-    in
-    maxi
+    input
+        |> List.map (Tuple.second >> .precedence >> Node.value)
+        |> List.minimum
         |> Maybe.map (\m -> List.filter (Tuple.second >> .precedence >> Node.value >> (==) m) input)
         |> Maybe.withDefault []
         |> Dict.fromList
