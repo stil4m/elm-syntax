@@ -20,8 +20,7 @@ import Elm.Syntax.Node exposing (Node)
 
   - `GenericType`: `a`
   - `Typed`: `Maybe (Int -> String)`
-  - `Unit`: `()`
-  - `Tuples`: `(a, b, c)`
+  - `Tuples`: `(a, b, c)` or Unit `()`
   - `Record`: `{ name : String}`
   - `GenericRecord`: `{ a | name : String}`
   - `FunctionTypeAnnotation`: `Int -> String`
@@ -30,7 +29,6 @@ import Elm.Syntax.Node exposing (Node)
 type TypeAnnotation
     = GenericType String
     | Typed (Node ( ModuleName, String )) (List (Node TypeAnnotation))
-    | Unit
     | Tupled (List (Node TypeAnnotation))
     | Record RecordDefinition
     | GenericRecord (Node String) (Node RecordDefinition)
