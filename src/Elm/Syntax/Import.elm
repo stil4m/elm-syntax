@@ -36,7 +36,7 @@ import Json.Encode as JE exposing (Value)
 -}
 type alias Import =
     { moduleName : Node ModuleName
-    , moduleAlias : Maybe (Node ModuleName)
+    , moduleAlias : Maybe (Node String)
     , exposingList : Maybe (Node Exposing)
     }
 
@@ -49,7 +49,7 @@ encode { moduleName, moduleAlias, exposingList } =
         [ ( "moduleName", Node.encode ModuleName.encode moduleName )
         , ( "moduleAlias"
           , moduleAlias
-                |> Maybe.map (Node.encode ModuleName.encode)
+                |> Maybe.map (Node.encode JE.string)
                 |> Maybe.withDefault JE.null
           )
         , ( "exposingList"
@@ -66,5 +66,5 @@ decoder : Decoder Import
 decoder =
     JD.map3 Import
         (JD.field "moduleName" <| Node.decoder ModuleName.decoder)
-        (JD.field "moduleAlias" (JD.nullable <| Node.decoder ModuleName.decoder))
+        (JD.field "moduleAlias" (JD.nullable <| Node.decoder JD.string))
         (JD.field "exposingList" (JD.nullable <| Node.decoder Exposing.decoder))
