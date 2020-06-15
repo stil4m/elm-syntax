@@ -261,9 +261,6 @@ noRangeTypeReference (Node _ typeAnnotation) =
             Typed (Node _ ( a, b )) c ->
                 Typed (Node.empty ( a, b )) (List.map noRangeTypeReference c)
 
-            Unit ->
-                Unit
-
             Tupled a ->
                 Tupled (List.map noRangeTypeReference a)
 
