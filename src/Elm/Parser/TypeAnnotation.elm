@@ -128,7 +128,7 @@ parensTypeAnnotation =
 
 unitWithComments : WithComments TypeAnnotation
 unitWithComments =
-    { comments = Rope.empty, syntax = TypeAnnotation.Unit }
+    { comments = Rope.empty, syntax = TypeAnnotation.Tupled [] }
 
 
 genericTypeAnnotation : Parser (WithComments TypeAnnotation)
