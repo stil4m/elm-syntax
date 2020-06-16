@@ -358,7 +358,8 @@ encodeRecordUpdate : Node String -> Node RecordSetter -> List (Node RecordSetter
 encodeRecordUpdate name firstUpdate updates =
     JE.object
         [ ( "name", Node.encode JE.string name )
-        , ( "updates", JE.list (Node.encode encodeRecordSetter) (firstUpdate :: updates) )
+        , ( "firstUpdate", Node.encode encodeRecordSetter firstUpdate )
+        , ( "updates", JE.list (Node.encode encodeRecordSetter) updates )
         ]
 
 
@@ -483,9 +484,10 @@ decoder =
                 , ( "recordAccessFunction", JD.string |> JD.map RecordAccessFunction )
                 , ( "record", JD.list (Node.decoder decodeRecordSetter) |> JD.map RecordExpr )
                 , ( "recordUpdate"
-                  , JD.map2 (\name ( firstUpdate, restOfUpdates ) -> RecordUpdateExpression name firstUpdate restOfUpdates)
+                  , JD.map3 RecordUpdateExpression
                         (JD.field "name" <| Node.decoder JD.string)
-                        (JD.field "updates" (decodeNonemptyList <| Node.decoder decodeRecordSetter))
+                        (JD.field "firstUpdate" (Node.decoder decodeRecordSetter))
+                        (JD.field "updates" (JD.list <| Node.decoder decodeRecordSetter))
                   )
                 , ( "glsl", JD.string |> JD.map GLSLExpression )
                 ]
