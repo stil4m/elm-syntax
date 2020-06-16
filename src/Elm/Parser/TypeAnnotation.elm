@@ -175,7 +175,7 @@ genericTypeAnnotation =
         (\range var ->
             { comments = Rope.empty
             , syntax =
-                Node range (TypeAnnotation.GenericType var)
+                Node range (TypeAnnotation.Var var)
             }
         )
 

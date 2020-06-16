@@ -51,7 +51,7 @@ all =
                                 , Node { start = { row = 1, column = 8 }, end = { row = 1, column = 15 } }
                                     (Type
                                         (Node { start = { row = 1, column = 8 }, end = { row = 1, column = 13 } } ( [], "Maybe" ))
-                                        [ Node { start = { row = 1, column = 14 }, end = { row = 1, column = 15 } } (GenericType "m") ]
+                                        [ Node { start = { row = 1, column = 14 }, end = { row = 1, column = 15 } } (Var "m") ]
                                     )
                                 ]
                             )
@@ -77,7 +77,7 @@ all =
                         (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 13 } }
                             (Type (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 4 } } ( [], "Foo" ))
                                 [ Node { start = { row = 1, column = 5 }, end = { row = 1, column = 7 } } (Tuple [])
-                                , Node { start = { row = 1, column = 8 }, end = { row = 1, column = 9 } } (GenericType "a")
+                                , Node { start = { row = 1, column = 8 }, end = { row = 1, column = 9 } } (Var "a")
                                 , Node { start = { row = 1, column = 10 }, end = { row = 1, column = 13 } }
                                     (Type (Node { start = { row = 1, column = 10 }, end = { row = 1, column = 13 } } ( [], "Bar" )) [])
                                 ]
@@ -90,7 +90,7 @@ all =
                         (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 13 } }
                             (Type (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 4 } } ( [], "Foo" ))
                                 [ Node { start = { row = 1, column = 5 }, end = { row = 1, column = 7 } } (Tuple [])
-                                , Node { start = { row = 1, column = 8 }, end = { row = 1, column = 9 } } (GenericType "a")
+                                , Node { start = { row = 1, column = 8 }, end = { row = 1, column = 9 } } (Var "a")
                                 , Node { start = { row = 1, column = 10 }, end = { row = 1, column = 13 } }
                                     (Type (Node { start = { row = 1, column = 10 }, end = { row = 1, column = 13 } } ( [], "Bar" )) [])
                                 ]
@@ -202,7 +202,7 @@ all =
                             (Record
                                 [ Node { start = { row = 1, column = 2 }, end = { row = 1, column = 10 } }
                                     ( Node { start = { row = 1, column = 2 }, end = { row = 1, column = 7 } } "color"
-                                    , Node { start = { row = 1, column = 9 }, end = { row = 1, column = 10 } } (GenericType "s")
+                                    , Node { start = { row = 1, column = 9 }, end = { row = 1, column = 10 } } (Var "s")
                                     )
                                 ]
                             )
@@ -235,7 +235,7 @@ all =
                                         (Node { start = { row = 1, column = 8 }, end = { row = 1, column = 11 } }
                                             (Type (Node { start = { row = 1, column = 8 }, end = { row = 1, column = 11 } } ( [], "Bar" )) [])
                                         )
-                                        (Node { start = { row = 1, column = 15 }, end = { row = 1, column = 18 } } (GenericType "baz"))
+                                        (Node { start = { row = 1, column = 15 }, end = { row = 1, column = 18 } } (Var "baz"))
                                     )
                                 )
                             )
@@ -246,11 +246,11 @@ all =
                     |> expectAst
                         (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 20 } }
                             (FunctionTypeAnnotation
-                                (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 5 } } (GenericType "cMsg"))
+                                (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 5 } } (Var "cMsg"))
                                 (Node { start = { row = 1, column = 9 }, end = { row = 1, column = 20 } }
                                     (FunctionTypeAnnotation
-                                        (Node { start = { row = 1, column = 9 }, end = { row = 1, column = 15 } } (GenericType "cModel"))
-                                        (Node { start = { row = 1, column = 19 }, end = { row = 1, column = 20 } } (GenericType "a"))
+                                        (Node { start = { row = 1, column = 9 }, end = { row = 1, column = 15 } } (Var "cModel"))
+                                        (Node { start = { row = 1, column = 19 }, end = { row = 1, column = 20 } } (Var "a"))
                                     )
                                 )
                             )
@@ -294,15 +294,15 @@ all =
                             (FunctionTypeAnnotation
                                 (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 24 } }
                                     (FunctionTypeAnnotation
-                                        (Node { start = { row = 1, column = 3 }, end = { row = 1, column = 7 } } (GenericType "cMsg"))
+                                        (Node { start = { row = 1, column = 3 }, end = { row = 1, column = 7 } } (Var "cMsg"))
                                         (Node { start = { row = 1, column = 11 }, end = { row = 1, column = 22 } }
-                                            (FunctionTypeAnnotation (Node { start = { row = 1, column = 11 }, end = { row = 1, column = 17 } } (GenericType "cModel"))
-                                                (Node { start = { row = 1, column = 21 }, end = { row = 1, column = 22 } } (GenericType "a"))
+                                            (FunctionTypeAnnotation (Node { start = { row = 1, column = 11 }, end = { row = 1, column = 17 } } (Var "cModel"))
+                                                (Node { start = { row = 1, column = 21 }, end = { row = 1, column = 22 } } (Var "a"))
                                             )
                                         )
                                     )
                                 )
-                                (Node { start = { row = 1, column = 28 }, end = { row = 1, column = 29 } } (GenericType "b"))
+                                (Node { start = { row = 1, column = 28 }, end = { row = 1, column = 29 } } (Var "b"))
                             )
                         )
         , test "type with params" <|
@@ -347,7 +347,7 @@ all =
                                         )
                                     )
                                 )
-                                (Node { start = { row = 1, column = 17 }, end = { row = 1, column = 20 } } (GenericType "baz"))
+                                (Node { start = { row = 1, column = 17 }, end = { row = 1, column = 20 } } (Var "baz"))
                             )
                         )
         , test "parseTypeWith wrong indent" <|
@@ -361,7 +361,7 @@ all =
                         (Node { start = { row = 1, column = 1 }, end = { row = 2, column = 3 } }
                             (Type
                                 (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 6 } } ( [], "Maybe" ))
-                                [ Node { start = { row = 2, column = 2 }, end = { row = 2, column = 3 } } (GenericType "a") ]
+                                [ Node { start = { row = 2, column = 2 }, end = { row = 2, column = 3 } } (Var "a") ]
                             )
                         )
         , test "issue #5 - no spaces between type and generic with parens" <|

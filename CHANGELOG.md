@@ -20,6 +20,7 @@
   - `Tupled` -> `Tuple`
   - `Unit` -> `Tuple []`
   - Renamed `Typed` to `Type`
+  - Renamed `GenericType` to `Var`
 
 ## [7.3.6] - 2024-09-11
 
