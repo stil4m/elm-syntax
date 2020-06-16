@@ -96,7 +96,7 @@ parensTypeAnnotation =
                                                 firstPartValue
 
                                             _ ->
-                                                TypeAnnotation.Tupled (firstPart.syntax :: List.reverse lastToSecondPart.syntax)
+                                                TypeAnnotation.Tuple (firstPart.syntax :: List.reverse lastToSecondPart.syntax)
                                     }
                     )
                     Layout.maybeLayout
@@ -128,7 +128,7 @@ parensTypeAnnotation =
 
 unitWithComments : WithComments TypeAnnotation
 unitWithComments =
-    { comments = Rope.empty, syntax = TypeAnnotation.Tupled [] }
+    { comments = Rope.empty, syntax = TypeAnnotation.Tuple [] }
 
 
 genericTypeAnnotation : Parser (WithComments TypeAnnotation)
