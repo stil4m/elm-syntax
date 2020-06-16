@@ -64,7 +64,7 @@ parensTypeAnnotation =
         |> Combine.fromCoreContinue
             (Combine.oneOf
                 [ Tokens.parensEnd
-                    |> Combine.fromCoreMap (\() -> TypeAnnotation.Tupled [])
+                    |> Combine.fromCoreMap (\() -> TypeAnnotation.Tuple [])
                 , Layout.maybeLayout
                     |> Combine.continueWith
                         (Combine.map
@@ -79,7 +79,7 @@ parensTypeAnnotation =
                                             firstPartValue
 
                                         _ ->
-                                            TypeAnnotation.Tupled (firstPart :: List.reverse lastToSecondPart)
+                                            TypeAnnotation.Tuple (firstPart :: List.reverse lastToSecondPart)
                             )
                             typeAnnotation
                         )

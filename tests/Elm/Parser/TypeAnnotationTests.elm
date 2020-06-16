@@ -17,7 +17,7 @@ all =
             \() ->
                 "()"
                     |> expectAst
-                        (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 3 } } (Tupled []))
+                        (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 3 } } (Tuple []))
         , test "unitTypeReference with spaces" <|
             \() ->
                 "( )"
@@ -27,9 +27,9 @@ all =
                 "( (), ())"
                     |> expectAst
                         (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 10 } }
-                            (Tupled
-                                [ Node { start = { row = 1, column = 3 }, end = { row = 1, column = 5 } } (Tupled [])
-                                , Node { start = { row = 1, column = 7 }, end = { row = 1, column = 9 } } (Tupled [])
+                            (Tuple
+                                [ Node { start = { row = 1, column = 3 }, end = { row = 1, column = 5 } } (Tuple [])
+                                , Node { start = { row = 1, column = 7 }, end = { row = 1, column = 9 } } (Tuple [])
                                 ]
                             )
                         )
@@ -38,14 +38,14 @@ all =
                 -- TODO This feels incorrect, there should be a Parenthesized type for this
                 "( () )"
                     |> expectAst
-                        (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 7 } } (Tupled []))
+                        (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 7 } } (Tuple []))
         , test "tupledTypeReference 3" <|
             \() ->
                 "( () , Maybe m )"
                     |> expectAst
                         (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 17 } }
-                            (Tupled
-                                [ Node { start = { row = 1, column = 3 }, end = { row = 1, column = 5 } } (Tupled [])
+                            (Tuple
+                                [ Node { start = { row = 1, column = 3 }, end = { row = 1, column = 5 } } (Tuple [])
                                 , Node { start = { row = 1, column = 8 }, end = { row = 1, column = 15 } }
                                     (Typed
                                         (Node { start = { row = 1, column = 8 }, end = { row = 1, column = 13 } } ( [], "Maybe" ))
@@ -78,7 +78,7 @@ all =
                     |> expectAst
                         (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 13 } }
                             (Typed (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 4 } } ( [], "Foo" ))
-                                [ Node { start = { row = 1, column = 5 }, end = { row = 1, column = 7 } } (Tupled [])
+                                [ Node { start = { row = 1, column = 5 }, end = { row = 1, column = 7 } } (Tuple [])
                                 , Node { start = { row = 1, column = 8 }, end = { row = 1, column = 9 } } (GenericType "a")
                                 , Node { start = { row = 1, column = 10 }, end = { row = 1, column = 13 } }
                                     (Typed (Node { start = { row = 1, column = 10 }, end = { row = 1, column = 13 } } ( [], "Bar" )) [])
@@ -91,7 +91,7 @@ all =
                     |> expectAst
                         (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 13 } }
                             (Typed (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 4 } } ( [], "Foo" ))
-                                [ Node { start = { row = 1, column = 5 }, end = { row = 1, column = 7 } } (Tupled [])
+                                [ Node { start = { row = 1, column = 5 }, end = { row = 1, column = 7 } } (Tuple [])
                                 , Node { start = { row = 1, column = 8 }, end = { row = 1, column = 9 } } (GenericType "a")
                                 , Node { start = { row = 1, column = 10 }, end = { row = 1, column = 13 } }
                                     (Typed (Node { start = { row = 1, column = 10 }, end = { row = 1, column = 13 } } ( [], "Bar" )) [])
@@ -272,7 +272,7 @@ all =
                                             (Typed (Node { start = { row = 1, column = 8 }, end = { row = 1, column = 13 } } ( [], "Model" )) [])
                                         )
                                         (Node { start = { row = 1, column = 17 }, end = { row = 1, column = 33 } }
-                                            (Tupled
+                                            (Tuple
                                                 [ Node { start = { row = 1, column = 18 }, end = { row = 1, column = 23 } }
                                                     (Typed (Node { start = { row = 1, column = 18 }, end = { row = 1, column = 23 } } ( [], "Model" )) [])
                                                 , Node { start = { row = 1, column = 25 }, end = { row = 1, column = 32 } }

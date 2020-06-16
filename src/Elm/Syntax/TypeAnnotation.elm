@@ -29,7 +29,7 @@ import Elm.Syntax.Node exposing (Node)
 type TypeAnnotation
     = GenericType String
     | Typed (Node ( ModuleName, String )) (List (Node TypeAnnotation))
-    | Tupled (List (Node TypeAnnotation))
+    | Tuple (List (Node TypeAnnotation))
     | Record RecordDefinition
     | GenericRecord (Node String) (Node RecordDefinition)
     | FunctionTypeAnnotation (Node TypeAnnotation) (Node TypeAnnotation)
