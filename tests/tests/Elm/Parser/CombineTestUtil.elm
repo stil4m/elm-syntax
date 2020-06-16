@@ -397,8 +397,8 @@ noRangeInnerExpression inner =
                 , expression = noRangeExpression expression
                 }
 
-        TupledExpression x ->
-            TupledExpression <| List.map noRangeExpression x
+        TupleExpression x ->
+            TupleExpression <| List.map noRangeExpression x
 
         ParenthesizedExpression x ->
             ParenthesizedExpression <| noRangeExpression x

@@ -340,10 +340,10 @@ visitExpressionInner visitor context (Node range expression) =
             IfBlock e1 e2 e3 ->
                 IfBlock (subVisit e1) (subVisit e2) (subVisit e3)
 
-            TupledExpression expressionList ->
+            TupleExpression expressionList ->
                 expressionList
                     |> List.map subVisit
-                    |> TupledExpression
+                    |> TupleExpression
 
             ParenthesizedExpression expr1 ->
                 ParenthesizedExpression (subVisit expr1)

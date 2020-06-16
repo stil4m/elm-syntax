@@ -33,7 +33,7 @@ all =
                 parseFullStringWithNullState "(1,2)" expression
                     |> Maybe.map noRangeExpression
                     |> Maybe.map Node.value
-                    |> Expect.equal (Just (TupledExpression [ Node emptyRange <| Integer 1, Node emptyRange <| Integer 2 ]))
+                    |> Expect.equal (Just (TupleExpression [ Node emptyRange <| Integer 1, Node emptyRange <| Integer 2 ]))
         , test "prefix expression" <|
             \() ->
                 parseFullStringWithNullState "(,)" expression
@@ -106,7 +106,7 @@ all =
                     |> Expect.equal
                         (Just
                             (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 48 } } <|
-                                TupledExpression
+                                TupleExpression
                                     [ Node { start = { row = 1, column = 2 }, end = { row = 1, column = 4 } } <| Literal ""
                                     , Node { start = { row = 1, column = 6 }, end = { row = 1, column = 47 } } <|
                                         Application

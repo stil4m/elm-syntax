@@ -97,7 +97,7 @@ type Expression
     | Negation (Node Expression)
     | Literal String
     | CharLiteral Char
-    | TupledExpression (List (Node Expression))
+    | TupleExpression (List (Node Expression))
     | ParenthesizedExpression (Node Expression)
     | LetExpression LetBlock
     | CaseExpression CaseBlock
@@ -277,8 +277,8 @@ encode expr =
         CharLiteral c ->
             encodeTyped "charLiteral" (JE.string <| String.fromChar c)
 
-        TupledExpression xs ->
-            encodeTyped "tupled" (JE.list (Node.encode encode) xs)
+        TupleExpression xs ->
+            encodeTyped "tuple" (JE.list (Node.encode encode) xs)
 
         ListExpr xs ->
             encodeTyped "list" (JE.list (Node.encode encode) xs)
@@ -452,7 +452,7 @@ decoder =
                 , ( "negation", decodeNested |> JD.map Negation )
                 , ( "literal", JD.string |> JD.map Literal )
                 , ( "charLiteral", decodeChar |> JD.map CharLiteral )
-                , ( "tupled", JD.list decodeNested |> JD.map TupledExpression )
+                , ( "tuple", JD.list decodeNested |> JD.map TupleExpression )
                 , ( "list", JD.list decodeNested |> JD.map ListExpr )
                 , ( "parenthesized", decodeNested |> JD.map ParenthesizedExpression )
                 , ( "let", decodeLetBlock |> JD.map LetExpression )

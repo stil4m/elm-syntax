@@ -169,7 +169,7 @@ expressionNotApplication =
                 [ numberExpression
                 , referenceExpression
                 , ifBlockExpression
-                , tupledExpression
+                , tupleExpression
                 , recordAccessFunctionExpression
                 , operatorExpression
                 , letExpression
@@ -584,7 +584,7 @@ operatorExpression =
                         (choice
                             [ referenceExpression
                             , numberExpression
-                            , tupledExpression
+                            , tupleExpression
                             ]
                             |> Combine.andThen liftRecordAccess
                         )
@@ -654,8 +654,8 @@ recordAccessFunctionExpression =
         |> Node.parser
 
 
-tupledExpression : Parser State (Node Expression)
-tupledExpression =
+tupleExpression : Parser State (Node Expression)
+tupleExpression =
     lazy
         (\() ->
             let
@@ -666,7 +666,7 @@ tupledExpression =
                             ParenthesizedExpression x
 
                         _ ->
-                            TupledExpression (x :: xs)
+                            TupleExpression (x :: xs)
 
                 commaSep : Parser State (List (Node Expression))
                 commaSep =

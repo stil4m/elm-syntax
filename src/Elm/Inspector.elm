@@ -327,7 +327,7 @@ inspectInnerExpression config expression context =
         IfBlock e1 e2 e3 ->
             List.foldl (inspectExpression config) context [ e1, e2, e3 ]
 
-        TupledExpression expressionList ->
+        TupleExpression expressionList ->
             List.foldl (inspectExpression config) context expressionList
 
         ParenthesizedExpression inner ->

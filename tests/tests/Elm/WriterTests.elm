@@ -168,7 +168,7 @@ suite =
             [ test "write tuple" <|
                 \() ->
                     (Node emptyRange <|
-                        TupledExpression
+                        TupleExpression
                             [ Node emptyRange <| Integer 1
                             , Node emptyRange <| Integer 2
                             ]

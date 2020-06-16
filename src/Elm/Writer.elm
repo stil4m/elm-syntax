@@ -488,7 +488,7 @@ writeExpression (Node range inner) =
         CharLiteral c ->
             string ("'" ++ String.fromList [ c ] ++ "'")
 
-        TupledExpression t ->
+        TupleExpression t ->
             join [ string "(", sepHelper sepByComma (List.map recurRangeHelper t), string ")" ]
 
         ParenthesizedExpression x ->
