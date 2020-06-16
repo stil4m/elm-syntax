@@ -264,7 +264,7 @@ typedTypeAnnotationWithoutArguments =
             { comments = Rope.empty
             , syntax =
                 Node range
-                    (TypeAnnotation.Typed (Node range name) [])
+                    (TypeAnnotation.Type (Node range name) [])
             }
         )
         (ParserFast.map2
@@ -304,7 +304,7 @@ typedTypeAnnotationWithArguments =
     ParserFast.map2
         (\nameNode args ->
             { comments = args.comments
-            , syntax = TypeAnnotation.Typed nameNode args.syntax
+            , syntax = TypeAnnotation.Type nameNode args.syntax
             }
         )
         (ParserFast.mapWithStartAndEndPosition

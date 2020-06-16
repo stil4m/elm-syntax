@@ -19,7 +19,7 @@ import Elm.Syntax.Node exposing (Node)
 {-| Custom type for different type annotations. For example:
 
   - `GenericType`: `a`
-  - `Typed`: `Maybe (Int -> String)`
+  - `Type`: `Maybe (Int -> String)`
   - `Tuples`: `(a, b, c)` or Unit `()`
   - `Record`: `{ name : String}`
   - `GenericRecord`: `{ a | name : String}`
@@ -28,7 +28,7 @@ import Elm.Syntax.Node exposing (Node)
 -}
 type TypeAnnotation
     = GenericType String
-    | Typed (Node ( ModuleName, String )) (List (Node TypeAnnotation))
+    | Type (Node ( ModuleName, String )) (List (Node TypeAnnotation))
     | Tuple (List (Node TypeAnnotation))
     | Record RecordDefinition
     | GenericRecord (Node String) (Node RecordDefinition)
