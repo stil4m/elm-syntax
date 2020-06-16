@@ -134,7 +134,7 @@ unitWithComments =
 genericTypeAnnotation : Parser (WithComments TypeAnnotation)
 genericTypeAnnotation =
     Tokens.functionName
-        |> Parser.map (\var -> { comments = Rope.empty, syntax = TypeAnnotation.GenericType var })
+        |> Parser.map (\var -> { comments = Rope.empty, syntax = TypeAnnotation.Var var })
 
 
 recordTypeAnnotation : Parser (WithComments TypeAnnotation)
