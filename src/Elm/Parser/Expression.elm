@@ -535,7 +535,7 @@ asExpression x =
                 ParenthesizedExpression x
 
             _ ->
-                TupledExpression (x :: xs)
+                TupleExpression (x :: xs)
 
 
 withIndentedState : Parser State a -> Parser State a
