@@ -70,7 +70,7 @@ parensTypeAnnotation : Parser (WithComments (Node TypeAnnotation))
 parensTypeAnnotation =
     ParserFast.symbolFollowedBy "("
         (ParserFast.oneOf2
-            (ParserFast.symbol ")" { comments = Rope.empty, syntax = TypeAnnotation.Tupled [] })
+            (ParserFast.symbol ")" { comments = Rope.empty, syntax = TypeAnnotation.Tuple [] })
             (ParserFast.map4
                 (\commentsBeforeFirstPart firstPart commentsAfterFirstPart lastToSecondPart ->
                     { comments =
@@ -88,7 +88,7 @@ parensTypeAnnotation =
                                 firstPartValue
 
                             _ ->
-                                TypeAnnotation.Tupled (firstPart.syntax :: List.reverse lastToSecondPart.syntax)
+                                TypeAnnotation.Tuple (firstPart.syntax :: List.reverse lastToSecondPart.syntax)
                     }
                 )
                 Layout.maybeLayout
