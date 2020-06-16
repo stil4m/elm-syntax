@@ -346,7 +346,7 @@ foo = bar"""
                                     Node { start = { row = 1, column = 22 }, end = { row = 1, column = 51 } }
                                         (FunctionTypeAnnotation
                                             (Node { start = { row = 1, column = 22 }, end = { row = 1, column = 40 } }
-                                                (Tupled
+                                                (Tuple
                                                     [ Node { start = { row = 1, column = 24 }, end = { row = 1, column = 30 } } (Typed (Node { start = { row = 1, column = 24 }, end = { row = 1, column = 30 } } ( [], "String" )) [])
                                                     , Node { start = { row = 1, column = 32 }, end = { row = 1, column = 38 } }
                                                         (Typed

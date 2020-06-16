@@ -84,7 +84,7 @@ parensTypeAnnotation =
         |> Combine.continueFromCore
             (Combine.oneOf
                 [ Tokens.parensEnd
-                    |> Core.map (always (TypeAnnotation.Tupled []))
+                    |> Core.map (always (TypeAnnotation.Tuple []))
                     |> Combine.fromCore
                 , nested |> Combine.ignoreEntirely Tokens.parensEnd
                 ]
@@ -99,7 +99,7 @@ asTypeAnnotation ((Node _ value) as x) xs =
             value
 
         _ ->
-            TypeAnnotation.Tupled (x :: xs)
+            TypeAnnotation.Tuple (x :: xs)
 
 
 genericTypeAnnotation : Parser state (Node TypeAnnotation)

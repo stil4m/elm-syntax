@@ -336,7 +336,7 @@ writeTypeAnnotation (Node _ typeAnnotation) =
                     :: List.map (writeTypeAnnotation >> parensIfContainsSpaces) args
                 )
 
-        Tupled xs ->
+        Tuple xs ->
             parensComma False (List.map writeTypeAnnotation xs)
 
         Record xs ->
@@ -661,7 +661,7 @@ wrapInSurroundingParentheses node =
     let
         withParens : Node TypeAnnotation -> Node TypeAnnotation
         withParens n =
-            Node.empty (Tupled [ n ])
+            Node.empty (Tuple [ n ])
     in
     case Node.value node of
         FunctionTypeAnnotation _ _ ->
