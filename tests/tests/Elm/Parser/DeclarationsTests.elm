@@ -23,7 +23,7 @@ all =
                     |> Expect.equal
                         (Just
                             { name = Node emptyRange "foo"
-                            , typeAnnotation = Node emptyRange <| Typed (Node emptyRange ( [], "Int" )) []
+                            , typeAnnotation = Node emptyRange <| Type (Node emptyRange ( [], "Int" )) []
                             }
                         )
         , test "complex signature" <|
@@ -45,7 +45,7 @@ all =
                                                         (Node emptyRange <|
                                                             Tuple
                                                                 [ Node emptyRange <| GenericType "model"
-                                                                , Node emptyRange <| Typed (Node emptyRange ( [], "Cmd" )) [ Node emptyRange <| GenericType "msg" ]
+                                                                , Node emptyRange <| Type (Node emptyRange ( [], "Cmd" )) [ Node emptyRange <| GenericType "msg" ]
                                                                 ]
                                                         )
                                                 )
@@ -53,7 +53,7 @@ all =
                                         (Node emptyRange <|
                                             FunctionTypeAnnotation
                                                 (Node emptyRange <|
-                                                    Typed (Node emptyRange ( [], "SendPort" ))
+                                                    Type (Node emptyRange ( [], "SendPort" ))
                                                         [ Node emptyRange <| GenericType "msg"
                                                         , Node emptyRange <| GenericType "model"
                                                         ]
@@ -65,7 +65,7 @@ all =
                                                                 (Node emptyRange <|
                                                                     Tuple
                                                                         [ Node emptyRange <| GenericType "model"
-                                                                        , Node emptyRange <| Typed (Node emptyRange ( [], "Cmd" )) [ Node emptyRange <| GenericType "msg" ]
+                                                                        , Node emptyRange <| Type (Node emptyRange ( [], "Cmd" )) [ Node emptyRange <| GenericType "msg" ]
                                                                         ]
                                                                 )
                                                         )
@@ -80,7 +80,7 @@ all =
                     |> Expect.equal
                         (Just
                             { name = Node emptyRange "foo"
-                            , typeAnnotation = Node emptyRange <| Typed (Node emptyRange ( [], "Int" )) []
+                            , typeAnnotation = Node emptyRange <| Type (Node emptyRange ( [], "Int" )) []
                             }
                         )
         , test "on newline signature with wrong indent " <|
@@ -95,7 +95,7 @@ all =
                     |> Expect.equal
                         (Just
                             { name = Node emptyRange "foo"
-                            , typeAnnotation = Node emptyRange <| Typed (Node emptyRange ( [], "Int" )) []
+                            , typeAnnotation = Node emptyRange <| Type (Node emptyRange ( [], "Int" )) []
                             }
                         )
         , test "on newline signature with colon on start of line" <|
@@ -228,11 +228,11 @@ all =
                             { name = Node emptyRange "bar"
                             , typeAnnotation =
                                 Node emptyRange <|
-                                    Typed (Node emptyRange ( [], "List" ))
+                                    Type (Node emptyRange ( [], "List" ))
                                         [ Node emptyRange <|
                                             Tuple
-                                                [ Node emptyRange <| Typed (Node emptyRange ( [], "Int" )) []
-                                                , Node emptyRange <| Typed (Node emptyRange ( [], "Maybe" )) [ Node emptyRange <| GenericType "m" ]
+                                                [ Node emptyRange <| Type (Node emptyRange ( [], "Int" )) []
+                                                , Node emptyRange <| Type (Node emptyRange ( [], "Maybe" )) [ Node emptyRange <| GenericType "m" ]
                                                 ]
                                         ]
                             }
@@ -354,11 +354,11 @@ all =
                                         FunctionTypeAnnotation
                                             (Node emptyRange <|
                                                 Tuple
-                                                    [ Node emptyRange <| Typed (Node emptyRange ( [], "String" )) []
-                                                    , Node emptyRange <| Typed (Node emptyRange ( [], "String" )) []
+                                                    [ Node emptyRange <| Type (Node emptyRange ( [], "String" )) []
+                                                    , Node emptyRange <| Type (Node emptyRange ( [], "String" )) []
                                                     ]
                                             )
-                                            (Node emptyRange <| Typed (Node emptyRange ( [], "Cmd" )) [ Node emptyRange <| GenericType "msg" ])
+                                            (Node emptyRange <| Type (Node emptyRange ( [], "Cmd" )) [ Node emptyRange <| GenericType "msg" ])
                                 }
                             )
                         )
@@ -375,10 +375,10 @@ all =
                                     Node emptyRange <|
                                         FunctionTypeAnnotation
                                             (Node emptyRange <|
-                                                FunctionTypeAnnotation (Node emptyRange <| Typed (Node emptyRange ( [], "Move" )) [])
+                                                FunctionTypeAnnotation (Node emptyRange <| Type (Node emptyRange ( [], "Move" )) [])
                                                     (Node emptyRange <| GenericType "msg")
                                             )
-                                            (Node emptyRange <| Typed (Node emptyRange ( [], "Sub" )) [ Node emptyRange <| GenericType "msg" ])
+                                            (Node emptyRange <| Type (Node emptyRange ( [], "Sub" )) [ Node emptyRange <| GenericType "msg" ])
                                 }
                         )
         , test "Destructuring declaration" <|
@@ -554,7 +554,7 @@ all =
                                     Just
                                         (Node emptyRange <|
                                             { name = Node emptyRange "update"
-                                            , typeAnnotation = Node emptyRange <| Typed (Node emptyRange ( [], "Model" )) []
+                                            , typeAnnotation = Node emptyRange <| Type (Node emptyRange ( [], "Model" )) []
                                             }
                                         )
                                 }

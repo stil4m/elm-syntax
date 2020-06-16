@@ -330,7 +330,7 @@ writeTypeAnnotation (Node _ typeAnnotation) =
         GenericType s ->
             string s
 
-        Typed moduleNameAndName args ->
+        Elm.Syntax.TypeAnnotation.Type moduleNameAndName args ->
             let
                 moduleName =
                     Node.value moduleNameAndName |> Tuple.first

@@ -42,7 +42,7 @@ all =
                             (Node emptyRange <|
                                 Tuple
                                     [ Node emptyRange (Tuple [])
-                                    , Node emptyRange <| Typed (Node emptyRange <| ( [], "Maybe" )) [ Node emptyRange <| GenericType "m" ]
+                                    , Node emptyRange <| Type (Node emptyRange <| ( [], "Maybe" )) [ Node emptyRange <| GenericType "m" ]
                                     ]
                             )
                         )
@@ -50,12 +50,12 @@ all =
             \() ->
                 parseFullStringWithNullState "Foo.Bar" Parser.typeAnnotation
                     |> Maybe.map noRangeTypeReference
-                    |> Expect.equal (Just (Node emptyRange <| Typed (Node emptyRange ( [ "Foo" ], "Bar" )) []))
+                    |> Expect.equal (Just (Node emptyRange <| Type (Node emptyRange ( [ "Foo" ], "Bar" )) []))
         , test "typeAnnotationNoFn" <|
             \() ->
                 parseFullStringWithNullState "Bar" Parser.typeAnnotation
                     |> Maybe.map noRangeTypeReference
-                    |> Expect.equal (Just (Node emptyRange <| Typed (Node emptyRange ( [], "Bar" )) []))
+                    |> Expect.equal (Just (Node emptyRange <| Type (Node emptyRange ( [], "Bar" )) []))
         , test "types with and without spacing should parse to the same" <|
             \() ->
                 let
@@ -74,10 +74,10 @@ all =
                     |> Expect.equal
                         (Just <|
                             (Node emptyRange <|
-                                Typed (Node emptyRange ( [], "Foo" ))
+                                Type (Node emptyRange ( [], "Foo" ))
                                     [ Node emptyRange (Tuple [])
                                     , Node emptyRange <| GenericType "a"
-                                    , Node emptyRange <| Typed (Node emptyRange ( [], "Bar" )) []
+                                    , Node emptyRange <| Type (Node emptyRange ( [], "Bar" )) []
                                     ]
                             )
                         )
@@ -88,10 +88,10 @@ all =
                     |> Expect.equal
                         (Just <|
                             (Node emptyRange <|
-                                Typed (Node emptyRange ( [], "Foo" ))
+                                Type (Node emptyRange ( [], "Foo" ))
                                     [ Node emptyRange (Tuple [])
                                     , Node emptyRange <| GenericType "a"
-                                    , Node emptyRange <| Typed (Node emptyRange ( [], "Bar" )) []
+                                    , Node emptyRange <| Type (Node emptyRange ( [], "Bar" )) []
                                     ]
                             )
                         )
@@ -112,7 +112,7 @@ all =
                         (Just <|
                             Node emptyRange <|
                                 Record
-                                    [ Node emptyRange ( Node emptyRange "color", Node emptyRange <| Typed (Node emptyRange ( [], "String" )) [] ) ]
+                                    [ Node emptyRange ( Node emptyRange "color", Node emptyRange <| Type (Node emptyRange ( [], "String" )) [] ) ]
                                     Nothing
                         )
         , test "record with generic" <|
@@ -123,8 +123,8 @@ all =
                         (Just
                             (Node emptyRange <|
                                 Record
-                                    [ Node emptyRange ( Node emptyRange "position", Node emptyRange <| Typed (Node emptyRange <| ( [], "Vec2" )) [] )
-                                    , Node emptyRange ( Node emptyRange "texture", Node emptyRange <| Typed (Node emptyRange ( [], "Vec2" )) [] )
+                                    [ Node emptyRange ( Node emptyRange "position", Node emptyRange <| Type (Node emptyRange <| ( [], "Vec2" )) [] )
+                                    , Node emptyRange ( Node emptyRange "texture", Node emptyRange <| Type (Node emptyRange ( [], "Vec2" )) [] )
                                     ]
                                     (Just (Node emptyRange "attr"))
                             )
@@ -141,9 +141,9 @@ all =
                                         ( Node emptyRange "color"
                                         , Node emptyRange <|
                                             Record
-                                                [ Node emptyRange ( Node emptyRange "r", Node emptyRange <| Typed (Node emptyRange ( [], "Int" )) [] )
-                                                , Node emptyRange ( Node emptyRange "g", Node emptyRange <| Typed (Node emptyRange ( [], "Int" )) [] )
-                                                , Node emptyRange ( Node emptyRange "b", Node emptyRange <| Typed (Node emptyRange ( [], "Int" )) [] )
+                                                [ Node emptyRange ( Node emptyRange "r", Node emptyRange <| Type (Node emptyRange ( [], "Int" )) [] )
+                                                , Node emptyRange ( Node emptyRange "g", Node emptyRange <| Type (Node emptyRange ( [], "Int" )) [] )
+                                                , Node emptyRange ( Node emptyRange "b", Node emptyRange <| Type (Node emptyRange ( [], "Int" )) [] )
                                                 ]
                                                 Nothing
                                         )
@@ -175,8 +175,8 @@ all =
                         (Just <|
                             (Node emptyRange <|
                                 FunctionTypeAnnotation
-                                    (Node emptyRange <| Typed (Node emptyRange ( [], "Foo" )) [])
-                                    (Node emptyRange <| Typed (Node emptyRange ( [], "Bar" )) [])
+                                    (Node emptyRange <| Type (Node emptyRange ( [], "Foo" )) [])
+                                    (Node emptyRange <| Type (Node emptyRange ( [], "Bar" )) [])
                             )
                         )
         , test "function type reference multiple" <|
@@ -187,10 +187,10 @@ all =
                         (Just <|
                             (Node emptyRange <|
                                 FunctionTypeAnnotation
-                                    (Node emptyRange <| Typed (Node emptyRange ( [], "Foo" )) [])
+                                    (Node emptyRange <| Type (Node emptyRange ( [], "Foo" )) [])
                                     (Node emptyRange <|
                                         FunctionTypeAnnotation
-                                            (Node emptyRange <| Typed (Node emptyRange ( [], "Bar" )) [])
+                                            (Node emptyRange <| Type (Node emptyRange ( [], "Bar" )) [])
                                             (Node emptyRange <| GenericType "baz")
                                     )
                             )
@@ -216,7 +216,7 @@ all =
                 parseAsFarAsPossibleWithState emptyState "Model\n\nsomeFunction" Parser.typeAnnotation
                     |> Maybe.map noRangeTypeReference
                     |> Expect.equal
-                        (Just (Node emptyRange <| Typed (Node emptyRange ( [], "Model" )) []))
+                        (Just (Node emptyRange <| Type (Node emptyRange ( [], "Model" )) []))
         , test "annotation with parens" <|
             \() ->
                 parseAsFarAsPossibleWithState emptyState "Msg -> Model -> (Model, Cmd Msg)\n\n" Parser.typeAnnotation
@@ -224,13 +224,13 @@ all =
                     |> Expect.equal
                         (Just
                             (Node emptyRange <|
-                                FunctionTypeAnnotation (Node emptyRange <| Typed (Node emptyRange ( [], "Msg" )) [])
+                                FunctionTypeAnnotation (Node emptyRange <| Type (Node emptyRange ( [], "Msg" )) [])
                                     (Node emptyRange <|
-                                        FunctionTypeAnnotation (Node emptyRange <| Typed (Node emptyRange ( [], "Model" )) [])
+                                        FunctionTypeAnnotation (Node emptyRange <| Type (Node emptyRange ( [], "Model" )) [])
                                             (Node emptyRange <|
                                                 Tuple
-                                                    [ Node emptyRange <| Typed (Node emptyRange ( [], "Model" )) []
-                                                    , Node emptyRange <| Typed (Node emptyRange ( [], "Cmd" )) [ Node emptyRange <| Typed (Node emptyRange ( [], "Msg" )) [] ]
+                                                    [ Node emptyRange <| Type (Node emptyRange ( [], "Model" )) []
+                                                    , Node emptyRange <| Type (Node emptyRange ( [], "Cmd" )) [ Node emptyRange <| Type (Node emptyRange ( [], "Msg" )) [] ]
                                                     ]
                                             )
                                     )
@@ -244,7 +244,7 @@ all =
                         (Just
                             (Node emptyRange <|
                                 FunctionTypeAnnotation (Node emptyRange <| GenericType "msg")
-                                    (Node emptyRange <| Typed (Node emptyRange ( [], "Cmd" )) [ Node emptyRange <| GenericType "model" ])
+                                    (Node emptyRange <| Type (Node emptyRange ( [], "Cmd" )) [ Node emptyRange <| GenericType "model" ])
                             )
                         )
         , test "function as argument" <|
@@ -275,8 +275,8 @@ all =
                         (Just <|
                             (Node emptyRange <|
                                 FunctionTypeAnnotation
-                                    (Node emptyRange <| Typed (Node emptyRange ( [], "Foo" )) [])
-                                    (Node emptyRange <| Typed (Node emptyRange ( [], "Bar" )) [])
+                                    (Node emptyRange <| Type (Node emptyRange ( [], "Foo" )) [])
+                                    (Node emptyRange <| Type (Node emptyRange ( [], "Bar" )) [])
                             )
                         )
         , test "function type reference multiple and parens" <|
@@ -289,8 +289,8 @@ all =
                                 FunctionTypeAnnotation
                                     (Node emptyRange <|
                                         FunctionTypeAnnotation
-                                            (Node emptyRange <| Typed (Node emptyRange ( [], "Foo" )) [])
-                                            (Node emptyRange <| Typed (Node emptyRange ( [], "Bar" )) [])
+                                            (Node emptyRange <| Type (Node emptyRange ( [], "Foo" )) [])
+                                            (Node emptyRange <| Type (Node emptyRange ( [], "Bar" )) [])
                                     )
                                     (Node emptyRange <| GenericType "baz")
                             )
@@ -307,7 +307,7 @@ all =
                     |> Expect.equal
                         (Just
                             (Node emptyRange <|
-                                Typed (Node emptyRange ( [], "Maybe" ))
+                                Type (Node emptyRange ( [], "Maybe" ))
                                     [ Node emptyRange <| GenericType "a" ]
                             )
                         )
@@ -318,8 +318,8 @@ all =
                     |> Expect.equal
                         (Just
                             (Node emptyRange <|
-                                Typed (Node emptyRange ( [], "List" ))
-                                    [ Node emptyRange <| Typed (Node emptyRange ( [], "String" )) [] ]
+                                Type (Node emptyRange ( [], "List" ))
+                                    [ Node emptyRange <| Type (Node emptyRange ( [], "String" )) [] ]
                             )
                         )
         , test "parse type with multiple params" <|
@@ -329,9 +329,9 @@ all =
                     |> Expect.equal
                         (Just
                             (Node emptyRange <|
-                                Typed (Node emptyRange ( [], "Dict" ))
-                                    [ Node emptyRange <| Typed (Node emptyRange ( [], "String" )) []
-                                    , Node emptyRange <| Typed (Node emptyRange ( [], "Int" )) []
+                                Type (Node emptyRange ( [], "Dict" ))
+                                    [ Node emptyRange <| Type (Node emptyRange ( [], "String" )) []
+                                    , Node emptyRange <| Type (Node emptyRange ( [], "Int" )) []
                                     ]
                             )
                         )

@@ -65,7 +65,7 @@ suite =
         , describe "TypeAnnotation"
             [ test "write simple type" <|
                 \() ->
-                    Elm.Syntax.TypeAnnotation.Typed (Node emptyRange <| ( [], "String" )) []
+                    Elm.Syntax.TypeAnnotation.Type (Node emptyRange <| ( [], "String" )) []
                         |> Node emptyRange
                         |> Writer.writeTypeAnnotation
                         |> Writer.write
@@ -73,7 +73,7 @@ suite =
             , test "write qualified type" <|
                 \() ->
                     (Node emptyRange <|
-                        Elm.Syntax.TypeAnnotation.Typed
+                        Elm.Syntax.TypeAnnotation.Type
                             (Node emptyRange <| ( [ "Json", "Decode" ], "Decoder" ))
                             [ Node emptyRange <| Elm.Syntax.TypeAnnotation.GenericType "a" ]
                     )
@@ -83,11 +83,11 @@ suite =
             , test "write type arguments that require parentheses" <|
                 \() ->
                     (Node emptyRange <|
-                        Elm.Syntax.TypeAnnotation.Typed (Node emptyRange ( [], "List" ))
+                        Elm.Syntax.TypeAnnotation.Type (Node emptyRange ( [], "List" ))
                             [ Node emptyRange <|
-                                Elm.Syntax.TypeAnnotation.Typed (Node emptyRange ( [], "Dict" ))
-                                    [ Node emptyRange <| Elm.Syntax.TypeAnnotation.Typed (Node emptyRange ( [], "String" )) []
-                                    , Node emptyRange <| Elm.Syntax.TypeAnnotation.Typed (Node emptyRange ( [], "Int" )) []
+                                Elm.Syntax.TypeAnnotation.Type (Node emptyRange ( [], "Dict" ))
+                                    [ Node emptyRange <| Elm.Syntax.TypeAnnotation.Type (Node emptyRange ( [], "String" )) []
+                                    , Node emptyRange <| Elm.Syntax.TypeAnnotation.Type (Node emptyRange ( [], "Int" )) []
                                     ]
                             ]
                     )
@@ -103,7 +103,7 @@ suite =
                                     (Node emptyRange <| Elm.Syntax.TypeAnnotation.GenericType "a")
                                     (Node emptyRange <| Elm.Syntax.TypeAnnotation.GenericType "b")
                             )
-                            (Node emptyRange <| Elm.Syntax.TypeAnnotation.Typed (Node emptyRange ( [], "Int" )) [])
+                            (Node emptyRange <| Elm.Syntax.TypeAnnotation.Type (Node emptyRange ( [], "Int" )) [])
                     )
                         |> Writer.writeTypeAnnotation
                         |> Writer.write

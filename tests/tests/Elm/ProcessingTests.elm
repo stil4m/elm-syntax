@@ -77,7 +77,7 @@ functionWithDocsAndSignature =
                                 { name = Node { start = { row = 5, column = 1 }, end = { row = 5, column = 4 } } "bar"
                                 , typeAnnotation =
                                     Node { start = { row = 5, column = 7 }, end = { row = 5, column = 10 } } <|
-                                        Typed (Node { end = { column = 10, row = 5 }, start = { column = 7, row = 5 } } ( [], "Int" )) []
+                                        Type (Node { end = { column = 10, row = 5 }, start = { column = 7, row = 5 } } ( [], "Int" )) []
                                 }
                             )
                     , declaration =
@@ -192,7 +192,7 @@ type alias Foo
                                 [ Node { end = { column = 21, row = 5 }, start = { column = 8, row = 5 } }
                                     ( Node { end = { column = 12, row = 5 }, start = { column = 8, row = 5 } } "name"
                                     , Node { start = { row = 5, column = 15 }, end = { row = 5, column = 21 } } <|
-                                        Typed (Node { end = { column = 21, row = 5 }, start = { column = 15, row = 5 } } ( [], "String" )) []
+                                        Type (Node { end = { column = 21, row = 5 }, start = { column = 15, row = 5 } } ( [], "String" )) []
                                     )
                                 ]
                                 Nothing

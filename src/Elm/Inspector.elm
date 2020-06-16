@@ -242,7 +242,7 @@ inspectTypeAnnotation config typeAnnotation context =
 inspectTypeAnnotationInner : Config context -> Node TypeAnnotation -> context -> context
 inspectTypeAnnotationInner config (Node _ typeRefence) context =
     case typeRefence of
-        Typed _ typeArgs ->
+        Elm.Syntax.TypeAnnotation.Type _ typeArgs ->
             List.foldl (inspectTypeAnnotation config) context typeArgs
 
         Tuple typeAnnotations ->

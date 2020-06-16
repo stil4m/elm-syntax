@@ -50,7 +50,7 @@ all =
                                     Record
                                         [ Node emptyRange <|
                                             ( Node emptyRange <| "color"
-                                            , Node emptyRange <| Typed (Node emptyRange <| ( [], "String" )) []
+                                            , Node emptyRange <| Elm.Syntax.TypeAnnotation.Type (Node emptyRange <| ( [], "String" )) []
                                             )
                                         ]
                                         Nothing
@@ -90,7 +90,7 @@ all =
                             , constructors =
                                 [ Node emptyRange
                                     { name = Node emptyRange <| "Blue"
-                                    , arguments = [ Node emptyRange <| Typed (Node emptyRange <| ( [], "String" )) [] ]
+                                    , arguments = [ Node emptyRange <| Elm.Syntax.TypeAnnotation.Type (Node emptyRange <| ( [], "String" )) [] ]
                                     }
                                 , Node emptyRange
                                     { name = Node emptyRange <| "Red"
@@ -115,7 +115,7 @@ all =
                                 [ Node emptyRange
                                     { arguments =
                                         [ Node emptyRange <| GenericType "a"
-                                        , Node emptyRange <| Typed (Node emptyRange <| ( [], "B" )) []
+                                        , Node emptyRange <| Elm.Syntax.TypeAnnotation.Type (Node emptyRange <| ( [], "B" )) []
                                         ]
                                     , name = Node emptyRange <| "C"
                                     }
@@ -135,7 +135,7 @@ all =
                             , constructors =
                                 [ Node emptyRange
                                     { arguments =
-                                        [ Node emptyRange <| Typed (Node emptyRange <| ( [], "B" )) []
+                                        [ Node emptyRange <| Elm.Syntax.TypeAnnotation.Type (Node emptyRange <| ( [], "B" )) []
                                         , Node emptyRange <| GenericType "a"
                                         ]
                                     , name = Node emptyRange <| "C"
@@ -156,7 +156,7 @@ all =
                             , constructors =
                                 [ Node emptyRange
                                     { arguments =
-                                        [ Node emptyRange <| Typed (Node emptyRange <| ( [], "B" )) []
+                                        [ Node emptyRange <| Elm.Syntax.TypeAnnotation.Type (Node emptyRange <| ( [], "B" )) []
                                         ]
                                     , name = Node emptyRange <| "C"
                                     }

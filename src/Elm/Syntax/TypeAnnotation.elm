@@ -35,7 +35,7 @@ import Json.Encode as JE exposing (Value)
 {-| Custom type for different type annotations. For example:
 
   - `GenericType`: `a`
-  - `Typed`: `Maybe (Int -> String)`
+  - `Type`: `Maybe (Int -> String)`
   - `Tuples`: `(a, b, c)` or Unit `()`
   - `Record`: `{ name : String}`
   - `GenericRecord`: `{ a | name : String}`
@@ -44,7 +44,7 @@ import Json.Encode as JE exposing (Value)
 -}
 type TypeAnnotation
     = GenericType String
-    | Typed (Node ( ModuleName, String )) (List (Node TypeAnnotation))
+    | Type (Node ( ModuleName, String )) (List (Node TypeAnnotation))
     | Tuple (List (Node TypeAnnotation))
     | Record RecordDefinition (Maybe (Node String))
     | FunctionTypeAnnotation (Node TypeAnnotation) (Node TypeAnnotation)
@@ -77,7 +77,7 @@ encode typeAnnotation =
                     [ ( "value", JE.string name )
                     ]
 
-        Typed moduleNameAndName args ->
+        Type moduleNameAndName args ->
             let
                 inner : ( ModuleName, String ) -> Value
                 inner ( mod, n ) =
@@ -86,7 +86,7 @@ encode typeAnnotation =
                         , ( "name", JE.string n )
                         ]
             in
-            encodeTyped "typed" <|
+            encodeTyped "type" <|
                 JE.object
                     [ ( "moduleNameAndName", Node.encode inner moduleNameAndName )
                     , ( "args", JE.list (Node.encode encode) args )
@@ -145,8 +145,8 @@ decoder =
         (\() ->
             decodeTyped
                 [ ( "generic", JD.map GenericType (JD.field "value" JD.string) )
-                , ( "typed"
-                  , JD.map2 Typed
+                , ( "type"
+                  , JD.map2 Type
                         (JD.field "moduleNameAndName" <| Node.decoder decodeModuleNameAndName)
                         (JD.field "args" (JD.list nestedDecoder))
                   )

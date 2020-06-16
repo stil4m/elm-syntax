@@ -222,7 +222,7 @@ typedTypeAnnotation mode =
                 |> Combine.andThen
                     (\((Node tir _) as original) ->
                         Layout.optimisticLayoutWith
-                            (\() -> Combine.succeed (Node tir (Typed original [])))
+                            (\() -> Combine.succeed (Node tir (Type original [])))
                             (\() ->
                                 case mode of
                                     Eager ->
@@ -230,12 +230,12 @@ typedTypeAnnotation mode =
                                             (\args ->
                                                 Node
                                                     (Range.combine (tir :: nodeRanges args))
-                                                    (Typed original args)
+                                                    (Type original args)
                                             )
                                             (genericHelper [])
 
                                     Lazy ->
-                                        Combine.succeed (Node tir (Typed original []))
+                                        Combine.succeed (Node tir (Type original []))
                             )
                     )
         )
