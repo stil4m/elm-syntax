@@ -983,7 +983,7 @@ tupledExpressionInnerAfterOpeningParens =
                                 |> Rope.prependTo firstPart.comments
                                 |> Rope.prependTo commentsAfterFirstPart
                                 |> Rope.prependTo tailPartsReverse.comments
-                        , syntax = TupledExpression (firstPart.syntax :: List.reverse tailPartsReverse.syntax)
+                        , syntax = TupleExpression (firstPart.syntax :: List.reverse tailPartsReverse.syntax)
                         }
             )
             Layout.maybeLayout
