@@ -46,8 +46,7 @@ type TypeAnnotation
     = GenericType String
     | Typed (Node ( ModuleName, String )) (List (Node TypeAnnotation))
     | Tupled (List (Node TypeAnnotation))
-    | Record RecordDefinition
-    | GenericRecord (Node String) (Node RecordDefinition)
+    | Record RecordDefinition (Maybe (Node String))
     | FunctionTypeAnnotation (Node TypeAnnotation) (Node TypeAnnotation)
 
 
@@ -106,17 +105,15 @@ encode typeAnnotation =
                     , ( "right", Node.encode encode right )
                     ]
 
-        Record recordDefinition ->
+        Record recordDefinition generic ->
             encodeTyped "record" <|
                 JE.object
                     [ ( "value", encodeRecordDefinition recordDefinition )
-                    ]
-
-        GenericRecord name recordDefinition ->
-            encodeTyped "genericRecord" <|
-                JE.object
-                    [ ( "name", Node.encode JE.string name )
-                    , ( "values", Node.encode encodeRecordDefinition recordDefinition )
+                    , ( "generic"
+                      , generic
+                            |> Maybe.map (Node.encode JE.string)
+                            |> Maybe.withDefault JE.null
+                      )
                     ]
 
 
@@ -159,11 +156,16 @@ decoder =
                         (JD.field "left" nestedDecoder)
                         (JD.field "right" nestedDecoder)
                   )
-                , ( "record", JD.map Record (JD.field "value" recordDefinitionDecoder) )
-                , ( "genericRecord"
-                  , JD.map2 GenericRecord
-                        (JD.field "name" <| Node.decoder JD.string)
-                        (JD.field "values" <| Node.decoder recordDefinitionDecoder)
+                , ( "record"
+                  , JD.map2 Record
+                        (JD.field "value" recordDefinitionDecoder)
+                        (JD.field "generic"
+                            (JD.oneOf
+                                [ JD.null Nothing
+                                , Node.decoder JD.string |> JD.map Just
+                                ]
+                            )
+                        )
                   )
                 ]
         )

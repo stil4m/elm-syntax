@@ -17,7 +17,7 @@ all =
             \() ->
                 parseFullStringWithNullState "()" Parser.typeAnnotation
                     |> Maybe.map noRangeTypeReference
-                    |> Expect.equal (Just <| Node emptyRange Unit)
+                    |> Expect.equal (Just <| Node emptyRange (Tupled []))
         , test "unitTypeReference with spaces" <|
             \() ->
                 parseFullStringWithNullState "( )" Parser.typeAnnotation
@@ -27,12 +27,12 @@ all =
             \() ->
                 parseFullStringWithNullState "( (), ())" Parser.typeAnnotation
                     |> Maybe.map noRangeTypeReference
-                    |> Expect.equal (Just <| Node emptyRange <| Tupled [ Node emptyRange Unit, Node emptyRange Unit ])
+                    |> Expect.equal (Just <| Node emptyRange <| Tupled [ Node emptyRange (Tupled []), Node emptyRange (Tupled []) ])
         , test "tupledTypeReference 2" <|
             \() ->
                 parseFullStringWithNullState "( () )" Parser.typeAnnotation
                     |> Maybe.map noRangeTypeReference
-                    |> Expect.equal (Just <| Node emptyRange Unit)
+                    |> Expect.equal (Just <| Node emptyRange (Tupled []))
         , test "tupledTypeReference 3" <|
             \() ->
                 parseFullStringWithNullState "( () , Maybe m )" Parser.typeAnnotation
@@ -41,7 +41,7 @@ all =
                         (Just
                             (Node emptyRange <|
                                 Tupled
-                                    [ Node emptyRange Unit
+                                    [ Node emptyRange (Tupled [])
                                     , Node emptyRange <| Typed (Node emptyRange <| ( [], "Maybe" )) [ Node emptyRange <| GenericType "m" ]
                                     ]
                             )
@@ -75,7 +75,7 @@ all =
                         (Just <|
                             (Node emptyRange <|
                                 Typed (Node emptyRange ( [], "Foo" ))
-                                    [ Node emptyRange Unit
+                                    [ Node emptyRange (Tupled [])
                                     , Node emptyRange <| GenericType "a"
                                     , Node emptyRange <| Typed (Node emptyRange ( [], "Bar" )) []
                                     ]
@@ -89,7 +89,7 @@ all =
                         (Just <|
                             (Node emptyRange <|
                                 Typed (Node emptyRange ( [], "Foo" ))
-                                    [ Node emptyRange Unit
+                                    [ Node emptyRange (Tupled [])
                                     , Node emptyRange <| GenericType "a"
                                     , Node emptyRange <| Typed (Node emptyRange ( [], "Bar" )) []
                                     ]
@@ -102,7 +102,7 @@ all =
                     |> Expect.equal
                         (Just <|
                             Node emptyRange <|
-                                Record []
+                                Record [] Nothing
                         )
         , test "recordTypeReference one field" <|
             \() ->
@@ -111,7 +111,9 @@ all =
                     |> Expect.equal
                         (Just <|
                             Node emptyRange <|
-                                Record [ Node emptyRange ( Node emptyRange "color", Node emptyRange <| Typed (Node emptyRange ( [], "String" )) [] ) ]
+                                Record
+                                    [ Node emptyRange ( Node emptyRange "color", Node emptyRange <| Typed (Node emptyRange ( [], "String" )) [] ) ]
+                                    Nothing
                         )
         , test "record with generic" <|
             \() ->
@@ -120,12 +122,11 @@ all =
                     |> Expect.equal
                         (Just
                             (Node emptyRange <|
-                                GenericRecord (Node emptyRange "attr")
-                                    (Node emptyRange
-                                        [ Node emptyRange ( Node emptyRange "position", Node emptyRange <| Typed (Node emptyRange <| ( [], "Vec2" )) [] )
-                                        , Node emptyRange ( Node emptyRange "texture", Node emptyRange <| Typed (Node emptyRange ( [], "Vec2" )) [] )
-                                        ]
-                                    )
+                                Record
+                                    [ Node emptyRange ( Node emptyRange "position", Node emptyRange <| Typed (Node emptyRange <| ( [], "Vec2" )) [] )
+                                    , Node emptyRange ( Node emptyRange "texture", Node emptyRange <| Typed (Node emptyRange ( [], "Vec2" )) [] )
+                                    ]
+                                    (Just (Node emptyRange "attr"))
                             )
                         )
         , test "recordTypeReference nested record" <|
@@ -144,8 +145,10 @@ all =
                                                 , Node emptyRange ( Node emptyRange "g", Node emptyRange <| Typed (Node emptyRange ( [], "Int" )) [] )
                                                 , Node emptyRange ( Node emptyRange "b", Node emptyRange <| Typed (Node emptyRange ( [], "Int" )) [] )
                                                 ]
+                                                Nothing
                                         )
                                     ]
+                                    Nothing
                             )
                         )
         , test "recordTypeReference with generic" <|
@@ -161,6 +164,7 @@ all =
                                         , Node emptyRange <| GenericType "s"
                                         )
                                     ]
+                                    Nothing
                             )
                         )
         , test "function type reference" <|

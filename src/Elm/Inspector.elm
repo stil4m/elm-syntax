@@ -248,11 +248,8 @@ inspectTypeAnnotationInner config (Node _ typeRefence) context =
         Tupled typeAnnotations ->
             List.foldl (inspectTypeAnnotation config) context typeAnnotations
 
-        Record recordDefinition ->
+        Record recordDefinition _ ->
             List.foldl (inspectTypeAnnotation config) context (List.map (Node.value >> Tuple.second) recordDefinition)
-
-        GenericRecord _ recordDefinition ->
-            List.foldl (inspectTypeAnnotation config) context (List.map (Node.value >> Tuple.second) <| Node.value recordDefinition)
 
         FunctionTypeAnnotation left right ->
             List.foldl (inspectTypeAnnotation config) context [ left, right ]

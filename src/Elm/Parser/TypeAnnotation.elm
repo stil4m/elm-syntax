@@ -143,22 +143,26 @@ recordTypeAnnotation =
                             |> Combine.andThen (\next -> additionalRecordFields (next :: items))
                         , Combine.succeed (List.reverse items)
                         ]
+
+                createRecord : Maybe (Node String) -> RecordDefinition -> TypeAnnotation
+                createRecord generic definitions =
+                    Record definitions generic
             in
             Node.parser
                 (string "{"
                     |> Combine.ignore (maybe Layout.layout)
                     |> Combine.continueWith
                         (Combine.choice
-                            [ Combine.string "}" |> Combine.continueWith (Combine.succeed (Record []))
+                            [ Combine.string "}" |> Combine.continueWith (Combine.succeed (Record [] Nothing))
                             , Node.parser functionName
                                 |> Combine.ignore (maybe Layout.layout)
                                 |> Combine.andThen
                                     (\fname ->
                                         Combine.choice
-                                            [ Combine.succeed (GenericRecord fname)
-                                                |> Combine.ignore (Combine.string "|")
-                                                |> Combine.andMap (Node.parser recordFieldsTypeAnnotation)
+                                            [ Combine.string "|"
+                                                |> Combine.continueWith recordFieldsTypeAnnotation
                                                 |> Combine.ignore (Combine.string "}")
+                                                |> Combine.map (createRecord (Just fname))
                                             , Combine.string ":"
                                                 |> Combine.ignore (maybe Layout.layout)
                                                 |> Combine.continueWith typeAnnotation
@@ -166,7 +170,7 @@ recordTypeAnnotation =
                                                 |> Combine.andThen
                                                     (\ta ->
                                                         additionalRecordFields [ Node.combine Tuple.pair fname ta ]
-                                                            |> Combine.map Record
+                                                            |> Combine.map (createRecord Nothing)
                                                     )
                                                 |> Combine.ignore (Combine.string "}")
                                             ]

@@ -53,6 +53,7 @@ all =
                                             , Node emptyRange <| Typed (Node emptyRange <| ( [], "String" )) []
                                             )
                                         ]
+                                        Nothing
                             }
                         )
         , test "type alias with GenericType " <|
@@ -73,6 +74,7 @@ all =
                                             , Node emptyRange <| GenericType "a"
                                             )
                                         ]
+                                        Nothing
                             }
                         )
         , test "type" <|

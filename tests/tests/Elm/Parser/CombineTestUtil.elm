@@ -295,17 +295,11 @@ noRangeTypeReference (Node _ typeAnnotation) =
             Typed (Node _ ( a, b )) c ->
                 Typed (Node emptyRange ( a, b )) (List.map noRangeTypeReference c)
 
-            Unit ->
-                Unit
-
             Tupled a ->
                 Tupled (List.map noRangeTypeReference a)
 
-            Record a ->
-                Record (List.map (unRanged noRangeRecordField) a)
-
-            GenericRecord a b ->
-                GenericRecord (unRanged identity a) (unRanged noRangeRecordDefinition b)
+            Record a name ->
+                Record (List.map (unRanged noRangeRecordField) a) (Maybe.map (unRanged identity) name)
 
             FunctionTypeAnnotation a b ->
                 FunctionTypeAnnotation

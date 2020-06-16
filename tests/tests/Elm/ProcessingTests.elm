@@ -195,6 +195,7 @@ type alias Foo
                                         Typed (Node { end = { column = 21, row = 5 }, start = { column = 15, row = 5 } } ( [], "String" )) []
                                     )
                                 ]
+                                Nothing
                     }
             ]
       , comments = []
@@ -561,8 +562,8 @@ context : Result (List DeadEnd) Processing.ProcessContext
 context =
     """
 module Basics exposing ((+), (-), (*), (/), (//), (^), (==), (/=), (<), (>), (<=), (>=), (&&), (||), (++), (<|), (|>), (<<), (>>))
-         
-         
+
+
 infix right 0 (<|) = apL
 infix left  0 (|>) = apR
 infix right 2 (||) = or
