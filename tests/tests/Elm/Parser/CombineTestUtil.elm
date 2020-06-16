@@ -382,8 +382,11 @@ noRangeInnerExpression inner =
                     , args = List.map noRangePattern lambda.args
                 }
 
-        RecordUpdateExpression name updates ->
-            RecordUpdateExpression (unRanged identity name) (List.map (unRanged noRangeRecordSetter) updates)
+        RecordUpdateExpression name firstUpdate updates ->
+            RecordUpdateExpression
+                (unRanged identity name)
+                (unRanged noRangeRecordSetter firstUpdate)
+                (List.map (unRanged noRangeRecordSetter) updates)
 
         CaseExpression { cases, expression } ->
             CaseExpression

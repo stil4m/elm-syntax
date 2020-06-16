@@ -371,10 +371,11 @@ visitExpressionInner visitor context (Node range expression) =
             ListExpr expressionList ->
                 ListExpr (List.map subVisit expressionList)
 
-            RecordUpdateExpression name updates ->
-                updates
-                    |> List.map (Node.map (Tuple.mapSecond subVisit))
-                    |> RecordUpdateExpression name
+            RecordUpdateExpression name firstUpdate updates ->
+                RecordUpdateExpression
+                    name
+                    (Node.map (Tuple.mapSecond subVisit) firstUpdate)
+                    (List.map (Node.map (Tuple.mapSecond subVisit)) updates)
 
             _ ->
                 expression
