@@ -38,14 +38,14 @@ all =
                                     FunctionTypeAnnotation
                                         (Node emptyRange <|
                                             FunctionTypeAnnotation
-                                                (Node emptyRange <| GenericType "msg")
+                                                (Node emptyRange <| Var "msg")
                                                 (Node emptyRange <|
                                                     FunctionTypeAnnotation
-                                                        (Node emptyRange <| GenericType "model")
+                                                        (Node emptyRange <| Var "model")
                                                         (Node emptyRange <|
                                                             Tuple
-                                                                [ Node emptyRange <| GenericType "model"
-                                                                , Node emptyRange <| Type (Node emptyRange ( [], "Cmd" )) [ Node emptyRange <| GenericType "msg" ]
+                                                                [ Node emptyRange <| Var "model"
+                                                                , Node emptyRange <| Type (Node emptyRange ( [], "Cmd" )) [ Node emptyRange <| Var "msg" ]
                                                                 ]
                                                         )
                                                 )
@@ -54,18 +54,18 @@ all =
                                             FunctionTypeAnnotation
                                                 (Node emptyRange <|
                                                     Type (Node emptyRange ( [], "SendPort" ))
-                                                        [ Node emptyRange <| GenericType "msg"
-                                                        , Node emptyRange <| GenericType "model"
+                                                        [ Node emptyRange <| Var "msg"
+                                                        , Node emptyRange <| Var "model"
                                                         ]
                                                 )
                                                 (Node emptyRange <|
-                                                    FunctionTypeAnnotation (Node emptyRange <| GenericType "msg")
+                                                    FunctionTypeAnnotation (Node emptyRange <| Var "msg")
                                                         (Node emptyRange <|
-                                                            FunctionTypeAnnotation (Node emptyRange <| GenericType "model")
+                                                            FunctionTypeAnnotation (Node emptyRange <| Var "model")
                                                                 (Node emptyRange <|
                                                                     Tuple
-                                                                        [ Node emptyRange <| GenericType "model"
-                                                                        , Node emptyRange <| Type (Node emptyRange ( [], "Cmd" )) [ Node emptyRange <| GenericType "msg" ]
+                                                                        [ Node emptyRange <| Var "model"
+                                                                        , Node emptyRange <| Type (Node emptyRange ( [], "Cmd" )) [ Node emptyRange <| Var "msg" ]
                                                                         ]
                                                                 )
                                                         )
@@ -232,7 +232,7 @@ all =
                                         [ Node emptyRange <|
                                             Tuple
                                                 [ Node emptyRange <| Type (Node emptyRange ( [], "Int" )) []
-                                                , Node emptyRange <| Type (Node emptyRange ( [], "Maybe" )) [ Node emptyRange <| GenericType "m" ]
+                                                , Node emptyRange <| Type (Node emptyRange ( [], "Maybe" )) [ Node emptyRange <| Var "m" ]
                                                 ]
                                         ]
                             }
@@ -358,7 +358,7 @@ all =
                                                     , Node emptyRange <| Type (Node emptyRange ( [], "String" )) []
                                                     ]
                                             )
-                                            (Node emptyRange <| Type (Node emptyRange ( [], "Cmd" )) [ Node emptyRange <| GenericType "msg" ])
+                                            (Node emptyRange <| Type (Node emptyRange ( [], "Cmd" )) [ Node emptyRange <| Var "msg" ])
                                 }
                             )
                         )
@@ -376,9 +376,9 @@ all =
                                         FunctionTypeAnnotation
                                             (Node emptyRange <|
                                                 FunctionTypeAnnotation (Node emptyRange <| Type (Node emptyRange ( [], "Move" )) [])
-                                                    (Node emptyRange <| GenericType "msg")
+                                                    (Node emptyRange <| Var "msg")
                                             )
-                                            (Node emptyRange <| Type (Node emptyRange ( [], "Sub" )) [ Node emptyRange <| GenericType "msg" ])
+                                            (Node emptyRange <| Type (Node emptyRange ( [], "Sub" )) [ Node emptyRange <| Var "msg" ])
                                 }
                         )
         , test "Destructuring declaration" <|

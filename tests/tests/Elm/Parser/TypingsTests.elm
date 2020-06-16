@@ -56,7 +56,7 @@ all =
                                         Nothing
                             }
                         )
-        , test "type alias with GenericType " <|
+        , test "type alias with Var " <|
             \() ->
                 parseFullStringWithNullState "type alias Foo a = {some : a }" Parser.typeDefinition
                     |> Maybe.andThen asTypeAlias
@@ -71,7 +71,7 @@ all =
                                     Record
                                         [ Node emptyRange <|
                                             ( Node emptyRange <| "some"
-                                            , Node emptyRange <| GenericType "a"
+                                            , Node emptyRange <| Var "a"
                                             )
                                         ]
                                         Nothing
@@ -114,7 +114,7 @@ all =
                             , constructors =
                                 [ Node emptyRange
                                     { arguments =
-                                        [ Node emptyRange <| GenericType "a"
+                                        [ Node emptyRange <| Var "a"
                                         , Node emptyRange <| Elm.Syntax.TypeAnnotation.Type (Node emptyRange <| ( [], "B" )) []
                                         ]
                                     , name = Node emptyRange <| "C"
@@ -136,7 +136,7 @@ all =
                                 [ Node emptyRange
                                     { arguments =
                                         [ Node emptyRange <| Elm.Syntax.TypeAnnotation.Type (Node emptyRange <| ( [], "B" )) []
-                                        , Node emptyRange <| GenericType "a"
+                                        , Node emptyRange <| Var "a"
                                         ]
                                     , name = Node emptyRange <| "C"
                                     }
@@ -196,7 +196,7 @@ all =
                             , constructors =
                                 [ Node emptyRange
                                     { name = Node emptyRange <| "Just"
-                                    , arguments = [ Node emptyRange <| GenericType "a" ]
+                                    , arguments = [ Node emptyRange <| Var "a" ]
                                     }
                                 , Node emptyRange
                                     { name = Node emptyRange <| "Nothing"

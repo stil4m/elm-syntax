@@ -34,7 +34,7 @@ import Json.Encode as JE exposing (Value)
 
 {-| Custom type for different type annotations. For example:
 
-  - `GenericType`: `a`
+  - `Var`: `a`
   - `Type`: `Maybe (Int -> String)`
   - `Tuples`: `(a, b, c)` or Unit `()`
   - `Record`: `{ name : String}`
@@ -43,7 +43,7 @@ import Json.Encode as JE exposing (Value)
 
 -}
 type TypeAnnotation
-    = GenericType String
+    = Var String
     | Type (Node ( ModuleName, String )) (List (Node TypeAnnotation))
     | Tuple (List (Node TypeAnnotation))
     | Record RecordDefinition (Maybe (Node String))
@@ -71,8 +71,8 @@ type alias RecordField =
 encode : TypeAnnotation -> Value
 encode typeAnnotation =
     case typeAnnotation of
-        GenericType name ->
-            encodeTyped "generic" <|
+        Var name ->
+            encodeTyped "var" <|
                 JE.object
                     [ ( "value", JE.string name )
                     ]
@@ -144,7 +144,7 @@ decoder =
     JD.lazy
         (\() ->
             decodeTyped
-                [ ( "generic", JD.map GenericType (JD.field "value" JD.string) )
+                [ ( "var", JD.map Var (JD.field "value" JD.string) )
                 , ( "type"
                   , JD.map2 Type
                         (JD.field "moduleNameAndName" <| Node.decoder decodeModuleNameAndName)

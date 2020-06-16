@@ -327,7 +327,7 @@ writeDestructuring pattern expression =
 writeTypeAnnotation : Node TypeAnnotation -> Writer
 writeTypeAnnotation (Node _ typeAnnotation) =
     case typeAnnotation of
-        GenericType s ->
+        Var s ->
             string s
 
         Elm.Syntax.TypeAnnotation.Type moduleNameAndName args ->

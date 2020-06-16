@@ -289,8 +289,8 @@ noRangeTypeReference : Node TypeAnnotation -> Node TypeAnnotation
 noRangeTypeReference (Node _ typeAnnotation) =
     Node emptyRange <|
         case typeAnnotation of
-            GenericType x ->
-                GenericType x
+            Var x ->
+                Var x
 
             Elm.Syntax.TypeAnnotation.Type (Node _ ( a, b )) c ->
                 Elm.Syntax.TypeAnnotation.Type (Node emptyRange ( a, b )) (List.map noRangeTypeReference c)

@@ -110,7 +110,7 @@ genericTypeAnnotation : Parser State (Node TypeAnnotation)
 genericTypeAnnotation =
     lazy
         (\() ->
-            Node.parser (Combine.map GenericType functionName)
+            Node.parser (Combine.map Var functionName)
         )
 
 
