@@ -79,7 +79,7 @@ all =
                                 }
                             )
                         )
-        , test "type alias with GenericType " <|
+        , test "type alias with Var " <|
             \() ->
                 "type alias Foo a = {some : a }"
                     |> expectAst
@@ -93,7 +93,7 @@ all =
                                         (Record
                                             [ Node { start = { row = 1, column = 21 }, end = { row = 1, column = 29 } }
                                                 ( Node { start = { row = 1, column = 21 }, end = { row = 1, column = 25 } } "some"
-                                                , Node { start = { row = 1, column = 28 }, end = { row = 1, column = 29 } } (GenericType "a")
+                                                , Node { start = { row = 1, column = 28 }, end = { row = 1, column = 29 } } (Var "a")
                                                 )
                                             ]
                                         )
@@ -167,7 +167,7 @@ all =
                                 { constructors =
                                     [ Node { start = { row = 1, column = 10 }, end = { row = 1, column = 15 } }
                                         { arguments =
-                                            [ Node { start = { row = 1, column = 12 }, end = { row = 1, column = 13 } } (GenericType "a")
+                                            [ Node { start = { row = 1, column = 12 }, end = { row = 1, column = 13 } } (Var "a")
                                             , Node { start = { row = 1, column = 14 }, end = { row = 1, column = 15 } }
                                                 (Type (Node { start = { row = 1, column = 14 }, end = { row = 1, column = 15 } } ( [], "B" )) [])
                                             ]
@@ -191,7 +191,7 @@ all =
                                         { arguments =
                                             [ Node { start = { row = 1, column = 12 }, end = { row = 1, column = 13 } }
                                                 (Type (Node { start = { row = 1, column = 12 }, end = { row = 1, column = 13 } } ( [], "B" )) [])
-                                            , Node { start = { row = 1, column = 14 }, end = { row = 1, column = 15 } } (GenericType "a")
+                                            , Node { start = { row = 1, column = 14 }, end = { row = 1, column = 15 } } (Var "a")
                                             ]
                                         , name = Node { start = { row = 1, column = 10 }, end = { row = 1, column = 11 } } "C"
                                         }
@@ -206,7 +206,7 @@ all =
             \() ->
                 "type D = C B\na"
                     |> expectInvalid
-        , test "type with GenericType" <|
+        , test "type with Var" <|
             \() ->
                 "type Maybe a = Just a | Nothing"
                     |> expectAst
@@ -214,7 +214,7 @@ all =
                             (Declaration.CustomTypeDeclaration
                                 { constructors =
                                     [ Node { start = { row = 1, column = 16 }, end = { row = 1, column = 22 } }
-                                        { arguments = [ Node { start = { row = 1, column = 21 }, end = { row = 1, column = 22 } } (GenericType "a") ]
+                                        { arguments = [ Node { start = { row = 1, column = 21 }, end = { row = 1, column = 22 } } (Var "a") ]
                                         , name = Node { start = { row = 1, column = 16 }, end = { row = 1, column = 20 } } "Just"
                                         }
                                     , Node { start = { row = 1, column = 25 }, end = { row = 1, column = 32 } }

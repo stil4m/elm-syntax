@@ -105,7 +105,7 @@ asTypeAnnotation ((Node _ value) as x) xs =
 genericTypeAnnotation : Parser state (Node TypeAnnotation)
 genericTypeAnnotation =
     Tokens.functionName
-        |> Core.map TypeAnnotation.GenericType
+        |> Core.map TypeAnnotation.Var
         |> Node.parserFromCore
 
 

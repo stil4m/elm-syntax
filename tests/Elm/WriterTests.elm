@@ -120,7 +120,7 @@ suite =
                     (Node empty <|
                         TypeAnnotation.Type
                             (Node empty <| ( [ "Json", "Decode" ], "Decoder" ))
-                            [ Node empty <| GenericType "a" ]
+                            [ Node empty <| Var "a" ]
                     )
                         |> Writer.writeTypeAnnotation
                         |> Writer.write
@@ -145,8 +145,8 @@ suite =
                         FunctionTypeAnnotation
                             (Node empty <|
                                 FunctionTypeAnnotation
-                                    (Node empty <| GenericType "a")
-                                    (Node empty <| GenericType "b")
+                                    (Node empty <| Var "a")
+                                    (Node empty <| Var "b")
                             )
                             (Node empty <| TypeAnnotation.Type (Node empty ( [], "Int" )) [])
                     )
