@@ -429,10 +429,10 @@ port sendResponse : String -> Cmd msg
                                             Node { start = { row = 8, column = 21 }, end = { row = 8, column = 38 } }
                                                 (FunctionTypeAnnotation
                                                     (Node { start = { row = 8, column = 21 }, end = { row = 8, column = 27 } }
-                                                        (Typed (Node { start = { row = 8, column = 21 }, end = { row = 8, column = 27 } } ( [], "String" )) [])
+                                                        (Type (Node { start = { row = 8, column = 21 }, end = { row = 8, column = 27 } } ( [], "String" )) [])
                                                     )
                                                     (Node { start = { row = 8, column = 31 }, end = { row = 8, column = 38 } }
-                                                        (Typed (Node { start = { row = 8, column = 31 }, end = { row = 8, column = 34 } } ( [], "Cmd" ))
+                                                        (Type (Node { start = { row = 8, column = 31 }, end = { row = 8, column = 34 } } ( [], "Cmd" ))
                                                             [ Node { start = { row = 8, column = 35 }, end = { row = 8, column = 38 } } (GenericType "msg") ]
                                                         )
                                                     )

@@ -302,7 +302,7 @@ typedTypeAnnotationWithoutArguments =
                     \nameEndColumn ->
                         { comments = Rope.empty
                         , syntax =
-                            TypeAnnotation.Typed
+                            TypeAnnotation.Type
                                 (Node
                                     { start = { row = nameStartRow, column = nameStartColumn }
                                     , end = { row = nameStartRow, column = nameEndColumn }
@@ -357,7 +357,7 @@ typedTypeAnnotationWithArguments =
                         \args ->
                             { comments = args.comments
                             , syntax =
-                                TypeAnnotation.Typed
+                                TypeAnnotation.Type
                                     (Node
                                         { start = { row = nameStartRow, column = nameStartColumn }
                                         , end = { row = nameStartRow, column = nameEndColumn }
