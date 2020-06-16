@@ -1092,7 +1092,7 @@ tupledExpressionInnerAfterOpeningParens =
                             _ ->
                                 { comments = firstPart.comments |> Rope.prependTo tailPartsReverse.comments
                                 , end = { row = endRow, column = endColumn }
-                                , expression = TupledExpression (firstPart.syntax :: List.reverse tailPartsReverse.syntax)
+                                , expression = TupleExpression (firstPart.syntax :: List.reverse tailPartsReverse.syntax)
                                 }
         )
         expression

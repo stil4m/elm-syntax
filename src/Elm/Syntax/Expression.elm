@@ -88,7 +88,7 @@ type alias FunctionImplementation =
   - `Negation`: `-a`
   - `Literal`: `"text"`
   - `CharLiteral`: `'a'`
-  - `TupledExpression`: `(a, b)` or `(a, b, c)`
+  - `TupleExpression`: `(a, b)` or `(a, b, c)`
   - `ParenthesizedExpression`: `(a)`
   - `LetExpression`: `let a = 4 in a`
   - `CaseExpression`: `case a of` followed by pattern matches
@@ -115,7 +115,7 @@ type Expression
     | Negation (Node Expression)
     | Literal String
     | CharLiteral Char
-    | TupledExpression (List (Node Expression))
+    | TupleExpression (List (Node Expression))
     | ParenthesizedExpression (Node Expression)
     | LetExpression LetBlock
     | CaseExpression CaseBlock
