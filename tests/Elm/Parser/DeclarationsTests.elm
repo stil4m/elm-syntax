@@ -359,7 +359,7 @@ foo = bar"""
                                             (Node { start = { row = 1, column = 44 }, end = { row = 1, column = 51 } }
                                                 (Type
                                                     (Node { start = { row = 1, column = 44 }, end = { row = 1, column = 47 } } ( [], "Cmd" ))
-                                                    [ Node { start = { row = 1, column = 48 }, end = { row = 1, column = 51 } } (GenericType "msg") ]
+                                                    [ Node { start = { row = 1, column = 48 }, end = { row = 1, column = 51 } } (Var "msg") ]
                                                 )
                                             )
                                         )
@@ -381,12 +381,12 @@ foo = bar"""
                                                     (Node { start = { row = 1, column = 16 }, end = { row = 1, column = 20 } }
                                                         (Type (Node { start = { row = 1, column = 16 }, end = { row = 1, column = 20 } } ( [], "Move" )) [])
                                                     )
-                                                    (Node { start = { row = 1, column = 24 }, end = { row = 1, column = 27 } } (GenericType "msg"))
+                                                    (Node { start = { row = 1, column = 24 }, end = { row = 1, column = 27 } } (Var "msg"))
                                                 )
                                             )
                                             (Node { start = { row = 1, column = 32 }, end = { row = 1, column = 39 } }
                                                 (Type (Node { start = { row = 1, column = 32 }, end = { row = 1, column = 35 } } ( [], "Sub" ))
-                                                    [ Node { start = { row = 1, column = 36 }, end = { row = 1, column = 39 } } (GenericType "msg")
+                                                    [ Node { start = { row = 1, column = 36 }, end = { row = 1, column = 39 } } (Var "msg")
                                                     ]
                                                 )
                                             )
@@ -654,7 +654,7 @@ type alias Foo = {color: String }"""
                                 }
                             )
                         )
-        , test "type alias with GenericType " <|
+        , test "type alias with Var " <|
             \() ->
                 "type alias Foo a = {some : a }"
                     |> expectAst
@@ -668,7 +668,7 @@ type alias Foo = {color: String }"""
                                         (Record
                                             [ Node { start = { row = 1, column = 21 }, end = { row = 1, column = 29 } }
                                                 ( Node { start = { row = 1, column = 21 }, end = { row = 1, column = 25 } } "some"
-                                                , Node { start = { row = 1, column = 28 }, end = { row = 1, column = 29 } } (GenericType "a")
+                                                , Node { start = { row = 1, column = 28 }, end = { row = 1, column = 29 } } (Var "a")
                                                 )
                                             ]
                                         )
@@ -750,7 +750,7 @@ type Color = Blue String | Red | Green"""
                                     [ Node { start = { row = 1, column = 10 }, end = { row = 1, column = 15 } }
                                         { name = Node { start = { row = 1, column = 10 }, end = { row = 1, column = 11 } } "C"
                                         , arguments =
-                                            [ Node { start = { row = 1, column = 12 }, end = { row = 1, column = 13 } } (GenericType "a")
+                                            [ Node { start = { row = 1, column = 12 }, end = { row = 1, column = 13 } } (Var "a")
                                             , Node { start = { row = 1, column = 14 }, end = { row = 1, column = 15 } }
                                                 (Type (Node { start = { row = 1, column = 14 }, end = { row = 1, column = 15 } } ( [], "B" )) [])
                                             ]
@@ -774,7 +774,7 @@ type Color = Blue String | Red | Green"""
                                         , arguments =
                                             [ Node { start = { row = 1, column = 12 }, end = { row = 1, column = 13 } }
                                                 (Type (Node { start = { row = 1, column = 12 }, end = { row = 1, column = 13 } } ( [], "B" )) [])
-                                            , Node { start = { row = 1, column = 14 }, end = { row = 1, column = 15 } } (GenericType "a")
+                                            , Node { start = { row = 1, column = 14 }, end = { row = 1, column = 15 } } (Var "a")
                                             ]
                                         }
                                     ]
@@ -785,7 +785,7 @@ type Color = Blue String | Red | Green"""
             \() ->
                 "type D = C B\na"
                     |> expectInvalid
-        , test "type with GenericType" <|
+        , test "type with Var" <|
             \() ->
                 "type Maybe a = Just a | Nothing"
                     |> expectAst
@@ -797,7 +797,7 @@ type Color = Blue String | Red | Green"""
                                 , constructors =
                                     [ Node { start = { row = 1, column = 16 }, end = { row = 1, column = 22 } }
                                         { name = Node { start = { row = 1, column = 16 }, end = { row = 1, column = 20 } } "Just"
-                                        , arguments = [ Node { start = { row = 1, column = 21 }, end = { row = 1, column = 22 } } (GenericType "a") ]
+                                        , arguments = [ Node { start = { row = 1, column = 21 }, end = { row = 1, column = 22 } } (Var "a") ]
                                         }
                                     , Node { start = { row = 1, column = 25 }, end = { row = 1, column = 32 } }
                                         { name = Node { start = { row = 1, column = 25 }, end = { row = 1, column = 32 } } "Nothing"

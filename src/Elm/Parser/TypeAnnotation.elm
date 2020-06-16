@@ -123,7 +123,7 @@ genericTypeAnnotation =
                 { comments = Rope.empty
                 , syntax =
                     Node { start = start, end = end }
-                        (TypeAnnotation.GenericType var)
+                        (TypeAnnotation.Var var)
                 }
             )
 
