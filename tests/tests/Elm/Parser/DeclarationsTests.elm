@@ -43,7 +43,7 @@ all =
                                                     FunctionTypeAnnotation
                                                         (Node emptyRange <| GenericType "model")
                                                         (Node emptyRange <|
-                                                            Tupled
+                                                            Tuple
                                                                 [ Node emptyRange <| GenericType "model"
                                                                 , Node emptyRange <| Typed (Node emptyRange ( [], "Cmd" )) [ Node emptyRange <| GenericType "msg" ]
                                                                 ]
@@ -63,7 +63,7 @@ all =
                                                         (Node emptyRange <|
                                                             FunctionTypeAnnotation (Node emptyRange <| GenericType "model")
                                                                 (Node emptyRange <|
-                                                                    Tupled
+                                                                    Tuple
                                                                         [ Node emptyRange <| GenericType "model"
                                                                         , Node emptyRange <| Typed (Node emptyRange ( [], "Cmd" )) [ Node emptyRange <| GenericType "msg" ]
                                                                         ]
@@ -230,7 +230,7 @@ all =
                                 Node emptyRange <|
                                     Typed (Node emptyRange ( [], "List" ))
                                         [ Node emptyRange <|
-                                            Tupled
+                                            Tuple
                                                 [ Node emptyRange <| Typed (Node emptyRange ( [], "Int" )) []
                                                 , Node emptyRange <| Typed (Node emptyRange ( [], "Maybe" )) [ Node emptyRange <| GenericType "m" ]
                                                 ]
@@ -353,7 +353,7 @@ all =
                                     Node emptyRange <|
                                         FunctionTypeAnnotation
                                             (Node emptyRange <|
-                                                Tupled
+                                                Tuple
                                                     [ Node emptyRange <| Typed (Node emptyRange ( [], "String" )) []
                                                     , Node emptyRange <| Typed (Node emptyRange ( [], "String" )) []
                                                     ]

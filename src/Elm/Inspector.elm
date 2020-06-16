@@ -245,7 +245,7 @@ inspectTypeAnnotationInner config (Node _ typeRefence) context =
         Typed _ typeArgs ->
             List.foldl (inspectTypeAnnotation config) context typeArgs
 
-        Tupled typeAnnotations ->
+        Tuple typeAnnotations ->
             List.foldl (inspectTypeAnnotation config) context typeAnnotations
 
         Record recordDefinition _ ->

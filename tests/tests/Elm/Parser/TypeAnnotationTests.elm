@@ -17,7 +17,7 @@ all =
             \() ->
                 parseFullStringWithNullState "()" Parser.typeAnnotation
                     |> Maybe.map noRangeTypeReference
-                    |> Expect.equal (Just <| Node emptyRange (Tupled []))
+                    |> Expect.equal (Just <| Node emptyRange (Tuple []))
         , test "unitTypeReference with spaces" <|
             \() ->
                 parseFullStringWithNullState "( )" Parser.typeAnnotation
@@ -27,12 +27,12 @@ all =
             \() ->
                 parseFullStringWithNullState "( (), ())" Parser.typeAnnotation
                     |> Maybe.map noRangeTypeReference
-                    |> Expect.equal (Just <| Node emptyRange <| Tupled [ Node emptyRange (Tupled []), Node emptyRange (Tupled []) ])
+                    |> Expect.equal (Just <| Node emptyRange <| Tuple [ Node emptyRange (Tuple []), Node emptyRange (Tuple []) ])
         , test "tupledTypeReference 2" <|
             \() ->
                 parseFullStringWithNullState "( () )" Parser.typeAnnotation
                     |> Maybe.map noRangeTypeReference
-                    |> Expect.equal (Just <| Node emptyRange (Tupled []))
+                    |> Expect.equal (Just <| Node emptyRange (Tuple []))
         , test "tupledTypeReference 3" <|
             \() ->
                 parseFullStringWithNullState "( () , Maybe m )" Parser.typeAnnotation
@@ -40,8 +40,8 @@ all =
                     |> Expect.equal
                         (Just
                             (Node emptyRange <|
-                                Tupled
-                                    [ Node emptyRange (Tupled [])
+                                Tuple
+                                    [ Node emptyRange (Tuple [])
                                     , Node emptyRange <| Typed (Node emptyRange <| ( [], "Maybe" )) [ Node emptyRange <| GenericType "m" ]
                                     ]
                             )
@@ -75,7 +75,7 @@ all =
                         (Just <|
                             (Node emptyRange <|
                                 Typed (Node emptyRange ( [], "Foo" ))
-                                    [ Node emptyRange (Tupled [])
+                                    [ Node emptyRange (Tuple [])
                                     , Node emptyRange <| GenericType "a"
                                     , Node emptyRange <| Typed (Node emptyRange ( [], "Bar" )) []
                                     ]
@@ -89,7 +89,7 @@ all =
                         (Just <|
                             (Node emptyRange <|
                                 Typed (Node emptyRange ( [], "Foo" ))
-                                    [ Node emptyRange (Tupled [])
+                                    [ Node emptyRange (Tuple [])
                                     , Node emptyRange <| GenericType "a"
                                     , Node emptyRange <| Typed (Node emptyRange ( [], "Bar" )) []
                                     ]
@@ -228,7 +228,7 @@ all =
                                     (Node emptyRange <|
                                         FunctionTypeAnnotation (Node emptyRange <| Typed (Node emptyRange ( [], "Model" )) [])
                                             (Node emptyRange <|
-                                                Tupled
+                                                Tuple
                                                     [ Node emptyRange <| Typed (Node emptyRange ( [], "Model" )) []
                                                     , Node emptyRange <| Typed (Node emptyRange ( [], "Cmd" )) [ Node emptyRange <| Typed (Node emptyRange ( [], "Msg" )) [] ]
                                                     ]

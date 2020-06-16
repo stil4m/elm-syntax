@@ -88,7 +88,7 @@ parensTypeAnnotation =
                 (Combine.string "("
                     |> Combine.continueWith
                         (Combine.choice
-                            [ Combine.string ")" |> Combine.map (always (Tupled []))
+                            [ Combine.string ")" |> Combine.map (always (Tuple []))
                             , nested |> Combine.ignore (Combine.string ")")
                             ]
                         )
@@ -103,7 +103,7 @@ asTypeAnnotation ((Node _ value) as x) xs =
             value
 
         _ ->
-            Tupled (x :: xs)
+            Tuple (x :: xs)
 
 
 genericTypeAnnotation : Parser State (Node TypeAnnotation)
