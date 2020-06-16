@@ -75,7 +75,7 @@ all =
                                         ]
                             }
                         )
-        , test "type alias with GenericType " <|
+        , test "type alias with Var " <|
             \() ->
                 parseFullStringWithNullState "type alias Foo a = {some : a }" Parser.typeDefinition
                     |> Maybe.andThen asTypeAlias
@@ -90,7 +90,7 @@ all =
                                     Record
                                         [ Node empty <|
                                             ( Node empty <| "some"
-                                            , Node empty <| GenericType "a"
+                                            , Node empty <| Var "a"
                                             )
                                         ]
                             }
@@ -132,7 +132,7 @@ all =
                             , constructors =
                                 [ Node empty
                                     { arguments =
-                                        [ Node empty <| GenericType "a"
+                                        [ Node empty <| Var "a"
                                         , Node empty <| Elm.Syntax.TypeAnnotation.Type (Node empty <| ( [], "B" )) []
                                         ]
                                     , name = Node empty <| "C"
@@ -154,7 +154,7 @@ all =
                                 [ Node empty
                                     { arguments =
                                         [ Node empty <| Elm.Syntax.TypeAnnotation.Type (Node empty <| ( [], "B" )) []
-                                        , Node empty <| GenericType "a"
+                                        , Node empty <| Var "a"
                                         ]
                                     , name = Node empty <| "C"
                                     }
@@ -201,7 +201,7 @@ all =
                             , name = Node empty <| "Color"
                             }
                         )
-        , test "type with GenericType" <|
+        , test "type with Var" <|
             \() ->
                 parseFullStringWithNullState "type Maybe a = Just a | Nothing" Parser.typeDefinition
                     |> Maybe.andThen asType
@@ -214,7 +214,7 @@ all =
                             , constructors =
                                 [ Node empty
                                     { name = Node empty <| "Just"
-                                    , arguments = [ Node empty <| GenericType "a" ]
+                                    , arguments = [ Node empty <| Var "a" ]
                                     }
                                 , Node empty
                                     { name = Node empty <| "Nothing"

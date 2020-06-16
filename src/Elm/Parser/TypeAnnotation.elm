@@ -102,7 +102,7 @@ asTypeAnnotation ((Node _ value) as x) xs =
 
 genericTypeAnnotation : Parser State (Node TypeAnnotation)
 genericTypeAnnotation =
-    Node.parser (Combine.map TypeAnnotation.GenericType functionName)
+    Node.parser (Combine.map TypeAnnotation.Var functionName)
 
 
 recordFieldsTypeAnnotation : Parser State TypeAnnotation.RecordDefinition

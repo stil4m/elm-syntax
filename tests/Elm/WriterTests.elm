@@ -119,7 +119,7 @@ suite =
                     (Node empty <|
                         Elm.Syntax.TypeAnnotation.Type
                             (Node empty <| ( [ "Json", "Decode" ], "Decoder" ))
-                            [ Node empty <| Elm.Syntax.TypeAnnotation.GenericType "a" ]
+                            [ Node empty <| Elm.Syntax.TypeAnnotation.Var "a" ]
                     )
                         |> Writer.writeTypeAnnotation
                         |> Writer.write
@@ -144,8 +144,8 @@ suite =
                         Elm.Syntax.TypeAnnotation.FunctionTypeAnnotation
                             (Node empty <|
                                 Elm.Syntax.TypeAnnotation.FunctionTypeAnnotation
-                                    (Node empty <| Elm.Syntax.TypeAnnotation.GenericType "a")
-                                    (Node empty <| Elm.Syntax.TypeAnnotation.GenericType "b")
+                                    (Node empty <| Elm.Syntax.TypeAnnotation.Var "a")
+                                    (Node empty <| Elm.Syntax.TypeAnnotation.Var "b")
                             )
                             (Node empty <| Elm.Syntax.TypeAnnotation.Type (Node empty ( [], "Int" )) [])
                     )

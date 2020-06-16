@@ -42,7 +42,7 @@ all =
                             (Node.empty <|
                                 Tuple
                                     [ Node.empty (Tuple [])
-                                    , Node empty <| Type (Node empty <| ( [], "Maybe" )) [ Node empty <| GenericType "m" ]
+                                    , Node empty <| Type (Node empty <| ( [], "Maybe" )) [ Node empty <| Var "m" ]
                                     ]
                             )
                         )
@@ -76,7 +76,7 @@ all =
                             (Node empty <|
                                 Type (Node empty ( [], "Foo" ))
                                     [ Node empty (Tuple [])
-                                    , Node empty <| GenericType "a"
+                                    , Node empty <| Var "a"
                                     , Node empty <| Type (Node empty ( [], "Bar" )) []
                                     ]
                             )
@@ -90,7 +90,7 @@ all =
                             (Node empty <|
                                 Type (Node empty ( [], "Foo" ))
                                     [ Node empty (Tuple [])
-                                    , Node empty <| GenericType "a"
+                                    , Node empty <| Var "a"
                                     , Node empty <| Type (Node empty ( [], "Bar" )) []
                                     ]
                             )
@@ -197,7 +197,7 @@ all =
                                 Record
                                     [ Node empty
                                         ( Node empty "color"
-                                        , Node empty <| GenericType "s"
+                                        , Node empty <| Var "s"
                                         )
                                     ]
                             )
@@ -226,7 +226,7 @@ all =
                                     (Node empty <|
                                         FunctionTypeAnnotation
                                             (Node empty <| Type (Node empty ( [], "Bar" )) [])
-                                            (Node empty <| GenericType "baz")
+                                            (Node empty <| Var "baz")
                                     )
                             )
                         )
@@ -238,11 +238,11 @@ all =
                         (Just <|
                             (Node empty <|
                                 FunctionTypeAnnotation
-                                    (Node empty <| GenericType "cMsg")
+                                    (Node empty <| Var "cMsg")
                                     (Node empty <|
                                         FunctionTypeAnnotation
-                                            (Node empty <| GenericType "cModel")
-                                            (Node empty <| GenericType "a")
+                                            (Node empty <| Var "cModel")
+                                            (Node empty <| Var "a")
                                     )
                             )
                         )
@@ -278,8 +278,8 @@ all =
                     |> Expect.equal
                         (Just
                             (Node empty <|
-                                FunctionTypeAnnotation (Node empty <| GenericType "msg")
-                                    (Node empty <| Type (Node empty ( [], "Cmd" )) [ Node empty <| GenericType "model" ])
+                                FunctionTypeAnnotation (Node empty <| Var "msg")
+                                    (Node empty <| Type (Node empty ( [], "Cmd" )) [ Node empty <| Var "model" ])
                             )
                         )
         , test "function as argument" <|
@@ -292,14 +292,14 @@ all =
                                 FunctionTypeAnnotation
                                     (Node empty <|
                                         FunctionTypeAnnotation
-                                            (Node empty <| GenericType "cMsg")
+                                            (Node empty <| Var "cMsg")
                                             (Node empty <|
                                                 FunctionTypeAnnotation
-                                                    (Node empty <| GenericType "cModel")
-                                                    (Node empty <| GenericType "a")
+                                                    (Node empty <| Var "cModel")
+                                                    (Node empty <| Var "a")
                                             )
                                     )
-                                    (Node empty <| GenericType "b")
+                                    (Node empty <| Var "b")
                             )
                         )
         , test "type with params" <|
@@ -327,7 +327,7 @@ all =
                                             (Node empty <| Type (Node empty ( [], "Foo" )) [])
                                             (Node empty <| Type (Node empty ( [], "Bar" )) [])
                                     )
-                                    (Node empty <| GenericType "baz")
+                                    (Node empty <| Var "baz")
                             )
                         )
         , test "parseTypeWith wrong indent" <|
@@ -343,7 +343,7 @@ all =
                         (Just
                             (Node empty <|
                                 Type (Node empty ( [], "Maybe" ))
-                                    [ Node empty <| GenericType "a" ]
+                                    [ Node empty <| Var "a" ]
                             )
                         )
         , test "issue #5 - no spaces between type and generic with parens" <|

@@ -38,14 +38,14 @@ all =
                                     FunctionTypeAnnotation
                                         (Node.empty <|
                                             FunctionTypeAnnotation
-                                                (Node.empty <| GenericType "msg")
+                                                (Node.empty <| Var "msg")
                                                 (Node.empty <|
                                                     FunctionTypeAnnotation
-                                                        (Node.empty <| GenericType "model")
+                                                        (Node.empty <| Var "model")
                                                         (Node.empty <|
                                                             Tuple
-                                                                [ Node.empty <| GenericType "model"
-                                                                , Node.empty <| Type (Node.empty ( [], "Cmd" )) [ Node empty <| GenericType "msg" ]
+                                                                [ Node.empty <| Var "model"
+                                                                , Node.empty <| Type (Node.empty ( [], "Cmd" )) [ Node empty <| Var "msg" ]
                                                                 ]
                                                         )
                                                 )
@@ -54,18 +54,18 @@ all =
                                             FunctionTypeAnnotation
                                                 (Node empty <|
                                                     Type (Node empty ( [], "SendPort" ))
-                                                        [ Node empty <| GenericType "msg"
-                                                        , Node empty <| GenericType "model"
+                                                        [ Node empty <| Var "msg"
+                                                        , Node empty <| Var "model"
                                                         ]
                                                 )
                                                 (Node empty <|
-                                                    FunctionTypeAnnotation (Node empty <| GenericType "msg")
+                                                    FunctionTypeAnnotation (Node empty <| Var "msg")
                                                         (Node empty <|
-                                                            FunctionTypeAnnotation (Node empty <| GenericType "model")
+                                                            FunctionTypeAnnotation (Node empty <| Var "model")
                                                                 (Node empty <|
                                                                     Tuple
-                                                                        [ Node empty <| GenericType "model"
-                                                                        , Node empty <| Type (Node empty ( [], "Cmd" )) [ Node empty <| GenericType "msg" ]
+                                                                        [ Node empty <| Var "model"
+                                                                        , Node empty <| Type (Node empty ( [], "Cmd" )) [ Node empty <| Var "msg" ]
                                                                         ]
                                                                 )
                                                         )
@@ -239,7 +239,7 @@ all =
                                         [ Node empty <|
                                             Tuple
                                                 [ Node empty <| Type (Node empty ( [], "Int" )) []
-                                                , Node empty <| Type (Node empty ( [], "Maybe" )) [ Node empty <| GenericType "m" ]
+                                                , Node empty <| Type (Node empty ( [], "Maybe" )) [ Node empty <| Var "m" ]
                                                 ]
                                         ]
                             }
@@ -433,7 +433,7 @@ all =
                                             (Node { start = { row = 1, column = 44 }, end = { row = 1, column = 51 } }
                                                 (Type
                                                     (Node { start = { row = 1, column = 44 }, end = { row = 1, column = 47 } } ( [], "Cmd" ))
-                                                    [ Node { start = { row = 1, column = 48 }, end = { row = 1, column = 51 } } (GenericType "msg") ]
+                                                    [ Node { start = { row = 1, column = 48 }, end = { row = 1, column = 51 } } (Var "msg") ]
                                                 )
                                             )
                                         )
@@ -456,12 +456,12 @@ all =
                                                     (Node { start = { row = 1, column = 16 }, end = { row = 1, column = 20 } }
                                                         (Type (Node { start = { row = 1, column = 16 }, end = { row = 1, column = 20 } } ( [], "Move" )) [])
                                                     )
-                                                    (Node { start = { row = 1, column = 24 }, end = { row = 1, column = 27 } } (GenericType "msg"))
+                                                    (Node { start = { row = 1, column = 24 }, end = { row = 1, column = 27 } } (Var "msg"))
                                                 )
                                             )
                                             (Node { start = { row = 1, column = 32 }, end = { row = 1, column = 39 } }
                                                 (Type (Node { start = { row = 1, column = 32 }, end = { row = 1, column = 35 } } ( [], "Sub" ))
-                                                    [ Node { start = { row = 1, column = 36 }, end = { row = 1, column = 39 } } (GenericType "msg")
+                                                    [ Node { start = { row = 1, column = 36 }, end = { row = 1, column = 39 } } (Var "msg")
                                                     ]
                                                 )
                                             )
