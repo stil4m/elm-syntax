@@ -100,7 +100,7 @@ parensTypeAnnotation =
 genericTypeAnnotation : Parser state TypeAnnotation
 genericTypeAnnotation =
     Tokens.functionName
-        |> Combine.fromCoreMap TypeAnnotation.GenericType
+        |> Combine.fromCoreMap TypeAnnotation.Var
 
 
 recordTypeAnnotation : Parser State TypeAnnotation
