@@ -109,10 +109,10 @@ parensTypeAnnotation =
                                 Just firstAndMaybeThirdPart ->
                                     case firstAndMaybeThirdPart.maybeThirdPart of
                                         Nothing ->
-                                            TypeAnnotation.Tupled [ firstPart.syntax, firstAndMaybeThirdPart.secondPart ]
+                                            TypeAnnotation.Tuple [ firstPart.syntax, firstAndMaybeThirdPart.secondPart ]
 
                                         Just thirdPart ->
-                                            TypeAnnotation.Tupled [ firstPart.syntax, firstAndMaybeThirdPart.secondPart, thirdPart ]
+                                            TypeAnnotation.Tuple [ firstPart.syntax, firstAndMaybeThirdPart.secondPart, thirdPart ]
                             )
                     }
                 )
@@ -166,7 +166,7 @@ parensTypeAnnotation =
 
 unit : TypeAnnotation
 unit =
-    TypeAnnotation.Tupled []
+    TypeAnnotation.Tuple []
 
 
 genericTypeAnnotation : Parser (WithComments (Node TypeAnnotation))

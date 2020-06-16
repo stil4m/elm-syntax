@@ -16,7 +16,8 @@
   - `RecordUpdateExpression (Node String) (List (Node RecordSetter))` -> `RecordUpdateExpression (Node String) (Node RecordSetter) (List (Node RecordSetter))` (takes a non-empty list of fields)
 
 - Changed `Elm.Syntax.TypeAnnotation.TypeAnnotation`:
-  - `Unit` -> `Tupled []`
+  - `Tupled` -> `Tuple`
+  - `Unit` -> `Tuple []`
 
 ## [7.3.6] - 2024-09-11
 
