@@ -258,8 +258,8 @@ noRangeTypeReference (Node _ typeAnnotation) =
             GenericType x ->
                 GenericType x
 
-            Typed (Node _ ( a, b )) c ->
-                Typed (Node.empty ( a, b )) (List.map noRangeTypeReference c)
+            Elm.Syntax.TypeAnnotation.Type (Node _ ( a, b )) c ->
+                Elm.Syntax.TypeAnnotation.Type (Node.empty ( a, b )) (List.map noRangeTypeReference c)
 
             Tuple a ->
                 Tuple (List.map noRangeTypeReference a)

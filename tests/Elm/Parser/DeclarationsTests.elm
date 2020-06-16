@@ -23,7 +23,7 @@ all =
                     |> Expect.equal
                         (Just
                             { name = Node.empty "foo"
-                            , typeAnnotation = Node.empty <| Typed (Node.empty ( [], "Int" )) []
+                            , typeAnnotation = Node.empty <| Type (Node.empty ( [], "Int" )) []
                             }
                         )
         , test "complex signature" <|
@@ -45,7 +45,7 @@ all =
                                                         (Node.empty <|
                                                             Tuple
                                                                 [ Node.empty <| GenericType "model"
-                                                                , Node.empty <| Typed (Node.empty ( [], "Cmd" )) [ Node empty <| GenericType "msg" ]
+                                                                , Node.empty <| Type (Node.empty ( [], "Cmd" )) [ Node empty <| GenericType "msg" ]
                                                                 ]
                                                         )
                                                 )
@@ -53,7 +53,7 @@ all =
                                         (Node empty <|
                                             FunctionTypeAnnotation
                                                 (Node empty <|
-                                                    Typed (Node empty ( [], "SendPort" ))
+                                                    Type (Node empty ( [], "SendPort" ))
                                                         [ Node empty <| GenericType "msg"
                                                         , Node empty <| GenericType "model"
                                                         ]
@@ -65,7 +65,7 @@ all =
                                                                 (Node empty <|
                                                                     Tuple
                                                                         [ Node empty <| GenericType "model"
-                                                                        , Node empty <| Typed (Node empty ( [], "Cmd" )) [ Node empty <| GenericType "msg" ]
+                                                                        , Node empty <| Type (Node empty ( [], "Cmd" )) [ Node empty <| GenericType "msg" ]
                                                                         ]
                                                                 )
                                                         )
@@ -80,7 +80,7 @@ all =
                     |> Expect.equal
                         (Just
                             { name = Node empty "foo"
-                            , typeAnnotation = Node empty <| Typed (Node empty ( [], "Int" )) []
+                            , typeAnnotation = Node empty <| Type (Node empty ( [], "Int" )) []
                             }
                         )
         , test "on newline signature with wrong indent " <|
@@ -95,7 +95,7 @@ all =
                     |> Expect.equal
                         (Just
                             { name = Node empty "foo"
-                            , typeAnnotation = Node empty <| Typed (Node empty ( [], "Int" )) []
+                            , typeAnnotation = Node empty <| Type (Node empty ( [], "Int" )) []
                             }
                         )
         , test "on newline signature with colon on start of line" <|
@@ -235,11 +235,11 @@ all =
                             { name = Node empty "bar"
                             , typeAnnotation =
                                 Node empty <|
-                                    Typed (Node empty ( [], "List" ))
+                                    Type (Node empty ( [], "List" ))
                                         [ Node empty <|
                                             Tuple
-                                                [ Node empty <| Typed (Node empty ( [], "Int" )) []
-                                                , Node empty <| Typed (Node empty ( [], "Maybe" )) [ Node empty <| GenericType "m" ]
+                                                [ Node empty <| Type (Node empty ( [], "Int" )) []
+                                                , Node empty <| Type (Node empty ( [], "Maybe" )) [ Node empty <| GenericType "m" ]
                                                 ]
                                         ]
                             }
@@ -421,9 +421,9 @@ all =
                                         (FunctionTypeAnnotation
                                             (Node { start = { row = 1, column = 22 }, end = { row = 1, column = 40 } }
                                                 (Tuple
-                                                    [ Node { start = { row = 1, column = 24 }, end = { row = 1, column = 30 } } (Typed (Node { start = { row = 1, column = 24 }, end = { row = 1, column = 30 } } ( [], "String" )) [])
+                                                    [ Node { start = { row = 1, column = 24 }, end = { row = 1, column = 30 } } (Type (Node { start = { row = 1, column = 24 }, end = { row = 1, column = 30 } } ( [], "String" )) [])
                                                     , Node { start = { row = 1, column = 32 }, end = { row = 1, column = 38 } }
-                                                        (Typed
+                                                        (Type
                                                             (Node { start = { row = 1, column = 32 }, end = { row = 1, column = 38 } } ( [], "String" ))
                                                             []
                                                         )
@@ -431,7 +431,7 @@ all =
                                                 )
                                             )
                                             (Node { start = { row = 1, column = 44 }, end = { row = 1, column = 51 } }
-                                                (Typed
+                                                (Type
                                                     (Node { start = { row = 1, column = 44 }, end = { row = 1, column = 47 } } ( [], "Cmd" ))
                                                     [ Node { start = { row = 1, column = 48 }, end = { row = 1, column = 51 } } (GenericType "msg") ]
                                                 )
@@ -454,13 +454,13 @@ all =
                                             (Node { start = { row = 1, column = 15 }, end = { row = 1, column = 28 } }
                                                 (FunctionTypeAnnotation
                                                     (Node { start = { row = 1, column = 16 }, end = { row = 1, column = 20 } }
-                                                        (Typed (Node { start = { row = 1, column = 16 }, end = { row = 1, column = 20 } } ( [], "Move" )) [])
+                                                        (Type (Node { start = { row = 1, column = 16 }, end = { row = 1, column = 20 } } ( [], "Move" )) [])
                                                     )
                                                     (Node { start = { row = 1, column = 24 }, end = { row = 1, column = 27 } } (GenericType "msg"))
                                                 )
                                             )
                                             (Node { start = { row = 1, column = 32 }, end = { row = 1, column = 39 } }
-                                                (Typed (Node { start = { row = 1, column = 32 }, end = { row = 1, column = 35 } } ( [], "Sub" ))
+                                                (Type (Node { start = { row = 1, column = 32 }, end = { row = 1, column = 35 } } ( [], "Sub" ))
                                                     [ Node { start = { row = 1, column = 36 }, end = { row = 1, column = 39 } } (GenericType "msg")
                                                     ]
                                                 )
@@ -651,7 +651,7 @@ all =
                                     Just
                                         (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 15 } }
                                             { name = Node { start = { row = 1, column = 1 }, end = { row = 1, column = 7 } } "update"
-                                            , typeAnnotation = Node { start = { row = 1, column = 10 }, end = { row = 1, column = 15 } } (Typed (Node { start = { row = 1, column = 10 }, end = { row = 1, column = 15 } } ( [], "Model" )) [])
+                                            , typeAnnotation = Node { start = { row = 1, column = 10 }, end = { row = 1, column = 15 } } (Type (Node { start = { row = 1, column = 10 }, end = { row = 1, column = 15 } } ( [], "Model" )) [])
                                             }
                                         )
                                 }
