@@ -439,10 +439,10 @@ visitExpressionInner (Node range expression) =
             IfBlock e1 e2 e3 ->
                 IfBlock (visitExpression e1) (visitExpression e2) (visitExpression e3)
 
-            TupledExpression expressionList ->
+            TupleExpression expressionList ->
                 expressionList
                     |> List.map visitExpression
-                    |> TupledExpression
+                    |> TupleExpression
 
             ParenthesizedExpression expr1 ->
                 ParenthesizedExpression (visitExpression expr1)
