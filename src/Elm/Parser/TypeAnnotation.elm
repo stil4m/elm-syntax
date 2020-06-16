@@ -355,7 +355,7 @@ typedTypeAnnotationWithoutArguments =
             { comments = Rope.empty
             , syntax =
                 Node range
-                    (TypeAnnotation.Typed (Node range name) [])
+                    (TypeAnnotation.Type (Node range name) [])
             }
         )
         Tokens.typeName
@@ -396,7 +396,7 @@ typedTypeAnnotationWithArgumentsOptimisticLayout =
                 commentsAfterName
                     |> Rope.prependTo argsReverse.comments
             , syntax =
-                Node range (TypeAnnotation.Typed nameNode (List.reverse argsReverse.syntax))
+                Node range (TypeAnnotation.Type nameNode (List.reverse argsReverse.syntax))
             }
         )
         (ParserFast.map2WithRange

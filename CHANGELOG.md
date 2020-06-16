@@ -19,6 +19,7 @@
 - Changed `Elm.Syntax.TypeAnnotation.TypeAnnotation`:
   - `Tupled` -> `Tuple`
   - `Unit` -> `Tuple []`
+  - Renamed `Typed` to `Type`
 
 ## [7.3.6] - 2024-09-11
 

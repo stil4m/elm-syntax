@@ -141,7 +141,7 @@ all =
                                                         { name = Node { start = { row = 2, column = 5 }, end = { row = 2, column = 8 } } "bar"
                                                         , typeAnnotation =
                                                             Node { start = { row = 2, column = 11 }, end = { row = 2, column = 14 } }
-                                                                (Typed (Node { start = { row = 2, column = 11 }, end = { row = 2, column = 14 } } ( [], "Int" )) [])
+                                                                (Type (Node { start = { row = 2, column = 11 }, end = { row = 2, column = 14 } } ( [], "Int" )) [])
                                                         }
                                                     )
                                             , declaration =
@@ -177,7 +177,7 @@ all =
                                                 Just
                                                     (Node { start = { row = 2, column = 5 }, end = { row = 2, column = 14 } }
                                                         { name = Node { start = { row = 2, column = 5 }, end = { row = 2, column = 8 } } "bar"
-                                                        , typeAnnotation = Node { start = { row = 2, column = 11 }, end = { row = 2, column = 14 } } (Typed (Node { start = { row = 2, column = 11 }, end = { row = 2, column = 14 } } ( [], "Int" )) [])
+                                                        , typeAnnotation = Node { start = { row = 2, column = 11 }, end = { row = 2, column = 14 } } (Type (Node { start = { row = 2, column = 11 }, end = { row = 2, column = 14 } } ( [], "Int" )) [])
                                                         }
                                                     )
                                             , declaration =

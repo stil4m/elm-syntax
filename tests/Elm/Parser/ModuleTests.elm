@@ -384,7 +384,7 @@ b = 2
                                         , generics = []
                                         , typeAnnotation =
                                             Node { start = { row = 4, column = 16 }, end = { row = 4, column = 17 } }
-                                                (Typed (Node { start = { row = 4, column = 16 }, end = { row = 4, column = 17 } } ( [], "A" )) [])
+                                                (Type (Node { start = { row = 4, column = 16 }, end = { row = 4, column = 17 } } ( [], "A" )) [])
                                         }
                                     )
                                 , Node { start = { row = 5, column = 1 }, end = { row = 6, column = 6 } }
@@ -394,7 +394,7 @@ b = 2
                                             Just
                                                 (Node { start = { row = 5, column = 1 }, end = { row = 5, column = 8 } }
                                                     { name = Node { start = { row = 5, column = 1 }, end = { row = 5, column = 2 } } "b"
-                                                    , typeAnnotation = Node { start = { row = 5, column = 5 }, end = { row = 5, column = 8 } } (Typed (Node { start = { row = 5, column = 5 }, end = { row = 5, column = 8 } } ( [], "Int" )) [])
+                                                    , typeAnnotation = Node { start = { row = 5, column = 5 }, end = { row = 5, column = 8 } } (Type (Node { start = { row = 5, column = 5 }, end = { row = 5, column = 8 } } ( [], "Int" )) [])
                                                     }
                                                 )
                                         , declaration =
