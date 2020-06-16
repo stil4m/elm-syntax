@@ -187,7 +187,7 @@ recordFieldDefinition =
 typedTypeAnnotationWithoutArguments : Parser State TypeAnnotation
 typedTypeAnnotationWithoutArguments =
     Combine.fromCoreMap
-        (\original -> TypeAnnotation.Typed original [])
+        (\original -> TypeAnnotation.Type original [])
         typeIndicator
 
 
@@ -210,7 +210,7 @@ typeIndicatorHelper moduleNameSoFar typeOrSegment =
 
 typedTypeAnnotationWithArguments : Parser State TypeAnnotation
 typedTypeAnnotationWithArguments =
-    Core.map (\qualified -> \args -> TypeAnnotation.Typed qualified args)
+    Core.map (\qualified -> \args -> TypeAnnotation.Type qualified args)
         typeIndicator
         |> Combine.fromCoreKeep
             (Combine.many
