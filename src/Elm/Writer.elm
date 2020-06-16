@@ -330,7 +330,7 @@ writeTypeAnnotation (Node _ typeAnnotation) =
         GenericType s ->
             string s
 
-        Typed (Node _ ( moduleName, name )) args ->
+        Elm.Syntax.TypeAnnotation.Type (Node _ ( moduleName, name )) args ->
             spaced
                 ((string <| String.join "." (moduleName ++ [ name ]))
                     :: List.map (writeTypeAnnotation >> parensIfContainsSpaces) args
@@ -667,7 +667,7 @@ wrapInSurroundingParentheses node =
         FunctionTypeAnnotation _ _ ->
             withParens node
 
-        Typed _ typeParameters ->
+        Elm.Syntax.TypeAnnotation.Type _ typeParameters ->
             case typeParameters of
                 [] ->
                     node

@@ -9,8 +9,8 @@ import Elm.Syntax.Module exposing (..)
 import Elm.Syntax.Node exposing (Node(..))
 import Elm.Syntax.Pattern exposing (..)
 import Elm.Syntax.Range exposing (empty)
-import Elm.Syntax.Type exposing (..)
-import Elm.Syntax.TypeAnnotation exposing (TypeAnnotation(..))
+import Elm.Syntax.Type as Type exposing (..)
+import Elm.Syntax.TypeAnnotation as TypeAnnotation exposing (TypeAnnotation(..))
 import Elm.Writer as Writer
 import Expect
 import Test exposing (..)
@@ -110,7 +110,7 @@ suite =
         , describe "TypeAnnotation"
             [ test "write simple type" <|
                 \() ->
-                    Typed (Node empty <| ( [], "String" )) []
+                    TypeAnnotation.Type (Node empty <| ( [], "String" )) []
                         |> Node empty
                         |> Writer.writeTypeAnnotation
                         |> Writer.write
@@ -118,7 +118,7 @@ suite =
             , test "write qualified type" <|
                 \() ->
                     (Node empty <|
-                        Typed
+                        TypeAnnotation.Type
                             (Node empty <| ( [ "Json", "Decode" ], "Decoder" ))
                             [ Node empty <| GenericType "a" ]
                     )
@@ -128,11 +128,11 @@ suite =
             , test "write type arguments that require parentheses" <|
                 \() ->
                     (Node empty <|
-                        Typed (Node empty ( [], "List" ))
+                        TypeAnnotation.Type (Node empty ( [], "List" ))
                             [ Node empty <|
-                                Typed (Node empty ( [], "Dict" ))
-                                    [ Node empty <| Typed (Node empty ( [], "String" )) []
-                                    , Node empty <| Typed (Node empty ( [], "Int" )) []
+                                TypeAnnotation.Type (Node empty ( [], "Dict" ))
+                                    [ Node empty <| TypeAnnotation.Type (Node empty ( [], "String" )) []
+                                    , Node empty <| TypeAnnotation.Type (Node empty ( [], "Int" )) []
                                     ]
                             ]
                     )
@@ -148,7 +148,7 @@ suite =
                                     (Node empty <| GenericType "a")
                                     (Node empty <| GenericType "b")
                             )
-                            (Node empty <| Typed (Node empty ( [], "Int" )) [])
+                            (Node empty <| TypeAnnotation.Type (Node empty ( [], "Int" )) [])
                     )
                         |> Writer.writeTypeAnnotation
                         |> Writer.write
@@ -159,7 +159,7 @@ suite =
                 \() ->
                     (Node empty <|
                         CustomTypeDeclaration
-                            (Type
+                            (Type.Type
                                 Nothing
                                 (Node empty "Sample")
                                 []
@@ -179,18 +179,18 @@ suite =
                     let
                         listT : TypeAnnotation
                         listT =
-                            Typed (Node empty ( [], "List" ))
+                            TypeAnnotation.Type (Node empty ( [], "List" ))
                                 [ Node empty <|
-                                    Typed (Node empty ( [], "String" )) []
+                                    TypeAnnotation.Type (Node empty ( [], "String" )) []
                                 ]
 
                         stringT : TypeAnnotation
                         stringT =
-                            Typed (Node empty ( [], "String" )) []
+                            TypeAnnotation.Type (Node empty ( [], "String" )) []
                     in
                     (Node empty <|
                         CustomTypeDeclaration
-                            (Type
+                            (Type.Type
                                 Nothing
                                 (Node empty "Sample")
                                 []
@@ -211,16 +211,16 @@ suite =
                         funcT : TypeAnnotation
                         funcT =
                             FunctionTypeAnnotation
-                                (Node empty <| Typed (Node empty ( [], "String" )) [])
-                                (Node empty <| Typed (Node empty ( [], "Int" )) [])
+                                (Node empty <| TypeAnnotation.Type (Node empty ( [], "String" )) [])
+                                (Node empty <| TypeAnnotation.Type (Node empty ( [], "Int" )) [])
 
                         stringT : TypeAnnotation
                         stringT =
-                            Typed (Node empty ( [], "String" )) []
+                            TypeAnnotation.Type (Node empty ( [], "String" )) []
                     in
                     (Node empty <|
                         CustomTypeDeclaration
-                            (Type
+                            (Type.Type
                                 Nothing
                                 (Node empty "Sample")
                                 []

@@ -45,7 +45,7 @@ all =
                             (Tuple
                                 [ Node { start = { row = 1, column = 3 }, end = { row = 1, column = 5 } } (Tuple [])
                                 , Node { start = { row = 1, column = 8 }, end = { row = 1, column = 15 } }
-                                    (Typed
+                                    (Type
                                         (Node { start = { row = 1, column = 8 }, end = { row = 1, column = 13 } } ( [], "Maybe" ))
                                         [ Node { start = { row = 1, column = 14 }, end = { row = 1, column = 15 } } (GenericType "m") ]
                                     )
@@ -57,14 +57,14 @@ all =
                 "Foo.Bar"
                     |> expectAst
                         (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 8 } }
-                            (Typed (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 8 } } ( [ "Foo" ], "Bar" )) [])
+                            (Type (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 8 } } ( [ "Foo" ], "Bar" )) [])
                         )
         , test "typeAnnotationNoFn" <|
             \() ->
                 "Bar"
                     |> expectAst
                         (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 4 } }
-                            (Typed (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 4 } } ( [], "Bar" )) [])
+                            (Type (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 4 } } ( [], "Bar" )) [])
                         )
         , test "types with and without spacing should parse to the same" <|
             \() ->
@@ -75,11 +75,11 @@ all =
                 "Foo () a Bar"
                     |> expectAst
                         (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 13 } }
-                            (Typed (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 4 } } ( [], "Foo" ))
+                            (Type (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 4 } } ( [], "Foo" ))
                                 [ Node { start = { row = 1, column = 5 }, end = { row = 1, column = 7 } } (Tuple [])
                                 , Node { start = { row = 1, column = 8 }, end = { row = 1, column = 9 } } (GenericType "a")
                                 , Node { start = { row = 1, column = 10 }, end = { row = 1, column = 13 } }
-                                    (Typed (Node { start = { row = 1, column = 10 }, end = { row = 1, column = 13 } } ( [], "Bar" )) [])
+                                    (Type (Node { start = { row = 1, column = 10 }, end = { row = 1, column = 13 } } ( [], "Bar" )) [])
                                 ]
                             )
                         )
@@ -88,11 +88,11 @@ all =
                 "Foo () a Bar"
                     |> expectAst
                         (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 13 } }
-                            (Typed (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 4 } } ( [], "Foo" ))
+                            (Type (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 4 } } ( [], "Foo" ))
                                 [ Node { start = { row = 1, column = 5 }, end = { row = 1, column = 7 } } (Tuple [])
                                 , Node { start = { row = 1, column = 8 }, end = { row = 1, column = 9 } } (GenericType "a")
                                 , Node { start = { row = 1, column = 10 }, end = { row = 1, column = 13 } }
-                                    (Typed (Node { start = { row = 1, column = 10 }, end = { row = 1, column = 13 } } ( [], "Bar" )) [])
+                                    (Type (Node { start = { row = 1, column = 10 }, end = { row = 1, column = 13 } } ( [], "Bar" )) [])
                                 ]
                             )
                         )
@@ -110,7 +110,7 @@ all =
                                 [ Node { start = { row = 1, column = 2 }, end = { row = 1, column = 15 } }
                                     ( Node { start = { row = 1, column = 2 }, end = { row = 1, column = 7 } } "color"
                                     , Node { start = { row = 1, column = 9 }, end = { row = 1, column = 15 } }
-                                        (Typed (Node { start = { row = 1, column = 9 }, end = { row = 1, column = 15 } } ( [], "String" )) [])
+                                        (Type (Node { start = { row = 1, column = 9 }, end = { row = 1, column = 15 } } ( [], "String" )) [])
                                     )
                                 ]
                             )
@@ -125,12 +125,12 @@ all =
                                     [ Node { start = { row = 1, column = 10 }, end = { row = 1, column = 25 } }
                                         ( Node { start = { row = 1, column = 10 }, end = { row = 1, column = 18 } } "position"
                                         , Node { start = { row = 1, column = 21 }, end = { row = 1, column = 25 } }
-                                            (Typed (Node { start = { row = 1, column = 21 }, end = { row = 1, column = 25 } } ( [], "Vec2" )) [])
+                                            (Type (Node { start = { row = 1, column = 21 }, end = { row = 1, column = 25 } } ( [], "Vec2" )) [])
                                         )
                                     , Node { start = { row = 1, column = 27 }, end = { row = 1, column = 42 } }
                                         ( Node { start = { row = 1, column = 27 }, end = { row = 1, column = 34 } } "texture"
                                         , Node { start = { row = 1, column = 37 }, end = { row = 1, column = 41 } }
-                                            (Typed (Node { start = { row = 1, column = 37 }, end = { row = 1, column = 41 } } ( [], "Vec2" )) [])
+                                            (Type (Node { start = { row = 1, column = 37 }, end = { row = 1, column = 41 } } ( [], "Vec2" )) [])
                                         )
                                     ]
                                 )
@@ -153,17 +153,17 @@ all =
                                             [ Node { start = { row = 1, column = 10 }, end = { row = 1, column = 17 } }
                                                 ( Node { start = { row = 1, column = 10 }, end = { row = 1, column = 11 } } "r"
                                                 , Node { start = { row = 1, column = 14 }, end = { row = 1, column = 17 } }
-                                                    (Typed (Node { start = { row = 1, column = 14 }, end = { row = 1, column = 17 } } ( [], "Int" )) [])
+                                                    (Type (Node { start = { row = 1, column = 14 }, end = { row = 1, column = 17 } } ( [], "Int" )) [])
                                                 )
                                             , Node { start = { row = 1, column = 19 }, end = { row = 1, column = 25 } }
                                                 ( Node { start = { row = 1, column = 19 }, end = { row = 1, column = 20 } } "g"
                                                 , Node { start = { row = 1, column = 22 }, end = { row = 1, column = 25 } }
-                                                    (Typed (Node { start = { row = 1, column = 22 }, end = { row = 1, column = 25 } } ( [], "Int" )) [])
+                                                    (Type (Node { start = { row = 1, column = 22 }, end = { row = 1, column = 25 } } ( [], "Int" )) [])
                                                 )
                                             , Node { start = { row = 1, column = 27 }, end = { row = 1, column = 34 } }
                                                 ( Node { start = { row = 1, column = 27 }, end = { row = 1, column = 28 } } "b"
                                                 , Node { start = { row = 1, column = 30 }, end = { row = 1, column = 33 } }
-                                                    (Typed (Node { start = { row = 1, column = 30 }, end = { row = 1, column = 33 } } ( [], "Int" )) [])
+                                                    (Type (Node { start = { row = 1, column = 30 }, end = { row = 1, column = 33 } } ( [], "Int" )) [])
                                                 )
                                             ]
                                         )
@@ -180,17 +180,17 @@ all =
                                 [ Node { start = { row = 1, column = 3 }, end = { row = 1, column = 12 } }
                                     ( Node { start = { row = 1, column = 3 }, end = { row = 1, column = 6 } } "foo"
                                     , Node { start = { row = 1, column = 9 }, end = { row = 1, column = 12 } } <|
-                                        Typed (Node { start = { row = 1, column = 9 }, end = { row = 1, column = 12 } } ( [], "Int" )) []
+                                        Type (Node { start = { row = 1, column = 9 }, end = { row = 1, column = 12 } } ( [], "Int" )) []
                                     )
                                 , Node { start = { row = 1, column = 14 }, end = { row = 1, column = 23 } }
                                     ( Node { start = { row = 1, column = 14 }, end = { row = 1, column = 17 } } "bar"
                                     , Node { start = { row = 1, column = 20 }, end = { row = 1, column = 23 } } <|
-                                        Typed (Node { start = { row = 1, column = 20 }, end = { row = 1, column = 23 } } ( [], "Int" )) []
+                                        Type (Node { start = { row = 1, column = 20 }, end = { row = 1, column = 23 } } ( [], "Int" )) []
                                     )
                                 , Node { start = { row = 1, column = 25 }, end = { row = 1, column = 35 } }
                                     ( Node { start = { row = 1, column = 25 }, end = { row = 1, column = 28 } } "baz"
                                     , Node { start = { row = 1, column = 31 }, end = { row = 1, column = 34 } } <|
-                                        Typed (Node { start = { row = 1, column = 31 }, end = { row = 1, column = 34 } } ( [], "Int" )) []
+                                        Type (Node { start = { row = 1, column = 31 }, end = { row = 1, column = 34 } } ( [], "Int" )) []
                                     )
                                 ]
                         )
@@ -214,10 +214,10 @@ all =
                         (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 11 } }
                             (FunctionTypeAnnotation
                                 (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 4 } }
-                                    (Typed (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 4 } } ( [], "Foo" )) [])
+                                    (Type (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 4 } } ( [], "Foo" )) [])
                                 )
                                 (Node { start = { row = 1, column = 8 }, end = { row = 1, column = 11 } }
-                                    (Typed (Node { start = { row = 1, column = 8 }, end = { row = 1, column = 11 } } ( [], "Bar" )) [])
+                                    (Type (Node { start = { row = 1, column = 8 }, end = { row = 1, column = 11 } } ( [], "Bar" )) [])
                                 )
                             )
                         )
@@ -228,12 +228,12 @@ all =
                         (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 18 } }
                             (FunctionTypeAnnotation
                                 (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 4 } }
-                                    (Typed (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 4 } } ( [], "Foo" )) [])
+                                    (Type (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 4 } } ( [], "Foo" )) [])
                                 )
                                 (Node { start = { row = 1, column = 8 }, end = { row = 1, column = 18 } }
                                     (FunctionTypeAnnotation
                                         (Node { start = { row = 1, column = 8 }, end = { row = 1, column = 11 } }
-                                            (Typed (Node { start = { row = 1, column = 8 }, end = { row = 1, column = 11 } } ( [], "Bar" )) [])
+                                            (Type (Node { start = { row = 1, column = 8 }, end = { row = 1, column = 11 } } ( [], "Bar" )) [])
                                         )
                                         (Node { start = { row = 1, column = 15 }, end = { row = 1, column = 18 } } (GenericType "baz"))
                                     )
@@ -262,21 +262,21 @@ all =
                         (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 33 } }
                             (FunctionTypeAnnotation
                                 (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 4 } }
-                                    (Typed (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 4 } } ( [], "Msg" )) [])
+                                    (Type (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 4 } } ( [], "Msg" )) [])
                                 )
                                 (Node { start = { row = 1, column = 8 }, end = { row = 1, column = 33 } }
                                     (FunctionTypeAnnotation
                                         (Node { start = { row = 1, column = 8 }, end = { row = 1, column = 13 } }
-                                            (Typed (Node { start = { row = 1, column = 8 }, end = { row = 1, column = 13 } } ( [], "Model" )) [])
+                                            (Type (Node { start = { row = 1, column = 8 }, end = { row = 1, column = 13 } } ( [], "Model" )) [])
                                         )
                                         (Node { start = { row = 1, column = 17 }, end = { row = 1, column = 33 } }
                                             (Tuple
                                                 [ Node { start = { row = 1, column = 18 }, end = { row = 1, column = 23 } }
-                                                    (Typed (Node { start = { row = 1, column = 18 }, end = { row = 1, column = 23 } } ( [], "Model" )) [])
+                                                    (Type (Node { start = { row = 1, column = 18 }, end = { row = 1, column = 23 } } ( [], "Model" )) [])
                                                 , Node { start = { row = 1, column = 25 }, end = { row = 1, column = 32 } }
-                                                    (Typed (Node { start = { row = 1, column = 25 }, end = { row = 1, column = 28 } } ( [], "Cmd" ))
+                                                    (Type (Node { start = { row = 1, column = 25 }, end = { row = 1, column = 28 } } ( [], "Cmd" ))
                                                         [ Node { start = { row = 1, column = 29 }, end = { row = 1, column = 32 } }
-                                                            (Typed (Node { start = { row = 1, column = 29 }, end = { row = 1, column = 32 } } ( [], "Msg" )) [])
+                                                            (Type (Node { start = { row = 1, column = 29 }, end = { row = 1, column = 32 } } ( [], "Msg" )) [])
                                                         ]
                                                     )
                                                 ]
@@ -312,13 +312,13 @@ all =
                         (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 13 } }
                             (FunctionTypeAnnotation
                                 (Node { start = { row = 1, column = 2 }, end = { row = 1, column = 5 } }
-                                    (Typed
+                                    (Type
                                         (Node { start = { row = 1, column = 2 }, end = { row = 1, column = 5 } } ( [], "Foo" ))
                                         []
                                     )
                                 )
                                 (Node { start = { row = 1, column = 9 }, end = { row = 1, column = 12 } }
-                                    (Typed
+                                    (Type
                                         (Node { start = { row = 1, column = 9 }, end = { row = 1, column = 12 } } ( [], "Bar" ))
                                         []
                                     )
@@ -334,13 +334,13 @@ all =
                                 (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 13 } }
                                     (FunctionTypeAnnotation
                                         (Node { start = { row = 1, column = 2 }, end = { row = 1, column = 5 } }
-                                            (Typed
+                                            (Type
                                                 (Node { start = { row = 1, column = 2 }, end = { row = 1, column = 5 } } ( [], "Foo" ))
                                                 []
                                             )
                                         )
                                         (Node { start = { row = 1, column = 9 }, end = { row = 1, column = 12 } }
-                                            (Typed
+                                            (Type
                                                 (Node { start = { row = 1, column = 9 }, end = { row = 1, column = 12 } } ( [], "Bar" ))
                                                 []
                                             )
@@ -359,7 +359,7 @@ all =
                 "Maybe\n a"
                     |> expectAst
                         (Node { start = { row = 1, column = 1 }, end = { row = 2, column = 3 } }
-                            (Typed
+                            (Type
                                 (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 6 } } ( [], "Maybe" ))
                                 [ Node { start = { row = 2, column = 2 }, end = { row = 2, column = 3 } } (GenericType "a") ]
                             )
@@ -369,10 +369,10 @@ all =
                 "List(String)"
                     |> expectAst
                         (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 13 } }
-                            (Typed
+                            (Type
                                 (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 5 } } ( [], "List" ))
                                 [ Node { start = { row = 1, column = 5 }, end = { row = 1, column = 13 } }
-                                    (Typed
+                                    (Type
                                         (Node { start = { row = 1, column = 6 }, end = { row = 1, column = 12 } } ( [], "String" ))
                                         []
                                     )
@@ -384,15 +384,15 @@ all =
                 "Dict String Int"
                     |> expectAst
                         (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 16 } }
-                            (Typed
+                            (Type
                                 (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 5 } } ( [], "Dict" ))
                                 [ Node { start = { row = 1, column = 6 }, end = { row = 1, column = 12 } }
-                                    (Typed
+                                    (Type
                                         (Node { start = { row = 1, column = 6 }, end = { row = 1, column = 12 } } ( [], "String" ))
                                         []
                                     )
                                 , Node { start = { row = 1, column = 13 }, end = { row = 1, column = 16 } }
-                                    (Typed (Node { start = { row = 1, column = 13 }, end = { row = 1, column = 16 } } ( [], "Int" )) [])
+                                    (Type (Node { start = { row = 1, column = 13 }, end = { row = 1, column = 16 } } ( [], "Int" )) [])
                                 ]
                             )
                         )

@@ -7,7 +7,7 @@ import Json.Encode as JE exposing (Value)
 encodeTyped : String -> Value -> Value
 encodeTyped x v =
     JE.object
-        [ ( "type", JE.string x )
+        [ ( "$t", JE.string x )
         , ( x, v )
         ]
 
@@ -16,7 +16,7 @@ decodeTyped : List ( String, Decoder a ) -> Decoder a
 decodeTyped opts =
     JD.lazy
         (\() ->
-            JD.field "type" JD.string
+            JD.field "$t" JD.string
                 |> JD.andThen
                     (\t ->
                         case List.filter (\( opt, _ ) -> opt == t) opts |> List.head of

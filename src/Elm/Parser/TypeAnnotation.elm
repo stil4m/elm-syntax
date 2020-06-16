@@ -171,14 +171,14 @@ typedTypeAnnotation mode =
         |> Combine.andThen
             (\((Node tir _) as original) ->
                 Layout.optimisticLayoutWith
-                    (\() -> Node tir (TypeAnnotation.Typed original []))
+                    (\() -> Node tir (TypeAnnotation.Type original []))
                     (\() ->
                         case mode of
                             Eager ->
                                 eagerTypedTypeAnnotation original
 
                             Lazy ->
-                                Combine.succeed (Node tir (TypeAnnotation.Typed original []))
+                                Combine.succeed (Node tir (TypeAnnotation.Type original []))
                     )
             )
 
@@ -215,5 +215,5 @@ eagerTypedTypeAnnotation ((Node range _) as original) =
                 in
                 Node
                     { start = range.start, end = endRange.end }
-                    (TypeAnnotation.Typed original (List.reverse args))
+                    (TypeAnnotation.Type original (List.reverse args))
             )

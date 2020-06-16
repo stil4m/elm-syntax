@@ -347,9 +347,9 @@ foo = bar"""
                                         (FunctionTypeAnnotation
                                             (Node { start = { row = 1, column = 22 }, end = { row = 1, column = 40 } }
                                                 (Tuple
-                                                    [ Node { start = { row = 1, column = 24 }, end = { row = 1, column = 30 } } (Typed (Node { start = { row = 1, column = 24 }, end = { row = 1, column = 30 } } ( [], "String" )) [])
+                                                    [ Node { start = { row = 1, column = 24 }, end = { row = 1, column = 30 } } (Type (Node { start = { row = 1, column = 24 }, end = { row = 1, column = 30 } } ( [], "String" )) [])
                                                     , Node { start = { row = 1, column = 32 }, end = { row = 1, column = 38 } }
-                                                        (Typed
+                                                        (Type
                                                             (Node { start = { row = 1, column = 32 }, end = { row = 1, column = 38 } } ( [], "String" ))
                                                             []
                                                         )
@@ -357,7 +357,7 @@ foo = bar"""
                                                 )
                                             )
                                             (Node { start = { row = 1, column = 44 }, end = { row = 1, column = 51 } }
-                                                (Typed
+                                                (Type
                                                     (Node { start = { row = 1, column = 44 }, end = { row = 1, column = 47 } } ( [], "Cmd" ))
                                                     [ Node { start = { row = 1, column = 48 }, end = { row = 1, column = 51 } } (GenericType "msg") ]
                                                 )
@@ -379,13 +379,13 @@ foo = bar"""
                                             (Node { start = { row = 1, column = 15 }, end = { row = 1, column = 28 } }
                                                 (FunctionTypeAnnotation
                                                     (Node { start = { row = 1, column = 16 }, end = { row = 1, column = 20 } }
-                                                        (Typed (Node { start = { row = 1, column = 16 }, end = { row = 1, column = 20 } } ( [], "Move" )) [])
+                                                        (Type (Node { start = { row = 1, column = 16 }, end = { row = 1, column = 20 } } ( [], "Move" )) [])
                                                     )
                                                     (Node { start = { row = 1, column = 24 }, end = { row = 1, column = 27 } } (GenericType "msg"))
                                                 )
                                             )
                                             (Node { start = { row = 1, column = 32 }, end = { row = 1, column = 39 } }
-                                                (Typed (Node { start = { row = 1, column = 32 }, end = { row = 1, column = 35 } } ( [], "Sub" ))
+                                                (Type (Node { start = { row = 1, column = 32 }, end = { row = 1, column = 35 } } ( [], "Sub" ))
                                                     [ Node { start = { row = 1, column = 36 }, end = { row = 1, column = 39 } } (GenericType "msg")
                                                     ]
                                                 )
@@ -581,7 +581,7 @@ update msg model =
                                     Just
                                         (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 15 } }
                                             { name = Node { start = { row = 1, column = 1 }, end = { row = 1, column = 7 } } "update"
-                                            , typeAnnotation = Node { start = { row = 1, column = 10 }, end = { row = 1, column = 15 } } (Typed (Node { start = { row = 1, column = 10 }, end = { row = 1, column = 15 } } ( [], "Model" )) [])
+                                            , typeAnnotation = Node { start = { row = 1, column = 10 }, end = { row = 1, column = 15 } } (Type (Node { start = { row = 1, column = 10 }, end = { row = 1, column = 15 } } ( [], "Model" )) [])
                                             }
                                         )
                                 }

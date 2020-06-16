@@ -188,7 +188,7 @@ bar = 1
                                 { name = Node { start = { row = 7, column = 1 }, end = { row = 7, column = 4 } } "bar"
                                 , typeAnnotation =
                                     Node { start = { row = 7, column = 7 }, end = { row = 7, column = 10 } } <|
-                                        Typed (Node { start = { row = 7, column = 7 }, end = { row = 7, column = 10 } } ( [], "Int" )) []
+                                        Type (Node { start = { row = 7, column = 7 }, end = { row = 7, column = 10 } } ( [], "Int" )) []
                                 }
                             )
                     , declaration =
@@ -356,7 +356,7 @@ type alias Foo
                                 [ Node { start = { row = 7, column = 8 }, end = { row = 7, column = 21 } }
                                     ( Node { start = { row = 7, column = 8 }, end = { row = 7, column = 12 } } "name"
                                     , Node { start = { row = 7, column = 15 }, end = { row = 7, column = 21 } } <|
-                                        Typed (Node { start = { row = 7, column = 15 }, end = { row = 7, column = 21 } } ( [], "String" )) []
+                                        Type (Node { start = { row = 7, column = 15 }, end = { row = 7, column = 21 } } ( [], "String" )) []
                                     )
                                 ]
                     }
@@ -394,7 +394,7 @@ log a =
                             , name = Node { start = { row = 5, column = 1 }, end = { row = 5, column = 4 } } "log"
                             }
                     , documentation = Nothing
-                    , signature = Just (Node { start = { row = 4, column = 1 }, end = { row = 4, column = 17 } } { name = Node { start = { row = 4, column = 1 }, end = { row = 4, column = 4 } } "log", typeAnnotation = Node { start = { row = 4, column = 7 }, end = { row = 4, column = 17 } } (FunctionTypeAnnotation (Node { start = { row = 4, column = 7 }, end = { row = 4, column = 10 } } (Typed (Node { start = { row = 4, column = 7 }, end = { row = 4, column = 10 } } ( [], "Int" )) [])) (Node { start = { row = 4, column = 14 }, end = { row = 4, column = 17 } } (Typed (Node { start = { row = 4, column = 14 }, end = { row = 4, column = 17 } } ( [], "Int" )) []))) })
+                    , signature = Just (Node { start = { row = 4, column = 1 }, end = { row = 4, column = 17 } } { name = Node { start = { row = 4, column = 1 }, end = { row = 4, column = 4 } } "log", typeAnnotation = Node { start = { row = 4, column = 7 }, end = { row = 4, column = 17 } } (FunctionTypeAnnotation (Node { start = { row = 4, column = 7 }, end = { row = 4, column = 10 } } (Type (Node { start = { row = 4, column = 7 }, end = { row = 4, column = 10 } } ( [], "Int" )) [])) (Node { start = { row = 4, column = 14 }, end = { row = 4, column = 17 } } (Type (Node { start = { row = 4, column = 14 }, end = { row = 4, column = 17 } } ( [], "Int" )) []))) })
                     }
                 )
             ]

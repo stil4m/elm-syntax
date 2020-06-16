@@ -28,7 +28,7 @@ all =
                                             [ Node { start = { row = 1, column = 19 }, end = { row = 1, column = 32 } }
                                                 ( Node { start = { row = 1, column = 19 }, end = { row = 1, column = 24 } } "color"
                                                 , Node { start = { row = 1, column = 26 }, end = { row = 1, column = 32 } }
-                                                    (Typed (Node { start = { row = 1, column = 26 }, end = { row = 1, column = 32 } } ( [], "String" )) [])
+                                                    (Type (Node { start = { row = 1, column = 26 }, end = { row = 1, column = 32 } } ( [], "String" )) [])
                                                 )
                                             ]
                                         )
@@ -50,7 +50,7 @@ all =
                                             [ Node { start = { row = 1, column = 19 }, end = { row = 1, column = 32 } }
                                                 ( Node { start = { row = 1, column = 19 }, end = { row = 1, column = 24 } } "color"
                                                 , Node { start = { row = 1, column = 26 }, end = { row = 1, column = 32 } }
-                                                    (Typed (Node { start = { row = 1, column = 26 }, end = { row = 1, column = 32 } } ( [], "String" )) [])
+                                                    (Type (Node { start = { row = 1, column = 26 }, end = { row = 1, column = 32 } } ( [], "String" )) [])
                                                 )
                                             ]
                                         )
@@ -72,7 +72,7 @@ all =
                                             [ Node { start = { row = 1, column = 17 }, end = { row = 1, column = 30 } }
                                                 ( Node { start = { row = 1, column = 17 }, end = { row = 1, column = 22 } } "color"
                                                 , Node { start = { row = 1, column = 24 }, end = { row = 1, column = 30 } }
-                                                    (Typed (Node { start = { row = 1, column = 24 }, end = { row = 1, column = 30 } } ( [], "String" )) [])
+                                                    (Type (Node { start = { row = 1, column = 24 }, end = { row = 1, column = 30 } } ( [], "String" )) [])
                                                 )
                                             ]
                                         )
@@ -111,7 +111,7 @@ all =
                                         { name = Node { start = { row = 1, column = 14 }, end = { row = 1, column = 18 } } "Blue"
                                         , arguments =
                                             [ Node { start = { row = 1, column = 19 }, end = { row = 1, column = 25 } }
-                                                (Typed (Node { start = { row = 1, column = 19 }, end = { row = 1, column = 25 } } ( [], "String" )) [])
+                                                (Type (Node { start = { row = 1, column = 19 }, end = { row = 1, column = 25 } } ( [], "String" )) [])
                                             ]
                                         }
                                     , Node { start = { row = 1, column = 28 }, end = { row = 1, column = 31 } }
@@ -140,7 +140,7 @@ all =
                                         { name = Node { start = { row = 1, column = 14 }, end = { row = 1, column = 18 } } "Blue"
                                         , arguments =
                                             [ Node { start = { row = 1, column = 19 }, end = { row = 1, column = 25 } }
-                                                (Typed (Node { start = { row = 1, column = 19 }, end = { row = 1, column = 25 } } ( [], "String" )) [])
+                                                (Type (Node { start = { row = 1, column = 19 }, end = { row = 1, column = 25 } } ( [], "String" )) [])
                                             ]
                                         }
                                     , Node { start = { row = 1, column = 28 }, end = { row = 1, column = 31 } }
@@ -169,7 +169,7 @@ all =
                                         { arguments =
                                             [ Node { start = { row = 1, column = 12 }, end = { row = 1, column = 13 } } (GenericType "a")
                                             , Node { start = { row = 1, column = 14 }, end = { row = 1, column = 15 } }
-                                                (Typed (Node { start = { row = 1, column = 14 }, end = { row = 1, column = 15 } } ( [], "B" )) [])
+                                                (Type (Node { start = { row = 1, column = 14 }, end = { row = 1, column = 15 } } ( [], "B" )) [])
                                             ]
                                         , name = Node { start = { row = 1, column = 10 }, end = { row = 1, column = 11 } } "C"
                                         }
@@ -190,7 +190,7 @@ all =
                                     [ Node { start = { row = 1, column = 10 }, end = { row = 1, column = 15 } }
                                         { arguments =
                                             [ Node { start = { row = 1, column = 12 }, end = { row = 1, column = 13 } }
-                                                (Typed (Node { start = { row = 1, column = 12 }, end = { row = 1, column = 13 } } ( [], "B" )) [])
+                                                (Type (Node { start = { row = 1, column = 12 }, end = { row = 1, column = 13 } } ( [], "B" )) [])
                                             , Node { start = { row = 1, column = 14 }, end = { row = 1, column = 15 } } (GenericType "a")
                                             ]
                                         , name = Node { start = { row = 1, column = 10 }, end = { row = 1, column = 11 } } "C"
