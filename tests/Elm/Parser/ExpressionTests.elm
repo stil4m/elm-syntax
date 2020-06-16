@@ -39,7 +39,7 @@ all =
                 "(1,2)"
                     |> expectAst
                         (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 6 } }
-                            (TupledExpression
+                            (TupleExpression
                                 [ Node { start = { row = 1, column = 2 }, end = { row = 1, column = 3 } } (Integer 1)
                                 , Node { start = { row = 1, column = 4 }, end = { row = 1, column = 5 } } (Integer 2)
                                 ]
@@ -50,7 +50,7 @@ all =
                 "(1,2,3)"
                     |> expectAst
                         (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 8 } }
-                            (TupledExpression
+                            (TupleExpression
                                 [ Node { start = { row = 1, column = 2 }, end = { row = 1, column = 3 } } (Integer 1)
                                 , Node { start = { row = 1, column = 4 }, end = { row = 1, column = 5 } } (Integer 2)
                                 , Node { start = { row = 1, column = 6 }, end = { row = 1, column = 7 } } (Integer 3)
@@ -62,7 +62,7 @@ all =
                 "( 1  ,  2 )"
                     |> expectAst
                         (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 12 } }
-                            (TupledExpression
+                            (TupleExpression
                                 [ Node { start = { row = 1, column = 3 }, end = { row = 1, column = 4 } } (Integer 1)
                                 , Node { start = { row = 1, column = 9 }, end = { row = 1, column = 10 } } (Integer 2)
                                 ]
@@ -218,7 +218,7 @@ all =
                 "(\"\", always (List.concat [ [ fileName ], [] ]))"
                     |> expectAst
                         (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 48 } } <|
-                            TupledExpression
+                            TupleExpression
                                 [ Node { start = { row = 1, column = 2 }, end = { row = 1, column = 4 } } <| Literal ""
                                 , Node { start = { row = 1, column = 6 }, end = { row = 1, column = 47 } } <|
                                     Application (Node { start = { row = 1, column = 6 }, end = { row = 1, column = 12 } } <| FunctionOrValue [] "always")

@@ -1189,10 +1189,10 @@ tupledExpressionInnerAfterOpeningParens =
                             }
                             (case maybeThirdPart of
                                 Nothing ->
-                                    TupledExpression [ firstPart.syntax, secondPart ]
+                                    TupleExpression [ firstPart.syntax, secondPart ]
 
                                 Just thirdPart ->
-                                    TupledExpression [ firstPart.syntax, secondPart, thirdPart ]
+                                    TupleExpression [ firstPart.syntax, secondPart, thirdPart ]
                             )
             }
         )
