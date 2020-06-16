@@ -40,7 +40,7 @@ import Json.Encode as JE exposing (Value)
 type TypeAnnotation
     = GenericType String
     | Typed (Node ( ModuleName, String )) (List (Node TypeAnnotation))
-    | Tupled (List (Node TypeAnnotation))
+    | Tuple (List (Node TypeAnnotation))
     | Record RecordDefinition
     | GenericRecord (Node String) (Node RecordDefinition)
     | FunctionTypeAnnotation (Node TypeAnnotation) (Node TypeAnnotation)
@@ -88,8 +88,8 @@ encode typeAnnotation =
                     , ( "args", JE.list (Node.encode encode) args )
                     ]
 
-        Tupled t ->
-            encodeTyped "tupled" <|
+        Tuple t ->
+            encodeTyped "tuple" <|
                 JE.object
                     [ ( "values", JE.list (Node.encode encode) t )
                     ]
@@ -148,7 +148,7 @@ decoder =
                         (JD.field "moduleNameAndName" <| Node.decoder decodeModuleNameAndName)
                         (JD.field "args" (JD.list nestedDecoder))
                   )
-                , ( "tupled", JD.map Tupled (JD.field "values" (JD.list nestedDecoder)) )
+                , ( "tuple", JD.map Tuple (JD.field "values" (JD.list nestedDecoder)) )
                 , ( "function"
                   , JD.map2 FunctionTypeAnnotation
                         (JD.field "left" nestedDecoder)

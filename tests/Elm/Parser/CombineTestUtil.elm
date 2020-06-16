@@ -261,8 +261,8 @@ noRangeTypeReference (Node _ typeAnnotation) =
             Typed (Node _ ( a, b )) c ->
                 Typed (Node.empty ( a, b )) (List.map noRangeTypeReference c)
 
-            Tupled a ->
-                Tupled (List.map noRangeTypeReference a)
+            Tuple a ->
+                Tuple (List.map noRangeTypeReference a)
 
             Record a ->
                 Record (List.map (unRanged noRangeRecordField) a)

@@ -43,7 +43,7 @@ all =
                                                     FunctionTypeAnnotation
                                                         (Node.empty <| GenericType "model")
                                                         (Node.empty <|
-                                                            Tupled
+                                                            Tuple
                                                                 [ Node.empty <| GenericType "model"
                                                                 , Node.empty <| Typed (Node.empty ( [], "Cmd" )) [ Node empty <| GenericType "msg" ]
                                                                 ]
@@ -63,7 +63,7 @@ all =
                                                         (Node empty <|
                                                             FunctionTypeAnnotation (Node empty <| GenericType "model")
                                                                 (Node empty <|
-                                                                    Tupled
+                                                                    Tuple
                                                                         [ Node empty <| GenericType "model"
                                                                         , Node empty <| Typed (Node empty ( [], "Cmd" )) [ Node empty <| GenericType "msg" ]
                                                                         ]
@@ -237,7 +237,7 @@ all =
                                 Node empty <|
                                     Typed (Node empty ( [], "List" ))
                                         [ Node empty <|
-                                            Tupled
+                                            Tuple
                                                 [ Node empty <| Typed (Node empty ( [], "Int" )) []
                                                 , Node empty <| Typed (Node empty ( [], "Maybe" )) [ Node empty <| GenericType "m" ]
                                                 ]
@@ -420,7 +420,7 @@ all =
                                     Node { start = { row = 1, column = 22 }, end = { row = 1, column = 51 } }
                                         (FunctionTypeAnnotation
                                             (Node { start = { row = 1, column = 22 }, end = { row = 1, column = 40 } }
-                                                (Tupled
+                                                (Tuple
                                                     [ Node { start = { row = 1, column = 24 }, end = { row = 1, column = 30 } } (Typed (Node { start = { row = 1, column = 24 }, end = { row = 1, column = 30 } } ( [], "String" )) [])
                                                     , Node { start = { row = 1, column = 32 }, end = { row = 1, column = 38 } }
                                                         (Typed

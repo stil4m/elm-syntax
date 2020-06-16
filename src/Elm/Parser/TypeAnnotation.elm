@@ -83,7 +83,7 @@ parensTypeAnnotation =
         (Combine.string "("
             |> Combine.continueWith
                 (Combine.choice
-                    [ Combine.string ")" |> Combine.map (always (TypeAnnotation.Tupled []))
+                    [ Combine.string ")" |> Combine.map (always (TypeAnnotation.Tuple []))
                     , nested |> Combine.ignore (Combine.string ")")
                     ]
                 )
@@ -97,7 +97,7 @@ asTypeAnnotation ((Node _ value) as x) xs =
             value
 
         _ ->
-            TypeAnnotation.Tupled (x :: xs)
+            TypeAnnotation.Tuple (x :: xs)
 
 
 genericTypeAnnotation : Parser State (Node TypeAnnotation)
