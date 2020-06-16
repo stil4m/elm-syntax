@@ -626,7 +626,7 @@ tupledExpressionInnerNested =
                         ParenthesizedExpression firstPart
 
                     _ ->
-                        TupledExpression (firstPart :: List.reverse tailPartsReverse)
+                        TupleExpression (firstPart :: List.reverse tailPartsReverse)
         )
         expression
         |> Combine.keep
