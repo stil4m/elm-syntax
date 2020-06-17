@@ -9,7 +9,7 @@ module Elm.Syntax.Expression exposing
 
 # Expression Syntax
 
-This syntax represens all that you can express in Elm.
+This syntax represents all that you can express in Elm.
 Although it is a easy and simple language, you can express a lot! See the `Expression` type for all the things you can express.
 
 
