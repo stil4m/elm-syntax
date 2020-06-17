@@ -26,7 +26,7 @@ all =
             \() ->
                 parseFullStringWithNullState "Msg(..)" typeExpose
                     |> Maybe.map noRangeExpose
-                    |> Expect.equal (Just (Node emptyRange <| TypeExpose (ExposedType "Msg" (Just emptyRange))))
+                    |> Expect.equal (Just (Node emptyRange <| TypeExpose (ExposedType (Node emptyRange "Msg") (Just emptyRange))))
         , test "exposingList" <|
             \() ->
                 parseFullStringWithNullState "exposing (Model,Msg(..),Info(..),init,(::))" exposeDefinition
@@ -35,8 +35,8 @@ all =
                         (Just
                             (Explicit
                                 [ Node emptyRange <| TypeOrAliasExpose "Model"
-                                , Node emptyRange <| TypeExpose (ExposedType "Msg" (Just emptyRange))
-                                , Node emptyRange <| TypeExpose (ExposedType "Info" (Just emptyRange))
+                                , Node emptyRange <| TypeExpose (ExposedType (Node emptyRange "Msg") (Just emptyRange))
+                                , Node emptyRange <| TypeExpose (ExposedType (Node emptyRange "Info") (Just emptyRange))
                                 , Node emptyRange <| FunctionExpose "init"
                                 , Node emptyRange <| InfixExpose "::"
                                 ]
@@ -66,14 +66,14 @@ all =
                         )
         , test "exposingList with spacing" <|
             \() ->
-                parseFullStringWithNullState "exposing (Model, Msg, Info(..),init,(::) )" exposeDefinition
+                parseFullStringWithNullState "exposing (Model, Msg, Info   (..)   ,init,(::) )" exposeDefinition
                     |> Maybe.map noRangeExposingList
                     |> Expect.equal
                         (Just
                             (Explicit
                                 [ Node emptyRange <| TypeOrAliasExpose "Model"
                                 , Node emptyRange <| TypeOrAliasExpose "Msg"
-                                , Node emptyRange <| TypeExpose (ExposedType "Info" (Just emptyRange))
+                                , Node emptyRange <| TypeExpose (ExposedType (Node emptyRange "Info") (Just emptyRange))
                                 , Node emptyRange <| FunctionExpose "init"
                                 , Node emptyRange <| InfixExpose "::"
                                 ]
