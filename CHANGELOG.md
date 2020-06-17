@@ -11,6 +11,9 @@
   - `Elm.Processing` and `Elm.RawFile` modules
   - All `encode` and `decode` functions
 
+- Changed `Elm.Syntax.Declaration.Declaration`:
+  - Removed `Destructuring` variant (it was not possible to get)
+
 - Changed `Elm.Syntax.Expression.Expression`:
   - `Application (List (Node Expression))` -> `Application (Node Expression) (List (Node Expression))` (takes a non-empty list of arguments)
   - `RecordUpdateExpression (Node String) (List (Node RecordSetter))` -> `RecordUpdateExpression (Node String) (Node RecordSetter) (List (Node RecordSetter))` (takes a non-empty list of fields)
