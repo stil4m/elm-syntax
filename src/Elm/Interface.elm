@@ -195,9 +195,6 @@ fileToDefinitions file =
 
                         InfixDeclaration i ->
                             Just ( Node.value i.operator, Operator i )
-
-                        Destructuring _ _ ->
-                            Nothing
                 )
                 file.declarations
     in
