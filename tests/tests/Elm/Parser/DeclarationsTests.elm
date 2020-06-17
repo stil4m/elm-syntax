@@ -381,17 +381,6 @@ all =
                                             (Node emptyRange <| Type (Node emptyRange ( [], "Sub" )) [ Node emptyRange <| Var "msg" ])
                                 }
                         )
-        , test "Destructuring declaration" <|
-            \() ->
-                parseFullStringWithNullState "_ = b" declaration
-                    |> Maybe.map Node.value
-                    |> Maybe.map noRangeDeclaration
-                    |> Expect.equal
-                        (Just <|
-                            Destructuring
-                                (Node emptyRange AllPattern)
-                                (Node emptyRange <| FunctionOrValue [] "b")
-                        )
         , test "declaration" <|
             \() ->
                 parseFullStringState emptyState "main =\n  text \"Hello, World!\"" Parser.function
