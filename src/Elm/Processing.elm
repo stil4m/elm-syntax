@@ -1,6 +1,7 @@
 module Elm.Processing exposing
     ( ProcessContext
     , init, addFile, addDependency, process
+    , withWellKnownOperators
     )
 
 {-|
@@ -18,7 +19,7 @@ Processing raw files with the context of other files and dependencies.
 
 # Functions
 
-@docs init, addFile, addDependency, process
+@docs init, addFile, addDependency, process, withWellknownOperators
 
 -}
 
@@ -38,6 +39,7 @@ import Elm.Syntax.Infix exposing (InfixDirection(..))
 import Elm.Syntax.ModuleName exposing (ModuleName)
 import Elm.Syntax.Node as Node exposing (Node(..))
 import Elm.Syntax.Range as Range
+import Elm.WellKnownOperators as WellKnownOperators
 import List
 import List.Extra as List
 
@@ -63,9 +65,15 @@ init =
     ProcessContext Dict.empty
 
 
-addWellKnownOperators : ProcessContext -> ProcessContext
-addWellKnownOperators (ProcessContext x) =
-    ProcessContext x
+{-| Add all well known operators to the processing context.
+These include `elm/core`, `elm/url` and `elm/parser`.
+
+Adding these will ensure that the syntax tree is build correctly taking operator precedence into account.
+
+-}
+withWellKnownOperators : ProcessContext -> ProcessContext
+withWellKnownOperators context =
+    List.foldl addDependency context WellKnownOperators.wellKnownOperators
 
 
 {-| Add a file to the context that may be a dependency for the file that will be processed.

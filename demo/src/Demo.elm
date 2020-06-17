@@ -54,7 +54,7 @@ init =
 -- some comment
 
 {-| Docs -}
-foo = 1
+foo = 1 * 2 + 3 ^ 5 * 4
 """)
 
 
@@ -74,7 +74,7 @@ update msg model =
             let
                 parseResult =
                     Elm.Parser.parse v
-                        |> Result.map (Elm.Processing.process Elm.Processing.init)
+                        |> Result.map (Elm.Processing.process (Elm.Processing.init |> Elm.Processing.withWellKnownOperators))
                         |> Result.mapError (List.map Debug.toString)
 
                 value =
