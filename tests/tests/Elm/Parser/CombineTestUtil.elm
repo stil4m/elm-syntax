@@ -233,11 +233,6 @@ noRangeInfix { direction, precedence, operator, function } =
 noRangeDeclaration : Declaration -> Declaration
 noRangeDeclaration decl =
     case decl of
-        Destructuring pattern expression ->
-            Destructuring
-                (noRangePattern pattern)
-                (noRangeExpression expression)
-
         FunctionDeclaration f ->
             FunctionDeclaration <| noRangeFunction f
 

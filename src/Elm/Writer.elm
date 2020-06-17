@@ -208,9 +208,6 @@ writeDeclaration (Node _ decl) =
         InfixDeclaration i ->
             writeInfix i
 
-        Destructuring pattern expression ->
-            writeDestructuring pattern expression
-
 
 writeFunction : Function -> Writer
 writeFunction { documentation, signature, declaration } =

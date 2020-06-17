@@ -155,9 +155,6 @@ inspectDeclaration config (Node r declaration) context =
                 (Node r inf)
                 context
 
-        Destructuring pattern expresion ->
-            inspectDestructuring config (Node r ( pattern, expresion )) context
-
 
 inspectType : Config context -> Node Type -> context -> context
 inspectType config tipe context =
