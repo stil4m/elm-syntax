@@ -1,7 +1,6 @@
 module Elm.Interface exposing
-    ( Interface, Exposed(..)
+    ( Interface, Infix, Exposed(..)
     , build, exposesAlias, exposesFunction, operators
-    , Infix
     )
 
 {-|
@@ -15,7 +14,7 @@ You can see this as a trimmed down version for of a file that only contains the 
 
 ## Types
 
-@docs Interface, Exposed
+@docs Interface, Infix, Exposed
 
 
 ## Functions
@@ -56,6 +55,8 @@ type Exposed
     | Operator Infix
 
 
+{-| Type representing all infromation regarding an infix operator.
+-}
 type alias Infix =
     { direction : InfixDirection
     , precedence : Int

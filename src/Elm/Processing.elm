@@ -1,7 +1,6 @@
 module Elm.Processing exposing
     ( ProcessContext
-    , init, addFile, addDependency, process
-    , withWellKnownOperators
+    , init, addFile, addDependency, process, withWellKnownOperators
     )
 
 {-|
@@ -19,7 +18,7 @@ Processing raw files with the context of other files and dependencies.
 
 # Functions
 
-@docs init, addFile, addDependency, process, withWellknownOperators
+@docs init, addFile, addDependency, process, withWellKnownOperators
 
 -}
 
