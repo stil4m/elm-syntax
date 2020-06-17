@@ -138,13 +138,6 @@ attachDocumentationAndFixOperators declaration context =
             , declarations = declaration :: context.declarations
             }
 
-        Destructuring _ _ ->
-            -- Will never happen. Will be removed in v8
-            { previousComments = context.previousComments
-            , remainingComments = context.remainingComments
-            , declarations = declaration :: context.declarations
-            }
-
 
 addDocumentation : (Node Comment -> Declaration) -> Node Declaration -> DeclarationsAndComments -> DeclarationsAndComments
 addDocumentation howToUpdate declaration file =

@@ -469,16 +469,6 @@ all =
                                 }
                             )
                         )
-        , test "Destructuring declaration" <|
-            \() ->
-                parseFullStringWithNullState "_ = b" declaration
-                    |> Maybe.map Node.value
-                    |> Expect.equal
-                        (Just
-                            (Destructuring (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 2 } } AllPattern)
-                                (Node { start = { row = 1, column = 5 }, end = { row = 1, column = 6 } } (FunctionOrValue [] "b"))
-                            )
-                        )
         , test "declaration" <|
             \() ->
                 parseFullStringState emptyState "main =\n  text \"Hello, World!\"" Parser.function

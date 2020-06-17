@@ -38,7 +38,6 @@ declaration =
                             Node r (Declaration.AliasDeclaration a)
                 )
         , portDeclaration
-        , destructuringDeclaration
         ]
 
 
@@ -120,16 +119,6 @@ infixDeclaration =
             Infix.infixDefinition
                 |> Combine.map (\inf -> Node (Range.combine [ current, Node.range inf.function ]) (Declaration.InfixDeclaration inf))
         )
-
-
-destructuringDeclaration : Parser State (Node Declaration)
-destructuringDeclaration =
-    succeed
-        (\x y -> Node.combine Declaration.Destructuring x y)
-        |> Combine.andMap pattern
-        |> Combine.ignore (string "=")
-        |> Combine.ignore Layout.layout
-        |> Combine.andMap expression
 
 
 portDeclaration : Parser State (Node Declaration)

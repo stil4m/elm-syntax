@@ -629,7 +629,7 @@ sample10 : String
 sample10 =
     """module X exposing (..)
 
-{k,v} = r"""
+emptyExample = True"""
 
 
 sample11 : String
