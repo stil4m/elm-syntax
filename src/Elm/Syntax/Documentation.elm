@@ -6,7 +6,7 @@ module Elm.Syntax.Documentation exposing
 {-|
 
 
-# Documenation Syntax
+# Documentation Syntax
 
 This syntax represents documentation comments in Elm.
 

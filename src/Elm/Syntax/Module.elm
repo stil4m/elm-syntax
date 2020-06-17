@@ -12,7 +12,7 @@ module Elm.Syntax.Module exposing
 This syntax represents module definitions in Elm.
 For example:
 
-    module Html.Attributes (style)
+    module Html.Attributes exposing (style)
 
 
 ## Module
