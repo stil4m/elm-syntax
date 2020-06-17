@@ -79,4 +79,26 @@ all =
                                 ]
                             )
                         )
+        , describe "ranges"
+            [ test "exposed item should not include trailing whitespace in range" <|
+                let
+                    input =
+                        """exposing
+    ( Link
+    , init
+    )"""
+                in
+                \() ->
+                    parseFullStringWithNullState input exposeDefinition
+                        |> Expect.equal
+                            (Just
+                                (Explicit
+                                    [ Node { end = { column = 11, row = 2 }, start = { column = 7, row = 2 } }
+                                        (TypeOrAliasExpose "Link")
+                                    , Node { end = { column = 11, row = 3 }, start = { column = 7, row = 3 } }
+                                        (FunctionExpose "init")
+                                    ]
+                                )
+                            )
+            ]
         ]
