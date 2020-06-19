@@ -10,7 +10,7 @@ import Elm.Parser.State as State exposing (State)
 import Elm.Parser.Tokens as Tokens
 import Elm.Parser.TypeAnnotation as TypeAnnotation
 import Elm.Parser.Whitespace as Whitespace
-import Elm.Syntax.Expression as Expression exposing (Case, CaseBlock, Cases, Expression(..), Function, FunctionImplementation, Lambda, LetBlock, LetDeclaration(..), RecordSetter)
+import Elm.Syntax.Expression as Expression exposing (Case, CaseBlock, Expression(..), Function, FunctionImplementation, Lambda, LetBlock, LetDeclaration(..), RecordSetter)
 import Elm.Syntax.Infix as Infix
 import Elm.Syntax.ModuleName exposing (ModuleName)
 import Elm.Syntax.Node as Node exposing (Node(..))
@@ -307,9 +307,9 @@ caseExpression =
     Combine.succeed
         (\start ->
             \caseBlock_ ->
-                \( end, cases ) ->
+                \( end, firstCase, cases ) ->
                     Node { start = start, end = end }
-                        (CaseExpression (CaseBlock caseBlock_ cases))
+                        (CaseExpression (CaseBlock caseBlock_ firstCase cases))
         )
         |> Combine.keepFromCore Parser.Extra.location
         |> Combine.ignoreEntirely Tokens.caseToken
@@ -321,7 +321,7 @@ caseExpression =
         |> Combine.keep (withIndentedState caseStatements)
 
 
-caseStatements : Parser State ( Location, Cases )
+caseStatements : Parser State ( Location, Case, List Case )
 caseStatements =
     Combine.many1WithEndLocationForLastElement (\( _, Node range _ ) -> range) caseStatement
 

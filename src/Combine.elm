@@ -260,13 +260,13 @@ manyWithEndLocationForLastElement defaultRange getRange (Parser p) =
             Core.loop ( state, [] ) helper
 
 
-many1WithEndLocationForLastElement : (a -> Range) -> Parser state a -> Parser state ( Location, List a )
+many1WithEndLocationForLastElement : (a -> Range) -> Parser state a -> Parser state ( Location, a, List a )
 many1WithEndLocationForLastElement getRange p =
     p
         |> andThen
             (\a ->
                 manyWithEndLocationForLastElement (getRange a) getRange p
-                    |> map (\( location_, list ) -> ( location_, a :: list ))
+                    |> map (\( location_, list ) -> ( location_, a, list ))
             )
 
 

@@ -148,11 +148,12 @@ caseWhitespace f = case f   of
                                                 , expression =
                                                     Node { start = { row = 4, column = 20 }, end = { row = 11, column = 11 } }
                                                         (CaseExpression
-                                                            { cases =
-                                                                [ ( Node { start = { row = 5, column = 3 }, end = { row = 5, column = 7 } } (NamedPattern { moduleName = [], name = "True" } [])
-                                                                  , Node { start = { row = 6, column = 5 }, end = { row = 6, column = 6 } } (Integer 1)
-                                                                  )
-                                                                , ( Node { start = { row = 7, column = 3 }, end = { row = 7, column = 8 } } (NamedPattern { moduleName = [], name = "False" } [])
+                                                            { firstCase =
+                                                                ( Node { start = { row = 5, column = 3 }, end = { row = 5, column = 7 } } (NamedPattern { moduleName = [], name = "True" } [])
+                                                                , Node { start = { row = 6, column = 5 }, end = { row = 6, column = 6 } } (Integer 1)
+                                                                )
+                                                            , restOfCases =
+                                                                [ ( Node { start = { row = 7, column = 3 }, end = { row = 7, column = 8 } } (NamedPattern { moduleName = [], name = "False" } [])
                                                                   , Node { start = { row = 11, column = 10 }, end = { row = 11, column = 11 } } (Integer 2)
                                                                   )
                                                                 ]
