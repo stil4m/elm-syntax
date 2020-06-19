@@ -13,7 +13,7 @@ import Elm.Parser.TypeAnnotation exposing (typeAnnotation)
 import Elm.Parser.Typings as Typings exposing (typeDefinition)
 import Elm.Parser.Whitespace exposing (manySpaces)
 import Elm.Syntax.Declaration exposing (..)
-import Elm.Syntax.Expression as Expression exposing (Case, CaseBlock, Cases, Expression(..), Function, FunctionImplementation, Lambda, LetBlock, LetDeclaration(..), RecordSetter)
+import Elm.Syntax.Expression as Expression exposing (Case, CaseBlock, Expression(..), Function, FunctionImplementation, Lambda, LetBlock, LetDeclaration(..), RecordSetter)
 import Elm.Syntax.ModuleName exposing (ModuleName)
 import Elm.Syntax.Node as Node exposing (Node(..))
 import Elm.Syntax.Pattern exposing (..)
@@ -422,7 +422,7 @@ caseStatement =
         )
 
 
-caseStatements : Parser State Cases
+caseStatements : Parser State ( Case, List Case )
 caseStatements =
     lazy
         (\() ->
@@ -440,9 +440,7 @@ caseStatements =
                                 )
                         )
             in
-            caseStatement
-                |> Combine.map List.singleton
-                |> Combine.andThen (\v -> Combine.loop v helper)
+            caseStatement |> Combine.andThen (\first -> Combine.loop [] helper |> Combine.map (Tuple.pair first))
         )
 
 
@@ -453,15 +451,17 @@ caseExpression =
             Node.parser (Combine.succeed ())
                 |> Combine.andThen
                     (\(Node start ()) ->
-                        Combine.map
-                            (\cb ->
-                                Node (Range.combine (start :: List.map (Tuple.second >> Node.range) cb.cases))
-                                    (CaseExpression cb)
-                            )
-                            (succeed CaseBlock
-                                |> Combine.andMap caseBlock
-                                |> Combine.andMap (Layout.layout |> Combine.continueWith (withIndentedState caseStatements))
-                            )
+                        succeed (\caseExpr ( firstCase, restOfCases ) -> CaseBlock caseExpr firstCase restOfCases)
+                            |> Combine.andMap caseBlock
+                            |> Combine.andMap (Layout.layout |> Combine.continueWith (withIndentedState caseStatements))
+                            |> Combine.map
+                                (\cb ->
+                                    Node
+                                        (Range.combine
+                                            (start :: List.map (Tuple.second >> Node.range) (cb.firstCase :: cb.restOfCases))
+                                        )
+                                        (CaseExpression cb)
+                                )
                     )
         )
 

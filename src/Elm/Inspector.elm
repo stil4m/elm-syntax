@@ -346,7 +346,7 @@ inspectInnerExpression config expression context =
                     inspectExpression config caseBlock.expression context
 
                 context3 =
-                    List.foldl (\a b -> inspectCase config a b) context2 caseBlock.cases
+                    List.foldl (\a b -> inspectCase config a b) context2 (caseBlock.firstCase :: caseBlock.restOfCases)
             in
             context3
 

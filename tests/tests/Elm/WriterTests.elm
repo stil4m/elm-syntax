@@ -135,9 +135,8 @@ suite =
                         body =
                             CaseExpression
                                 (CaseBlock (Node emptyRange <| FunctionOrValue [] "someCase")
-                                    [ ( Node emptyRange <| IntPattern 1, Node emptyRange <| FunctionOrValue [] "doSomething" )
-                                    , ( Node emptyRange <| IntPattern 2, Node emptyRange <| FunctionOrValue [] "doSomethingElse" )
-                                    ]
+                                    ( Node emptyRange <| IntPattern 1, Node emptyRange <| FunctionOrValue [] "doSomething" )
+                                    [ ( Node emptyRange <| IntPattern 2, Node emptyRange <| FunctionOrValue [] "doSomethingElse" ) ]
                                 )
 
                         function =
