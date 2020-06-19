@@ -314,7 +314,8 @@ caseExpression =
                         }
                         (CaseExpression
                             { expression = caseBlock_
-                            , cases = firstCase :: List.reverse lastToSecondCase
+                            , firstCase = firstCase
+                            , restOfCases = List.reverse lastToSecondCase
                             }
                         )
         )

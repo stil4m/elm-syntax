@@ -1,5 +1,5 @@
 module Elm.Syntax.Expression exposing
-    ( Expression(..), Lambda, LetBlock, LetDeclaration(..), RecordSetter, CaseBlock, Cases, Case, Function, FunctionImplementation
+    ( Expression(..), Lambda, LetBlock, LetDeclaration(..), RecordSetter, CaseBlock, Case, Function, FunctionImplementation
     , functionRange, isLambda, isLet, isIfElse, isCase, isOperatorApplication
     )
 
@@ -9,7 +9,7 @@ Although it is a easy and simple language, you can express a lot! See the `Expre
 
 ## Types
 
-@docs Expression, Lambda, LetBlock, LetDeclaration, RecordSetter, CaseBlock, Cases, Case, Function, FunctionImplementation
+@docs Expression, Lambda, LetBlock, LetDeclaration, RecordSetter, CaseBlock, Case, Function, FunctionImplementation
 
 
 ## Functions
@@ -161,7 +161,8 @@ type alias Lambda =
 -}
 type alias CaseBlock =
     { expression : Node Expression
-    , cases : Cases
+    , firstCase : Case
+    , restOfCases : List Case
     }
 
 
@@ -169,12 +170,6 @@ type alias CaseBlock =
 -}
 type alias Case =
     ( Node Pattern, Node Expression )
-
-
-{-| Type alias for a list of cases
--}
-type alias Cases =
-    List Case
 
 
 {-| Check whether an expression is a lambda-expression

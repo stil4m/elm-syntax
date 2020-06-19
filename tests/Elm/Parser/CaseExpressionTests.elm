@@ -47,13 +47,14 @@ True -> 1"""
                                 { expression =
                                     Node { start = { row = 1, column = 6 }, end = { row = 1, column = 7 } } <|
                                         FunctionOrValue [] "f"
-                                , cases =
-                                    [ ( Node { start = { row = 2, column = 3 }, end = { row = 2, column = 7 } } <|
-                                            NamedPattern (QualifiedNameRef [] "True") []
-                                      , Node { start = { row = 2, column = 11 }, end = { row = 2, column = 12 } } <|
-                                            Integer 1
-                                      )
-                                    , ( Node { start = { row = 3, column = 3 }, end = { row = 3, column = 8 } } <|
+                                , firstCase =
+                                    ( Node { start = { row = 2, column = 3 }, end = { row = 2, column = 7 } } <|
+                                        NamedPattern (QualifiedNameRef [] "True") []
+                                    , Node { start = { row = 2, column = 11 }, end = { row = 2, column = 12 } } <|
+                                        Integer 1
+                                    )
+                                , restOfCases =
+                                    [ ( Node { start = { row = 3, column = 3 }, end = { row = 3, column = 8 } } <|
                                             NamedPattern (QualifiedNameRef [] "False") []
                                       , Node { start = { row = 3, column = 12 }, end = { row = 3, column = 13 } } <|
                                             Integer 2
@@ -72,13 +73,13 @@ True -> 1"""
                                 { expression =
                                     Node { start = { row = 1, column = 6 }, end = { row = 1, column = 7 } } <|
                                         FunctionOrValue [] "f"
-                                , cases =
-                                    [ ( Node { start = { row = 2, column = 3 }, end = { row = 2, column = 10 } } <|
-                                            NamedPattern (QualifiedNameRef [ "Foo" ] "Bar") []
-                                      , Node { start = { row = 2, column = 14 }, end = { row = 2, column = 15 } } <|
-                                            Integer 1
-                                      )
-                                    ]
+                                , firstCase =
+                                    ( Node { start = { row = 2, column = 3 }, end = { row = 2, column = 10 } } <|
+                                        NamedPattern (QualifiedNameRef [ "Foo" ] "Bar") []
+                                    , Node { start = { row = 2, column = 14 }, end = { row = 2, column = 15 } } <|
+                                        Integer 1
+                                    )
+                                , restOfCases = []
                                 }
                             )
                         )
@@ -92,13 +93,13 @@ True -> 1"""
                                 { expression =
                                     Node { start = { row = 1, column = 6 }, end = { row = 1, column = 7 } } <|
                                         FunctionOrValue [] "f"
-                                , cases =
-                                    [ ( Node { start = { row = 2, column = 3 }, end = { row = 2, column = 4 } } <|
-                                            VarPattern "x"
-                                      , Node { start = { row = 2, column = 6 }, end = { row = 2, column = 7 } } <|
-                                            Integer 1
-                                      )
-                                    ]
+                                , firstCase =
+                                    ( Node { start = { row = 2, column = 3 }, end = { row = 2, column = 4 } } <|
+                                        VarPattern "x"
+                                    , Node { start = { row = 2, column = 6 }, end = { row = 2, column = 7 } } <|
+                                        Integer 1
+                                    )
+                                , restOfCases = []
                                 }
                             )
                         )
@@ -110,11 +111,12 @@ True -> 1"""
                         (Node { start = { row = 1, column = 1 }, end = { row = 2, column = 21 } }
                             (CaseExpression
                                 { expression = Node { start = { row = 1, column = 6 }, end = { row = 1, column = 7 } } (FunctionOrValue [] "x")
-                                , cases =
-                                    [ ( Node { start = { row = 1, column = 11 }, end = { row = 1, column = 15 } } (NamedPattern { moduleName = [], name = "True" } [])
-                                      , Node { start = { row = 1, column = 19 }, end = { row = 1, column = 20 } } (Integer 1)
-                                      )
-                                    , ( Node { start = { row = 2, column = 11 }, end = { row = 2, column = 16 } } (NamedPattern { moduleName = [], name = "False" } [])
+                                , firstCase =
+                                    ( Node { start = { row = 1, column = 11 }, end = { row = 1, column = 15 } } (NamedPattern { moduleName = [], name = "True" } [])
+                                    , Node { start = { row = 1, column = 19 }, end = { row = 1, column = 20 } } (Integer 1)
+                                    )
+                                , restOfCases =
+                                    [ ( Node { start = { row = 2, column = 11 }, end = { row = 2, column = 16 } } (NamedPattern { moduleName = [], name = "False" } [])
                                       , Node { start = { row = 2, column = 20 }, end = { row = 2, column = 21 } } (Integer 2)
                                       )
                                     ]
@@ -139,11 +141,12 @@ True -> 1"""
                                         , end = { row = 1, column = 7 }
                                         }
                                         (FunctionOrValue [] "x")
-                                , cases =
-                                    [ ( Node { start = { row = 2, column = 9 }, end = { row = 2, column = 39 } } (StringPattern "single line triple quote")
-                                      , Node { start = { row = 3, column = 13 }, end = { row = 3, column = 14 } } (Integer 1)
-                                      )
-                                    , ( Node { start = { row = 4, column = 9 }, end = { row = 5, column = 28 } } (StringPattern "multi line\n            triple quote")
+                                , firstCase =
+                                    ( Node { start = { row = 2, column = 9 }, end = { row = 2, column = 39 } } (StringPattern "single line triple quote")
+                                    , Node { start = { row = 3, column = 13 }, end = { row = 3, column = 14 } } (Integer 1)
+                                    )
+                                , restOfCases =
+                                    [ ( Node { start = { row = 4, column = 9 }, end = { row = 5, column = 28 } } (StringPattern "multi line\n            triple quote")
                                       , Node { start = { row = 6, column = 13 }, end = { row = 6, column = 14 } } (Integer 2)
                                       )
                                     , ( Node { start = { row = 7, column = 9 }, end = { row = 7, column = 10 } } AllPattern
@@ -177,11 +180,12 @@ True -> 1"""
                         (Node { start = { row = 1, column = 1 }, end = { row = 6, column = 6 } }
                             (CaseExpression
                                 { expression = Node { start = { row = 1, column = 6 }, end = { row = 1, column = 9 } } (FunctionOrValue [] "msg")
-                                , cases =
-                                    [ ( Node { start = { row = 2, column = 3 }, end = { row = 2, column = 12 } } (NamedPattern { moduleName = [], name = "Increment" } [])
-                                      , Node { start = { row = 3, column = 5 }, end = { row = 3, column = 6 } } (Integer 1)
-                                      )
-                                    , ( Node { start = { row = 5, column = 3 }, end = { row = 5, column = 12 } } (NamedPattern { moduleName = [], name = "Decrement" } [])
+                                , firstCase =
+                                    ( Node { start = { row = 2, column = 3 }, end = { row = 2, column = 12 } } (NamedPattern { moduleName = [], name = "Increment" } [])
+                                    , Node { start = { row = 3, column = 5 }, end = { row = 3, column = 6 } } (Integer 1)
+                                    )
+                                , restOfCases =
+                                    [ ( Node { start = { row = 5, column = 3 }, end = { row = 5, column = 12 } } (NamedPattern { moduleName = [], name = "Decrement" } [])
                                       , Node { start = { row = 6, column = 5 }, end = { row = 6, column = 6 } } (Integer 2)
                                       )
                                     ]
