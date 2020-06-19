@@ -169,11 +169,11 @@ all =
                                                                                 Node { start = { row = 4, column = 7 }, end = { row = 5, column = 18 } }
                                                                                     (CaseExpression
                                                                                         { expression = Node { start = { row = 4, column = 12 }, end = { row = 4, column = 13 } } (FunctionOrValue [] "x")
-                                                                                        , cases =
-                                                                                            [ ( Node { start = { row = 5, column = 9 }, end = { row = 5, column = 13 } } (NamedPattern { moduleName = [], name = "True" } [])
-                                                                                              , Node { start = { row = 5, column = 17 }, end = { row = 5, column = 18 } } (FunctionOrValue [] "z")
-                                                                                              )
-                                                                                            ]
+                                                                                        , firstCase =
+                                                                                            ( Node { start = { row = 5, column = 9 }, end = { row = 5, column = 13 } } (NamedPattern { moduleName = [], name = "True" } [])
+                                                                                            , Node { start = { row = 5, column = 17 }, end = { row = 5, column = 18 } } (FunctionOrValue [] "z")
+                                                                                            )
+                                                                                        , restOfCases = []
                                                                                         }
                                                                                     )
                                                                             }
@@ -378,17 +378,18 @@ all =
                                         , expression =
                                             Node { start = { row = 2, column = 3 }, end = { row = 7, column = 16 } }
                                                 (CaseExpression
-                                                    { cases =
-                                                        [ ( Node { start = { row = 3, column = 5 }, end = { row = 3, column = 14 } } (NamedPattern { moduleName = [], name = "Increment" } [])
-                                                          , Node { start = { row = 4, column = 7 }, end = { row = 4, column = 16 } }
-                                                                (Application
-                                                                    (Node { start = { row = 4, column = 7 }, end = { row = 4, column = 12 } } (FunctionOrValue [] "model"))
-                                                                    [ Node { start = { row = 4, column = 13 }, end = { row = 4, column = 14 } } (Operator "+")
-                                                                    , Node { start = { row = 4, column = 15 }, end = { row = 4, column = 16 } } (Integer 1)
-                                                                    ]
-                                                                )
-                                                          )
-                                                        , ( Node { start = { row = 6, column = 5 }, end = { row = 6, column = 14 } } (NamedPattern { moduleName = [], name = "Decrement" } [])
+                                                    { firstCase =
+                                                        ( Node { start = { row = 3, column = 5 }, end = { row = 3, column = 14 } } (NamedPattern { moduleName = [], name = "Increment" } [])
+                                                        , Node { start = { row = 4, column = 7 }, end = { row = 4, column = 16 } }
+                                                            (Application
+                                                                (Node { start = { row = 4, column = 7 }, end = { row = 4, column = 12 } } (FunctionOrValue [] "model"))
+                                                                [ Node { start = { row = 4, column = 13 }, end = { row = 4, column = 14 } } (Operator "+")
+                                                                , Node { start = { row = 4, column = 15 }, end = { row = 4, column = 16 } } (Integer 1)
+                                                                ]
+                                                            )
+                                                        )
+                                                    , restOfCases =
+                                                        [ ( Node { start = { row = 6, column = 5 }, end = { row = 6, column = 14 } } (NamedPattern { moduleName = [], name = "Decrement" } [])
                                                           , Node { start = { row = 7, column = 7 }, end = { row = 7, column = 16 } }
                                                                 (Application
                                                                     (Node { start = { row = 7, column = 7 }, end = { row = 7, column = 12 } } (FunctionOrValue [] "model"))
@@ -588,18 +589,19 @@ all =
                                         , expression =
                                             Node { start = { row = 2, column = 3 }, end = { row = 7, column = 16 } }
                                                 (CaseExpression
-                                                    { cases =
-                                                        [ ( Node { start = { row = 3, column = 5 }, end = { row = 3, column = 14 } }
-                                                                (NamedPattern { moduleName = [], name = "Increment" } [])
-                                                          , Node { start = { row = 4, column = 7 }, end = { row = 4, column = 16 } }
-                                                                (Application
-                                                                    (Node { start = { row = 4, column = 7 }, end = { row = 4, column = 12 } } (FunctionOrValue [] "model"))
-                                                                    [ Node { start = { row = 4, column = 13 }, end = { row = 4, column = 14 } } (Operator "+")
-                                                                    , Node { start = { row = 4, column = 15 }, end = { row = 4, column = 16 } } (Integer 1)
-                                                                    ]
-                                                                )
-                                                          )
-                                                        , ( Node { start = { row = 6, column = 5 }, end = { row = 6, column = 14 } }
+                                                    { firstCase =
+                                                        ( Node { start = { row = 3, column = 5 }, end = { row = 3, column = 14 } }
+                                                            (NamedPattern { moduleName = [], name = "Increment" } [])
+                                                        , Node { start = { row = 4, column = 7 }, end = { row = 4, column = 16 } }
+                                                            (Application
+                                                                (Node { start = { row = 4, column = 7 }, end = { row = 4, column = 12 } } (FunctionOrValue [] "model"))
+                                                                [ Node { start = { row = 4, column = 13 }, end = { row = 4, column = 14 } } (Operator "+")
+                                                                , Node { start = { row = 4, column = 15 }, end = { row = 4, column = 16 } } (Integer 1)
+                                                                ]
+                                                            )
+                                                        )
+                                                    , restOfCases =
+                                                        [ ( Node { start = { row = 6, column = 5 }, end = { row = 6, column = 14 } }
                                                                 (NamedPattern { moduleName = [], name = "Decrement" } [])
                                                           , Node { start = { row = 7, column = 7 }, end = { row = 7, column = 16 } }
                                                                 (Application

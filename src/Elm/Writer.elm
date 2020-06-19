@@ -507,7 +507,7 @@ writeExpression (Node range inner) =
             breaked
                 [ string ""
                 , spaced [ string "case", writeExpression caseBlock.expression, string "of" ]
-                , breaked (List.map writeCaseBranch caseBlock.cases)
+                , breaked (List.map writeCaseBranch (caseBlock.firstCase :: caseBlock.restOfCases))
                 , string ""
                 ]
 

@@ -449,7 +449,8 @@ visitExpressionInner (Node range expression) =
             CaseExpression caseBlock ->
                 CaseExpression
                     { expression = visitExpression caseBlock.expression
-                    , cases = List.map (Tuple.mapSecond visitExpression) caseBlock.cases
+                    , firstCase = Tuple.mapSecond visitExpression caseBlock.firstCase
+                    , restOfCases = List.map (Tuple.mapSecond visitExpression) caseBlock.restOfCases
                     }
 
             LambdaExpression lambda ->
