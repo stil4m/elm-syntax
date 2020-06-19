@@ -513,7 +513,8 @@ caseExpression =
                                     , expression =
                                         CaseExpression
                                             { expression = casedExpressionResult.syntax
-                                            , cases = firstCase :: List.reverse lastToSecondCase
+                                            , firstCase = firstCase
+                                            , restOfCases = List.reverse lastToSecondCase
                                             }
                                     }
                 )
