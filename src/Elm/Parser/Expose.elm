@@ -34,8 +34,9 @@ exposingListInner =
             |> Combine.keepFromCore Parser.Extra.location
             |> Combine.ignore (Layout.maybeAroundBothSides (Combine.fromCore Tokens.dotDot))
             |> Combine.keepFromCore Parser.Extra.location
-        , Combine.sepBy1 "," (Layout.maybeAroundBothSides exposable)
-            |> Combine.map Explicit
+        , Combine.succeed (\head -> \tail -> Explicit head tail)
+            |> Combine.keep (Layout.maybeAroundBothSides exposable)
+            |> Combine.keep (Combine.many (Tokens.comma |> Combine.continueFromCore (Layout.maybeAroundBothSides exposable)))
         ]
 
 

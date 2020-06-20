@@ -20,8 +20,8 @@ suite =
                 \() ->
                     symmetric
                         (Explicit
-                            [ Node.empty (FunctionExpose "beginnerProgram")
-                            , Node.empty (FunctionExpose "div")
+                            (Node.empty (FunctionExpose "beginnerProgram"))
+                            [ Node.empty (FunctionExpose "div")
                             , Node.empty (FunctionExpose "button")
                             , Node.empty (FunctionExpose "text")
                             ]

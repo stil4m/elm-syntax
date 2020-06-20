@@ -405,8 +405,8 @@ log a =
                     { exposingList =
                         Node { start = { row = 1, column = 28 }, end = { row = 1, column = 42 } }
                             (Explicit
-                                [ Node { start = { row = 1, column = 38 }, end = { row = 1, column = 41 } } (FunctionExpose "log")
-                                ]
+                                (Node { start = { row = 1, column = 38 }, end = { row = 1, column = 41 } } (FunctionExpose "log"))
+                                []
                             )
                     , moduleName = Node { start = { row = 1, column = 8 }, end = { row = 1, column = 27 } } [ "Simplify", "AstHelpers" ]
                     }

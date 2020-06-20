@@ -37,9 +37,7 @@ whereBlock =
     Combine.between
         "{"
         "}"
-        (Combine.sepBy1 ","
-            (Layout.maybeAroundBothSides effectWhereClause)
-        )
+        (Combine.sepBy1 "," (Layout.maybeAroundBothSides effectWhereClause))
         |> Combine.map
             (\pairs ->
                 { command = pairs |> List.Extra.find (\( fnName, _ ) -> fnName == "command") |> Maybe.map Tuple.second

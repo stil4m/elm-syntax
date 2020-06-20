@@ -125,8 +125,12 @@ writeExposureExpose x =
         All _ ->
             string "exposing (..)"
 
-        Explicit exposeList ->
+        Explicit head rest ->
             let
+                exposeList : List (Node TopLevelExpose)
+                exposeList =
+                    head :: rest
+
                 diffLines : Bool
                 diffLines =
                     List.map Node.range exposeList

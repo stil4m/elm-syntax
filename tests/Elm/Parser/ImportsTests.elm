@@ -21,7 +21,8 @@ all =
                                 Just
                                     (Node { start = { row = 1, column = 12 }, end = { row = 1, column = 37 } }
                                         (Explicit
-                                            [ Node { start = { row = 1, column = 22 }, end = { row = 1, column = 27 } } (TypeOrAliasExpose "Model"), Node { start = { row = 1, column = 29 }, end = { row = 1, column = 36 } } (TypeExpose { name = "Msg", open = Just { start = { row = 1, column = 32 }, end = { row = 1, column = 36 } } }) ]
+                                            (Node { start = { row = 1, column = 22 }, end = { row = 1, column = 27 } } (TypeOrAliasExpose "Model"))
+                                            [ Node { start = { row = 1, column = 29 }, end = { row = 1, column = 36 } } (TypeExpose { name = "Msg", open = Just { start = { row = 1, column = 32 }, end = { row = 1, column = 36 } } }) ]
                                         )
                                     )
                             , moduleAlias = Nothing
@@ -36,9 +37,7 @@ all =
                             { exposingList =
                                 Just
                                     (Node { start = { row = 1, column = 13 }, end = { row = 1, column = 28 } }
-                                        (Explicit
-                                            [ Node { start = { row = 1, column = 23 }, end = { row = 1, column = 27 } } (FunctionExpose "text") ]
-                                        )
+                                        (Explicit (Node { start = { row = 1, column = 23 }, end = { row = 1, column = 27 } } (FunctionExpose "text")) [])
                                     )
                             , moduleAlias = Nothing
                             , moduleName = Node { start = { row = 1, column = 8 }, end = { row = 1, column = 12 } } [ "Html" ]
