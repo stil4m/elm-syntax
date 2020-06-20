@@ -29,7 +29,7 @@ import Elm.Syntax.Range exposing (Range)
 -}
 type Exposing
     = All Range
-    | Explicit (List (Node TopLevelExpose))
+    | Explicit (Node TopLevelExpose) (List (Node TopLevelExpose))
 
 
 {-| An exposed entity
@@ -68,7 +68,7 @@ exposesFunction s exposure =
         All _ ->
             True
 
-        Explicit l ->
+        Explicit head rest ->
             List.any
                 (\(Node _ value) ->
                     case value of
@@ -78,7 +78,7 @@ exposesFunction s exposure =
                         _ ->
                             False
                 )
-                l
+                (head :: rest)
 
 
 {-| Collect all operator names from a list of TopLevelExposes
@@ -96,7 +96,3 @@ operator t =
 
         _ ->
             Nothing
-
-
-
---
