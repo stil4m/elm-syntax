@@ -45,8 +45,9 @@ exposingListInner =
             |> Combine.ignoreEntirely Tokens.dotDot
             |> Combine.ignore Layout.maybeLayout
             |> Combine.keepFromCore Core.getPosition
-        , Combine.sepBy1 "," (Layout.maybeAroundBothSides exposable)
-            |> Combine.map Explicit
+        , Combine.succeed (\head -> \tail -> Explicit head tail)
+            |> Combine.keep (Layout.maybeAroundBothSides exposable)
+            |> Combine.keep (Combine.many (Tokens.comma |> Combine.continueWithFromCore (Layout.maybeAroundBothSides exposable)))
         ]
 
 
