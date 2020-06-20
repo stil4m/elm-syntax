@@ -58,6 +58,7 @@ typeDefinition =
 valueConstructors : Parser State (List (Node ValueConstructor))
 valueConstructors =
     Combine.sepBy1 (Combine.ignore (maybe Layout.layout) (string "|")) valueConstructor
+        |> Combine.map (\( head, rest ) -> head :: rest)
 
 
 valueConstructor : Parser State (Node ValueConstructor)

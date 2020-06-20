@@ -30,8 +30,8 @@ suite =
                 \() ->
                     symmetric
                         (Explicit
-                            [ Node emptyRange (FunctionExpose "beginnerProgram")
-                            , Node emptyRange (FunctionExpose "div")
+                            (Node emptyRange (FunctionExpose "beginnerProgram"))
+                            [ Node emptyRange (FunctionExpose "div")
                             , Node emptyRange (FunctionExpose "button")
                             , Node emptyRange (FunctionExpose "text")
                             ]

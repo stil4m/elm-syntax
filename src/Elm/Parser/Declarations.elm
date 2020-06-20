@@ -386,7 +386,10 @@ lambdaExpression =
             succeed (\args expr -> Lambda args expr |> LambdaExpression)
                 |> Combine.ignore (string "\\")
                 |> Combine.ignore (maybe Layout.layout)
-                |> Combine.andMap (sepBy1 (maybe Layout.layout) functionArgument)
+                |> Combine.andMap
+                    (sepBy1 (maybe Layout.layout) functionArgument
+                        |> Combine.map (\( head, rest ) -> head :: rest)
+                    )
                 |> Combine.andMap (Layout.maybeAroundBothSides (string "->") |> Combine.continueWith expression)
                 |> Node.parser
         )

@@ -1,6 +1,6 @@
 module Elm.Parser.Expose exposing (exposable, exposeDefinition, exposingListInner, infixExpose, typeExpose)
 
-import Combine exposing (Parser, choice, maybe, or, parens, sepBy, string, succeed, while)
+import Combine exposing (Parser, choice, maybe, or, parens, sepBy1, string, succeed, while)
 import Combine.Char exposing (char)
 import Elm.Parser.Layout as Layout
 import Elm.Parser.Node as Node
@@ -27,7 +27,10 @@ exposeListWith =
 exposingListInner : Parser State Exposing
 exposingListInner =
     or (withRange (succeed All |> Combine.ignore (Layout.maybeAroundBothSides (string ".."))))
-        (Combine.map Explicit (sepBy (char ',') (Layout.maybeAroundBothSides exposable)))
+        (Combine.map
+            (\( head, rest ) -> Explicit head rest)
+            (sepBy1 (char ',') (Layout.maybeAroundBothSides exposable))
+        )
 
 
 exposable : Parser State (Node TopLevelExpose)

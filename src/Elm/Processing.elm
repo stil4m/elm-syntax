@@ -105,10 +105,10 @@ buildSingle imp moduleIndex =
                 |> Interface.operators
                 |> List.map (\x -> ( Node.value x.operator, x ))
 
-        Just (Node _ (Explicit l)) ->
+        Just (Node _ (Explicit head rest)) ->
             let
                 selectedOperators =
-                    Exposing.operators <| List.map Node.value l
+                    Exposing.operators <| List.map Node.value (head :: rest)
             in
             moduleIndex
                 |> Dict.get (Node.value imp.moduleName)

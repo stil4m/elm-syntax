@@ -123,8 +123,8 @@ build (Raw file) =
             fileToDefinitions file
     in
     case Module.exposingList (Node.value file.moduleDefinition) of
-        Explicit x ->
-            buildInterfaceFromExplicit x fileDefinitionList
+        Explicit head rest ->
+            buildInterfaceFromExplicit (head :: rest) fileDefinitionList
 
         All _ ->
             List.map Tuple.second fileDefinitionList
