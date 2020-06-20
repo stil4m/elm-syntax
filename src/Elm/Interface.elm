@@ -1,5 +1,5 @@
 module Elm.Interface exposing
-    ( Interface, Exposed(..)
+    ( Interface, Infix, Exposed(..)
     , build, exposesAlias, exposesFunction, operators
     )
 
@@ -14,7 +14,7 @@ You can see this as a trimmed down version for of a file that only contains the 
 
 ## Types
 
-@docs Interface, Exposed
+@docs Interface, Infix, Exposed
 
 
 ## Functions
@@ -27,7 +27,7 @@ import Elm.Internal.RawFile exposing (RawFile(..))
 import Elm.Syntax.Declaration exposing (Declaration(..))
 import Elm.Syntax.Exposing exposing (Exposing(..), TopLevelExpose(..))
 import Elm.Syntax.File exposing (File)
-import Elm.Syntax.Infix exposing (Infix, InfixDirection(..))
+import Elm.Syntax.Infix exposing (InfixDirection(..))
 import Elm.Syntax.Module as Module
 import Elm.Syntax.Node as Node exposing (Node(..))
 import List.Extra
@@ -53,6 +53,16 @@ type Exposed
     | CustomType ( String, List String )
     | Alias String
     | Operator Infix
+
+
+{-| Type representing all information regarding an infix operator.
+-}
+type alias Infix =
+    { direction : InfixDirection
+    , precedence : Int
+    , operator : String
+    , function : String
+    }
 
 
 {-| A function to check whether an `Interface` exposes an certain type alias.
@@ -92,7 +102,7 @@ exposesFunction k interface =
                         List.member k constructors
 
                     Operator inf ->
-                        Node.value inf.operator == k
+                        inf.operator == k
 
                     Alias _ ->
                         False
@@ -199,14 +209,22 @@ fileToDefinitions file =
                                 Just ( name, Function <| name )
 
                             InfixDeclaration i ->
-                                Just ( Node.value i.operator, Operator i )
+                                Just
+                                    ( Node.value i.operator
+                                    , Operator
+                                        { direction = Node.value i.direction
+                                        , precedence = Node.value i.precedence
+                                        , operator = Node.value i.operator
+                                        , function = Node.value i.function
+                                        }
+                                    )
                     )
 
         getValidOperatorInterface : Exposed -> Exposed -> Maybe Exposed
         getValidOperatorInterface t1 t2 =
             case ( t1, t2 ) of
                 ( Operator x, Operator y ) ->
-                    if Node.value x.precedence == 5 && Node.value x.direction == Left then
+                    if x.precedence == 5 && x.direction == Left then
                         Just <| Operator y
 
                     else

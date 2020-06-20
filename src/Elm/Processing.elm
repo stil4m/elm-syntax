@@ -1,6 +1,6 @@
 module Elm.Processing exposing
     ( ProcessContext
-    , init, addFile, addDependency, process
+    , init, addFile, addDependency, process, withWellKnownOperators
     )
 
 {-|
@@ -18,14 +18,14 @@ Processing raw files with the context of other files and dependencies.
 
 # Functions
 
-@docs init, addFile, addDependency, process
+@docs init, addFile, addDependency, process, withWellKnownOperators
 
 -}
 
 import Dict exposing (Dict)
 import Elm.DefaultImports as DefaultImports
 import Elm.Dependency exposing (Dependency)
-import Elm.Interface as Interface exposing (Interface)
+import Elm.Interface as Interface exposing (Infix, Interface)
 import Elm.Internal.RawFile as RawFile exposing (RawFile(..))
 import Elm.Processing.Documentation as Documentation
 import Elm.RawFile as RawFile
@@ -34,10 +34,11 @@ import Elm.Syntax.Exposing as Exposing exposing (..)
 import Elm.Syntax.Expression exposing (..)
 import Elm.Syntax.File exposing (File)
 import Elm.Syntax.Import exposing (Import)
-import Elm.Syntax.Infix exposing (Infix, InfixDirection(..))
+import Elm.Syntax.Infix exposing (InfixDirection(..))
 import Elm.Syntax.ModuleName exposing (ModuleName)
 import Elm.Syntax.Node as Node exposing (Node(..))
 import Elm.Syntax.Range as Range
+import Elm.WellKnownOperators as WellKnownOperators
 import List
 import List.Extra as List
 
@@ -61,6 +62,17 @@ type alias ModuleIndexInner =
 init : ProcessContext
 init =
     ProcessContext Dict.empty
+
+
+{-| Add all well known operators to the processing context.
+These include `elm/core`, `elm/url` and `elm/parser`.
+
+Adding these will ensure that the syntax tree is build correctly taking operator precedence into account.
+
+-}
+withWellKnownOperators : ProcessContext -> ProcessContext
+withWellKnownOperators context =
+    List.foldl addDependency context WellKnownOperators.wellKnownOperators
 
 
 {-| Add a file to the context that may be a dependency for the file that will be processed.
@@ -103,7 +115,7 @@ buildSingle imp moduleIndex =
                 |> Dict.get (Node.value imp.moduleName)
                 |> Maybe.withDefault []
                 |> Interface.operators
-                |> List.map (\x -> ( Node.value x.operator, x ))
+                |> List.map (\x -> ( x.operator, x ))
 
         Just (Node _ (Explicit head rest)) ->
             let
@@ -114,7 +126,7 @@ buildSingle imp moduleIndex =
                 |> Dict.get (Node.value imp.moduleName)
                 |> Maybe.withDefault []
                 |> Interface.operators
-                |> List.map (\x -> ( Node.value x.operator, x ))
+                |> List.map (\x -> ( x.operator, x ))
                 |> List.filter (Tuple.first >> (\elem -> List.member elem selectedOperators))
 
 
@@ -160,10 +172,10 @@ fixApplication operators head expressions =
                         ( x
                         , Dict.get x operators
                             |> Maybe.withDefault
-                                { operator = Node Range.emptyRange x
-                                , function = Node Range.emptyRange "todo"
-                                , precedence = Node Range.emptyRange 5
-                                , direction = Node Range.emptyRange Left
+                                { operator = x
+                                , function = "todo"
+                                , precedence = 5
+                                , direction = Left
                                 }
                         )
                     )
@@ -192,8 +204,8 @@ fixApplication operators head expressions =
                     |> Maybe.map
                         (\( p, infix_, s ) ->
                             OperatorApplication
-                                (Node.value infix_.operator)
-                                (Node.value infix_.direction)
+                                infix_.operator
+                                infix_.direction
                                 (Node (Range.combine <| List.map Node.range p) (divideAndConquer p))
                                 (Node (Range.combine <| List.map Node.range s) (divideAndConquer s))
                         )
@@ -228,9 +240,9 @@ findNextSplit dict exps =
 lowestPrecedence : List ( String, Infix ) -> Dict String Infix
 lowestPrecedence input =
     input
-        |> List.map (Tuple.second >> .precedence >> Node.value)
+        |> List.map (Tuple.second >> .precedence)
         |> List.minimum
-        |> Maybe.map (\m -> List.filter (Tuple.second >> .precedence >> Node.value >> (==) m) input)
+        |> Maybe.map (\m -> List.filter (Tuple.second >> .precedence >> (==) m) input)
         |> Maybe.withDefault []
         |> Dict.fromList
 
