@@ -133,8 +133,8 @@ build (Raw file) =
             fileToDefinitions file
     in
     case Module.exposingList (Node.value file.moduleDefinition) of
-        Explicit x ->
-            buildInterfaceFromExplicit x fileDefinitionList
+        Explicit head rest ->
+            buildInterfaceFromExplicit (head :: rest) fileDefinitionList
 
         All _ ->
             List.map Tuple.second fileDefinitionList
@@ -164,10 +164,10 @@ buildInterfaceFromExplicit x fileDefinitionList =
                     TypeExpose exposedType ->
                         case exposedType.open of
                             Nothing ->
-                                Just <| CustomType ( exposedType.name, [] )
+                                Just <| CustomType ( Node.value exposedType.name, [] )
 
                             Just _ ->
-                                lookupForDefinition exposedType.name fileDefinitionList
+                                lookupForDefinition (Node.value exposedType.name) fileDefinitionList
             )
 
 
@@ -218,9 +218,6 @@ fileToDefinitions file =
                                         , function = Node.value i.function
                                         }
                                     )
-
-                            Destructuring _ _ ->
-                                Nothing
                     )
 
         getValidOperatorInterface : Exposed -> Exposed -> Maybe Exposed

@@ -1,5 +1,5 @@
 module Elm.Syntax.Expression exposing
-    ( Expression(..), Lambda, LetBlock, LetDeclaration(..), RecordSetter, CaseBlock, Cases, Case, Function, FunctionImplementation
+    ( Expression(..), Lambda, LetBlock, LetDeclaration(..), RecordSetter, CaseBlock, Case, Function, FunctionImplementation
     , functionRange, isLambda, isLet, isIfElse, isCase, isOperatorApplication
     , encode, encodeFunction, decoder, functionDecoder
     )
@@ -9,13 +9,13 @@ module Elm.Syntax.Expression exposing
 
 # Expression Syntax
 
-This syntax represens all that you can express in Elm.
+This syntax represents all that you can express in Elm.
 Although it is a easy and simple language, you can express a lot! See the `Expression` type for all the things you can express.
 
 
 ## Types
 
-@docs Expression, Lambda, LetBlock, LetDeclaration, RecordSetter, CaseBlock, Cases, Case, Function, FunctionImplementation
+@docs Expression, Lambda, LetBlock, LetDeclaration, RecordSetter, CaseBlock, Case, Function, FunctionImplementation
 
 
 ## Functions
@@ -143,7 +143,8 @@ type alias Lambda =
 -}
 type alias CaseBlock =
     { expression : Node Expression
-    , cases : Cases
+    , firstCase : Case
+    , restOfCases : List Case
     }
 
 
@@ -151,12 +152,6 @@ type alias CaseBlock =
 -}
 type alias Case =
     ( Node Pattern, Node Expression )
-
-
-{-| Type alias for a list of cases
--}
-type alias Cases =
-    List Case
 
 
 {-| Check whether an expression is a lambda-expression
@@ -389,9 +384,10 @@ encodeDestructuring pattern expression =
 
 
 encodeCaseBlock : CaseBlock -> Value
-encodeCaseBlock { cases, expression } =
+encodeCaseBlock { firstCase, restOfCases, expression } =
     JE.object
-        [ ( "cases", JE.list encodeCase cases )
+        [ ( "restOfCases", JE.list encodeCase restOfCases )
+        , ( "firstCase", encodeCase firstCase )
         , ( "expression", Node.encode encode expression )
         ]
 
@@ -497,9 +493,10 @@ decodeCaseBlock : Decoder CaseBlock
 decodeCaseBlock =
     JD.lazy
         (\() ->
-            JD.map2 CaseBlock
+            JD.map3 CaseBlock
                 (JD.field "expression" decodeNested)
-                (JD.field "cases" (JD.list decodeCase))
+                (JD.field "firstCase" decodeCase)
+                (JD.field "restOfCases" (JD.list decodeCase))
         )
 
 

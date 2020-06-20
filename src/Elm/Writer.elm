@@ -127,8 +127,11 @@ writeExposureExpose x =
         All _ ->
             string "exposing (..)"
 
-        Explicit exposeList ->
+        Explicit head rest ->
             let
+                exposeList =
+                    head :: rest
+
                 diffLines =
                     List.map Node.range exposeList
                         |> startOnDifferentLines
@@ -155,12 +158,12 @@ writeExpose (Node _ exp) =
             case open of
                 Just _ ->
                     spaced
-                        [ string name
+                        [ string (Node.value name)
                         , string "(..)"
                         ]
 
                 Nothing ->
-                    string name
+                    string (Node.value name)
 
 
 startOnDifferentLines : List Range -> Bool
@@ -207,9 +210,6 @@ writeDeclaration (Node _ decl) =
 
         InfixDeclaration i ->
             writeInfix i
-
-        Destructuring pattern expression ->
-            writeDestructuring pattern expression
 
 
 writeFunction : Function -> Writer
@@ -504,6 +504,7 @@ writeExpression (Node range inner) =
 
         CaseExpression caseBlock ->
             let
+                writeCaseBranch : ( Node Pattern, Node Expression ) -> Writer
                 writeCaseBranch ( pattern, expression ) =
                     indent 2 <|
                         breaked
@@ -513,7 +514,7 @@ writeExpression (Node range inner) =
             in
             breaked
                 [ spaced [ string "case", writeExpression caseBlock.expression, string "of" ]
-                , breaked (List.map writeCaseBranch caseBlock.cases)
+                , breaked (List.map writeCaseBranch (caseBlock.firstCase :: caseBlock.restOfCases))
                 ]
 
         LambdaExpression lambda ->

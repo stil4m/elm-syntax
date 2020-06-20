@@ -13,7 +13,7 @@ import Elm.Parser.TypeAnnotation exposing (typeAnnotation)
 import Elm.Parser.Typings as Typings exposing (typeDefinition)
 import Elm.Parser.Whitespace exposing (manySpaces)
 import Elm.Syntax.Declaration exposing (..)
-import Elm.Syntax.Expression as Expression exposing (Case, CaseBlock, Cases, Expression(..), Function, FunctionImplementation, Lambda, LetBlock, LetDeclaration(..), RecordSetter)
+import Elm.Syntax.Expression as Expression exposing (Case, CaseBlock, Expression(..), Function, FunctionImplementation, Lambda, LetBlock, LetDeclaration(..), RecordSetter)
 import Elm.Syntax.ModuleName exposing (ModuleName)
 import Elm.Syntax.Node as Node exposing (Node(..))
 import Elm.Syntax.Pattern exposing (..)
@@ -40,7 +40,6 @@ declaration =
                                     Node r (AliasDeclaration a)
                         )
                 , portDeclaration
-                , destructuringDeclaration
                 ]
         )
 
@@ -125,19 +124,6 @@ infixDeclaration =
         (\current ->
             Infix.infixDefinition
                 |> Combine.map (\inf -> Node (Range.combine [ current, Node.range inf.function ]) (InfixDeclaration inf))
-        )
-
-
-destructuringDeclaration : Parser State (Node Declaration)
-destructuringDeclaration =
-    lazy
-        (\() ->
-            succeed
-                (\x y -> Node.combine Destructuring x y)
-                |> Combine.andMap pattern
-                |> Combine.ignore (string "=")
-                |> Combine.ignore Layout.layout
-                |> Combine.andMap expression
         )
 
 
@@ -400,7 +386,10 @@ lambdaExpression =
             succeed (\args expr -> Lambda args expr |> LambdaExpression)
                 |> Combine.ignore (string "\\")
                 |> Combine.ignore (maybe Layout.layout)
-                |> Combine.andMap (sepBy1 (maybe Layout.layout) functionArgument)
+                |> Combine.andMap
+                    (sepBy1 (maybe Layout.layout) functionArgument
+                        |> Combine.map (\( head, rest ) -> head :: rest)
+                    )
                 |> Combine.andMap (Layout.maybeAroundBothSides (string "->") |> Combine.continueWith expression)
                 |> Node.parser
         )
@@ -436,7 +425,7 @@ caseStatement =
         )
 
 
-caseStatements : Parser State Cases
+caseStatements : Parser State ( Case, List Case )
 caseStatements =
     lazy
         (\() ->
@@ -454,9 +443,7 @@ caseStatements =
                                 )
                         )
             in
-            caseStatement
-                |> Combine.map List.singleton
-                |> Combine.andThen (\v -> Combine.loop v helper)
+            caseStatement |> Combine.andThen (\first -> Combine.loop [] helper |> Combine.map (Tuple.pair first))
         )
 
 
@@ -467,15 +454,17 @@ caseExpression =
             Node.parser (Combine.succeed ())
                 |> Combine.andThen
                     (\(Node start ()) ->
-                        Combine.map
-                            (\cb ->
-                                Node (Range.combine (start :: List.map (Tuple.second >> Node.range) cb.cases))
-                                    (CaseExpression cb)
-                            )
-                            (succeed CaseBlock
-                                |> Combine.andMap caseBlock
-                                |> Combine.andMap (Layout.layout |> Combine.continueWith (withIndentedState caseStatements))
-                            )
+                        succeed (\caseExpr ( firstCase, restOfCases ) -> CaseBlock caseExpr firstCase restOfCases)
+                            |> Combine.andMap caseBlock
+                            |> Combine.andMap (Layout.layout |> Combine.continueWith (withIndentedState caseStatements))
+                            |> Combine.map
+                                (\cb ->
+                                    Node
+                                        (Range.combine
+                                            (start :: List.map (Tuple.second >> Node.range) (cb.firstCase :: cb.restOfCases))
+                                        )
+                                        (CaseExpression cb)
+                                )
                     )
         )
 

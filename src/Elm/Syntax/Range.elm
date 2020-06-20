@@ -87,7 +87,7 @@ fromList input =
             Err "Invalid input list"
 
 
-{-| Compute the smallest area of a list of ranges.
+{-| Compute the largest area of a list of ranges.
 -}
 combine : List Range -> Range
 combine ranges =

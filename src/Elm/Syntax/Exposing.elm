@@ -43,7 +43,7 @@ import Json.Encode as JE exposing (Value)
 -}
 type Exposing
     = All Range
-    | Explicit (List (Node TopLevelExpose))
+    | Explicit (Node TopLevelExpose) (List (Node TopLevelExpose))
 
 
 {-| An exposed entity
@@ -58,7 +58,7 @@ type TopLevelExpose
 {-| Exposed Type
 -}
 type alias ExposedType =
-    { name : String
+    { name : Node String
     , open : Maybe Range
     }
 
@@ -82,7 +82,7 @@ exposesFunction s exposure =
         All _ ->
             True
 
-        Explicit l ->
+        Explicit head rest ->
             List.any
                 (\(Node _ value) ->
                     case value of
@@ -92,7 +92,7 @@ exposesFunction s exposure =
                         _ ->
                             False
                 )
-                l
+                (head :: rest)
 
 
 {-| Collect all operator names from a list of TopLevelExposes
@@ -124,8 +124,8 @@ encode exp =
         All r ->
             encodeTyped "all" <| Range.encode r
 
-        Explicit l ->
-            encodeTyped "explicit" (JE.list encodeTopLevelExpose l)
+        Explicit head rest ->
+            encodeTyped "explicit" (JE.list encodeTopLevelExpose (head :: rest))
 
 
 {-| JSON decoder for an `Exposing` syntax element.
@@ -134,8 +134,22 @@ decoder : Decoder Exposing
 decoder =
     decodeTyped
         [ ( "all", Range.decoder |> JD.map All )
-        , ( "explicit", JD.list topLevelExposeDecoder |> JD.map Explicit )
+        , ( "explicit", decodeNonemptyList topLevelExposeDecoder |> JD.map (\( head, rest ) -> Explicit head rest) )
         ]
+
+
+decodeNonemptyList : Decoder a -> Decoder ( a, List a )
+decodeNonemptyList decodeA =
+    JD.list decodeA
+        |> JD.andThen
+            (\list ->
+                case list of
+                    head :: rest ->
+                        JD.succeed ( head, rest )
+
+                    [] ->
+                        JD.fail "List must have at least one element."
+            )
 
 
 encodeTopLevelExpose : Node TopLevelExpose -> Value
@@ -169,7 +183,7 @@ encodeTopLevelExpose =
 encodeExposedType : ExposedType -> Value
 encodeExposedType { name, open } =
     JE.object
-        [ ( "name", JE.string name )
+        [ ( "name", Node.encode JE.string name )
         , ( "open", open |> Maybe.map Range.encode |> Maybe.withDefault JE.null )
         ]
 
@@ -189,5 +203,5 @@ topLevelExposeDecoder =
 exposedTypeDecoder : Decoder ExposedType
 exposedTypeDecoder =
     JD.map2 ExposedType
-        (JD.field "name" JD.string)
+        (JD.field "name" (Node.decoder JD.string))
         (JD.field "open" (JD.nullable Range.decoder))

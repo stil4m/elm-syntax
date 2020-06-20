@@ -117,10 +117,10 @@ buildSingle imp moduleIndex =
                 |> Interface.operators
                 |> List.map (\x -> ( x.operator, x ))
 
-        Just (Node _ (Explicit l)) ->
+        Just (Node _ (Explicit head rest)) ->
             let
                 selectedOperators =
-                    Exposing.operators <| List.map Node.value l
+                    Exposing.operators <| List.map Node.value (head :: rest)
             in
             moduleIndex
                 |> Dict.get (Node.value imp.moduleName)
@@ -369,7 +369,8 @@ visitExpressionInner visitor context (Node range expression) =
             CaseExpression caseBlock ->
                 CaseExpression
                     { expression = subVisit caseBlock.expression
-                    , cases = List.map (Tuple.mapSecond subVisit) caseBlock.cases
+                    , firstCase = Tuple.mapSecond subVisit caseBlock.firstCase
+                    , restOfCases = List.map (Tuple.mapSecond subVisit) caseBlock.restOfCases
                     }
 
             LambdaExpression lambda ->

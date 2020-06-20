@@ -1,6 +1,6 @@
 module Elm.Parser.Expose exposing (exposable, exposeDefinition, exposingListInner, infixExpose, typeExpose)
 
-import Combine exposing (Parser, choice, maybe, or, parens, sepBy, string, succeed, while)
+import Combine exposing (Parser, choice, maybe, or, parens, sepBy1, string, succeed, while)
 import Combine.Char exposing (char)
 import Elm.Parser.Layout as Layout
 import Elm.Parser.Node as Node
@@ -8,7 +8,8 @@ import Elm.Parser.Ranges exposing (withRange)
 import Elm.Parser.State exposing (State)
 import Elm.Parser.Tokens exposing (exposingToken, functionName, typeName)
 import Elm.Syntax.Exposing exposing (ExposedType, Exposing(..), TopLevelExpose(..))
-import Elm.Syntax.Node as Node exposing (Node)
+import Elm.Syntax.Node as Node exposing (Node(..))
+import Elm.Syntax.Range as Range
 
 
 exposeDefinition : Parser State Exposing
@@ -25,10 +26,10 @@ exposeListWith =
 
 exposingListInner : Parser State Exposing
 exposingListInner =
-    Combine.lazy
-        (\() ->
-            or (withRange (succeed All |> Combine.ignore (Layout.maybeAroundBothSides (string ".."))))
-                (Combine.map Explicit (sepBy (char ',') (Layout.maybeAroundBothSides exposable)))
+    or (withRange (succeed All |> Combine.ignore (Layout.maybeAroundBothSides (string ".."))))
+        (Combine.map
+            (\( head, rest ) -> Explicit head rest)
+            (sepBy1 (char ',') (Layout.maybeAroundBothSides exposable))
         )
 
 
@@ -54,23 +55,20 @@ infixExpose =
 
 typeExpose : Parser State (Node TopLevelExpose)
 typeExpose =
-    Combine.lazy
-        (\() ->
-            Node.parser exposedType
-        )
-
-
-exposedType : Parser State TopLevelExpose
-exposedType =
-    succeed identity
-        |> Combine.andMap typeName
+    Node.parser typeName
         |> Combine.ignore (maybe Layout.layout)
         |> Combine.andThen
             (\tipe ->
                 Combine.choice
                     [ Node.parser (parens (Layout.maybeAroundBothSides (string "..")))
-                        |> Combine.map (Node.range >> Just >> (\v -> ExposedType tipe v) >> TypeExpose)
-                    , Combine.succeed (TypeOrAliasExpose tipe)
+                        |> Combine.map Node.range
+                        |> Combine.map
+                            (\openRange ->
+                                Node
+                                    (Range.combine [ Node.range tipe, openRange ])
+                                    (TypeExpose (ExposedType tipe (Just openRange)))
+                            )
+                    , Combine.succeed (Node.map TypeOrAliasExpose tipe)
                     ]
             )
 
