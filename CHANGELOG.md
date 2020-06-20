@@ -25,6 +25,9 @@
   - Renamed `Typed` to `Type`
   - Renamed `GenericType` to `Var`
 
+- Changed `Elm.Syntax.Exposing.Exposing`:
+  - `Explicit (List (Node TopLevelExpose))` -> `Explicit (Node TopLevelExpose) (List (Node TopLevelExpose))` (takes a non-empty list of elements)
+
 ## [7.3.6] - 2024-09-11
 
 - The parser is stricter in a few cases where code that was incorrect (according to the Elm compiler) was successfully parsed: tuple patterns and tuple type annotations with more than 3 parts, non-associative operators (so no more `a < b < c`), lambda indentation

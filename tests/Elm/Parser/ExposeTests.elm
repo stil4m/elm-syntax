@@ -52,8 +52,8 @@ all =
                 "exposing (Model,Msg(..),Info(..),init,(::))"
                     |> expectAst
                         (Explicit
-                            [ Node { start = { row = 1, column = 11 }, end = { row = 1, column = 16 } } (TypeOrAliasExpose "Model")
-                            , Node { start = { row = 1, column = 17 }, end = { row = 1, column = 24 } }
+                            (Node { start = { row = 1, column = 11 }, end = { row = 1, column = 16 } } (TypeOrAliasExpose "Model"))
+                            [ Node { start = { row = 1, column = 17 }, end = { row = 1, column = 24 } }
                                 (TypeExpose
                                     { name = "Msg"
                                     , open = Just { start = { row = 1, column = 20 }, end = { row = 1, column = 24 } }
@@ -73,9 +73,8 @@ all =
             \() ->
                 "exposing (Model, Msg, Info   (..)   ,init,(::) )"
                     |> expectAst
-                        (Explicit
-                            [ Node { start = { row = 1, column = 11 }, end = { row = 1, column = 16 } } (TypeOrAliasExpose "Model")
-                            , Node { start = { row = 1, column = 18 }, end = { row = 1, column = 21 } } (TypeOrAliasExpose "Msg")
+                        (Explicit (Node { start = { row = 1, column = 11 }, end = { row = 1, column = 16 } } (TypeOrAliasExpose "Model"))
+                            [ Node { start = { row = 1, column = 18 }, end = { row = 1, column = 21 } } (TypeOrAliasExpose "Msg")
                             , Node { start = { row = 1, column = 23 }, end = { row = 1, column = 34 } }
                                 (TypeExpose
                                     { name = "Info"
@@ -96,9 +95,8 @@ all =
  (::)
     )"""
                     |> expectAst
-                        (Explicit
-                            [ Node { start = { row = 2, column = 7 }, end = { row = 2, column = 8 } } (TypeOrAliasExpose "A")
-                            , Node { start = { row = 3, column = 7 }, end = { row = 3, column = 12 } }
+                        (Explicit (Node { start = { row = 2, column = 7 }, end = { row = 2, column = 8 } } (TypeOrAliasExpose "A"))
+                            [ Node { start = { row = 3, column = 7 }, end = { row = 3, column = 12 } }
                                 (TypeExpose
                                     { name = "B"
                                     , open = Just { start = { row = 3, column = 8 }, end = { row = 3, column = 12 } }
@@ -119,10 +117,7 @@ all =
                 "exposing (foo\n --bar\n )"
                     |> expectAstWithComments
                         { ast =
-                            Explicit
-                                [ Node { start = { row = 1, column = 11 }, end = { row = 1, column = 14 } }
-                                    (FunctionExpose "foo")
-                                ]
+                            Explicit (Node { start = { row = 1, column = 11 }, end = { row = 1, column = 14 } } (FunctionExpose "foo")) []
                         , comments = [ Node { start = { row = 2, column = 2 }, end = { row = 2, column = 7 } } "--bar" ]
                         }
         ]
