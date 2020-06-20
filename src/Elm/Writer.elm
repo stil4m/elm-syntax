@@ -127,8 +127,11 @@ writeExposureExpose x =
         All _ ->
             string "exposing (..)"
 
-        Explicit exposeList ->
+        Explicit head rest ->
             let
+                exposeList =
+                    head :: rest
+
                 diffLines =
                     List.map Node.range exposeList
                         |> startOnDifferentLines

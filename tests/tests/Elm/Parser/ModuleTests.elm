@@ -21,7 +21,7 @@ all =
                         (Just
                             (NormalModule
                                 { moduleName = Node emptyRange <| [ "Foo" ]
-                                , exposingList = Node emptyRange <| Explicit [ Node emptyRange <| TypeOrAliasExpose "Bar" ]
+                                , exposingList = Node emptyRange <| Explicit (Node emptyRange <| TypeOrAliasExpose "Bar") []
                                 }
                             )
                         )
@@ -29,12 +29,12 @@ all =
             \() ->
                 parseFullStringWithNullState "port module Foo exposing (Bar)" Parser.moduleDefinition
                     |> Maybe.map noRangeModule
-                    |> Expect.equal (Just (PortModule { moduleName = Node emptyRange <| [ "Foo" ], exposingList = Node emptyRange <| Explicit [ Node emptyRange <| TypeOrAliasExpose "Bar" ] }))
+                    |> Expect.equal (Just (PortModule { moduleName = Node emptyRange <| [ "Foo" ], exposingList = Node emptyRange <| Explicit (Node emptyRange <| TypeOrAliasExpose "Bar") [] }))
         , test "port moduleDefinition with spacing" <|
             \() ->
                 parseFullStringWithNullState "port module Foo exposing ( Bar )" Parser.moduleDefinition
                     |> Maybe.map noRangeModule
-                    |> Expect.equal (Just (PortModule { moduleName = Node emptyRange <| [ "Foo" ], exposingList = Node emptyRange <| Explicit [ Node emptyRange <| TypeOrAliasExpose "Bar" ] }))
+                    |> Expect.equal (Just (PortModule { moduleName = Node emptyRange <| [ "Foo" ], exposingList = Node emptyRange <| Explicit (Node emptyRange <| TypeOrAliasExpose "Bar") [] }))
         , test "effect moduleDefinition" <|
             \() ->
                 parseFullStringWithNullState "effect module Foo where {command = MyCmd, subscription = MySub } exposing (Bar)" Parser.moduleDefinition
@@ -43,7 +43,7 @@ all =
                         (Just
                             (EffectModule
                                 { moduleName = Node emptyRange <| [ "Foo" ]
-                                , exposingList = Node emptyRange <| Explicit [ Node emptyRange <| TypeOrAliasExpose "Bar" ]
+                                , exposingList = Node emptyRange <| Explicit (Node emptyRange <| TypeOrAliasExpose "Bar") []
                                 , command = Just <| Node emptyRange <| "MyCmd"
                                 , subscription = Just <| Node emptyRange <| "MySub"
                                 }
