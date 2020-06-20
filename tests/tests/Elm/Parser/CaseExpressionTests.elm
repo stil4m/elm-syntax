@@ -70,16 +70,45 @@ all =
         , test "caseStatements" <|
             \() ->
                 parseFullStringState emptyState "True -> 1\nFalse -> 2" Parser.caseStatements
-                    |> Maybe.map (List.map (Tuple.mapSecond noRangeExpression >> Tuple.mapFirst noRangePattern))
+                    |> Maybe.map
+                        (\( head, rest ) ->
+                            ( Tuple.mapBoth noRangePattern noRangeExpression head
+                            , List.map (Tuple.mapBoth noRangePattern noRangeExpression) rest
+                            )
+                        )
                     |> Expect.equal
                         (Just
-                            [ ( Node emptyRange <| NamedPattern (QualifiedNameRef [] "True") []
+                            ( ( Node emptyRange <| NamedPattern (QualifiedNameRef [] "True") []
                               , Node emptyRange <| Integer 1
                               )
-                            , ( Node emptyRange <| NamedPattern (QualifiedNameRef [] "False") []
-                              , Node emptyRange <| Integer 2
+                            , [ ( Node emptyRange <| NamedPattern (QualifiedNameRef [] "False") []
+                                , Node emptyRange <| Integer 2
+                                )
+                              ]
+                            )
+                        )
+        , test "many caseStatements" <|
+            \() ->
+                parseFullStringState emptyState "True -> 1\nFalse -> 2\nFalse -> 3" Parser.caseStatements
+                    |> Maybe.map
+                        (\( head, rest ) ->
+                            ( Tuple.mapBoth noRangePattern noRangeExpression head
+                            , List.map (Tuple.mapBoth noRangePattern noRangeExpression) rest
+                            )
+                        )
+                    |> Expect.equal
+                        (Just
+                            ( ( Node emptyRange <| NamedPattern (QualifiedNameRef [] "True") []
+                              , Node emptyRange <| Integer 1
                               )
-                            ]
+                            , [ ( Node emptyRange <| NamedPattern (QualifiedNameRef [] "False") []
+                                , Node emptyRange <| Integer 2
+                                )
+                              , ( Node emptyRange <| NamedPattern (QualifiedNameRef [] "False") []
+                                , Node emptyRange <| Integer 3
+                                )
+                              ]
+                            )
                         )
         , test "case expression" <|
             \() ->
@@ -89,11 +118,12 @@ all =
                         (Just
                             (CaseExpression
                                 { expression = Node emptyRange <| FunctionOrValue [] "f"
-                                , cases =
-                                    [ ( Node emptyRange <| NamedPattern (QualifiedNameRef [] "True") []
-                                      , Node emptyRange <| Integer 1
-                                      )
-                                    , ( Node emptyRange <| NamedPattern (QualifiedNameRef [] "False") []
+                                , firstCase =
+                                    ( Node emptyRange <| NamedPattern (QualifiedNameRef [] "True") []
+                                    , Node emptyRange <| Integer 1
+                                    )
+                                , restOfCases =
+                                    [ ( Node emptyRange <| NamedPattern (QualifiedNameRef [] "False") []
                                       , Node emptyRange <| Integer 2
                                       )
                                     ]
@@ -110,13 +140,14 @@ all =
                                     { expression =
                                         Node { start = { row = 1, column = 6 }, end = { row = 1, column = 7 } } <|
                                             FunctionOrValue [] "f"
-                                    , cases =
-                                        [ ( Node { start = { row = 2, column = 3 }, end = { row = 2, column = 7 } } <|
-                                                NamedPattern (QualifiedNameRef [] "True") []
-                                          , Node { start = { row = 2, column = 11 }, end = { row = 2, column = 12 } } <|
-                                                Integer 1
-                                          )
-                                        , ( Node { start = { row = 3, column = 3 }, end = { row = 3, column = 8 } } <|
+                                    , firstCase =
+                                        ( Node { start = { row = 2, column = 3 }, end = { row = 2, column = 7 } } <|
+                                            NamedPattern (QualifiedNameRef [] "True") []
+                                        , Node { start = { row = 2, column = 11 }, end = { row = 2, column = 12 } } <|
+                                            Integer 1
+                                        )
+                                    , restOfCases =
+                                        [ ( Node { start = { row = 3, column = 3 }, end = { row = 3, column = 8 } } <|
                                                 NamedPattern (QualifiedNameRef [] "False") []
                                           , Node { start = { row = 3, column = 12 }, end = { row = 3, column = 13 } } <|
                                                 Integer 2
@@ -136,13 +167,14 @@ all =
                                     { expression =
                                         Node { start = { row = 1, column = 6 }, end = { row = 1, column = 7 } } <|
                                             FunctionOrValue [] "f"
-                                    , cases =
-                                        [ ( Node { start = { row = 2, column = 3 }, end = { row = 2, column = 7 } } <|
-                                                NamedPattern (QualifiedNameRef [] "True") []
-                                          , Node { start = { row = 2, column = 11 }, end = { row = 2, column = 12 } } <|
-                                                Integer 1
-                                          )
-                                        , ( Node { start = { row = 3, column = 3 }, end = { row = 3, column = 8 } } <|
+                                    , firstCase =
+                                        ( Node { start = { row = 2, column = 3 }, end = { row = 2, column = 7 } } <|
+                                            NamedPattern (QualifiedNameRef [] "True") []
+                                        , Node { start = { row = 2, column = 11 }, end = { row = 2, column = 12 } } <|
+                                            Integer 1
+                                        )
+                                    , restOfCases =
+                                        [ ( Node { start = { row = 3, column = 3 }, end = { row = 3, column = 8 } } <|
                                                 NamedPattern (QualifiedNameRef [] "False") []
                                           , Node { start = { row = 3, column = 12 }, end = { row = 3, column = 13 } } <|
                                                 Integer 2
@@ -165,16 +197,17 @@ all =
                         (Just
                             (CaseExpression
                                 { expression = Node emptyRange <| FunctionOrValue [] "msg"
-                                , cases =
-                                    [ ( Node emptyRange <| NamedPattern (QualifiedNameRef [] "Increment") []
-                                      , Node emptyRange <|
-                                            Application
-                                                (Node emptyRange <| FunctionOrValue [] "model")
-                                                [ Node emptyRange <| Operator "+"
-                                                , Node emptyRange <| Integer 1
-                                                ]
-                                      )
-                                    , ( Node emptyRange <| NamedPattern (QualifiedNameRef [] "Decrement") []
+                                , firstCase =
+                                    ( Node emptyRange <| NamedPattern (QualifiedNameRef [] "Increment") []
+                                    , Node emptyRange <|
+                                        Application
+                                            (Node emptyRange <| FunctionOrValue [] "model")
+                                            [ Node emptyRange <| Operator "+"
+                                            , Node emptyRange <| Integer 1
+                                            ]
+                                    )
+                                , restOfCases =
+                                    [ ( Node emptyRange <| NamedPattern (QualifiedNameRef [] "Decrement") []
                                       , Node emptyRange <|
                                             Application
                                                 (Node emptyRange <| FunctionOrValue [] "model")

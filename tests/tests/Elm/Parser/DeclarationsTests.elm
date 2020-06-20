@@ -161,11 +161,11 @@ all =
                                                                         , expression =
                                                                             Node emptyRange <|
                                                                                 CaseExpression
-                                                                                    { cases =
-                                                                                        [ ( Node emptyRange <| NamedPattern { moduleName = [], name = "True" } []
-                                                                                          , Node emptyRange <| FunctionOrValue [] "z"
-                                                                                          )
-                                                                                        ]
+                                                                                    { firstCase =
+                                                                                        ( Node emptyRange <| NamedPattern { moduleName = [], name = "True" } []
+                                                                                        , Node emptyRange <| FunctionOrValue [] "z"
+                                                                                        )
+                                                                                    , restOfCases = []
                                                                                     , expression = Node emptyRange <| FunctionOrValue [] "x"
                                                                                     }
                                                                         , name = Node emptyRange "y"
@@ -318,16 +318,17 @@ all =
                                             Node emptyRange <|
                                                 CaseExpression
                                                     { expression = Node emptyRange <| FunctionOrValue [] "msg"
-                                                    , cases =
-                                                        [ ( Node emptyRange <| NamedPattern (QualifiedNameRef [] "Increment") []
-                                                          , Node emptyRange <|
-                                                                Application
-                                                                    (Node emptyRange <| FunctionOrValue [] "model")
-                                                                    [ Node emptyRange <| Operator "+"
-                                                                    , Node emptyRange <| Integer 1
-                                                                    ]
-                                                          )
-                                                        , ( Node emptyRange <| NamedPattern (QualifiedNameRef [] "Decrement") []
+                                                    , firstCase =
+                                                        ( Node emptyRange <| NamedPattern (QualifiedNameRef [] "Increment") []
+                                                        , Node emptyRange <|
+                                                            Application
+                                                                (Node emptyRange <| FunctionOrValue [] "model")
+                                                                [ Node emptyRange <| Operator "+"
+                                                                , Node emptyRange <| Integer 1
+                                                                ]
+                                                        )
+                                                    , restOfCases =
+                                                        [ ( Node emptyRange <| NamedPattern (QualifiedNameRef [] "Decrement") []
                                                           , Node emptyRange <|
                                                                 Application
                                                                     (Node emptyRange <| FunctionOrValue [] "model")
@@ -495,16 +496,17 @@ all =
                                         , expression =
                                             Node emptyRange <|
                                                 CaseExpression
-                                                    { cases =
-                                                        [ ( Node emptyRange <| NamedPattern { moduleName = [], name = "Increment" } []
-                                                          , Node emptyRange <|
-                                                                Application
-                                                                    (Node emptyRange <| FunctionOrValue [] "model")
-                                                                    [ Node emptyRange <| Operator "+"
-                                                                    , Node emptyRange <| Integer 1
-                                                                    ]
-                                                          )
-                                                        , ( Node emptyRange <| NamedPattern { moduleName = [], name = "Decrement" } []
+                                                    { firstCase =
+                                                        ( Node emptyRange <| NamedPattern { moduleName = [], name = "Increment" } []
+                                                        , Node emptyRange <|
+                                                            Application
+                                                                (Node emptyRange <| FunctionOrValue [] "model")
+                                                                [ Node emptyRange <| Operator "+"
+                                                                , Node emptyRange <| Integer 1
+                                                                ]
+                                                        )
+                                                    , restOfCases =
+                                                        [ ( Node emptyRange <| NamedPattern { moduleName = [], name = "Decrement" } []
                                                           , Node emptyRange <|
                                                                 Application
                                                                     (Node emptyRange <| FunctionOrValue [] "model")
