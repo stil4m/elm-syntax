@@ -69,8 +69,8 @@ exposingListInner =
                                             , end = { row = headEndRow, column = headEndColumn }
                                             }
                                             headElement.syntax
-                                            :: tailElements.syntax
                                         )
+                                        tailElements.syntax
                                 }
             )
             Parser.getPosition
