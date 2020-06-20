@@ -55,7 +55,7 @@ type Exposed
     | Operator Infix
 
 
-{-| Type representing all infromation regarding an infix operator.
+{-| Type representing all information regarding an infix operator.
 -}
 type alias Infix =
     { direction : InfixDirection
