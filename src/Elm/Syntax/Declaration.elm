@@ -32,6 +32,7 @@ These can be one of the following (all declared in `Declaration`):
 import Elm.Json.Util exposing (decodeTyped, encodeTyped)
 import Elm.Syntax.Expression as Expression exposing (Function)
 import Elm.Syntax.Infix as Infix exposing (Infix)
+import Elm.Syntax.Port as Port exposing (Port)
 import Elm.Syntax.Signature as Signature exposing (Signature)
 import Elm.Syntax.Type as Type exposing (Type)
 import Elm.Syntax.TypeAlias as TypeAlias exposing (TypeAlias)
@@ -45,7 +46,7 @@ type Declaration
     = FunctionDeclaration Function
     | AliasDeclaration TypeAlias
     | CustomTypeDeclaration Type
-    | PortDeclaration Signature
+    | PortDeclaration Port
     | InfixDeclaration Infix
 
 
@@ -67,8 +68,8 @@ encode decl =
         CustomTypeDeclaration typeDeclaration ->
             encodeTyped "typedecl" (Type.encode typeDeclaration)
 
-        PortDeclaration sig ->
-            encodeTyped "port" (Signature.encode sig)
+        PortDeclaration portDeclaration ->
+            encodeTyped "port" (Port.encode portDeclaration)
 
         InfixDeclaration inf ->
             encodeTyped "infix"
@@ -85,7 +86,7 @@ decoder =
                 [ ( "function", Expression.functionDecoder |> JD.map FunctionDeclaration )
                 , ( "typeAlias", TypeAlias.decoder |> JD.map AliasDeclaration )
                 , ( "typedecl", Type.decoder |> JD.map CustomTypeDeclaration )
-                , ( "port", Signature.decoder |> JD.map PortDeclaration )
+                , ( "port", Port.decoder |> JD.map PortDeclaration )
                 , ( "infix", Infix.decoder |> JD.map InfixDeclaration )
                 ]
         )
