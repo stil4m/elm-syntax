@@ -17,6 +17,7 @@ import Elm.Syntax.Module exposing (..)
 import Elm.Syntax.ModuleName exposing (..)
 import Elm.Syntax.Node as Node exposing (Node(..))
 import Elm.Syntax.Pattern exposing (..)
+import Elm.Syntax.Port exposing (Port)
 import Elm.Syntax.Range exposing (Range)
 import Elm.Syntax.Signature exposing (Signature)
 import Elm.Syntax.Type exposing (..)
@@ -287,9 +288,17 @@ writeValueConstructor { name, arguments } =
         )
 
 
-writePortDeclaration : Signature -> Writer
-writePortDeclaration signature =
-    spaced [ string "port", writeSignature signature ]
+writePortDeclaration : Port -> Writer
+writePortDeclaration { signature, documentation } =
+    case documentation of
+        Just doc ->
+            breaked
+                [ writeDocumentation doc
+                , spaced [ string "port", writeSignature <| Node.value signature ]
+                ]
+
+        Nothing ->
+            spaced [ string "port", writeSignature <| Node.value signature ]
 
 
 writeInfix : Infix -> Writer

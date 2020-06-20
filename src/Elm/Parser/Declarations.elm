@@ -17,6 +17,7 @@ import Elm.Syntax.Expression as Expression exposing (Case, CaseBlock, Expression
 import Elm.Syntax.ModuleName exposing (ModuleName)
 import Elm.Syntax.Node as Node exposing (Node(..))
 import Elm.Syntax.Pattern as Pattern exposing (Pattern)
+import Elm.Syntax.Port exposing (Port)
 import Elm.Syntax.Range as Range
 import Elm.Syntax.Signature exposing (Signature)
 import Parser as Core exposing (Nestable(..))
@@ -127,8 +128,15 @@ portDeclaration =
         (\current ->
             portToken
                 |> Combine.ignore Layout.layout
-                |> Combine.continueWith signature
-                |> Combine.map (\sig -> Node (Range.combine [ current, (\(Node r _) -> r) sig.typeAnnotation ]) (Declaration.PortDeclaration sig))
+                |> Combine.continueWith (Node.parser signature)
+                |> Combine.map
+                    (\sig ->
+                        Node
+                            (Range.combine
+                                [ current, (\(Node r _) -> r) sig ]
+                            )
+                            (Declaration.PortDeclaration (Port Nothing sig))
+                    )
         )
 
 
