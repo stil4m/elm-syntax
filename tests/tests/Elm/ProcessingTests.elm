@@ -386,6 +386,51 @@ bar = x * 1 + 2
     )
 
 
+portWithDocumentation : ( String, String, File )
+portWithDocumentation =
+    ( "portWithDocumentation"
+    , """module A exposing (..)
+
+{-| Some port documentation -}
+port foo : String -> Cmd msg"""
+    , { comments = []
+      , declarations =
+            [ Node { end = { column = 1, row = 5 }, start = { column = 1, row = 3 } }
+                (PortDeclaration
+                    { documentation = Just (Node { end = { column = 31, row = 3 }, start = { column = 1, row = 3 } } "{-| Some port documentation -}")
+                    , signature =
+                        Node { end = { column = 1, row = 5 }, start = { column = 6, row = 4 } }
+                            { name = Node { end = { column = 9, row = 4 }, start = { column = 6, row = 4 } } "foo"
+                            , typeAnnotation =
+                                Node { end = { column = 29, row = 4 }, start = { column = 12, row = 4 } }
+                                    (FunctionTypeAnnotation
+                                        (Node { end = { column = 18, row = 4 }, start = { column = 12, row = 4 } }
+                                            (Type (Node { end = { column = 18, row = 4 }, start = { column = 12, row = 4 } } ( [], "String" )) [])
+                                        )
+                                        (Node { end = { column = 29, row = 4 }, start = { column = 22, row = 4 } }
+                                            (Type (Node { end = { column = 25, row = 4 }, start = { column = 22, row = 4 } } ( [], "Cmd" ))
+                                                [ Node { end = { column = 29, row = 4 }, start = { column = 26, row = 4 } } (Var "msg") ]
+                                            )
+                                        )
+                                    )
+                            }
+                    }
+                )
+            ]
+      , imports = []
+      , moduleDefinition =
+            Node { end = { column = 23, row = 1 }, start = { column = 1, row = 1 } }
+                (NormalModule
+                    { exposingList =
+                        Node { end = { column = 23, row = 1 }, start = { column = 10, row = 1 } }
+                            (All { end = { column = 22, row = 1 }, start = { column = 20, row = 1 } })
+                    , moduleName = Node { end = { column = 9, row = 1 }, start = { column = 8, row = 1 } } [ "A" ]
+                    }
+                )
+      }
+    )
+
+
 {-| Check to make sure this issue is fixed <https://github.com/stil4m/elm-syntax/issues/41>
 -}
 postProcessInfixOperatorsRegressionTest : ( String, String, File )
@@ -553,6 +598,7 @@ suite =
             , postProcessInfixOperators3
             , postProcessInfixOperatorsRegressionTest
             , typeAliasWithDocumentation
+            , portWithDocumentation
             , typeWithDocumentation
             ]
         )
