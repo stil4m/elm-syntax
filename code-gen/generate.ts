@@ -40,6 +40,8 @@ async function generateDependency(name: string, version: string): Promise<string
 
   console.log(`module Elm.WellKnownOperators exposing (wellKnownOperators)
 
+-- This is a generated file (see code-gen)
+
 import Dict
 import Elm.Dependency exposing (Dependency)
 import Elm.Interface exposing (Exposed(..))
