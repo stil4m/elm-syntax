@@ -108,6 +108,7 @@ genericTypeAnnotation =
 recordFieldsTypeAnnotation : Parser State TypeAnnotation.RecordDefinition
 recordFieldsTypeAnnotation =
     sepBy1 (string ",") (Layout.maybeAroundBothSides <| Node.parser recordFieldDefinition)
+        |> Combine.map (\( head, rest ) -> head :: rest)
 
 
 recordTypeAnnotation : Parser State (Node TypeAnnotation)

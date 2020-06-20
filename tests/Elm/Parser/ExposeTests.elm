@@ -34,8 +34,8 @@ all =
                     |> Expect.equal
                         (Just
                             (Explicit
-                                [ Node.empty <| TypeOrAliasExpose "Model"
-                                , Node empty <| TypeExpose (ExposedType "Msg" (Just empty))
+                                (Node.empty <| TypeOrAliasExpose "Model")
+                                [ Node empty <| TypeExpose (ExposedType "Msg" (Just empty))
                                 , Node empty <| TypeExpose (ExposedType "Info" (Just empty))
                                 , Node empty <| FunctionExpose "init"
                                 , Node empty <| InfixExpose "::"
@@ -46,24 +46,12 @@ all =
             \() ->
                 parseFullStringWithNullState "foo\n --bar\n " exposingListInner
                     |> Maybe.map noRangeExposingList
-                    |> Expect.equal
-                        (Just
-                            (Explicit
-                                [ Node empty <| FunctionExpose "foo"
-                                ]
-                            )
-                        )
+                    |> Expect.equal (Just (Explicit (Node empty <| FunctionExpose "foo") []))
         , test "exposingList with comment 2" <|
             \() ->
                 parseFullStringWithNullState "exposing (foo\n --bar\n )" exposeDefinition
                     |> Maybe.map noRangeExposingList
-                    |> Expect.equal
-                        (Just
-                            (Explicit
-                                [ Node empty <| FunctionExpose "foo"
-                                ]
-                            )
-                        )
+                    |> Expect.equal (Just (Explicit (Node empty <| FunctionExpose "foo") []))
         , test "exposingList with spacing" <|
             \() ->
                 parseFullStringWithNullState "exposing (Model, Msg, Info   (..)   ,init,(::) )" exposeDefinition
@@ -71,8 +59,8 @@ all =
                     |> Expect.equal
                         (Just
                             (Explicit
-                                [ Node empty <| TypeOrAliasExpose "Model"
-                                , Node empty <| TypeOrAliasExpose "Msg"
+                                (Node empty <| TypeOrAliasExpose "Model")
+                                [ Node empty <| TypeOrAliasExpose "Msg"
                                 , Node empty <| TypeExpose (ExposedType "Info" (Just empty))
                                 , Node empty <| FunctionExpose "init"
                                 , Node empty <| InfixExpose "::"
@@ -93,9 +81,10 @@ all =
                         |> Expect.equal
                             (Just
                                 (Explicit
-                                    [ Node { start = { row = 2, column = 7 }, end = { row = 2, column = 11 } }
+                                    (Node { start = { row = 2, column = 7 }, end = { row = 2, column = 11 } }
                                         (TypeOrAliasExpose "Link")
-                                    , Node { start = { row = 3, column = 7 }, end = { row = 3, column = 11 } }
+                                    )
+                                    [ Node { start = { row = 3, column = 7 }, end = { row = 3, column = 11 } }
                                         (FunctionExpose "init")
                                     ]
                                 )

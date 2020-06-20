@@ -26,8 +26,8 @@ all =
                                     Just <|
                                         Node empty <|
                                             Explicit
-                                                [ Node empty <| TypeOrAliasExpose "Model"
-                                                , Node empty <| TypeExpose (ExposedType "Msg" (Just empty))
+                                                (Node empty <| TypeOrAliasExpose "Model")
+                                                [ Node empty <| TypeExpose (ExposedType "Msg" (Just empty))
                                                 ]
                                 }
                         )
@@ -40,7 +40,7 @@ all =
                             Node empty <|
                                 { moduleName = Node empty <| [ "Html" ]
                                 , moduleAlias = Nothing
-                                , exposingList = Just <| Node empty <| Explicit [ Node empty <| FunctionExpose "text" ]
+                                , exposingList = Just <| Node empty <| Explicit (Node empty <| FunctionExpose "text") []
                                 }
                         )
         , test "import minimal" <|

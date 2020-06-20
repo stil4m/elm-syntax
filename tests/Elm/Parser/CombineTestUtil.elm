@@ -128,10 +128,8 @@ noRangeExposingList x =
         All _ ->
             All empty
 
-        Explicit list ->
-            list
-                |> List.map noRangeExpose
-                |> Explicit
+        Explicit head rest ->
+            Explicit (noRangeExpose head) (List.map noRangeExpose rest)
 
 
 noRangePattern : Node Pattern -> Node Pattern

@@ -217,12 +217,12 @@ many1 p =
 
 sepBy : Parser s x -> Parser s a -> Parser s (List a)
 sepBy sep p =
-    or (sepBy1 sep p) (succeed [])
+    or (sepBy1 sep p |> map (\( head, rest ) -> head :: rest)) (succeed [])
 
 
-sepBy1 : Parser s x -> Parser s a -> Parser s (List a)
+sepBy1 : Parser s x -> Parser s a -> Parser s ( a, List a )
 sepBy1 sep p =
-    succeed (::)
+    succeed Tuple.pair
         |> andMap p
         |> andMap (many (sep |> continueWith p))
 
