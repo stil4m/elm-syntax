@@ -59,11 +59,6 @@ all =
                 parseFullStringWithNullState "Bar.foo" expression
                     |> Maybe.map Node.value
                     |> Expect.equal (Just (FunctionOrValue [ "Bar" ] "foo"))
-        , test "operator" <|
-            \() ->
-                parseFullStringWithNullState "++" expression
-                    |> Maybe.map Node.value
-                    |> Expect.equal (Just (Operator "++"))
         , test "parenthesizedExpression" <|
             \() ->
                 parseFullStringWithNullState "(bar)" expression
@@ -377,6 +372,18 @@ all =
                                 )
                             )
                         )
+        , test "positive integer should be invalid" <|
+            \() ->
+                parseFullStringWithNullState "+1" expression
+                    |> Maybe.map noRangeExpression
+                    |> Maybe.map Node.value
+                    |> Expect.equal Nothing
+        , test "expression ending with an operator should not be valid" <|
+            \() ->
+                parseFullStringWithNullState "1++" expression
+                    |> Maybe.map noRangeExpression
+                    |> Maybe.map Node.value
+                    |> Expect.equal Nothing
         , test "prefix notation" <|
             \() ->
                 parseFullStringWithNullState "(::) x" expression
