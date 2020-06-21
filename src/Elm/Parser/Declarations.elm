@@ -17,7 +17,7 @@ import Elm.Syntax.Expression as Expression exposing (Case, CaseBlock, Cases, Exp
 import Elm.Syntax.ModuleName exposing (ModuleName)
 import Elm.Syntax.Node as Node exposing (Node(..))
 import Elm.Syntax.Pattern exposing (..)
-import Elm.Syntax.Range as Range
+import Elm.Syntax.Range as Range exposing (Location)
 import Elm.Syntax.Signature exposing (Signature)
 import Parser as Core exposing (Nestable(..))
 
@@ -532,10 +532,12 @@ letExpression : Parser State (Node Expression)
 letExpression =
     lazy
         (\() ->
-            succeed (\decls -> LetBlock decls >> LetExpression)
-                |> Combine.andMap letBlock
-                |> Combine.andMap (Layout.layout |> Combine.continueWith expression)
-                |> Node.parser
+            Ranges.withCurrentPoint
+                (\current ->
+                    succeed (\decls expr -> Node { start = current.start, end = (Node.range expr).end } (LetBlock decls expr |> LetExpression))
+                        |> Combine.andMap letBlock
+                        |> Combine.andMap (Layout.layout |> Combine.continueWith expression)
+                )
         )
 
 
