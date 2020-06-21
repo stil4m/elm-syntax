@@ -208,15 +208,19 @@ expression =
                     (\first ->
                         let
                             complete rest =
-                                succeed <|
-                                    case rest of
-                                        [] ->
-                                            first
+                                case rest of
+                                    [] ->
+                                        succeed first
 
-                                        _ ->
-                                            Node
+                                    (Node _ (Operator _)) :: _ ->
+                                        Combine.fail "Expression should not end with an operator"
+
+                                    _ ->
+                                        succeed
+                                            (Node
                                                 (Range.combine (Node.range first :: List.map Node.range rest))
                                                 (Application (first :: List.reverse rest))
+                                            )
 
                             promoter rest =
                                 Layout.optimisticLayoutWith
@@ -229,7 +233,12 @@ expression =
                                             (complete rest)
                                     )
                         in
-                        promoter []
+                        case first of
+                            Node _ (Operator _) ->
+                                Combine.fail "Expression should not start with an operator"
+
+                            _ ->
+                                promoter []
                     )
         )
 
