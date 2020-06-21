@@ -349,17 +349,21 @@ all =
                     |> Expect.equal
                         (Just
                             (PortDeclaration
-                                { name = Node emptyRange "parseResponse"
-                                , typeAnnotation =
+                                { documentation = Nothing
+                                , signature =
                                     Node emptyRange <|
-                                        FunctionTypeAnnotation
-                                            (Node emptyRange <|
-                                                Tuple
-                                                    [ Node emptyRange <| Type (Node emptyRange ( [], "String" )) []
-                                                    , Node emptyRange <| Type (Node emptyRange ( [], "String" )) []
-                                                    ]
-                                            )
-                                            (Node emptyRange <| Type (Node emptyRange ( [], "Cmd" )) [ Node emptyRange <| Var "msg" ])
+                                        { name = Node emptyRange "parseResponse"
+                                        , typeAnnotation =
+                                            Node emptyRange <|
+                                                FunctionTypeAnnotation
+                                                    (Node emptyRange <|
+                                                        Tuple
+                                                            [ Node emptyRange <| Type (Node emptyRange ( [], "String" )) []
+                                                            , Node emptyRange <| Type (Node emptyRange ( [], "String" )) []
+                                                            ]
+                                                    )
+                                                    (Node emptyRange <| Type (Node emptyRange ( [], "Cmd" )) [ Node emptyRange <| Var "msg" ])
+                                        }
                                 }
                             )
                         )
@@ -371,15 +375,19 @@ all =
                     |> Expect.equal
                         (Just <|
                             PortDeclaration
-                                { name = Node emptyRange "scroll"
-                                , typeAnnotation =
+                                { documentation = Nothing
+                                , signature =
                                     Node emptyRange <|
-                                        FunctionTypeAnnotation
-                                            (Node emptyRange <|
-                                                FunctionTypeAnnotation (Node emptyRange <| Type (Node emptyRange ( [], "Move" )) [])
-                                                    (Node emptyRange <| Var "msg")
-                                            )
-                                            (Node emptyRange <| Type (Node emptyRange ( [], "Sub" )) [ Node emptyRange <| Var "msg" ])
+                                        { name = Node emptyRange "scroll"
+                                        , typeAnnotation =
+                                            Node emptyRange <|
+                                                FunctionTypeAnnotation
+                                                    (Node emptyRange <|
+                                                        FunctionTypeAnnotation (Node emptyRange <| Type (Node emptyRange ( [], "Move" )) [])
+                                                            (Node emptyRange <| Var "msg")
+                                                    )
+                                                    (Node emptyRange <| Type (Node emptyRange ( [], "Sub" )) [ Node emptyRange <| Var "msg" ])
+                                        }
                                 }
                         )
         , test "declaration" <|

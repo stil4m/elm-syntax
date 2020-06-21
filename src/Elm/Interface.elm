@@ -196,7 +196,15 @@ fileToDefinitions file =
                                 Just ( Node.value a.name, Alias <| Node.value a.name )
 
                             PortDeclaration p ->
-                                Just ( Node.value p.name, Function (Node.value p.name) )
+                                let
+                                    portName : String
+                                    portName =
+                                        p.signature
+                                            |> Node.value
+                                            |> .name
+                                            |> Node.value
+                                in
+                                Just ( portName, Function portName )
 
                             FunctionDeclaration f ->
                                 let

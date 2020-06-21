@@ -6,7 +6,8 @@ import Elm.Syntax.Documentation exposing (..)
 import Elm.Syntax.Expression exposing (..)
 import Elm.Syntax.File exposing (File)
 import Elm.Syntax.Node exposing (Node(..))
-import Elm.Syntax.Range exposing (Range)
+import Elm.Syntax.Port exposing (Port)
+import Elm.Syntax.Range as Range exposing (Range)
 import Elm.Syntax.Type exposing (Type)
 import Elm.Syntax.TypeAlias exposing (TypeAlias)
 
@@ -18,6 +19,7 @@ postProcess file =
             | onFunction = Post onFunction
             , onTypeAlias = Post onTypeAlias
             , onType = Post onType
+            , onPortDeclaration = Post onPort
         }
         file
         file
@@ -78,6 +80,36 @@ onTypeAlias (Node r typeAlias) file =
             file
 
 
+onPort : Node Port -> File -> File
+onPort (Node portRange portDeclaration) file =
+    let
+        docs =
+            List.filter (isDocumentationForRange portRange) file.comments
+    in
+    case List.head docs of
+        Just ((Node docRange _) as doc) ->
+            { file
+                | comments =
+                    file.comments
+                        |> List.filter ((/=) doc)
+                , declarations =
+                    List.map
+                        (replaceDeclarationByRange portRange
+                            (Node (Range.combine [ docRange, portRange ]) <|
+                                PortDeclaration
+                                    (Port
+                                        (Just doc)
+                                        portDeclaration.signature
+                                    )
+                            )
+                        )
+                        file.declarations
+            }
+
+        Nothing ->
+            file
+
+
 onFunction : Node Function -> File -> File
 onFunction (Node functionRange function) file =
     let
@@ -100,6 +132,15 @@ onFunction (Node functionRange function) file =
 
         Nothing ->
             file
+
+
+replaceDeclarationByRange : Range -> Node Declaration -> Node Declaration -> Node Declaration
+replaceDeclarationByRange targetRange newNode ((Node oldRange _) as oldNode) =
+    if targetRange == oldRange then
+        newNode
+
+    else
+        oldNode
 
 
 replaceDeclaration : Node Declaration -> Node Declaration -> Node Declaration

@@ -11,6 +11,7 @@ import Elm.Syntax.Infix exposing (..)
 import Elm.Syntax.Module exposing (..)
 import Elm.Syntax.Node as Node exposing (Node(..))
 import Elm.Syntax.Pattern exposing (..)
+import Elm.Syntax.Port exposing (Port)
 import Elm.Syntax.Range exposing (Range, emptyRange)
 import Elm.Syntax.Signature as Signature exposing (Signature)
 import Elm.Syntax.Type exposing (..)
@@ -243,13 +244,20 @@ noRangeDeclaration decl =
             CustomTypeDeclaration <| noRangeTypeDeclaration d
 
         PortDeclaration d ->
-            PortDeclaration (noRangeSignature d)
+            PortDeclaration (noRangePort d)
 
         AliasDeclaration aliasDecl ->
             AliasDeclaration (noRangeTypeAlias aliasDecl)
 
         InfixDeclaration infixDecl ->
             InfixDeclaration infixDecl
+
+
+noRangePort : Port -> Port
+noRangePort { signature, documentation } =
+    Port
+        (documentation |> Maybe.map unRange)
+        (unRanged noRangeSignature signature)
 
 
 noRangeLetDeclaration : Node LetDeclaration -> Node LetDeclaration

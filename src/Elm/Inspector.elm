@@ -8,6 +8,7 @@ import Elm.Syntax.Infix exposing (Infix, InfixDirection)
 import Elm.Syntax.ModuleName exposing (ModuleName)
 import Elm.Syntax.Node as Node exposing (Node(..))
 import Elm.Syntax.Pattern exposing (Pattern(..))
+import Elm.Syntax.Port exposing (Port)
 import Elm.Syntax.Signature exposing (Signature)
 import Elm.Syntax.Type exposing (Type, ValueConstructor)
 import Elm.Syntax.TypeAlias exposing (TypeAlias)
@@ -28,7 +29,7 @@ type alias Config context =
     , onFunction : Order context (Node Function)
     , onTypeAlias : Order context (Node TypeAlias)
     , onType : Order context (Node Type)
-    , onPortDeclaration : Order context (Node Signature)
+    , onPortDeclaration : Order context (Node Port)
     , onInfixDeclaration : Order context (Node Infix)
     , onDestructuring : Order context (Node ( Node Pattern, Node Expression ))
     , onSignature : Order context (Node Signature)
@@ -145,8 +146,8 @@ inspectDeclaration config (Node r declaration) context =
         CustomTypeDeclaration typeDecl ->
             inspectType config (Node r typeDecl) context
 
-        PortDeclaration signature ->
-            inspectPortDeclaration config (Node r signature) context
+        PortDeclaration p ->
+            inspectPortDeclaration config (Node r p) context
 
         InfixDeclaration inf ->
             actionLambda
@@ -209,12 +210,12 @@ inspectFunction config ((Node _ function) as node) context =
         context
 
 
-inspectPortDeclaration : Config context -> Node Signature -> context -> context
-inspectPortDeclaration config signature context =
+inspectPortDeclaration : Config context -> Node Port -> context -> context
+inspectPortDeclaration config node context =
     actionLambda
         config.onPortDeclaration
-        (inspectSignature config signature)
-        signature
+        (inspectSignature config (Node.value node).signature)
+        node
         context
 
 
