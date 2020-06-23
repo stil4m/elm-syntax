@@ -9,8 +9,8 @@ suite : Test
 suite =
     describe "Elm.Syntax.Range"
         [ describe "combine" combineTests
+        , describe "compare" compareTests
         , describe "compareLocations" compareLocationsTests
-        , describe "comparePositions" comparePositionsTests
         ]
 
 
@@ -173,8 +173,8 @@ compareLocationsTests =
     ]
 
 
-comparePositionsTests : List Test
-comparePositionsTests =
+compareTests : List Test
+compareTests =
     [ describe "EQ"
         [ test "when ranges are equal" <|
             \() ->
@@ -185,7 +185,7 @@ comparePositionsTests =
                         , end = { row = 3, column = 4 }
                         }
                 in
-                Range.comparePositions range range
+                Range.compare range range
                     |> Expect.equal EQ
         ]
     , describe "LT"
@@ -202,7 +202,7 @@ comparePositionsTests =
                     right =
                         { left | end = { row = 2, column = 2 } }
                 in
-                Range.comparePositions left right
+                Range.compare left right
                     |> Expect.equal LT
         , test "when left start == right start and left end < right end" <|
             \() ->
@@ -217,7 +217,7 @@ comparePositionsTests =
                     right =
                         { left | end = { row = 2, column = 9 } }
                 in
-                Range.comparePositions left right
+                Range.compare left right
                     |> Expect.equal LT
         ]
     , describe "GT"
@@ -234,7 +234,7 @@ comparePositionsTests =
                     right =
                         { left | start = { row = 5, column = 2 } }
                 in
-                Range.comparePositions left right
+                Range.compare left right
                     |> Expect.equal GT
         , test "when left start == right start and left end > right end" <|
             \() ->
@@ -249,7 +249,7 @@ comparePositionsTests =
                     right =
                         { left | end = { row = 5, column = 4 } }
                 in
-                Range.comparePositions left right
+                Range.compare left right
                     |> Expect.equal GT
         ]
     ]
