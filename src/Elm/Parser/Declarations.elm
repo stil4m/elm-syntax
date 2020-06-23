@@ -18,7 +18,7 @@ import Elm.Syntax.ModuleName exposing (ModuleName)
 import Elm.Syntax.Node as Node exposing (Node(..))
 import Elm.Syntax.Pattern exposing (..)
 import Elm.Syntax.Port exposing (Port)
-import Elm.Syntax.Range as Range exposing (Location)
+import Elm.Syntax.Range as Range
 import Elm.Syntax.Signature exposing (Signature)
 import Parser as Core exposing (Nestable(..))
 
