@@ -168,7 +168,9 @@ inspectType config tipe context =
 
 inspectTypeInner : Config context -> Type -> context -> context
 inspectTypeInner config typeDecl context =
-    List.foldl (inspectValueConstructor config) context typeDecl.constructors
+    List.foldl (inspectValueConstructor config)
+        context
+        (typeDecl.firstConstructor :: typeDecl.restOfConstructors)
 
 
 inspectValueConstructor : Config context -> Node ValueConstructor -> context -> context

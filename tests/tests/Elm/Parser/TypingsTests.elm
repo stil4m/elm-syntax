@@ -87,12 +87,13 @@ all =
                             { documentation = Nothing
                             , name = Node emptyRange <| "Color"
                             , generics = []
-                            , constructors =
-                                [ Node emptyRange
+                            , firstConstructor =
+                                Node emptyRange
                                     { name = Node emptyRange <| "Blue"
                                     , arguments = [ Node emptyRange <| Elm.Syntax.TypeAnnotation.Type (Node emptyRange <| ( [], "String" )) [] ]
                                     }
-                                , Node emptyRange
+                            , restOfConstructors =
+                                [ Node emptyRange
                                     { name = Node emptyRange <| "Red"
                                     , arguments = []
                                     }
@@ -111,15 +112,15 @@ all =
                     |> Expect.equal
                         (Just
                             { documentation = Nothing
-                            , constructors =
-                                [ Node emptyRange
+                            , firstConstructor =
+                                Node emptyRange
                                     { arguments =
                                         [ Node emptyRange <| Var "a"
                                         , Node emptyRange <| Elm.Syntax.TypeAnnotation.Type (Node emptyRange <| ( [], "B" )) []
                                         ]
                                     , name = Node emptyRange <| "C"
                                     }
-                                ]
+                            , restOfConstructors = []
                             , generics = []
                             , name = Node emptyRange <| "D"
                             }
@@ -132,15 +133,15 @@ all =
                     |> Expect.equal
                         (Just
                             { documentation = Nothing
-                            , constructors =
-                                [ Node emptyRange
+                            , firstConstructor =
+                                Node emptyRange
                                     { arguments =
                                         [ Node emptyRange <| Elm.Syntax.TypeAnnotation.Type (Node emptyRange <| ( [], "B" )) []
                                         , Node emptyRange <| Var "a"
                                         ]
                                     , name = Node emptyRange <| "C"
                                     }
-                                ]
+                            , restOfConstructors = []
                             , generics = []
                             , name = Node emptyRange <| "D"
                             }
@@ -153,14 +154,14 @@ all =
                     |> Expect.equal
                         (Just
                             { documentation = Nothing
-                            , constructors =
-                                [ Node emptyRange
+                            , firstConstructor =
+                                Node emptyRange
                                     { arguments =
                                         [ Node emptyRange <| Elm.Syntax.TypeAnnotation.Type (Node emptyRange <| ( [], "B" )) []
                                         ]
                                     , name = Node emptyRange <| "C"
                                     }
-                                ]
+                            , restOfConstructors = []
                             , generics = []
                             , name = Node emptyRange <| "D"
                             }
@@ -173,12 +174,12 @@ all =
                     |> Expect.equal
                         (Just
                             { documentation = Nothing
-                            , constructors =
-                                [ Node emptyRange
+                            , firstConstructor =
+                                Node emptyRange
                                     { arguments = []
                                     , name = Node emptyRange <| "Blue"
                                     }
-                                ]
+                            , restOfConstructors = []
                             , generics = []
                             , name = Node emptyRange <| "Color"
                             }
@@ -193,12 +194,13 @@ all =
                             { documentation = Nothing
                             , name = Node emptyRange <| "Maybe"
                             , generics = [ Node emptyRange <| "a" ]
-                            , constructors =
-                                [ Node emptyRange
+                            , firstConstructor =
+                                Node emptyRange
                                     { name = Node emptyRange <| "Just"
                                     , arguments = [ Node emptyRange <| Var "a" ]
                                     }
-                                , Node emptyRange
+                            , restOfConstructors =
+                                [ Node emptyRange
                                     { name = Node emptyRange <| "Nothing"
                                     , arguments = []
                                     }
@@ -216,10 +218,10 @@ all =
                     |> Expect.equal
                         (Just
                             (DefinedType { end = { column = 11, row = 1 }, start = { column = 1, row = 1 } }
-                                { constructors =
-                                    [ Node { end = { column = 11, row = 1 }, start = { column = 10, row = 1 } }
+                                { firstConstructor =
+                                    Node { end = { column = 11, row = 1 }, start = { column = 10, row = 1 } }
                                         { arguments = [], name = Node { end = { column = 11, row = 1 }, start = { column = 10, row = 1 } } "B" }
-                                    ]
+                                , restOfConstructors = []
                                 , documentation = Nothing
                                 , generics = []
                                 , name = Node { end = { column = 7, row = 1 }, start = { column = 6, row = 1 } } "A"

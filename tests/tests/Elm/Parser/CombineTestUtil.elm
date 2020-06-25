@@ -316,7 +316,8 @@ noRangeTypeReference (Node _ typeAnnotation) =
 noRangeTypeDeclaration : Type -> Type
 noRangeTypeDeclaration x =
     { x
-        | constructors = List.map (unRanged noRangeValueConstructor) x.constructors
+        | firstConstructor = unRanged noRangeValueConstructor x.firstConstructor
+        , restOfConstructors = List.map (unRanged noRangeValueConstructor) x.restOfConstructors
         , generics = List.map unRange x.generics
         , name = unRange x.name
     }

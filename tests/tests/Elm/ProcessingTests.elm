@@ -218,10 +218,11 @@ type Foo
       , declarations =
             [ Node { end = { column = 10, row = 6 }, start = { column = 1, row = 4 } }
                 (CustomTypeDeclaration
-                    { constructors =
-                        [ Node { end = { column = 9, row = 5 }, start = { column = 6, row = 5 } }
+                    { firstConstructor =
+                        Node { end = { column = 9, row = 5 }, start = { column = 6, row = 5 } }
                             { arguments = [], name = Node { end = { column = 9, row = 5 }, start = { column = 6, row = 5 } } "Red" }
-                        , Node { end = { column = 10, row = 6 }, start = { column = 6, row = 6 } }
+                    , restOfConstructors =
+                        [ Node { end = { column = 10, row = 6 }, start = { column = 6, row = 6 } }
                             { arguments = [], name = Node { end = { column = 10, row = 6 }, start = { column = 6, row = 6 } } "Blue" }
                         ]
                     , documentation =
