@@ -162,9 +162,8 @@ suite =
                                 Nothing
                                 (Node empty "Sample")
                                 []
-                                [ Node empty <| ValueConstructor (Node empty "Foo") []
-                                , Node empty <| ValueConstructor (Node empty "Bar") []
-                                ]
+                                (Node empty <| ValueConstructor (Node empty "Foo") [])
+                                [ Node empty <| ValueConstructor (Node empty "Bar") [] ]
                             )
                     )
                         |> Writer.writeDeclaration
@@ -191,8 +190,8 @@ suite =
                                 Nothing
                                 (Node empty "Sample")
                                 []
-                                [ Node empty <| ValueConstructor (Node empty "Foo") [ Node empty listT, Node empty stringT ]
-                                , Node empty <| ValueConstructor (Node empty "Bar") []
+                                (Node empty <| ValueConstructor (Node empty "Foo") [ Node empty listT, Node empty stringT ])
+                                [ Node empty <| ValueConstructor (Node empty "Bar") []
                                 ]
                             )
                     )
@@ -219,12 +218,13 @@ suite =
                                 Nothing
                                 (Node empty "Sample")
                                 []
-                                [ Node empty <|
+                                (Node empty <|
                                     ValueConstructor (Node empty "Foo")
                                         [ Node empty funcT
                                         , Node empty stringT
                                         ]
-                                , Node empty <| ValueConstructor (Node empty "Bar") []
+                                )
+                                [ Node empty <| ValueConstructor (Node empty "Bar") []
                                 ]
                             )
                     )

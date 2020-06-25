@@ -44,11 +44,16 @@ typeDefinition =
                             |> Combine.andMap genericList
                             |> Combine.ignore (maybe Layout.layout)
                             |> Combine.ignore (string "=" |> Combine.ignore (maybe Layout.layout))
-                            |> Combine.andMap valueConstructors
+                            |> Combine.andThen (\tipe -> Combine.map (\( head, rest ) -> tipe head rest) valueConstructors)
                             |> Combine.map
                                 (\tipe ->
                                     DefinedType
-                                        (Range.combine (start :: List.map (\(Node r _) -> r) tipe.constructors))
+                                        (Range.combine
+                                            (start
+                                                :: List.map (\(Node r _) -> r)
+                                                    (tipe.firstConstructor :: tipe.restOfConstructors)
+                                            )
+                                        )
                                         tipe
                                 )
                         ]
@@ -56,10 +61,9 @@ typeDefinition =
         )
 
 
-valueConstructors : Parser State (List (Node ValueConstructor))
+valueConstructors : Parser State ( Node ValueConstructor, List (Node ValueConstructor) )
 valueConstructors =
     Combine.sepBy1 (Combine.ignore (maybe Layout.layout) (string "|")) valueConstructor
-        |> Combine.map (\( head, rest ) -> head :: rest)
 
 
 valueConstructor : Parser State (Node ValueConstructor)

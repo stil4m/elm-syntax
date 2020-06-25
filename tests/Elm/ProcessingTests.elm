@@ -391,10 +391,11 @@ type Foo
       , declarations =
             [ Node { start = { row = 3, column = 1 }, end = { row = 6, column = 10 } }
                 (CustomTypeDeclaration
-                    { constructors =
-                        [ Node { start = { row = 5, column = 6 }, end = { row = 5, column = 9 } }
+                    { firstConstructor =
+                        Node { start = { row = 5, column = 6 }, end = { row = 5, column = 9 } }
                             { arguments = [], name = Node { start = { row = 5, column = 6 }, end = { row = 5, column = 9 } } "Red" }
-                        , Node { start = { row = 6, column = 6 }, end = { row = 6, column = 10 } }
+                    , restOfConstructors =
+                        [ Node { start = { row = 6, column = 6 }, end = { row = 6, column = 10 } }
                             { arguments = [], name = Node { start = { row = 6, column = 6 }, end = { row = 6, column = 10 } } "Blue" }
                         ]
                     , documentation =

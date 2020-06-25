@@ -267,15 +267,19 @@ writeType type_ =
             , spaced (List.map (Node.value >> string) type_.generics)
             ]
         , let
+            constructors : List (Node ValueConstructor)
+            constructors =
+                type_.firstConstructor :: type_.restOfConstructors
+
             diffLines : Bool
             diffLines =
-                List.map Node.range type_.constructors
+                List.map Node.range constructors
                     |> startOnDifferentLines
           in
           indent 4
             (sepBy ( "= ", " | ", "" )
                 diffLines
-                (List.map (Node.value >> writeValueConstructor) type_.constructors)
+                (List.map (Node.value >> writeValueConstructor) constructors)
             )
         ]
 
