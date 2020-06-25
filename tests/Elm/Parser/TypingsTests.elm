@@ -106,15 +106,16 @@ all =
                     |> expectAst
                         (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 39 } }
                             (Declaration.CustomTypeDeclaration
-                                { constructors =
-                                    [ Node { start = { row = 1, column = 14 }, end = { row = 1, column = 25 } }
+                                { firstConstructor =
+                                    Node { start = { row = 1, column = 14 }, end = { row = 1, column = 25 } }
                                         { name = Node { start = { row = 1, column = 14 }, end = { row = 1, column = 18 } } "Blue"
                                         , arguments =
                                             [ Node { start = { row = 1, column = 19 }, end = { row = 1, column = 25 } }
                                                 (Type (Node { start = { row = 1, column = 19 }, end = { row = 1, column = 25 } } ( [], "String" )) [])
                                             ]
                                         }
-                                    , Node { start = { row = 1, column = 28 }, end = { row = 1, column = 31 } }
+                                , restOfConstructors =
+                                    [ Node { start = { row = 1, column = 28 }, end = { row = 1, column = 31 } }
                                         { name = Node { start = { row = 1, column = 28 }, end = { row = 1, column = 31 } } "Red"
                                         , arguments = []
                                         }
@@ -135,15 +136,16 @@ all =
                     |> expectAstWithDocs (Node { start = { row = -1, column = -1 }, end = { row = 0, column = 0 } } "{-| Classic RGB -}")
                         (Node { start = { row = -1, column = -1 }, end = { row = 1, column = 39 } }
                             (Declaration.CustomTypeDeclaration
-                                { constructors =
-                                    [ Node { start = { row = 1, column = 14 }, end = { row = 1, column = 25 } }
+                                { firstConstructor =
+                                    Node { start = { row = 1, column = 14 }, end = { row = 1, column = 25 } }
                                         { name = Node { start = { row = 1, column = 14 }, end = { row = 1, column = 18 } } "Blue"
                                         , arguments =
                                             [ Node { start = { row = 1, column = 19 }, end = { row = 1, column = 25 } }
                                                 (Type (Node { start = { row = 1, column = 19 }, end = { row = 1, column = 25 } } ( [], "String" )) [])
                                             ]
                                         }
-                                    , Node { start = { row = 1, column = 28 }, end = { row = 1, column = 31 } }
+                                , restOfConstructors =
+                                    [ Node { start = { row = 1, column = 28 }, end = { row = 1, column = 31 } }
                                         { name = Node { start = { row = 1, column = 28 }, end = { row = 1, column = 31 } } "Red"
                                         , arguments = []
                                         }
@@ -164,8 +166,8 @@ all =
                     |> expectAst
                         (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 15 } }
                             (Declaration.CustomTypeDeclaration
-                                { constructors =
-                                    [ Node { start = { row = 1, column = 10 }, end = { row = 1, column = 15 } }
+                                { firstConstructor =
+                                    Node { start = { row = 1, column = 10 }, end = { row = 1, column = 15 } }
                                         { arguments =
                                             [ Node { start = { row = 1, column = 12 }, end = { row = 1, column = 13 } } (Var "a")
                                             , Node { start = { row = 1, column = 14 }, end = { row = 1, column = 15 } }
@@ -173,7 +175,7 @@ all =
                                             ]
                                         , name = Node { start = { row = 1, column = 10 }, end = { row = 1, column = 11 } } "C"
                                         }
-                                    ]
+                                , restOfConstructors = []
                                 , documentation = Nothing
                                 , generics = []
                                 , name = Node { start = { row = 1, column = 6 }, end = { row = 1, column = 7 } } "D"
@@ -186,8 +188,8 @@ all =
                     |> expectAst
                         (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 15 } }
                             (Declaration.CustomTypeDeclaration
-                                { constructors =
-                                    [ Node { start = { row = 1, column = 10 }, end = { row = 1, column = 15 } }
+                                { firstConstructor =
+                                    Node { start = { row = 1, column = 10 }, end = { row = 1, column = 15 } }
                                         { arguments =
                                             [ Node { start = { row = 1, column = 12 }, end = { row = 1, column = 13 } }
                                                 (Type (Node { start = { row = 1, column = 12 }, end = { row = 1, column = 13 } } ( [], "B" )) [])
@@ -195,7 +197,7 @@ all =
                                             ]
                                         , name = Node { start = { row = 1, column = 10 }, end = { row = 1, column = 11 } } "C"
                                         }
-                                    ]
+                                , restOfConstructors = []
                                 , documentation = Nothing
                                 , generics = []
                                 , name = Node { start = { row = 1, column = 6 }, end = { row = 1, column = 7 } } "D"
@@ -212,12 +214,13 @@ all =
                     |> expectAst
                         (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 32 } }
                             (Declaration.CustomTypeDeclaration
-                                { constructors =
-                                    [ Node { start = { row = 1, column = 16 }, end = { row = 1, column = 22 } }
+                                { firstConstructor =
+                                    Node { start = { row = 1, column = 16 }, end = { row = 1, column = 22 } }
                                         { arguments = [ Node { start = { row = 1, column = 21 }, end = { row = 1, column = 22 } } (Var "a") ]
                                         , name = Node { start = { row = 1, column = 16 }, end = { row = 1, column = 20 } } "Just"
                                         }
-                                    , Node { start = { row = 1, column = 25 }, end = { row = 1, column = 32 } }
+                                , restOfConstructors =
+                                    [ Node { start = { row = 1, column = 25 }, end = { row = 1, column = 32 } }
                                         { arguments = []
                                         , name = Node { start = { row = 1, column = 25 }, end = { row = 1, column = 32 } } "Nothing"
                                         }
@@ -238,10 +241,10 @@ all =
                     |> expectAst
                         (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 11 } }
                             (Declaration.CustomTypeDeclaration
-                                { constructors =
-                                    [ Node { start = { row = 1, column = 10 }, end = { row = 1, column = 11 } }
+                                { firstConstructor =
+                                    Node { start = { row = 1, column = 10 }, end = { row = 1, column = 11 } }
                                         { arguments = [], name = Node { start = { row = 1, column = 10 }, end = { row = 1, column = 11 } } "B" }
-                                    ]
+                                , restOfConstructors = []
                                 , documentation = Nothing
                                 , generics = []
                                 , name = Node { start = { row = 1, column = 6 }, end = { row = 1, column = 7 } } "A"

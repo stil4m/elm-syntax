@@ -173,7 +173,12 @@ fileToDefinitions file =
                 (\(Node _ decl) ->
                     case decl of
                         CustomTypeDeclaration t ->
-                            ( Node.value t.name, CustomType ( Node.value t.name, t.constructors |> List.map (Node.value >> .name >> Node.value) ) )
+                            ( Node.value t.name
+                            , CustomType
+                                ( Node.value t.name
+                                , t.firstConstructor :: t.restOfConstructors |> List.map (Node.value >> .name >> Node.value)
+                                )
+                            )
 
                         AliasDeclaration a ->
                             ( Node.value a.name, Alias <| Node.value a.name )

@@ -60,26 +60,15 @@ typeDefinition maybeDoc =
                     , Combine.succeed
                         (\name ->
                             \generics ->
-                                \constructors ->
-                                    let
-                                        end : Location
-                                        end =
-                                            case List.head constructors of
-                                                Just (Node range _) ->
-                                                    range.end
-
-                                                Nothing ->
-                                                    start
-                                    in
+                                \( end, firstConstructor, restOfConstructors ) ->
                                     Node
-                                        { start = start
-                                        , end = end
-                                        }
+                                        { start = start, end = end }
                                         (Declaration.CustomTypeDeclaration
                                             { documentation = maybeDoc
                                             , name = name
                                             , generics = generics
-                                            , constructors = List.reverse constructors
+                                            , firstConstructor = firstConstructor
+                                            , restOfConstructors = restOfConstructors
                                             }
                                         )
                         )
@@ -94,9 +83,9 @@ typeDefinition maybeDoc =
             )
 
 
-valueConstructors : Parser State (List (Node ValueConstructor))
+valueConstructors : Parser State ( Location, Node ValueConstructor, List (Node ValueConstructor) )
 valueConstructors =
-    Combine.sepBy1WithoutReverse
+    Combine.sepBy1WithLocationForLastElement Node.range
         (Tokens.pipe
             |> Combine.continueFromCore (Combine.maybeIgnore Layout.layout)
         )

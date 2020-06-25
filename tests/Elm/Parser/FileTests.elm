@@ -312,12 +312,12 @@ type Configuration
                             , declarations =
                                 [ Node { start = { row = 6, column = 1 }, end = { row = 9, column = 20 } }
                                     (CustomTypeDeclaration
-                                        { constructors =
-                                            [ Node { start = { row = 9, column = 7 }, end = { row = 9, column = 20 } }
+                                        { firstConstructor =
+                                            Node { start = { row = 9, column = 7 }, end = { row = 9, column = 20 } }
                                                 { arguments = []
                                                 , name = Node { start = { row = 9, column = 7 }, end = { row = 9, column = 20 } } "Configuration"
                                                 }
-                                            ]
+                                        , restOfConstructors = []
                                         , documentation = Just (Node { start = { row = 6, column = 1 }, end = { row = 7, column = 3 } } "{-| Config goes here\n-}")
                                         , generics = []
                                         , name = Node { start = { row = 8, column = 6 }, end = { row = 8, column = 19 } } "Configuration"
@@ -359,12 +359,12 @@ type Configuration
                             , declarations =
                                 [ Node { start = { row = 6, column = 1 }, end = { row = 7, column = 20 } }
                                     (CustomTypeDeclaration
-                                        { constructors =
-                                            [ Node { start = { row = 7, column = 7 }, end = { row = 7, column = 20 } }
+                                        { firstConstructor =
+                                            Node { start = { row = 7, column = 7 }, end = { row = 7, column = 20 } }
                                                 { arguments = []
                                                 , name = Node { start = { row = 7, column = 7 }, end = { row = 7, column = 20 } } "Configuration"
                                                 }
-                                            ]
+                                        , restOfConstructors = []
                                         , documentation = Nothing
                                         , generics = []
                                         , name = Node { start = { row = 6, column = 6 }, end = { row = 6, column = 19 } } "Configuration"

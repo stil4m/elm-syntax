@@ -31,8 +31,8 @@ module Combine exposing
     , runParser
     , sepBy
     , sepBy1
+    , sepBy1WithLocationForLastElement
     , sepBy1WithState
-    , sepBy1WithoutReverse
     , succeed
     , symbol
     , withLocation
@@ -337,13 +337,14 @@ sepBy1WithState sep p =
         |> keep (many (sep |> continueWith p))
 
 
-{-| Same as [`sepBy1`](#sepBy1), except that it doesn't reverse the list.
-This can be useful if you need to access the range of the last item.
--}
-sepBy1WithoutReverse : Parser state () -> Parser state a -> Parser state (List a)
-sepBy1WithoutReverse sep p =
+sepBy1WithLocationForLastElement : (a -> Range) -> Parser state () -> Parser state a -> Parser state ( Location, a, List a )
+sepBy1WithLocationForLastElement getRange sep p =
     p
-        |> andThen (\first -> manyWithoutReverse [ first ] (sep |> continueWith p))
+        |> andThen
+            (\first ->
+                manyWithEndLocationForLastElement (getRange first) getRange (sep |> continueWith p)
+                    |> map (\( loc, rest ) -> ( loc, first, rest ))
+            )
 
 
 between : String -> String -> Parser state a -> Parser state a
