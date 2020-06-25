@@ -351,12 +351,13 @@ b = 2
                                         { documentation = Nothing
                                         , name = Node { start = { row = 2, column = 6 }, end = { row = 2, column = 7 } } "A"
                                         , generics = []
-                                        , constructors =
-                                            [ Node { start = { row = 2, column = 10 }, end = { row = 2, column = 11 } }
+                                        , firstConstructor =
+                                            Node { start = { row = 2, column = 10 }, end = { row = 2, column = 11 } }
                                                 { name = Node { start = { row = 2, column = 10 }, end = { row = 2, column = 11 } } "B"
                                                 , arguments = []
                                                 }
-                                            , Node { start = { row = 2, column = 14 }, end = { row = 2, column = 15 } }
+                                        , restOfConstructors =
+                                            [ Node { start = { row = 2, column = 14 }, end = { row = 2, column = 15 } }
                                                 { name = Node { start = { row = 2, column = 14 }, end = { row = 2, column = 15 } } "C"
                                                 , arguments = []
                                                 }
