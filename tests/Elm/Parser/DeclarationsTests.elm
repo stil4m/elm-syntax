@@ -696,15 +696,16 @@ type alias Foo = {color: String }"""
                                 { documentation = Nothing
                                 , name = Node { start = { row = 1, column = 6 }, end = { row = 1, column = 11 } } "Color"
                                 , generics = []
-                                , constructors =
-                                    [ Node { start = { row = 1, column = 14 }, end = { row = 1, column = 25 } }
+                                , firstConstructor =
+                                    Node { start = { row = 1, column = 14 }, end = { row = 1, column = 25 } }
                                         { name = Node { start = { row = 1, column = 14 }, end = { row = 1, column = 18 } } "Blue"
                                         , arguments =
                                             [ Node { start = { row = 1, column = 19 }, end = { row = 1, column = 25 } }
                                                 (Type (Node { start = { row = 1, column = 19 }, end = { row = 1, column = 25 } } ( [], "String" )) [])
                                             ]
                                         }
-                                    , Node { start = { row = 1, column = 28 }, end = { row = 1, column = 31 } }
+                                , restOfConstructors =
+                                    [ Node { start = { row = 1, column = 28 }, end = { row = 1, column = 31 } }
                                         { name = Node { start = { row = 1, column = 28 }, end = { row = 1, column = 31 } } "Red"
                                         , arguments = []
                                         }
@@ -726,8 +727,8 @@ type Color = Blue String | Red | Green"""
                                 { documentation = Just (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 19 } } "{-| Classic RGB -}")
                                 , name = Node { start = { row = 2, column = 6 }, end = { row = 2, column = 11 } } "Color"
                                 , generics = []
-                                , constructors =
-                                    [ Node
+                                , firstConstructor =
+                                    Node
                                         { start = { row = 2, column = 14 }
                                         , end = { row = 2, column = 25 }
                                         }
@@ -737,7 +738,8 @@ type Color = Blue String | Red | Green"""
                                                 (Type (Node { start = { row = 2, column = 19 }, end = { row = 2, column = 25 } } ( [], "String" )) [])
                                             ]
                                         }
-                                    , Node { start = { row = 2, column = 28 }, end = { row = 2, column = 31 } }
+                                , restOfConstructors =
+                                    [ Node { start = { row = 2, column = 28 }, end = { row = 2, column = 31 } }
                                         { name = Node { start = { row = 2, column = 28 }, end = { row = 2, column = 31 } } "Red"
                                         , arguments = []
                                         }
@@ -758,8 +760,8 @@ type Color = Blue String | Red | Green"""
                                 { documentation = Nothing
                                 , name = Node { start = { row = 1, column = 6 }, end = { row = 1, column = 7 } } "D"
                                 , generics = []
-                                , constructors =
-                                    [ Node { start = { row = 1, column = 10 }, end = { row = 1, column = 15 } }
+                                , firstConstructor =
+                                    Node { start = { row = 1, column = 10 }, end = { row = 1, column = 15 } }
                                         { name = Node { start = { row = 1, column = 10 }, end = { row = 1, column = 11 } } "C"
                                         , arguments =
                                             [ Node { start = { row = 1, column = 12 }, end = { row = 1, column = 13 } } (Var "a")
@@ -767,7 +769,7 @@ type Color = Blue String | Red | Green"""
                                                 (Type (Node { start = { row = 1, column = 14 }, end = { row = 1, column = 15 } } ( [], "B" )) [])
                                             ]
                                         }
-                                    ]
+                                , restOfConstructors = []
                                 }
                             )
                         )
@@ -780,8 +782,8 @@ type Color = Blue String | Red | Green"""
                                 { documentation = Nothing
                                 , name = Node { start = { row = 1, column = 6 }, end = { row = 1, column = 7 } } "D"
                                 , generics = []
-                                , constructors =
-                                    [ Node { start = { row = 1, column = 10 }, end = { row = 1, column = 15 } }
+                                , firstConstructor =
+                                    Node { start = { row = 1, column = 10 }, end = { row = 1, column = 15 } }
                                         { name = Node { start = { row = 1, column = 10 }, end = { row = 1, column = 11 } } "C"
                                         , arguments =
                                             [ Node { start = { row = 1, column = 12 }, end = { row = 1, column = 13 } }
@@ -789,7 +791,7 @@ type Color = Blue String | Red | Green"""
                                             , Node { start = { row = 1, column = 14 }, end = { row = 1, column = 15 } } (Var "a")
                                             ]
                                         }
-                                    ]
+                                , restOfConstructors = []
                                 }
                             )
                         )
@@ -806,12 +808,13 @@ type Color = Blue String | Red | Green"""
                                 { documentation = Nothing
                                 , name = Node { start = { row = 1, column = 6 }, end = { row = 1, column = 11 } } "Maybe"
                                 , generics = [ Node { start = { row = 1, column = 12 }, end = { row = 1, column = 13 } } "a" ]
-                                , constructors =
-                                    [ Node { start = { row = 1, column = 16 }, end = { row = 1, column = 22 } }
+                                , firstConstructor =
+                                    Node { start = { row = 1, column = 16 }, end = { row = 1, column = 22 } }
                                         { name = Node { start = { row = 1, column = 16 }, end = { row = 1, column = 20 } } "Just"
                                         , arguments = [ Node { start = { row = 1, column = 21 }, end = { row = 1, column = 22 } } (Var "a") ]
                                         }
-                                    , Node { start = { row = 1, column = 25 }, end = { row = 1, column = 32 } }
+                                , restOfConstructors =
+                                    [ Node { start = { row = 1, column = 25 }, end = { row = 1, column = 32 } }
                                         { name = Node { start = { row = 1, column = 25 }, end = { row = 1, column = 32 } } "Nothing"
                                         , arguments = []
                                         }

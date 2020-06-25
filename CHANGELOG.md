@@ -28,6 +28,7 @@
   - `Tupled` -> `Tuple`
   - `Unit` -> `Tuple []`
   - Renamed `Typed` to `Type`
+  - `Elm.Syntax.TypeAnnotation.Type`'s `constructors : List (Node ValueConstructor)` field is split into `firstConstructor : Node ValueConstructor` and `restOfConstructors : List (Node ValueConstructor)` (takes a non-empty list of constructors)
   - Renamed `GenericType` to `Var`
 
 - Changed `Elm.Syntax.Exposing.Exposing`:
