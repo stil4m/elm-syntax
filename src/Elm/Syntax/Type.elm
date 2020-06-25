@@ -28,7 +28,8 @@ type alias Type =
     { documentation : Maybe (Node Documentation)
     , name : Node String
     , generics : List (Node String)
-    , constructors : List (Node ValueConstructor)
+    , firstConstructor : Node ValueConstructor
+    , restOfConstructors : List (Node ValueConstructor)
     }
 
 
@@ -38,7 +39,3 @@ type alias ValueConstructor =
     { name : Node String
     , arguments : List (Node TypeAnnotation)
     }
-
-
-
---

@@ -312,12 +312,12 @@ type Configuration
                                         { documentation = Just (Node { start = { row = 6, column = 1 }, end = { row = 7, column = 3 } } "{-| Config goes here\n-}")
                                         , name = Node { start = { row = 8, column = 6 }, end = { row = 8, column = 19 } } "Configuration"
                                         , generics = []
-                                        , constructors =
-                                            [ Node { start = { row = 9, column = 7 }, end = { row = 9, column = 20 } }
+                                        , firstConstructor =
+                                            Node { start = { row = 9, column = 7 }, end = { row = 9, column = 20 } }
                                                 { name = Node { start = { row = 9, column = 7 }, end = { row = 9, column = 20 } } "Configuration"
                                                 , arguments = []
                                                 }
-                                            ]
+                                        , restOfConstructors = []
                                         }
                                     )
                                 ]
@@ -353,12 +353,12 @@ type Configuration
                                         { documentation = Nothing
                                         , name = Node { start = { row = 6, column = 6 }, end = { row = 6, column = 19 } } "Configuration"
                                         , generics = []
-                                        , constructors =
-                                            [ Node { start = { row = 7, column = 7 }, end = { row = 7, column = 20 } }
+                                        , firstConstructor =
+                                            Node { start = { row = 7, column = 7 }, end = { row = 7, column = 20 } }
                                                 { name = Node { start = { row = 7, column = 7 }, end = { row = 7, column = 20 } } "Configuration"
                                                 , arguments = []
                                                 }
-                                            ]
+                                        , restOfConstructors = []
                                         }
                                     )
                                 ]

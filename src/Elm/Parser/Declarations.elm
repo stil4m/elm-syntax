@@ -113,9 +113,8 @@ declaration =
                                     { documentation = Just documentation
                                     , name = typeDeclarationAfterDocumentation.name
                                     , generics = typeDeclarationAfterDocumentation.parameters
-                                    , constructors =
-                                        typeDeclarationAfterDocumentation.headVariant
-                                            :: List.reverse typeDeclarationAfterDocumentation.tailVariantsReverse
+                                    , firstConstructor = typeDeclarationAfterDocumentation.headVariant
+                                    , restOfConstructors = List.reverse typeDeclarationAfterDocumentation.tailVariantsReverse
                                     }
                                 )
                                 |> Combine.succeed
@@ -548,9 +547,8 @@ typeOrTypeAliasDefinitionWithoutDocumentation =
                                 { documentation = Nothing
                                 , name = typeDeclarationAfterDocumentation.name
                                 , generics = typeDeclarationAfterDocumentation.parameters
-                                , constructors =
-                                    typeDeclarationAfterDocumentation.headVariant
-                                        :: List.reverse typeDeclarationAfterDocumentation.tailVariantsReverse
+                                , firstConstructor = typeDeclarationAfterDocumentation.headVariant
+                                , restOfConstructors = List.reverse typeDeclarationAfterDocumentation.tailVariantsReverse
                                 }
                             )
 
