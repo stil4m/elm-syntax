@@ -163,9 +163,6 @@ noRangePattern (Node _ p) =
             HexPattern h ->
                 HexPattern h
 
-            FloatPattern f ->
-                FloatPattern f
-
             IntPattern i ->
                 IntPattern i
 
