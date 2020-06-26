@@ -60,7 +60,6 @@ type Pattern
     | StringPattern String
     | IntPattern Int
     | HexPattern Int
-    | FloatPattern Float
     | TuplePattern (List (Node Pattern))
     | RecordPattern (List (Node String))
     | UnConsPattern (Node Pattern) (Node Pattern)
@@ -155,13 +154,6 @@ encode pattern =
                     ]
                 )
 
-        FloatPattern f ->
-            encodeTyped "float"
-                (JE.object
-                    [ ( "value", JE.float f )
-                    ]
-                )
-
         TuplePattern patterns ->
             encodeTyped "tuple"
                 (JE.object
@@ -238,7 +230,6 @@ decoder =
                 , ( "string", JD.field "value" JD.string |> JD.map StringPattern )
                 , ( "hex", JD.int |> JD.map HexPattern )
                 , ( "int", JD.field "value" JD.int |> JD.map IntPattern )
-                , ( "float", JD.field "value" JD.float |> JD.map FloatPattern )
                 , ( "tuple", JD.field "value" (JD.list (Node.decoder decoder)) |> JD.map TuplePattern )
                 , ( "record", JD.field "value" (JD.list (Node.decoder JD.string)) |> JD.map RecordPattern )
                 , ( "uncons", JD.map2 UnConsPattern (JD.field "left" (Node.decoder decoder)) (JD.field "right" (Node.decoder decoder)) )

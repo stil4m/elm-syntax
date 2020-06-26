@@ -64,7 +64,7 @@ variablePart =
 
 numberPart : Parser state (Node Pattern)
 numberPart =
-    Elm.Parser.Numbers.number IntPattern HexPattern
+    Elm.Parser.Numbers.integer IntPattern HexPattern
         |> Node.parserFromCore
 
 
