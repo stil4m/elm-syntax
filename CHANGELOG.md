@@ -25,6 +25,9 @@
   - `Elm.Syntax.Expression.CaseBlock`'s `cases : List Case` field is split into `firstCase : Case` and `restOfCases : List Case` (takes a non-empty list of cases)
 
 - Changed `Elm.Syntax.TypeAnnotation.TypeAnnotation`:
+  - Removed `FloatPattern` (it was not possible to get)
+
+- Changed `Elm.Syntax.TypeAnnotation.TypeAnnotation`:
   - `Tupled` -> `Tuple`
   - `Unit` -> `Tuple []`
   - Renamed `Typed` to `Type`
