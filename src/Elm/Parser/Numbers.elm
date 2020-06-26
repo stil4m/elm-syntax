@@ -1,4 +1,4 @@
-module Elm.Parser.Numbers exposing (forgivingNumber, number)
+module Elm.Parser.Numbers exposing (forgivingNumber, integer)
 
 import Parser
 
@@ -21,6 +21,6 @@ forgivingNumber floatf intf hexf =
     Parser.backtrackable (raw (Just floatf) intf hexf)
 
 
-number : (Int -> a) -> (Int -> a) -> Parser.Parser a
-number intf hexf =
+integer : (Int -> a) -> (Int -> a) -> Parser.Parser a
+integer intf hexf =
     raw Nothing intf hexf
