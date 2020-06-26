@@ -51,7 +51,6 @@ type Pattern
     | StringPattern String
     | IntPattern Int
     | HexPattern Int
-    | FloatPattern Float
     | TuplePattern (List (Node Pattern))
     | RecordPattern (List (Node String))
     | UnConsPattern (Node Pattern) (Node Pattern)
@@ -101,7 +100,3 @@ moduleNames p =
 
         _ ->
             []
-
-
-
---
