@@ -1,16 +1,15 @@
 module Elm.Syntax.DestructurPattern exposing
-    ( QualifiedNameRef
+    ( DestructurPattern(..)
     , moduleNames
     , encode, decoder
-    , DestructurPattern(..)
     )
 
 {-|
 
 
-# Pattern Syntax
+# Destructur pattern Syntax
 
-This syntax represents the patterns.
+This syntax represents patterns used for destructuring data.
 For example:
 
     Just x as someMaybe
@@ -19,7 +18,7 @@ For example:
 
 # Types
 
-@docs Pattern, QualifiedNameRef
+@docs DestructurPattern
 
 
 ## Functions
@@ -36,27 +35,21 @@ For example:
 import Elm.Json.Util exposing (decodeTyped, encodeTyped)
 import Elm.Syntax.ModuleName as ModuleName exposing (ModuleName)
 import Elm.Syntax.Node as Node exposing (Node(..))
+import Elm.Syntax.Pattern exposing (QualifiedNameRef)
 import Json.Decode as JD exposing (Decoder)
 import Json.Encode as JE exposing (Value)
 
 
-{-| Custom type for all patterns such as:
+{-| Custom type for all destructur patterns such as:
 
-  - `AllPattern`: `_`
-  - `UnitPattern`: `()`
-  - `CharPattern`: `'c'`
-  - `StringPattern`: `"hello"`
-  - `IntPattern`: `42`
-  - `HexPattern`: `0x11`
-  - `FloatPattern`: `42.0`
-  - `TuplePattern`: `(a, b)`
-  - `RecordPattern`: `{name, age}`
-  - `UnConsPattern`: `x :: xs`
-  - `ListPattern`: `[ x, y ]`
-  - `VarPattern`: `x`
-  - `NamedPattern`: `Just _`
-  - `AsPattern`: `_ as x`
-  - `ParenthesizedPattern`: `( _ )`
+  - `AllPattern_`: `_`
+  - `UnitPattern_`: `()`
+  - `TuplePattern_`: `(a, b)`
+  - `RecordPattern_`: `{name, age}`
+  - `VarPattern_`: `x`
+  - `NamedPattern_`: `Just _`
+  - `AsPattern_`: `_ as x`
+  - `ParenthesizedPattern_`: `( _ )`
 
 -}
 type DestructurPattern
@@ -68,14 +61,6 @@ type DestructurPattern
     | NamedPattern_ QualifiedNameRef (List (Node DestructurPattern))
     | AsPattern_ (Node DestructurPattern) (Node String)
     | ParenthesizedPattern_ (Node DestructurPattern)
-
-
-{-| Qualified name reference such as `Maybe.Just`.
--}
-type alias QualifiedNameRef =
-    { moduleName : List String
-    , name : String
-    }
 
 
 {-| Get all the modules names that are used in the pattern (and its nested patterns).
@@ -111,7 +96,7 @@ moduleNames p =
 -- Serialization
 
 
-{-| Encode a `Pattern` syntax element to JSON.
+{-| Encode a `DestructurPattern` syntax element to JSON.
 -}
 encode : DestructurPattern -> Value
 encode pattern =
@@ -170,7 +155,7 @@ encode pattern =
                 )
 
 
-{-| JSON decoder for a `Pattern` syntax element.
+{-| JSON decoder for a `DestructurPattern` syntax element.
 -}
 decoder : Decoder DestructurPattern
 decoder =
@@ -194,17 +179,3 @@ decodeQualifiedNameRef =
     JD.map2 QualifiedNameRef
         (JD.field "moduleName" ModuleName.decoder)
         (JD.field "name" JD.string)
-
-
-decodeChar : Decoder Char
-decodeChar =
-    JD.string
-        |> JD.andThen
-            (\s ->
-                case String.uncons s of
-                    Just ( c, _ ) ->
-                        JD.succeed c
-
-                    Nothing ->
-                        JD.fail "Not a char"
-            )
