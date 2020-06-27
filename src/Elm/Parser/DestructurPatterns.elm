@@ -1,12 +1,11 @@
 module Elm.Parser.DestructurPatterns exposing (destructurPattern)
 
-import Combine exposing (Parser, between, choice, lazy, many, maybe, parens, sepBy, string, succeed)
+import Combine exposing (Parser, between, lazy, many, maybe, parens, sepBy, string)
 import Elm.Parser.Base as Base
 import Elm.Parser.Layout as Layout
 import Elm.Parser.Node as Node
-import Elm.Parser.Numbers
 import Elm.Parser.State exposing (State)
-import Elm.Parser.Tokens exposing (characterLiteral, functionName, stringLiteral)
+import Elm.Parser.Tokens exposing (functionName)
 import Elm.Syntax.DestructurPattern exposing (DestructurPattern(..))
 import Elm.Syntax.Node as Node exposing (Node(..))
 import Elm.Syntax.Pattern exposing (Pattern(..), QualifiedNameRef)
