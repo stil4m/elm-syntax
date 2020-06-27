@@ -118,9 +118,8 @@ suite =
                                 Nothing
                                 (Node emptyRange "Sample")
                                 []
-                                [ Node emptyRange <| ValueConstructor (Node emptyRange "Foo") []
-                                , Node emptyRange <| ValueConstructor (Node emptyRange "Bar") []
-                                ]
+                                (Node emptyRange <| ValueConstructor (Node emptyRange "Foo") [])
+                                [ Node emptyRange <| ValueConstructor (Node emptyRange "Bar") [] ]
                             )
                     )
                         |> Writer.writeDeclaration
