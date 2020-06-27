@@ -591,9 +591,6 @@ writePattern (Node _ p) =
         IntPattern i ->
             string (String.fromInt i)
 
-        FloatPattern f ->
-            string (String.fromFloat f)
-
         TuplePattern inner ->
             parensComma False (List.map writePattern inner)
 
