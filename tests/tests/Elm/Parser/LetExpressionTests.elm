@@ -6,6 +6,7 @@ import Elm.Parser.Declarations as Parser exposing (..)
 import Elm.Parser.Layout as Layout
 import Elm.Parser.State exposing (emptyState)
 import Elm.Parser.Tokens exposing (functionName)
+import Elm.Syntax.DeconstructPattern exposing (DeconstructPattern(..))
 import Elm.Syntax.Expression exposing (..)
 import Elm.Syntax.Node as Node exposing (Node(..))
 import Elm.Syntax.Pattern exposing (..)
@@ -166,7 +167,7 @@ all =
                                 { declarations =
                                     [ Node emptyRange <|
                                         LetDestructuring
-                                            (Node emptyRange AllPattern)
+                                            (Node emptyRange AllPattern_)
                                             (Node emptyRange <| FunctionOrValue [] "b")
                                     ]
                                 , expression = Node emptyRange <| FunctionOrValue [] "z"

@@ -1,6 +1,7 @@
 module Elm.Parser.Declarations exposing (caseBlock, caseStatement, caseStatements, declaration, expression, function, functionArgument, functionSignature, letBlock, letBody, letExpression, signature)
 
 import Combine exposing (Parser, choice, lazy, many, maybe, modifyState, or, sepBy1, string, succeed, withLocation)
+import Elm.Parser.DeconstructPatterns as DeconstructPatterns
 import Elm.Parser.Infix as Infix
 import Elm.Parser.Layout as Layout
 import Elm.Parser.Node as Node
@@ -13,6 +14,7 @@ import Elm.Parser.TypeAnnotation exposing (typeAnnotation)
 import Elm.Parser.Typings as Typings exposing (typeDefinition)
 import Elm.Parser.Whitespace exposing (manySpaces)
 import Elm.Syntax.Declaration exposing (..)
+import Elm.Syntax.DeconstructPattern exposing (DeconstructPattern(..))
 import Elm.Syntax.Expression as Expression exposing (Case, CaseBlock, Expression(..), Function, FunctionImplementation, Lambda, LetBlock, LetDeclaration(..), RecordSetter)
 import Elm.Syntax.ModuleName exposing (ModuleName)
 import Elm.Syntax.Node as Node exposing (Node(..))
@@ -146,9 +148,9 @@ portDeclaration =
         )
 
 
-functionArgument : Parser State (Node Pattern)
+functionArgument : Parser State (Node DeconstructPattern)
 functionArgument =
-    pattern
+    DeconstructPatterns.deconstructPattern
 
 
 
@@ -496,11 +498,11 @@ letBody =
         (\() ->
             let
                 blockElement =
-                    pattern
+                    DeconstructPatterns.deconstructPattern
                         |> Combine.andThen
                             (\(Node r p) ->
                                 case p of
-                                    VarPattern v ->
+                                    VarPattern_ v ->
                                         functionWithNameNode (Node r v)
                                             |> Combine.map LetFunction
 
@@ -514,7 +516,7 @@ letBody =
         )
 
 
-letDestructuringDeclarationWithPattern : Node Pattern -> Parser State LetDeclaration
+letDestructuringDeclarationWithPattern : Node DeconstructPattern -> Parser State LetDeclaration
 letDestructuringDeclarationWithPattern p =
     lazy
         (\() ->

@@ -3,6 +3,7 @@ module Elm.Parser.ExpressionTests exposing (all)
 import Combine exposing (whitespace)
 import Elm.Parser.CombineTestUtil exposing (..)
 import Elm.Parser.Declarations exposing (..)
+import Elm.Syntax.DeconstructPattern exposing (DeconstructPattern(..))
 import Elm.Syntax.Expression exposing (..)
 import Elm.Syntax.Node as Node exposing (Node(..))
 import Elm.Syntax.Pattern exposing (..)
@@ -446,7 +447,7 @@ all =
                                     (ParenthesizedExpression
                                         (Node emptyRange
                                             (LambdaExpression
-                                                { args = [ Node emptyRange (VarPattern "c") ]
+                                                { args = [ Node emptyRange (VarPattern_ "c") ]
                                                 , expression =
                                                     Node emptyRange
                                                         (Application

@@ -12,6 +12,7 @@ Write a file to a string.
 -}
 
 import Elm.Syntax.Declaration exposing (..)
+import Elm.Syntax.DeconstructPattern exposing (DeconstructPattern(..))
 import Elm.Syntax.Documentation exposing (..)
 import Elm.Syntax.Exposing exposing (..)
 import Elm.Syntax.Expression exposing (..)
@@ -227,7 +228,7 @@ writeFunctionImplementation declaration =
     breaked
         [ spaced
             [ string <| Node.value declaration.name
-            , spaced (List.map writePattern declaration.arguments)
+            , spaced (List.map writeDeconstructPattern declaration.arguments)
             , string "="
             ]
         , indent 4 (writeExpression declaration.expression)
@@ -326,10 +327,10 @@ writeInfix { direction, precedence, operator, function } =
         ]
 
 
-writeDestructuring : Node Pattern -> Node Expression -> Writer
+writeDestructuring : Node DeconstructPattern -> Node Expression -> Writer
 writeDestructuring pattern expression =
     breaked
-        [ spaced [ writePattern pattern, string "=" ]
+        [ spaced [ writeDeconstructPattern pattern, string "=" ]
         , indent 4 (writeExpression expression)
         ]
 
@@ -533,7 +534,7 @@ writeExpression (Node range inner) =
             spaced
                 [ join
                     [ string "\\"
-                    , spaced (List.map writePattern lambda.args)
+                    , spaced (List.map writeDeconstructPattern lambda.args)
                     ]
                 , string "->"
                 , writeExpression lambda.expression
@@ -617,6 +618,37 @@ writePattern (Node _ p) =
 
         ParenthesizedPattern innerPattern ->
             spaced [ string "(", writePattern innerPattern, string ")" ]
+
+
+writeDeconstructPattern : Node DeconstructPattern -> Writer
+writeDeconstructPattern (Node _ p) =
+    case p of
+        AllPattern_ ->
+            string "_"
+
+        UnitPattern_ ->
+            string "()"
+
+        TuplePattern_ inner ->
+            parensComma False (List.map writeDeconstructPattern inner)
+
+        RecordPattern_ inner ->
+            bracesComma False (List.map (Node.value >> string) inner)
+
+        VarPattern_ var ->
+            string var
+
+        NamedPattern_ qnr others ->
+            spaced
+                [ writeQualifiedNameRef qnr
+                , spaced (List.map writeDeconstructPattern others)
+                ]
+
+        AsPattern_ innerPattern asName ->
+            spaced [ writeDeconstructPattern innerPattern, string "as", string <| Node.value asName ]
+
+        ParenthesizedPattern_ innerPattern ->
+            spaced [ string "(", writeDeconstructPattern innerPattern, string ")" ]
 
 
 writeQualifiedNameRef : QualifiedNameRef -> Writer
