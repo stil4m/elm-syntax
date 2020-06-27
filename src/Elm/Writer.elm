@@ -12,7 +12,7 @@ Write a file to a string.
 -}
 
 import Elm.Syntax.Declaration exposing (..)
-import Elm.Syntax.DeconstructPattern exposing (DeconstructPattern(..))
+import Elm.Syntax.DestructurPattern exposing (DestructurPattern(..))
 import Elm.Syntax.Documentation exposing (..)
 import Elm.Syntax.Exposing exposing (..)
 import Elm.Syntax.Expression exposing (..)
@@ -228,7 +228,7 @@ writeFunctionImplementation declaration =
     breaked
         [ spaced
             [ string <| Node.value declaration.name
-            , spaced (List.map writeDeconstructPattern declaration.arguments)
+            , spaced (List.map writeDestructurPattern declaration.arguments)
             , string "="
             ]
         , indent 4 (writeExpression declaration.expression)
@@ -327,10 +327,10 @@ writeInfix { direction, precedence, operator, function } =
         ]
 
 
-writeDestructuring : Node DeconstructPattern -> Node Expression -> Writer
+writeDestructuring : Node DestructurPattern -> Node Expression -> Writer
 writeDestructuring pattern expression =
     breaked
-        [ spaced [ writeDeconstructPattern pattern, string "=" ]
+        [ spaced [ writeDestructurPattern pattern, string "=" ]
         , indent 4 (writeExpression expression)
         ]
 
@@ -534,7 +534,7 @@ writeExpression (Node range inner) =
             spaced
                 [ join
                     [ string "\\"
-                    , spaced (List.map writeDeconstructPattern lambda.args)
+                    , spaced (List.map writeDestructurPattern lambda.args)
                     ]
                 , string "->"
                 , writeExpression lambda.expression
@@ -620,8 +620,8 @@ writePattern (Node _ p) =
             spaced [ string "(", writePattern innerPattern, string ")" ]
 
 
-writeDeconstructPattern : Node DeconstructPattern -> Writer
-writeDeconstructPattern (Node _ p) =
+writeDestructurPattern : Node DestructurPattern -> Writer
+writeDestructurPattern (Node _ p) =
     case p of
         AllPattern_ ->
             string "_"
@@ -630,7 +630,7 @@ writeDeconstructPattern (Node _ p) =
             string "()"
 
         TuplePattern_ inner ->
-            parensComma False (List.map writeDeconstructPattern inner)
+            parensComma False (List.map writeDestructurPattern inner)
 
         RecordPattern_ inner ->
             bracesComma False (List.map (Node.value >> string) inner)
@@ -641,14 +641,14 @@ writeDeconstructPattern (Node _ p) =
         NamedPattern_ qnr others ->
             spaced
                 [ writeQualifiedNameRef qnr
-                , spaced (List.map writeDeconstructPattern others)
+                , spaced (List.map writeDestructurPattern others)
                 ]
 
         AsPattern_ innerPattern asName ->
-            spaced [ writeDeconstructPattern innerPattern, string "as", string <| Node.value asName ]
+            spaced [ writeDestructurPattern innerPattern, string "as", string <| Node.value asName ]
 
         ParenthesizedPattern_ innerPattern ->
-            spaced [ string "(", writeDeconstructPattern innerPattern, string ")" ]
+            spaced [ string "(", writeDestructurPattern innerPattern, string ")" ]
 
 
 writeQualifiedNameRef : QualifiedNameRef -> Writer

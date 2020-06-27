@@ -3,7 +3,7 @@ module Elm.Parser.CombineTestUtil exposing (emptyRanged, noRangeDeclaration, noR
 import Combine exposing (..)
 import Elm.Parser.State exposing (State, emptyState)
 import Elm.Syntax.Declaration exposing (..)
-import Elm.Syntax.DeconstructPattern exposing (DeconstructPattern(..))
+import Elm.Syntax.DestructurPattern exposing (DestructurPattern(..))
 import Elm.Syntax.Exposing exposing (..)
 import Elm.Syntax.Expression exposing (..)
 import Elm.Syntax.File exposing (..)
@@ -196,8 +196,8 @@ noRangePattern (Node r p) =
                 TuplePattern (List.map noRangePattern x)
 
 
-noRangeDeconstructPattern : Node DeconstructPattern -> Node DeconstructPattern
-noRangeDeconstructPattern (Node r p) =
+noRangeDestructurPattern : Node DestructurPattern -> Node DestructurPattern
+noRangeDestructurPattern (Node r p) =
     Node emptyRange <|
         case p of
             RecordPattern_ ls ->
@@ -207,13 +207,13 @@ noRangeDeconstructPattern (Node r p) =
                 VarPattern_ x
 
             NamedPattern_ x y ->
-                NamedPattern_ x (List.map noRangeDeconstructPattern y)
+                NamedPattern_ x (List.map noRangeDestructurPattern y)
 
             ParenthesizedPattern_ x ->
-                ParenthesizedPattern_ (noRangeDeconstructPattern x)
+                ParenthesizedPattern_ (noRangeDestructurPattern x)
 
             AsPattern_ x y ->
-                AsPattern_ (noRangeDeconstructPattern x) (unRange y)
+                AsPattern_ (noRangeDestructurPattern x) (unRange y)
 
             AllPattern_ ->
                 AllPattern_
@@ -222,7 +222,7 @@ noRangeDeconstructPattern (Node r p) =
                 UnitPattern_
 
             TuplePattern_ x ->
-                TuplePattern_ (List.map noRangeDeconstructPattern x)
+                TuplePattern_ (List.map noRangeDestructurPattern x)
 
 
 unRange : Node a -> Node a
@@ -295,7 +295,7 @@ noRangeLetDeclaration (Node _ decl) =
                 LetFunction (noRangeFunction function)
 
             LetDestructuring pattern expression ->
-                LetDestructuring (noRangeDeconstructPattern pattern) (noRangeExpression expression)
+                LetDestructuring (noRangeDestructurPattern pattern) (noRangeExpression expression)
 
 
 noRangeTypeAlias : TypeAlias -> TypeAlias
@@ -372,7 +372,7 @@ noRangeFunctionImplementation : FunctionImplementation -> FunctionImplementation
 noRangeFunctionImplementation d =
     { d
         | expression = noRangeExpression d.expression
-        , arguments = List.map noRangeDeconstructPattern d.arguments
+        , arguments = List.map noRangeDestructurPattern d.arguments
         , name = unRange d.name
     }
 
@@ -407,7 +407,7 @@ noRangeInnerExpression inner =
             LambdaExpression
                 { lambda
                     | expression = noRangeExpression lambda.expression
-                    , args = List.map noRangeDeconstructPattern lambda.args
+                    , args = List.map noRangeDestructurPattern lambda.args
                 }
 
         RecordUpdateExpression name firstUpdate updates ->

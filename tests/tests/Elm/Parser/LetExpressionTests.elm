@@ -6,7 +6,7 @@ import Elm.Parser.Declarations as Parser exposing (..)
 import Elm.Parser.Layout as Layout
 import Elm.Parser.State exposing (emptyState)
 import Elm.Parser.Tokens exposing (functionName)
-import Elm.Syntax.DeconstructPattern exposing (DeconstructPattern(..))
+import Elm.Syntax.DestructurPattern exposing (DestructurPattern(..))
 import Elm.Syntax.Expression exposing (..)
 import Elm.Syntax.Node as Node exposing (Node(..))
 import Elm.Syntax.Pattern exposing (..)
