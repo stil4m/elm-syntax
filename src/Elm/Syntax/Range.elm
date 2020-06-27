@@ -1,6 +1,7 @@
 module Elm.Syntax.Range exposing
     ( Range, Location
     , emptyRange, combine
+    , compare, compareLocations
     , encode, decoder
     )
 
@@ -15,6 +16,13 @@ module Elm.Syntax.Range exposing
 # Functions
 
 @docs emptyRange, combine
+
+
+# Comparison
+
+See also [Basics.compare](https://package.elm-lang.org/packages/elm/core/latest/Basics#compare).
+
+@docs compare, compareLocations
 
 
 # Json
@@ -109,13 +117,27 @@ sortLocations =
     List.sortWith compareLocations
 
 
+{-| Compare the position of two Ranges.
+-}
+compare : Range -> Range -> Order
+compare left right =
+    case compareLocations left.start right.start of
+        EQ ->
+            compareLocations left.end right.end
+
+        order ->
+            order
+
+
+{-| Compare two Locations.
+-}
 compareLocations : Location -> Location -> Order
 compareLocations left right =
     if left.row < right.row then
         LT
 
-    else if right.row < left.row then
+    else if left.row > right.row then
         GT
 
     else
-        compare left.column right.column
+        Basics.compare left.column right.column
