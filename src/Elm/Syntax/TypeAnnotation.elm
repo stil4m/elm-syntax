@@ -16,7 +16,7 @@ For example:
 
 ## Types
 
-@docs TypeAnnotation, RecordDefinition, RecordField
+@docs TypeAnnotation, RecordField
 
 
 ## Serialization
