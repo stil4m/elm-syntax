@@ -102,7 +102,7 @@ all =
                     |> Expect.equal
                         (Just <|
                             Node emptyRange <|
-                                Record [] Nothing
+                                Record []
                         )
         , test "recordTypeReference one field" <|
             \() ->
@@ -113,7 +113,6 @@ all =
                             Node emptyRange <|
                                 Record
                                     [ Node emptyRange ( Node emptyRange "color", Node emptyRange <| Type (Node emptyRange ( [], "String" )) [] ) ]
-                                    Nothing
                         )
         , test "record with generic" <|
             \() ->
@@ -122,11 +121,10 @@ all =
                     |> Expect.equal
                         (Just
                             (Node emptyRange <|
-                                Record
-                                    [ Node emptyRange ( Node emptyRange "position", Node emptyRange <| Type (Node emptyRange <| ( [], "Vec2" )) [] )
-                                    , Node emptyRange ( Node emptyRange "texture", Node emptyRange <| Type (Node emptyRange ( [], "Vec2" )) [] )
-                                    ]
-                                    (Just (Node emptyRange "attr"))
+                                ExtensionRecord
+                                    (Node emptyRange "attr")
+                                    (Node emptyRange ( Node emptyRange "position", Node emptyRange <| Type (Node emptyRange <| ( [], "Vec2" )) [] ))
+                                    [ Node emptyRange ( Node emptyRange "texture", Node emptyRange <| Type (Node emptyRange ( [], "Vec2" )) [] ) ]
                             )
                         )
         , test "recordTypeReference nested record" <|
@@ -145,10 +143,8 @@ all =
                                                 , Node emptyRange ( Node emptyRange "g", Node emptyRange <| Type (Node emptyRange ( [], "Int" )) [] )
                                                 , Node emptyRange ( Node emptyRange "b", Node emptyRange <| Type (Node emptyRange ( [], "Int" )) [] )
                                                 ]
-                                                Nothing
                                         )
                                     ]
-                                    Nothing
                             )
                         )
         , test "recordTypeReference with generic" <|
@@ -164,7 +160,6 @@ all =
                                         , Node emptyRange <| Var "s"
                                         )
                                     ]
-                                    Nothing
                             )
                         )
         , test "function type reference" <|

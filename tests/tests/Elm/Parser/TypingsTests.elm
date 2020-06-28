@@ -53,7 +53,6 @@ all =
                                             , Node emptyRange <| Elm.Syntax.TypeAnnotation.Type (Node emptyRange <| ( [], "String" )) []
                                             )
                                         ]
-                                        Nothing
                             }
                         )
         , test "type alias with Var " <|
@@ -74,9 +73,36 @@ all =
                                             , Node emptyRange <| Var "a"
                                             )
                                         ]
-                                        Nothing
                             }
                         )
+        , test "type alias extension record" <|
+            \() ->
+                parseFullStringWithNullState "type alias Foo abc = { abc |color: String }" Parser.typeDefinition
+                    |> Maybe.andThen asTypeAlias
+                    |> Maybe.map noRangeTypeAlias
+                    |> Expect.equal
+                        (Just <|
+                            { documentation = Nothing
+                            , name = Node emptyRange "Foo"
+                            , generics = [ Node emptyRange "abc" ]
+                            , typeAnnotation =
+                                Node emptyRange <|
+                                    ExtensionRecord
+                                        (Node emptyRange "abc")
+                                        (Node emptyRange <|
+                                            ( Node emptyRange <| "color"
+                                            , Node emptyRange <| Elm.Syntax.TypeAnnotation.Type (Node emptyRange <| ( [], "String" )) []
+                                            )
+                                        )
+                                        []
+                            }
+                        )
+        , test "type alias extension record with no fields fails" <|
+            \() ->
+                parseFullStringWithNullState "type alias Foo abc = { abc |  }" Parser.typeDefinition
+                    |> Maybe.andThen asTypeAlias
+                    |> Maybe.map noRangeTypeAlias
+                    |> Expect.equal Nothing
         , test "type" <|
             \() ->
                 parseFullStringWithNullState "type Color = Blue String | Red | Green" Parser.typeDefinition
