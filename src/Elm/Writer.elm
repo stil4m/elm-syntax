@@ -534,7 +534,7 @@ writeExpression (Node range inner) =
             spaced
                 [ join
                     [ string "\\"
-                    , spaced (List.map writeDestructurPattern lambda.args)
+                    , spaced (List.map writeDestructurPattern (lambda.firstArg :: lambda.restOfArgs))
                     ]
                 , string "->"
                 , writeExpression lambda.expression

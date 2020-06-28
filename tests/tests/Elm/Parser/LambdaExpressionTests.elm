@@ -22,7 +22,8 @@ all =
                     |> Expect.equal
                         (Just
                             (LambdaExpression
-                                { args = [ Node emptyRange UnitPattern_ ]
+                                { firstArg = Node emptyRange UnitPattern_
+                                , restOfArgs = []
                                 , expression = Node emptyRange <| FunctionOrValue [] "foo"
                                 }
                             )
@@ -40,10 +41,9 @@ all =
                     |> Expect.equal
                         (Just
                             (LambdaExpression
-                                { args =
-                                    [ Node emptyRange <| VarPattern_ "a"
-                                    , Node emptyRange <| VarPattern_ "b"
-                                    ]
+                                { firstArg =
+                                    Node emptyRange <| VarPattern_ "a"
+                                , restOfArgs = [ Node emptyRange <| VarPattern_ "b" ]
                                 , expression =
                                     Node emptyRange <|
                                         Application
@@ -61,13 +61,13 @@ all =
                     |> Expect.equal
                         (Just
                             (LambdaExpression
-                                { args =
-                                    [ Node emptyRange <|
+                                { firstArg =
+                                    Node emptyRange <|
                                         TuplePattern_
                                             [ Node emptyRange <| VarPattern_ "a"
                                             , Node emptyRange <| VarPattern_ "b"
                                             ]
-                                    ]
+                                , restOfArgs = []
                                 , expression = Node emptyRange <| Application (Node emptyRange <| FunctionOrValue [] "a") [ Node emptyRange <| Operator "+", Node emptyRange <| FunctionOrValue [] "b" ]
                                 }
                             )

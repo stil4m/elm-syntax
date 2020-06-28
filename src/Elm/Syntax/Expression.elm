@@ -135,7 +135,8 @@ type LetDeclaration
 {-| Expression for a lambda
 -}
 type alias Lambda =
-    { args : List (Node DestructurPattern)
+    { firstArg : Node DestructurPattern
+    , restOfArgs : List (Node DestructurPattern)
     , expression : Node Expression
     }
 
@@ -402,9 +403,10 @@ encodeCase ( pattern, expression ) =
 
 
 encodeLambda : Lambda -> Value
-encodeLambda { args, expression } =
+encodeLambda { firstArg, restOfArgs, expression } =
     JE.object
-        [ ( "patterns", JE.list (Node.encode DestructurPattern.encode) args )
+        [ ( "firstArg", Node.encode DestructurPattern.encode firstArg )
+        , ( "restOfArgs", JE.list (Node.encode DestructurPattern.encode) restOfArgs )
         , ( "expression", Node.encode encode expression )
         ]
 
@@ -484,8 +486,9 @@ decodeLambda : Decoder Lambda
 decodeLambda =
     JD.lazy
         (\() ->
-            JD.map2 Lambda
-                (JD.field "patterns" (JD.list (Node.decoder DestructurPattern.decoder)))
+            JD.map3 Lambda
+                (JD.field "firstArg" (Node.decoder DestructurPattern.decoder))
+                (JD.field "restOfArgs" (JD.list (Node.decoder DestructurPattern.decoder)))
                 (JD.field "expression" decodeNested)
         )
 

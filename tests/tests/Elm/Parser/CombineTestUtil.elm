@@ -407,7 +407,8 @@ noRangeInnerExpression inner =
             LambdaExpression
                 { lambda
                     | expression = noRangeExpression lambda.expression
-                    , args = List.map noRangeDestructurPattern lambda.args
+                    , firstArg = noRangeDestructurPattern lambda.firstArg
+                    , restOfArgs = List.map noRangeDestructurPattern lambda.restOfArgs
                 }
 
         RecordUpdateExpression name firstUpdate updates ->

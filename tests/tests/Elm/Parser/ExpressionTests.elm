@@ -447,7 +447,8 @@ all =
                                     (ParenthesizedExpression
                                         (Node emptyRange
                                             (LambdaExpression
-                                                { args = [ Node emptyRange (VarPattern_ "c") ]
+                                                { firstArg = Node emptyRange (VarPattern_ "c")
+                                                , restOfArgs = []
                                                 , expression =
                                                     Node emptyRange
                                                         (Application

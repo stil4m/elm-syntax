@@ -402,12 +402,13 @@ lambdaExpression : Parser State (Node Expression)
 lambdaExpression =
     lazy
         (\() ->
-            succeed (\args expr -> Lambda args expr |> LambdaExpression)
+            succeed (\firstArg restOfArgs expr -> Lambda firstArg restOfArgs expr |> LambdaExpression)
                 |> Combine.ignore (string "\\")
                 |> Combine.ignore (maybe Layout.layout)
-                |> Combine.andMap
-                    (sepBy1 (maybe Layout.layout) functionArgument
-                        |> Combine.map (\( head, rest ) -> head :: rest)
+                |> Combine.andThen
+                    (\lambda ->
+                        sepBy1 (maybe Layout.layout) functionArgument
+                            |> Combine.map (\( head, rest ) -> lambda head rest)
                     )
                 |> Combine.andMap (Layout.maybeAroundBothSides (string "->") |> Combine.continueWith expression)
                 |> Node.parser
