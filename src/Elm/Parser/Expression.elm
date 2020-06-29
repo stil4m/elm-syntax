@@ -27,7 +27,7 @@ subExpression =
                     literalExpression
 
                 "(" ->
-                    tupledExpressionIfNecessaryFollowedByRecordAccess
+                    tupleExpressionIfNecessaryFollowedByRecordAccess
 
                 "[" ->
                     listOrGlslExpression
@@ -1104,8 +1104,8 @@ rangeMoveStartLeftByOneColumn range =
     }
 
 
-tupledExpressionIfNecessaryFollowedByRecordAccess : Parser (WithComments (Node Expression))
-tupledExpressionIfNecessaryFollowedByRecordAccess =
+tupleExpressionIfNecessaryFollowedByRecordAccess : Parser (WithComments (Node Expression))
+tupleExpressionIfNecessaryFollowedByRecordAccess =
     ParserFast.symbolFollowedBy "("
         (ParserFast.oneOf3
             (ParserFast.symbolWithEndLocation ")"
@@ -1113,13 +1113,18 @@ tupledExpressionIfNecessaryFollowedByRecordAccess =
                     { comments = Rope.empty
                     , syntax =
                         Node { start = { row = end.row, column = end.column - 2 }, end = end }
-                            UnitExpr
+                            unit
                     }
                 )
             )
             allowedPrefixOperatorFollowedByClosingParensOneOf
-            tupledExpressionInnerAfterOpeningParens
+            tupleExpressionInnerAfterOpeningParens
         )
+
+
+unit : Expression
+unit =
+    TupleExpression []
 
 
 allowedPrefixOperatorFollowedByClosingParensOneOf : Parser (WithComments (Node Expression))
@@ -1140,8 +1145,8 @@ allowedPrefixOperatorFollowedByClosingParensOneOf =
         ")"
 
 
-tupledExpressionInnerAfterOpeningParens : Parser (WithComments (Node Expression))
-tupledExpressionInnerAfterOpeningParens =
+tupleExpressionInnerAfterOpeningParens : Parser (WithComments (Node Expression))
+tupleExpressionInnerAfterOpeningParens =
     ParserFast.map4WithRange
         (\rangeAfterOpeningParens commentsBeforeFirstPart firstPart commentsAfterFirstPart tailParts ->
             { comments =
@@ -1158,7 +1163,7 @@ tupledExpressionInnerAfterOpeningParens =
                                     { start = { row = rangeAfterOpeningParens.start.row, column = rangeAfterOpeningParens.start.column - 1 }
                                     , end = rangeAfterOpeningParens.end
                                     }
-                                    (ParenthesizedExpression firstPart.syntax)
+                                    (TupleExpression [ firstPart.syntax ])
 
                             (Node firstRecordAccessRange _) :: _ ->
                                 let
@@ -1173,7 +1178,7 @@ tupledExpressionInnerAfterOpeningParens =
 
                                     parenthesizedNode : Node Expression
                                     parenthesizedNode =
-                                        Node range (ParenthesizedExpression firstPart.syntax)
+                                        Node range (TupleExpression [ firstPart.syntax ])
                                 in
                                 recordAccesses
                                     |> List.foldl
