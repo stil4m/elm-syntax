@@ -81,7 +81,33 @@ type alias FunctionImplementation =
     }
 
 
-{-| Wrapper type for an expresion on a certain range
+{-| Custom type for all expressions such as:
+
+  - `Unit`: `()`
+  - `Application`: `add a b`
+  - `OperatorApplication`: `a + b`
+  - `FunctionOrValue`: `add`
+  - `IfBlock`: `if a then b else c`
+  - `PrefixOperator`: `(+)`
+  - `Operator`: `+` (not possible to get in practice)
+  - `Integer`: `42`
+  - `Hex`: `0x1F`
+  - `Floatable`: `42.0`
+  - `Negation`: `-a`
+  - `Literal`: `"text"`
+  - `CharLiteral`: `'a'`
+  - `TupledExpression`: `(a, b)` or `(a, b, c)`
+  - `ParenthesizedExpression`: `(a)`
+  - `LetExpression`: `let a = 4 in a`
+  - `CaseExpression`: `case a of` followed by pattern matches
+  - `LambdaExpression`: `(\a -> a)`
+  - `RecordExpr`: `{ name = "text" }`
+  - `ListExpr`: `[ x, y ]`
+  - `RecordAccess`: `a.name`
+  - `RecordAccessFunction`: `.name`
+  - `RecordUpdateExpression`: `{ a | name = "text" }`
+  - `GLSLExpression`: `[glsl| ... |]`
+
 -}
 type Expression
     = UnitExpr
