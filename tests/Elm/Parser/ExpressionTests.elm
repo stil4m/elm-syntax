@@ -84,8 +84,8 @@ all =
                 "(bar)"
                     |> expectAst
                         (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 6 } }
-                            (ParenthesizedExpression
-                                (Node { start = { row = 1, column = 2 }, end = { row = 1, column = 5 } } (FunctionOrValue [] "bar"))
+                            (TupleExpression
+                                [ Node { start = { row = 1, column = 2 }, end = { row = 1, column = 5 } } (FunctionOrValue [] "bar") ]
                             )
                         )
         , test "parenthesized expression starting with a negation" <|
@@ -93,8 +93,8 @@ all =
                 "(-1 * sign)"
                     |> expectAst
                         (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 12 } }
-                            (ParenthesizedExpression
-                                (Node { start = { row = 1, column = 2 }, end = { row = 1, column = 11 } }
+                            (TupleExpression
+                                [ Node { start = { row = 1, column = 2 }, end = { row = 1, column = 11 } }
                                     (OperatorApplication "*"
                                         Left
                                         (Node { start = { row = 1, column = 2 }, end = { row = 1, column = 4 } }
@@ -102,7 +102,7 @@ all =
                                         )
                                         (Node { start = { row = 1, column = 7 }, end = { row = 1, column = 11 } } (FunctionOrValue [] "sign"))
                                     )
-                                )
+                                ]
                             )
                         )
         , test "application expression" <|
@@ -134,8 +134,8 @@ all =
                                 , Node { start = { row = 1, column = 6 }, end = { row = 1, column = 47 } } <|
                                     Application (Node { start = { row = 1, column = 6 }, end = { row = 1, column = 12 } } <| FunctionOrValue [] "always")
                                         [ Node { start = { row = 1, column = 13 }, end = { row = 1, column = 47 } } <|
-                                            ParenthesizedExpression
-                                                (Node { start = { row = 1, column = 14 }, end = { row = 1, column = 46 } } <|
+                                            TupleExpression
+                                                [ Node { start = { row = 1, column = 14 }, end = { row = 1, column = 46 } } <|
                                                     Application (Node { start = { row = 1, column = 14 }, end = { row = 1, column = 25 } } (FunctionOrValue [ "List" ] "concat"))
                                                         [ Node { start = { row = 1, column = 26 }, end = { row = 1, column = 46 } } <|
                                                             ListExpr
@@ -148,7 +148,7 @@ all =
                                                                     ListExpr []
                                                                 ]
                                                         ]
-                                                )
+                                                ]
                                         ]
                                 ]
                         )
@@ -162,7 +162,7 @@ all =
                     |> expectAst
                         (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 16 } }
                             (Application (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 13 } } (FunctionOrValue [ "Task" ] "succeed"))
-                                [ Node { start = { row = 1, column = 14 }, end = { row = 1, column = 16 } } UnitExpr
+                                [ Node { start = { row = 1, column = 14 }, end = { row = 1, column = 16 } } (TupleExpression [])
                                 ]
                             )
                         )
@@ -384,14 +384,14 @@ all =
                 "(.spaceEvenly Internal.Style.classes)"
                     |> expectAst
                         (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 38 } }
-                            (ParenthesizedExpression
-                                (Node { start = { row = 1, column = 2 }, end = { row = 1, column = 37 } }
+                            (TupleExpression
+                                [ Node { start = { row = 1, column = 2 }, end = { row = 1, column = 37 } }
                                     (Application
                                         (Node { start = { row = 1, column = 2 }, end = { row = 1, column = 14 } } (RecordAccessFunction ".spaceEvenly"))
                                         [ Node { start = { row = 1, column = 15 }, end = { row = 1, column = 37 } } (FunctionOrValue [ "Internal", "Style" ] "classes")
                                         ]
                                     )
-                                )
+                                ]
                             )
                         )
         , test "positive integer should be invalid" <|
@@ -448,14 +448,14 @@ all =
                         (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 9 } }
                             (Negation
                                 (Node { start = { row = 1, column = 2 }, end = { row = 1, column = 9 } }
-                                    (ParenthesizedExpression
-                                        (Node { start = { row = 1, column = 3 }, end = { row = 1, column = 8 } }
+                                    (TupleExpression
+                                        [ Node { start = { row = 1, column = 3 }, end = { row = 1, column = 8 } }
                                             (OperatorApplication "-"
                                                 Left
                                                 (Node { start = { row = 1, column = 3 }, end = { row = 1, column = 4 } } (FunctionOrValue [] "x"))
                                                 (Node { start = { row = 1, column = 7 }, end = { row = 1, column = 8 } } (FunctionOrValue [] "y"))
                                             )
-                                        )
+                                        ]
                                     )
                                 )
                             )
@@ -535,8 +535,8 @@ all =
                         (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 54 } }
                             (Application (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 11 } } (FunctionOrValue [] "chompWhile"))
                                 [ Node { start = { row = 1, column = 12 }, end = { row = 1, column = 54 } }
-                                    (ParenthesizedExpression
-                                        (Node { start = { row = 1, column = 13 }, end = { row = 1, column = 53 } }
+                                    (TupleExpression
+                                        [ Node { start = { row = 1, column = 13 }, end = { row = 1, column = 53 } }
                                             (LambdaExpression
                                                 { args = [ Node { start = { row = 1, column = 14 }, end = { row = 1, column = 15 } } (VarPattern "c") ]
                                                 , expression =
@@ -576,7 +576,7 @@ all =
                                                         )
                                                 }
                                             )
-                                        )
+                                        ]
                                     )
                                 ]
                             )
