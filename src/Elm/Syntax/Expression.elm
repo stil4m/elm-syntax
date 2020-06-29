@@ -85,7 +85,7 @@ type alias FunctionImplementation =
 
   - `Application`: `add a b`
   - `OperatorApplication`: `a + b`
-  - `FunctionOrValue`: `add`
+  - `FunctionOrValue`: `add` or `True`
   - `IfBlock`: `if a then b else c`
   - `PrefixOperator`: `(+)`
   - `Operator`: `+`
