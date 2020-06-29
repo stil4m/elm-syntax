@@ -38,7 +38,7 @@ subExpression =
             , unqualifiedFunctionReferenceExpression
             , literalExpression
             , numberExpression
-            , tupledExpression
+            , tupleExpression
             , Tokens.squareStart |> Parser.Extra.continueWith expressionAfterOpeningSquareBracket
             , recordExpression
             , caseExpression
@@ -1012,8 +1012,8 @@ recordAccessFunctionExpression =
             )
 
 
-tupledExpression : Parser { comments : Comments, end : Location, expression : Expression }
-tupledExpression =
+tupleExpression : Parser { comments : Comments, end : Location, expression : Expression }
+tupleExpression =
     Tokens.parensStart
         |> Parser.Extra.continueWith
             (Parser.oneOf
@@ -1023,7 +1023,7 @@ tupledExpression =
                             (\( endRow, endColumn ) ->
                                 { comments = Rope.empty
                                 , end = { row = endRow, column = endColumn }
-                                , expression = UnitExpr
+                                , expression = TupleExpression []
                                 }
                             )
                             Parser.getPosition
@@ -1087,7 +1087,7 @@ tupledExpressionInnerAfterOpeningParens =
                             [] ->
                                 { comments = firstPart.comments |> Rope.prependTo commentsAfterFirstPart
                                 , end = { row = endRow, column = endColumn }
-                                , expression = ParenthesizedExpression firstPart.syntax
+                                , expression = TupleExpression [ firstPart.syntax ]
                                 }
 
                             _ ->
