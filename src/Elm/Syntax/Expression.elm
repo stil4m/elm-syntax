@@ -81,7 +81,31 @@ type alias FunctionImplementation =
     }
 
 
-{-| Wrapper type for an expression on a certain range
+{-| Custom type for all expressions such as:
+
+  - `Application`: `add a b`
+  - `OperatorApplication`: `a + b`
+  - `FunctionOrValue`: `add`
+  - `IfBlock`: `if a then b else c`
+  - `PrefixOperator`: `(+)`
+  - `Operator`: `+`
+  - `Integer`: `42`
+  - `Hex`: `0x1F`
+  - `Floatable`: `42.0`
+  - `Negation`: `-a`
+  - `Literal`: `"text"`
+  - `CharLiteral`: `'a'`
+  - `TupleExpression`: `()`, `(a)`, `(a, b)`, or `(a, b, c)`
+  - `LetExpression`: `let a = 4 in a`
+  - `CaseExpression`: `case a of` followed by pattern matches
+  - `LambdaExpression`: `(\a -> a)`
+  - `RecordExpr`: `{ name = "text" }`
+  - `ListExpr`: `[ x, y ]`
+  - `RecordAccess`: `a.name`
+  - `RecordAccessFunction`: `.name`
+  - `RecordUpdateExpression`: `{ a | name = "text" }`
+  - `GLSLExpression`: `[glsl| ... |]`
+
 -}
 type Expression
     = Application (Node Expression) (List (Node Expression))
