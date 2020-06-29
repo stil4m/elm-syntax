@@ -110,8 +110,7 @@ type alias FunctionImplementation =
 
 -}
 type Expression
-    = UnitExpr
-    | Application (Node Expression) (List (Node Expression))
+    = Application (Node Expression) (List (Node Expression))
     | OperatorApplication String InfixDirection (Node Expression) (Node Expression)
     | FunctionOrValue ModuleName String
     | IfBlock (Node Expression) (Node Expression) (Node Expression)
@@ -124,7 +123,6 @@ type Expression
     | Literal String
     | CharLiteral Char
     | TupleExpression (List (Node Expression))
-    | ParenthesizedExpression (Node Expression)
     | LetExpression LetBlock
     | CaseExpression CaseBlock
     | LambdaExpression Lambda
@@ -249,9 +247,6 @@ isOperatorApplication e =
 encode : Expression -> Value
 encode expr =
     case expr of
-        UnitExpr ->
-            encodeTyped "unit" JE.null
-
         Application head l ->
             encodeTyped "application" (JE.list (Node.encode encode) (head :: l))
 
@@ -303,9 +298,6 @@ encode expr =
 
         ListExpr xs ->
             encodeTyped "list" (JE.list (Node.encode encode) xs)
-
-        ParenthesizedExpression x ->
-            encodeTyped "parenthesized" (Node.encode encode x)
 
         LetExpression x ->
             encodeTyped "let" <| encodeLetBlock x
@@ -460,8 +452,7 @@ decoder =
     JD.lazy
         (\() ->
             decodeTyped
-                [ ( "unit", JD.succeed UnitExpr )
-                , ( "application"
+                [ ( "application"
                   , decodeNonemptyList decodeNested |> JD.map (\( head, rest ) -> Application head rest)
                   )
                 , ( "operatorapplication", decodeOperatorApplication )
@@ -477,7 +468,6 @@ decoder =
                 , ( "charLiteral", decodeChar |> JD.map CharLiteral )
                 , ( "tuple", JD.list decodeNested |> JD.map TupleExpression )
                 , ( "list", JD.list decodeNested |> JD.map ListExpr )
-                , ( "parenthesized", decodeNested |> JD.map ParenthesizedExpression )
                 , ( "let", decodeLetBlock |> JD.map LetExpression )
                 , ( "case", decodeCaseBlock |> JD.map CaseExpression )
                 , ( "lambda", decodeLambda |> JD.map LambdaExpression )

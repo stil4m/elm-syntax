@@ -30,7 +30,7 @@ subExpressions =
                 [ referenceExpression
                 , literalExpression
                 , numberExpression
-                , tupledExpression
+                , tupleExpression
                 , glslExpression
                 , listExpression
                 , recordExpression
@@ -491,28 +491,18 @@ recordAccessFunctionExpression =
         |> Node.parserFromCore
 
 
-tupledExpression : Parser State (Node Expression)
-tupledExpression =
-    let
-        commaSep : Parser State (List (Node Expression))
-        commaSep =
-            Combine.many
-                (Tokens.comma
-                    |> Combine.continueFromCore expression
-                )
-
-        nested : Parser State Expression
-        nested =
-            Combine.succeed asExpression
-                |> Combine.keep expression
-                |> Combine.keep commaSep
-    in
+tupleExpression : Parser State (Node Expression)
+tupleExpression =
     Tokens.parensStart
         |> Combine.continueFromCore
             (Combine.oneOf
-                [ Tokens.parensEnd |> Core.map (always UnitExpr) |> Combine.fromCore
+                [ Tokens.parensEnd
+                    |> Core.map (always (TupleExpression []))
+                    |> Combine.fromCore
                 , closingPrefixOperator
-                , nested |> Combine.ignoreEntirely Tokens.parensEnd
+                , Combine.sepBy "," expression
+                    |> Combine.map TupleExpression
+                    |> Combine.ignoreEntirely Tokens.parensEnd
                 ]
             )
         |> Node.parser
@@ -525,17 +515,6 @@ closingPrefixOperator =
         |. Core.commit ()
         |> Core.map PrefixOperator
         |> Combine.fromCore
-
-
-asExpression : Node Expression -> List (Node Expression) -> Expression
-asExpression x =
-    \xs ->
-        case xs of
-            [] ->
-                ParenthesizedExpression x
-
-            _ ->
-                TupleExpression (x :: xs)
 
 
 withIndentedState : Parser State a -> Parser State a

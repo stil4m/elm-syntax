@@ -418,9 +418,6 @@ writeExpression (Node range inner) =
             f diffLines (List.map Tuple.second l)
     in
     case inner of
-        UnitExpr ->
-            string "()"
-
         Application head xs ->
             case xs of
                 [] ->
@@ -498,9 +495,6 @@ writeExpression (Node range inner) =
 
         TupleExpression t ->
             join [ string "(", sepHelper sepByComma (List.map recurRangeHelper t), string ")" ]
-
-        ParenthesizedExpression x ->
-            join [ string "(", writeExpression x, string ")" ]
 
         LetExpression letBlock ->
             breaked

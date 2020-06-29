@@ -55,7 +55,7 @@ suite =
                 \() ->
                     (Node empty <|
                         Application (Node empty <| FunctionOrValue [] "abc")
-                            [ Node empty <| UnitExpr ]
+                            [ Node empty <| TupleExpression [] ]
                     )
                         |> Writer.writeExpression
                         |> Writer.write
@@ -325,8 +325,8 @@ suite =
                     let
                         body : Expression
                         body =
-                            ParenthesizedExpression
-                                (Node empty <|
+                            TupleExpression
+                                [ Node empty <|
                                     LambdaExpression
                                         { args = [ Node empty (VarPattern "myArgument") ]
                                         , expression =
@@ -338,7 +338,7 @@ suite =
                                                         ]
                                                     )
                                         }
-                                )
+                                ]
 
                         function : Declaration
                         function =
@@ -417,14 +417,14 @@ suite =
                                             (Node empty <| "functionName")
                                             []
                                             (Node empty
-                                                (ParenthesizedExpression
-                                                    (Node empty <|
+                                                (TupleExpression
+                                                    [ Node empty <|
                                                         LambdaExpression
                                                             { args = [ Node empty (VarPattern "myArgument") ]
                                                             , expression =
-                                                                body (body (Node empty UnitExpr))
+                                                                body (body (Node empty (TupleExpression [])))
                                                             }
-                                                    )
+                                                    ]
                                                 )
                                             )
                                     )
