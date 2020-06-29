@@ -192,7 +192,7 @@ fixApplication operators head expressions =
 
                 [] ->
                     -- This case should never happen
-                    UnitExpr
+                    TupleExpression []
 
         divideAndConquer : List (Node Expression) -> Expression
         divideAndConquer exps =
@@ -356,9 +356,6 @@ visitExpressionInner visitor context (Node range expression) =
                 expressionList
                     |> List.map subVisit
                     |> TupleExpression
-
-            ParenthesizedExpression expr1 ->
-                ParenthesizedExpression (subVisit expr1)
 
             LetExpression letBlock ->
                 LetExpression

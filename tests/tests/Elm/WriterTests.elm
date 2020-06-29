@@ -51,7 +51,11 @@ suite =
         , describe "Expression"
             [ test "write simple expression" <|
                 \() ->
-                    (Node emptyRange <| Application (Node emptyRange <| FunctionOrValue [] "abc") [ Node emptyRange <| UnitExpr ])
+                    (Node emptyRange <|
+                        Application
+                            (Node emptyRange <| FunctionOrValue [] "abc")
+                            [ Node emptyRange <| TupleExpression [] ]
+                    )
                         |> Writer.writeExpression
                         |> Writer.write
                         |> Expect.equal "abc ()"
