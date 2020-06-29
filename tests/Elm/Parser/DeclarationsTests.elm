@@ -560,14 +560,14 @@ all =
                                                     (Node { start = { row = 1, column = 31 }, end = { row = 1, column = 36 } } (FunctionOrValue [] "curry"))
                                                     [ Node { start = { row = 1, column = 37 }, end = { row = 1, column = 39 } } (Operator "<|")
                                                     , Node { start = { row = 1, column = 40 }, end = { row = 1, column = 56 } }
-                                                        (ParenthesizedExpression
-                                                            (Node { start = { row = 1, column = 41 }, end = { row = 1, column = 55 } }
+                                                        (TupleExpression
+                                                            [ Node { start = { row = 1, column = 41 }, end = { row = 1, column = 55 } }
                                                                 (Application
                                                                     (Node { start = { row = 1, column = 41 }, end = { row = 1, column = 48 } } (FunctionOrValue [] "uncurry"))
                                                                     [ Node { start = { row = 1, column = 49 }, end = { row = 1, column = 55 } } (FunctionOrValue [] "update")
                                                                     ]
                                                                 )
-                                                            )
+                                                            ]
                                                         )
                                                     , Node { start = { row = 1, column = 57 }, end = { row = 1, column = 59 } } (Operator ">>")
                                                     , Node { start = { row = 1, column = 60 }, end = { row = 1, column = 74 } } (FunctionOrValue [] "batchStateCmds")

@@ -221,7 +221,7 @@ fixExprs exps =
 
         [] ->
             -- This case should never happen
-            UnitExpr
+            TupleExpression []
 
 
 findNextSplit : ( String, SimpleInfix ) -> List ( String, SimpleInfix ) -> List (Node Expression) -> Maybe ( List (Node Expression), SimpleInfix, List (Node Expression) )
@@ -436,9 +436,6 @@ visitExpressionInner (Node range expression) =
                 expressionList
                     |> List.map visitExpression
                     |> TupleExpression
-
-            ParenthesizedExpression expr1 ->
-                ParenthesizedExpression (visitExpression expr1)
 
             LetExpression letBlock ->
                 LetExpression

@@ -443,24 +443,24 @@ bar = (x + 1) * (2 * y)
                                     OperatorApplication "*"
                                         Left
                                         (Node { start = { row = 3, column = 7 }, end = { row = 3, column = 14 } } <|
-                                            ParenthesizedExpression
-                                                (Node { start = { row = 3, column = 8 }, end = { row = 3, column = 13 } } <|
+                                            TupleExpression
+                                                [ Node { start = { row = 3, column = 8 }, end = { row = 3, column = 13 } } <|
                                                     OperatorApplication "+"
                                                         Left
                                                         (Node { start = { row = 3, column = 8 }, end = { row = 3, column = 9 } } <|
                                                             FunctionOrValue [] "x"
                                                         )
                                                         (Node { start = { row = 3, column = 12 }, end = { row = 3, column = 13 } } <| Integer 1)
-                                                )
+                                                ]
                                         )
                                         (Node { start = { row = 3, column = 17 }, end = { row = 3, column = 24 } } <|
-                                            ParenthesizedExpression
-                                                (Node { start = { row = 3, column = 18 }, end = { row = 3, column = 23 } } <|
+                                            TupleExpression
+                                                [ Node { start = { row = 3, column = 18 }, end = { row = 3, column = 23 } } <|
                                                     OperatorApplication "*"
                                                         Left
                                                         (Node { start = { row = 3, column = 18 }, end = { row = 3, column = 19 } } <| Integer 2)
                                                         (Node { start = { row = 3, column = 22 }, end = { row = 3, column = 23 } } <| FunctionOrValue [] "y")
-                                                )
+                                                ]
                                         )
                             }
                     }
@@ -585,15 +585,15 @@ bar = -(1 * 2)
                                 Node { start = { row = 3, column = 7 }, end = { row = 3, column = 15 } }
                                     (Negation
                                         (Node { start = { row = 3, column = 8 }, end = { row = 3, column = 15 } }
-                                            (ParenthesizedExpression
-                                                (Node { start = { row = 3, column = 9 }, end = { row = 3, column = 14 } }
+                                            (TupleExpression
+                                                [ Node { start = { row = 3, column = 9 }, end = { row = 3, column = 14 } }
                                                     (OperatorApplication
                                                         "*"
                                                         Left
                                                         (Node { start = { row = 3, column = 9 }, end = { row = 3, column = 10 } } (Integer 1))
                                                         (Node { start = { row = 3, column = 13 }, end = { row = 3, column = 14 } } (Integer 2))
                                                     )
-                                                )
+                                                ]
                                             )
                                         )
                                     )
@@ -634,15 +634,15 @@ bar = (1 * 2).x
                                 Node { start = { row = 3, column = 7 }, end = { row = 3, column = 16 } }
                                     (RecordAccess
                                         (Node { start = { row = 3, column = 7 }, end = { row = 3, column = 14 } }
-                                            (ParenthesizedExpression
-                                                (Node { start = { row = 3, column = 8 }, end = { row = 3, column = 13 } }
+                                            (TupleExpression
+                                                [ Node { start = { row = 3, column = 8 }, end = { row = 3, column = 13 } }
                                                     (OperatorApplication
                                                         "*"
                                                         Left
                                                         (Node { start = { row = 3, column = 8 }, end = { row = 3, column = 9 } } (Integer 1))
                                                         (Node { start = { row = 3, column = 12 }, end = { row = 3, column = 13 } } (Integer 2))
                                                     )
-                                                )
+                                                ]
                                             )
                                         )
                                         (Node { start = { row = 3, column = 15 }, end = { row = 3, column = 16 } } "x")

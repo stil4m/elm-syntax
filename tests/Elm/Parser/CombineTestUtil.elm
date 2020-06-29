@@ -363,9 +363,6 @@ noRangeInnerExpression inner =
         TupleExpression x ->
             TupleExpression <| List.map noRangeExpression x
 
-        ParenthesizedExpression x ->
-            ParenthesizedExpression <| noRangeExpression x
-
         RecordAccess e n ->
             RecordAccess (noRangeExpression e) (unRange n)
 
