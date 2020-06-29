@@ -28,7 +28,7 @@ subExpressionsOneOf =
             [ referenceExpression
             , literalExpression
             , numberExpression
-            , tupledExpression
+            , tupleExpression
             , glslExpression
             , listExpression
             , recordExpression
@@ -589,16 +589,16 @@ recordAccessFunctionExpression =
         |> Combine.fromCoreMap (\field -> RecordAccessFunction ("." ++ field))
 
 
-tupledExpression : Parser State Expression
-tupledExpression =
+tupleExpression : Parser State Expression
+tupleExpression =
     Tokens.parensStart
         |> Combine.fromCoreContinue
             (Combine.oneOf
-                ((Tokens.parensEnd |> Combine.fromCoreMap (\() -> UnitExpr))
+                ((Tokens.parensEnd |> Combine.fromCoreMap (\() -> TupleExpression []))
                     :: -- since `-` alone  could indicate negation or prefix operator,
                        -- we check for `-)` first
                        (Core.symbol "-)" |> Combine.fromCoreMap (\() -> PrefixOperator "-"))
-                    :: (tupledExpressionInnerNested |> Combine.ignoreEntirely Tokens.parensEnd)
+                    :: (tupleExpressionInnerNested |> Combine.ignoreEntirely Tokens.parensEnd)
                     -- and since prefix operators are much more rare than e.g. parenthesized
                     -- we check those later
                     :: allowedPrefixOperatorExceptMinusThenClosingParensOneOf
@@ -617,14 +617,14 @@ allowedPrefixOperatorExceptMinusThenClosingParensOneOf =
             )
 
 
-tupledExpressionInnerNested : Parser State Expression
-tupledExpressionInnerNested =
+tupleExpressionInnerNested : Parser State Expression
+tupleExpressionInnerNested =
     Combine.map
         (\firstPart ->
             \tailPartsReverse ->
                 case tailPartsReverse of
                     [] ->
-                        ParenthesizedExpression firstPart
+                        TupleExpression [ firstPart ]
 
                     _ ->
                         TupleExpression (firstPart :: List.reverse tailPartsReverse)
