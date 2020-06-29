@@ -25,7 +25,7 @@ subExpression =
         , unqualifiedFunctionReferenceExpression
         , literalExpression
         , numberExpression
-        , tupledExpression
+        , tupleExpression
         , listOrGlslExpression
         , recordExpression
         , caseExpression
@@ -897,8 +897,8 @@ recordAccessFunctionExpression =
         (ParserFast.symbolFollowedBy "." Tokens.functionName)
 
 
-tupledExpression : Parser (WithComments (Node Expression))
-tupledExpression =
+tupleExpression : Parser (WithComments (Node Expression))
+tupleExpression =
     ParserFast.symbolFollowedBy "("
         (ParserFast.oneOf
             (ParserFast.mapWithEndPosition
@@ -906,7 +906,7 @@ tupledExpression =
                     { comments = Rope.empty
                     , syntax =
                         Node { start = { row = end.row, column = end.column - 2 }, end = end }
-                            UnitExpr
+                            unit
                     }
                 )
                 (ParserFast.symbol ")" ())
@@ -927,6 +927,11 @@ tupledExpression =
                 :: allowedPrefixOperatorExceptMinusThenClosingParensOneOf
             )
         )
+
+
+unit : Expression
+unit =
+    TupleExpression []
 
 
 expressionPrefixOperatorMinus : Expression
@@ -975,7 +980,7 @@ tupledExpressionInnerAfterOpeningParens =
                             commentsBeforeFirstPart
                                 |> Rope.prependTo firstPart.comments
                                 |> Rope.prependTo commentsAfterFirstPart
-                        , syntax = ParenthesizedExpression firstPart.syntax
+                        , syntax = TupleExpression [ firstPart.syntax ]
                         }
 
                     _ ->

@@ -102,8 +102,7 @@ type alias FunctionImplementation =
 
 -}
 type Expression
-    = UnitExpr
-    | Application (Node Expression) (List (Node Expression))
+    = Application (Node Expression) (List (Node Expression))
     | OperatorApplication String InfixDirection (Node Expression) (Node Expression)
     | FunctionOrValue ModuleName String
     | IfBlock (Node Expression) (Node Expression) (Node Expression)
@@ -116,7 +115,6 @@ type Expression
     | Literal String
     | CharLiteral Char
     | TupleExpression (List (Node Expression))
-    | ParenthesizedExpression (Node Expression)
     | LetExpression LetBlock
     | CaseExpression CaseBlock
     | LambdaExpression Lambda
