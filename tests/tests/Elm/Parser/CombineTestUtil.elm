@@ -3,7 +3,7 @@ module Elm.Parser.CombineTestUtil exposing (emptyRanged, noRangeDeclaration, noR
 import Combine exposing (..)
 import Elm.Parser.State exposing (State, emptyState)
 import Elm.Syntax.Declaration exposing (..)
-import Elm.Syntax.DestructurPattern exposing (DestructurPattern(..))
+import Elm.Syntax.DestructurePattern exposing (DestructurePattern(..))
 import Elm.Syntax.Exposing exposing (..)
 import Elm.Syntax.Expression exposing (..)
 import Elm.Syntax.File exposing (..)
@@ -196,7 +196,7 @@ noRangePattern (Node r p) =
                 TuplePattern (List.map noRangePattern x)
 
 
-noRangeDestructurPattern : Node DestructurPattern -> Node DestructurPattern
+noRangeDestructurPattern : Node DestructurePattern -> Node DestructurePattern
 noRangeDestructurPattern (Node r p) =
     Node emptyRange <|
         case p of

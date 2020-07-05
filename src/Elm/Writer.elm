@@ -12,7 +12,7 @@ Write a file to a string.
 -}
 
 import Elm.Syntax.Declaration exposing (..)
-import Elm.Syntax.DestructurPattern exposing (DestructurPattern(..))
+import Elm.Syntax.DestructurePattern exposing (DestructurePattern(..))
 import Elm.Syntax.Documentation exposing (..)
 import Elm.Syntax.Exposing exposing (..)
 import Elm.Syntax.Expression exposing (..)
@@ -327,7 +327,7 @@ writeInfix { direction, precedence, operator, function } =
         ]
 
 
-writeDestructuring : Node DestructurPattern -> Node Expression -> Writer
+writeDestructuring : Node DestructurePattern -> Node Expression -> Writer
 writeDestructuring pattern expression =
     breaked
         [ spaced [ writeDestructurPattern pattern, string "=" ]
@@ -620,7 +620,7 @@ writePattern (Node _ p) =
             spaced [ string "(", writePattern innerPattern, string ")" ]
 
 
-writeDestructurPattern : Node DestructurPattern -> Writer
+writeDestructurPattern : Node DestructurePattern -> Writer
 writeDestructurPattern (Node _ p) =
     case p of
         AllPattern_ ->

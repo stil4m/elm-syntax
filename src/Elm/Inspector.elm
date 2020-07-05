@@ -1,7 +1,7 @@
 module Elm.Inspector exposing (Config, Order(..), defaultConfig, inspect)
 
 import Elm.Syntax.Declaration exposing (Declaration(..))
-import Elm.Syntax.DestructurPattern exposing (DestructurPattern)
+import Elm.Syntax.DestructurePattern exposing (DestructurePattern)
 import Elm.Syntax.Expression exposing (Case, Expression(..), Function, Lambda, LetBlock, LetDeclaration(..), RecordSetter)
 import Elm.Syntax.File exposing (File)
 import Elm.Syntax.Import exposing (Import)
@@ -32,7 +32,7 @@ type alias Config context =
     , onType : Order context (Node Type)
     , onPortDeclaration : Order context (Node Port)
     , onInfixDeclaration : Order context (Node Infix)
-    , onDestructuring : Order context (Node ( Node DestructurPattern, Node Expression ))
+    , onDestructuring : Order context (Node ( Node DestructurePattern, Node Expression ))
     , onSignature : Order context (Node Signature)
     , onExpression : Order context (Node Expression)
     , onOperatorApplication :
@@ -188,7 +188,7 @@ inspectTypeAlias config ((Node _ typeAlias) as pair) context =
         context
 
 
-inspectDestructuring : Config context -> Node ( Node DestructurPattern, Node Expression ) -> context -> context
+inspectDestructuring : Config context -> Node ( Node DestructurePattern, Node Expression ) -> context -> context
 inspectDestructuring config destructuring context =
     actionLambda
         config.onDestructuring

@@ -30,7 +30,7 @@ Although it is a easy and simple language, you can express a lot! See the `Expre
 -}
 
 import Elm.Json.Util exposing (decodeTyped, encodeTyped)
-import Elm.Syntax.DestructurPattern as DestructurPattern exposing (DestructurPattern)
+import Elm.Syntax.DestructurePattern as DestructurePattern exposing (DestructurePattern)
 import Elm.Syntax.Documentation as Documentation exposing (Documentation)
 import Elm.Syntax.Infix as Infix exposing (InfixDirection)
 import Elm.Syntax.ModuleName as ModuleName exposing (ModuleName)
@@ -77,7 +77,7 @@ functionRange function =
 -}
 type alias FunctionImplementation =
     { name : Node String
-    , arguments : List (Node DestructurPattern)
+    , arguments : List (Node DestructurePattern)
     , expression : Node Expression
     }
 
@@ -129,14 +129,14 @@ type alias LetBlock =
 -}
 type LetDeclaration
     = LetFunction Function
-    | LetDestructuring (Node DestructurPattern) (Node Expression)
+    | LetDestructuring (Node DestructurePattern) (Node Expression)
 
 
 {-| Expression for a lambda
 -}
 type alias Lambda =
-    { firstArg : Node DestructurPattern
-    , restOfArgs : List (Node DestructurPattern)
+    { firstArg : Node DestructurePattern
+    , restOfArgs : List (Node DestructurePattern)
     , expression : Node Expression
     }
 
@@ -372,15 +372,15 @@ encodeFunctionDeclaration : FunctionImplementation -> Value
 encodeFunctionDeclaration { name, arguments, expression } =
     JE.object
         [ ( "name", Node.encode JE.string name )
-        , ( "arguments", JE.list (Node.encode DestructurPattern.encode) arguments )
+        , ( "arguments", JE.list (Node.encode DestructurePattern.encode) arguments )
         , ( "expression", Node.encode encode expression )
         ]
 
 
-encodeDestructuring : Node DestructurPattern -> Node Expression -> Value
+encodeDestructuring : Node DestructurePattern -> Node Expression -> Value
 encodeDestructuring pattern expression =
     JE.object
-        [ ( "pattern", Node.encode DestructurPattern.encode pattern )
+        [ ( "pattern", Node.encode DestructurePattern.encode pattern )
         , ( "expression", Node.encode encode expression )
         ]
 
@@ -405,8 +405,8 @@ encodeCase ( pattern, expression ) =
 encodeLambda : Lambda -> Value
 encodeLambda { firstArg, restOfArgs, expression } =
     JE.object
-        [ ( "firstArg", Node.encode DestructurPattern.encode firstArg )
-        , ( "restOfArgs", JE.list (Node.encode DestructurPattern.encode) restOfArgs )
+        [ ( "firstArg", Node.encode DestructurePattern.encode firstArg )
+        , ( "restOfArgs", JE.list (Node.encode DestructurePattern.encode) restOfArgs )
         , ( "expression", Node.encode encode expression )
         ]
 
@@ -487,8 +487,8 @@ decodeLambda =
     JD.lazy
         (\() ->
             JD.map3 Lambda
-                (JD.field "firstArg" (Node.decoder DestructurPattern.decoder))
-                (JD.field "restOfArgs" (JD.list (Node.decoder DestructurPattern.decoder)))
+                (JD.field "firstArg" (Node.decoder DestructurePattern.decoder))
+                (JD.field "restOfArgs" (JD.list (Node.decoder DestructurePattern.decoder)))
                 (JD.field "expression" decodeNested)
         )
 
@@ -531,7 +531,7 @@ decodeLetDeclaration =
             Node.decoder
                 (decodeTyped
                     [ ( "function", JD.map LetFunction functionDecoder )
-                    , ( "destructuring", JD.map2 LetDestructuring (JD.field "pattern" (Node.decoder DestructurPattern.decoder)) (JD.field "expression" decodeNested) )
+                    , ( "destructuring", JD.map2 LetDestructuring (JD.field "pattern" (Node.decoder DestructurePattern.decoder)) (JD.field "expression" decodeNested) )
                     ]
                 )
         )
@@ -582,6 +582,6 @@ decodeFunctionDeclaration =
         (\() ->
             JD.map3 FunctionImplementation
                 (JD.field "name" (Node.decoder JD.string))
-                (JD.field "arguments" (JD.list (Node.decoder DestructurPattern.decoder)))
+                (JD.field "arguments" (JD.list (Node.decoder DestructurePattern.decoder)))
                 (JD.field "expression" decodeNested)
         )

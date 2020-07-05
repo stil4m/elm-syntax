@@ -1,7 +1,7 @@
 module Elm.Parser.Declarations exposing (caseBlock, caseStatement, caseStatements, declaration, expression, function, functionArgument, functionSignature, letBlock, letBody, letExpression, signature)
 
 import Combine exposing (Parser, choice, lazy, many, maybe, modifyState, or, sepBy1, string, succeed, withLocation)
-import Elm.Parser.DestructurPatterns as DestructurPatterns
+import Elm.Parser.DestructurePatterns as DestructurPatterns
 import Elm.Parser.Infix as Infix
 import Elm.Parser.Layout as Layout
 import Elm.Parser.Node as Node
@@ -14,7 +14,7 @@ import Elm.Parser.TypeAnnotation exposing (typeAnnotation)
 import Elm.Parser.Typings as Typings exposing (typeDefinition)
 import Elm.Parser.Whitespace exposing (manySpaces)
 import Elm.Syntax.Declaration exposing (..)
-import Elm.Syntax.DestructurPattern exposing (DestructurPattern(..))
+import Elm.Syntax.DestructurePattern exposing (DestructurePattern(..))
 import Elm.Syntax.Expression as Expression exposing (Case, CaseBlock, Expression(..), Function, FunctionImplementation, Lambda, LetBlock, LetDeclaration(..), RecordSetter)
 import Elm.Syntax.ModuleName exposing (ModuleName)
 import Elm.Syntax.Node as Node exposing (Node(..))
@@ -148,7 +148,7 @@ portDeclaration =
         )
 
 
-functionArgument : Parser State (Node DestructurPattern)
+functionArgument : Parser State (Node DestructurePattern)
 functionArgument =
     DestructurPatterns.destructurPattern
 
@@ -517,7 +517,7 @@ letBody =
         )
 
 
-letDestructuringDeclarationWithPattern : Node DestructurPattern -> Parser State LetDeclaration
+letDestructuringDeclarationWithPattern : Node DestructurePattern -> Parser State LetDeclaration
 letDestructuringDeclarationWithPattern p =
     lazy
         (\() ->

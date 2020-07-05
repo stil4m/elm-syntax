@@ -1,7 +1,7 @@
-module Elm.Syntax.DestructurPattern exposing
-    ( DestructurPattern(..)
-    , moduleNames
+module Elm.Syntax.DestructurePattern exposing
+    ( moduleNames
     , encode, decoder
+    , DestructurePattern(..)
     )
 
 {-|
@@ -52,21 +52,21 @@ import Json.Encode as JE exposing (Value)
   - `ParenthesizedPattern_`: `( _ )`
 
 -}
-type DestructurPattern
+type DestructurePattern
     = AllPattern_
     | UnitPattern_
-    | TuplePattern_ (List (Node DestructurPattern))
+    | TuplePattern_ (List (Node DestructurePattern))
     | RecordPattern_ (List (Node String))
     | VarPattern_ String
-    | NamedPattern_ QualifiedNameRef (List (Node DestructurPattern))
-    | AsPattern_ (Node DestructurPattern) (Node String)
-    | ParenthesizedPattern_ (Node DestructurPattern)
+    | NamedPattern_ QualifiedNameRef (List (Node DestructurePattern))
+    | AsPattern_ (Node DestructurePattern) (Node String)
+    | ParenthesizedPattern_ (Node DestructurePattern)
 
 
 {-| Get all the modules names that are used in the pattern (and its nested patterns).
 Use this to collect qualified patterns, such as `Maybe.Just x`.
 -}
-moduleNames : DestructurPattern -> List ModuleName
+moduleNames : DestructurePattern -> List ModuleName
 moduleNames p =
     let
         recur =
@@ -98,7 +98,7 @@ moduleNames p =
 
 {-| Encode a `DestructurPattern` syntax element to JSON.
 -}
-encode : DestructurPattern -> Value
+encode : DestructurePattern -> Value
 encode pattern =
     case pattern of
         AllPattern_ ->
@@ -157,7 +157,7 @@ encode pattern =
 
 {-| JSON decoder for a `DestructurPattern` syntax element.
 -}
-decoder : Decoder DestructurPattern
+decoder : Decoder DestructurePattern
 decoder =
     JD.lazy
         (\() ->
