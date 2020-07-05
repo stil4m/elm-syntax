@@ -283,11 +283,6 @@ noRangeRecordField ( a, b ) =
     ( unRange a, noRangeTypeReference b )
 
 
-noRangeRecordDefinition : RecordDefinition -> RecordDefinition
-noRangeRecordDefinition =
-    List.map (unRanged noRangeRecordField)
-
-
 noRangeTypeReference : Node TypeAnnotation -> Node TypeAnnotation
 noRangeTypeReference (Node _ typeAnnotation) =
     Node emptyRange <|
@@ -301,8 +296,14 @@ noRangeTypeReference (Node _ typeAnnotation) =
             Tuple a ->
                 Tuple (List.map noRangeTypeReference a)
 
-            Record a name ->
-                Record (List.map (unRanged noRangeRecordField) a) (Maybe.map unRange name)
+            Record a ->
+                Record (List.map (unRanged noRangeRecordField) a)
+
+            ExtensionRecord generic firstField restOfFields ->
+                ExtensionRecord
+                    (unRange generic)
+                    (unRanged noRangeRecordField firstField)
+                    (List.map (unRanged noRangeRecordField) restOfFields)
 
             FunctionTypeAnnotation a b ->
                 FunctionTypeAnnotation

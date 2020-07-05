@@ -358,19 +358,17 @@ writeTypeAnnotation (Node _ typeAnnotation) =
         Tuple xs ->
             parensComma False (List.map writeTypeAnnotation xs)
 
-        Record xs generic ->
-            case generic of
-                Nothing ->
-                    bracesComma False (List.map writeRecordField xs)
+        Record xs ->
+            bracesComma False (List.map writeRecordField xs)
 
-                Just genericName ->
-                    spaced
-                        [ string "{"
-                        , string <| Node.value genericName
-                        , string "|"
-                        , sepByComma False (List.map writeRecordField xs)
-                        , string "}"
-                        ]
+        ExtensionRecord generic firstField restOfFields ->
+            spaced
+                [ string "{"
+                , string <| Node.value generic
+                , string "|"
+                , sepByComma False (List.map writeRecordField (firstField :: restOfFields))
+                , string "}"
+                ]
 
         FunctionTypeAnnotation left right ->
             let

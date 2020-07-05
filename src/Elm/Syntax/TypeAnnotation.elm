@@ -1,5 +1,5 @@
 module Elm.Syntax.TypeAnnotation exposing
-    ( TypeAnnotation(..), RecordDefinition, RecordField
+    ( TypeAnnotation(..), RecordField
     , encode, decoder
     )
 
@@ -16,7 +16,7 @@ For example:
 
 ## Types
 
-@docs TypeAnnotation, RecordDefinition, RecordField
+@docs TypeAnnotation, RecordField
 
 
 ## Serialization
@@ -37,7 +37,8 @@ import Json.Encode as JE exposing (Value)
   - `Var`: `a`
   - `Type`: `Maybe (Int -> String)`
   - `Tuples`: `(a, b, c)` or Unit `()`
-  - `Record`: `{ name : String}`
+  - `Record`: `{ name : String }`
+  - `ExtensionRecord`: `{ a | name : String }`
   - `GenericRecord`: `{ a | name : String}`
   - `FunctionTypeAnnotation`: `Int -> String`
 
@@ -46,14 +47,9 @@ type TypeAnnotation
     = Var String
     | Type (Node ( ModuleName, String )) (List (Node TypeAnnotation))
     | Tuple (List (Node TypeAnnotation))
-    | Record RecordDefinition (Maybe (Node String))
+    | Record (List (Node RecordField))
+    | ExtensionRecord (Node String) (Node RecordField) (List (Node RecordField))
     | FunctionTypeAnnotation (Node TypeAnnotation) (Node TypeAnnotation)
-
-
-{-| A list of fields in-order of a record type annotation.
--}
-type alias RecordDefinition =
-    List (Node RecordField)
 
 
 {-| Single field of a record. A name and its type.
@@ -105,21 +101,19 @@ encode typeAnnotation =
                     , ( "right", Node.encode encode right )
                     ]
 
-        Record recordDefinition generic ->
+        Record recordDefinition ->
             encodeTyped "record" <|
                 JE.object
-                    [ ( "value", encodeRecordDefinition recordDefinition )
-                    , ( "generic"
-                      , generic
-                            |> Maybe.map (Node.encode JE.string)
-                            |> Maybe.withDefault JE.null
-                      )
+                    [ ( "value", JE.list (Node.encode encodeRecordField) recordDefinition )
                     ]
 
-
-encodeRecordDefinition : RecordDefinition -> Value
-encodeRecordDefinition =
-    JE.list (Node.encode encodeRecordField)
+        ExtensionRecord generic firstField restOfFields ->
+            encodeTyped "extension" <|
+                JE.object
+                    [ ( "generic", Node.encode JE.string generic )
+                    , ( "firstField", Node.encode encodeRecordField firstField )
+                    , ( "restOfFields", JE.list (Node.encode encodeRecordField) restOfFields )
+                    ]
 
 
 encodeRecordField : RecordField -> Value
@@ -157,15 +151,13 @@ decoder =
                         (JD.field "right" nestedDecoder)
                   )
                 , ( "record"
-                  , JD.map2 Record
-                        (JD.field "value" recordDefinitionDecoder)
-                        (JD.field "generic"
-                            (JD.oneOf
-                                [ JD.null Nothing
-                                , Node.decoder JD.string |> JD.map Just
-                                ]
-                            )
-                        )
+                  , JD.map Record (JD.field "value" (JD.list <| Node.decoder recordFieldDecoder))
+                  )
+                , ( "extension"
+                  , JD.map3 ExtensionRecord
+                        (JD.field "generic" (Node.decoder JD.string))
+                        (JD.field "firstField" (Node.decoder recordFieldDecoder))
+                        (JD.field "restOfFields" (JD.list <| Node.decoder recordFieldDecoder))
                   )
                 ]
         )
@@ -174,11 +166,6 @@ decoder =
 nestedDecoder : Decoder (Node TypeAnnotation)
 nestedDecoder =
     JD.lazy (\() -> Node.decoder decoder)
-
-
-recordDefinitionDecoder : Decoder RecordDefinition
-recordDefinitionDecoder =
-    JD.lazy (\() -> JD.list <| Node.decoder recordFieldDecoder)
 
 
 recordFieldDecoder : Decoder RecordField

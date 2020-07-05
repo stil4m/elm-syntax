@@ -114,7 +114,7 @@ genericTypeAnnotation =
         )
 
 
-recordFieldsTypeAnnotation : Parser State RecordDefinition
+recordFieldsTypeAnnotation : Parser State (List (Node RecordField))
 recordFieldsTypeAnnotation =
     lazy (\() -> sepBy (string ",") (Layout.maybeAroundBothSides <| Node.parser recordFieldDefinition))
 
@@ -136,24 +136,20 @@ recordTypeAnnotation =
                         |> Combine.andMap typeAnnotation
                         |> Combine.ignore Layout.optimisticLayout
 
-                additionalRecordFields : RecordDefinition -> Parser State RecordDefinition
+                additionalRecordFields : List (Node RecordField) -> Parser State (List (Node RecordField))
                 additionalRecordFields items =
                     Combine.choice
                         [ Node.parser nextField
                             |> Combine.andThen (\next -> additionalRecordFields (next :: items))
                         , Combine.succeed (List.reverse items)
                         ]
-
-                createRecord : Maybe (Node String) -> RecordDefinition -> TypeAnnotation
-                createRecord generic definitions =
-                    Record definitions generic
             in
             Node.parser
                 (string "{"
                     |> Combine.ignore (maybe Layout.layout)
                     |> Combine.continueWith
                         (Combine.choice
-                            [ Combine.string "}" |> Combine.continueWith (Combine.succeed (Record [] Nothing))
+                            [ Combine.string "}" |> Combine.continueWith (Combine.succeed (Record []))
                             , Node.parser functionName
                                 |> Combine.ignore (maybe Layout.layout)
                                 |> Combine.andThen
@@ -162,7 +158,15 @@ recordTypeAnnotation =
                                             [ Combine.string "|"
                                                 |> Combine.continueWith recordFieldsTypeAnnotation
                                                 |> Combine.ignore (Combine.string "}")
-                                                |> Combine.map (createRecord (Just fname))
+                                                |> Combine.andThen
+                                                    (\fields ->
+                                                        case fields of
+                                                            head :: rest ->
+                                                                ExtensionRecord fname head rest |> Combine.succeed
+
+                                                            [] ->
+                                                                Combine.fail "Extension records must have at least one field."
+                                                    )
                                             , Combine.string ":"
                                                 |> Combine.ignore (maybe Layout.layout)
                                                 |> Combine.continueWith typeAnnotation
@@ -170,7 +174,7 @@ recordTypeAnnotation =
                                                 |> Combine.andThen
                                                     (\ta ->
                                                         additionalRecordFields [ Node.combine Tuple.pair fname ta ]
-                                                            |> Combine.map (createRecord Nothing)
+                                                            |> Combine.map Record
                                                     )
                                                 |> Combine.ignore (Combine.string "}")
                                             ]

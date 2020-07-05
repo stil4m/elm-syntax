@@ -195,7 +195,6 @@ type alias Foo
                                         Type (Node { end = { column = 21, row = 5 }, start = { column = 15, row = 5 } } ( [], "String" )) []
                                     )
                                 ]
-                                Nothing
                     }
             ]
       , comments = []
