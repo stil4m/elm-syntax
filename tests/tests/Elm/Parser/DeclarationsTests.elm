@@ -4,6 +4,7 @@ import Elm.Parser.CombineTestUtil exposing (..)
 import Elm.Parser.Declarations as Parser exposing (..)
 import Elm.Parser.State exposing (State, emptyState)
 import Elm.Syntax.Declaration exposing (..)
+import Elm.Syntax.DestructurePattern exposing (DestructurePattern(..))
 import Elm.Syntax.Expression exposing (..)
 import Elm.Syntax.Node as Node exposing (Node(..))
 import Elm.Syntax.Pattern exposing (..)
@@ -148,7 +149,7 @@ all =
                             (FunctionDeclaration
                                 { declaration =
                                     Node emptyRange <|
-                                        { arguments = [ Node emptyRange <| VarPattern "x" ]
+                                        { arguments = [ Node emptyRange <| VarPattern_ "x" ]
                                         , expression =
                                             Node emptyRange <|
                                                 LetExpression
@@ -205,7 +206,7 @@ all =
                                 { declaration =
                                     Node emptyRange <|
                                         { name = Node emptyRange "inc"
-                                        , arguments = [ Node emptyRange <| VarPattern "x" ]
+                                        , arguments = [ Node emptyRange <| VarPattern_ "x" ]
                                         , expression =
                                             Node emptyRange <|
                                                 Application
@@ -313,7 +314,10 @@ all =
                                 , declaration =
                                     Node emptyRange <|
                                         { name = Node emptyRange "update"
-                                        , arguments = [ Node emptyRange <| VarPattern "msg", Node emptyRange <| VarPattern "model" ]
+                                        , arguments =
+                                            [ Node emptyRange <| VarPattern_ "msg"
+                                            , Node emptyRange <| VarPattern_ "model"
+                                            ]
                                         , expression =
                                             Node emptyRange <|
                                                 CaseExpression
@@ -464,7 +468,10 @@ all =
                             FunctionDeclaration
                                 { declaration =
                                     Node emptyRange
-                                        { arguments = [ Node emptyRange <| VarPattern "update", Node emptyRange <| VarPattern "sendPort" ]
+                                        { arguments =
+                                            [ Node emptyRange <| VarPattern_ "update"
+                                            , Node emptyRange <| VarPattern_ "sendPort"
+                                            ]
                                         , expression =
                                             Node emptyRange <|
                                                 Application
@@ -498,8 +505,8 @@ all =
                                 { declaration =
                                     Node emptyRange
                                         { arguments =
-                                            [ Node emptyRange <| VarPattern "msg"
-                                            , Node emptyRange <| VarPattern "model"
+                                            [ Node emptyRange <| VarPattern_ "msg"
+                                            , Node emptyRange <| VarPattern_ "model"
                                             ]
                                         , expression =
                                             Node emptyRange <|
@@ -542,8 +549,8 @@ all =
                                 { declaration =
                                     Node emptyRange
                                         { arguments =
-                                            [ Node emptyRange <| VarPattern "msg"
-                                            , Node emptyRange <| VarPattern "model"
+                                            [ Node emptyRange <| VarPattern_ "msg"
+                                            , Node emptyRange <| VarPattern_ "model"
                                             ]
                                         , expression = Node emptyRange <| FunctionOrValue [] "msg"
                                         , name = Node emptyRange "update"

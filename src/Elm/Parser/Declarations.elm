@@ -1,6 +1,7 @@
 module Elm.Parser.Declarations exposing (caseBlock, caseStatement, caseStatements, declaration, expression, function, functionArgument, functionSignature, letBlock, letBody, letExpression, signature)
 
 import Combine exposing (Parser, choice, lazy, many, maybe, modifyState, or, sepBy1, string, succeed, withLocation)
+import Elm.Parser.DestructurePatterns as DestructurPatterns
 import Elm.Parser.Infix as Infix
 import Elm.Parser.Layout as Layout
 import Elm.Parser.Node as Node
@@ -13,6 +14,7 @@ import Elm.Parser.TypeAnnotation exposing (typeAnnotation)
 import Elm.Parser.Typings as Typings exposing (typeDefinition)
 import Elm.Parser.Whitespace exposing (manySpaces)
 import Elm.Syntax.Declaration exposing (..)
+import Elm.Syntax.DestructurePattern exposing (DestructurePattern(..))
 import Elm.Syntax.Expression as Expression exposing (Case, CaseBlock, Expression(..), Function, FunctionImplementation, Lambda, LetBlock, LetDeclaration(..), RecordSetter)
 import Elm.Syntax.ModuleName exposing (ModuleName)
 import Elm.Syntax.Node as Node exposing (Node(..))
@@ -146,9 +148,9 @@ portDeclaration =
         )
 
 
-functionArgument : Parser State (Node Pattern)
+functionArgument : Parser State (Node DestructurePattern)
 functionArgument =
-    pattern
+    DestructurPatterns.destructurPattern
 
 
 
@@ -400,12 +402,13 @@ lambdaExpression : Parser State (Node Expression)
 lambdaExpression =
     lazy
         (\() ->
-            succeed (\args expr -> Lambda args expr |> LambdaExpression)
+            succeed (\firstArg restOfArgs expr -> Lambda firstArg restOfArgs expr |> LambdaExpression)
                 |> Combine.ignore (string "\\")
                 |> Combine.ignore (maybe Layout.layout)
-                |> Combine.andMap
-                    (sepBy1 (maybe Layout.layout) functionArgument
-                        |> Combine.map (\( head, rest ) -> head :: rest)
+                |> Combine.andThen
+                    (\lambda ->
+                        sepBy1 (maybe Layout.layout) functionArgument
+                            |> Combine.map (\( head, rest ) -> lambda head rest)
                     )
                 |> Combine.andMap (Layout.maybeAroundBothSides (string "->") |> Combine.continueWith expression)
                 |> Node.parser
@@ -496,11 +499,11 @@ letBody =
         (\() ->
             let
                 blockElement =
-                    pattern
+                    DestructurPatterns.destructurPattern
                         |> Combine.andThen
                             (\(Node r p) ->
                                 case p of
-                                    VarPattern v ->
+                                    VarPattern_ v ->
                                         functionWithNameNode (Node r v)
                                             |> Combine.map LetFunction
 
@@ -514,7 +517,7 @@ letBody =
         )
 
 
-letDestructuringDeclarationWithPattern : Node Pattern -> Parser State LetDeclaration
+letDestructuringDeclarationWithPattern : Node DestructurePattern -> Parser State LetDeclaration
 letDestructuringDeclarationWithPattern p =
     lazy
         (\() ->
