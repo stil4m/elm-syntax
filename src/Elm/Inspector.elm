@@ -273,9 +273,6 @@ inspectExpression config ((Node _ expression) as node) context =
 inspectInnerExpression : Config context -> Expression -> context -> context
 inspectInnerExpression config expression context =
     case expression of
-        UnitExpr ->
-            context
-
         FunctionOrValue moduleName functionOrVal ->
             actionLambda config.onFunctionOrValue
                 identity
@@ -332,9 +329,6 @@ inspectInnerExpression config expression context =
 
         TupleExpression expressionList ->
             List.foldl (inspectExpression config) context expressionList
-
-        ParenthesizedExpression inner ->
-            inspectExpression config inner context
 
         LetExpression letBlock ->
             let

@@ -66,8 +66,8 @@ all =
                     |> Maybe.map Node.value
                     |> Expect.equal
                         (Just
-                            (ParenthesizedExpression
-                                (Node emptyRange <| FunctionOrValue [] "bar")
+                            (TupleExpression
+                                [ Node emptyRange <| FunctionOrValue [] "bar" ]
                             )
                         )
         , test "application expression" <|
@@ -107,8 +107,8 @@ all =
                                         Application
                                             (Node { start = { row = 1, column = 6 }, end = { row = 1, column = 12 } } <| FunctionOrValue [] "always")
                                             [ Node { start = { row = 1, column = 13 }, end = { row = 1, column = 47 } } <|
-                                                ParenthesizedExpression
-                                                    (Node { start = { row = 1, column = 14 }, end = { row = 1, column = 46 } } <|
+                                                TupleExpression
+                                                    [ Node { start = { row = 1, column = 14 }, end = { row = 1, column = 46 } } <|
                                                         Application
                                                             (Node { start = { row = 1, column = 14 }, end = { row = 1, column = 25 } } <|
                                                                 FunctionOrValue [ "List" ] "concat"
@@ -124,7 +124,7 @@ all =
                                                                         ListExpr []
                                                                     ]
                                                             ]
-                                                    )
+                                                    ]
                                             ]
                                     ]
                             )
@@ -146,7 +146,7 @@ all =
                                 (Node emptyRange <|
                                     FunctionOrValue [ "Task" ] "succeed"
                                 )
-                                [ Node emptyRange <| UnitExpr ]
+                                [ Node emptyRange <| TupleExpression [] ]
                             )
                         )
         , test "compoundExpression" <|
@@ -364,12 +364,12 @@ all =
                     |> Maybe.map Node.value
                     |> Expect.equal
                         (Just
-                            (ParenthesizedExpression
-                                (Node emptyRange <|
+                            (TupleExpression
+                                [ Node emptyRange <|
                                     Application
                                         (Node emptyRange <| RecordAccessFunction ".spaceEvenly")
                                         [ Node emptyRange <| FunctionOrValue [ "Internal", "Style" ] "classes" ]
-                                )
+                                ]
                             )
                         )
         , test "positive integer should be invalid" <|
@@ -422,14 +422,14 @@ all =
                         (Just
                             (Negation
                                 (Node emptyRange <|
-                                    ParenthesizedExpression
-                                        (Node emptyRange <|
+                                    TupleExpression
+                                        [ Node emptyRange <|
                                             Application
                                                 (Node emptyRange <| FunctionOrValue [] "x")
                                                 [ Node emptyRange <| Operator "-"
                                                 , Node emptyRange <| FunctionOrValue [] "y"
                                                 ]
-                                        )
+                                        ]
                                 )
                             )
                         )
@@ -443,8 +443,8 @@ all =
                             (Application
                                 (Node emptyRange (FunctionOrValue [] "chompWhile"))
                                 [ Node emptyRange
-                                    (ParenthesizedExpression
-                                        (Node emptyRange
+                                    (TupleExpression
+                                        [ Node emptyRange
                                             (LambdaExpression
                                                 { args = [ Node emptyRange (VarPattern "c") ]
                                                 , expression =
@@ -465,7 +465,7 @@ all =
                                                         )
                                                 }
                                             )
-                                        )
+                                        ]
                                     )
                                 ]
                             )

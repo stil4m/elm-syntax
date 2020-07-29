@@ -667,15 +667,6 @@ tupleExpression =
     lazy
         (\() ->
             let
-                asExpression : Node Expression -> List (Node Expression) -> Expression
-                asExpression x xs =
-                    case xs of
-                        [] ->
-                            ParenthesizedExpression x
-
-                        _ ->
-                            TupleExpression (x :: xs)
-
                 commaSep : Parser State (List (Node Expression))
                 commaSep =
                     many
@@ -687,7 +678,7 @@ tupleExpression =
 
                 nested : Parser State Expression
                 nested =
-                    Combine.succeed asExpression
+                    Combine.succeed (\head rest -> TupleExpression (head :: rest))
                         |> Combine.ignore (maybe Layout.layout)
                         |> Combine.andMap expression
                         |> Combine.ignore (maybe Layout.layout)
@@ -700,7 +691,7 @@ tupleExpression =
                 (Combine.fromCore (Core.symbol "(")
                     |> Combine.continueWith
                         (Combine.choice
-                            [ closingParen |> Combine.map (always UnitExpr)
+                            [ closingParen |> Combine.map (always (TupleExpression []))
                             , -- Backtracking needed for record access expression
                               Combine.backtrackable
                                 (prefixOperatorToken

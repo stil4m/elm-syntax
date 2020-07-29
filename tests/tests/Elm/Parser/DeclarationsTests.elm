@@ -471,12 +471,12 @@ all =
                                                     (Node emptyRange <| FunctionOrValue [] "curry")
                                                     [ Node emptyRange <| Operator "<|"
                                                     , Node emptyRange <|
-                                                        ParenthesizedExpression
-                                                            (Node emptyRange <|
+                                                        TupleExpression
+                                                            [ Node emptyRange <|
                                                                 Application
                                                                     (Node emptyRange <| FunctionOrValue [] "uncurry")
                                                                     [ Node emptyRange <| FunctionOrValue [] "update" ]
-                                                            )
+                                                            ]
                                                     , Node emptyRange <| Operator ">>"
                                                     , Node emptyRange <| FunctionOrValue [] "batchStateCmds"
                                                     , Node emptyRange <| FunctionOrValue [] "sendPort"
