@@ -38,9 +38,8 @@ config =
         |> Rule.ignoreErrorsForDirectories [ "tests/" ]
     , NoExposingEverything.rule
     , NoMissingTypeAnnotation.rule
+    , NoMissingTypeAnnotationInLetIn.rule
 
-    --
-    ----, NoMissingTypeAnnotationInLetIn.rule
     --, NoMissingTypeExpose.rule
     --, NoUnused.CustomTypeConstructors.rule []
     --, NoUnused.CustomTypeConstructorArgs.rule
