@@ -40,6 +40,7 @@ config =
     , NoExposingEverything.rule
     , NoForbiddenWords.rule [ "REPLACEME" ]
     , NoImportingEverything.rule []
+        |> Rule.ignoreErrorsForDirectories [ "tests/" ]
     , NoMissingTypeAnnotation.rule
     , NoMissingTypeAnnotationInLetIn.rule
     , NoMissingTypeExpose.rule
