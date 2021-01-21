@@ -34,8 +34,9 @@ import Review.Rule as Rule exposing (Rule)
 config : List Rule
 config =
     [ Documentation.ReadmeLinksPointToCurrentVersion.rule
+    , NoDebug.Log.rule
+        |> Rule.ignoreErrorsForFiles [ "src/ParseTest.elm" ]
 
-    --, NoDebug.Log.rule
     --, NoDebug.TodoOrToString.rule
     --    |> Rule.ignoreErrorsForDirectories [ "tests/" ]
     --, NoExposingEverything.rule

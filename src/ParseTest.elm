@@ -1,6 +1,6 @@
 module ParseTest exposing (main)
 
-import Debug as SafeDebug
+import Debug
 import Elm.Parser
 import Platform
 
@@ -25,7 +25,7 @@ init { body, name } =
         Ok v ->
             let
                 _ =
-                    SafeDebug.log "OK " <| always name <| v
+                    Debug.log "OK " <| always name <| v
             in
             ( Model
             , Cmd.none
@@ -34,7 +34,7 @@ init { body, name } =
         Err e ->
             let
                 _ =
-                    SafeDebug.log "ERR" <| always name <| e
+                    Debug.log "ERR" <| always name <| e
             in
             ( Model, Cmd.none )
 
