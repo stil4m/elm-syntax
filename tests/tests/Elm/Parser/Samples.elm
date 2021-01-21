@@ -47,6 +47,7 @@ allSamples =
     ]
 
 
+sample39 : String
 sample39 =
     """
 module Test exposing (asSomething)
@@ -60,6 +61,7 @@ asSomething =
 """
 
 
+sample38 : String
 sample38 =
     """
 module B exposing (x)
@@ -76,6 +78,7 @@ c =
 """
 
 
+sample37 : String
 sample37 =
     """
 module Elm.Parser.Imports exposing (importDefinition)
@@ -87,6 +90,7 @@ importX =
 """
 
 
+sample36 : String
 sample36 =
     """module Parser.Advanced exposing( Parser)
 
@@ -103,6 +107,7 @@ spaces =
 """
 
 
+sample35 : String
 sample35 =
     """
 module Validate exposing (isWhitespaceChar)
@@ -113,6 +118,7 @@ isWhitespaceChar char =
 """
 
 
+sample34 : String
 sample34 =
     """
 module Foo exposing (..)
@@ -126,6 +132,7 @@ type_ =
 """
 
 
+sample33 : String
 sample33 =
     """
 module Lazy.List  exposing (..)

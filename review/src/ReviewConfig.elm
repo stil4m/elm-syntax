@@ -37,8 +37,8 @@ config =
     , NoDebug.TodoOrToString.rule
         |> Rule.ignoreErrorsForDirectories [ "tests/" ]
     , NoExposingEverything.rule
+    , NoMissingTypeAnnotation.rule
 
-    --, NoMissingTypeAnnotation.rule
     --
     ----, NoMissingTypeAnnotationInLetIn.rule
     --, NoMissingTypeExpose.rule
