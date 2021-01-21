@@ -15,7 +15,6 @@ import Documentation.ReadmeLinksPointToCurrentVersion
 import NoDebug.Log
 import NoDebug.TodoOrToString
 import NoExposingEverything
-import NoForbiddenWords
 import NoImportingEverything
 import NoMissingTypeAnnotation
 import NoMissingTypeAnnotationInLetIn
@@ -40,7 +39,6 @@ config =
         |> Rule.ignoreErrorsForDirectories [ "tests/" ]
     , NoExposingEverything.rule
 
-    --, NoForbiddenWords.rule [ "REPLACEME" ]
     --, NoImportingEverything.rule []
     --    |> Rule.ignoreErrorsForDirectories [ "tests/" ]
     --, NoMissingTypeAnnotation.rule
