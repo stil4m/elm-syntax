@@ -129,6 +129,7 @@ operators =
 build : RawFile -> Interface
 build (Raw file) =
     let
+        fileDefinitionList : List ( String, Exposed )
         fileDefinitionList =
             fileToDefinitions file
     in

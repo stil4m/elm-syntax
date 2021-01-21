@@ -135,6 +135,7 @@ suite =
             , test "write function with case expression using the right indentations" <|
                 \() ->
                     let
+                        body : Expression
                         body =
                             CaseExpression
                                 (CaseBlock (Node emptyRange <| FunctionOrValue [] "someCase")
@@ -142,6 +143,7 @@ suite =
                                     [ ( Node emptyRange <| IntPattern 2, Node emptyRange <| FunctionOrValue [] "doSomethingElse" ) ]
                                 )
 
+                        function : Declaration
                         function =
                             FunctionDeclaration
                                 (Function Nothing

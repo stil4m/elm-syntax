@@ -255,9 +255,11 @@ withIndentedState p =
 glslExpression : Parser State (Node Expression)
 glslExpression =
     let
+        start : String
         start =
             "[glsl|"
 
+        end : String
         end =
             "|]"
     in

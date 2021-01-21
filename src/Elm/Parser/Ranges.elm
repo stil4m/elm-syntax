@@ -32,6 +32,7 @@ withCurrentPoint p =
     withLocation
         (\start ->
             let
+                k : Location
                 k =
                     asPointerLocation start
             in

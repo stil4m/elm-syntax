@@ -136,9 +136,11 @@ Operator precedence and documentation will be fixed.
 process : ProcessContext -> RawFile -> File
 process processContext ((Raw file) as rawFile) =
     let
+        table : OperatorTable
         table =
             tableForFile rawFile processContext
 
+        operatorFixed : File
         operatorFixed =
             visit
                 (Just
@@ -155,6 +157,7 @@ process processContext ((Raw file) as rawFile) =
                 table
                 file
 
+        documentationFixed : File
         documentationFixed =
             Documentation.postProcess operatorFixed
     in
@@ -264,6 +267,7 @@ type alias Visitor a =
 visit : Visitor context -> context -> File -> File
 visit visitor context file =
     let
+        newDeclarations : List.List (Node Declaration)
         newDeclarations =
             visitDeclarations visitor context file.declarations
     in
@@ -314,6 +318,7 @@ visitFunctionDecl visitor context function =
 visitFunctionDeclaration : Visitor context -> context -> FunctionImplementation -> FunctionImplementation
 visitFunctionDeclaration visitor context functionDeclaration =
     let
+        newExpression : Node Expression
         newExpression =
             visitExpression visitor context functionDeclaration.expression
     in
@@ -323,6 +328,7 @@ visitFunctionDeclaration visitor context functionDeclaration =
 visitExpression : Visitor context -> context -> Node Expression -> Node Expression
 visitExpression visitor context expression =
     let
+        inner : Node Expression -> Node Expression
         inner =
             visitExpressionInner visitor context
     in
@@ -335,6 +341,7 @@ visitExpression visitor context expression =
 visitExpressionInner : Visitor context -> context -> Node Expression -> Node Expression
 visitExpressionInner visitor context (Node range expression) =
     let
+        subVisit : Node Expression -> Node Expression
         subVisit =
             visitExpression visitor context
     in

@@ -70,6 +70,7 @@ all =
         , describe "ranges"
             [ test "exposed item should not include trailing whitespace in range" <|
                 let
+                    input : String
                     input =
                         """exposing
     ( Link
