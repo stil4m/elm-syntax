@@ -267,7 +267,7 @@ type alias Visitor a =
 visit : Visitor context -> context -> File -> File
 visit visitor context file =
     let
-        newDeclarations : List.List (Node Declaration)
+        newDeclarations : List (Node Declaration)
         newDeclarations =
             visitDeclarations visitor context file.declarations
     in

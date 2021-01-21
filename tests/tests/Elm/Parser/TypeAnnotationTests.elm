@@ -59,9 +59,11 @@ all =
         , test "types with and without spacing should parse to the same" <|
             \() ->
                 let
+                    a : Maybe (Node TypeAnnotation)
                     a =
                         parseFullStringWithNullState "Bar " Parser.typeAnnotation
 
+                    b : Maybe (Node TypeAnnotation)
                     b =
                         parseFullStringWithNullState "Bar" Parser.typeAnnotation
                 in

@@ -271,9 +271,11 @@ writeType type_ =
             , spaced (List.map (Node.value >> string) type_.generics)
             ]
         , let
+            constructors : List (Node ValueConstructor)
             constructors =
                 type_.firstConstructor :: type_.restOfConstructors
 
+            diffLines : Bool
             diffLines =
                 List.map Node.range constructors
                     |> startOnDifferentLines
@@ -345,9 +347,11 @@ writeTypeAnnotation (Node _ typeAnnotation) =
 
         Elm.Syntax.TypeAnnotation.Type moduleNameAndName args ->
             let
+                moduleName : ModuleName
                 moduleName =
                     Node.value moduleNameAndName |> Tuple.first
 
+                k : String
                 k =
                     Node.value moduleNameAndName |> Tuple.second
             in
@@ -373,6 +377,7 @@ writeTypeAnnotation (Node _ typeAnnotation) =
 
         FunctionTypeAnnotation left right ->
             let
+                addParensForSubTypeAnnotation : Node TypeAnnotation -> Writer
                 addParensForSubTypeAnnotation type_ =
                     case type_ of
                         Node _ (FunctionTypeAnnotation _ _) ->
@@ -402,6 +407,7 @@ writeRecordField (Node _ ( name, ref )) =
 writeExpression : Node Expression -> Writer
 writeExpression (Node range inner) =
     let
+        recurRangeHelper : Node Expression -> ( Range, Writer )
         recurRangeHelper (Node x y) =
             ( x, writeExpression (Node x y) )
 
@@ -414,6 +420,7 @@ writeExpression (Node range inner) =
         sepHelper : (Bool -> List Writer -> Writer) -> List ( Range, Writer ) -> Writer
         sepHelper f l =
             let
+                diffLines : Bool
                 diffLines =
                     List.map Tuple.first l
                         |> startOnDifferentLines

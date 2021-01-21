@@ -48,10 +48,12 @@ all =
                         test ("sample " ++ String.fromInt (n + 1)) <|
                             \() ->
                                 let
+                                    parsed : Maybe RawFile
                                     parsed =
                                         parseFullStringState emptyState s Parser.file
                                             |> Maybe.map Raw
 
+                                    roundTrip : Maybe RawFile.RawFile
                                     roundTrip =
                                         parsed
                                             |> Maybe.map (RawFile.encode >> Json.Encode.encode 0)

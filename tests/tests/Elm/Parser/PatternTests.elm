@@ -45,9 +45,11 @@ all =
         , test "qualified pattern without and with spacing should parse to the same" <|
             \() ->
                 let
+                    a : Maybe (Node Pattern)
                     a =
                         parseFullStringWithNullState "Bar " Parser.pattern
 
+                    b : Maybe (Node Pattern)
                     b =
                         parseFullStringWithNullState "Bar" Parser.pattern
                 in
