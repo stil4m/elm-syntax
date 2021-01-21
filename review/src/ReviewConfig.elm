@@ -34,22 +34,24 @@ import Review.Rule as Rule exposing (Rule)
 config : List Rule
 config =
     [ Documentation.ReadmeLinksPointToCurrentVersion.rule
-    , NoDebug.Log.rule
-    , NoDebug.TodoOrToString.rule
-        |> Rule.ignoreErrorsForDirectories [ "tests/" ]
-    , NoExposingEverything.rule
-    , NoForbiddenWords.rule [ "REPLACEME" ]
-    , NoImportingEverything.rule []
-        |> Rule.ignoreErrorsForDirectories [ "tests/" ]
-    , NoMissingTypeAnnotation.rule
-    , NoMissingTypeAnnotationInLetIn.rule
-    , NoMissingTypeExpose.rule
-    , NoUnused.CustomTypeConstructors.rule []
-    , NoUnused.CustomTypeConstructorArgs.rule
-    , NoUnused.Dependencies.rule
-    , NoUnused.Exports.rule
-    , NoUnused.Modules.rule
-    , NoUnused.Parameters.rule
-    , NoUnused.Patterns.rule
-    , NoUnused.Variables.rule
+
+    --, NoDebug.Log.rule
+    --, NoDebug.TodoOrToString.rule
+    --    |> Rule.ignoreErrorsForDirectories [ "tests/" ]
+    --, NoExposingEverything.rule
+    --, NoForbiddenWords.rule [ "REPLACEME" ]
+    --, NoImportingEverything.rule []
+    --    |> Rule.ignoreErrorsForDirectories [ "tests/" ]
+    --, NoMissingTypeAnnotation.rule
+    --
+    ----, NoMissingTypeAnnotationInLetIn.rule
+    --, NoMissingTypeExpose.rule
+    --, NoUnused.CustomTypeConstructors.rule []
+    --, NoUnused.CustomTypeConstructorArgs.rule
+    --, NoUnused.Dependencies.rule
+    --, NoUnused.Exports.rule
+    --, NoUnused.Modules.rule
+    --, NoUnused.Parameters.rule
+    --, NoUnused.Patterns.rule
+    --, NoUnused.Variables.rule
     ]
