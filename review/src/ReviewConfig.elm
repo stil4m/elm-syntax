@@ -15,7 +15,6 @@ import Documentation.ReadmeLinksPointToCurrentVersion
 import NoDebug.Log
 import NoDebug.TodoOrToString
 import NoExposingEverything
-import NoImportingEverything
 import NoMissingTypeAnnotation
 import NoMissingTypeAnnotationInLetIn
 import NoMissingTypeExpose
@@ -39,8 +38,6 @@ config =
         |> Rule.ignoreErrorsForDirectories [ "tests/" ]
     , NoExposingEverything.rule
 
-    --, NoImportingEverything.rule []
-    --    |> Rule.ignoreErrorsForDirectories [ "tests/" ]
     --, NoMissingTypeAnnotation.rule
     --
     ----, NoMissingTypeAnnotationInLetIn.rule
