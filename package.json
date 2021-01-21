@@ -13,6 +13,7 @@
   "scripts": {
     "elm:test": "./node_modules/.bin/elm-test",
     "elm:validate-format": "./node_modules/.bin/elm-format --validate src/ tests/",
+    "elm:review": "elm-review",
     "elm:lint": "elm-analyse",
     "elm:lint-server": "elm-analyse -s",
     "elm:build": "elm make --docs=./elm-stuff/temp.json"
@@ -30,6 +31,7 @@
     "elm-analyse": "0.16.5",
     "elm-format": "0.8.3",
     "elm-live": "4.0.2",
+    "elm-review": "^2.4.0",
     "elm-test": "0.19.1-revision2",
     "ts-node": "^8.10.2",
     "typescript": "^3.9.5"
