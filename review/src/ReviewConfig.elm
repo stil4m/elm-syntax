@@ -38,8 +38,8 @@ config =
         |> Rule.ignoreErrorsForFiles [ "src/ParseTest.elm" ]
     , NoDebug.TodoOrToString.rule
         |> Rule.ignoreErrorsForDirectories [ "tests/" ]
+    , NoExposingEverything.rule
 
-    --, NoExposingEverything.rule
     --, NoForbiddenWords.rule [ "REPLACEME" ]
     --, NoImportingEverything.rule []
     --    |> Rule.ignoreErrorsForDirectories [ "tests/" ]
