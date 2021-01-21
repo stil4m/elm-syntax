@@ -36,9 +36,9 @@ config =
     [ Documentation.ReadmeLinksPointToCurrentVersion.rule
     , NoDebug.Log.rule
         |> Rule.ignoreErrorsForFiles [ "src/ParseTest.elm" ]
+    , NoDebug.TodoOrToString.rule
+        |> Rule.ignoreErrorsForDirectories [ "tests/" ]
 
-    --, NoDebug.TodoOrToString.rule
-    --    |> Rule.ignoreErrorsForDirectories [ "tests/" ]
     --, NoExposingEverything.rule
     --, NoForbiddenWords.rule [ "REPLACEME" ]
     --, NoImportingEverything.rule []
