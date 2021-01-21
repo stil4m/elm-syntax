@@ -119,6 +119,7 @@ buildSingle imp moduleIndex =
 
         Just (Node _ (Explicit head rest)) ->
             let
+                selectedOperators : List String
                 selectedOperators =
                     Exposing.operators <| List.map Node.value (head :: rest)
             in
@@ -220,6 +221,7 @@ fixApplication operators head expressions =
 findNextSplit : Dict String Infix -> List (Node Expression) -> Maybe ( List (Node Expression), Infix, List (Node Expression) )
 findNextSplit dict exps =
     let
+        prefix : List (Node Expression)
         prefix =
             exps
                 |> List.takeWhile
@@ -229,6 +231,7 @@ findNextSplit dict exps =
                             |> (==) Nothing
                     )
 
+        suffix : List (Node Expression)
         suffix =
             List.drop (List.length prefix + 1) exps
     in
@@ -309,6 +312,7 @@ visitLetDeclaration visitor context (Node range declaration) =
 visitFunctionDecl : Visitor context -> context -> Function -> Function
 visitFunctionDecl visitor context function =
     let
+        newFunctionDeclaration : Node FunctionImplementation
         newFunctionDeclaration =
             Node.map (visitFunctionDeclaration visitor context) function.declaration
     in

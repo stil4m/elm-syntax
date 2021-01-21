@@ -131,9 +131,11 @@ writeExposureExpose x =
 
         Explicit head rest ->
             let
+                exposeList : List (Node TopLevelExpose)
                 exposeList =
                     head :: rest
 
+                diffLines : Bool
                 diffLines =
                     List.map Node.range exposeList
                         |> startOnDifferentLines

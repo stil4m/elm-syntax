@@ -219,6 +219,7 @@ typedTypeAnnotation mode =
                         )
                         (Combine.succeed (List.reverse items))
 
+                nodeRanges : List (Node a) -> List Range.Range
                 nodeRanges =
                     List.map (\(Node r _) -> r)
             in

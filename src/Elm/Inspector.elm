@@ -36,7 +36,8 @@ type alias Config context =
     , onSignature : Order context (Node Signature)
     , onExpression : Order context (Node Expression)
     , onOperatorApplication :
-        Order context
+        Order
+            context
             { operator : String
             , direction : InfixDirection
             , left : Node Expression
@@ -333,6 +334,7 @@ inspectInnerExpression config expression context =
 
         LetExpression letBlock ->
             let
+                next : context -> context
                 next =
                     inspectLetDeclarations config letBlock.declarations >> inspectExpression config letBlock.expression
             in
@@ -343,9 +345,11 @@ inspectInnerExpression config expression context =
 
         CaseExpression caseBlock ->
             let
+                context2 : context
                 context2 =
                     inspectExpression config caseBlock.expression context
 
+                context3 : context
                 context3 =
                     List.foldl (\a b -> inspectCase config a b) context2 (caseBlock.firstCase :: caseBlock.restOfCases)
             in

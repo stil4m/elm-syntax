@@ -100,9 +100,11 @@ fromList input =
 combine : List Range -> Range
 combine ranges =
     let
+        starts : List Location
         starts =
             List.map .start ranges |> sortLocations
 
+        ends : List Location
         ends =
             List.map .end ranges |> sortLocations |> List.reverse
     in

@@ -26,6 +26,7 @@ You can see this as a trimmed down version for of a file that only contains the 
 import Elm.Internal.RawFile exposing (RawFile(..))
 import Elm.Syntax.Declaration exposing (Declaration(..))
 import Elm.Syntax.Exposing exposing (Exposing(..), TopLevelExpose(..))
+import Elm.Syntax.Expression exposing (FunctionImplementation)
 import Elm.Syntax.File exposing (File)
 import Elm.Syntax.Infix exposing (InfixDirection(..))
 import Elm.Syntax.Module as Module
@@ -185,6 +186,7 @@ ifCustomType f i =
 fileToDefinitions : File -> List ( String, Exposed )
 fileToDefinitions file =
     let
+        allDeclarations : List ( String, Exposed )
         allDeclarations =
             file.declarations
                 |> List.filterMap
@@ -215,9 +217,11 @@ fileToDefinitions file =
 
                             FunctionDeclaration f ->
                                 let
+                                    declaration : FunctionImplementation
                                     declaration =
                                         Node.value f.declaration
 
+                                    name : String
                                     name =
                                         Node.value declaration.name
                                 in
@@ -248,6 +252,7 @@ fileToDefinitions file =
                 _ ->
                     Nothing
 
+        resolveGroup : List ( a, Exposed ) -> Maybe ( a, Exposed )
         resolveGroup g =
             case g of
                 [] ->

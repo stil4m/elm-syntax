@@ -28,6 +28,7 @@ postProcess file =
 onType : Node Type -> File -> File
 onType (Node r customType) file =
     let
+        docs : List (Node String)
         docs =
             List.filter (isDocumentationForRange r) file.comments
     in
@@ -52,6 +53,7 @@ onType (Node r customType) file =
 onTypeAlias : Node TypeAlias -> File -> File
 onTypeAlias (Node r typeAlias) file =
     let
+        docs : List (Node String)
         docs =
             List.filter (isDocumentationForRange r) file.comments
     in
@@ -83,6 +85,7 @@ onTypeAlias (Node r typeAlias) file =
 onPort : Node Port -> File -> File
 onPort (Node portRange portDeclaration) file =
     let
+        docs : List (Node String)
         docs =
             List.filter (isDocumentationForRange portRange) file.comments
     in
@@ -113,6 +116,7 @@ onPort (Node portRange portDeclaration) file =
 onFunction : Node Function -> File -> File
 onFunction (Node functionRange function) file =
     let
+        docs : List (Node String)
         docs =
             List.filter (isDocumentationForRange functionRange) file.comments
     in
@@ -158,6 +162,7 @@ isDocumentationForRange : Range -> Node String -> Bool
 isDocumentationForRange range (Node commentRange commentText) =
     if String.startsWith "{-|" commentText then
         let
+            functionStartRow : Int
             functionStartRow =
                 range.start.row
         in

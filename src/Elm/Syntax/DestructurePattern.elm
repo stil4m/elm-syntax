@@ -69,6 +69,7 @@ Use this to collect qualified patterns, such as `Maybe.Just x`.
 moduleNames : DestructurePattern -> List ModuleName
 moduleNames p =
     let
+        recur : Node DestructurePattern -> List ModuleName
         recur =
             Node.value >> moduleNames
     in

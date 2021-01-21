@@ -7,7 +7,9 @@ import Elm.Parser.Layout as Layout
 import Elm.Parser.Node as Node
 import Elm.Parser.State exposing (State)
 import Elm.Parser.Tokens exposing (functionName, moduleToken, portToken, typeName)
+import Elm.Syntax.Exposing exposing (Exposing)
 import Elm.Syntax.Module exposing (DefaultModuleData, Module(..))
+import Elm.Syntax.ModuleName exposing (ModuleName)
 import Elm.Syntax.Node as Node exposing (Node)
 
 
@@ -54,6 +56,7 @@ effectWhereClauses =
 effectModuleDefinition : Parser State Module
 effectModuleDefinition =
     let
+        createEffectModule : Node ModuleName -> { a | command : Maybe (Node String), subscription : Maybe (Node String) } -> Node Exposing -> Module
         createEffectModule name whereClauses exp =
             EffectModule
                 { moduleName = name

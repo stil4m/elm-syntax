@@ -203,6 +203,7 @@ expression =
                 |> Combine.andThen
                     (\first ->
                         let
+                            complete : List (Node Expression) -> Parser s (Node Expression)
                             complete rest =
                                 case rest of
                                     [] ->
@@ -218,6 +219,7 @@ expression =
                                                 (Application first (List.reverse rest))
                                             )
 
+                            promoter : List (Node Expression) -> Parser State (Node Expression)
                             promoter rest =
                                 Layout.optimisticLayoutWith
                                     (\() -> complete rest)
@@ -275,6 +277,7 @@ listExpression =
     lazy
         (\() ->
             let
+                innerExpressions : Parser State Expression
                 innerExpressions =
                     succeed (::)
                         |> Combine.andMap expression
@@ -452,6 +455,7 @@ caseStatements =
     lazy
         (\() ->
             let
+                helper : List Case -> Parser State (Combine.Step (List Case) (List Case))
                 helper last =
                     Combine.withState
                         (\s ->
@@ -500,6 +504,7 @@ letBody =
     lazy
         (\() ->
             let
+                blockElement : Parser State LetDeclaration
                 blockElement =
                     DestructurPatterns.destructurPattern
                         |> Combine.andThen
@@ -689,6 +694,7 @@ tupleExpression =
                         |> Combine.ignore (maybe Layout.layout)
                         |> Combine.andMap commaSep
 
+                closingParen : Parser state ()
                 closingParen =
                     Combine.fromCore (Core.symbol ")")
             in

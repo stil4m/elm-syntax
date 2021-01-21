@@ -13,6 +13,7 @@ moduleName =
 typeIndicator : Parser s ( ModuleName, String )
 typeIndicator =
     let
+        helper : ( String, List String ) -> Parser s ( String, List String )
         helper ( n, xs ) =
             Combine.choice
                 [ string "."

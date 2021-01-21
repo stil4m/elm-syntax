@@ -16,6 +16,7 @@ import Elm.Syntax.Range as Range exposing (Range)
 importDefinition : Parser State (Node Import)
 importDefinition =
     let
+        importAndModuleName : Parser State (Node ModuleName)
         importAndModuleName =
             importToken
                 |> Combine.continueWith Layout.layout
@@ -35,6 +36,7 @@ importDefinition =
                 , Combine.succeed (Import mod asDef Nothing)
                 ]
 
+        parseAsDefinition : Node ModuleName -> Parser State Import
         parseAsDefinition mod =
             Combine.choice
                 [ asDefinition
@@ -56,6 +58,7 @@ importDefinition =
 setupNode : Range -> Import -> Node Import
 setupNode start imp =
     let
+        allRanges : List (Maybe Range)
         allRanges =
             [ Just start
             , Just (Node.range imp.moduleName)

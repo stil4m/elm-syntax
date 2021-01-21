@@ -89,6 +89,7 @@ Use this to collect qualified patterns, such as `Maybe.Just x`.
 moduleNames : Pattern -> List ModuleName
 moduleNames p =
     let
+        recur : Node Pattern -> List ModuleName
         recur =
             Node.value >> moduleNames
     in
