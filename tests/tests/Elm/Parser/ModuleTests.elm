@@ -82,7 +82,7 @@ a =
     else
         2
 
--- hello
+
 
 {-| doc
 -}
@@ -91,7 +91,7 @@ b = 3
                     File.file
                     |> Expect.equal
                         (Just
-                            { comments = [ Node { end = { column = 3, row = 12 }, start = { column = 1, row = 11 } } "{-| doc\u{000D}\n-}", Node { end = { column = 9, row = 9 }, start = { column = 1, row = 9 } } "-- hello" ]
+                            { comments = [ Node { end = { column = 3, row = 12 }, start = { column = 1, row = 11 } } "{-| doc\u{000D}\n-}" ]
                             , declarations =
                                 [ Node { end = { column = 1, row = 13 }, start = { column = 1, row = 3 } }
                                     (FunctionDeclaration
@@ -171,7 +171,7 @@ b = 3
 a =
     2
 
--- hello
+
 
 {-| doc
 -}
@@ -180,7 +180,7 @@ b = 3
                     File.file
                     |> Expect.equal
                         (Just
-                            { comments = [ Node { end = { column = 3, row = 9 }, start = { column = 1, row = 8 } } "{-| doc\u{000D}\n-}", Node { end = { column = 9, row = 6 }, start = { column = 1, row = 6 } } "-- hello" ]
+                            { comments = [ Node { end = { column = 3, row = 9 }, start = { column = 1, row = 8 } } "{-| doc\u{000D}\n-}" ]
                             , declarations =
                                 [ Node
                                     { end = { column = 6, row = 4 }
