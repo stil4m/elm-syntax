@@ -223,7 +223,7 @@ noRangeExpose (Node _ l) =
                 TypeOrAliasExpose s
 
             TypeExpose { name, open } ->
-                TypeExpose (ExposedType (unRange name) (Maybe.map (always emptyRange) open))
+                TypeExpose (ExposedType name (Maybe.map (always emptyRange) open))
 
 
 noRangeInfix : Infix -> Infix

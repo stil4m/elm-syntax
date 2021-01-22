@@ -155,12 +155,12 @@ writeExpose (Node _ exp) =
             case open of
                 Just _ ->
                     spaced
-                        [ string (Node.value name)
+                        [ string name
                         , string "(..)"
                         ]
 
                 Nothing ->
-                    string (Node.value name)
+                    string name
 
 
 startOnDifferentLines : List Range -> Bool

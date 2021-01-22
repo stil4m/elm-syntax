@@ -28,7 +28,7 @@ all =
                                         Node emptyRange <|
                                             Explicit
                                                 [ Node emptyRange <| TypeOrAliasExpose "Model"
-                                                , Node emptyRange <| TypeExpose (ExposedType (Node emptyRange "Msg") (Just emptyRange))
+                                                , Node emptyRange <| TypeExpose (ExposedType "Msg" (Just emptyRange))
                                                 ]
                                 }
                         )

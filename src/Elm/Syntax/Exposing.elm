@@ -58,7 +58,7 @@ type TopLevelExpose
 {-| Exposed Type
 -}
 type alias ExposedType =
-    { name : Node String
+    { name : String
     , open : Maybe Range
     }
 
@@ -169,7 +169,7 @@ encodeTopLevelExpose =
 encodeExposedType : ExposedType -> Value
 encodeExposedType { name, open } =
     JE.object
-        [ ( "name", Node.encode JE.string name )
+        [ ( "name", JE.string name )
         , ( "open", open |> Maybe.map Range.encode |> Maybe.withDefault JE.null )
         ]
 
@@ -189,5 +189,5 @@ topLevelExposeDecoder =
 exposedTypeDecoder : Decoder ExposedType
 exposedTypeDecoder =
     JD.map2 ExposedType
-        (JD.field "name" (Node.decoder JD.string))
+        (JD.field "name" JD.string)
         (JD.field "open" (JD.nullable Range.decoder))

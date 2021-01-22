@@ -17,7 +17,7 @@ defaults =
             Just <|
                 Node Range.emptyRange <|
                     Explicit
-                        [ Node Range.emptyRange <| TypeExpose (ExposedType (Node Range.emptyRange "List") Nothing)
+                        [ Node Range.emptyRange <| TypeExpose (ExposedType "List" Nothing)
                         , Node Range.emptyRange <| InfixExpose "::"
                         ]
       , moduleAlias = Nothing
@@ -29,7 +29,7 @@ defaults =
                     Explicit
                         [ Node Range.emptyRange <|
                             TypeExpose
-                                (ExposedType (Node Range.emptyRange "Maybe") (Just Range.emptyRange))
+                                (ExposedType "Maybe" (Just Range.emptyRange))
                         ]
       , moduleAlias = Nothing
       }
@@ -40,7 +40,7 @@ defaults =
                     Explicit
                         [ Node Range.emptyRange <|
                             TypeExpose
-                                (ExposedType (Node Range.emptyRange "Result") (Just Range.emptyRange))
+                                (ExposedType "Result" (Just Range.emptyRange))
                         ]
       , moduleAlias = Nothing
       }
@@ -52,7 +52,7 @@ defaults =
             Just <|
                 Node Range.emptyRange <|
                     Explicit
-                        [ Node Range.emptyRange <| TypeExpose (ExposedType (Node Range.emptyRange "Program") Nothing)
+                        [ Node Range.emptyRange <| TypeExpose (ExposedType "Program" Nothing)
                         ]
       , moduleAlias = Nothing
       }
@@ -61,13 +61,13 @@ defaults =
             Just <|
                 Node Range.emptyRange <|
                     Explicit
-                        [ Node Range.emptyRange <| TypeExpose (ExposedType (Node Range.emptyRange "Cmd") Nothing)
+                        [ Node Range.emptyRange <| TypeExpose (ExposedType "Cmd" Nothing)
                         , Node Range.emptyRange <| InfixExpose "!"
                         ]
       , moduleAlias = Nothing
       }
     , { moduleName = Node Range.emptyRange <| [ "Platform", "Sub" ]
-      , exposingList = Just <| Node Range.emptyRange <| Explicit [ Node Range.emptyRange <| TypeExpose (ExposedType (Node Range.emptyRange "Sub") Nothing) ]
+      , exposingList = Just <| Node Range.emptyRange <| Explicit [ Node Range.emptyRange <| TypeExpose (ExposedType "Sub" Nothing) ]
       , moduleAlias = Nothing
       }
     ]

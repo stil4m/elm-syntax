@@ -154,10 +154,10 @@ buildInterfaceFromExplicit x fileDefinitionList =
                     TypeExpose exposedType ->
                         case exposedType.open of
                             Nothing ->
-                                Just <| CustomType ( Node.value exposedType.name, [] )
+                                Just <| CustomType ( exposedType.name, [] )
 
                             Just _ ->
-                                lookupForDefinition (Node.value exposedType.name) fileDefinitionList
+                                lookupForDefinition exposedType.name fileDefinitionList
             )
 
 

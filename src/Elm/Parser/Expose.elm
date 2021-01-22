@@ -63,7 +63,7 @@ typeExpose =
                             (\openRange ->
                                 Node
                                     (Range.combine [ Node.range tipe, openRange ])
-                                    (TypeExpose (ExposedType tipe (Just openRange)))
+                                    (TypeExpose (ExposedType (Node.value tipe) (Just openRange)))
                             )
                     , Combine.succeed (Node.map TypeOrAliasExpose tipe)
                     ]
