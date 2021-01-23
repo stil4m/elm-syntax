@@ -187,4 +187,44 @@ all =
             \() ->
                 parseFullString longMultiLineString Parser.multiLineStringLiteral
                     |> Expect.notEqual Nothing
+        , test "ρ function" <|
+            \() ->
+                parseFullString "ρ" Parser.functionName
+                    |> Expect.notEqual Nothing
+        , test "ε2 function" <|
+            \() ->
+                parseFullString "ε2" Parser.functionName
+                    |> Expect.notEqual Nothing
+        , test "εε function" <|
+            \() ->
+                parseFullString "εε" Parser.functionName
+                    |> Expect.notEqual Nothing
+        , test "ρ uppercase function" <|
+            \() ->
+                parseFullString (String.toUpper "ρ") Parser.functionName
+                    |> Expect.equal Nothing
+        , test "ε uppercase function" <|
+            \() ->
+                parseFullString (String.toUpper "ε") Parser.functionName
+                    |> Expect.equal Nothing
+        , test "ρ type name" <|
+            \() ->
+                parseFullString "ρ" Parser.typeName
+                    |> Expect.equal Nothing
+        , test "ε2 type name" <|
+            \() ->
+                parseFullString "ε2" Parser.typeName
+                    |> Expect.equal Nothing
+        , test "εε type name" <|
+            \() ->
+                parseFullString "εε" Parser.typeName
+                    |> Expect.equal Nothing
+        , test "ρ uppercase type name" <|
+            \() ->
+                parseFullString (String.toUpper "ρ") Parser.typeName
+                    |> Expect.notEqual Nothing
+        , test "ε uppercase type name" <|
+            \() ->
+                parseFullString (String.toUpper "ε") Parser.typeName
+                    |> Expect.notEqual Nothing
         ]
