@@ -45,6 +45,11 @@ all =
                 parseFullStringWithNullState "\"\"\"Bar foo \n a\"\"\"" expression
                     |> Maybe.map Node.value
                     |> Expect.equal (Just (Literal "Bar foo \n a"))
+        , test "Regression test for muliline strings with backslashes" <|
+            \() ->
+                parseFullStringWithNullState "\"\"\"\\\\{\\\\}\"\"\"" expression
+                    |> Maybe.map Node.value
+                    |> Expect.equal (Just (Literal "\\\\{\\\\}"))
         , test "Type expression for upper case" <|
             \() ->
                 parseFullStringWithNullState "Bar" expression
