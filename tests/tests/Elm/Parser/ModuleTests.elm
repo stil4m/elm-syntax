@@ -74,7 +74,7 @@ all =
         , test "Regression test for Incorrect range in if expression" <|
             \() ->
                 parseFullStringWithNullState
-                    """module TestModule exposing (..)
+                    (String.filter ((/=) '\u{000D}') """module TestModule exposing (..)
 
 a =
     if cond then
@@ -87,11 +87,11 @@ a =
 {-| doc
 -}
 b = 3
-"""
+""")
                     File.file
                     |> Expect.equal
                         (Just
-                            { comments = [ Node { end = { column = 3, row = 12 }, start = { column = 1, row = 11 } } "{-| doc\u{000D}\n-}" ]
+                            { comments = [ Node { end = { column = 3, row = 12 }, start = { column = 1, row = 11 } } "{-| doc\n-}" ]
                             , declarations =
                                 [ Node { end = { column = 10, row = 7 }, start = { column = 1, row = 3 } }
                                     (FunctionDeclaration
@@ -166,7 +166,7 @@ b = 3
         , test "Simple module range test" <|
             \() ->
                 parseFullStringWithNullState
-                    """module TestModule exposing (..)
+                    (String.filter ((/=) '\u{000D}') """module TestModule exposing (..)
 
 a =
     2
@@ -176,11 +176,11 @@ a =
 {-| doc
 -}
 b = 3
-"""
+""")
                     File.file
                     |> Expect.equal
                         (Just
-                            { comments = [ Node { end = { column = 3, row = 9 }, start = { column = 1, row = 8 } } "{-| doc\u{000D}\n-}" ]
+                            { comments = [ Node { end = { column = 3, row = 9 }, start = { column = 1, row = 8 } } "{-| doc\n-}" ]
                             , declarations =
                                 [ Node
                                     { end = { column = 6, row = 4 }
