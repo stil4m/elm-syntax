@@ -71,7 +71,7 @@ all =
                 parseFullStringWithNullState "module I_en_gb exposing (..)" Parser.moduleDefinition
                     |> Maybe.map noRangeModule
                     |> Expect.equal (Just (NormalModule { moduleName = Node emptyRange <| [ "I_en_gb" ], exposingList = Node emptyRange <| All emptyRange }))
-        , test "Incorrect range in if expression regression test" <|
+        , test "Regression test for Incorrect range in if expression" <|
             \() ->
                 parseFullStringWithNullState
                     """module TestModule exposing (..)
@@ -93,7 +93,7 @@ b = 3
                         (Just
                             { comments = [ Node { end = { column = 3, row = 12 }, start = { column = 1, row = 11 } } "{-| doc\u{000D}\n-}" ]
                             , declarations =
-                                [ Node { end = { column = 1, row = 13 }, start = { column = 1, row = 3 } }
+                                [ Node { end = { column = 10, row = 7 }, start = { column = 1, row = 3 } }
                                     (FunctionDeclaration
                                         { declaration =
                                             Node { end = { column = 10, row = 7 }, start = { column = 1, row = 3 } }
