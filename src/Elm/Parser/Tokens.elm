@@ -239,8 +239,8 @@ multiLineStringLiteral =
 functionName : Parser s String
 functionName =
     Core.variable
-        { start = Char.isLower
-        , inner = \c -> Char.isAlphaNum c || c == '_'
+        { start = isLower
+        , inner = \c -> isAlphaNum c || c == '_'
         , reserved = Set.fromList reservedList
         }
         |> Combine.fromCore
@@ -249,11 +249,43 @@ functionName =
 typeName : Parser s String
 typeName =
     Core.variable
-        { start = Char.isUpper
-        , inner = \c -> Char.isAlphaNum c || c == '_'
+        { start = isUpper
+        , inner = \c -> isAlphaNum c || c == '_'
         , reserved = Set.fromList reservedList
         }
         |> Combine.fromCore
+
+
+isAlphaNum : Char -> Bool
+isAlphaNum char =
+    isUpperOrLower char || Char.isDigit char
+
+
+isUpperOrLower : Char -> Bool
+isUpperOrLower char =
+    let
+        stringChar =
+            String.fromChar char
+    in
+    String.toUpper stringChar /= stringChar || String.toLower stringChar /= stringChar
+
+
+isLower : Char -> Bool
+isLower char =
+    let
+        stringChar =
+            String.fromChar char
+    in
+    String.toUpper stringChar /= stringChar && String.toLower stringChar == stringChar
+
+
+isUpper : Char -> Bool
+isUpper char =
+    let
+        stringChar =
+            String.fromChar char
+    in
+    String.toUpper stringChar == stringChar && String.toLower stringChar /= stringChar
 
 
 excludedOperators : List String
