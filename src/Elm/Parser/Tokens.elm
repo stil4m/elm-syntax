@@ -204,12 +204,12 @@ multiLineStringLiteral =
         helper s =
             if s.escaped then
                 escapedCharValue
-                    |> Core.map (\v -> Loop { s | escaped = False, parts = String.fromList [ v ] :: s.parts })
+                    |> Core.map (\v -> Loop { s | escaped = False, parts = String.fromChar v :: s.parts })
 
             else
                 Core.oneOf
                     [ Core.symbol "\"\"\""
-                        |> Core.map (\_ -> Done (String.concat s.parts))
+                        |> Core.map (\_ -> Done (String.concat (List.reverse s.parts)))
                     , Core.symbol "\""
                         |> Core.getChompedString
                         |> Core.map (\v -> Loop { s | counter = s.counter + 1, parts = v :: s.parts })
