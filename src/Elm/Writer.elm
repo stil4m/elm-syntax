@@ -514,8 +514,10 @@ writeExpression (Node range inner) =
                             ]
             in
             breaked
-                [ spaced [ string "case", writeExpression caseBlock.expression, string "of" ]
+                [ string ""
+                , spaced [ string "case", writeExpression caseBlock.expression, string "of" ]
                 , breaked (List.map writeCaseBranch caseBlock.cases)
+                , string ""
                 ]
 
         LambdaExpression lambda ->

@@ -26,7 +26,7 @@ module Bar exposing (..)
 {-| The docs
 -}
 bar = 1
-"""
+""" |> String.replace "\u{000D}" ""
     , { moduleDefinition =
             Node { start = { row = 1, column = 1 }, end = { row = 1, column = 25 } } <|
                 NormalModule
@@ -64,7 +64,7 @@ module Bar exposing (..)
 -}
 bar : Int
 bar = 1
-"""
+""" |> String.replace "\u{000D}" ""
     , { moduleDefinition =
             Node { start = { row = 1, column = 1 }, end = { row = 1, column = 25 } } <|
                 NormalModule
