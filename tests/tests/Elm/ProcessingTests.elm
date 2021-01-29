@@ -536,6 +536,83 @@ numeric2 = 1 + 2 * 3 ^ 4
     )
 
 
+{-| Check to make sure this issue is fixed <https://github.com/stil4m/elm-syntax/issues/87>
+-}
+postProcessInfixOperatorsAssociativityTest : ( String, String, File )
+postProcessInfixOperatorsAssociativityTest =
+    ( "postProcessInfixOperatorsAssociativityTest"
+    , """
+module A exposing (..)
+
+numeric1 = 1 + 2 - 3
+
+pipeline1 = 1 |> 2 |> 3
+"""
+    , { comments = []
+      , declarations =
+            [ Node { end = { column = 21, row = 3 }, start = { column = 1, row = 3 } }
+                (FunctionDeclaration
+                    { declaration =
+                        Node { end = { column = 21, row = 3 }, start = { column = 1, row = 3 } }
+                            { arguments = []
+                            , expression =
+                                Node { end = { column = 21, row = 3 }, start = { column = 12, row = 3 } }
+                                    (OperatorApplication "-"
+                                        Left
+                                        (Node { end = { column = 17, row = 3 }, start = { column = 12, row = 3 } }
+                                            (OperatorApplication "+"
+                                                Left
+                                                (Node { end = { column = 13, row = 3 }, start = { column = 12, row = 3 } } (Integer 1))
+                                                (Node { end = { column = 17, row = 3 }, start = { column = 16, row = 3 } } (Integer 2))
+                                            )
+                                        )
+                                        (Node { end = { column = 21, row = 3 }, start = { column = 20, row = 3 } } (Integer 3))
+                                    )
+                            , name = Node { end = { column = 9, row = 3 }, start = { column = 1, row = 3 } } "numeric1"
+                            }
+                    , documentation = Nothing
+                    , signature = Nothing
+                    }
+                )
+            , Node { end = { column = 24, row = 5 }, start = { column = 1, row = 5 } }
+                (FunctionDeclaration
+                    { declaration =
+                        Node { end = { column = 24, row = 5 }, start = { column = 1, row = 5 } }
+                            { arguments = []
+                            , expression =
+                                Node { end = { column = 24, row = 5 }, start = { column = 13, row = 5 } }
+                                    (OperatorApplication "|>"
+                                        Left
+                                        (Node { end = { column = 19, row = 5 }, start = { column = 13, row = 5 } }
+                                            (OperatorApplication "|>"
+                                                Left
+                                                (Node { end = { column = 14, row = 5 }, start = { column = 13, row = 5 } } (Integer 1))
+                                                (Node { end = { column = 19, row = 5 }, start = { column = 18, row = 5 } } (Integer 2))
+                                            )
+                                        )
+                                        (Node { end = { column = 24, row = 5 }, start = { column = 23, row = 5 } } (Integer 3))
+                                    )
+                            , name = Node { end = { column = 10, row = 5 }, start = { column = 1, row = 5 } } "pipeline1"
+                            }
+                    , documentation = Nothing
+                    , signature = Nothing
+                    }
+                )
+            ]
+      , imports = []
+      , moduleDefinition =
+            Node { end = { column = 23, row = 1 }, start = { column = 1, row = 1 } }
+                (NormalModule
+                    { exposingList =
+                        Node { end = { column = 23, row = 1 }, start = { column = 10, row = 1 } }
+                            (All { end = { column = 22, row = 1 }, start = { column = 20, row = 1 } })
+                    , moduleName = Node { end = { column = 9, row = 1 }, start = { column = 8, row = 1 } } [ "A" ]
+                    }
+                )
+      }
+    )
+
+
 suite : Test
 suite =
     describe "Elm.Processing"
@@ -560,6 +637,7 @@ suite =
             , postProcessInfixOperators2
             , postProcessInfixOperators3
             , postProcessInfixOperatorsRegressionTest
+            , postProcessInfixOperatorsAssociativityTest
             , typeAliasWithDocumentation
             , typeWithDocumentation
             ]
