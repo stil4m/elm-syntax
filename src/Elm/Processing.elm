@@ -217,14 +217,38 @@ fixApplication operators head expressions =
 findNextSplit : Dict String Infix -> List (Node Expression) -> Maybe ( List (Node Expression), Infix, List (Node Expression) )
 findNextSplit dict exps =
     let
+        assocDirection : InfixDirection
+        assocDirection =
+            dict
+                |> Dict.toList
+                |> List.map (Tuple.second >> .direction)
+                -- At this point we should ideally check if all operators have the same associativity
+                -- and report an error if that's not the case.
+                |> List.head
+                |> Maybe.withDefault Right
+
         prefix =
-            exps
-                |> List.takeWhile
-                    (\x ->
-                        expressionOperators x
-                            |> Maybe.andThen (\key -> Dict.get key dict)
-                            |> (==) Nothing
-                    )
+            case assocDirection of
+                Left ->
+                    exps
+                        |> List.reverse
+                        |> List.dropWhile
+                            (\x ->
+                                expressionOperators x
+                                    |> Maybe.andThen (\key -> Dict.get key dict)
+                                    |> (==) Nothing
+                            )
+                        |> List.drop 1
+                        |> List.reverse
+
+                _ ->
+                    exps
+                        |> List.takeWhile
+                            (\x ->
+                                expressionOperators x
+                                    |> Maybe.andThen (\key -> Dict.get key dict)
+                                    |> (==) Nothing
+                            )
 
         suffix =
             List.drop (List.length prefix + 1) exps
