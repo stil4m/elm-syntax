@@ -24,11 +24,7 @@ postProcess file =
 
 onType : Node Type -> File -> File
 onType (Node r customType) file =
-    let
-        docs =
-            List.filter (isDocumentationForRange r) file.comments
-    in
-    case List.head docs of
+    case findDocumentationForRange r file.comments of
         Just ((Node docRange docString) as doc) ->
             { file
                 | comments =
@@ -48,11 +44,7 @@ onType (Node r customType) file =
 
 onTypeAlias : Node TypeAlias -> File -> File
 onTypeAlias (Node r typeAlias) file =
-    let
-        docs =
-            List.filter (isDocumentationForRange r) file.comments
-    in
-    case List.head docs of
+    case findDocumentationForRange r file.comments of
         Just ((Node docRange docString) as doc) ->
             { file
                 | comments =
@@ -79,11 +71,7 @@ onTypeAlias (Node r typeAlias) file =
 
 onFunction : Node Function -> File -> File
 onFunction (Node functionRange function) file =
-    let
-        docs =
-            List.filter (isDocumentationForRange functionRange) file.comments
-    in
-    case List.head docs of
+    case findDocumentationForRange functionRange file.comments of
         Just ((Node docRange docString) as doc) ->
             { file
                 | comments =
