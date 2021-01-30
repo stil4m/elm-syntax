@@ -166,11 +166,11 @@ bar = {- comment 3 -} 1 -- comment 4
                 )
             ]
       , comments =
-            [ Node { end = { column = 14, row = 6 }, start = { column = 2, row = 6 } } "-- comment 5"
-            , Node { end = { column = 37, row = 5 }, start = { column = 25, row = 5 } } "-- comment 4"
-            , Node { end = { column = 22, row = 5 }, start = { column = 7, row = 5 } } "{- comment 3 -}"
+            [ Node { end = { column = 13, row = 1 }, start = { column = 1, row = 1 } } "-- comment 1"
             , Node { end = { column = 13, row = 4 }, start = { column = 1, row = 4 } } "-- comment 2"
-            , Node { end = { column = 13, row = 1 }, start = { column = 1, row = 1 } } "-- comment 1"
+            , Node { end = { column = 22, row = 5 }, start = { column = 7, row = 5 } } "{- comment 3 -}"
+            , Node { end = { column = 37, row = 5 }, start = { column = 25, row = 5 } } "-- comment 4"
+            , Node { end = { column = 14, row = 6 }, start = { column = 2, row = 6 } } "-- comment 5"
             ]
       }
     )
