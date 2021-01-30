@@ -124,6 +124,49 @@ functionWithSingleLineCommentAsDoc =
     )
 
 
+fileWithMultipleComments : ( String, String, File )
+fileWithMultipleComments =
+    ( "fileWithMultipleComments"
+    , """
+-- comment 1
+module Bar exposing (..)
+
+-- comment 2
+bar = {- comment 3 -} 1 -- comment 4
+ -- comment 5
+"""
+    , { moduleDefinition =
+            Node { start = { row = 2, column = 1 }, end = { row = 2, column = 25 } } <|
+                NormalModule
+                    { moduleName = Node { end = { column = 11, row = 2 }, start = { column = 8, row = 2 } } [ "Bar" ]
+                    , exposingList = Node { end = { column = 25, row = 2 }, start = { column = 12, row = 2 } } <| All { start = { row = 2, column = 22 }, end = { row = 2, column = 24 } }
+                    }
+      , imports = []
+      , declarations =
+            [ Node { end = { column = 24, row = 5 }, start = { column = 1, row = 5 } }
+                (FunctionDeclaration
+                    { documentation = Nothing
+                    , signature = Nothing
+                    , declaration =
+                        Node { end = { column = 24, row = 5 }, start = { column = 1, row = 5 } }
+                            { arguments = []
+                            , expression = Node { end = { column = 24, row = 5 }, start = { column = 23, row = 5 } } (Integer 1)
+                            , name = Node { end = { column = 4, row = 5 }, start = { column = 1, row = 5 } } "bar"
+                            }
+                    }
+                )
+            ]
+      , comments =
+            [ Node { end = { column = 13, row = 1 }, start = { column = 1, row = 1 } } "-- comment 1"
+            , Node { end = { column = 13, row = 4 }, start = { column = 1, row = 4 } } "-- comment 2"
+            , Node { end = { column = 22, row = 5 }, start = { column = 7, row = 5 } } "{- comment 3 -}"
+            , Node { end = { column = 37, row = 5 }, start = { column = 25, row = 5 } } "-- comment 4"
+            , Node { end = { column = 14, row = 6 }, start = { column = 2, row = 6 } } "-- comment 5"
+            ]
+      }
+    )
+
+
 functionWithMultiLineCommentAsDoc : ( String, String, File )
 functionWithMultiLineCommentAsDoc =
     ( "functionWithMultiLineCommentAsDoc"
@@ -669,6 +712,7 @@ suite =
             [ functionWithDocs
             , functionWithDocsAndSignature
             , functionWithSingleLineCommentAsDoc
+            , fileWithMultipleComments
             , functionWithMultiLineCommentAsDoc
             , postProcessInfixOperators
             , postProcessInfixOperators2

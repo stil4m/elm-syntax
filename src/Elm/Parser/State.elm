@@ -55,4 +55,4 @@ addComment pair (State s) =
 
 getComments : State -> List (Node String)
 getComments (State s) =
-    s.comments
+    List.reverse s.comments
