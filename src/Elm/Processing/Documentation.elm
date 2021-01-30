@@ -2,7 +2,6 @@ module Elm.Processing.Documentation exposing (postProcess)
 
 import Elm.Inspector as Inspector exposing (Order(..), defaultConfig)
 import Elm.Syntax.Declaration exposing (Declaration(..))
-import Elm.Syntax.Documentation exposing (..)
 import Elm.Syntax.Expression exposing (..)
 import Elm.Syntax.File exposing (File)
 import Elm.Syntax.Node exposing (Node(..))
@@ -111,6 +110,20 @@ replaceDeclaration (Node r1 new) (Node r2 old) =
          else
             old
         )
+
+
+findDocumentationForRange : Range -> List (Node String) -> Maybe (Node String)
+findDocumentationForRange range comments =
+    case comments of
+        [] ->
+            Nothing
+
+        comment :: restOfComments ->
+            if isDocumentationForRange range comment then
+                Just comment
+
+            else
+                findDocumentationForRange range restOfComments
 
 
 isDocumentationForRange : Range -> Node String -> Bool
