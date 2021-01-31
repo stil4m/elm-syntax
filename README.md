@@ -51,4 +51,6 @@ main =
 Used in:
 
 * [elm-analyse](https://github.com/stil4m/elm-analyse)
+* [elm-review](https://github.com/jfmengels/elm-review)
+* [elm-xref](https://github.com/zwilias/elm-xref)
 * [elm-lens](https://github.com/mbuscemi/elm-lens)
