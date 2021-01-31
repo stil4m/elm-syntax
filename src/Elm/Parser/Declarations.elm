@@ -208,15 +208,19 @@ expression =
                     (\first ->
                         let
                             complete rest =
-                                succeed <|
-                                    case rest of
-                                        [] ->
-                                            first
+                                case rest of
+                                    [] ->
+                                        succeed first
 
-                                        _ ->
-                                            Node
+                                    (Node _ (Operator _)) :: _ ->
+                                        Combine.fail "Expression should not end with an operator"
+
+                                    _ ->
+                                        succeed
+                                            (Node
                                                 (Range.combine (Node.range first :: List.map Node.range rest))
                                                 (Application (first :: List.reverse rest))
+                                            )
 
                             promoter rest =
                                 Layout.optimisticLayoutWith
@@ -229,7 +233,12 @@ expression =
                                             (complete rest)
                                     )
                         in
-                        promoter []
+                        case first of
+                            Node _ (Operator _) ->
+                                Combine.fail "Expression should not start with an operator"
+
+                            _ ->
+                                promoter []
                     )
         )
 
@@ -532,10 +541,12 @@ letExpression : Parser State (Node Expression)
 letExpression =
     lazy
         (\() ->
-            succeed (\decls -> LetBlock decls >> LetExpression)
-                |> Combine.andMap letBlock
-                |> Combine.andMap (Layout.layout |> Combine.continueWith expression)
-                |> Node.parser
+            Ranges.withCurrentPoint
+                (\current ->
+                    succeed (\decls expr -> Node { start = current.start, end = (Node.range expr).end } (LetBlock decls expr |> LetExpression))
+                        |> Combine.andMap letBlock
+                        |> Combine.andMap (Layout.layout |> Combine.continueWith expression)
+                )
         )
 
 
@@ -546,22 +557,32 @@ numberExpression =
 
 ifBlockExpression : Parser State (Node Expression)
 ifBlockExpression =
-    Node.parser
-        (ifToken
-            |> Combine.continueWith
-                (lazy
-                    (\() ->
-                        succeed IfBlock
-                            |> Combine.ignore (maybe Layout.layout)
-                            |> Combine.andMap expression
-                            |> Combine.ignore (maybe Layout.layout)
-                            |> Combine.ignore thenToken
-                            |> Combine.ignore (maybe Layout.layout)
-                            |> Combine.andMap expression
-                            |> Combine.ignore (maybe Layout.layout)
-                            |> Combine.andMap (elseToken |> Combine.continueWith Layout.layout |> Combine.continueWith expression)
+    Ranges.withCurrentPoint
+        (\current ->
+            ifToken
+                |> Combine.continueWith
+                    (lazy
+                        (\() ->
+                            succeed
+                                (\condition ifTrue ifFalse ->
+                                    Node
+                                        { start = current.start, end = (Node.range ifFalse).end }
+                                        (IfBlock condition ifTrue ifFalse)
+                                )
+                                |> Combine.ignore (maybe Layout.layout)
+                                |> Combine.andMap expression
+                                |> Combine.ignore (maybe Layout.layout)
+                                |> Combine.ignore thenToken
+                                |> Combine.ignore (maybe Layout.layout)
+                                |> Combine.andMap expression
+                                |> Combine.ignore (maybe Layout.layout)
+                                |> Combine.andMap
+                                    (elseToken
+                                        |> Combine.continueWith Layout.layout
+                                        |> Combine.continueWith expression
+                                    )
+                        )
                     )
-                )
         )
 
 

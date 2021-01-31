@@ -53,6 +53,8 @@ import Json.Encode as JE exposing (Value)
   - `UnConsPattern`: `x :: xs`
   - `ListPattern`: `[ x, y ]`
   - `VarPattern`: `x`
+  - `NamedPattern`: `Just _`
+  - `AsPattern`: `_ as x`
   - `ParenthesizedPattern`: `( _ )`
 
 -}

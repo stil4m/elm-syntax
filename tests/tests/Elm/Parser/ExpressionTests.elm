@@ -44,6 +44,21 @@ all =
                 parseFullStringWithNullState "\"\"\"Bar foo \n a\"\"\"" expression
                     |> Maybe.map Node.value
                     |> Expect.equal (Just (Literal "Bar foo \n a"))
+        , test "Regression test for muliline strings with backslashes" <|
+            \() ->
+                parseFullStringWithNullState "\"\"\"\\{\\}\"\"\"" expression
+                    |> Maybe.map Node.value
+                    |> Expect.equal Nothing
+        , test "Regression test 2 for muliline strings with backslashes" <|
+            \() ->
+                parseFullStringWithNullState "\"\"\"\\\\{\\\\}\"\"\"" expression
+                    |> Maybe.map Node.value
+                    |> Expect.equal (Just (Literal "\\{\\}"))
+        , test "Regression test 3 for muliline strings with backslashes" <|
+            \() ->
+                parseFullStringWithNullState "\"\"\"\\\\a-blablabla-\\\\b\"\"\"" expression
+                    |> Maybe.map Node.value
+                    |> Expect.equal (Just (Literal "\\a-blablabla-\\b"))
         , test "Type expression for upper case" <|
             \() ->
                 parseFullStringWithNullState "Bar" expression
@@ -59,11 +74,6 @@ all =
                 parseFullStringWithNullState "Bar.foo" expression
                     |> Maybe.map Node.value
                     |> Expect.equal (Just (FunctionOrValue [ "Bar" ] "foo"))
-        , test "operator" <|
-            \() ->
-                parseFullStringWithNullState "++" expression
-                    |> Maybe.map Node.value
-                    |> Expect.equal (Just (Operator "++"))
         , test "parenthesizedExpression" <|
             \() ->
                 parseFullStringWithNullState "(bar)" expression
@@ -380,6 +390,18 @@ all =
                                 )
                             )
                         )
+        , test "positive integer should be invalid" <|
+            \() ->
+                parseFullStringWithNullState "+1" expression
+                    |> Maybe.map noRangeExpression
+                    |> Maybe.map Node.value
+                    |> Expect.equal Nothing
+        , test "expression ending with an operator should not be valid" <|
+            \() ->
+                parseFullStringWithNullState "1++" expression
+                    |> Maybe.map noRangeExpression
+                    |> Maybe.map Node.value
+                    |> Expect.equal Nothing
         , test "prefix notation" <|
             \() ->
                 parseFullStringWithNullState "(::) x" expression

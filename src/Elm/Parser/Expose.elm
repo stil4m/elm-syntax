@@ -8,7 +8,8 @@ import Elm.Parser.Ranges exposing (withRange)
 import Elm.Parser.State exposing (State)
 import Elm.Parser.Tokens exposing (exposingToken, functionName, typeName)
 import Elm.Syntax.Exposing exposing (ExposedType, Exposing(..), TopLevelExpose(..))
-import Elm.Syntax.Node as Node exposing (Node)
+import Elm.Syntax.Node as Node exposing (Node(..))
+import Elm.Syntax.Range as Range
 
 
 exposeDefinition : Parser State Exposing
@@ -25,11 +26,8 @@ exposeListWith =
 
 exposingListInner : Parser State Exposing
 exposingListInner =
-    Combine.lazy
-        (\() ->
-            or (withRange (succeed All |> Combine.ignore (Layout.maybeAroundBothSides (string ".."))))
-                (Combine.map Explicit (sepBy (char ',') (Layout.maybeAroundBothSides exposable)))
-        )
+    or (withRange (succeed All |> Combine.ignore (Layout.maybeAroundBothSides (string ".."))))
+        (Combine.map Explicit (sepBy (char ',') (Layout.maybeAroundBothSides exposable)))
 
 
 exposable : Parser State (Node TopLevelExpose)
@@ -54,23 +52,20 @@ infixExpose =
 
 typeExpose : Parser State (Node TopLevelExpose)
 typeExpose =
-    Combine.lazy
-        (\() ->
-            Node.parser exposedType
-        )
-
-
-exposedType : Parser State TopLevelExpose
-exposedType =
-    succeed identity
-        |> Combine.andMap typeName
+    Node.parser typeName
         |> Combine.ignore (maybe Layout.layout)
         |> Combine.andThen
             (\tipe ->
                 Combine.choice
                     [ Node.parser (parens (Layout.maybeAroundBothSides (string "..")))
-                        |> Combine.map (Node.range >> Just >> (\v -> ExposedType tipe v) >> TypeExpose)
-                    , Combine.succeed (TypeOrAliasExpose tipe)
+                        |> Combine.map Node.range
+                        |> Combine.map
+                            (\openRange ->
+                                Node
+                                    (Range.combine [ Node.range tipe, openRange ])
+                                    (TypeExpose (ExposedType (Node.value tipe) (Just openRange)))
+                            )
+                    , Combine.succeed (Node.map TypeOrAliasExpose tipe)
                     ]
             )
 

@@ -44,11 +44,10 @@ suite =
                     |> Writer.writeFile
                     |> Writer.write
                     |> Expect.equal
-                        ("""module A exposing (..)
-import B  """
+                        ("module A exposing (..)\n"
+                            ++ "import B  "
                             ++ "\n"
-                            ++ """import C as D exposing (..)
-"""
+                            ++ "import C as D exposing (..)\n"
                         )
         , describe "Expression"
             [ test "write simple expression" <|
@@ -159,11 +158,151 @@ import B  """
                         |> Writer.write
                         |> Expect.equal
                             ("\n\nfunctionName  =\n"
+                                ++ "    \n"
                                 ++ "    case someCase of\n"
                                 ++ "      1 ->\n"
                                 ++ "        doSomething\n"
                                 ++ "      2 ->\n"
-                                ++ "        doSomethingElse"
+                                ++ "        doSomethingElse\n"
+                                ++ "    "
+                            )
+            , test "regression test for incorrect indentation in case expression" <|
+                \() ->
+                    let
+                        body =
+                            LambdaExpression
+                                { args = [ Node emptyRange (VarPattern "myArgument") ]
+                                , expression =
+                                    Node emptyRange <|
+                                        CaseExpression
+                                            (CaseBlock (Node emptyRange <| FunctionOrValue [] "someCase")
+                                                [ ( Node emptyRange <| IntPattern 1, Node emptyRange <| FunctionOrValue [] "doSomething" )
+                                                , ( Node emptyRange <| IntPattern 2, Node emptyRange <| FunctionOrValue [] "doSomethingElse" )
+                                                ]
+                                            )
+                                }
+
+                        function =
+                            FunctionDeclaration
+                                (Function Nothing
+                                    Nothing
+                                    (Node emptyRange <|
+                                        FunctionImplementation
+                                            (Node emptyRange <| "functionName")
+                                            []
+                                            (Node emptyRange body)
+                                    )
+                                )
+                    in
+                    Node emptyRange function
+                        |> Writer.writeDeclaration
+                        |> Writer.write
+                        |> Expect.equal
+                            ("\n\nfunctionName  =\n"
+                                ++ "    \\myArgument -> \n"
+                                ++ "    case someCase of\n"
+                                ++ "      1 ->\n"
+                                ++ "        doSomething\n"
+                                ++ "      2 ->\n"
+                                ++ "        doSomethingElse\n"
+                                ++ "    "
+                            )
+            , test "regression test for incorrect parenthesis placement in case expression" <|
+                \() ->
+                    let
+                        body =
+                            ParenthesizedExpression
+                                (Node emptyRange <|
+                                    LambdaExpression
+                                        { args = [ Node emptyRange (VarPattern "myArgument") ]
+                                        , expression =
+                                            Node emptyRange <|
+                                                CaseExpression
+                                                    (CaseBlock (Node emptyRange <| FunctionOrValue [] "someCase")
+                                                        [ ( Node emptyRange <| IntPattern 1, Node emptyRange <| FunctionOrValue [] "doSomething" )
+                                                        , ( Node emptyRange <| IntPattern 2, Node emptyRange <| FunctionOrValue [] "doSomethingElse" )
+                                                        ]
+                                                    )
+                                        }
+                                )
+
+                        function =
+                            FunctionDeclaration
+                                (Function Nothing
+                                    Nothing
+                                    (Node emptyRange <|
+                                        FunctionImplementation
+                                            (Node emptyRange <| "functionName")
+                                            []
+                                            (Node emptyRange body)
+                                    )
+                                )
+                    in
+                    Node emptyRange function
+                        |> Writer.writeDeclaration
+                        |> Writer.write
+                        |> Expect.equal
+                            ("\n\nfunctionName  =\n"
+                                ++ "    (\\myArgument -> \n"
+                                ++ "    case someCase of\n"
+                                ++ "      1 ->\n"
+                                ++ "        doSomething\n"
+                                ++ "      2 ->\n"
+                                ++ "        doSomethingElse\n"
+                                ++ "    )"
+                            )
+            , test "nested case expressions" <|
+                \() ->
+                    let
+                        body nested =
+                            Node emptyRange <|
+                                CaseExpression
+                                    (CaseBlock (Node emptyRange <| FunctionOrValue [] "someCase")
+                                        [ ( Node emptyRange <| IntPattern 1, nested )
+                                        , ( Node emptyRange <| IntPattern 2, Node emptyRange <| FunctionOrValue [] "doSomethingElse" )
+                                        ]
+                                    )
+
+                        function =
+                            FunctionDeclaration
+                                (Function Nothing
+                                    Nothing
+                                    (Node emptyRange <|
+                                        FunctionImplementation
+                                            (Node emptyRange <| "functionName")
+                                            []
+                                            (Node emptyRange
+                                                (ParenthesizedExpression
+                                                    (Node emptyRange <|
+                                                        LambdaExpression
+                                                            { args = [ Node emptyRange (VarPattern "myArgument") ]
+                                                            , expression =
+                                                                body (body (Node emptyRange UnitExpr))
+                                                            }
+                                                    )
+                                                )
+                                            )
+                                    )
+                                )
+                    in
+                    Node emptyRange function
+                        |> Writer.writeDeclaration
+                        |> Writer.write
+                        |> Expect.equal
+                            ("\n\nfunctionName  =\n"
+                                ++ "    (\\myArgument -> \n"
+                                ++ "    case someCase of\n"
+                                ++ "      1 ->\n"
+                                ++ "        \n"
+                                ++ "        case someCase of\n"
+                                ++ "          1 ->\n"
+                                ++ "            ()\n"
+                                ++ "          2 ->\n"
+                                ++ "            doSomethingElse\n"
+                                ++ "        \n"
+                                ++ "      2 ->\n"
+                                ++ "        doSomethingElse\n"
+                                ++ "    )"
                             )
             ]
         , describe "Tuple"

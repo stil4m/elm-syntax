@@ -33,8 +33,8 @@ import Json.Decode as JD exposing (Decoder)
 import Json.Encode as JE exposing (Value)
 
 
-{-| Type alias that deines the syntax for a custom type.
-All information that you can define in on type alias is embedded.
+{-| Type alias that defines the syntax for a custom type.
+All information that you can define in a type alias is embedded.
 -}
 type alias Type =
     { documentation : Maybe (Node Documentation)
