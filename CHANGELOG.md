@@ -1,5 +1,13 @@
 # CHANGELOG
 
+## Version 7.1.3
+
+* Fix the range for `RecordAccess` expressions [#36](https://github.com/stil4m/elm-syntax/pull/36).
+
+## Version 7.1.2
+
+* Take operator precedence into account when creating the AST [#41](https://github.com/stil4m/elm-syntax/issues/41).
+
 ## Version 7.1.1
 
 * Improve stability for very large case statements.
