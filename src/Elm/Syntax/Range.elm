@@ -32,7 +32,6 @@ See also [Basics.compare](https://package.elm-lang.org/packages/elm/core/latest/
 -}
 
 import Json.Decode as JD exposing (Decoder)
-import Json.Decode.Extra exposing (fromResult)
 import Json.Encode as JE exposing (Value)
 
 
@@ -93,6 +92,16 @@ fromList input =
 
         _ ->
             Err "Invalid input list"
+
+
+fromResult : Result String a -> Decoder a
+fromResult result =
+    case result of
+        Ok successValue ->
+            JD.succeed successValue
+
+        Err errorMessage ->
+            JD.fail errorMessage
 
 
 {-| Compute the largest area of a list of ranges.
