@@ -2,7 +2,7 @@
 
 ## Version 7.1.1
 
-* Improve stability for very large case statments.
+* Improve stability for very large case statements.
 
 ## Version 7.x.x
 
