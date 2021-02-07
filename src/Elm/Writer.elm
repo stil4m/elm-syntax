@@ -559,6 +559,11 @@ writeExpression (Node range inner) =
                 ]
 
 
+escapeString : String -> String
+escapeString =
+    String.replace "\"" "\\\""
+
+
 {-| Write a pattern
 -}
 writePattern : Node Pattern -> Writer
@@ -574,7 +579,7 @@ writePattern (Node _ p) =
             string ("'" ++ String.fromList [ c ] ++ "'")
 
         StringPattern s ->
-            string s
+            string ("\"" ++ escapeString s ++ "\"")
 
         HexPattern h ->
             join [ string "0x", string (Hex.toString h) ]
