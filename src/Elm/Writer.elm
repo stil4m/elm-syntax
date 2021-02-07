@@ -578,7 +578,7 @@ writePattern (Node _ p) =
             string ("'" ++ String.fromList [ c ] ++ "'")
 
         StringPattern s ->
-            string s
+            string ("\"" ++ s ++ "\"")
 
         HexPattern h ->
             join [ string "0x", string (Hex.toString h) ]
