@@ -75,6 +75,13 @@ suite =
                         |> Writer.writePattern
                         |> Writer.write
                         |> Expect.equal "\"test\""
+            , test "write string pattern containing \"" <|
+                \() ->
+                    StringPattern "test\""
+                        |> Node emptyRange
+                        |> Writer.writePattern
+                        |> Writer.write
+                        |> Expect.equal "\"test\\\"\""
             ]
         , describe "TypeAnnotation"
             [ test "write simple type" <|
