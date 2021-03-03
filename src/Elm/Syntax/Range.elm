@@ -53,8 +53,8 @@ type alias Range =
 
 {-| Construct an empty range
 -}
-emptyRange : Range
-emptyRange =
+empty : Range
+empty =
     { start = { row = 0, column = 0 }
     , end = { row = 0, column = 0 }
     }
