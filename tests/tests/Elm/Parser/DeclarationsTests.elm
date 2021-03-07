@@ -1,7 +1,7 @@
 module Elm.Parser.DeclarationsTests exposing (all)
 
 import Elm.Parser.CombineTestUtil exposing (..)
-import Elm.Parser.Declarations as Parser exposing (..)
+import Elm.Parser.Declarations as Parser
 import Elm.Parser.State exposing (State, emptyState)
 import Elm.Syntax.Declaration exposing (..)
 import Elm.Syntax.DestructurePattern exposing (DestructurePattern(..))
@@ -373,7 +373,7 @@ all =
                         )
         , test "port declaration for subscription" <|
             \() ->
-                parseFullStringWithNullState "port scroll : (Move -> msg) -> Sub msg" declaration
+                parseFullStringWithNullState "port scroll : (Move -> msg) -> Sub msg" Parser.declaration
                     |> Maybe.map Node.value
                     |> Maybe.map noRangeDeclaration
                     |> Expect.equal
