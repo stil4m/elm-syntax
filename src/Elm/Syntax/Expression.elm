@@ -150,7 +150,7 @@ type alias LetBlock =
     }
 
 
-{-| Union type for all possible declations in a let block
+{-| Union type for all possible declarations in a let block
 -}
 type LetDeclaration
     = LetFunction Function
