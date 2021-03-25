@@ -1,5 +1,19 @@
 # CHANGELOG
 
+## Version 7.2.2
+
+Bug fixes:
+* Fix inability to parse of type aliases and let destructuring when there was no spacing around the `=` sign [#116](https://github.com/stil4m/elm-syntax/pull/116).
+* Fix invalid writing of custom types [#30](https://github.com/stil4m/elm-syntax/issues/30) and [#117](https://github.com/stil4m/elm-syntax/issues/117)
+
+## Version 7.2.1
+
+Bug fixes:
+* Fix invalid writing of strings containing `"` quotes [#109](https://github.com/stil4m/elm-syntax/issues/109)
+
+Chores:
+- Remove elm-community/json-extra dependency
+
 ## Version 7.2.0
 
 API changes:
