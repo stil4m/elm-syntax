@@ -28,7 +28,7 @@ typeDefinition =
                     (Combine.choice
                         [ succeed (TypeAlias Nothing)
                             |> Combine.ignore (string "alias" |> Combine.continueWith Layout.layout)
-                            |> Combine.andMap (Node.parser typeName |> Combine.ignore Layout.layout)
+                            |> Combine.andMap (Node.parser typeName |> Combine.ignore (maybe Layout.layout))
                             |> Combine.andMap genericList
                             |> Combine.ignore (string "=")
                             |> Combine.ignore (maybe Layout.layout)
