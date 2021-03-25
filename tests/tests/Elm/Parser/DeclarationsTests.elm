@@ -272,6 +272,46 @@ all =
                                         }
                                 }
                         )
+        , test "let destructuring with no spaces around '='" <|
+            \() ->
+                parseFullStringWithNullState "foo =\n let\n  (b, c)=(1, 2)\n in\n  b" Parser.function
+                    |> Maybe.map Node.value
+                    |> Maybe.map noRangeDeclaration
+                    |> Expect.equal
+                        (Just <|
+                            FunctionDeclaration
+                                { signature = Nothing
+                                , documentation = Nothing
+                                , declaration =
+                                    Node emptyRange <|
+                                        { name = Node emptyRange "foo"
+                                        , arguments = []
+                                        , expression =
+                                            Node emptyRange <|
+                                                LetExpression
+                                                    { declarations =
+                                                        [ Node emptyRange <|
+                                                            LetDestructuring
+                                                                (Node emptyRange
+                                                                    (TuplePattern
+                                                                        [ Node emptyRange (VarPattern "b")
+                                                                        , Node emptyRange (VarPattern "c")
+                                                                        ]
+                                                                    )
+                                                                )
+                                                                (Node emptyRange
+                                                                    (TupledExpression
+                                                                        [ Node emptyRange (Integer 1)
+                                                                        , Node emptyRange (Integer 2)
+                                                                        ]
+                                                                    )
+                                                                )
+                                                        ]
+                                                    , expression = Node emptyRange <| FunctionOrValue [] "b"
+                                                    }
+                                        }
+                                }
+                        )
         , test "declaration with record" <|
             \() ->
                 parseFullStringWithNullState "main =\n  beginnerProgram { model = 0, view = view, update = update }" Parser.function
