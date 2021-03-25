@@ -144,7 +144,7 @@ suite =
                         |> Writer.write
                         |> Expect.equal
                             ("type Sample \n"
-                                ++ "=Foo |Bar "
+                                ++ "    =Foo |Bar "
                             )
             , test "write function with case expression using the right indentations" <|
                 \() ->
