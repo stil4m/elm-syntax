@@ -273,9 +273,11 @@ writeType type_ =
                 List.map Node.range type_.constructors
                     |> startOnDifferentLines
           in
-          sepBy ( "=", "|", "" )
+          indent 4
+          ( sepBy ( "=", "|", "" )
             diffLines
             (List.map (Node.value >> writeValueConstructor) type_.constructors)
+          )
         ]
 
 
