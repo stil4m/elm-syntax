@@ -31,7 +31,7 @@ typeDefinition =
                             |> Combine.andMap (Node.parser typeName |> Combine.ignore Layout.layout)
                             |> Combine.andMap genericList
                             |> Combine.ignore (string "=")
-                            |> Combine.ignore Layout.layout
+                            |> Combine.ignore (maybe Layout.layout)
                             |> Combine.andMap typeAnnotation
                             |> Combine.map
                                 (\typeAlias ->
