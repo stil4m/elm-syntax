@@ -55,6 +55,26 @@ all =
                                         ]
                             }
                         )
+        , test "type alias without spacings around '='" <|
+            \() ->
+                parseFullStringWithNullState "type alias Foo={color: String }" Parser.typeDefinition
+                    |> Maybe.andThen asTypeAlias
+                    |> Maybe.map noRangeTypeAlias
+                    |> Expect.equal
+                        (Just <|
+                            { documentation = Nothing
+                            , name = Node emptyRange "Foo"
+                            , generics = []
+                            , typeAnnotation =
+                                Node emptyRange <|
+                                    Record
+                                        [ Node emptyRange <|
+                                            ( Node emptyRange <| "color"
+                                            , Node emptyRange <| Typed (Node emptyRange <| ( [], "String" )) []
+                                            )
+                                        ]
+                            }
+                        )
         , test "type alias with GenericType " <|
             \() ->
                 parseFullStringWithNullState "type alias Foo a = {some : a }" Parser.typeDefinition
