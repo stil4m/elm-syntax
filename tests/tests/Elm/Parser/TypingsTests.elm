@@ -57,7 +57,7 @@ all =
                         )
         , test "type alias without spacings around '='" <|
             \() ->
-                parseFullStringWithNullState "type alias Foo={color: String }" Parser.typeDefinition
+                parseFullStringWithNullState "type alias Foo ={color: String }" Parser.typeDefinition
                     |> Maybe.andThen asTypeAlias
                     |> Maybe.map noRangeTypeAlias
                     |> Expect.equal
