@@ -274,10 +274,10 @@ writeType type_ =
                     |> startOnDifferentLines
           in
           indent 4
-          ( sepBy ( "=", "|", "" )
-            diffLines
-            (List.map (Node.value >> writeValueConstructor) type_.constructors)
-          )
+            (sepBy ( "=", "|", "" )
+                diffLines
+                (List.map (Node.value >> writeValueConstructor) type_.constructors)
+            )
         ]
 
 
