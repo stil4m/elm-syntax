@@ -516,7 +516,7 @@ letDestructuringDeclarationWithPattern p =
             succeed (LetDestructuring p)
                 |> Combine.ignore (maybe Layout.layout)
                 |> Combine.ignore (string "=")
-                |> Combine.ignore Layout.layout
+                |> Combine.ignore (maybe Layout.layout)
                 |> Combine.andMap expression
         )
 
