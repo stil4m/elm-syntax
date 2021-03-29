@@ -294,14 +294,14 @@ all =
                                                         [ Node emptyRange <|
                                                             LetDestructuring
                                                                 (Node emptyRange
-                                                                    (TuplePattern
-                                                                        [ Node emptyRange (VarPattern "b")
-                                                                        , Node emptyRange (VarPattern "c")
+                                                                    (TuplePattern_
+                                                                        [ Node emptyRange (VarPattern_ "b")
+                                                                        , Node emptyRange (VarPattern_ "c")
                                                                         ]
                                                                     )
                                                                 )
                                                                 (Node emptyRange
-                                                                    (TupledExpression
+                                                                    (TupleExpression
                                                                         [ Node emptyRange (Integer 1)
                                                                         , Node emptyRange (Integer 2)
                                                                         ]
