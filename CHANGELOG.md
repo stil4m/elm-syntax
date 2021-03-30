@@ -1,5 +1,10 @@
 # CHANGELOG
 
+## Version 7.2.3
+
+Bug fixes:
+* Improve parsing of variable names which contain unicode, by using [`miniBill/elm-unicode`](https://package.elm-lang.org/packages/miniBill/elm-unicode/latest/) (thanks @miniBill!)
+
 ## Version 7.2.2
 
 Bug fixes:
