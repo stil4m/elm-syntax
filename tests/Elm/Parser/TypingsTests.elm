@@ -70,7 +70,7 @@ all =
                                     Record
                                         [ Node emptyRange <|
                                             ( Node emptyRange <| "color"
-                                            , Node emptyRange <| Typed (Node emptyRange <| ( [], "String" )) []
+                                            , Node emptyRange <| Elm.Syntax.TypeAnnotation.Type (Node emptyRange <| ( [], "String" )) []
                                             )
                                         ]
                             }
