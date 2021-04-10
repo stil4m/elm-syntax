@@ -267,6 +267,20 @@ suite =
                                 ++ "        doSomethingElse\n"
                                 ++ "    )"
                             )
+            , test "regression test for char literals not being escaped" <|
+                \() ->
+                    ListExpr
+                        [ Node emptyRange (CharLiteral '\\')
+                        , Node emptyRange (CharLiteral '"')
+                        , Node emptyRange (CharLiteral '\'')
+                        , Node emptyRange (CharLiteral '\t')
+                        , Node emptyRange (CharLiteral '→')
+                        , Node emptyRange (CharLiteral '\u{00A0}')
+                        ]
+                        |> Node emptyRange
+                        |> Writer.writeExpression
+                        |> Writer.write
+                        |> Expect.equal "['\\\\', '\"', '\\'', '\\\t', '→', '\u{00A0}']"
             , test "nested case expressions" <|
                 \() ->
                     let

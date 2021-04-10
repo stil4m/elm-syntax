@@ -490,7 +490,16 @@ writeExpression (Node range inner) =
             string ("\"" ++ s ++ "\"")
 
         CharLiteral c ->
-            string ("'" ++ String.fromList [ c ] ++ "'")
+            let
+                escape : String
+                escape =
+                    if c == '\t' || c == '\'' || c == '\\' then
+                        "\\"
+
+                    else
+                        ""
+            in
+            string ("'" ++ escape ++ String.fromList [ c ] ++ "'")
 
         TupledExpression t ->
             join [ string "(", sepHelper sepByComma (List.map recurRangeHelper t), string ")" ]
