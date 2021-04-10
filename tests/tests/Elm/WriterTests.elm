@@ -281,6 +281,20 @@ suite =
                         |> Writer.writeExpression
                         |> Writer.write
                         |> Expect.equal "['\\\\', '\"', '\\'', '\\\t', '→', '\u{00A0}']"
+            , test "regression test for char pattern not being escaped" <|
+                \() ->
+                    ListPattern
+                        [ Node emptyRange (CharPattern '\\')
+                        , Node emptyRange (CharPattern '"')
+                        , Node emptyRange (CharPattern '\'')
+                        , Node emptyRange (CharPattern '\t')
+                        , Node emptyRange (CharPattern '→')
+                        , Node emptyRange (CharPattern '\u{00A0}')
+                        ]
+                        |> Node emptyRange
+                        |> Writer.writePattern
+                        |> Writer.write
+                        |> Expect.equal "['\\\\', '\"', '\\'', '\\\t', '→', '\u{00A0}']"
             , test "nested case expressions" <|
                 \() ->
                     let
