@@ -1,7 +1,5 @@
 module Elm.Parser.Samples exposing (allSamples, sample1, sample10, sample11, sample12, sample13, sample14, sample15, sample16, sample17, sample18, sample19, sample2, sample20, sample21, sample22, sample23, sample24, sample25, sample26, sample27, sample28, sample29, sample3, sample30, sample31, sample32, sample33, sample34, sample4, sample5, sample6, sample7, sample8, sample9)
 
-import Bitwise
-
 
 allSamples : List String
 allSamples =
@@ -44,7 +42,68 @@ allSamples =
     , sample37
     , sample38
     , sample39
+    , sample40
+    , sample41
+    , sample42
+    , sample43
+    , sample44
+    , sample45
     ]
+
+
+sample45 =
+    """module A exposing (..)
+
+type B a= B
+
+"""
+
+
+sample44 =
+    """module A exposing (..)
+
+a =
+    case b of
+        [  ] ->
+            ""
+"""
+
+
+sample43 =
+    """module PegTest exposing (..)
+
+a =
+    infixr
+
+b =
+    infixl
+"""
+
+
+sample42 =
+    """module A exposing ( infixl , infixr )
+
+a = 0
+"""
+
+
+sample41 =
+    """module A exposing (..)
+
+type alias A msg=
+    { a : Int
+    }
+"""
+
+
+sample40 =
+    """module A exposing (..)
+
+f =
+    (\\a -> case a of
+                _ -> ""
+                )
+"""
 
 
 sample39 =
