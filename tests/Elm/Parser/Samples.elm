@@ -48,7 +48,19 @@ allSamples =
     , sample43
     , sample44
     , sample45
+    , sample46
     ]
+
+
+sample46 =
+    """module A exposing (..)
+
+a =
+    case b of
+        [
+         ] ->
+            ""
+"""
 
 
 sample45 =
