@@ -49,10 +49,73 @@ allSamples =
     , sample44
     , sample45
     , sample46
+    , sample47
+    , sample48
+    , sample49
+    , sample50
+    , sample51
     ]
 
 
+sample51 =
+    """module A exposing (..)
+
+f =
+    [case a of
+                _ -> ""]
+"""
+
+
+sample50 =
+    """module A exposing (..)
+
+f =
+    [case a of
+                _ -> ""
+               ]
+"""
+
+
+sample49 =
+    """module A exposing (..)
+
+f =
+    [case a of
+                _ -> ""
+                ]
+"""
+
+
+sample48 =
+    """module A exposing (..)
+
+f =
+    (\\a -> case a of
+                _ -> "")
+"""
+
+
+sample47 =
+    """module A exposing (..)
+
+f =
+    (\\a -> case a of
+                _ -> ""
+               )
+"""
+
+
 sample46 =
+    """module A exposing (..)
+
+f =
+    (\\a -> case a of
+                _ -> ""
+                )
+"""
+
+
+sample45 =
     """module A exposing (..)
 
 a =
@@ -63,7 +126,7 @@ a =
 """
 
 
-sample45 =
+sample44 =
     """module A exposing (..)
 
 type B a= B
@@ -71,7 +134,7 @@ type B a= B
 """
 
 
-sample44 =
+sample43 =
     """module A exposing (..)
 
 a =
@@ -81,7 +144,7 @@ a =
 """
 
 
-sample43 =
+sample42 =
     """module PegTest exposing (..)
 
 a =
@@ -89,32 +152,25 @@ a =
 
 b =
     infixl
-"""
 
-
-sample42 =
-    """module A exposing ( infixl , infixr )
-
-a = 0
+c =
+    infix
 """
 
 
 sample41 =
-    """module A exposing (..)
+    """module A exposing ( infixl , infixr, infix )
 
-type alias A msg=
-    { a : Int
-    }
+a = 0
 """
 
 
 sample40 =
     """module A exposing (..)
 
-f =
-    (\\a -> case a of
-                _ -> ""
-                )
+type alias A msg=
+    { a : Int
+    }
 """
 
 
