@@ -17,14 +17,15 @@ import Test exposing (..)
 all : Test
 all =
     Test.concat
-        [ describe "FileTests" <|
-            List.indexedMap
-                (\n s ->
-                    test ("sample " ++ String.fromInt (n + 1)) <|
-                        \() ->
-                            parseFullStringState emptyState s Parser.file |> Expect.notEqual Nothing
-                )
-                Samples.allSamples
+        [ only <|
+            describe "FileTests" <|
+                List.indexedMap
+                    (\n s ->
+                        test ("sample " ++ String.fromInt (n + 1)) <|
+                            \() ->
+                                parseFullStringState emptyState s Parser.file |> Expect.notEqual Nothing
+                    )
+                    Samples.allSamples
 
         -- , describe "Error messages" <|
         --     [ test "failure on module name" <|
