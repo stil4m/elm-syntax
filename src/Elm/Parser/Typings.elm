@@ -29,6 +29,7 @@ typeDefinition =
                         [ succeed (TypeAlias Nothing)
                             |> Combine.ignore (string "alias" |> Combine.continueWith Layout.layout)
                             |> Combine.andMap (Node.parser typeName |> Combine.ignore (maybe Layout.layout))
+                            |> Combine.ignore (maybe Layout.layout)
                             |> Combine.andMap genericList
                             |> Combine.ignore (string "=")
                             |> Combine.ignore (maybe Layout.layout)
@@ -41,6 +42,7 @@ typeDefinition =
                             |> Combine.andMap (Node.parser typeName)
                             |> Combine.ignore (maybe Layout.layout)
                             |> Combine.andMap genericList
+                            |> Combine.ignore (string "=")
                             |> Combine.ignore (maybe Layout.layout)
                             |> Combine.ignore (string "=" |> Combine.ignore (maybe Layout.layout))
                             |> Combine.andMap valueConstructors
@@ -98,7 +100,7 @@ valueConstructor =
 
 genericList : Parser State (List (Node String))
 genericList =
-    many (Node.parser functionName |> Combine.ignore Layout.layout)
+    many (Node.parser functionName |> Combine.ignore (maybe Layout.layout))
 
 
 typePrefix : Parser State ()
