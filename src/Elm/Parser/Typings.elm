@@ -42,7 +42,6 @@ typeDefinition =
                             |> Combine.andMap (Node.parser typeName)
                             |> Combine.ignore (maybe Layout.layout)
                             |> Combine.andMap genericList
-                            |> Combine.ignore (string "=")
                             |> Combine.ignore (maybe Layout.layout)
                             |> Combine.ignore (string "=" |> Combine.ignore (maybe Layout.layout))
                             |> Combine.andMap valueConstructors
