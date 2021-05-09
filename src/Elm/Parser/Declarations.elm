@@ -456,7 +456,10 @@ caseStatements =
                             Combine.withLocation
                                 (\l ->
                                     if State.expectedColumn s == l.column then
-                                        Combine.map (\c -> Combine.Loop (c :: last)) caseStatement
+                                        Combine.choice
+                                            [ Combine.map (\c -> Combine.Loop (c :: last)) caseStatement
+                                            , Combine.succeed (Combine.Done (List.reverse last))
+                                            ]
 
                                     else
                                         Combine.succeed (Combine.Done (List.reverse last))

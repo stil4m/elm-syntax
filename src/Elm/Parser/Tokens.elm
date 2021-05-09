@@ -42,8 +42,9 @@ reservedList =
     , "case"
     , "of"
     , "port"
-    , "infixr"
-    , "infixl"
+
+    --, "infixr"
+    --, "infixl"
     , "type"
 
     --, "infix" Apparently this is not a reserved keyword
