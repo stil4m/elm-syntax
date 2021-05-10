@@ -71,7 +71,7 @@ listPattern =
         (\() ->
             Node.parser <|
                 between
-                    (string "[")
+                    (string "[" |> Combine.ignore (maybe Layout.layout))
                     (string "]")
                     (Combine.map ListPattern (sepBy (string ",") (Layout.maybeAroundBothSides pattern)))
         )
