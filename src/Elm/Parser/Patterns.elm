@@ -143,6 +143,6 @@ recordPart =
                     between
                         (string "{" |> Combine.continueWith (maybe Layout.layout))
                         (maybe Layout.layout |> Combine.continueWith (string "}"))
-                        (sepBy1 (string ",") (Layout.maybeAroundBothSides (Node.parser functionName)))
+                        (sepBy (string ",") (Layout.maybeAroundBothSides (Node.parser functionName)))
                 )
         )
