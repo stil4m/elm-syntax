@@ -112,6 +112,10 @@ all =
                                 ListPattern [ Node (Range (Location 1 2) (Location 1 3)) <| IntPattern 1 ]
                             )
                         )
+        , test "empty list pattern" <|
+            \() ->
+                parseFullStringState emptyState "[]" Parser.pattern
+                    |> Expect.equal (Just (Node (Range (Location 1 1) (Location 1 3)) (ListPattern [])))
         , test "float pattern" <|
             \() ->
                 parseFullStringState emptyState "1.2" Parser.pattern
