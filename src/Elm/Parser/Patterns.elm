@@ -1,6 +1,6 @@
 module Elm.Parser.Patterns exposing (pattern)
 
-import Combine exposing (Parser, between, choice, lazy, many, maybe, parens, sepBy, sepBy1, string, succeed)
+import Combine exposing (Parser, between, lazy, many, maybe, parens, sepBy, string)
 import Elm.Parser.Base as Base
 import Elm.Parser.Layout as Layout
 import Elm.Parser.Node as Node
@@ -91,7 +91,7 @@ composablePattern =
         , Node.parser numberPart
         , Node.parser (Core.symbol "()" |> Combine.fromCore |> Combine.map (always UnitPattern))
         , Node.parser (Core.symbol "_" |> Combine.fromCore |> Combine.map (always AllPattern))
-        , recordPart
+        , recordPattern
         , listPattern
         , parensPattern
         ]
@@ -107,7 +107,7 @@ qualifiedPatternArg =
         , Node.parser numberPart
         , Node.parser (Core.symbol "()" |> Combine.fromCore |> Combine.map (always UnitPattern))
         , Node.parser (Core.symbol "_" |> Combine.fromCore |> Combine.map (always AllPattern))
-        , recordPart
+        , recordPattern
         , listPattern
         , parensPattern
         ]
@@ -134,15 +134,15 @@ qualifiedPattern consumeArgs =
             )
 
 
-recordPart : Parser State (Node Pattern)
-recordPart =
+recordPattern : Parser State (Node Pattern)
+recordPattern =
     lazy
         (\() ->
             Node.parser
                 (Combine.map RecordPattern <|
                     between
                         (string "{" |> Combine.continueWith (maybe Layout.layout))
-                        (maybe Layout.layout |> Combine.continueWith (string "}"))
-                        (sepBy1 (string ",") (Layout.maybeAroundBothSides (Node.parser functionName)))
+                        (string "}")
+                        (sepBy (string ",") (Layout.maybeAroundBothSides (Node.parser functionName)))
                 )
         )

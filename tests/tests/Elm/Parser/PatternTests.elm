@@ -112,6 +112,32 @@ all =
                                 ListPattern [ Node (Range (Location 1 2) (Location 1 3)) <| IntPattern 1 ]
                             )
                         )
+        , test "empty list pattern" <|
+            \() ->
+                parseFullStringState emptyState "[]" Parser.pattern
+                    |> Expect.equal (Just (Node (Range (Location 1 1) (Location 1 3)) (ListPattern [])))
+        , test "empty list pattern with whitespace" <|
+            \() ->
+                parseFullStringState emptyState "[ ]" Parser.pattern
+                    |> Expect.equal (Just (Node (Range (Location 1 1) (Location 1 4)) (ListPattern [])))
+        , test "single element list pattern with trailing whitespace" <|
+            \() ->
+                parseFullStringState emptyState "[1 ]" Parser.pattern
+                    |> Expect.equal
+                        (Just
+                            (Node (Range (Location 1 1) (Location 1 5)) <|
+                                ListPattern [ Node (Range (Location 1 2) (Location 1 3)) <| IntPattern 1 ]
+                            )
+                        )
+        , test "single element list pattern with leading whitespace" <|
+            \() ->
+                parseFullStringState emptyState "[ 1]" Parser.pattern
+                    |> Expect.equal
+                        (Just
+                            (Node (Range (Location 1 1) (Location 1 5)) <|
+                                ListPattern [ Node (Range (Location 1 3) (Location 1 4)) <| IntPattern 1 ]
+                            )
+                        )
         , test "float pattern" <|
             \() ->
                 parseFullStringState emptyState "1.2" Parser.pattern
@@ -129,6 +155,53 @@ all =
                                     ]
                             )
                         )
+        , test "record pattern with whitespace" <|
+            \() ->
+                parseFullStringState emptyState "{a , b}" Parser.pattern
+                    |> Maybe.map noRangePattern
+                    |> Expect.equal
+                        (Just
+                            (Node emptyRange <|
+                                RecordPattern
+                                    [ Node emptyRange "a"
+                                    , Node emptyRange "b"
+                                    ]
+                            )
+                        )
+        , test "record pattern with trailing whitespace" <|
+            \() ->
+                parseFullStringState emptyState "{a }" Parser.pattern
+                    |> Maybe.map noRangePattern
+                    |> Expect.equal
+                        (Just
+                            (Node emptyRange <|
+                                RecordPattern
+                                    [ Node emptyRange "a"
+                                    ]
+                            )
+                        )
+        , test "record pattern with leading whitespace" <|
+            \() ->
+                parseFullStringState emptyState "{ a}" Parser.pattern
+                    |> Maybe.map noRangePattern
+                    |> Expect.equal
+                        (Just
+                            (Node emptyRange <|
+                                RecordPattern
+                                    [ Node emptyRange "a"
+                                    ]
+                            )
+                        )
+        , test "empty record pattern" <|
+            \() ->
+                parseFullStringState emptyState "{}" Parser.pattern
+                    |> Maybe.map noRangePattern
+                    |> Expect.equal (Just (Node emptyRange <| RecordPattern []))
+        , test "empty record pattern with whitespace" <|
+            \() ->
+                parseFullStringState emptyState "{ }" Parser.pattern
+                    |> Maybe.map noRangePattern
+                    |> Expect.equal (Just (Node emptyRange <| RecordPattern []))
         , test "named pattern" <|
             \() ->
                 parseFullStringState emptyState "True" Parser.pattern
