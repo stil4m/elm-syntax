@@ -91,7 +91,7 @@ composablePattern =
         , Node.parser numberPart
         , Node.parser (Core.symbol "()" |> Combine.fromCore |> Combine.map (always UnitPattern))
         , Node.parser (Core.symbol "_" |> Combine.fromCore |> Combine.map (always AllPattern))
-        , recordPart
+        , recordPattern
         , listPattern
         , parensPattern
         ]
@@ -107,7 +107,7 @@ qualifiedPatternArg =
         , Node.parser numberPart
         , Node.parser (Core.symbol "()" |> Combine.fromCore |> Combine.map (always UnitPattern))
         , Node.parser (Core.symbol "_" |> Combine.fromCore |> Combine.map (always AllPattern))
-        , recordPart
+        , recordPattern
         , listPattern
         , parensPattern
         ]
@@ -134,8 +134,8 @@ qualifiedPattern consumeArgs =
             )
 
 
-recordPart : Parser State (Node Pattern)
-recordPart =
+recordPattern : Parser State (Node Pattern)
+recordPattern =
     lazy
         (\() ->
             Node.parser
