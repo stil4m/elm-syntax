@@ -1,5 +1,10 @@
 # CHANGELOG
 
+## Version 7.2.5
+
+Bug fixes:
+* Fixed parsing error for `{}` in patterns
+
 ## Version 7.2.4
 
 Bug fixes:
