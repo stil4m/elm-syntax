@@ -142,7 +142,7 @@ recordPart =
                 (Combine.map RecordPattern <|
                     between
                         (string "{" |> Combine.continueWith (maybe Layout.layout))
-                        (maybe Layout.layout |> Combine.continueWith (string "}"))
+                        (string "}")
                         (sepBy (string ",") (Layout.maybeAroundBothSides (Node.parser functionName)))
                 )
         )

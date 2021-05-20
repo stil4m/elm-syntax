@@ -155,9 +155,51 @@ all =
                                     ]
                             )
                         )
+        , test "record pattern with whitespace" <|
+            \() ->
+                parseFullStringState emptyState "{a , b}" Parser.pattern
+                    |> Maybe.map noRangePattern
+                    |> Expect.equal
+                        (Just
+                            (Node emptyRange <|
+                                RecordPattern
+                                    [ Node emptyRange "a"
+                                    , Node emptyRange "b"
+                                    ]
+                            )
+                        )
+        , test "record pattern with trailing whitespace" <|
+            \() ->
+                parseFullStringState emptyState "{a }" Parser.pattern
+                    |> Maybe.map noRangePattern
+                    |> Expect.equal
+                        (Just
+                            (Node emptyRange <|
+                                RecordPattern
+                                    [ Node emptyRange "a"
+                                    ]
+                            )
+                        )
+        , test "record pattern with leading whitespace" <|
+            \() ->
+                parseFullStringState emptyState "{ a}" Parser.pattern
+                    |> Maybe.map noRangePattern
+                    |> Expect.equal
+                        (Just
+                            (Node emptyRange <|
+                                RecordPattern
+                                    [ Node emptyRange "a"
+                                    ]
+                            )
+                        )
         , test "empty record pattern" <|
             \() ->
                 parseFullStringState emptyState "{}" Parser.pattern
+                    |> Maybe.map noRangePattern
+                    |> Expect.equal (Just (Node emptyRange <| RecordPattern []))
+        , test "empty record pattern with whitespace" <|
+            \() ->
+                parseFullStringState emptyState "{ }" Parser.pattern
                     |> Maybe.map noRangePattern
                     |> Expect.equal (Just (Node emptyRange <| RecordPattern []))
         , test "named pattern" <|
