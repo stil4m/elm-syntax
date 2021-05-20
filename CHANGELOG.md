@@ -1,5 +1,24 @@
 # CHANGELOG
 
+## Version 7.2.5
+
+Bug fixes:
+* Fixed parsing error for `{}` in patterns
+
+## Version 7.2.4
+
+Bug fixes:
+* `infixr` and `infixl` can now be used as identifiers
+* Pattern matching with `[]` can now have spaces between the brackets
+* Closing parenthesis aligned with the start of patterns in a case expression was not allowed
+* Missing whitespace between a type parameter in the `=` sign in a type declaration was not allowed
+* Elm.Writer was not escaping Char literals
+
+## Version 7.2.3
+
+Bug fixes:
+* Improve parsing of variable names which contain unicode, by using [`miniBill/elm-unicode`](https://package.elm-lang.org/packages/miniBill/elm-unicode/latest/) (thanks @miniBill!)
+
 ## Version 7.2.2
 
 Bug fixes:
