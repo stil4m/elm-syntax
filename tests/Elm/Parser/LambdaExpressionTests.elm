@@ -28,6 +28,30 @@ all =
                                 }
                             )
                         )
+        , test "record lambda" <|
+            \() ->
+                parseFullStringState emptyState "\\{foo} -> foo" Parser.expression
+                    |> Maybe.map (Node.value >> noRangeInnerExpression)
+                    |> Expect.equal
+                        (Just
+                            (LambdaExpression
+                                { args = [ Node emptyRange (RecordPattern [ Node { end = { column = 0, row = 0 }, start = { column = 0, row = 0 } } "foo" ]) ]
+                                , expression = Node emptyRange <| FunctionOrValue [] "foo"
+                                }
+                            )
+                        )
+        , test "empty record lambda" <|
+            \() ->
+                parseFullStringState emptyState "\\{} -> foo" Parser.expression
+                    |> Maybe.map (Node.value >> noRangeInnerExpression)
+                    |> Expect.equal
+                        (Just
+                            (LambdaExpression
+                                { args = [ Node emptyRange (RecordPattern []) ]
+                                , expression = Node emptyRange <| FunctionOrValue [] "foo"
+                                }
+                            )
+                        )
         , test "function arg" <|
             \() ->
                 parseAsFarAsPossibleWithState emptyState "a b" Parser.functionArgument
