@@ -116,6 +116,28 @@ all =
             \() ->
                 parseFullStringState emptyState "[]" Parser.pattern
                     |> Expect.equal (Just (Node (Range (Location 1 1) (Location 1 3)) (ListPattern [])))
+        , test "empty list pattern with whitespace" <|
+            \() ->
+                parseFullStringState emptyState "[ ]" Parser.pattern
+                    |> Expect.equal (Just (Node (Range (Location 1 1) (Location 1 4)) (ListPattern [])))
+        , test "single element list pattern with trailing whitespace" <|
+            \() ->
+                parseFullStringState emptyState "[1 ]" Parser.pattern
+                    |> Expect.equal
+                        (Just
+                            (Node (Range (Location 1 1) (Location 1 5)) <|
+                                ListPattern [ Node (Range (Location 1 2) (Location 1 3)) <| IntPattern 1 ]
+                            )
+                        )
+        , test "single element list pattern with leading whitespace" <|
+            \() ->
+                parseFullStringState emptyState "[ 1]" Parser.pattern
+                    |> Expect.equal
+                        (Just
+                            (Node (Range (Location 1 1) (Location 1 5)) <|
+                                ListPattern [ Node (Range (Location 1 3) (Location 1 4)) <| IntPattern 1 ]
+                            )
+                        )
         , test "float pattern" <|
             \() ->
                 parseFullStringState emptyState "1.2" Parser.pattern
