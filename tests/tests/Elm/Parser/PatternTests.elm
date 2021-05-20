@@ -129,6 +129,11 @@ all =
                                     ]
                             )
                         )
+        , test "empty record pattern" <|
+            \() ->
+                parseFullStringState emptyState "{}" Parser.pattern
+                    |> Maybe.map noRangePattern
+                    |> Expect.equal (Just (Node emptyRange <| RecordPattern []))
         , test "named pattern" <|
             \() ->
                 parseFullStringState emptyState "True" Parser.pattern
