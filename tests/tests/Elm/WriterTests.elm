@@ -1,11 +1,13 @@
 module Elm.WriterTests exposing (suite)
 
+import Elm.Parser.CombineTestUtil exposing (parseFullStringWithNullState)
+import Elm.Parser.Declarations exposing (expression)
 import Elm.Syntax.Declaration exposing (..)
 import Elm.Syntax.Exposing exposing (..)
 import Elm.Syntax.Expression exposing (..)
 import Elm.Syntax.Module exposing (..)
 import Elm.Syntax.ModuleName exposing (..)
-import Elm.Syntax.Node exposing (Node(..))
+import Elm.Syntax.Node as Node exposing (Node(..))
 import Elm.Syntax.Pattern exposing (..)
 import Elm.Syntax.Range exposing (emptyRange)
 import Elm.Syntax.Type exposing (..)
@@ -62,6 +64,17 @@ suite =
                         |> Writer.writeExpression
                         |> Writer.write
                         |> Expect.equal "Foo.Bar.baz"
+            , test "Expression.RecordAccessFunction should be parsed then written idempotently" <|
+                \() ->
+                    let
+                        input =
+                            "(.spaceEvenly Internal.Style.classes)"
+                    in
+                    parseFullStringWithNullState input expression
+                        |> Maybe.map Writer.writeExpression
+                        |> Maybe.map Writer.write
+                        |> Expect.equal
+                            (Just input)
             ]
         , describe "Pattern"
             [ test "write string pattern" <|
