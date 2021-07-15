@@ -75,6 +75,18 @@ suite =
                         |> Maybe.map Writer.write
                         |> Expect.equal
                             (Just input)
+            , test "regression test for Expression.RecordAccessFunction being written without leading period" <|
+                \() ->
+                    (Node emptyRange <|
+                        Application
+                            [ Node emptyRange <| FunctionOrValue [ "List" ] "map"
+                            , Node emptyRange <| RecordAccessFunction "name"
+                            , Node emptyRange <| FunctionOrValue [] "people"
+                            ]
+                    )
+                        |> Writer.writeExpression
+                        |> Writer.write
+                        |> Expect.equal "List.map .name people"
             ]
         , describe "Pattern"
             [ test "write string pattern" <|

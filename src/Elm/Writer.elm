@@ -542,7 +542,11 @@ writeExpression (Node range inner) =
             join [ writeExpression expression, string ".", string <| Node.value accessor ]
 
         RecordAccessFunction s ->
-            join [ string ".", string s ]
+            if String.startsWith "." s then
+                string s
+
+            else
+                join [ string ".", string s ]
 
         RecordUpdateExpression name updates ->
             spaced
