@@ -374,7 +374,7 @@ all =
                     |> expectAst
                         (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 22 } }
                             (Application (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 9 } } (FunctionOrValue [ "List" ] "map"))
-                                [ Node { start = { row = 1, column = 10 }, end = { row = 1, column = 15 } } (RecordAccessFunction ".name")
+                                [ Node { start = { row = 1, column = 10 }, end = { row = 1, column = 15 } } (RecordAccessFunction "name")
                                 , Node { start = { row = 1, column = 16 }, end = { row = 1, column = 22 } } (FunctionOrValue [] "people")
                                 ]
                             )
@@ -387,7 +387,7 @@ all =
                             (TupleExpression
                                 [ Node { start = { row = 1, column = 2 }, end = { row = 1, column = 37 } }
                                     (Application
-                                        (Node { start = { row = 1, column = 2 }, end = { row = 1, column = 14 } } (RecordAccessFunction ".spaceEvenly"))
+                                        (Node { start = { row = 1, column = 2 }, end = { row = 1, column = 14 } } (RecordAccessFunction "spaceEvenly"))
                                         [ Node { start = { row = 1, column = 15 }, end = { row = 1, column = 37 } } (FunctionOrValue [ "Internal", "Style" ] "classes")
                                         ]
                                     )

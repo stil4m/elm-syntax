@@ -486,7 +486,7 @@ referenceExpression =
 
 recordAccessFunctionExpression : Parser State (Node Expression)
 recordAccessFunctionExpression =
-    Core.succeed (\field -> RecordAccessFunction ("." ++ field))
+    Core.succeed (\field -> RecordAccessFunction field)
         |. Tokens.dot
         |= Tokens.functionName
         |> Node.parserFromCore
