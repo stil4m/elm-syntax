@@ -1,6 +1,6 @@
 module Elm.Parser.Imports exposing (importDefinition)
 
-import Combine exposing (Parser, succeed)
+import Combine exposing (Parser)
 import Elm.Parser.Base exposing (moduleName)
 import Elm.Parser.Expose exposing (exposeDefinition)
 import Elm.Parser.Layout as Layout

@@ -3,7 +3,7 @@ module Elm.Parser.TypeAnnotationTests exposing (all)
 import Elm.Parser.CombineTestUtil exposing (..)
 import Elm.Parser.State exposing (emptyState)
 import Elm.Parser.TypeAnnotation as Parser
-import Elm.Syntax.Node as Node exposing (Node(..))
+import Elm.Syntax.Node exposing (Node(..))
 import Elm.Syntax.Range exposing (emptyRange)
 import Elm.Syntax.TypeAnnotation exposing (..)
 import Expect

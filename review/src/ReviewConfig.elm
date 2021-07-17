@@ -12,6 +12,7 @@ when inside the directory containing this file.
 -}
 
 import NoUnused.Dependencies
+import NoUnused.Modules
 import NoUnused.Variables
 import Review.Rule exposing (Rule)
 
@@ -20,4 +21,5 @@ config : List Rule
 config =
     [ NoUnused.Dependencies.rule
     , NoUnused.Variables.rule
+    , NoUnused.Modules.rule
     ]

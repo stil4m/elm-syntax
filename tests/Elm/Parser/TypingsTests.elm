@@ -1,9 +1,9 @@
 module Elm.Parser.TypingsTests exposing (all, asType, asTypeAlias)
 
 import Elm.Parser.CombineTestUtil exposing (..)
-import Elm.Parser.State exposing (State, emptyState)
+import Elm.Parser.State exposing (emptyState)
 import Elm.Parser.Typings as Parser exposing (TypeDefinition(..))
-import Elm.Syntax.Node as Node exposing (Node(..))
+import Elm.Syntax.Node exposing (Node(..))
 import Elm.Syntax.Range exposing (emptyRange)
 import Elm.Syntax.Type exposing (Type)
 import Elm.Syntax.TypeAlias exposing (TypeAlias)

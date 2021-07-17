@@ -1,7 +1,7 @@
 module Elm.Parser.InfixTests exposing (all)
 
 import Elm.Parser.CombineTestUtil exposing (..)
-import Elm.Parser.Infix as Infix exposing (..)
+import Elm.Parser.Infix as Infix
 import Elm.Parser.State exposing (emptyState)
 import Elm.Syntax.Infix exposing (..)
 import Elm.Syntax.Node exposing (Node(..))

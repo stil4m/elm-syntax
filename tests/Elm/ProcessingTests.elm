@@ -3,14 +3,12 @@ module Elm.ProcessingTests exposing (functionWithDocs, functionWithDocsAndSignat
 import Elm.Parser as Parser
 import Elm.Processing as Processing
 import Elm.Syntax.Declaration exposing (..)
-import Elm.Syntax.Documentation exposing (..)
 import Elm.Syntax.Exposing exposing (..)
 import Elm.Syntax.Expression exposing (..)
 import Elm.Syntax.File exposing (..)
 import Elm.Syntax.Infix exposing (..)
 import Elm.Syntax.Module exposing (..)
-import Elm.Syntax.Node as Node exposing (Node(..))
-import Elm.Syntax.Range exposing (emptyRange)
+import Elm.Syntax.Node exposing (Node(..))
 import Elm.Syntax.TypeAnnotation exposing (..)
 import Expect
 import Parser exposing (DeadEnd)
