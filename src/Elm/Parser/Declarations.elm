@@ -1,7 +1,7 @@
 module Elm.Parser.Declarations exposing (caseBlock, caseStatement, caseStatements, declaration, expression, function, functionArgument, functionSignature, letBlock, letBody, letExpression, signature)
 
 import Combine exposing (Parser, choice, lazy, many, maybe, modifyState, or, sepBy1, string, succeed, withLocation)
-import Elm.Parser.DestructurePatterns as DestructurPatterns
+import Elm.Parser.DestructurePatterns as DestructurPatterns exposing (destructurPattern)
 import Elm.Parser.Infix as Infix
 import Elm.Parser.Layout as Layout
 import Elm.Parser.Node as Node
@@ -501,8 +501,9 @@ letBody =
     lazy
         (\() ->
             let
+                blockElement : Parser State LetDeclaration
                 blockElement =
-                    DestructurPatterns.destructurPattern
+                    destructurPattern
                         |> Combine.andThen
                             (\(Node r p) ->
                                 case p of
@@ -513,10 +514,22 @@ letBody =
                                     _ ->
                                         letDestructuringDeclarationWithPattern (Node r p)
                             )
+
+                addRange : LetDeclaration -> Node LetDeclaration
+                addRange letDeclaration =
+                    Node
+                        (case letDeclaration of
+                            LetFunction letFunction ->
+                                Expression.functionRange letFunction
+
+                            LetDestructuring (Node patternRange _) (Node expressionRange _) ->
+                                Range.combine [ patternRange, expressionRange ]
+                        )
+                        letDeclaration
             in
             Combine.succeed (::)
-                |> Combine.andMap (Node.parser blockElement)
-                |> Combine.andMap (many (Node.parser blockElement |> Combine.ignore (maybe Layout.layout)))
+                |> Combine.andMap (blockElement |> Combine.map addRange)
+                |> Combine.andMap (many (blockElement |> Combine.map addRange |> Combine.ignore (maybe Layout.layout)))
         )
 
 
