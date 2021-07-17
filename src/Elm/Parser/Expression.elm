@@ -894,7 +894,7 @@ recordAccessFunctionExpression =
             { comments = Rope.empty
             , syntax =
                 Node { start = start, end = end }
-                    (RecordAccessFunction ("." ++ field))
+                    (RecordAccessFunction field)
             }
         )
         (ParserFast.symbolFollowedBy "." Tokens.functionName)
