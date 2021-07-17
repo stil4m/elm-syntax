@@ -493,6 +493,7 @@ letBody =
     lazy
         (\() ->
             let
+                blockElement : Parser State LetDeclaration
                 blockElement =
                     pattern
                         |> Combine.andThen
@@ -505,10 +506,22 @@ letBody =
                                     _ ->
                                         letDestructuringDeclarationWithPattern (Node r p)
                             )
+
+                addRange : LetDeclaration -> Node LetDeclaration
+                addRange letDeclaration =
+                    Node
+                        (case letDeclaration of
+                            LetFunction letFunction ->
+                                Expression.functionRange letFunction
+
+                            LetDestructuring (Node patternRange _) (Node expressionRange _) ->
+                                Range.combine [ patternRange, expressionRange ]
+                        )
+                        letDeclaration
             in
             Combine.succeed (::)
-                |> Combine.andMap (Node.parser blockElement)
-                |> Combine.andMap (many (Node.parser blockElement |> Combine.ignore (maybe Layout.layout)))
+                |> Combine.andMap (blockElement |> Combine.map addRange)
+                |> Combine.andMap (many (blockElement |> Combine.map addRange |> Combine.ignore (maybe Layout.layout)))
         )
 
 

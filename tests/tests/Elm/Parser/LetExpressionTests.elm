@@ -52,7 +52,7 @@ all =
                 parseFullStringState emptyState "let\n  foo = bar\n  \n  john = doe\n in" Parser.letBlock
                     |> Expect.equal
                         (Just
-                            [ Node { end = { column = 3, row = 4 }, start = { column = 3, row = 2 } } <|
+                            [ Node { end = { column = 12, row = 2 }, start = { column = 3, row = 2 } } <|
                                 LetFunction
                                     { documentation = Nothing
                                     , signature = Nothing
@@ -63,7 +63,7 @@ all =
                                             , expression = Node { end = { column = 12, row = 2 }, start = { column = 9, row = 2 } } <| FunctionOrValue [] "bar"
                                             }
                                     }
-                            , Node { end = { column = 2, row = 5 }, start = { column = 3, row = 4 } } <|
+                            , Node { end = { column = 13, row = 4 }, start = { column = 3, row = 4 } } <|
                                 LetFunction
                                     { documentation = Nothing
                                     , signature = Nothing
@@ -84,7 +84,7 @@ all =
                         (Just
                             (LetExpression
                                 { declarations =
-                                    [ Node { end = { column = 2, row = 3 }, start = { column = 3, row = 2 } } <|
+                                    [ Node { end = { column = 10, row = 2 }, start = { column = 3, row = 2 } } <|
                                         LetFunction
                                             { documentation = Nothing
                                             , signature = Nothing
@@ -156,18 +156,17 @@ all =
         , test "some let" <|
             \() ->
                 parseFullStringState emptyState "let\n    _ = b\n in\n    z" Parser.expression
-                    |> Maybe.map noRangeExpression
                     |> Maybe.map Node.value
                     |> Expect.equal
                         (Just
                             (LetExpression
                                 { declarations =
-                                    [ Node emptyRange <|
+                                    [ Node { end = { column = 10, row = 2 }, start = { column = 5, row = 2 } } <|
                                         LetDestructuring
-                                            (Node emptyRange AllPattern)
-                                            (Node emptyRange <| FunctionOrValue [] "b")
+                                            (Node { end = { column = 6, row = 2 }, start = { column = 5, row = 2 } } AllPattern)
+                                            (Node { end = { column = 10, row = 2 }, start = { column = 9, row = 2 } } <| FunctionOrValue [] "b")
                                     ]
-                                , expression = Node emptyRange <| FunctionOrValue [] "z"
+                                , expression = Node { end = { column = 6, row = 4 }, start = { column = 5, row = 4 } } <| FunctionOrValue [] "z"
                                 }
                             )
                         )
