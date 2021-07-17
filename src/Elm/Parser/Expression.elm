@@ -592,7 +592,7 @@ recordAccessFunctionExpression : Parser State Expression
 recordAccessFunctionExpression =
     Tokens.dot
         |> Parser.Extra.continueWith Tokens.functionName
-        |> Combine.fromCoreMap (\field -> RecordAccessFunction ("." ++ field))
+        |> Combine.fromCoreMap RecordAccessFunction
 
 
 tupleExpression : Parser State Expression
