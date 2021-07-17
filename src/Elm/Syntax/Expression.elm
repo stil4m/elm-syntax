@@ -45,9 +45,9 @@ import Json.Encode as JE exposing (Value)
 {-| Type alias for a full function
 -}
 type alias Function =
-    { documentation : Maybe (Node Documentation)
-    , signature : Maybe (Node Signature)
-    , declaration : Node FunctionImplementation
+    { documentation : Maybe (Node Range Documentation)
+    , signature : Maybe (Node Range Signature)
+    , declaration : Node Range FunctionImplementation
     }
 
 
@@ -76,9 +76,9 @@ functionRange function =
 {-| Type alias for a function's implementation
 -}
 type alias FunctionImplementation =
-    { name : Node String
-    , arguments : List (Node DestructurePattern)
-    , expression : Node Expression
+    { name : Node Range String
+    , arguments : List (Node Range DestructurePattern)
+    , expression : Node Range Expression
     }
 
 
@@ -109,41 +109,41 @@ type alias FunctionImplementation =
 
 -}
 type Expression
-    = Application (Node Expression) (List (Node Expression))
-    | OperatorApplication String InfixDirection (Node Expression) (Node Expression)
+    = Application (Node Range Expression) (List (Node Range Expression))
+    | OperatorApplication String InfixDirection (Node Range Expression) (Node Range Expression)
     | FunctionOrValue ModuleName String
-    | IfBlock (Node Expression) (Node Expression) (Node Expression)
+    | IfBlock (Node Range Expression) (Node Range Expression) (Node Range Expression)
     | PrefixOperator String
     | Operator String
     | Integer Int
     | Hex Int
     | Floatable Float
-    | Negation (Node Expression)
+    | Negation (Node Range Expression)
     | Literal String
     | CharLiteral Char
-    | TupleExpression (List (Node Expression))
+    | TupleExpression (List (Node Range Expression))
     | LetExpression LetBlock
     | CaseExpression CaseBlock
     | LambdaExpression Lambda
-    | RecordExpr (List (Node RecordSetter))
-    | ListExpr (List (Node Expression))
-    | RecordAccess (Node Expression) (Node String)
+    | RecordExpr (List (Node Range RecordSetter))
+    | ListExpr (List (Node Range Expression))
+    | RecordAccess (Node Range Expression) (Node Range String)
     | RecordAccessFunction String
-    | RecordUpdateExpression (Node String) (Node RecordSetter) (List (Node RecordSetter))
+    | RecordUpdateExpression (Node Range String) (Node Range RecordSetter) (List (Node Range RecordSetter))
     | GLSLExpression String
 
 
 {-| Expression for setting a record field
 -}
 type alias RecordSetter =
-    ( Node String, Node Expression )
+    ( Node Range String, Node Range Expression )
 
 
 {-| Expression for a let block
 -}
 type alias LetBlock =
-    { declarations : List (Node LetDeclaration)
-    , expression : Node Expression
+    { declarations : List (Node Range LetDeclaration)
+    , expression : Node Range Expression
     }
 
 
@@ -151,22 +151,22 @@ type alias LetBlock =
 -}
 type LetDeclaration
     = LetFunction Function
-    | LetDestructuring (Node DestructurePattern) (Node Expression)
+    | LetDestructuring (Node Range DestructurePattern) (Node Range Expression)
 
 
 {-| Expression for a lambda
 -}
 type alias Lambda =
-    { firstArg : Node DestructurePattern
-    , restOfArgs : List (Node DestructurePattern)
-    , expression : Node Expression
+    { firstArg : Node Range DestructurePattern
+    , restOfArgs : List (Node Range DestructurePattern)
+    , expression : Node Range Expression
     }
 
 
 {-| Expression for a case block
 -}
 type alias CaseBlock =
-    { expression : Node Expression
+    { expression : Node Range Expression
     , firstCase : Case
     , restOfCases : List Case
     }
@@ -175,7 +175,7 @@ type alias CaseBlock =
 {-| A case in a case block
 -}
 type alias Case =
-    ( Node Pattern, Node Expression )
+    ( Node Range Pattern, Node Range Expression )
 
 
 {-| Check whether an expression is a lambda-expression
@@ -328,7 +328,7 @@ encode expr =
             encodeTyped "glsl" (JE.string x)
 
 
-encodeOperatorApplication : String -> InfixDirection -> Node Expression -> Node Expression -> Value
+encodeOperatorApplication : String -> InfixDirection -> Node Range Expression -> Node Range Expression -> Value
 encodeOperatorApplication operator direction left right =
     JE.object
         [ ( "operator", JE.string operator )
@@ -346,7 +346,7 @@ encodeLetBlock { declarations, expression } =
         ]
 
 
-encodeRecordUpdate : Node String -> Node RecordSetter -> List (Node RecordSetter) -> Value
+encodeRecordUpdate : Node Range String -> Node Range RecordSetter -> List (Node Range RecordSetter) -> Value
 encodeRecordUpdate name firstUpdate updates =
     JE.object
         [ ( "name", Node.encode JE.string name )
@@ -393,7 +393,7 @@ encodeFunctionDeclaration { name, arguments, expression } =
         ]
 
 
-encodeDestructuring : Node DestructurePattern -> Node Expression -> Value
+encodeDestructuring : Node Range DestructurePattern -> Node Range Expression -> Value
 encodeDestructuring pattern expression =
     JE.object
         [ ( "pattern", Node.encode DestructurePattern.encode pattern )
@@ -427,7 +427,7 @@ encodeLambda { firstArg, restOfArgs, expression } =
         ]
 
 
-decodeNested : Decoder (Node Expression)
+decodeNested : Decoder (Node Range Expression)
 decodeNested =
     JD.lazy (\() -> Node.decoder decoder)
 
@@ -538,7 +538,7 @@ decodeLetBlock =
         )
 
 
-decodeLetDeclaration : Decoder (Node LetDeclaration)
+decodeLetDeclaration : Decoder (Node Range LetDeclaration)
 decodeLetDeclaration =
     JD.lazy
         (\() ->

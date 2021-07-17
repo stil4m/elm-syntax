@@ -9,7 +9,7 @@ import Elm.Parser.State exposing (State)
 import Elm.Parser.Tokens exposing (exposingToken, functionName, typeName)
 import Elm.Syntax.Exposing exposing (ExposedType, Exposing(..), TopLevelExpose(..))
 import Elm.Syntax.Node as Node exposing (Node(..))
-import Elm.Syntax.Range as Range
+import Elm.Syntax.Range as Range exposing (Range)
 
 
 exposeDefinition : Parser State Exposing
@@ -33,7 +33,7 @@ exposingListInner =
         )
 
 
-exposable : Parser State (Node TopLevelExpose)
+exposable : Parser State (Node Range TopLevelExpose)
 exposable =
     Combine.lazy
         (\() ->
@@ -45,7 +45,7 @@ exposable =
         )
 
 
-infixExpose : Parser State (Node TopLevelExpose)
+infixExpose : Parser State (Node Range TopLevelExpose)
 infixExpose =
     Combine.lazy
         (\() ->
@@ -53,7 +53,7 @@ infixExpose =
         )
 
 
-typeExpose : Parser State (Node TopLevelExpose)
+typeExpose : Parser State (Node Range TopLevelExpose)
 typeExpose =
     Node.parser typeName
         |> Combine.ignore (maybe Layout.layout)
@@ -73,6 +73,6 @@ typeExpose =
             )
 
 
-functionExpose : Parser State (Node TopLevelExpose)
+functionExpose : Parser State (Node Range TopLevelExpose)
 functionExpose =
     Node.parser (Combine.map FunctionExpose functionName)

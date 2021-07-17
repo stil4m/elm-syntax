@@ -19,12 +19,12 @@ import Elm.Syntax.Expression as Expression exposing (Case, CaseBlock, Expression
 import Elm.Syntax.ModuleName exposing (ModuleName)
 import Elm.Syntax.Node as Node exposing (Node(..))
 import Elm.Syntax.Port exposing (Port)
-import Elm.Syntax.Range as Range
+import Elm.Syntax.Range as Range exposing (Range)
 import Elm.Syntax.Signature exposing (Signature)
 import Parser as Core exposing (Nestable(..))
 
 
-declaration : Parser State (Node Declaration)
+declaration : Parser State (Node Range Declaration)
 declaration =
     lazy
         (\() ->
@@ -46,7 +46,7 @@ declaration =
         )
 
 
-functionSignatureFromVarPointer : Node String -> Parser State (Node Signature)
+functionSignatureFromVarPointer : Node Range String -> Parser State (Node Range Signature)
 functionSignatureFromVarPointer varPointer =
     succeed (\ta -> Node.combine Signature varPointer ta)
         |> Combine.ignore (string ":")
@@ -54,17 +54,17 @@ functionSignatureFromVarPointer varPointer =
         |> Combine.andMap typeAnnotation
 
 
-functionSignature : Parser State (Node Signature)
+functionSignature : Parser State (Node Range Signature)
 functionSignature =
     Node.parser functionName
         |> Combine.ignore (maybe Layout.layout)
         |> Combine.andThen functionSignatureFromVarPointer
 
 
-functionWithNameNode : Node String -> Parser State Function
+functionWithNameNode : Node Range String -> Parser State Function
 functionWithNameNode pointer =
     let
-        functionImplementationFromVarPointer : Node String -> Parser State (Node FunctionImplementation)
+        functionImplementationFromVarPointer : Node Range String -> Parser State (Node Range FunctionImplementation)
         functionImplementationFromVarPointer varPointer =
             succeed (\args expr -> Node (Range.combine [ Node.range varPointer, Node.range expr ]) (FunctionImplementation varPointer args expr))
                 |> Combine.andMap (many (functionArgument |> Combine.ignore (maybe Layout.layout)))
@@ -72,14 +72,14 @@ functionWithNameNode pointer =
                 |> Combine.ignore (maybe Layout.layout)
                 |> Combine.andMap expression
 
-        fromParts : Node Signature -> Node FunctionImplementation -> Function
+        fromParts : Node Range Signature -> Node Range FunctionImplementation -> Function
         fromParts sig decl =
             { documentation = Nothing
             , signature = Just sig
             , declaration = decl
             }
 
-        functionWithSignature : Node String -> Parser State Function
+        functionWithSignature : Node Range String -> Parser State Function
         functionWithSignature varPointer =
             functionSignatureFromVarPointer varPointer
                 |> Combine.andThen
@@ -91,7 +91,7 @@ functionWithNameNode pointer =
                             |> Combine.map (fromParts sig)
                     )
 
-        functionWithoutSignature : Node String -> Parser State Function
+        functionWithoutSignature : Node Range String -> Parser State Function
         functionWithoutSignature varPointer =
             functionImplementationFromVarPointer varPointer
                 |> Combine.map (Function Nothing Nothing)
@@ -102,7 +102,7 @@ functionWithNameNode pointer =
         ]
 
 
-function : Parser State (Node Declaration)
+function : Parser State (Node Range Declaration)
 function =
     lazy
         (\() ->
@@ -120,7 +120,7 @@ signature =
         |> Combine.andMap (Layout.maybeAroundBothSides (string ":") |> Combine.continueWith (maybe Layout.layout) |> Combine.continueWith typeAnnotation)
 
 
-infixDeclaration : Parser State (Node Declaration)
+infixDeclaration : Parser State (Node Range Declaration)
 infixDeclaration =
     Ranges.withCurrentPoint
         (\current ->
@@ -129,7 +129,7 @@ infixDeclaration =
         )
 
 
-portDeclaration : Parser State (Node Declaration)
+portDeclaration : Parser State (Node Range Declaration)
 portDeclaration =
     Ranges.withCurrentPoint
         (\current ->
@@ -147,7 +147,7 @@ portDeclaration =
         )
 
 
-functionArgument : Parser State (Node DestructurePattern)
+functionArgument : Parser State (Node Range DestructurePattern)
 functionArgument =
     DestructurPatterns.destructurPattern
 
@@ -156,7 +156,7 @@ functionArgument =
 -- Expressions
 
 
-expressionNotApplication : Parser State (Node Expression)
+expressionNotApplication : Parser State (Node Range Expression)
 expressionNotApplication =
     lazy
         (\() ->
@@ -180,7 +180,7 @@ expressionNotApplication =
         )
 
 
-liftRecordAccess : Node Expression -> Parser State (Node Expression)
+liftRecordAccess : Node Range Expression -> Parser State (Node Range Expression)
 liftRecordAccess e =
     lazy
         (\() ->
@@ -194,7 +194,7 @@ liftRecordAccess e =
         )
 
 
-expression : Parser State (Node Expression)
+expression : Parser State (Node Range Expression)
 expression =
     lazy
         (\() ->
@@ -251,7 +251,7 @@ withIndentedState p =
         )
 
 
-glslExpression : Parser State (Node Expression)
+glslExpression : Parser State (Node Range Expression)
 glslExpression =
     let
         start =
@@ -267,7 +267,7 @@ glslExpression =
         |> Node.parser
 
 
-listExpression : Parser State (Node Expression)
+listExpression : Parser State (Node Range Expression)
 listExpression =
     lazy
         (\() ->
@@ -295,12 +295,12 @@ listExpression =
 -- recordExpression
 
 
-recordExpression : Parser State (Node Expression)
+recordExpression : Parser State (Node Range Expression)
 recordExpression =
     lazy
         (\() ->
             let
-                recordField : Parser State (Node RecordSetter)
+                recordField : Parser State (Node Range RecordSetter)
                 recordField =
                     Node.parser
                         (succeed Tuple.pair
@@ -311,7 +311,7 @@ recordExpression =
                             |> Combine.andMap expression
                         )
 
-                recordFields : Parser State (List (Node RecordSetter))
+                recordFields : Parser State (List (Node Range RecordSetter))
                 recordFields =
                     succeed (::)
                         |> Combine.andMap recordField
@@ -325,7 +325,7 @@ recordExpression =
                                 )
                             )
 
-                recordUpdateSyntaxParser : Node String -> Parser State Expression
+                recordUpdateSyntaxParser : Node Range String -> Parser State Expression
                 recordUpdateSyntaxParser fname =
                     string "|"
                         |> Combine.ignore (maybe Layout.layout)
@@ -379,7 +379,7 @@ recordExpression =
         |> Node.parser
 
 
-literalExpression : Parser State (Node Expression)
+literalExpression : Parser State (Node Range Expression)
 literalExpression =
     lazy
         (\() ->
@@ -388,7 +388,7 @@ literalExpression =
         )
 
 
-charLiteralExpression : Parser State (Node Expression)
+charLiteralExpression : Parser State (Node Range Expression)
 charLiteralExpression =
     Node.parser (Combine.map CharLiteral characterLiteral)
 
@@ -397,7 +397,7 @@ charLiteralExpression =
 -- lambda
 
 
-lambdaExpression : Parser State (Node Expression)
+lambdaExpression : Parser State (Node Range Expression)
 lambdaExpression =
     lazy
         (\() ->
@@ -418,7 +418,7 @@ lambdaExpression =
 -- Case Expression
 
 
-caseBlock : Parser State (Node Expression)
+caseBlock : Parser State (Node Range Expression)
 caseBlock =
     lazy
         (\() ->
@@ -469,7 +469,7 @@ caseStatements =
         )
 
 
-caseExpression : Parser State (Node Expression)
+caseExpression : Parser State (Node Range Expression)
 caseExpression =
     lazy
         (\() ->
@@ -495,7 +495,7 @@ caseExpression =
 -- Let Expression
 
 
-letBody : Parser State (List (Node LetDeclaration))
+letBody : Parser State (List (Node Range LetDeclaration))
 letBody =
     lazy
         (\() ->
@@ -514,7 +514,7 @@ letBody =
                                         letDestructuringDeclarationWithPattern (Node r p)
                             )
 
-                addRange : LetDeclaration -> Node LetDeclaration
+                addRange : LetDeclaration -> Node Range LetDeclaration
                 addRange letDeclaration =
                     Node
                         (case letDeclaration of
@@ -532,7 +532,7 @@ letBody =
         )
 
 
-letDestructuringDeclarationWithPattern : Node DestructurePattern -> Parser State LetDeclaration
+letDestructuringDeclarationWithPattern : Node Range DestructurePattern -> Parser State LetDeclaration
 letDestructuringDeclarationWithPattern p =
     lazy
         (\() ->
@@ -544,7 +544,7 @@ letDestructuringDeclarationWithPattern p =
         )
 
 
-letBlock : Parser State (List (Node LetDeclaration))
+letBlock : Parser State (List (Node Range LetDeclaration))
 letBlock =
     lazy
         (\() ->
@@ -560,7 +560,7 @@ letBlock =
         )
 
 
-letExpression : Parser State (Node Expression)
+letExpression : Parser State (Node Range Expression)
 letExpression =
     lazy
         (\() ->
@@ -573,12 +573,12 @@ letExpression =
         )
 
 
-numberExpression : Parser State (Node Expression)
+numberExpression : Parser State (Node Range Expression)
 numberExpression =
     Node.parser (Elm.Parser.Numbers.forgivingNumber Floatable Integer Hex)
 
 
-ifBlockExpression : Parser State (Node Expression)
+ifBlockExpression : Parser State (Node Range Expression)
 ifBlockExpression =
     Ranges.withCurrentPoint
         (\current ->
@@ -609,7 +609,7 @@ ifBlockExpression =
         )
 
 
-operatorExpression : Parser State (Node Expression)
+operatorExpression : Parser State (Node Range Expression)
 operatorExpression =
     let
         negationExpression : Parser State Expression
@@ -670,7 +670,7 @@ reference =
         ]
 
 
-referenceExpression : Parser State (Node Expression)
+referenceExpression : Parser State (Node Range Expression)
 referenceExpression =
     Node.parser
         (reference
@@ -681,7 +681,7 @@ referenceExpression =
         )
 
 
-recordAccessFunctionExpression : Parser State (Node Expression)
+recordAccessFunctionExpression : Parser State (Node Range Expression)
 recordAccessFunctionExpression =
     Combine.map RecordAccessFunction
         (string "."
@@ -690,12 +690,12 @@ recordAccessFunctionExpression =
         |> Node.parser
 
 
-tupleExpression : Parser State (Node Expression)
+tupleExpression : Parser State (Node Range Expression)
 tupleExpression =
     lazy
         (\() ->
             let
-                commaSep : Parser State (List (Node Expression))
+                commaSep : Parser State (List (Node Range Expression))
                 commaSep =
                     many
                         (string ","

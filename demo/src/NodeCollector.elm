@@ -7,7 +7,7 @@ import Elm.Syntax.Node as Node exposing (Node(..))
 import Elm.Syntax.Pattern exposing (Pattern)
 
 
-nodeTransformer : Elm.Inspector.Order Context (Node a)
+nodeTransformer : Elm.Inspector.Order Context (Node Range a)
 nodeTransformer =
     Elm.Inspector.Post addNode
 
@@ -17,15 +17,15 @@ nodeTransformer2 =
 
 
 type alias Context =
-    List (Node String)
+    List (Node Range String)
 
 
-addNode : Node a -> Context -> Context
+addNode : Node Range a -> Context -> Context
 addNode n c =
     Node.map Debug.toString n :: c
 
 
-onDestructuring : Node ( Node Pattern, Node Expression ) -> Context -> Context
+onDestructuring : Node ( Node Range Pattern, Node Range Expression ) -> Context -> Context
 onDestructuring ((Node _ ( a, b )) as c) context =
     context |> addNode c |> addNode a |> addNode b
 

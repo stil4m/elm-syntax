@@ -28,6 +28,7 @@ For example:
 import Elm.Syntax.Exposing as Exposing exposing (Exposing)
 import Elm.Syntax.ModuleName as ModuleName exposing (ModuleName)
 import Elm.Syntax.Node as Node exposing (Node)
+import Elm.Syntax.Range exposing (Range)
 import Json.Decode as JD exposing (Decoder)
 import Json.Encode as JE exposing (Value)
 
@@ -35,9 +36,9 @@ import Json.Encode as JE exposing (Value)
 {-| Type alias representing an Import
 -}
 type alias Import =
-    { moduleName : Node ModuleName
-    , moduleAlias : Maybe (Node String)
-    , exposingList : Maybe (Node Exposing)
+    { moduleName : Node Range ModuleName
+    , moduleAlias : Maybe (Node Range String)
+    , exposingList : Maybe (Node Range Exposing)
     }
 
 

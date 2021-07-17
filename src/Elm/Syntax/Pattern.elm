@@ -35,6 +35,7 @@ For example:
 import Elm.Json.Util exposing (decodeTyped, encodeTyped)
 import Elm.Syntax.ModuleName as ModuleName exposing (ModuleName)
 import Elm.Syntax.Node as Node exposing (Node)
+import Elm.Syntax.Range exposing (Range)
 import Json.Decode as JD exposing (Decoder)
 import Json.Encode as JE exposing (Value)
 
@@ -65,14 +66,14 @@ type Pattern
     | StringPattern String
     | IntPattern Int
     | HexPattern Int
-    | TuplePattern (List (Node Pattern))
-    | RecordPattern (List (Node String))
-    | UnConsPattern (Node Pattern) (Node Pattern)
-    | ListPattern (List (Node Pattern))
+    | TuplePattern (List (Node Range Pattern))
+    | RecordPattern (List (Node Range String))
+    | UnConsPattern (Node Range Pattern) (Node Range Pattern)
+    | ListPattern (List (Node Range Pattern))
     | VarPattern String
-    | NamedPattern QualifiedNameRef (List (Node Pattern))
-    | AsPattern (Node Pattern) (Node String)
-    | ParenthesizedPattern (Node Pattern)
+    | NamedPattern QualifiedNameRef (List (Node Range Pattern))
+    | AsPattern (Node Range Pattern) (Node Range String)
+    | ParenthesizedPattern (Node Range Pattern)
 
 
 {-| Qualified name reference such as `Maybe.Just`.

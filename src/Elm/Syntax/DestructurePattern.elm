@@ -36,6 +36,7 @@ import Elm.Json.Util exposing (decodeTyped, encodeTyped)
 import Elm.Syntax.ModuleName as ModuleName exposing (ModuleName)
 import Elm.Syntax.Node as Node exposing (Node)
 import Elm.Syntax.Pattern exposing (QualifiedNameRef)
+import Elm.Syntax.Range exposing (Range)
 import Json.Decode as JD exposing (Decoder)
 import Json.Encode as JE exposing (Value)
 
@@ -55,12 +56,12 @@ import Json.Encode as JE exposing (Value)
 type DestructurePattern
     = AllPattern_
     | UnitPattern_
-    | TuplePattern_ (List (Node DestructurePattern))
-    | RecordPattern_ (List (Node String))
+    | TuplePattern_ (List (Node Range DestructurePattern))
+    | RecordPattern_ (List (Node Range String))
     | VarPattern_ String
-    | NamedPattern_ QualifiedNameRef (List (Node DestructurePattern))
-    | AsPattern_ (Node DestructurePattern) (Node String)
-    | ParenthesizedPattern_ (Node DestructurePattern)
+    | NamedPattern_ QualifiedNameRef (List (Node Range DestructurePattern))
+    | AsPattern_ (Node Range DestructurePattern) (Node Range String)
+    | ParenthesizedPattern_ (Node Range DestructurePattern)
 
 
 {-| Get all the modules names that are used in the pattern (and its nested patterns).

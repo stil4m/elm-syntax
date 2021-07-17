@@ -43,7 +43,7 @@ import Json.Encode as JE exposing (Value)
 -}
 type Exposing
     = All Range
-    | Explicit (Node TopLevelExpose) (List (Node TopLevelExpose))
+    | Explicit (Node Range TopLevelExpose) (List (Node Range TopLevelExpose))
 
 
 {-| An exposed entity
@@ -58,7 +58,7 @@ type TopLevelExpose
 {-| Exposed Type
 -}
 type alias ExposedType =
-    { name : Node String
+    { name : Node Range String
     , open : Maybe Range
     }
 
@@ -152,7 +152,7 @@ decodeNonemptyList decodeA =
             )
 
 
-encodeTopLevelExpose : Node TopLevelExpose -> Value
+encodeTopLevelExpose : Node Range TopLevelExpose -> Value
 encodeTopLevelExpose =
     Node.encode
         (\exp ->
@@ -188,7 +188,7 @@ encodeExposedType { name, open } =
         ]
 
 
-topLevelExposeDecoder : Decoder (Node TopLevelExpose)
+topLevelExposeDecoder : Decoder (Node Range TopLevelExpose)
 topLevelExposeDecoder =
     Node.decoder
         (decodeTyped

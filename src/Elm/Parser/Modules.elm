@@ -9,6 +9,7 @@ import Elm.Parser.State exposing (State)
 import Elm.Parser.Tokens exposing (functionName, moduleToken, portToken, typeName)
 import Elm.Syntax.Module exposing (DefaultModuleData, Module(..))
 import Elm.Syntax.Node exposing (Node)
+import Elm.Syntax.Range exposing (Range)
 
 
 moduleDefinition : Parser State Module
@@ -20,14 +21,14 @@ moduleDefinition =
         ]
 
 
-effectWhereClause : Parser State ( String, Node String )
+effectWhereClause : Parser State ( String, Node Range String )
 effectWhereClause =
     succeed Tuple.pair
         |> Combine.andMap functionName
         |> Combine.andMap (Layout.maybeAroundBothSides (string "=") |> Combine.continueWith (Node.parser typeName))
 
 
-whereBlock : Parser State { command : Maybe (Node String), subscription : Maybe (Node String) }
+whereBlock : Parser State { command : Maybe (Node Range String), subscription : Maybe (Node Range String) }
 whereBlock =
     between
         (string "{")
@@ -44,7 +45,7 @@ whereBlock =
             )
 
 
-effectWhereClauses : Parser State { command : Maybe (Node String), subscription : Maybe (Node String) }
+effectWhereClauses : Parser State { command : Maybe (Node Range String), subscription : Maybe (Node Range String) }
 effectWhereClauses =
     string "where"
         |> Combine.continueWith Layout.layout

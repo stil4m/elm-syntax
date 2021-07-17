@@ -10,6 +10,7 @@ import Elm.Parser.State as State exposing (State)
 import Elm.Syntax.Declaration exposing (Declaration)
 import Elm.Syntax.File exposing (File)
 import Elm.Syntax.Node exposing (Node)
+import Elm.Syntax.Range exposing (Range)
 
 
 file : Parser State File
@@ -25,12 +26,12 @@ file =
         |> Combine.ignore Layout.optimisticLayout
 
 
-collectComments : Parser State (List (Node String))
+collectComments : Parser State (List (Node Range String))
 collectComments =
     withState (State.getComments >> succeed)
 
 
-fileDeclarations : Parser State (List (Node Declaration))
+fileDeclarations : Parser State (List (Node Range Declaration))
 fileDeclarations =
     many
         (declaration

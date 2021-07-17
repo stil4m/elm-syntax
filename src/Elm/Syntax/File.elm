@@ -27,6 +27,7 @@ import Elm.Syntax.Declaration as Declaration exposing (Declaration)
 import Elm.Syntax.Import as Import exposing (Import)
 import Elm.Syntax.Module as Module exposing (Module)
 import Elm.Syntax.Node as Node exposing (Node)
+import Elm.Syntax.Range exposing (Range)
 import Json.Decode as JD exposing (Decoder)
 import Json.Encode as JE exposing (Value)
 
@@ -34,10 +35,10 @@ import Json.Encode as JE exposing (Value)
 {-| Type annotation for a file
 -}
 type alias File =
-    { moduleDefinition : Node Module
-    , imports : List (Node Import)
-    , declarations : List (Node Declaration)
-    , comments : List (Node Comment)
+    { moduleDefinition : Node Range Module
+    , imports : List (Node Range Import)
+    , declarations : List (Node Range Declaration)
+    , comments : List (Node Range Comment)
     }
 
 

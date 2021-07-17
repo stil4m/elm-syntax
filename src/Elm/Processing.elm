@@ -37,7 +37,7 @@ import Elm.Syntax.Import exposing (Import)
 import Elm.Syntax.Infix exposing (InfixDirection(..))
 import Elm.Syntax.ModuleName exposing (ModuleName)
 import Elm.Syntax.Node as Node exposing (Node(..))
-import Elm.Syntax.Range as Range
+import Elm.Syntax.Range as Range exposing (Range)
 import Elm.WellKnownOperators as WellKnownOperators
 import List
 import List.Extra as List
@@ -161,7 +161,7 @@ process processContext ((Raw file) as rawFile) =
     documentationFixed
 
 
-fixApplication : OperatorTable -> Node Expression -> List (Node Expression) -> Expression
+fixApplication : OperatorTable -> Node Range Expression -> List (Node Range Expression) -> Expression
 fixApplication operators head expressions =
     let
         ops : Dict String Infix
@@ -181,7 +181,7 @@ fixApplication operators head expressions =
                     )
                 |> lowestPrecedence
 
-        fixExprs : List (Node Expression) -> Expression
+        fixExprs : List (Node Range Expression) -> Expression
         fixExprs exps =
             case exps of
                 [ Node _ x ] ->
@@ -194,7 +194,7 @@ fixApplication operators head expressions =
                     -- This case should never happen
                     TupleExpression []
 
-        divideAndConquer : List (Node Expression) -> Expression
+        divideAndConquer : List (Node Range Expression) -> Expression
         divideAndConquer exps =
             if Dict.isEmpty ops then
                 fixExprs exps
@@ -214,7 +214,7 @@ fixApplication operators head expressions =
     divideAndConquer (head :: expressions)
 
 
-findNextSplit : Dict String Infix -> List (Node Expression) -> Maybe ( List (Node Expression), Infix, List (Node Expression) )
+findNextSplit : Dict String Infix -> List (Node Range Expression) -> Maybe ( List (Node Range Expression), Infix, List (Node Range Expression) )
 findNextSplit dict exps =
     let
         assocDirection : InfixDirection
@@ -271,7 +271,7 @@ lowestPrecedence input =
         |> Dict.fromList
 
 
-expressionOperators : Node Expression -> Maybe String
+expressionOperators : Node Range Expression -> Maybe String
 expressionOperators (Node _ expression) =
     case expression of
         Operator s ->
@@ -282,7 +282,7 @@ expressionOperators (Node _ expression) =
 
 
 type alias Visitor a =
-    Maybe (a -> (Node Expression -> Node Expression) -> Node Expression -> Node Expression)
+    Maybe (a -> (Node Range Expression -> Node Range Expression) -> Node Range Expression -> Node Range Expression)
 
 
 visit : Visitor context -> context -> File -> File
@@ -294,17 +294,17 @@ visit visitor context file =
     { file | declarations = newDeclarations }
 
 
-visitDeclarations : Visitor context -> context -> List (Node Declaration) -> List (Node Declaration)
+visitDeclarations : Visitor context -> context -> List (Node Range Declaration) -> List (Node Range Declaration)
 visitDeclarations visitor context declarations =
     List.map (visitDeclaration visitor context) declarations
 
 
-visitLetDeclarations : Visitor context -> context -> List (Node LetDeclaration) -> List (Node LetDeclaration)
+visitLetDeclarations : Visitor context -> context -> List (Node Range LetDeclaration) -> List (Node Range LetDeclaration)
 visitLetDeclarations visitor context declarations =
     List.map (visitLetDeclaration visitor context) declarations
 
 
-visitDeclaration : Visitor context -> context -> Node Declaration -> Node Declaration
+visitDeclaration : Visitor context -> context -> Node Range Declaration -> Node Range Declaration
 visitDeclaration visitor context (Node range declaration) =
     Node range <|
         case declaration of
@@ -315,7 +315,7 @@ visitDeclaration visitor context (Node range declaration) =
                 declaration
 
 
-visitLetDeclaration : Visitor context -> context -> Node LetDeclaration -> Node LetDeclaration
+visitLetDeclaration : Visitor context -> context -> Node Range LetDeclaration -> Node Range LetDeclaration
 visitLetDeclaration visitor context (Node range declaration) =
     Node range <|
         case declaration of
@@ -344,7 +344,7 @@ visitFunctionDeclaration visitor context functionDeclaration =
     { functionDeclaration | expression = newExpression }
 
 
-visitExpression : Visitor context -> context -> Node Expression -> Node Expression
+visitExpression : Visitor context -> context -> Node Range Expression -> Node Range Expression
 visitExpression visitor context expression =
     let
         inner =
@@ -356,7 +356,7 @@ visitExpression visitor context expression =
         expression
 
 
-visitExpressionInner : Visitor context -> context -> Node Expression -> Node Expression
+visitExpressionInner : Visitor context -> context -> Node Range Expression -> Node Range Expression
 visitExpressionInner visitor context (Node range expression) =
     let
         subVisit =

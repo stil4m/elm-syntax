@@ -31,6 +31,7 @@ For example:
 
 import Elm.Syntax.Documentation as Documentation exposing (Documentation)
 import Elm.Syntax.Node as Node exposing (Node)
+import Elm.Syntax.Range exposing (Range)
 import Elm.Syntax.TypeAnnotation as TypeAnnotation exposing (TypeAnnotation)
 import Json.Decode as JD exposing (Decoder)
 import Json.Encode as JE exposing (Value)
@@ -40,19 +41,19 @@ import Json.Encode as JE exposing (Value)
 All information that you can define in a type alias is embedded.
 -}
 type alias Type =
-    { documentation : Maybe (Node Documentation)
-    , name : Node String
-    , generics : List (Node String)
-    , firstConstructor : Node ValueConstructor
-    , restOfConstructors : List (Node ValueConstructor)
+    { documentation : Maybe (Node Range Documentation)
+    , name : Node Range String
+    , generics : List (Node Range String)
+    , firstConstructor : Node Range ValueConstructor
+    , restOfConstructors : List (Node Range ValueConstructor)
     }
 
 
 {-| Syntax for a custom type value constructor.
 -}
 type alias ValueConstructor =
-    { name : Node String
-    , arguments : List (Node TypeAnnotation)
+    { name : Node Range String
+    , arguments : List (Node Range TypeAnnotation)
     }
 
 

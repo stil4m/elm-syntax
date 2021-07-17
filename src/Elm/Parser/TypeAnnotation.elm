@@ -7,7 +7,7 @@ import Elm.Parser.Node as Node
 import Elm.Parser.State exposing (State)
 import Elm.Parser.Tokens exposing (functionName)
 import Elm.Syntax.Node as Node exposing (Node(..))
-import Elm.Syntax.Range as Range
+import Elm.Syntax.Range as Range exposing (Range)
 import Elm.Syntax.TypeAnnotation exposing (..)
 
 
@@ -16,7 +16,7 @@ type Mode
     | Lazy
 
 
-typeAnnotation : Parser State (Node TypeAnnotation)
+typeAnnotation : Parser State (Node Range TypeAnnotation)
 typeAnnotation =
     lazy
         (\() ->
@@ -39,7 +39,7 @@ typeAnnotation =
         )
 
 
-typeAnnotationNonGreedy : Parser State (Node TypeAnnotation)
+typeAnnotationNonGreedy : Parser State (Node Range TypeAnnotation)
 typeAnnotationNonGreedy =
     choice
         [ parensTypeAnnotation
@@ -49,7 +49,7 @@ typeAnnotationNonGreedy =
         ]
 
 
-typeAnnotationNoFn : Mode -> Parser State (Node TypeAnnotation)
+typeAnnotationNoFn : Mode -> Parser State (Node Range TypeAnnotation)
 typeAnnotationNoFn mode =
     lazy
         (\() ->
@@ -62,12 +62,12 @@ typeAnnotationNoFn mode =
         )
 
 
-parensTypeAnnotation : Parser State (Node TypeAnnotation)
+parensTypeAnnotation : Parser State (Node Range TypeAnnotation)
 parensTypeAnnotation =
     lazy
         (\() ->
             let
-                commaSep : Parser State (List (Node TypeAnnotation))
+                commaSep : Parser State (List (Node Range TypeAnnotation))
                 commaSep =
                     many
                         (string ","
@@ -96,7 +96,7 @@ parensTypeAnnotation =
         )
 
 
-asTypeAnnotation : Node TypeAnnotation -> List (Node TypeAnnotation) -> TypeAnnotation
+asTypeAnnotation : Node Range TypeAnnotation -> List (Node Range TypeAnnotation) -> TypeAnnotation
 asTypeAnnotation ((Node _ value) as x) xs =
     case xs of
         [] ->
@@ -106,7 +106,7 @@ asTypeAnnotation ((Node _ value) as x) xs =
             Tuple (x :: xs)
 
 
-genericTypeAnnotation : Parser State (Node TypeAnnotation)
+genericTypeAnnotation : Parser State (Node Range TypeAnnotation)
 genericTypeAnnotation =
     lazy
         (\() ->
@@ -114,12 +114,12 @@ genericTypeAnnotation =
         )
 
 
-recordFieldsTypeAnnotation : Parser State (List (Node RecordField))
+recordFieldsTypeAnnotation : Parser State (List (Node Range RecordField))
 recordFieldsTypeAnnotation =
     lazy (\() -> sepBy (string ",") (Layout.maybeAroundBothSides <| Node.parser recordFieldDefinition))
 
 
-recordTypeAnnotation : Parser State (Node TypeAnnotation)
+recordTypeAnnotation : Parser State (Node Range TypeAnnotation)
 recordTypeAnnotation =
     lazy
         (\() ->
@@ -136,7 +136,7 @@ recordTypeAnnotation =
                         |> Combine.andMap typeAnnotation
                         |> Combine.ignore Layout.optimisticLayout
 
-                additionalRecordFields : List (Node RecordField) -> Parser State (List (Node RecordField))
+                additionalRecordFields : List (Node Range RecordField) -> Parser State (List (Node Range RecordField))
                 additionalRecordFields items =
                     Combine.choice
                         [ Node.parser nextField
@@ -200,12 +200,12 @@ recordFieldDefinition =
         )
 
 
-typedTypeAnnotation : Mode -> Parser State (Node TypeAnnotation)
+typedTypeAnnotation : Mode -> Parser State (Node Range TypeAnnotation)
 typedTypeAnnotation mode =
     lazy
         (\() ->
             let
-                genericHelper : List (Node TypeAnnotation) -> Parser State (List (Node TypeAnnotation))
+                genericHelper : List (Node Range TypeAnnotation) -> Parser State (List (Node Range TypeAnnotation))
                 genericHelper items =
                     or
                         (typeAnnotationNoFn Lazy

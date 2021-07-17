@@ -61,23 +61,23 @@ typeDefinition =
         )
 
 
-valueConstructors : Parser State ( Node ValueConstructor, List (Node ValueConstructor) )
+valueConstructors : Parser State ( Node Range ValueConstructor, List (Node Range ValueConstructor) )
 valueConstructors =
     Combine.sepBy1 (Combine.ignore (maybe Layout.layout) (string "|")) valueConstructor
 
 
-valueConstructor : Parser State (Node ValueConstructor)
+valueConstructor : Parser State (Node Range ValueConstructor)
 valueConstructor =
     succeed ValueConstructor
         |> Combine.continueWith (Node.parser typeName)
         |> Combine.andThen
             (\((Node range _) as tnn) ->
                 let
-                    complete : List (Node TypeAnnotation) -> Parser State (Node ValueConstructor)
+                    complete : List (Node Range TypeAnnotation) -> Parser State (Node Range ValueConstructor)
                     complete args =
                         Combine.succeed (Node (Range.combine (range :: List.map Node.range args)) (ValueConstructor tnn args))
 
-                    argHelper : List (Node TypeAnnotation) -> Parser State (List (Node TypeAnnotation))
+                    argHelper : List (Node Range TypeAnnotation) -> Parser State (List (Node Range TypeAnnotation))
                     argHelper xs =
                         Combine.succeed ()
                             |> Combine.continueWith
@@ -102,7 +102,7 @@ valueConstructor =
             )
 
 
-genericList : Parser State (List (Node String))
+genericList : Parser State (List (Node Range String))
 genericList =
     many (Node.parser functionName |> Combine.ignore (maybe Layout.layout))
 

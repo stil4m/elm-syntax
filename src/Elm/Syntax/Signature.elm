@@ -25,6 +25,7 @@ For example :
 -}
 
 import Elm.Syntax.Node as Node exposing (Node)
+import Elm.Syntax.Range exposing (Range)
 import Elm.Syntax.TypeAnnotation as TypeAnnotation exposing (TypeAnnotation)
 import Json.Decode as JD exposing (Decoder)
 import Json.Encode as JE exposing (Value)
@@ -33,8 +34,8 @@ import Json.Encode as JE exposing (Value)
 {-| Type alias representing a signature in Elm.
 -}
 type alias Signature =
-    { name : Node String
-    , typeAnnotation : Node TypeAnnotation
+    { name : Node Range String
+    , typeAnnotation : Node Range TypeAnnotation
     }
 
 

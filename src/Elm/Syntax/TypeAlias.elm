@@ -32,6 +32,7 @@ For example:
 
 import Elm.Syntax.Documentation as Documentation exposing (Documentation)
 import Elm.Syntax.Node as Node exposing (Node)
+import Elm.Syntax.Range exposing (Range)
 import Elm.Syntax.TypeAnnotation as TypeAnnotation exposing (TypeAnnotation)
 import Json.Decode as JD exposing (Decoder)
 import Json.Encode as JE exposing (Value)
@@ -41,10 +42,10 @@ import Json.Encode as JE exposing (Value)
 A bit meta, but you get the idea. All information that you can define in a type alias is embedded.
 -}
 type alias TypeAlias =
-    { documentation : Maybe (Node Documentation)
-    , name : Node String
-    , generics : List (Node String)
-    , typeAnnotation : Node TypeAnnotation
+    { documentation : Maybe (Node Range Documentation)
+    , name : Node Range String
+    , generics : List (Node Range String)
+    , typeAnnotation : Node Range TypeAnnotation
     }
 
 

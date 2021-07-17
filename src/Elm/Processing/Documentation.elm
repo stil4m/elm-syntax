@@ -24,7 +24,7 @@ postProcess file =
         file
 
 
-onType : Node Type -> File -> File
+onType : Node Range Type -> File -> File
 onType (Node r customType) file =
     case findDocumentationForRange r file.comments of
         Just ((Node docRange docString) as doc) ->
@@ -44,7 +44,7 @@ onType (Node r customType) file =
             file
 
 
-onTypeAlias : Node TypeAlias -> File -> File
+onTypeAlias : Node Range TypeAlias -> File -> File
 onTypeAlias (Node r typeAlias) file =
     case findDocumentationForRange r file.comments of
         Just ((Node docRange docString) as doc) ->
@@ -71,7 +71,7 @@ onTypeAlias (Node r typeAlias) file =
             file
 
 
-onPort : Node Port -> File -> File
+onPort : Node Range Port -> File -> File
 onPort (Node portRange portDeclaration) file =
     case findDocumentationForRange portRange file.comments of
         Just ((Node docRange _) as doc) ->
@@ -97,7 +97,7 @@ onPort (Node portRange portDeclaration) file =
             file
 
 
-onFunction : Node Function -> File -> File
+onFunction : Node Range Function -> File -> File
 onFunction (Node functionRange function) file =
     case findDocumentationForRange functionRange file.comments of
         Just ((Node docRange docString) as doc) ->
@@ -117,7 +117,7 @@ onFunction (Node functionRange function) file =
             file
 
 
-replaceDeclarationByRange : Range -> Node Declaration -> Node Declaration -> Node Declaration
+replaceDeclarationByRange : Range -> Node Range Declaration -> Node Range Declaration -> Node Range Declaration
 replaceDeclarationByRange targetRange newNode ((Node oldRange _) as oldNode) =
     if targetRange == oldRange then
         newNode
@@ -126,7 +126,7 @@ replaceDeclarationByRange targetRange newNode ((Node oldRange _) as oldNode) =
         oldNode
 
 
-replaceDeclaration : Node Declaration -> Node Declaration -> Node Declaration
+replaceDeclaration : Node Range Declaration -> Node Range Declaration -> Node Range Declaration
 replaceDeclaration (Node r1 new) (Node r2 old) =
     Node r2
         (if r1 == r2 then
@@ -137,7 +137,7 @@ replaceDeclaration (Node r1 new) (Node r2 old) =
         )
 
 
-findDocumentationForRange : Range -> List (Node String) -> Maybe (Node String)
+findDocumentationForRange : Range -> List (Node Range String) -> Maybe (Node Range String)
 findDocumentationForRange range comments =
     case comments of
         [] ->
@@ -151,7 +151,7 @@ findDocumentationForRange range comments =
                 findDocumentationForRange range restOfComments
 
 
-isDocumentationForRange : Range -> Node String -> Bool
+isDocumentationForRange : Range -> Node Range String -> Bool
 isDocumentationForRange range (Node commentRange commentText) =
     if String.startsWith "{-|" commentText then
         let

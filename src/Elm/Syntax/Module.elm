@@ -32,6 +32,7 @@ import Elm.Json.Util exposing (decodeTyped, encodeTyped)
 import Elm.Syntax.Exposing as Exposing exposing (Exposing)
 import Elm.Syntax.ModuleName as ModuleName exposing (ModuleName)
 import Elm.Syntax.Node as Node exposing (Node)
+import Elm.Syntax.Range exposing (Range)
 import Json.Decode as JD exposing (Decoder)
 import Json.Encode as JE exposing (Value)
 
@@ -47,18 +48,18 @@ type Module
 {-| Data for a default default
 -}
 type alias DefaultModuleData =
-    { moduleName : Node ModuleName
-    , exposingList : Node Exposing
+    { moduleName : Node Range ModuleName
+    , exposingList : Node Range Exposing
     }
 
 
 {-| Data for an effect module
 -}
 type alias EffectModuleData =
-    { moduleName : Node ModuleName
-    , exposingList : Node Exposing
-    , command : Maybe (Node String)
-    , subscription : Maybe (Node String)
+    { moduleName : Node Range ModuleName
+    , exposingList : Node Range Exposing
+    , command : Maybe (Node Range String)
+    , subscription : Maybe (Node Range String)
     }
 
 

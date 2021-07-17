@@ -9,11 +9,11 @@ import Elm.Parser.State exposing (State)
 import Elm.Parser.Tokens exposing (characterLiteral, functionName, stringLiteral)
 import Elm.Syntax.Node as Node exposing (Node(..))
 import Elm.Syntax.Pattern exposing (Pattern(..), QualifiedNameRef)
-import Elm.Syntax.Range as Range
+import Elm.Syntax.Range as Range exposing (Range)
 import Parser as Core
 
 
-tryToCompose : Node Pattern -> Parser State (Node Pattern)
+tryToCompose : Node Range Pattern -> Parser State (Node Range Pattern)
 tryToCompose x =
     maybe Layout.layout
         |> Combine.continueWith
@@ -31,12 +31,12 @@ tryToCompose x =
             )
 
 
-pattern : Parser State (Node Pattern)
+pattern : Parser State (Node Range Pattern)
 pattern =
     composablePattern |> Combine.andThen tryToCompose
 
 
-parensPattern : Parser State (Node Pattern)
+parensPattern : Parser State (Node Range Pattern)
 parensPattern =
     Combine.lazy
         (\() ->
@@ -55,7 +55,7 @@ parensPattern =
         )
 
 
-variablePart : Parser State (Node Pattern)
+variablePart : Parser State (Node Range Pattern)
 variablePart =
     Node.parser (Combine.map VarPattern functionName)
 
@@ -65,7 +65,7 @@ numberPart =
     Elm.Parser.Numbers.integer IntPattern HexPattern
 
 
-listPattern : Parser State (Node Pattern)
+listPattern : Parser State (Node Range Pattern)
 listPattern =
     lazy
         (\() ->
@@ -81,7 +81,7 @@ type alias ConsumeArgs =
     Bool
 
 
-composablePattern : Parser State (Node Pattern)
+composablePattern : Parser State (Node Range Pattern)
 composablePattern =
     Combine.choice
         [ variablePart
@@ -97,7 +97,7 @@ composablePattern =
         ]
 
 
-qualifiedPatternArg : Parser State (Node Pattern)
+qualifiedPatternArg : Parser State (Node Range Pattern)
 qualifiedPatternArg =
     Combine.choice
         [ variablePart
@@ -113,7 +113,7 @@ qualifiedPatternArg =
         ]
 
 
-qualifiedPattern : ConsumeArgs -> Parser State (Node Pattern)
+qualifiedPattern : ConsumeArgs -> Parser State (Node Range Pattern)
 qualifiedPattern consumeArgs =
     Node.parser Base.typeIndicator
         |> Combine.ignore (maybe Layout.layout)
@@ -134,7 +134,7 @@ qualifiedPattern consumeArgs =
             )
 
 
-recordPattern : Parser State (Node Pattern)
+recordPattern : Parser State (Node Range Pattern)
 recordPattern =
     lazy
         (\() ->

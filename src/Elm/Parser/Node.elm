@@ -3,10 +3,10 @@ module Elm.Parser.Node exposing (parser)
 import Combine exposing (ParseLocation, Parser, succeed, withLocation)
 import Elm.Parser.State exposing (State)
 import Elm.Syntax.Node exposing (Node(..))
-import Elm.Syntax.Range exposing (Location)
+import Elm.Syntax.Range exposing (Location, Range)
 
 
-parser : Parser State a -> Parser State (Node a)
+parser : Parser State a -> Parser State (Node Range a)
 parser p =
     withLocation
         (\start ->

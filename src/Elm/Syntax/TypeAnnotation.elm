@@ -28,6 +28,7 @@ For example:
 import Elm.Json.Util exposing (decodeTyped, encodeTyped)
 import Elm.Syntax.ModuleName as ModuleName exposing (ModuleName)
 import Elm.Syntax.Node as Node exposing (Node)
+import Elm.Syntax.Range exposing (Range)
 import Json.Decode as JD exposing (Decoder)
 import Json.Encode as JE exposing (Value)
 
@@ -45,17 +46,17 @@ import Json.Encode as JE exposing (Value)
 -}
 type TypeAnnotation
     = Var String
-    | Type (Node ( ModuleName, String )) (List (Node TypeAnnotation))
-    | Tuple (List (Node TypeAnnotation))
-    | Record (List (Node RecordField))
-    | ExtensionRecord (Node String) (Node RecordField) (List (Node RecordField))
-    | FunctionTypeAnnotation (Node TypeAnnotation) (Node TypeAnnotation)
+    | Type (Node Range ( ModuleName, String )) (List (Node Range TypeAnnotation))
+    | Tuple (List (Node Range TypeAnnotation))
+    | Record (List (Node Range RecordField))
+    | ExtensionRecord (Node Range String) (Node Range RecordField) (List (Node Range RecordField))
+    | FunctionTypeAnnotation (Node Range TypeAnnotation) (Node Range TypeAnnotation)
 
 
 {-| Single field of a record. A name and its type.
 -}
 type alias RecordField =
-    ( Node String, Node TypeAnnotation )
+    ( Node Range String, Node Range TypeAnnotation )
 
 
 
@@ -163,7 +164,7 @@ decoder =
         )
 
 
-nestedDecoder : Decoder (Node TypeAnnotation)
+nestedDecoder : Decoder (Node Range TypeAnnotation)
 nestedDecoder =
     JD.lazy (\() -> Node.decoder decoder)
 

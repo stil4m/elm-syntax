@@ -9,11 +9,11 @@ import Elm.Parser.Tokens exposing (functionName)
 import Elm.Syntax.DestructurePattern exposing (DestructurePattern(..))
 import Elm.Syntax.Node as Node exposing (Node(..))
 import Elm.Syntax.Pattern exposing (QualifiedNameRef)
-import Elm.Syntax.Range as Range
+import Elm.Syntax.Range as Range exposing (Range)
 import Parser as Core
 
 
-tryToCompose : Node DestructurePattern -> Parser State (Node DestructurePattern)
+tryToCompose : Node Range DestructurePattern -> Parser State (Node Range DestructurePattern)
 tryToCompose x =
     maybe Layout.layout
         |> Combine.continueWith
@@ -27,12 +27,12 @@ tryToCompose x =
             )
 
 
-destructurPattern : Parser State (Node DestructurePattern)
+destructurPattern : Parser State (Node Range DestructurePattern)
 destructurPattern =
     composablePattern |> Combine.andThen tryToCompose
 
 
-parensPattern : Parser State (Node DestructurePattern)
+parensPattern : Parser State (Node Range DestructurePattern)
 parensPattern =
     Combine.lazy
         (\() ->
@@ -51,7 +51,7 @@ parensPattern =
         )
 
 
-variablePart : Parser State (Node DestructurePattern)
+variablePart : Parser State (Node Range DestructurePattern)
 variablePart =
     Node.parser (Combine.map VarPattern_ functionName)
 
@@ -60,7 +60,7 @@ type alias ConsumeArgs =
     Bool
 
 
-composablePattern : Parser State (Node DestructurePattern)
+composablePattern : Parser State (Node Range DestructurePattern)
 composablePattern =
     Combine.choice
         [ variablePart
@@ -72,7 +72,7 @@ composablePattern =
         ]
 
 
-qualifiedPatternArg : Parser State (Node DestructurePattern)
+qualifiedPatternArg : Parser State (Node Range DestructurePattern)
 qualifiedPatternArg =
     Combine.choice
         [ variablePart
@@ -84,7 +84,7 @@ qualifiedPatternArg =
         ]
 
 
-qualifiedPattern : ConsumeArgs -> Parser State (Node DestructurePattern)
+qualifiedPattern : ConsumeArgs -> Parser State (Node Range DestructurePattern)
 qualifiedPattern consumeArgs =
     Node.parser Base.typeIndicator
         |> Combine.ignore (maybe Layout.layout)
@@ -105,7 +105,7 @@ qualifiedPattern consumeArgs =
             )
 
 
-recordPart : Parser State (Node DestructurePattern)
+recordPart : Parser State (Node Range DestructurePattern)
 recordPart =
     lazy
         (\() ->

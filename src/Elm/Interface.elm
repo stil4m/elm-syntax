@@ -30,6 +30,7 @@ import Elm.Syntax.File exposing (File)
 import Elm.Syntax.Infix exposing (InfixDirection(..))
 import Elm.Syntax.Module as Module
 import Elm.Syntax.Node as Node exposing (Node(..))
+import Elm.Syntax.Range exposing (Range)
 import List.Extra
 
 
@@ -145,7 +146,7 @@ lookupForDefinition key =
     List.filter (Tuple.first >> (==) key) >> List.head >> Maybe.map Tuple.second
 
 
-buildInterfaceFromExplicit : List (Node TopLevelExpose) -> List ( String, Exposed ) -> Interface
+buildInterfaceFromExplicit : List (Node Range TopLevelExpose) -> List ( String, Exposed ) -> Interface
 buildInterfaceFromExplicit x fileDefinitionList =
     x
         |> List.filterMap

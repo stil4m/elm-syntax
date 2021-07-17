@@ -13,7 +13,7 @@ import Elm.Syntax.Module exposing (..)
 import Elm.Syntax.Node exposing (Node(..))
 import Elm.Syntax.Pattern exposing (..)
 import Elm.Syntax.Port exposing (Port)
-import Elm.Syntax.Range exposing (emptyRange)
+import Elm.Syntax.Range exposing (Range, emptyRange)
 import Elm.Syntax.Signature exposing (Signature)
 import Elm.Syntax.Type exposing (..)
 import Elm.Syntax.TypeAlias exposing (..)
@@ -85,12 +85,12 @@ parseAsFarAsPossible s p =
             Nothing
 
 
-emptyRanged : Expression -> Node Expression
+emptyRanged : Expression -> Node Range Expression
 emptyRanged =
     Node emptyRange
 
 
-noRangeExpression : Node Expression -> Node Expression
+noRangeExpression : Node Range Expression -> Node Range Expression
 noRangeExpression (Node _ inner) =
     Node emptyRange <| noRangeInnerExpression inner
 
@@ -149,7 +149,7 @@ noRangeExposingList x =
             Explicit (noRangeExpose head) (List.map noRangeExpose rest)
 
 
-noRangePattern : Node Pattern -> Node Pattern
+noRangePattern : Node Range Pattern -> Node Range Pattern
 noRangePattern (Node r p) =
     Node emptyRange <|
         case p of
@@ -196,7 +196,7 @@ noRangePattern (Node r p) =
                 TuplePattern (List.map noRangePattern x)
 
 
-noRangeDestructurPattern : Node DestructurePattern -> Node DestructurePattern
+noRangeDestructurPattern : Node Range DestructurePattern -> Node Range DestructurePattern
 noRangeDestructurPattern (Node r p) =
     Node emptyRange <|
         case p of
@@ -225,17 +225,17 @@ noRangeDestructurPattern (Node r p) =
                 TuplePattern_ (List.map noRangeDestructurPattern x)
 
 
-unRange : Node a -> Node a
+unRange : Node Range a -> Node Range a
 unRange n =
     unRanged identity n
 
 
-unRanged : (a -> a) -> Node a -> Node a
+unRanged : (a -> a) -> Node Range a -> Node Range a
 unRanged f (Node _ a) =
     Node emptyRange <| f a
 
 
-noRangeExpose : Node TopLevelExpose -> Node TopLevelExpose
+noRangeExpose : Node Range TopLevelExpose -> Node Range TopLevelExpose
 noRangeExpose (Node _ l) =
     Node emptyRange <|
         case l of
@@ -287,7 +287,7 @@ noRangePort { signature, documentation } =
         (unRanged noRangeSignature signature)
 
 
-noRangeLetDeclaration : Node LetDeclaration -> Node LetDeclaration
+noRangeLetDeclaration : Node Range LetDeclaration -> Node Range LetDeclaration
 noRangeLetDeclaration (Node _ decl) =
     Node emptyRange <|
         case decl of
@@ -313,7 +313,7 @@ noRangeRecordField ( a, b ) =
     ( unRange a, noRangeTypeReference b )
 
 
-noRangeTypeReference : Node TypeAnnotation -> Node TypeAnnotation
+noRangeTypeReference : Node Range TypeAnnotation -> Node Range TypeAnnotation
 noRangeTypeReference (Node _ typeAnnotation) =
     Node emptyRange <|
         case typeAnnotation of

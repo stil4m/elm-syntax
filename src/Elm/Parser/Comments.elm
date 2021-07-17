@@ -5,10 +5,11 @@ import Elm.Parser.Node as Node
 import Elm.Parser.State exposing (State, addComment)
 import Elm.Parser.Whitespace exposing (untilNewlineToken)
 import Elm.Syntax.Node exposing (Node)
+import Elm.Syntax.Range exposing (Range)
 import Parser as Core exposing (Nestable(..))
 
 
-addCommentToState : Parser State (Node String) -> Parser State ()
+addCommentToState : Parser State (Node Range String) -> Parser State ()
 addCommentToState p =
     p |> Combine.andThen (\pair -> modifyState (addComment pair) |> Combine.continueWith (succeed ()))
 

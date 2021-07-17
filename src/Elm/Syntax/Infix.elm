@@ -17,6 +17,7 @@ module Elm.Syntax.Infix exposing
 -}
 
 import Elm.Syntax.Node as Node exposing (Node)
+import Elm.Syntax.Range exposing (Range)
 import Json.Decode as JD exposing (Decoder)
 import Json.Encode as JE exposing (Value)
 
@@ -24,10 +25,10 @@ import Json.Encode as JE exposing (Value)
 {-| Type annotation for a infix definition
 -}
 type alias Infix =
-    { direction : Node InfixDirection
-    , precedence : Node Int
-    , operator : Node String
-    , function : Node String
+    { direction : Node Range InfixDirection
+    , precedence : Node Range Int
+    , operator : Node Range String
+    , function : Node Range String
     }
 
 

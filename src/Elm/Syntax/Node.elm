@@ -30,13 +30,13 @@ import Json.Encode as JE exposing (Value)
 
 {-| Base representation for a syntax node in a source file.
 -}
-type Node a
-    = Node Range a
+type Node r a
+    = Node r a
 
 
 {-| Combine two nodes, constructing a new node which will have the outer most range of the child nodes
 -}
-combine : (Node a -> Node b -> c) -> Node a -> Node b -> Node c
+combine : (Node Range a -> Node Range b -> c) -> Node Range a -> Node Range b -> Node Range c
 combine f ((Node r1 _) as a) ((Node r2 _) as b) =
     Node
         (Range.combine [ r1, r2 ])
@@ -45,28 +45,28 @@ combine f ((Node r1 _) as a) ((Node r2 _) as b) =
 
 {-| Map the value within a node leaving the range untouched
 -}
-map : (a -> b) -> Node a -> Node b
+map : (a -> b) -> Node Range a -> Node Range b
 map f (Node r a) =
     Node r (f a)
 
 
-{-| Extract the range out of a `Node a`
+{-| Extract the range out of a `Node Range a`
 -}
-range : Node a -> Range
+range : Node Range a -> Range
 range (Node r _) =
     r
 
 
-{-| Extract the value (`a`) out of a `Node a`
+{-| Extract the value (`a`) out of a `Node Range a`
 -}
-value : Node a -> a
+value : Node Range a -> a
 value (Node _ v) =
     v
 
 
 {-| Encode a `Node` into JSON
 -}
-encode : (a -> Value) -> Node a -> Value
+encode : (a -> Value) -> Node Range a -> Value
 encode f (Node r v) =
     JE.object
         [ ( "range", Range.encode r )
@@ -76,7 +76,7 @@ encode f (Node r v) =
 
 {-| A JSON decoder for `Node`
 -}
-decoder : Decoder a -> Decoder (Node a)
+decoder : Decoder a -> Decoder (Node Range a)
 decoder sub =
     JD.map2 Node
         (JD.field "range" Range.decoder)
