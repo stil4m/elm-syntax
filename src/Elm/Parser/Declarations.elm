@@ -671,7 +671,7 @@ referenceExpression =
 
 recordAccessFunctionExpression : Parser State (Node Expression)
 recordAccessFunctionExpression =
-    Combine.map ((++) "." >> RecordAccessFunction)
+    Combine.map RecordAccessFunction
         (string "."
             |> Combine.continueWith functionName
         )
