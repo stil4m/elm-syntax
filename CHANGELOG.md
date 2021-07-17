@@ -1,5 +1,10 @@
 # CHANGELOG
 
+## Version 7.2.6
+
+* Fix incorrect range for function declarations in let expressions
+* Elm.Writer no longer adds two dots instead of one for record accessor functions
+
 ## Version 7.2.5
 
 Bug fixes:
