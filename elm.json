@@ -3,14 +3,13 @@
     "name": "stil4m/elm-syntax",
     "summary": "Elm Syntax in Elm: for parsing and writing Elm in Elm",
     "license": "MIT",
-    "version": "7.1.3",
+    "version": "8.0.0",
     "exposed-modules": [
         "Elm.Dependency",
         "Elm.Interface",
         "Elm.Parser",
         "Elm.Processing",
         "Elm.RawFile",
-        "Elm.Writer",
         "Elm.Syntax.Comments",
         "Elm.Syntax.Declaration",
         "Elm.Syntax.Documentation",
@@ -36,8 +35,7 @@
         "elm/parser": "1.0.0 <= v < 2.0.0",
         "elm-community/list-extra": "8.0.0 <= v < 9.0.0",
         "miniBill/elm-unicode": "1.0.2 <= v < 2.0.0",
-        "rtfeldman/elm-hex": "1.0.0 <= v < 2.0.0",
-        "stil4m/structured-writer": "1.0.1 <= v < 2.0.0"
+        "rtfeldman/elm-hex": "1.0.0 <= v < 2.0.0"
     },
     "test-dependencies": {
         "elm-explorations/test": "1.2.2 <= v < 2.0.0"
