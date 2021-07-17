@@ -50,29 +50,28 @@ all =
         , test "let block" <|
             \() ->
                 parseFullStringState emptyState "let\n  foo = bar\n  \n  john = doe\n in" Parser.letBlock
-                    |> Maybe.map (List.map noRangeLetDeclaration)
                     |> Expect.equal
                         (Just
-                            [ Node emptyRange <|
+                            [ Node { end = { column = 3, row = 4 }, start = { column = 3, row = 2 } } <|
                                 LetFunction
                                     { documentation = Nothing
                                     , signature = Nothing
                                     , declaration =
-                                        Node emptyRange <|
-                                            { name = Node emptyRange "foo"
+                                        Node { end = { column = 12, row = 2 }, start = { column = 3, row = 2 } }
+                                            { name = Node { end = { column = 6, row = 2 }, start = { column = 3, row = 2 } } "foo"
                                             , arguments = []
-                                            , expression = Node emptyRange <| FunctionOrValue [] "bar"
+                                            , expression = Node { end = { column = 12, row = 2 }, start = { column = 9, row = 2 } } <| FunctionOrValue [] "bar"
                                             }
                                     }
-                            , Node emptyRange <|
+                            , Node { end = { column = 2, row = 5 }, start = { column = 3, row = 4 } } <|
                                 LetFunction
                                     { documentation = Nothing
                                     , signature = Nothing
                                     , declaration =
-                                        Node emptyRange <|
-                                            { name = Node emptyRange "john"
+                                        Node { end = { column = 13, row = 4 }, start = { column = 3, row = 4 } } <|
+                                            { name = Node { end = { column = 7, row = 4 }, start = { column = 3, row = 4 } } "john"
                                             , arguments = []
-                                            , expression = Node emptyRange <| FunctionOrValue [] "doe"
+                                            , expression = Node { end = { column = 13, row = 4 }, start = { column = 10, row = 4 } } <| FunctionOrValue [] "doe"
                                             }
                                     }
                             ]
@@ -80,25 +79,24 @@ all =
         , test "correct let with indent" <|
             \() ->
                 parseFullStringState emptyState "let\n  bar = 1\n in\n  bar" Parser.expression
-                    |> Maybe.map noRangeExpression
                     |> Maybe.map Node.value
                     |> Expect.equal
                         (Just
                             (LetExpression
                                 { declarations =
-                                    [ Node emptyRange <|
+                                    [ Node { end = { column = 2, row = 3 }, start = { column = 3, row = 2 } } <|
                                         LetFunction
                                             { documentation = Nothing
                                             , signature = Nothing
                                             , declaration =
-                                                Node emptyRange <|
-                                                    { name = Node emptyRange "bar"
+                                                Node { end = { column = 10, row = 2 }, start = { column = 3, row = 2 } } <|
+                                                    { name = Node { end = { column = 6, row = 2 }, start = { column = 3, row = 2 } } "bar"
                                                     , arguments = []
-                                                    , expression = Node emptyRange <| Integer 1
+                                                    , expression = Node { end = { column = 10, row = 2 }, start = { column = 9, row = 2 } } <| Integer 1
                                                     }
                                             }
                                     ]
-                                , expression = Node emptyRange <| FunctionOrValue [] "bar"
+                                , expression = Node { end = { column = 6, row = 4 }, start = { column = 3, row = 4 } } <| FunctionOrValue [] "bar"
                                 }
                             )
                         )
