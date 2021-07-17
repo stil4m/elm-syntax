@@ -1093,7 +1093,7 @@ recordAccessFunctionExpression =
                 { comments = Rope.empty
                 , syntax =
                     Node (range |> rangeMoveStartLeftByOneColumn)
-                        (RecordAccessFunction ("." ++ field))
+                        (RecordAccessFunction field)
                 }
             )
         )
