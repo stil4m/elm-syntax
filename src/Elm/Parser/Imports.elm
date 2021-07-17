@@ -13,7 +13,7 @@ import Elm.Syntax.Node as Node exposing (Node(..))
 import Elm.Syntax.Range as Range exposing (Range)
 
 
-importDefinition : Parser State (Node Range Import)
+importDefinition : Parser State (Node Range (Import Range))
 importDefinition =
     let
         importAndModuleName =
@@ -27,7 +27,7 @@ importDefinition =
                 |> Combine.continueWith Layout.layout
                 |> Combine.continueWith (Node.parser Elm.Parser.Tokens.typeName)
 
-        parseExposingDefinition : Node Range ModuleName -> Maybe (Node Range String) -> Parser State Import
+        parseExposingDefinition : Node Range ModuleName -> Maybe (Node Range String) -> Parser State (Import Range)
         parseExposingDefinition mod asDef =
             Combine.choice
                 [ Node.parser exposeDefinition
@@ -53,7 +53,7 @@ importDefinition =
             )
 
 
-setupNode : Range -> Import -> Node Range Import
+setupNode : Range -> Import Range -> Node Range (Import Range)
 setupNode start imp =
     let
         allRanges =

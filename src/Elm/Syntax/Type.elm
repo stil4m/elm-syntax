@@ -40,20 +40,20 @@ import Json.Encode as JE exposing (Value)
 {-| Type alias that defines the syntax for a custom type.
 All information that you can define in a type alias is embedded.
 -}
-type alias Type =
-    { documentation : Maybe (Node Range Documentation)
-    , name : Node Range String
-    , generics : List (Node Range String)
-    , firstConstructor : Node Range ValueConstructor
-    , restOfConstructors : List (Node Range ValueConstructor)
+type alias Type r =
+    { documentation : Maybe (Node r Documentation)
+    , name : Node r String
+    , generics : List (Node r String)
+    , firstConstructor : Node r (ValueConstructor r)
+    , restOfConstructors : List (Node r (ValueConstructor r))
     }
 
 
 {-| Syntax for a custom type value constructor.
 -}
-type alias ValueConstructor =
-    { name : Node Range String
-    , arguments : List (Node Range TypeAnnotation)
+type alias ValueConstructor r =
+    { name : Node r String
+    , arguments : List (Node r (TypeAnnotation r))
     }
 
 
@@ -63,7 +63,7 @@ type alias ValueConstructor =
 
 {-| Encode a `Type` syntax element to JSON.
 -}
-encode : Type -> Value
+encode : Type r -> Value
 encode { documentation, name, generics, firstConstructor, restOfConstructors } =
     JE.object
         [ ( "documentation", Maybe.map (Node.encode Documentation.encode) documentation |> Maybe.withDefault JE.null )
@@ -74,7 +74,7 @@ encode { documentation, name, generics, firstConstructor, restOfConstructors } =
         ]
 
 
-encodeValueConstructor : ValueConstructor -> Value
+encodeValueConstructor : ValueConstructor r -> Value
 encodeValueConstructor { name, arguments } =
     JE.object
         [ ( "name", Node.encode JE.string name )
@@ -84,7 +84,7 @@ encodeValueConstructor { name, arguments } =
 
 {-| JSON decoder for a `Type` syntax element.
 -}
-decoder : Decoder Type
+decoder : Decoder (Type r)
 decoder =
     JD.map5 Type
         (JD.field "documentation" <| JD.nullable <| Node.decoder JD.string)
@@ -94,7 +94,7 @@ decoder =
         (JD.field "restOfConstructors" (JD.list (Node.decoder valueConstructorDecoder)))
 
 
-valueConstructorDecoder : Decoder ValueConstructor
+valueConstructorDecoder : Decoder (ValueConstructor r)
 valueConstructorDecoder =
     JD.map2 ValueConstructor
         (JD.field "name" (Node.decoder JD.string))

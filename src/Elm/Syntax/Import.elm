@@ -35,16 +35,16 @@ import Json.Encode as JE exposing (Value)
 
 {-| Type alias representing an Import
 -}
-type alias Import =
-    { moduleName : Node Range ModuleName
-    , moduleAlias : Maybe (Node Range String)
-    , exposingList : Maybe (Node Range Exposing)
+type alias Import r =
+    { moduleName : Node r ModuleName
+    , moduleAlias : Maybe (Node r String)
+    , exposingList : Maybe (Node r (Exposing r))
     }
 
 
 {-| Encode a `Import` syntax element to JSON.
 -}
-encode : Import -> Value
+encode : Import r -> Value
 encode { moduleName, moduleAlias, exposingList } =
     JE.object
         [ ( "moduleName", Node.encode ModuleName.encode moduleName )
@@ -63,7 +63,7 @@ encode { moduleName, moduleAlias, exposingList } =
 
 {-| JSON decoder for a `Import` syntax element.
 -}
-decoder : Decoder Import
+decoder : Decoder (Import r)
 decoder =
     JD.map3 Import
         (JD.field "moduleName" <| Node.decoder ModuleName.decoder)

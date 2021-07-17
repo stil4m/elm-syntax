@@ -33,15 +33,15 @@ import Json.Encode as JE exposing (Value)
 
 {-| Type alias representing a signature in Elm.
 -}
-type alias Signature =
-    { name : Node Range String
-    , typeAnnotation : Node Range TypeAnnotation
+type alias Signature r =
+    { name : Node r String
+    , typeAnnotation : Node r (TypeAnnotation r)
     }
 
 
 {-| Encode a `Signature` syntax element to JSON.
 -}
-encode : Signature -> Value
+encode : Signature r -> Value
 encode { name, typeAnnotation } =
     JE.object
         [ ( "name", Node.encode JE.string name )
@@ -51,7 +51,7 @@ encode { name, typeAnnotation } =
 
 {-| JSON decoder for a `Signature` syntax element.
 -}
-decoder : Decoder Signature
+decoder : Decoder (Signature r)
 decoder =
     JD.map2 Signature
         (JD.field "name" (Node.decoder JD.string))

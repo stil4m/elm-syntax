@@ -8,13 +8,13 @@ import Json.Decode as JD exposing (Decoder)
 import Json.Encode as JE exposing (Value)
 
 
-type alias Port =
-    { documentation : Maybe (Node Range Documentation)
-    , signature : Node Range Signature
+type alias Port r =
+    { documentation : Maybe (Node r Documentation)
+    , signature : Node r (Signature r)
     }
 
 
-encode : Port -> Value
+encode : Port r -> Value
 encode { documentation, signature } =
     JE.object
         [ ( "documentation", Maybe.map (Node.encode Documentation.encode) documentation |> Maybe.withDefault JE.null )
@@ -22,7 +22,7 @@ encode { documentation, signature } =
         ]
 
 
-decoder : Decoder Port
+decoder : Decoder (Port r)
 decoder =
     JD.map2 Port
         (JD.field "documentation" (JD.nullable <| Node.decoder Documentation.decoder))

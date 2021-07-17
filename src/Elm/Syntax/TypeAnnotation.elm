@@ -44,19 +44,19 @@ import Json.Encode as JE exposing (Value)
   - `FunctionTypeAnnotation`: `Int -> String`
 
 -}
-type TypeAnnotation
+type TypeAnnotation r
     = Var String
-    | Type (Node Range ( ModuleName, String )) (List (Node Range TypeAnnotation))
-    | Tuple (List (Node Range TypeAnnotation))
-    | Record (List (Node Range RecordField))
-    | ExtensionRecord (Node Range String) (Node Range RecordField) (List (Node Range RecordField))
-    | FunctionTypeAnnotation (Node Range TypeAnnotation) (Node Range TypeAnnotation)
+    | Type (Node r ( ModuleName, String )) (List (Node r (TypeAnnotation r)))
+    | Tuple (List (Node r (TypeAnnotation r)))
+    | Record (List (Node r (RecordField r)))
+    | ExtensionRecord (Node r String) (Node r (RecordField r)) (List (Node r (RecordField r)))
+    | FunctionTypeAnnotation (Node r (TypeAnnotation r)) (Node r (TypeAnnotation r))
 
 
 {-| Single field of a record. A name and its type.
 -}
-type alias RecordField =
-    ( Node Range String, Node Range TypeAnnotation )
+type alias RecordField r =
+    ( Node r String, Node r (TypeAnnotation r) )
 
 
 
@@ -65,7 +65,7 @@ type alias RecordField =
 
 {-| Encode a `TypeAnnotation` syntax element to JSON.
 -}
-encode : TypeAnnotation -> Value
+encode : TypeAnnotation r -> Value
 encode typeAnnotation =
     case typeAnnotation of
         Var name ->
@@ -117,7 +117,7 @@ encode typeAnnotation =
                     ]
 
 
-encodeRecordField : RecordField -> Value
+encodeRecordField : RecordField r -> Value
 encodeRecordField ( name, ref ) =
     JE.object
         [ ( "name", Node.encode JE.string name )
@@ -134,7 +134,7 @@ decodeModuleNameAndName =
 
 {-| JSON decoder for a `TypeAnnotation` syntax element.
 -}
-decoder : Decoder TypeAnnotation
+decoder : Decoder (TypeAnnotation r)
 decoder =
     JD.lazy
         (\() ->
@@ -164,12 +164,12 @@ decoder =
         )
 
 
-nestedDecoder : Decoder (Node Range TypeAnnotation)
+nestedDecoder : Decoder (Node r (TypeAnnotation r))
 nestedDecoder =
     JD.lazy (\() -> Node.decoder decoder)
 
 
-recordFieldDecoder : Decoder RecordField
+recordFieldDecoder : Decoder (RecordField r)
 recordFieldDecoder =
     JD.lazy
         (\() ->

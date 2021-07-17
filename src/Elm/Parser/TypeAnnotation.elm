@@ -16,7 +16,7 @@ type Mode
     | Lazy
 
 
-typeAnnotation : Parser State (Node Range TypeAnnotation)
+typeAnnotation : Parser State (Node Range (TypeAnnotation Range))
 typeAnnotation =
     lazy
         (\() ->
@@ -39,7 +39,7 @@ typeAnnotation =
         )
 
 
-typeAnnotationNonGreedy : Parser State (Node Range TypeAnnotation)
+typeAnnotationNonGreedy : Parser State (Node Range (TypeAnnotation Range))
 typeAnnotationNonGreedy =
     choice
         [ parensTypeAnnotation
@@ -49,7 +49,7 @@ typeAnnotationNonGreedy =
         ]
 
 
-typeAnnotationNoFn : Mode -> Parser State (Node Range TypeAnnotation)
+typeAnnotationNoFn : Mode -> Parser State (Node Range (TypeAnnotation Range))
 typeAnnotationNoFn mode =
     lazy
         (\() ->
@@ -62,12 +62,12 @@ typeAnnotationNoFn mode =
         )
 
 
-parensTypeAnnotation : Parser State (Node Range TypeAnnotation)
+parensTypeAnnotation : Parser State (Node Range (TypeAnnotation Range))
 parensTypeAnnotation =
     lazy
         (\() ->
             let
-                commaSep : Parser State (List (Node Range TypeAnnotation))
+                commaSep : Parser State (List (Node Range (TypeAnnotation Range)))
                 commaSep =
                     many
                         (string ","
@@ -76,7 +76,7 @@ parensTypeAnnotation =
                             |> Combine.ignore (maybe Layout.layout)
                         )
 
-                nested : Parser State TypeAnnotation
+                nested : Parser State (TypeAnnotation Range)
                 nested =
                     Combine.succeed asTypeAnnotation
                         |> Combine.ignore (maybe Layout.layout)
@@ -96,7 +96,7 @@ parensTypeAnnotation =
         )
 
 
-asTypeAnnotation : Node Range TypeAnnotation -> List (Node Range TypeAnnotation) -> TypeAnnotation
+asTypeAnnotation : Node Range (TypeAnnotation Range) -> List (Node Range (TypeAnnotation Range)) -> TypeAnnotation Range
 asTypeAnnotation ((Node _ value) as x) xs =
     case xs of
         [] ->
@@ -106,7 +106,7 @@ asTypeAnnotation ((Node _ value) as x) xs =
             Tuple (x :: xs)
 
 
-genericTypeAnnotation : Parser State (Node Range TypeAnnotation)
+genericTypeAnnotation : Parser State (Node Range (TypeAnnotation Range))
 genericTypeAnnotation =
     lazy
         (\() ->
@@ -114,17 +114,17 @@ genericTypeAnnotation =
         )
 
 
-recordFieldsTypeAnnotation : Parser State (List (Node Range RecordField))
+recordFieldsTypeAnnotation : Parser State (List (Node Range (RecordField Range)))
 recordFieldsTypeAnnotation =
     lazy (\() -> sepBy (string ",") (Layout.maybeAroundBothSides <| Node.parser recordFieldDefinition))
 
 
-recordTypeAnnotation : Parser State (Node Range TypeAnnotation)
+recordTypeAnnotation : Parser State (Node Range (TypeAnnotation Range))
 recordTypeAnnotation =
     lazy
         (\() ->
             let
-                nextField : Parser State RecordField
+                nextField : Parser State (RecordField Range)
                 nextField =
                     Combine.succeed (\a b -> ( a, b ))
                         |> Combine.ignore (Combine.string ",")
@@ -136,7 +136,7 @@ recordTypeAnnotation =
                         |> Combine.andMap typeAnnotation
                         |> Combine.ignore Layout.optimisticLayout
 
-                additionalRecordFields : List (Node Range RecordField) -> Parser State (List (Node Range RecordField))
+                additionalRecordFields : List (Node Range (RecordField Range)) -> Parser State (List (Node Range (RecordField Range)))
                 additionalRecordFields items =
                     Combine.choice
                         [ Node.parser nextField
@@ -185,7 +185,7 @@ recordTypeAnnotation =
         )
 
 
-recordFieldDefinition : Parser State RecordField
+recordFieldDefinition : Parser State (RecordField Range)
 recordFieldDefinition =
     lazy
         (\() ->
@@ -200,12 +200,12 @@ recordFieldDefinition =
         )
 
 
-typedTypeAnnotation : Mode -> Parser State (Node Range TypeAnnotation)
+typedTypeAnnotation : Mode -> Parser State (Node Range (TypeAnnotation Range))
 typedTypeAnnotation mode =
     lazy
         (\() ->
             let
-                genericHelper : List (Node Range TypeAnnotation) -> Parser State (List (Node Range TypeAnnotation))
+                genericHelper : List (Node Range (TypeAnnotation Range)) -> Parser State (List (Node Range (TypeAnnotation Range)))
                 genericHelper items =
                     or
                         (typeAnnotationNoFn Lazy

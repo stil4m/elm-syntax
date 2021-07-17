@@ -41,12 +41,12 @@ import Json.Encode exposing (Value)
 
 {-| Custom type that represents all different top-level declarations.
 -}
-type Declaration
-    = FunctionDeclaration Function
-    | AliasDeclaration TypeAlias
-    | CustomTypeDeclaration Type
-    | PortDeclaration Port
-    | InfixDeclaration Infix
+type Declaration r
+    = FunctionDeclaration (Function r)
+    | AliasDeclaration (TypeAlias r)
+    | CustomTypeDeclaration (Type r)
+    | PortDeclaration (Port r)
+    | InfixDeclaration (Infix r)
 
 
 
@@ -55,7 +55,7 @@ type Declaration
 
 {-| Encode a `Declaration` syntax element to JSON.
 -}
-encode : Declaration -> Value
+encode : Declaration r -> Value
 encode decl =
     case decl of
         FunctionDeclaration function ->
@@ -77,7 +77,7 @@ encode decl =
 
 {-| JSON decoder for a `Declaration` syntax element.
 -}
-decoder : Decoder Declaration
+decoder : Decoder (Declaration r)
 decoder =
     JD.lazy
         (\() ->

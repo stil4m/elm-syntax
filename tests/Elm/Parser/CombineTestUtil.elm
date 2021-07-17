@@ -149,7 +149,7 @@ noRangeExposingList x =
             Explicit (noRangeExpose head) (List.map noRangeExpose rest)
 
 
-noRangePattern : Node Range Pattern -> Node Range Pattern
+noRangePattern : Node Range Pattern -> Node { leadingWhitespace : String } Pattern
 noRangePattern (Node r p) =
     Node emptyRange <|
         case p of

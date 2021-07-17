@@ -12,19 +12,19 @@ import Elm.Syntax.Node as Node exposing (Node(..))
 import Elm.Syntax.Range as Range exposing (Range)
 
 
-exposeDefinition : Parser State Exposing
+exposeDefinition : Parser State (Exposing Range)
 exposeDefinition =
     exposingToken
         |> Combine.continueWith (maybe Layout.layout)
         |> Combine.continueWith exposeListWith
 
 
-exposeListWith : Parser State Exposing
+exposeListWith : Parser State (Exposing Range)
 exposeListWith =
     parens (Layout.optimisticLayout |> Combine.continueWith exposingListInner |> Combine.ignore Layout.optimisticLayout)
 
 
-exposingListInner : Parser State Exposing
+exposingListInner : Parser State (Exposing Range)
 exposingListInner =
     or (withRange (succeed All |> Combine.ignore (Layout.maybeAroundBothSides (string ".."))))
         (Combine.map
@@ -33,7 +33,7 @@ exposingListInner =
         )
 
 
-exposable : Parser State (Node Range TopLevelExpose)
+exposable : Parser State (Node Range (TopLevelExpose Range))
 exposable =
     Combine.lazy
         (\() ->
@@ -45,7 +45,7 @@ exposable =
         )
 
 
-infixExpose : Parser State (Node Range TopLevelExpose)
+infixExpose : Parser State (Node Range (TopLevelExpose Range))
 infixExpose =
     Combine.lazy
         (\() ->
@@ -53,7 +53,7 @@ infixExpose =
         )
 
 
-typeExpose : Parser State (Node Range TopLevelExpose)
+typeExpose : Parser State (Node Range (TopLevelExpose Range))
 typeExpose =
     Node.parser typeName
         |> Combine.ignore (maybe Layout.layout)
@@ -73,6 +73,6 @@ typeExpose =
             )
 
 
-functionExpose : Parser State (Node Range TopLevelExpose)
+functionExpose : Parser State (Node Range (TopLevelExpose Range))
 functionExpose =
     Node.parser (Combine.map FunctionExpose functionName)

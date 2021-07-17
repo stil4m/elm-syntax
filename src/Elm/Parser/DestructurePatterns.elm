@@ -13,7 +13,7 @@ import Elm.Syntax.Range as Range exposing (Range)
 import Parser as Core
 
 
-tryToCompose : Node Range DestructurePattern -> Parser State (Node Range DestructurePattern)
+tryToCompose : Node Range (DestructurePattern Range) -> Parser State (Node Range (DestructurePattern Range))
 tryToCompose x =
     maybe Layout.layout
         |> Combine.continueWith
@@ -27,12 +27,12 @@ tryToCompose x =
             )
 
 
-destructurPattern : Parser State (Node Range DestructurePattern)
+destructurPattern : Parser State (Node Range (DestructurePattern Range))
 destructurPattern =
     composablePattern |> Combine.andThen tryToCompose
 
 
-parensPattern : Parser State (Node Range DestructurePattern)
+parensPattern : Parser State (Node Range (DestructurePattern Range))
 parensPattern =
     Combine.lazy
         (\() ->
@@ -51,7 +51,7 @@ parensPattern =
         )
 
 
-variablePart : Parser State (Node Range DestructurePattern)
+variablePart : Parser State (Node Range (DestructurePattern Range))
 variablePart =
     Node.parser (Combine.map VarPattern_ functionName)
 
@@ -60,7 +60,7 @@ type alias ConsumeArgs =
     Bool
 
 
-composablePattern : Parser State (Node Range DestructurePattern)
+composablePattern : Parser State (Node Range (DestructurePattern Range))
 composablePattern =
     Combine.choice
         [ variablePart
@@ -72,7 +72,7 @@ composablePattern =
         ]
 
 
-qualifiedPatternArg : Parser State (Node Range DestructurePattern)
+qualifiedPatternArg : Parser State (Node Range (DestructurePattern Range))
 qualifiedPatternArg =
     Combine.choice
         [ variablePart
@@ -84,7 +84,7 @@ qualifiedPatternArg =
         ]
 
 
-qualifiedPattern : ConsumeArgs -> Parser State (Node Range DestructurePattern)
+qualifiedPattern : ConsumeArgs -> Parser State (Node Range (DestructurePattern Range))
 qualifiedPattern consumeArgs =
     Node.parser Base.typeIndicator
         |> Combine.ignore (maybe Layout.layout)
@@ -105,7 +105,7 @@ qualifiedPattern consumeArgs =
             )
 
 
-recordPart : Parser State (Node Range DestructurePattern)
+recordPart : Parser State (Node Range (DestructurePattern Range))
 recordPart =
     lazy
         (\() ->

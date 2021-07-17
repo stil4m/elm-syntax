@@ -11,7 +11,7 @@ import Elm.Syntax.Type exposing (Type)
 import Elm.Syntax.TypeAlias exposing (TypeAlias)
 
 
-postProcess : File -> File
+postProcess : File Range -> File Range
 postProcess file =
     Inspector.inspect
         { defaultConfig
@@ -24,7 +24,7 @@ postProcess file =
         file
 
 
-onType : Node Range Type -> File -> File
+onType : Node Range Type -> File Range -> File Range
 onType (Node r customType) file =
     case findDocumentationForRange r file.comments of
         Just ((Node docRange docString) as doc) ->
@@ -44,7 +44,7 @@ onType (Node r customType) file =
             file
 
 
-onTypeAlias : Node Range TypeAlias -> File -> File
+onTypeAlias : Node Range TypeAlias -> File Range -> File Range
 onTypeAlias (Node r typeAlias) file =
     case findDocumentationForRange r file.comments of
         Just ((Node docRange docString) as doc) ->
@@ -71,7 +71,7 @@ onTypeAlias (Node r typeAlias) file =
             file
 
 
-onPort : Node Range Port -> File -> File
+onPort : Node Range Port -> File Range -> File Range
 onPort (Node portRange portDeclaration) file =
     case findDocumentationForRange portRange file.comments of
         Just ((Node docRange _) as doc) ->
@@ -97,7 +97,7 @@ onPort (Node portRange portDeclaration) file =
             file
 
 
-onFunction : Node Range Function -> File -> File
+onFunction : Node Range (Function Range) -> File Range -> File Range
 onFunction (Node functionRange function) file =
     case findDocumentationForRange functionRange file.comments of
         Just ((Node docRange docString) as doc) ->

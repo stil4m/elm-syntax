@@ -13,7 +13,7 @@ import Elm.Syntax.Node exposing (Node)
 import Elm.Syntax.Range exposing (Range)
 
 
-file : Parser State File
+file : Parser State (File Range)
 file =
     succeed File
         |> Combine.ignore (maybe Layout.layoutStrict)

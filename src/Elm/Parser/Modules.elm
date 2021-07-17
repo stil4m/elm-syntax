@@ -12,7 +12,7 @@ import Elm.Syntax.Node exposing (Node)
 import Elm.Syntax.Range exposing (Range)
 
 
-moduleDefinition : Parser State Module
+moduleDefinition : Parser State (Module Range)
 moduleDefinition =
     choice
         [ normalModuleDefinition
@@ -52,7 +52,7 @@ effectWhereClauses =
         |> Combine.continueWith whereBlock
 
 
-effectModuleDefinition : Parser State Module
+effectModuleDefinition : Parser State (Module Range)
 effectModuleDefinition =
     let
         createEffectModule name whereClauses exp =
@@ -75,7 +75,7 @@ effectModuleDefinition =
         |> Combine.andMap (Node.parser exposeDefinition)
 
 
-normalModuleDefinition : Parser State Module
+normalModuleDefinition : Parser State (Module Range)
 normalModuleDefinition =
     Combine.map NormalModule
         (succeed DefaultModuleData
@@ -87,7 +87,7 @@ normalModuleDefinition =
         )
 
 
-portModuleDefinition : Parser State Module
+portModuleDefinition : Parser State (Module Range)
 portModuleDefinition =
     Combine.map PortModule
         (succeed DefaultModuleData

@@ -53,21 +53,21 @@ import Json.Encode as JE exposing (Value)
   - `ParenthesizedPattern_`: `( _ )`
 
 -}
-type DestructurePattern
+type DestructurePattern r
     = AllPattern_
     | UnitPattern_
-    | TuplePattern_ (List (Node Range DestructurePattern))
-    | RecordPattern_ (List (Node Range String))
+    | TuplePattern_ (List (Node r (DestructurePattern r)))
+    | RecordPattern_ (List (Node r String))
     | VarPattern_ String
-    | NamedPattern_ QualifiedNameRef (List (Node Range DestructurePattern))
-    | AsPattern_ (Node Range DestructurePattern) (Node Range String)
-    | ParenthesizedPattern_ (Node Range DestructurePattern)
+    | NamedPattern_ QualifiedNameRef (List (Node r (DestructurePattern r)))
+    | AsPattern_ (Node r (DestructurePattern r)) (Node r String)
+    | ParenthesizedPattern_ (Node r (DestructurePattern r))
 
 
 {-| Get all the modules names that are used in the pattern (and its nested patterns).
 Use this to collect qualified patterns, such as `Maybe.Just x`.
 -}
-moduleNames : DestructurePattern -> List ModuleName
+moduleNames : DestructurePattern r -> List ModuleName
 moduleNames p =
     let
         recur =
@@ -99,7 +99,7 @@ moduleNames p =
 
 {-| Encode a `DestructurPattern` syntax element to JSON.
 -}
-encode : DestructurePattern -> Value
+encode : DestructurePattern r -> Value
 encode pattern =
     case pattern of
         AllPattern_ ->
@@ -158,7 +158,7 @@ encode pattern =
 
 {-| JSON decoder for a `DestructurPattern` syntax element.
 -}
-decoder : Decoder DestructurePattern
+decoder : Decoder (DestructurePattern r)
 decoder =
     JD.lazy
         (\() ->

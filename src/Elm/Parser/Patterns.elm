@@ -13,7 +13,7 @@ import Elm.Syntax.Range as Range exposing (Range)
 import Parser as Core
 
 
-tryToCompose : Node Range Pattern -> Parser State (Node Range Pattern)
+tryToCompose : Node Range (Pattern Range) -> Parser State (Node Range (Pattern Range))
 tryToCompose x =
     maybe Layout.layout
         |> Combine.continueWith
@@ -31,12 +31,12 @@ tryToCompose x =
             )
 
 
-pattern : Parser State (Node Range Pattern)
+pattern : Parser State (Node Range (Pattern Range))
 pattern =
     composablePattern |> Combine.andThen tryToCompose
 
 
-parensPattern : Parser State (Node Range Pattern)
+parensPattern : Parser State (Node Range (Pattern Range))
 parensPattern =
     Combine.lazy
         (\() ->
@@ -55,17 +55,17 @@ parensPattern =
         )
 
 
-variablePart : Parser State (Node Range Pattern)
+variablePart : Parser State (Node Range (Pattern Range))
 variablePart =
     Node.parser (Combine.map VarPattern functionName)
 
 
-numberPart : Parser State Pattern
+numberPart : Parser State (Pattern Range)
 numberPart =
     Elm.Parser.Numbers.integer IntPattern HexPattern
 
 
-listPattern : Parser State (Node Range Pattern)
+listPattern : Parser State (Node Range (Pattern Range))
 listPattern =
     lazy
         (\() ->
@@ -81,7 +81,7 @@ type alias ConsumeArgs =
     Bool
 
 
-composablePattern : Parser State (Node Range Pattern)
+composablePattern : Parser State (Node Range (Pattern Range))
 composablePattern =
     Combine.choice
         [ variablePart
@@ -97,7 +97,7 @@ composablePattern =
         ]
 
 
-qualifiedPatternArg : Parser State (Node Range Pattern)
+qualifiedPatternArg : Parser State (Node Range (Pattern Range))
 qualifiedPatternArg =
     Combine.choice
         [ variablePart
@@ -113,7 +113,7 @@ qualifiedPatternArg =
         ]
 
 
-qualifiedPattern : ConsumeArgs -> Parser State (Node Range Pattern)
+qualifiedPattern : ConsumeArgs -> Parser State (Node Range (Pattern Range))
 qualifiedPattern consumeArgs =
     Node.parser Base.typeIndicator
         |> Combine.ignore (maybe Layout.layout)
@@ -134,7 +134,7 @@ qualifiedPattern consumeArgs =
             )
 
 
-recordPattern : Parser State (Node Range Pattern)
+recordPattern : Parser State (Node Range (Pattern Range))
 recordPattern =
     lazy
         (\() ->

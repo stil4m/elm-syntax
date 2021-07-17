@@ -24,36 +24,36 @@ type Order context x
     | Inner ((context -> context) -> x -> context -> context)
 
 
-type alias Config context =
-    { onFile : Order context File
-    , onImport : Order context (Node Range Import)
-    , onFunction : Order context (Node Range Function)
-    , onTypeAlias : Order context (Node Range TypeAlias)
-    , onType : Order context (Node Range Type)
-    , onPortDeclaration : Order context (Node Range Port)
-    , onInfixDeclaration : Order context (Node Range Infix)
-    , onDestructuring : Order context (Node Range ( Node Range DestructurePattern, Node Range Expression ))
-    , onSignature : Order context (Node Range Signature)
-    , onExpression : Order context (Node Range Expression)
+type alias Config r context =
+    { onFile : Order context (File r)
+    , onImport : Order context (Node r (Import r))
+    , onFunction : Order context (Node r (Function r))
+    , onTypeAlias : Order context (Node r (TypeAlias r))
+    , onType : Order context (Node r (Type r))
+    , onPortDeclaration : Order context (Node r (Port r))
+    , onInfixDeclaration : Order context (Node r (Infix r))
+    , onDestructuring : Order context (Node r ( Node r (DestructurePattern r), Node r (Expression r) ))
+    , onSignature : Order context (Node r (Signature r))
+    , onExpression : Order context (Node r (Expression r))
     , onOperatorApplication :
         Order
             context
             { operator : String
             , direction : InfixDirection
-            , left : Node Range Expression
-            , right : Node Range Expression
+            , left : Node r (Expression r)
+            , right : Node r (Expression r)
             }
-    , onTypeAnnotation : Order context (Node Range TypeAnnotation)
-    , onLambda : Order context Lambda
-    , onLetBlock : Order context LetBlock
-    , onCase : Order context Case
+    , onTypeAnnotation : Order context (Node r (TypeAnnotation r))
+    , onLambda : Order context (Lambda r)
+    , onLetBlock : Order context (LetBlock r)
+    , onCase : Order context (Case r)
     , onFunctionOrValue : Order context ( ModuleName, String )
-    , onRecordAccess : Order context ( Node Range Expression, Node Range String )
-    , onRecordUpdate : Order context ( Node Range String, Node Range RecordSetter, List (Node Range RecordSetter) )
+    , onRecordAccess : Order context ( Node r (Expression r), Node r String )
+    , onRecordUpdate : Order context ( Node r String, Node r (RecordSetter r), List (Node r (RecordSetter r)) )
     }
 
 
-defaultConfig : Config x
+defaultConfig : Config r x
 defaultConfig =
     { onFile = Continue
     , onImport = Continue
@@ -95,7 +95,7 @@ actionLambda act =
             \f x c -> g f x c
 
 
-inspect : Config a -> File -> a -> a
+inspect : Config r a -> File r -> a -> a
 inspect config file context =
     actionLambda config.onFile
         (inspectImports config file.imports >> inspectDeclarations config file.declarations)
@@ -103,12 +103,12 @@ inspect config file context =
         context
 
 
-inspectImports : Config context -> List (Node Range Import) -> context -> context
+inspectImports : Config r context -> List (Node r (Import r)) -> context -> context
 inspectImports config imports context =
     List.foldl (inspectImport config) context imports
 
 
-inspectImport : Config context -> Node Range Import -> context -> context
+inspectImport : Config r context -> Node r (Import r) -> context -> context
 inspectImport config imp context =
     actionLambda config.onImport
         identity
@@ -116,17 +116,17 @@ inspectImport config imp context =
         context
 
 
-inspectDeclarations : Config context -> List (Node Range Declaration) -> context -> context
+inspectDeclarations : Config r context -> List (Node r (Declaration r)) -> context -> context
 inspectDeclarations config declarations context =
     List.foldl (inspectDeclaration config) context declarations
 
 
-inspectLetDeclarations : Config context -> List (Node Range LetDeclaration) -> context -> context
+inspectLetDeclarations : Config r context -> List (Node r (LetDeclaration r)) -> context -> context
 inspectLetDeclarations config declarations context =
     List.foldl (inspectLetDeclaration config) context declarations
 
 
-inspectLetDeclaration : Config context -> Node Range LetDeclaration -> context -> context
+inspectLetDeclaration : Config r context -> Node r (LetDeclaration r) -> context -> context
 inspectLetDeclaration config (Node range declaration) context =
     case declaration of
         LetFunction function ->
@@ -136,7 +136,7 @@ inspectLetDeclaration config (Node range declaration) context =
             inspectDestructuring config (Node range ( pattern, expression )) context
 
 
-inspectDeclaration : Config context -> Node Range Declaration -> context -> context
+inspectDeclaration : Config r context -> Node r (Declaration r) -> context -> context
 inspectDeclaration config (Node r declaration) context =
     case declaration of
         FunctionDeclaration function ->
@@ -159,7 +159,7 @@ inspectDeclaration config (Node r declaration) context =
                 context
 
 
-inspectType : Config context -> Node Range Type -> context -> context
+inspectType : Config r context -> Node r (Type r) -> context -> context
 inspectType config tipe context =
     actionLambda
         config.onType
@@ -168,19 +168,19 @@ inspectType config tipe context =
         context
 
 
-inspectTypeInner : Config context -> Type -> context -> context
+inspectTypeInner : Config r context -> Type r -> context -> context
 inspectTypeInner config typeDecl context =
     List.foldl (inspectValueConstructor config)
         context
         (typeDecl.firstConstructor :: typeDecl.restOfConstructors)
 
 
-inspectValueConstructor : Config context -> Node Range ValueConstructor -> context -> context
+inspectValueConstructor : Config r context -> Node r (ValueConstructor r) -> context -> context
 inspectValueConstructor config (Node _ valueConstructor) context =
     List.foldl (inspectTypeAnnotation config) context valueConstructor.arguments
 
 
-inspectTypeAlias : Config context -> Node Range TypeAlias -> context -> context
+inspectTypeAlias : Config r context -> Node r (TypeAlias r) -> context -> context
 inspectTypeAlias config ((Node _ typeAlias) as pair) context =
     actionLambda
         config.onTypeAlias
@@ -189,7 +189,7 @@ inspectTypeAlias config ((Node _ typeAlias) as pair) context =
         context
 
 
-inspectDestructuring : Config context -> Node Range ( Node Range DestructurePattern, Node Range Expression ) -> context -> context
+inspectDestructuring : Config r context -> Node r ( Node r (DestructurePattern r), Node r (Expression r) ) -> context -> context
 inspectDestructuring config destructuring context =
     actionLambda
         config.onDestructuring
@@ -201,7 +201,7 @@ inspectDestructuring config destructuring context =
         context
 
 
-inspectFunction : Config context -> Node Range Function -> context -> context
+inspectFunction : Config r context -> Node r (Function r) -> context -> context
 inspectFunction config ((Node _ function) as node) context =
     actionLambda
         config.onFunction
@@ -214,7 +214,7 @@ inspectFunction config ((Node _ function) as node) context =
         context
 
 
-inspectPortDeclaration : Config context -> Node Range Port -> context -> context
+inspectPortDeclaration : Config r context -> Node r (Port r) -> context -> context
 inspectPortDeclaration config node context =
     actionLambda
         config.onPortDeclaration
@@ -223,7 +223,7 @@ inspectPortDeclaration config node context =
         context
 
 
-inspectSignature : Config context -> Node Range Signature -> context -> context
+inspectSignature : Config r context -> Node r (Signature r) -> context -> context
 inspectSignature config ((Node _ signature) as node) context =
     actionLambda
         config.onSignature
@@ -232,7 +232,7 @@ inspectSignature config ((Node _ signature) as node) context =
         context
 
 
-inspectTypeAnnotation : Config context -> Node Range TypeAnnotation -> context -> context
+inspectTypeAnnotation : Config r context -> Node r (TypeAnnotation r) -> context -> context
 inspectTypeAnnotation config typeAnnotation context =
     actionLambda
         config.onTypeAnnotation
@@ -241,7 +241,7 @@ inspectTypeAnnotation config typeAnnotation context =
         context
 
 
-inspectTypeAnnotationInner : Config context -> Node Range TypeAnnotation -> context -> context
+inspectTypeAnnotationInner : Config r context -> Node r (TypeAnnotation r) -> context -> context
 inspectTypeAnnotationInner config (Node _ typeRefence) context =
     case typeRefence of
         Elm.Syntax.TypeAnnotation.Type _ typeArgs ->
@@ -263,7 +263,7 @@ inspectTypeAnnotationInner config (Node _ typeRefence) context =
             context
 
 
-inspectExpression : Config context -> Node Range Expression -> context -> context
+inspectExpression : Config r context -> Node r (Expression r) -> context -> context
 inspectExpression config ((Node _ expression) as node) context =
     actionLambda
         config.onExpression
@@ -272,7 +272,7 @@ inspectExpression config ((Node _ expression) as node) context =
         context
 
 
-inspectInnerExpression : Config context -> Expression -> context -> context
+inspectInnerExpression : Config r context -> Expression r -> context -> context
 inspectInnerExpression config expression context =
     case expression of
         FunctionOrValue moduleName functionOrVal ->
@@ -371,7 +371,7 @@ inspectInnerExpression config expression context =
                 context
 
 
-inspectCase : Config context -> Case -> context -> context
+inspectCase : Config r context -> Case r -> context -> context
 inspectCase config caze context =
     actionLambda config.onCase
         (inspectExpression config (Tuple.second caze))

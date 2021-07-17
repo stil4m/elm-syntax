@@ -14,12 +14,12 @@ import Elm.Syntax.TypeAlias exposing (TypeAlias)
 import Elm.Syntax.TypeAnnotation exposing (TypeAnnotation)
 
 
-type TypeDefinition
-    = DefinedType Range Type
-    | DefinedAlias Range TypeAlias
+type TypeDefinition r
+    = DefinedType r Type
+    | DefinedAlias r TypeAlias
 
 
-typeDefinition : Parser State TypeDefinition
+typeDefinition : Parser State (TypeDefinition Range)
 typeDefinition =
     withCurrentPoint
         (\start ->
@@ -73,11 +73,11 @@ valueConstructor =
         |> Combine.andThen
             (\((Node range _) as tnn) ->
                 let
-                    complete : List (Node Range TypeAnnotation) -> Parser State (Node Range ValueConstructor)
+                    complete : List (Node Range (TypeAnnotation Range)) -> Parser State (Node Range ValueConstructor)
                     complete args =
                         Combine.succeed (Node (Range.combine (range :: List.map Node.range args)) (ValueConstructor tnn args))
 
-                    argHelper : List (Node Range TypeAnnotation) -> Parser State (List (Node Range TypeAnnotation))
+                    argHelper : List (Node Range (TypeAnnotation Range)) -> Parser State (List (Node Range (TypeAnnotation Range)))
                     argHelper xs =
                         Combine.succeed ()
                             |> Combine.continueWith

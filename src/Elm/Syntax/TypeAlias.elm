@@ -41,11 +41,11 @@ import Json.Encode as JE exposing (Value)
 {-| Type alias that defines the syntax for a type alias.
 A bit meta, but you get the idea. All information that you can define in a type alias is embedded.
 -}
-type alias TypeAlias =
-    { documentation : Maybe (Node Range Documentation)
-    , name : Node Range String
-    , generics : List (Node Range String)
-    , typeAnnotation : Node Range TypeAnnotation
+type alias TypeAlias r =
+    { documentation : Maybe (Node r Documentation)
+    , name : Node r String
+    , generics : List (Node r String)
+    , typeAnnotation : Node r (TypeAnnotation r)
     }
 
 
@@ -55,7 +55,7 @@ type alias TypeAlias =
 
 {-| Encode a `TypeAlias` syntax element to JSON.
 -}
-encode : TypeAlias -> Value
+encode : TypeAlias r -> Value
 encode { documentation, name, generics, typeAnnotation } =
     JE.object
         [ ( "documentation", Maybe.map (Node.encode Documentation.encode) documentation |> Maybe.withDefault JE.null )
@@ -67,7 +67,7 @@ encode { documentation, name, generics, typeAnnotation } =
 
 {-| JSON decoder for a `Declaration` syntax element.
 -}
-decoder : Decoder TypeAlias
+decoder : Decoder (TypeAlias r)
 decoder =
     JD.map4 TypeAlias
         (JD.field "documentation" (JD.nullable <| Node.decoder Documentation.decoder))

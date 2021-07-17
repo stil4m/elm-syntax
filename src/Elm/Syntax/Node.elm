@@ -45,28 +45,28 @@ combine f ((Node r1 _) as a) ((Node r2 _) as b) =
 
 {-| Map the value within a node leaving the range untouched
 -}
-map : (a -> b) -> Node Range a -> Node Range b
+map : (a -> b) -> Node r a -> Node r b
 map f (Node r a) =
     Node r (f a)
 
 
 {-| Extract the range out of a `Node Range a`
 -}
-range : Node Range a -> Range
+range : Node r a -> r
 range (Node r _) =
     r
 
 
 {-| Extract the value (`a`) out of a `Node Range a`
 -}
-value : Node Range a -> a
+value : Node r a -> a
 value (Node _ v) =
     v
 
 
 {-| Encode a `Node` into JSON
 -}
-encode : (a -> Value) -> Node Range a -> Value
+encode : (a -> Value) -> Node r a -> Value
 encode f (Node r v) =
     JE.object
         [ ( "range", Range.encode r )
@@ -76,7 +76,7 @@ encode f (Node r v) =
 
 {-| A JSON decoder for `Node`
 -}
-decoder : Decoder a -> Decoder (Node Range a)
+decoder : Decoder a -> Decoder (Node r a)
 decoder sub =
     JD.map2 Node
         (JD.field "range" Range.decoder)

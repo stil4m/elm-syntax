@@ -41,25 +41,25 @@ import Json.Encode as JE exposing (Value)
 
 {-| Diffent kind of exposing declarations
 -}
-type Exposing
-    = All Range
-    | Explicit (Node Range TopLevelExpose) (List (Node Range TopLevelExpose))
+type Exposing r
+    = All r
+    | Explicit (Node r (TopLevelExpose r)) (List (Node r (TopLevelExpose r)))
 
 
 {-| An exposed entity
 -}
-type TopLevelExpose
+type TopLevelExpose r
     = InfixExpose String
     | FunctionExpose String
     | TypeOrAliasExpose String
-    | TypeExpose ExposedType
+    | TypeExpose (ExposedType r)
 
 
 {-| Exposed Type
 -}
-type alias ExposedType =
-    { name : Node Range String
-    , open : Maybe Range
+type alias ExposedType r =
+    { name : Node r String
+    , open : Maybe r
     }
 
 
@@ -76,7 +76,7 @@ type alias ExposedType =
     exposesFunction "add" (Explicit [ Node someRange (FunctionExpose "add") ]) == True
 
 -}
-exposesFunction : String -> Exposing -> Bool
+exposesFunction : String -> Exposing r -> Bool
 exposesFunction s exposure =
     case exposure of
         All _ ->
@@ -97,12 +97,12 @@ exposesFunction s exposure =
 
 {-| Collect all operator names from a list of TopLevelExposes
 -}
-operators : List TopLevelExpose -> List String
+operators : List (TopLevelExpose r) -> List String
 operators l =
     List.filterMap operator l
 
 
-operator : TopLevelExpose -> Maybe String
+operator : TopLevelExpose r -> Maybe String
 operator t =
     case t of
         InfixExpose s ->
@@ -118,7 +118,7 @@ operator t =
 
 {-| Encode an `Exposing` syntax element to JSON.
 -}
-encode : Exposing -> Value
+encode : Exposing r -> Value
 encode exp =
     case exp of
         All r ->
@@ -130,7 +130,7 @@ encode exp =
 
 {-| JSON decoder for an `Exposing` syntax element.
 -}
-decoder : Decoder Exposing
+decoder : Decoder (Exposing r)
 decoder =
     decodeTyped
         [ ( "all", Range.decoder |> JD.map All )
@@ -180,7 +180,7 @@ encodeTopLevelExpose =
         )
 
 
-encodeExposedType : ExposedType -> Value
+encodeExposedType : ExposedType r -> Value
 encodeExposedType { name, open } =
     JE.object
         [ ( "name", Node.encode JE.string name )
@@ -188,7 +188,7 @@ encodeExposedType { name, open } =
         ]
 
 
-topLevelExposeDecoder : Decoder (Node Range TopLevelExpose)
+topLevelExposeDecoder : Decoder (Node Range (TopLevelExpose r))
 topLevelExposeDecoder =
     Node.decoder
         (decodeTyped
@@ -200,7 +200,7 @@ topLevelExposeDecoder =
         )
 
 
-exposedTypeDecoder : Decoder ExposedType
+exposedTypeDecoder : Decoder (ExposedType r)
 exposedTypeDecoder =
     JD.map2 ExposedType
         (JD.field "name" (Node.decoder JD.string))

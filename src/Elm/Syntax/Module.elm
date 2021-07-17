@@ -39,33 +39,33 @@ import Json.Encode as JE exposing (Value)
 
 {-| Union type for different kind of modules
 -}
-type Module
-    = NormalModule DefaultModuleData
-    | PortModule DefaultModuleData
-    | EffectModule EffectModuleData
+type Module r
+    = NormalModule (DefaultModuleData r)
+    | PortModule (DefaultModuleData r)
+    | EffectModule (EffectModuleData r)
 
 
 {-| Data for a default default
 -}
-type alias DefaultModuleData =
-    { moduleName : Node Range ModuleName
-    , exposingList : Node Range Exposing
+type alias DefaultModuleData r =
+    { moduleName : Node r ModuleName
+    , exposingList : Node r (Exposing r)
     }
 
 
 {-| Data for an effect module
 -}
-type alias EffectModuleData =
-    { moduleName : Node Range ModuleName
-    , exposingList : Node Range Exposing
-    , command : Maybe (Node Range String)
-    , subscription : Maybe (Node Range String)
+type alias EffectModuleData r =
+    { moduleName : Node r ModuleName
+    , exposingList : Node r (Exposing r)
+    , command : Maybe (Node r String)
+    , subscription : Maybe (Node r String)
     }
 
 
 {-| Get the name for a module. For older modules this may not be present.
 -}
-moduleName : Module -> ModuleName
+moduleName : Module r -> ModuleName
 moduleName m =
     case m of
         NormalModule x ->
@@ -80,7 +80,7 @@ moduleName m =
 
 {-| Get the exposing list for a module.
 -}
-exposingList : Module -> Exposing
+exposingList : Module r -> Exposing r
 exposingList m =
     case m of
         NormalModule x ->
@@ -95,7 +95,7 @@ exposingList m =
 
 {-| Check whether a module is defined as a port-module
 -}
-isPortModule : Module -> Bool
+isPortModule : Module r -> Bool
 isPortModule m =
     case m of
         PortModule _ ->
@@ -107,7 +107,7 @@ isPortModule m =
 
 {-| Check whether a module is defined as an effect-module
 -}
-isEffectModule : Module -> Bool
+isEffectModule : Module r -> Bool
 isEffectModule m =
     case m of
         EffectModule _ ->
@@ -123,7 +123,7 @@ isEffectModule m =
 
 {-| Encode a `Module` syntax element to JSON.
 -}
-encode : Module -> Value
+encode : Module r -> Value
 encode m =
     case m of
         NormalModule d ->
@@ -136,7 +136,7 @@ encode m =
             encodeTyped "effect" (encodeEffectModuleData d)
 
 
-encodeEffectModuleData : EffectModuleData -> Value
+encodeEffectModuleData : EffectModuleData r -> Value
 encodeEffectModuleData moduleData =
     JE.object
         [ ( "moduleName", Node.encode ModuleName.encode moduleData.moduleName )
@@ -146,7 +146,7 @@ encodeEffectModuleData moduleData =
         ]
 
 
-encodeDefaultModuleData : DefaultModuleData -> Value
+encodeDefaultModuleData : DefaultModuleData r -> Value
 encodeDefaultModuleData moduleData =
     JE.object
         [ ( "moduleName", Node.encode ModuleName.encode moduleData.moduleName )
@@ -156,7 +156,7 @@ encodeDefaultModuleData moduleData =
 
 {-| JSON decoder for a `Module` syntax element.
 -}
-decoder : Decoder Module
+decoder : Decoder (Module r)
 decoder =
     decodeTyped
         [ ( "normal", decodeDefaultModuleData |> JD.map NormalModule )
@@ -165,14 +165,14 @@ decoder =
         ]
 
 
-decodeDefaultModuleData : Decoder DefaultModuleData
+decodeDefaultModuleData : Decoder (DefaultModuleData r)
 decodeDefaultModuleData =
     JD.map2 DefaultModuleData
         (JD.field "moduleName" <| Node.decoder ModuleName.decoder)
         (JD.field "exposingList" <| Node.decoder Exposing.decoder)
 
 
-decodeEffectModuleData : Decoder EffectModuleData
+decodeEffectModuleData : Decoder (EffectModuleData r)
 decodeEffectModuleData =
     JD.map4 EffectModuleData
         (JD.field "moduleName" <| Node.decoder ModuleName.decoder)

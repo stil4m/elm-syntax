@@ -59,21 +59,21 @@ import Json.Encode as JE exposing (Value)
   - `ParenthesizedPattern`: `( _ )`
 
 -}
-type Pattern
+type Pattern r
     = AllPattern
     | UnitPattern
     | CharPattern Char
     | StringPattern String
     | IntPattern Int
     | HexPattern Int
-    | TuplePattern (List (Node Range Pattern))
-    | RecordPattern (List (Node Range String))
-    | UnConsPattern (Node Range Pattern) (Node Range Pattern)
-    | ListPattern (List (Node Range Pattern))
+    | TuplePattern (List (Node r (Pattern r)))
+    | RecordPattern (List (Node r String))
+    | UnConsPattern (Node r (Pattern r)) (Node r (Pattern r))
+    | ListPattern (List (Node r (Pattern r)))
     | VarPattern String
-    | NamedPattern QualifiedNameRef (List (Node Range Pattern))
-    | AsPattern (Node Range Pattern) (Node Range String)
-    | ParenthesizedPattern (Node Range Pattern)
+    | NamedPattern QualifiedNameRef (List (Node r (Pattern r)))
+    | AsPattern (Node r (Pattern r)) (Node r String)
+    | ParenthesizedPattern (Node r (Pattern r))
 
 
 {-| Qualified name reference such as `Maybe.Just`.
@@ -87,7 +87,7 @@ type alias QualifiedNameRef =
 {-| Get all the modules names that are used in the pattern (and its nested patterns).
 Use this to collect qualified patterns, such as `Maybe.Just x`.
 -}
-moduleNames : Pattern -> List ModuleName
+moduleNames : Pattern r -> List ModuleName
 moduleNames p =
     let
         recur =
@@ -125,7 +125,7 @@ moduleNames p =
 
 {-| Encode a `Pattern` syntax element to JSON.
 -}
-encode : Pattern -> Value
+encode : Pattern r -> Value
 encode pattern =
     case pattern of
         AllPattern ->
@@ -227,7 +227,7 @@ encode pattern =
 
 {-| JSON decoder for a `Pattern` syntax element.
 -}
-decoder : Decoder Pattern
+decoder : Decoder (Pattern r)
 decoder =
     JD.lazy
         (\() ->

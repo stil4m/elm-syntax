@@ -24,11 +24,11 @@ import Json.Encode as JE exposing (Value)
 
 {-| Type annotation for a infix definition
 -}
-type alias Infix =
-    { direction : Node Range InfixDirection
-    , precedence : Node Range Int
-    , operator : Node Range String
-    , function : Node Range String
+type alias Infix r =
+    { direction : Node r InfixDirection
+    , precedence : Node r Int
+    , operator : Node r String
+    , function : Node r String
     }
 
 
@@ -42,7 +42,7 @@ type InfixDirection
 
 {-| Encode an infix
 -}
-encode : Infix -> Value
+encode : Infix r -> Value
 encode inf =
     JE.object
         [ ( "direction", Node.encode encodeDirection inf.direction )
@@ -69,7 +69,7 @@ encodeDirection d =
 
 {-| Decode an infix
 -}
-decoder : Decoder Infix
+decoder : Decoder (Infix r)
 decoder =
     JD.map4 Infix
         (JD.field "direction" (Node.decoder decodeDirection))

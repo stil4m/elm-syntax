@@ -34,17 +34,17 @@ import Json.Encode as JE exposing (Value)
 
 {-| Type annotation for a file
 -}
-type alias File =
-    { moduleDefinition : Node Range Module
-    , imports : List (Node Range Import)
-    , declarations : List (Node Range Declaration)
-    , comments : List (Node Range Comment)
+type alias File r =
+    { moduleDefinition : Node r (Module r)
+    , imports : List (Node r (Import r))
+    , declarations : List (Node r (Declaration r))
+    , comments : List (Node r Comment)
     }
 
 
 {-| Encode a `File` syntax element to JSON.
 -}
-encode : File -> Value
+encode : File r -> Value
 encode { moduleDefinition, imports, declarations, comments } =
     JE.object
         [ ( "moduleDefinition", Node.encode Module.encode moduleDefinition )
@@ -56,7 +56,7 @@ encode { moduleDefinition, imports, declarations, comments } =
 
 {-| JSON decoder for a `File` syntax element.
 -}
-decoder : Decoder File
+decoder : Decoder (File r)
 decoder =
     JD.map4 File
         (JD.field "moduleDefinition" (Node.decoder Module.decoder))
