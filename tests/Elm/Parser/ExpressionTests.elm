@@ -89,10 +89,10 @@ all =
                 parseFullStringWithNullState "List.concat []" expression
                     |> Expect.equal
                         (Just
-                            (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 15 } } <|
+                            (Node { leadingWhitespace = "", start = { row = 1, column = 1 }, end = { row = 1, column = 15 } } <|
                                 Application
-                                    (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 12 } } <| FunctionOrValue [ "List" ] "concat")
-                                    [ Node { start = { row = 1, column = 13 }, end = { row = 1, column = 15 } } <| ListExpr []
+                                    (Node { leadingWhitespace = "", start = { row = 1, column = 1 }, end = { row = 1, column = 12 } } <| FunctionOrValue [ "List" ] "concat")
+                                    [ Node { leadingWhitespace = "", start = { row = 1, column = 13 }, end = { row = 1, column = 15 } } <| ListExpr []
                                     ]
                             )
                         )
@@ -101,11 +101,11 @@ all =
                 parseFullStringWithNullState "model + 1" expression
                     |> Expect.equal
                         (Just
-                            (Node (Range { column = 1, row = 1 } { column = 10, row = 1 }) <|
+                            (Node (Range "" { column = 1, row = 1 } { column = 10, row = 1 }) <|
                                 Application
-                                    (Node { end = { column = 6, row = 1 }, start = { column = 1, row = 1 } } <| FunctionOrValue [] "model")
-                                    [ Node { end = { column = 8, row = 1 }, start = { column = 7, row = 1 } } <| Operator "+"
-                                    , Node { end = { column = 10, row = 1 }, start = { column = 9, row = 1 } } <| Integer 1
+                                    (Node { end = { column = 6, row = 1 }, leadingWhitespace = "", start = { column = 1, row = 1 } } <| FunctionOrValue [] "model")
+                                    [ Node { end = { column = 8, row = 1 }, leadingWhitespace = "", start = { column = 7, row = 1 } } <| Operator "+"
+                                    , Node { end = { column = 10, row = 1 }, leadingWhitespace = "", start = { column = 9, row = 1 } } <| Integer 1
                                     ]
                             )
                         )
@@ -114,27 +114,27 @@ all =
                 parseFullStringWithNullState "(\"\", always (List.concat [ [ fileName ], [] ]))" expression
                     |> Expect.equal
                         (Just
-                            (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 48 } } <|
+                            (Node { leadingWhitespace = "", start = { row = 1, column = 1 }, end = { row = 1, column = 48 } } <|
                                 TupleExpression
-                                    [ Node { start = { row = 1, column = 2 }, end = { row = 1, column = 4 } } <| Literal ""
-                                    , Node { start = { row = 1, column = 6 }, end = { row = 1, column = 47 } } <|
+                                    [ Node { leadingWhitespace = "", start = { row = 1, column = 2 }, end = { row = 1, column = 4 } } <| Literal ""
+                                    , Node { leadingWhitespace = "", start = { row = 1, column = 6 }, end = { row = 1, column = 47 } } <|
                                         Application
-                                            (Node { start = { row = 1, column = 6 }, end = { row = 1, column = 12 } } <| FunctionOrValue [] "always")
-                                            [ Node { start = { row = 1, column = 13 }, end = { row = 1, column = 47 } } <|
+                                            (Node { leadingWhitespace = "", start = { row = 1, column = 6 }, end = { row = 1, column = 12 } } <| FunctionOrValue [] "always")
+                                            [ Node { leadingWhitespace = "", start = { row = 1, column = 13 }, end = { row = 1, column = 47 } } <|
                                                 TupleExpression
-                                                    [ Node { start = { row = 1, column = 14 }, end = { row = 1, column = 46 } } <|
+                                                    [ Node { leadingWhitespace = "", start = { row = 1, column = 14 }, end = { row = 1, column = 46 } } <|
                                                         Application
-                                                            (Node { start = { row = 1, column = 14 }, end = { row = 1, column = 25 } } <|
+                                                            (Node { leadingWhitespace = "", start = { row = 1, column = 14 }, end = { row = 1, column = 25 } } <|
                                                                 FunctionOrValue [ "List" ] "concat"
                                                             )
-                                                            [ Node { start = { row = 1, column = 26 }, end = { row = 1, column = 46 } } <|
+                                                            [ Node { leadingWhitespace = "", start = { row = 1, column = 26 }, end = { row = 1, column = 46 } } <|
                                                                 ListExpr
-                                                                    [ Node { start = { row = 1, column = 28 }, end = { row = 1, column = 40 } } <|
+                                                                    [ Node { leadingWhitespace = "", start = { row = 1, column = 28 }, end = { row = 1, column = 40 } } <|
                                                                         ListExpr
-                                                                            [ Node { start = { row = 1, column = 30 }, end = { row = 1, column = 38 } } <|
+                                                                            [ Node { leadingWhitespace = "", start = { row = 1, column = 30 }, end = { row = 1, column = 38 } } <|
                                                                                 FunctionOrValue [] "fileName"
                                                                             ]
-                                                                    , Node { start = { row = 1, column = 42 }, end = { row = 1, column = 44 } } <|
+                                                                    , Node { leadingWhitespace = "", start = { row = 1, column = 42 }, end = { row = 1, column = 44 } } <|
                                                                         ListExpr []
                                                                     ]
                                                             ]
@@ -291,12 +291,12 @@ all =
                 parseFullStringWithNullState "foo.bar" expression
                     |> Expect.equal
                         (Just
-                            (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 8 } } <|
+                            (Node { leadingWhitespace = "", start = { row = 1, column = 1 }, end = { row = 1, column = 8 } } <|
                                 RecordAccess
-                                    (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 4 } } <|
+                                    (Node { leadingWhitespace = "", start = { row = 1, column = 1 }, end = { row = 1, column = 4 } } <|
                                         FunctionOrValue [] "foo"
                                     )
-                                    (Node { start = { row = 1, column = 5 }, end = { row = 1, column = 8 } } "bar")
+                                    (Node { leadingWhitespace = "", start = { row = 1, column = 5 }, end = { row = 1, column = 8 } } "bar")
                             )
                         )
         , test "multiple record access operations" <|

@@ -34,7 +34,7 @@ all =
                     |> Expect.equal
                         (Just
                             (LambdaExpression
-                                { firstArg = Node emptyRange (RecordPattern_ [ Node { end = { column = 0, row = 0 }, start = { column = 0, row = 0 } } "foo" ])
+                                { firstArg = Node emptyRange (RecordPattern_ [ Node { end = { column = 0, row = 0 }, leadingWhitespace = "", start = { column = 0, row = 0 } } "foo" ])
                                 , restOfArgs = []
                                 , expression = Node emptyRange <| FunctionOrValue [] "foo"
                                 }

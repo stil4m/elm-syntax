@@ -566,7 +566,7 @@ letExpression =
         (\() ->
             Ranges.withCurrentPoint
                 (\current ->
-                    succeed (\decls expr -> Node { start = current.start, end = (Node.range expr).end } (LetBlock decls expr |> LetExpression))
+                    succeed (\decls expr -> Node { leadingWhitespace = "", start = current.start, end = (Node.range expr).end } (LetBlock decls expr |> LetExpression))
                         |> Combine.andMap letBlock
                         |> Combine.andMap (Layout.layout |> Combine.continueWith expression)
                 )
@@ -589,7 +589,7 @@ ifBlockExpression =
                             succeed
                                 (\condition ifTrue ifFalse ->
                                     Node
-                                        { start = current.start, end = (Node.range ifFalse).end }
+                                        { leadingWhitespace = "", start = current.start, end = (Node.range ifFalse).end }
                                         (IfBlock condition ifTrue ifFalse)
                                 )
                                 |> Combine.ignore (maybe Layout.layout)

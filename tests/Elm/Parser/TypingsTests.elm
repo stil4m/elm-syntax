@@ -263,14 +263,14 @@ all =
                 parseAsFarAsPossibleWithState emptyState "type A = B\n\n" Parser.typeDefinition
                     |> Expect.equal
                         (Just
-                            (DefinedType { end = { column = 11, row = 1 }, start = { column = 1, row = 1 } }
+                            (DefinedType { end = { column = 11, row = 1 }, leadingWhitespace = "", start = { column = 1, row = 1 } }
                                 { firstConstructor =
-                                    Node { end = { column = 11, row = 1 }, start = { column = 10, row = 1 } }
-                                        { arguments = [], name = Node { end = { column = 11, row = 1 }, start = { column = 10, row = 1 } } "B" }
+                                    Node { end = { column = 11, row = 1 }, leadingWhitespace = "", start = { column = 10, row = 1 } }
+                                        { arguments = [], name = Node { end = { column = 11, row = 1 }, leadingWhitespace = "", start = { column = 10, row = 1 } } "B" }
                                 , restOfConstructors = []
                                 , documentation = Nothing
                                 , generics = []
-                                , name = Node { end = { column = 7, row = 1 }, start = { column = 6, row = 1 } } "A"
+                                , name = Node { end = { column = 7, row = 1 }, leadingWhitespace = "", start = { column = 6, row = 1 } } "A"
                                 }
                             )
                         )

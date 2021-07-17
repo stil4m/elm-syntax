@@ -135,21 +135,21 @@ all =
                 parseFullStringState emptyState "case f of\n  True -> 1\n  False -> 2" Parser.expression
                     |> Expect.equal
                         (Just
-                            (Node { end = { column = 13, row = 3 }, start = { column = 1, row = 1 } }
+                            (Node { end = { column = 13, row = 3 }, leadingWhitespace = "", start = { column = 1, row = 1 } }
                                 (CaseExpression
                                     { expression =
-                                        Node { start = { row = 1, column = 6 }, end = { row = 1, column = 7 } } <|
+                                        Node { leadingWhitespace = "", start = { row = 1, column = 6 }, end = { row = 1, column = 7 } } <|
                                             FunctionOrValue [] "f"
                                     , firstCase =
-                                        ( Node { start = { row = 2, column = 3 }, end = { row = 2, column = 7 } } <|
+                                        ( Node { leadingWhitespace = "", start = { row = 2, column = 3 }, end = { row = 2, column = 7 } } <|
                                             NamedPattern (QualifiedNameRef [] "True") []
-                                        , Node { start = { row = 2, column = 11 }, end = { row = 2, column = 12 } } <|
+                                        , Node { leadingWhitespace = "", start = { row = 2, column = 11 }, end = { row = 2, column = 12 } } <|
                                             Integer 1
                                         )
                                     , restOfCases =
-                                        [ ( Node { start = { row = 3, column = 3 }, end = { row = 3, column = 8 } } <|
+                                        [ ( Node { leadingWhitespace = "", start = { row = 3, column = 3 }, end = { row = 3, column = 8 } } <|
                                                 NamedPattern (QualifiedNameRef [] "False") []
-                                          , Node { start = { row = 3, column = 12 }, end = { row = 3, column = 13 } } <|
+                                          , Node { leadingWhitespace = "", start = { row = 3, column = 12 }, end = { row = 3, column = 13 } } <|
                                                 Integer 2
                                           )
                                         ]
@@ -162,21 +162,21 @@ all =
                 parseAsFarAsPossibleWithState emptyState "case f of\n  True -> 1\n  False -> 2\n\n" Parser.expression
                     |> Expect.equal
                         (Just
-                            (Node { end = { column = 13, row = 3 }, start = { column = 1, row = 1 } }
+                            (Node { end = { column = 13, row = 3 }, leadingWhitespace = "", start = { column = 1, row = 1 } }
                                 (CaseExpression
                                     { expression =
-                                        Node { start = { row = 1, column = 6 }, end = { row = 1, column = 7 } } <|
+                                        Node { leadingWhitespace = "", start = { row = 1, column = 6 }, end = { row = 1, column = 7 } } <|
                                             FunctionOrValue [] "f"
                                     , firstCase =
-                                        ( Node { start = { row = 2, column = 3 }, end = { row = 2, column = 7 } } <|
+                                        ( Node { leadingWhitespace = "", start = { row = 2, column = 3 }, end = { row = 2, column = 7 } } <|
                                             NamedPattern (QualifiedNameRef [] "True") []
-                                        , Node { start = { row = 2, column = 11 }, end = { row = 2, column = 12 } } <|
+                                        , Node { leadingWhitespace = "", start = { row = 2, column = 11 }, end = { row = 2, column = 12 } } <|
                                             Integer 1
                                         )
                                     , restOfCases =
-                                        [ ( Node { start = { row = 3, column = 3 }, end = { row = 3, column = 8 } } <|
+                                        [ ( Node { leadingWhitespace = "", start = { row = 3, column = 3 }, end = { row = 3, column = 8 } } <|
                                                 NamedPattern (QualifiedNameRef [] "False") []
-                                          , Node { start = { row = 3, column = 12 }, end = { row = 3, column = 13 } } <|
+                                          , Node { leadingWhitespace = "", start = { row = 3, column = 12 }, end = { row = 3, column = 13 } } <|
                                                 Integer 2
                                           )
                                         ]

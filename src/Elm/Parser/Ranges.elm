@@ -19,7 +19,8 @@ withRange p =
                     (withLocation
                         (\end ->
                             succeed <|
-                                { start = asPointerLocation start
+                                { leadingWhitespace = ""
+                                , start = asPointerLocation start
                                 , end = asPointerLocation end
                                 }
                         )
@@ -35,5 +36,5 @@ withCurrentPoint p =
                 k =
                     asPointerLocation start
             in
-            p { start = k, end = k }
+            p { leadingWhitespace = "", start = k, end = k }
         )

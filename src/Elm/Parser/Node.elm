@@ -16,7 +16,8 @@ parser p =
                     (withLocation
                         (\end ->
                             succeed <|
-                                { start = asPointerLocation start
+                                { leadingWhitespace = ""
+                                , start = asPointerLocation start
                                 , end = asPointerLocation end
                                 }
                         )

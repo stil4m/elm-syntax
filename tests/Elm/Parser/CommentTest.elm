@@ -20,7 +20,7 @@ all =
             \() ->
                 parseStateToMaybe emptyState "--bar" Parser.singleLineComment
                     |> Maybe.map (Tuple.second >> State.getComments)
-                    |> Expect.equal (Just [ Node { start = { row = 1, column = 1 }, end = { row = 1, column = 6 } } "--bar" ])
+                    |> Expect.equal (Just [ Node { leadingWhitespace = "", start = { row = 1, column = 1 }, end = { row = 1, column = 6 } } "--bar" ])
         , test "singleLineComment does not include new line" <|
             \() ->
                 parseFullStringWithNullState "--bar\n" Parser.singleLineComment
@@ -34,7 +34,7 @@ all =
             \() ->
                 parseStateToMaybe emptyState "{-foo\nbar-}" Parser.multilineComment
                     |> Maybe.map (Tuple.second >> State.getComments)
-                    |> Expect.equal (Just [ Node { start = { row = 1, column = 1 }, end = { row = 2, column = 6 } } "{-foo\nbar-}" ])
+                    |> Expect.equal (Just [ Node { leadingWhitespace = "", start = { row = 1, column = 1 }, end = { row = 2, column = 6 } } "{-foo\nbar-}" ])
         , test "nested multilineComment only open" <|
             \() ->
                 parseFullStringWithNullState "{- {- -}" Parser.multilineComment

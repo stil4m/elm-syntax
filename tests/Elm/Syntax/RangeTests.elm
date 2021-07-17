@@ -25,7 +25,8 @@ combineTests =
             let
                 range : Range
                 range =
-                    { start = { row = 1, column = 1 }
+                    { leadingWhitespace = ""
+                    , start = { row = 1, column = 1 }
                     , end = { row = 1, column = 9 }
                     }
             in
@@ -36,17 +37,20 @@ combineTests =
             let
                 outerRange : Range
                 outerRange =
-                    { start = { row = 1, column = 1 }
+                    { leadingWhitespace = ""
+                    , start = { row = 1, column = 1 }
                     , end = { row = 5, column = 100 }
                     }
 
                 ranges : List Range
                 ranges =
                     [ outerRange
-                    , { start = { row = 2, column = 1 }
+                    , { leadingWhitespace = ""
+                      , start = { row = 2, column = 1 }
                       , end = { row = 2, column = 9 }
                       }
-                    , { start = { row = 3, column = 5 }
+                    , { leadingWhitespace = ""
+                      , start = { row = 3, column = 5 }
                       , end = { row = 4, column = 15 }
                       }
                     ]
@@ -58,19 +62,23 @@ combineTests =
             let
                 outerRange : Range
                 outerRange =
-                    { start = { row = 2, column = 1 }
+                    { leadingWhitespace = ""
+                    , start = { row = 2, column = 1 }
                     , end = { row = 10, column = 69 }
                     }
 
                 ranges : List Range
                 ranges =
-                    [ { start = outerRange.start
+                    [ { leadingWhitespace = ""
+                      , start = outerRange.start
                       , end = { row = 2, column = 21 }
                       }
-                    , { start = { row = 4, column = 6 }
+                    , { leadingWhitespace = ""
+                      , start = { row = 4, column = 6 }
                       , end = { row = 4, column = 100 }
                       }
-                    , { start = { row = 9, column = 5 }
+                    , { leadingWhitespace = ""
+                      , start = { row = 9, column = 5 }
                       , end = outerRange.end
                       }
                     ]
@@ -82,16 +90,19 @@ combineTests =
             let
                 outerRange : Range
                 outerRange =
-                    { start = { row = 1, column = 23 }
+                    { leadingWhitespace = ""
+                    , start = { row = 1, column = 23 }
                     , end = { row = 32, column = 5 }
                     }
 
                 ranges : List Range
                 ranges =
-                    [ { start = { row = 15, column = 1 }
+                    [ { leadingWhitespace = ""
+                      , start = { row = 15, column = 1 }
                       , end = outerRange.end
                       }
-                    , { start = outerRange.start
+                    , { leadingWhitespace = ""
+                      , start = outerRange.start
                       , end = { row = 16, column = 27 }
                       }
                     ]
@@ -181,7 +192,8 @@ compareTests =
                 let
                     range : Range
                     range =
-                        { start = { row = 1, column = 2 }
+                        { leadingWhitespace = ""
+                        , start = { row = 1, column = 2 }
                         , end = { row = 3, column = 4 }
                         }
                 in
@@ -194,7 +206,8 @@ compareTests =
                 let
                     left : Range
                     left =
-                        { start = { row = 1, column = 1 }
+                        { leadingWhitespace = ""
+                        , start = { row = 1, column = 1 }
                         , end = { row = 1, column = 2 }
                         }
 
@@ -209,7 +222,8 @@ compareTests =
                 let
                     left : Range
                     left =
-                        { start = { row = 2, column = 1 }
+                        { leadingWhitespace = ""
+                        , start = { row = 2, column = 1 }
                         , end = { row = 2, column = 3 }
                         }
 
@@ -226,13 +240,14 @@ compareTests =
                 let
                     left : Range
                     left =
-                        { start = { row = 5, column = 6 }
+                        { leadingWhitespace = ""
+                        , start = { row = 5, column = 6 }
                         , end = { row = 5, column = 7 }
                         }
 
                     right : Range
                     right =
-                        { left | start = { row = 5, column = 2 } }
+                        { left | leadingWhitespace = "", start = { row = 5, column = 2 } }
                 in
                 Range.compare left right
                     |> Expect.equal GT
@@ -241,7 +256,8 @@ compareTests =
                 let
                     left : Range
                     left =
-                        { start = { row = 5, column = 2 }
+                        { leadingWhitespace = ""
+                        , start = { row = 5, column = 2 }
                         , end = { row = 5, column = 9 }
                         }
 

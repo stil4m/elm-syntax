@@ -72,8 +72,8 @@ all =
                 parseAsFarAsPossibleWithState emptyState "import Foo\nimport X" Parser.importDefinition
                     |> Expect.equal
                         (Just
-                            (Node { end = { column = 11, row = 1 }, start = { column = 1, row = 1 } }
-                                { moduleName = Node { end = { column = 11, row = 1 }, start = { column = 8, row = 1 } } <| [ "Foo" ]
+                            (Node { end = { column = 11, row = 1 }, leadingWhitespace = "", start = { column = 1, row = 1 } }
+                                { moduleName = Node { end = { column = 11, row = 1 }, leadingWhitespace = "", start = { column = 8, row = 1 } } <| [ "Foo" ]
                                 , moduleAlias = Nothing
                                 , exposingList = Nothing
                                 }

@@ -23,24 +23,24 @@ functionWithDocs =
         ++ "-}\n"
         ++ "bar = 1\n"
     , { moduleDefinition =
-            Node { start = { row = 1, column = 1 }, end = { row = 1, column = 25 } } <|
+            Node { leadingWhitespace = "", start = { row = 1, column = 1 }, end = { row = 1, column = 25 } } <|
                 NormalModule
-                    { moduleName = Node { end = { column = 11, row = 1 }, start = { column = 8, row = 1 } } [ "Bar" ]
+                    { moduleName = Node { end = { column = 11, row = 1 }, leadingWhitespace = "", start = { column = 8, row = 1 } } [ "Bar" ]
                     , exposingList =
-                        Node { end = { column = 25, row = 1 }, start = { column = 12, row = 1 } } <|
-                            All { start = { row = 1, column = 22 }, end = { row = 1, column = 24 } }
+                        Node { end = { column = 25, row = 1 }, leadingWhitespace = "", start = { column = 12, row = 1 } } <|
+                            All { leadingWhitespace = "", start = { row = 1, column = 22 }, end = { row = 1, column = 24 } }
                     }
       , imports = []
       , declarations =
-            [ Node { start = { row = 5, column = 1 }, end = { row = 5, column = 8 } } <|
+            [ Node { leadingWhitespace = "", start = { row = 5, column = 1 }, end = { row = 5, column = 8 } } <|
                 FunctionDeclaration
-                    { documentation = Just (Node { start = { row = 3, column = 1 }, end = { row = 4, column = 3 } } "{-| The docs\n-}")
+                    { documentation = Just (Node { leadingWhitespace = "", start = { row = 3, column = 1 }, end = { row = 4, column = 3 } } "{-| The docs\n-}")
                     , signature = Nothing
                     , declaration =
-                        Node { end = { column = 8, row = 5 }, start = { column = 1, row = 5 } }
-                            { name = Node { start = { row = 5, column = 1 }, end = { row = 5, column = 4 } } "bar"
+                        Node { end = { column = 8, row = 5 }, leadingWhitespace = "", start = { column = 1, row = 5 } }
+                            { name = Node { leadingWhitespace = "", start = { row = 5, column = 1 }, end = { row = 5, column = 4 } } "bar"
                             , arguments = []
-                            , expression = Node { start = { row = 5, column = 7 }, end = { row = 5, column = 8 } } <| Integer 1
+                            , expression = Node { leadingWhitespace = "", start = { row = 5, column = 7 }, end = { row = 5, column = 8 } } <| Integer 1
                             }
                     }
             ]
@@ -58,31 +58,31 @@ functionWithDocsAndSignature =
         ++ "bar : Int\n"
         ++ "bar = 1\n"
     , { moduleDefinition =
-            Node { start = { row = 1, column = 1 }, end = { row = 1, column = 25 } } <|
+            Node { leadingWhitespace = "", start = { row = 1, column = 1 }, end = { row = 1, column = 25 } } <|
                 NormalModule
-                    { moduleName = Node { end = { column = 11, row = 1 }, start = { column = 8, row = 1 } } [ "Bar" ]
-                    , exposingList = Node { end = { column = 25, row = 1 }, start = { column = 12, row = 1 } } <| All { start = { row = 1, column = 22 }, end = { row = 1, column = 24 } }
+                    { moduleName = Node { end = { column = 11, row = 1 }, leadingWhitespace = "", start = { column = 8, row = 1 } } [ "Bar" ]
+                    , exposingList = Node { end = { column = 25, row = 1 }, leadingWhitespace = "", start = { column = 12, row = 1 } } <| All { leadingWhitespace = "", start = { row = 1, column = 22 }, end = { row = 1, column = 24 } }
                     }
       , imports = []
       , declarations =
-            [ Node { start = { row = 5, column = 1 }, end = { row = 6, column = 8 } } <|
+            [ Node { leadingWhitespace = "", start = { row = 5, column = 1 }, end = { row = 6, column = 8 } } <|
                 FunctionDeclaration
                     { documentation =
-                        Just <| Node { start = { row = 3, column = 1 }, end = { row = 4, column = 3 } } "{-| The docs\n-}"
+                        Just <| Node { leadingWhitespace = "", start = { row = 3, column = 1 }, end = { row = 4, column = 3 } } "{-| The docs\n-}"
                     , signature =
                         Just
-                            (Node { start = { row = 5, column = 1 }, end = { row = 5, column = 10 } } <|
-                                { name = Node { start = { row = 5, column = 1 }, end = { row = 5, column = 4 } } "bar"
+                            (Node { leadingWhitespace = "", start = { row = 5, column = 1 }, end = { row = 5, column = 10 } } <|
+                                { name = Node { leadingWhitespace = "", start = { row = 5, column = 1 }, end = { row = 5, column = 4 } } "bar"
                                 , typeAnnotation =
-                                    Node { start = { row = 5, column = 7 }, end = { row = 5, column = 10 } } <|
-                                        Type (Node { end = { column = 10, row = 5 }, start = { column = 7, row = 5 } } ( [], "Int" )) []
+                                    Node { leadingWhitespace = "", start = { row = 5, column = 7 }, end = { row = 5, column = 10 } } <|
+                                        Type (Node { end = { column = 10, row = 5 }, leadingWhitespace = "", start = { column = 7, row = 5 } } ( [], "Int" )) []
                                 }
                             )
                     , declaration =
-                        Node { end = { column = 8, row = 6 }, start = { column = 1, row = 6 } }
-                            { name = Node { start = { row = 6, column = 1 }, end = { row = 6, column = 4 } } "bar"
+                        Node { end = { column = 8, row = 6 }, leadingWhitespace = "", start = { column = 1, row = 6 } }
+                            { name = Node { leadingWhitespace = "", start = { row = 6, column = 1 }, end = { row = 6, column = 4 } } "bar"
                             , arguments = []
-                            , expression = Node { start = { row = 6, column = 7 }, end = { row = 6, column = 8 } } <| Integer 1
+                            , expression = Node { leadingWhitespace = "", start = { row = 6, column = 7 }, end = { row = 6, column = 8 } } <| Integer 1
                             }
                     }
             ]
@@ -98,26 +98,26 @@ functionWithSingleLineCommentAsDoc =
         ++ "--The Doc\n"
         ++ "bar = 1\n"
     , { moduleDefinition =
-            Node { start = { row = 1, column = 1 }, end = { row = 1, column = 25 } } <|
+            Node { leadingWhitespace = "", start = { row = 1, column = 1 }, end = { row = 1, column = 25 } } <|
                 NormalModule
-                    { moduleName = Node { end = { column = 11, row = 1 }, start = { column = 8, row = 1 } } [ "Bar" ]
-                    , exposingList = Node { end = { column = 25, row = 1 }, start = { column = 12, row = 1 } } <| All { start = { row = 1, column = 22 }, end = { row = 1, column = 24 } }
+                    { moduleName = Node { end = { column = 11, row = 1 }, leadingWhitespace = "", start = { column = 8, row = 1 } } [ "Bar" ]
+                    , exposingList = Node { end = { column = 25, row = 1 }, leadingWhitespace = "", start = { column = 12, row = 1 } } <| All { leadingWhitespace = "", start = { row = 1, column = 22 }, end = { row = 1, column = 24 } }
                     }
       , imports = []
       , declarations =
-            [ Node { start = { row = 4, column = 1 }, end = { row = 4, column = 8 } } <|
+            [ Node { leadingWhitespace = "", start = { row = 4, column = 1 }, end = { row = 4, column = 8 } } <|
                 FunctionDeclaration
                     { documentation = Nothing
                     , signature = Nothing
                     , declaration =
-                        Node { end = { column = 8, row = 4 }, start = { column = 1, row = 4 } }
-                            { name = Node { start = { row = 4, column = 1 }, end = { row = 4, column = 4 } } "bar"
+                        Node { end = { column = 8, row = 4 }, leadingWhitespace = "", start = { column = 1, row = 4 } }
+                            { name = Node { leadingWhitespace = "", start = { row = 4, column = 1 }, end = { row = 4, column = 4 } } "bar"
                             , arguments = []
-                            , expression = Node { start = { row = 4, column = 7 }, end = { row = 4, column = 8 } } <| Integer 1
+                            , expression = Node { leadingWhitespace = "", start = { row = 4, column = 7 }, end = { row = 4, column = 8 } } <| Integer 1
                             }
                     }
             ]
-      , comments = [ Node { start = { row = 3, column = 1 }, end = { row = 3, column = 10 } } "--The Doc" ]
+      , comments = [ Node { leadingWhitespace = "", start = { row = 3, column = 1 }, end = { row = 3, column = 10 } } "--The Doc" ]
       }
     )
 
@@ -134,32 +134,32 @@ bar = {- comment 3 -} 1 -- comment 4
  -- comment 5
 """
     , { moduleDefinition =
-            Node { start = { row = 2, column = 1 }, end = { row = 2, column = 25 } } <|
+            Node { leadingWhitespace = "", start = { row = 2, column = 1 }, end = { row = 2, column = 25 } } <|
                 NormalModule
-                    { moduleName = Node { end = { column = 11, row = 2 }, start = { column = 8, row = 2 } } [ "Bar" ]
-                    , exposingList = Node { end = { column = 25, row = 2 }, start = { column = 12, row = 2 } } <| All { start = { row = 2, column = 22 }, end = { row = 2, column = 24 } }
+                    { moduleName = Node { end = { column = 11, row = 2 }, leadingWhitespace = "", start = { column = 8, row = 2 } } [ "Bar" ]
+                    , exposingList = Node { end = { column = 25, row = 2 }, leadingWhitespace = "", start = { column = 12, row = 2 } } <| All { leadingWhitespace = "", start = { row = 2, column = 22 }, end = { row = 2, column = 24 } }
                     }
       , imports = []
       , declarations =
-            [ Node { end = { column = 24, row = 5 }, start = { column = 1, row = 5 } }
+            [ Node { end = { column = 24, row = 5 }, leadingWhitespace = "", start = { column = 1, row = 5 } }
                 (FunctionDeclaration
                     { documentation = Nothing
                     , signature = Nothing
                     , declaration =
-                        Node { end = { column = 24, row = 5 }, start = { column = 1, row = 5 } }
+                        Node { end = { column = 24, row = 5 }, leadingWhitespace = "", start = { column = 1, row = 5 } }
                             { arguments = []
-                            , expression = Node { end = { column = 24, row = 5 }, start = { column = 23, row = 5 } } (Integer 1)
-                            , name = Node { end = { column = 4, row = 5 }, start = { column = 1, row = 5 } } "bar"
+                            , expression = Node { end = { column = 24, row = 5 }, leadingWhitespace = "", start = { column = 23, row = 5 } } (Integer 1)
+                            , name = Node { end = { column = 4, row = 5 }, leadingWhitespace = "", start = { column = 1, row = 5 } } "bar"
                             }
                     }
                 )
             ]
       , comments =
-            [ Node { end = { column = 13, row = 1 }, start = { column = 1, row = 1 } } "-- comment 1"
-            , Node { end = { column = 13, row = 4 }, start = { column = 1, row = 4 } } "-- comment 2"
-            , Node { end = { column = 22, row = 5 }, start = { column = 7, row = 5 } } "{- comment 3 -}"
-            , Node { end = { column = 37, row = 5 }, start = { column = 25, row = 5 } } "-- comment 4"
-            , Node { end = { column = 14, row = 6 }, start = { column = 2, row = 6 } } "-- comment 5"
+            [ Node { end = { column = 13, row = 1 }, leadingWhitespace = "", start = { column = 1, row = 1 } } "-- comment 1"
+            , Node { end = { column = 13, row = 4 }, leadingWhitespace = "", start = { column = 1, row = 4 } } "-- comment 2"
+            , Node { end = { column = 22, row = 5 }, leadingWhitespace = "", start = { column = 7, row = 5 } } "{- comment 3 -}"
+            , Node { end = { column = 37, row = 5 }, leadingWhitespace = "", start = { column = 25, row = 5 } } "-- comment 4"
+            , Node { end = { column = 14, row = 6 }, leadingWhitespace = "", start = { column = 2, row = 6 } } "-- comment 5"
             ]
       }
     )
@@ -175,28 +175,28 @@ module Bar exposing (..)
 bar = 1
 """
     , { moduleDefinition =
-            Node { start = { row = 1, column = 1 }, end = { row = 1, column = 25 } } <|
+            Node { leadingWhitespace = "", start = { row = 1, column = 1 }, end = { row = 1, column = 25 } } <|
                 NormalModule
-                    { moduleName = Node { end = { column = 11, row = 1 }, start = { column = 8, row = 1 } } [ "Bar" ]
+                    { moduleName = Node { end = { column = 11, row = 1 }, leadingWhitespace = "", start = { column = 8, row = 1 } } [ "Bar" ]
                     , exposingList =
-                        Node { end = { column = 25, row = 1 }, start = { column = 12, row = 1 } } <|
-                            All { start = { row = 1, column = 22 }, end = { row = 1, column = 24 } }
+                        Node { end = { column = 25, row = 1 }, leadingWhitespace = "", start = { column = 12, row = 1 } } <|
+                            All { leadingWhitespace = "", start = { row = 1, column = 22 }, end = { row = 1, column = 24 } }
                     }
       , imports = []
       , declarations =
-            [ Node { start = { row = 4, column = 1 }, end = { row = 4, column = 8 } } <|
+            [ Node { leadingWhitespace = "", start = { row = 4, column = 1 }, end = { row = 4, column = 8 } } <|
                 FunctionDeclaration
                     { documentation = Nothing
                     , signature = Nothing
                     , declaration =
-                        Node { end = { column = 8, row = 4 }, start = { column = 1, row = 4 } }
-                            { name = Node { start = { row = 4, column = 1 }, end = { row = 4, column = 4 } } "bar"
+                        Node { end = { column = 8, row = 4 }, leadingWhitespace = "", start = { column = 1, row = 4 } }
+                            { name = Node { leadingWhitespace = "", start = { row = 4, column = 1 }, end = { row = 4, column = 4 } } "bar"
                             , arguments = []
-                            , expression = Node { start = { row = 4, column = 7 }, end = { row = 4, column = 8 } } <| Integer 1
+                            , expression = Node { leadingWhitespace = "", start = { row = 4, column = 7 }, end = { row = 4, column = 8 } } <| Integer 1
                             }
                     }
             ]
-      , comments = [ Node { start = { row = 3, column = 1 }, end = { row = 3, column = 14 } } "{- The Doc -}" ]
+      , comments = [ Node { leadingWhitespace = "", start = { row = 3, column = 1 }, end = { row = 3, column = 14 } } "{- The Doc -}" ]
       }
     )
 
@@ -212,28 +212,28 @@ type alias Foo
    = { name : String }
 """
     , { moduleDefinition =
-            Node { start = { row = 1, column = 1 }, end = { row = 1, column = 25 } } <|
+            Node { leadingWhitespace = "", start = { row = 1, column = 1 }, end = { row = 1, column = 25 } } <|
                 NormalModule
-                    { moduleName = Node { end = { column = 11, row = 1 }, start = { column = 8, row = 1 } } [ "Bar" ]
-                    , exposingList = Node { end = { column = 25, row = 1 }, start = { column = 12, row = 1 } } <| All { start = { row = 1, column = 22 }, end = { row = 1, column = 24 } }
+                    { moduleName = Node { end = { column = 11, row = 1 }, leadingWhitespace = "", start = { column = 8, row = 1 } } [ "Bar" ]
+                    , exposingList = Node { end = { column = 25, row = 1 }, leadingWhitespace = "", start = { column = 12, row = 1 } } <| All { leadingWhitespace = "", start = { row = 1, column = 22 }, end = { row = 1, column = 24 } }
                     }
       , imports = []
       , declarations =
-            [ Node { start = { row = 4, column = 1 }, end = { row = 5, column = 23 } } <|
+            [ Node { leadingWhitespace = "", start = { row = 4, column = 1 }, end = { row = 5, column = 23 } } <|
                 AliasDeclaration
                     { documentation =
                         Just <|
-                            Node { start = { row = 3, column = 1 }, end = { row = 3, column = 15 } } <|
+                            Node { leadingWhitespace = "", start = { row = 3, column = 1 }, end = { row = 3, column = 15 } } <|
                                 "{-| The Doc -}"
-                    , name = Node { end = { column = 15, row = 4 }, start = { column = 12, row = 4 } } "Foo"
+                    , name = Node { end = { column = 15, row = 4 }, leadingWhitespace = "", start = { column = 12, row = 4 } } "Foo"
                     , generics = []
                     , typeAnnotation =
-                        Node { start = { row = 5, column = 6 }, end = { row = 5, column = 23 } } <|
+                        Node { leadingWhitespace = "", start = { row = 5, column = 6 }, end = { row = 5, column = 23 } } <|
                             Record
-                                [ Node { end = { column = 21, row = 5 }, start = { column = 8, row = 5 } }
-                                    ( Node { end = { column = 12, row = 5 }, start = { column = 8, row = 5 } } "name"
-                                    , Node { start = { row = 5, column = 15 }, end = { row = 5, column = 21 } } <|
-                                        Type (Node { end = { column = 21, row = 5 }, start = { column = 15, row = 5 } } ( [], "String" )) []
+                                [ Node { end = { column = 21, row = 5 }, leadingWhitespace = "", start = { column = 8, row = 5 } }
+                                    ( Node { end = { column = 12, row = 5 }, leadingWhitespace = "", start = { column = 8, row = 5 } } "name"
+                                    , Node { leadingWhitespace = "", start = { row = 5, column = 15 }, end = { row = 5, column = 21 } } <|
+                                        Type (Node { end = { column = 21, row = 5 }, leadingWhitespace = "", start = { column = 15, row = 5 } } ( [], "String" )) []
                                     )
                                 ]
                     }
@@ -256,27 +256,27 @@ type Foo
 """
     , { comments = []
       , declarations =
-            [ Node { end = { column = 10, row = 6 }, start = { column = 1, row = 4 } }
+            [ Node { end = { column = 10, row = 6 }, leadingWhitespace = "", start = { column = 1, row = 4 } }
                 (CustomTypeDeclaration
                     { firstConstructor =
-                        Node { end = { column = 9, row = 5 }, start = { column = 6, row = 5 } }
-                            { arguments = [], name = Node { end = { column = 9, row = 5 }, start = { column = 6, row = 5 } } "Red" }
+                        Node { end = { column = 9, row = 5 }, leadingWhitespace = "", start = { column = 6, row = 5 } }
+                            { arguments = [], name = Node { end = { column = 9, row = 5 }, leadingWhitespace = "", start = { column = 6, row = 5 } } "Red" }
                     , restOfConstructors =
-                        [ Node { end = { column = 10, row = 6 }, start = { column = 6, row = 6 } }
-                            { arguments = [], name = Node { end = { column = 10, row = 6 }, start = { column = 6, row = 6 } } "Blue" }
+                        [ Node { end = { column = 10, row = 6 }, leadingWhitespace = "", start = { column = 6, row = 6 } }
+                            { arguments = [], name = Node { end = { column = 10, row = 6 }, leadingWhitespace = "", start = { column = 6, row = 6 } } "Blue" }
                         ]
                     , documentation =
                         Just
-                            (Node { end = { column = 15, row = 3 }, start = { column = 1, row = 3 } }
+                            (Node { end = { column = 15, row = 3 }, leadingWhitespace = "", start = { column = 1, row = 3 } }
                                 "{-| The Doc -}"
                             )
                     , generics = []
-                    , name = Node { end = { column = 9, row = 4 }, start = { column = 6, row = 4 } } "Foo"
+                    , name = Node { end = { column = 9, row = 4 }, leadingWhitespace = "", start = { column = 6, row = 4 } } "Foo"
                     }
                 )
             ]
       , imports = []
-      , moduleDefinition = Node { end = { column = 25, row = 1 }, start = { column = 1, row = 1 } } (NormalModule { exposingList = Node { end = { column = 25, row = 1 }, start = { column = 12, row = 1 } } (All { end = { column = 24, row = 1 }, start = { column = 22, row = 1 } }), moduleName = Node { end = { column = 11, row = 1 }, start = { column = 8, row = 1 } } [ "Bar" ] })
+      , moduleDefinition = Node { end = { column = 25, row = 1 }, leadingWhitespace = "", start = { column = 1, row = 1 } } (NormalModule { exposingList = Node { end = { column = 25, row = 1 }, leadingWhitespace = "", start = { column = 12, row = 1 } } (All { end = { column = 24, row = 1 }, leadingWhitespace = "", start = { column = 22, row = 1 } }), moduleName = Node { end = { column = 11, row = 1 }, leadingWhitespace = "", start = { column = 8, row = 1 } } [ "Bar" ] })
       }
     )
 
@@ -290,43 +290,43 @@ module Bar exposing (..)
 bar = (x + 1) * (2 * y)
 """
     , { moduleDefinition =
-            Node { start = { row = 1, column = 1 }, end = { row = 1, column = 25 } } <|
+            Node { leadingWhitespace = "", start = { row = 1, column = 1 }, end = { row = 1, column = 25 } } <|
                 NormalModule
-                    { moduleName = Node { end = { column = 11, row = 1 }, start = { column = 8, row = 1 } } [ "Bar" ]
-                    , exposingList = Node { end = { column = 25, row = 1 }, start = { column = 12, row = 1 } } <| All { start = { row = 1, column = 22 }, end = { row = 1, column = 24 } }
+                    { moduleName = Node { end = { column = 11, row = 1 }, leadingWhitespace = "", start = { column = 8, row = 1 } } [ "Bar" ]
+                    , exposingList = Node { end = { column = 25, row = 1 }, leadingWhitespace = "", start = { column = 12, row = 1 } } <| All { leadingWhitespace = "", start = { row = 1, column = 22 }, end = { row = 1, column = 24 } }
                     }
       , imports = []
       , declarations =
-            [ Node { start = { row = 3, column = 1 }, end = { row = 3, column = 24 } } <|
+            [ Node { leadingWhitespace = "", start = { row = 3, column = 1 }, end = { row = 3, column = 24 } } <|
                 FunctionDeclaration
                     { documentation = Nothing
                     , signature = Nothing
                     , declaration =
-                        Node { end = { column = 24, row = 3 }, start = { column = 1, row = 3 } }
-                            { name = Node { start = { row = 3, column = 1 }, end = { row = 3, column = 4 } } "bar"
+                        Node { end = { column = 24, row = 3 }, leadingWhitespace = "", start = { column = 1, row = 3 } }
+                            { name = Node { leadingWhitespace = "", start = { row = 3, column = 1 }, end = { row = 3, column = 4 } } "bar"
                             , arguments = []
                             , expression =
-                                Node { start = { row = 3, column = 7 }, end = { row = 3, column = 24 } } <|
+                                Node { leadingWhitespace = "", start = { row = 3, column = 7 }, end = { row = 3, column = 24 } } <|
                                     OperatorApplication "*"
                                         Left
-                                        (Node { start = { row = 3, column = 7 }, end = { row = 3, column = 14 } } <|
+                                        (Node { leadingWhitespace = "", start = { row = 3, column = 7 }, end = { row = 3, column = 14 } } <|
                                             TupleExpression
-                                                [ Node { start = { row = 3, column = 8 }, end = { row = 3, column = 13 } } <|
+                                                [ Node { leadingWhitespace = "", start = { row = 3, column = 8 }, end = { row = 3, column = 13 } } <|
                                                     OperatorApplication "+"
                                                         Left
-                                                        (Node { start = { row = 3, column = 8 }, end = { row = 3, column = 9 } } <|
+                                                        (Node { leadingWhitespace = "", start = { row = 3, column = 8 }, end = { row = 3, column = 9 } } <|
                                                             FunctionOrValue [] "x"
                                                         )
-                                                        (Node { start = { row = 3, column = 12 }, end = { row = 3, column = 13 } } <| Integer 1)
+                                                        (Node { leadingWhitespace = "", start = { row = 3, column = 12 }, end = { row = 3, column = 13 } } <| Integer 1)
                                                 ]
                                         )
-                                        (Node { start = { row = 3, column = 17 }, end = { row = 3, column = 24 } } <|
+                                        (Node { leadingWhitespace = "", start = { row = 3, column = 17 }, end = { row = 3, column = 24 } } <|
                                             TupleExpression
-                                                [ Node { start = { row = 3, column = 18 }, end = { row = 3, column = 23 } } <|
+                                                [ Node { leadingWhitespace = "", start = { row = 3, column = 18 }, end = { row = 3, column = 23 } } <|
                                                     OperatorApplication "*"
                                                         Left
-                                                        (Node { start = { row = 3, column = 18 }, end = { row = 3, column = 19 } } <| Integer 2)
-                                                        (Node { start = { row = 3, column = 22 }, end = { row = 3, column = 23 } } <| FunctionOrValue [] "y")
+                                                        (Node { leadingWhitespace = "", start = { row = 3, column = 18 }, end = { row = 3, column = 19 } } <| Integer 2)
+                                                        (Node { leadingWhitespace = "", start = { row = 3, column = 22 }, end = { row = 3, column = 23 } } <| FunctionOrValue [] "y")
                                                 ]
                                         )
                             }
@@ -346,33 +346,33 @@ module Bar exposing (..)
 bar = x + 1 * 2
 """
     , { moduleDefinition =
-            Node { start = { row = 1, column = 1 }, end = { row = 1, column = 25 } } <|
+            Node { leadingWhitespace = "", start = { row = 1, column = 1 }, end = { row = 1, column = 25 } } <|
                 NormalModule
-                    { moduleName = Node { end = { column = 11, row = 1 }, start = { column = 8, row = 1 } } [ "Bar" ]
-                    , exposingList = Node { end = { column = 25, row = 1 }, start = { column = 12, row = 1 } } <| All { start = { row = 1, column = 22 }, end = { row = 1, column = 24 } }
+                    { moduleName = Node { end = { column = 11, row = 1 }, leadingWhitespace = "", start = { column = 8, row = 1 } } [ "Bar" ]
+                    , exposingList = Node { end = { column = 25, row = 1 }, leadingWhitespace = "", start = { column = 12, row = 1 } } <| All { leadingWhitespace = "", start = { row = 1, column = 22 }, end = { row = 1, column = 24 } }
                     }
       , imports = []
       , declarations =
-            [ Node { start = { row = 3, column = 1 }, end = { row = 3, column = 16 } } <|
+            [ Node { leadingWhitespace = "", start = { row = 3, column = 1 }, end = { row = 3, column = 16 } } <|
                 FunctionDeclaration
                     { documentation = Nothing
                     , signature = Nothing
                     , declaration =
-                        Node { end = { column = 16, row = 3 }, start = { column = 1, row = 3 } }
-                            { name = Node { start = { row = 3, column = 1 }, end = { row = 3, column = 4 } } "bar"
+                        Node { end = { column = 16, row = 3 }, leadingWhitespace = "", start = { column = 1, row = 3 } }
+                            { name = Node { leadingWhitespace = "", start = { row = 3, column = 1 }, end = { row = 3, column = 4 } } "bar"
                             , arguments = []
                             , expression =
-                                Node { start = { row = 3, column = 7 }, end = { row = 3, column = 16 } } <|
+                                Node { leadingWhitespace = "", start = { row = 3, column = 7 }, end = { row = 3, column = 16 } } <|
                                     OperatorApplication "+"
                                         Left
-                                        (Node { start = { row = 3, column = 7 }, end = { row = 3, column = 8 } } <|
+                                        (Node { leadingWhitespace = "", start = { row = 3, column = 7 }, end = { row = 3, column = 8 } } <|
                                             FunctionOrValue [] "x"
                                         )
-                                        (Node { start = { row = 3, column = 11 }, end = { row = 3, column = 16 } } <|
+                                        (Node { leadingWhitespace = "", start = { row = 3, column = 11 }, end = { row = 3, column = 16 } } <|
                                             OperatorApplication "*"
                                                 Left
-                                                (Node { start = { row = 3, column = 11 }, end = { row = 3, column = 12 } } <| Integer 1)
-                                                (Node { start = { row = 3, column = 15 }, end = { row = 3, column = 16 } } <| Integer 2)
+                                                (Node { leadingWhitespace = "", start = { row = 3, column = 11 }, end = { row = 3, column = 12 } } <| Integer 1)
+                                                (Node { leadingWhitespace = "", start = { row = 3, column = 15 }, end = { row = 3, column = 16 } } <| Integer 2)
                                         )
                             }
                     }
@@ -392,33 +392,33 @@ bar = x * 1 + 2
 """
     , { moduleDefinition =
             Node
-                { start = { row = 1, column = 1 }, end = { row = 1, column = 25 } }
+                { leadingWhitespace = "", start = { row = 1, column = 1 }, end = { row = 1, column = 25 } }
             <|
                 NormalModule
-                    { moduleName = Node { end = { column = 11, row = 1 }, start = { column = 8, row = 1 } } [ "Bar" ]
-                    , exposingList = Node { end = { column = 25, row = 1 }, start = { column = 12, row = 1 } } <| All { start = { row = 1, column = 22 }, end = { row = 1, column = 24 } }
+                    { moduleName = Node { end = { column = 11, row = 1 }, leadingWhitespace = "", start = { column = 8, row = 1 } } [ "Bar" ]
+                    , exposingList = Node { end = { column = 25, row = 1 }, leadingWhitespace = "", start = { column = 12, row = 1 } } <| All { leadingWhitespace = "", start = { row = 1, column = 22 }, end = { row = 1, column = 24 } }
                     }
       , imports = []
       , declarations =
-            [ Node { start = { row = 3, column = 1 }, end = { row = 3, column = 16 } } <|
+            [ Node { leadingWhitespace = "", start = { row = 3, column = 1 }, end = { row = 3, column = 16 } } <|
                 FunctionDeclaration
                     { documentation = Nothing
                     , signature = Nothing
                     , declaration =
-                        Node { end = { column = 16, row = 3 }, start = { column = 1, row = 3 } }
-                            { name = Node { start = { row = 3, column = 1 }, end = { row = 3, column = 4 } } "bar"
+                        Node { end = { column = 16, row = 3 }, leadingWhitespace = "", start = { column = 1, row = 3 } }
+                            { name = Node { leadingWhitespace = "", start = { row = 3, column = 1 }, end = { row = 3, column = 4 } } "bar"
                             , arguments = []
                             , expression =
-                                Node { start = { row = 3, column = 7 }, end = { row = 3, column = 16 } } <|
+                                Node { leadingWhitespace = "", start = { row = 3, column = 7 }, end = { row = 3, column = 16 } } <|
                                     OperatorApplication "+"
                                         Left
-                                        (Node { start = { row = 3, column = 7 }, end = { row = 3, column = 12 } } <|
+                                        (Node { leadingWhitespace = "", start = { row = 3, column = 7 }, end = { row = 3, column = 12 } } <|
                                             OperatorApplication "*"
                                                 Left
-                                                (Node { start = { row = 3, column = 7 }, end = { row = 3, column = 8 } } <| FunctionOrValue [] "x")
-                                                (Node { start = { row = 3, column = 11 }, end = { row = 3, column = 12 } } <| Integer 1)
+                                                (Node { leadingWhitespace = "", start = { row = 3, column = 7 }, end = { row = 3, column = 8 } } <| FunctionOrValue [] "x")
+                                                (Node { leadingWhitespace = "", start = { row = 3, column = 11 }, end = { row = 3, column = 12 } } <| Integer 1)
                                         )
-                                        (Node { start = { row = 3, column = 15 }, end = { row = 3, column = 16 } } <| Integer 2)
+                                        (Node { leadingWhitespace = "", start = { row = 3, column = 15 }, end = { row = 3, column = 16 } } <| Integer 2)
                             }
                     }
             ]
@@ -436,21 +436,21 @@ portWithDocumentation =
 port foo : String -> Cmd msg"""
     , { comments = []
       , declarations =
-            [ Node { end = { column = 1, row = 5 }, start = { column = 1, row = 3 } }
+            [ Node { end = { column = 1, row = 5 }, leadingWhitespace = "", start = { column = 1, row = 3 } }
                 (PortDeclaration
-                    { documentation = Just (Node { end = { column = 31, row = 3 }, start = { column = 1, row = 3 } } "{-| Some port documentation -}")
+                    { documentation = Just (Node { end = { column = 31, row = 3 }, leadingWhitespace = "", start = { column = 1, row = 3 } } "{-| Some port documentation -}")
                     , signature =
-                        Node { end = { column = 1, row = 5 }, start = { column = 6, row = 4 } }
-                            { name = Node { end = { column = 9, row = 4 }, start = { column = 6, row = 4 } } "foo"
+                        Node { end = { column = 1, row = 5 }, leadingWhitespace = "", start = { column = 6, row = 4 } }
+                            { name = Node { end = { column = 9, row = 4 }, leadingWhitespace = "", start = { column = 6, row = 4 } } "foo"
                             , typeAnnotation =
-                                Node { end = { column = 29, row = 4 }, start = { column = 12, row = 4 } }
+                                Node { end = { column = 29, row = 4 }, leadingWhitespace = "", start = { column = 12, row = 4 } }
                                     (FunctionTypeAnnotation
-                                        (Node { end = { column = 18, row = 4 }, start = { column = 12, row = 4 } }
-                                            (Type (Node { end = { column = 18, row = 4 }, start = { column = 12, row = 4 } } ( [], "String" )) [])
+                                        (Node { end = { column = 18, row = 4 }, leadingWhitespace = "", start = { column = 12, row = 4 } }
+                                            (Type (Node { end = { column = 18, row = 4 }, leadingWhitespace = "", start = { column = 12, row = 4 } } ( [], "String" )) [])
                                         )
-                                        (Node { end = { column = 29, row = 4 }, start = { column = 22, row = 4 } }
-                                            (Type (Node { end = { column = 25, row = 4 }, start = { column = 22, row = 4 } } ( [], "Cmd" ))
-                                                [ Node { end = { column = 29, row = 4 }, start = { column = 26, row = 4 } } (Var "msg") ]
+                                        (Node { end = { column = 29, row = 4 }, leadingWhitespace = "", start = { column = 22, row = 4 } }
+                                            (Type (Node { end = { column = 25, row = 4 }, leadingWhitespace = "", start = { column = 22, row = 4 } } ( [], "Cmd" ))
+                                                [ Node { end = { column = 29, row = 4 }, leadingWhitespace = "", start = { column = 26, row = 4 } } (Var "msg") ]
                                             )
                                         )
                                     )
@@ -460,12 +460,12 @@ port foo : String -> Cmd msg"""
             ]
       , imports = []
       , moduleDefinition =
-            Node { end = { column = 23, row = 1 }, start = { column = 1, row = 1 } }
+            Node { end = { column = 23, row = 1 }, leadingWhitespace = "", start = { column = 1, row = 1 } }
                 (NormalModule
                     { exposingList =
-                        Node { end = { column = 23, row = 1 }, start = { column = 10, row = 1 } }
-                            (All { end = { column = 22, row = 1 }, start = { column = 20, row = 1 } })
-                    , moduleName = Node { end = { column = 9, row = 1 }, start = { column = 8, row = 1 } } [ "A" ]
+                        Node { end = { column = 23, row = 1 }, leadingWhitespace = "", start = { column = 10, row = 1 } }
+                            (All { end = { column = 22, row = 1 }, leadingWhitespace = "", start = { column = 20, row = 1 } })
+                    , moduleName = Node { end = { column = 9, row = 1 }, leadingWhitespace = "", start = { column = 8, row = 1 } } [ "A" ]
                     }
                 )
       }
@@ -488,112 +488,112 @@ numeric2 = 1 + 2 * 3 ^ 4
 """
     , { comments = []
       , declarations =
-            [ Node { end = { column = 29, row = 3 }, start = { column = 1, row = 3 } }
+            [ Node { end = { column = 29, row = 3 }, leadingWhitespace = "", start = { column = 1, row = 3 } }
                 (FunctionDeclaration
                     { declaration =
-                        Node { end = { column = 29, row = 3 }, start = { column = 1, row = 3 } }
+                        Node { end = { column = 29, row = 3 }, leadingWhitespace = "", start = { column = 1, row = 3 } }
                             { arguments = []
                             , expression =
-                                Node { end = { column = 29, row = 3 }, start = { column = 9, row = 3 } }
+                                Node { end = { column = 29, row = 3 }, leadingWhitespace = "", start = { column = 9, row = 3 } }
                                     (OperatorApplication "||"
                                         Right
-                                        (Node { end = { column = 21, row = 3 }, start = { column = 9, row = 3 } }
+                                        (Node { end = { column = 21, row = 3 }, leadingWhitespace = "", start = { column = 9, row = 3 } }
                                             (OperatorApplication "&&"
                                                 Right
-                                                (Node { end = { column = 13, row = 3 }, start = { column = 9, row = 3 } } (FunctionOrValue [] "True"))
-                                                (Node { end = { column = 21, row = 3 }, start = { column = 17, row = 3 } } (FunctionOrValue [] "True"))
+                                                (Node { end = { column = 13, row = 3 }, leadingWhitespace = "", start = { column = 9, row = 3 } } (FunctionOrValue [] "True"))
+                                                (Node { end = { column = 21, row = 3 }, leadingWhitespace = "", start = { column = 17, row = 3 } } (FunctionOrValue [] "True"))
                                             )
                                         )
-                                        (Node { end = { column = 29, row = 3 }, start = { column = 25, row = 3 } } (FunctionOrValue [] "True"))
+                                        (Node { end = { column = 29, row = 3 }, leadingWhitespace = "", start = { column = 25, row = 3 } } (FunctionOrValue [] "True"))
                                     )
-                            , name = Node { end = { column = 6, row = 3 }, start = { column = 1, row = 3 } } "bool1"
+                            , name = Node { end = { column = 6, row = 3 }, leadingWhitespace = "", start = { column = 1, row = 3 } } "bool1"
                             }
                     , documentation = Nothing
                     , signature = Nothing
                     }
                 )
-            , Node { end = { column = 29, row = 4 }, start = { column = 1, row = 4 } }
+            , Node { end = { column = 29, row = 4 }, leadingWhitespace = "", start = { column = 1, row = 4 } }
                 (FunctionDeclaration
                     { declaration =
-                        Node { end = { column = 29, row = 4 }, start = { column = 1, row = 4 } }
+                        Node { end = { column = 29, row = 4 }, leadingWhitespace = "", start = { column = 1, row = 4 } }
                             { arguments = []
                             , expression =
-                                Node { end = { column = 29, row = 4 }, start = { column = 9, row = 4 } }
+                                Node { end = { column = 29, row = 4 }, leadingWhitespace = "", start = { column = 9, row = 4 } }
                                     (OperatorApplication "||"
                                         Right
-                                        (Node { end = { column = 13, row = 4 }, start = { column = 9, row = 4 } } (FunctionOrValue [] "True"))
-                                        (Node { end = { column = 29, row = 4 }, start = { column = 17, row = 4 } }
+                                        (Node { end = { column = 13, row = 4 }, leadingWhitespace = "", start = { column = 9, row = 4 } } (FunctionOrValue [] "True"))
+                                        (Node { end = { column = 29, row = 4 }, leadingWhitespace = "", start = { column = 17, row = 4 } }
                                             (OperatorApplication "&&"
                                                 Right
-                                                (Node { end = { column = 21, row = 4 }, start = { column = 17, row = 4 } } (FunctionOrValue [] "True"))
-                                                (Node { end = { column = 29, row = 4 }, start = { column = 25, row = 4 } } (FunctionOrValue [] "True"))
+                                                (Node { end = { column = 21, row = 4 }, leadingWhitespace = "", start = { column = 17, row = 4 } } (FunctionOrValue [] "True"))
+                                                (Node { end = { column = 29, row = 4 }, leadingWhitespace = "", start = { column = 25, row = 4 } } (FunctionOrValue [] "True"))
                                             )
                                         )
                                     )
-                            , name = Node { end = { column = 6, row = 4 }, start = { column = 1, row = 4 } } "bool2"
+                            , name = Node { end = { column = 6, row = 4 }, leadingWhitespace = "", start = { column = 1, row = 4 } } "bool2"
                             }
                     , documentation = Nothing
                     , signature = Nothing
                     }
                 )
-            , Node { end = { column = 25, row = 6 }, start = { column = 1, row = 6 } }
+            , Node { end = { column = 25, row = 6 }, leadingWhitespace = "", start = { column = 1, row = 6 } }
                 (FunctionDeclaration
                     { declaration =
-                        Node { end = { column = 25, row = 6 }, start = { column = 1, row = 6 } }
+                        Node { end = { column = 25, row = 6 }, leadingWhitespace = "", start = { column = 1, row = 6 } }
                             { arguments = []
                             , expression =
-                                Node { end = { column = 25, row = 6 }, start = { column = 12, row = 6 } }
+                                Node { end = { column = 25, row = 6 }, leadingWhitespace = "", start = { column = 12, row = 6 } }
                                     (OperatorApplication "+"
                                         Left
-                                        (Node { end = { column = 21, row = 6 }, start = { column = 12, row = 6 } }
+                                        (Node { end = { column = 21, row = 6 }, leadingWhitespace = "", start = { column = 12, row = 6 } }
                                             (OperatorApplication "*"
                                                 Left
-                                                (Node { end = { column = 17, row = 6 }, start = { column = 12, row = 6 } }
+                                                (Node { end = { column = 17, row = 6 }, leadingWhitespace = "", start = { column = 12, row = 6 } }
                                                     (OperatorApplication "^"
                                                         Right
-                                                        (Node { end = { column = 13, row = 6 }, start = { column = 12, row = 6 } } (Integer 1))
-                                                        (Node { end = { column = 17, row = 6 }, start = { column = 16, row = 6 } } (Integer 2))
+                                                        (Node { end = { column = 13, row = 6 }, leadingWhitespace = "", start = { column = 12, row = 6 } } (Integer 1))
+                                                        (Node { end = { column = 17, row = 6 }, leadingWhitespace = "", start = { column = 16, row = 6 } } (Integer 2))
                                                     )
                                                 )
-                                                (Node { end = { column = 21, row = 6 }, start = { column = 20, row = 6 } } (Integer 3))
+                                                (Node { end = { column = 21, row = 6 }, leadingWhitespace = "", start = { column = 20, row = 6 } } (Integer 3))
                                             )
                                         )
                                         (Node
-                                            { end = { column = 25, row = 6 }, start = { column = 24, row = 6 } }
+                                            { end = { column = 25, row = 6 }, leadingWhitespace = "", start = { column = 24, row = 6 } }
                                             (Integer 4)
                                         )
                                     )
-                            , name = Node { end = { column = 9, row = 6 }, start = { column = 1, row = 6 } } "numeric1"
+                            , name = Node { end = { column = 9, row = 6 }, leadingWhitespace = "", start = { column = 1, row = 6 } } "numeric1"
                             }
                     , documentation = Nothing
                     , signature = Nothing
                     }
                 )
-            , Node { end = { column = 25, row = 7 }, start = { column = 1, row = 7 } }
+            , Node { end = { column = 25, row = 7 }, leadingWhitespace = "", start = { column = 1, row = 7 } }
                 (FunctionDeclaration
                     { declaration =
-                        Node { end = { column = 25, row = 7 }, start = { column = 1, row = 7 } }
+                        Node { end = { column = 25, row = 7 }, leadingWhitespace = "", start = { column = 1, row = 7 } }
                             { arguments = []
                             , expression =
-                                Node { end = { column = 25, row = 7 }, start = { column = 12, row = 7 } }
+                                Node { end = { column = 25, row = 7 }, leadingWhitespace = "", start = { column = 12, row = 7 } }
                                     (OperatorApplication "+"
                                         Left
-                                        (Node { end = { column = 13, row = 7 }, start = { column = 12, row = 7 } } (Integer 1))
-                                        (Node { end = { column = 25, row = 7 }, start = { column = 16, row = 7 } }
+                                        (Node { end = { column = 13, row = 7 }, leadingWhitespace = "", start = { column = 12, row = 7 } } (Integer 1))
+                                        (Node { end = { column = 25, row = 7 }, leadingWhitespace = "", start = { column = 16, row = 7 } }
                                             (OperatorApplication "*"
                                                 Left
-                                                (Node { end = { column = 17, row = 7 }, start = { column = 16, row = 7 } } (Integer 2))
-                                                (Node { end = { column = 25, row = 7 }, start = { column = 20, row = 7 } }
+                                                (Node { end = { column = 17, row = 7 }, leadingWhitespace = "", start = { column = 16, row = 7 } } (Integer 2))
+                                                (Node { end = { column = 25, row = 7 }, leadingWhitespace = "", start = { column = 20, row = 7 } }
                                                     (OperatorApplication "^"
                                                         Right
-                                                        (Node { end = { column = 21, row = 7 }, start = { column = 20, row = 7 } } (Integer 3))
-                                                        (Node { end = { column = 25, row = 7 }, start = { column = 24, row = 7 } } (Integer 4))
+                                                        (Node { end = { column = 21, row = 7 }, leadingWhitespace = "", start = { column = 20, row = 7 } } (Integer 3))
+                                                        (Node { end = { column = 25, row = 7 }, leadingWhitespace = "", start = { column = 24, row = 7 } } (Integer 4))
                                                     )
                                                 )
                                             )
                                         )
                                     )
-                            , name = Node { end = { column = 9, row = 7 }, start = { column = 1, row = 7 } } "numeric2"
+                            , name = Node { end = { column = 9, row = 7 }, leadingWhitespace = "", start = { column = 1, row = 7 } } "numeric2"
                             }
                     , documentation = Nothing
                     , signature = Nothing
@@ -602,12 +602,12 @@ numeric2 = 1 + 2 * 3 ^ 4
             ]
       , imports = []
       , moduleDefinition =
-            Node { end = { column = 23, row = 1 }, start = { column = 1, row = 1 } }
+            Node { end = { column = 23, row = 1 }, leadingWhitespace = "", start = { column = 1, row = 1 } }
                 (NormalModule
                     { exposingList =
-                        Node { end = { column = 23, row = 1 }, start = { column = 10, row = 1 } }
-                            (All { end = { column = 22, row = 1 }, start = { column = 20, row = 1 } })
-                    , moduleName = Node { end = { column = 9, row = 1 }, start = { column = 8, row = 1 } } [ "A" ]
+                        Node { end = { column = 23, row = 1 }, leadingWhitespace = "", start = { column = 10, row = 1 } }
+                            (All { end = { column = 22, row = 1 }, leadingWhitespace = "", start = { column = 20, row = 1 } })
+                    , moduleName = Node { end = { column = 9, row = 1 }, leadingWhitespace = "", start = { column = 8, row = 1 } } [ "A" ]
                     }
                 )
       }
@@ -628,49 +628,49 @@ pipeline1 = 1 |> 2 |> 3
 """
     , { comments = []
       , declarations =
-            [ Node { end = { column = 21, row = 3 }, start = { column = 1, row = 3 } }
+            [ Node { end = { column = 21, row = 3 }, leadingWhitespace = "", start = { column = 1, row = 3 } }
                 (FunctionDeclaration
                     { declaration =
-                        Node { end = { column = 21, row = 3 }, start = { column = 1, row = 3 } }
+                        Node { end = { column = 21, row = 3 }, leadingWhitespace = "", start = { column = 1, row = 3 } }
                             { arguments = []
                             , expression =
-                                Node { end = { column = 21, row = 3 }, start = { column = 12, row = 3 } }
+                                Node { end = { column = 21, row = 3 }, leadingWhitespace = "", start = { column = 12, row = 3 } }
                                     (OperatorApplication "-"
                                         Left
-                                        (Node { end = { column = 17, row = 3 }, start = { column = 12, row = 3 } }
+                                        (Node { end = { column = 17, row = 3 }, leadingWhitespace = "", start = { column = 12, row = 3 } }
                                             (OperatorApplication "+"
                                                 Left
-                                                (Node { end = { column = 13, row = 3 }, start = { column = 12, row = 3 } } (Integer 1))
-                                                (Node { end = { column = 17, row = 3 }, start = { column = 16, row = 3 } } (Integer 2))
+                                                (Node { end = { column = 13, row = 3 }, leadingWhitespace = "", start = { column = 12, row = 3 } } (Integer 1))
+                                                (Node { end = { column = 17, row = 3 }, leadingWhitespace = "", start = { column = 16, row = 3 } } (Integer 2))
                                             )
                                         )
-                                        (Node { end = { column = 21, row = 3 }, start = { column = 20, row = 3 } } (Integer 3))
+                                        (Node { end = { column = 21, row = 3 }, leadingWhitespace = "", start = { column = 20, row = 3 } } (Integer 3))
                                     )
-                            , name = Node { end = { column = 9, row = 3 }, start = { column = 1, row = 3 } } "numeric1"
+                            , name = Node { end = { column = 9, row = 3 }, leadingWhitespace = "", start = { column = 1, row = 3 } } "numeric1"
                             }
                     , documentation = Nothing
                     , signature = Nothing
                     }
                 )
-            , Node { end = { column = 24, row = 5 }, start = { column = 1, row = 5 } }
+            , Node { end = { column = 24, row = 5 }, leadingWhitespace = "", start = { column = 1, row = 5 } }
                 (FunctionDeclaration
                     { declaration =
-                        Node { end = { column = 24, row = 5 }, start = { column = 1, row = 5 } }
+                        Node { end = { column = 24, row = 5 }, leadingWhitespace = "", start = { column = 1, row = 5 } }
                             { arguments = []
                             , expression =
-                                Node { end = { column = 24, row = 5 }, start = { column = 13, row = 5 } }
+                                Node { end = { column = 24, row = 5 }, leadingWhitespace = "", start = { column = 13, row = 5 } }
                                     (OperatorApplication "|>"
                                         Left
-                                        (Node { end = { column = 19, row = 5 }, start = { column = 13, row = 5 } }
+                                        (Node { end = { column = 19, row = 5 }, leadingWhitespace = "", start = { column = 13, row = 5 } }
                                             (OperatorApplication "|>"
                                                 Left
-                                                (Node { end = { column = 14, row = 5 }, start = { column = 13, row = 5 } } (Integer 1))
-                                                (Node { end = { column = 19, row = 5 }, start = { column = 18, row = 5 } } (Integer 2))
+                                                (Node { end = { column = 14, row = 5 }, leadingWhitespace = "", start = { column = 13, row = 5 } } (Integer 1))
+                                                (Node { end = { column = 19, row = 5 }, leadingWhitespace = "", start = { column = 18, row = 5 } } (Integer 2))
                                             )
                                         )
-                                        (Node { end = { column = 24, row = 5 }, start = { column = 23, row = 5 } } (Integer 3))
+                                        (Node { end = { column = 24, row = 5 }, leadingWhitespace = "", start = { column = 23, row = 5 } } (Integer 3))
                                     )
-                            , name = Node { end = { column = 10, row = 5 }, start = { column = 1, row = 5 } } "pipeline1"
+                            , name = Node { end = { column = 10, row = 5 }, leadingWhitespace = "", start = { column = 1, row = 5 } } "pipeline1"
                             }
                     , documentation = Nothing
                     , signature = Nothing
@@ -679,12 +679,12 @@ pipeline1 = 1 |> 2 |> 3
             ]
       , imports = []
       , moduleDefinition =
-            Node { end = { column = 23, row = 1 }, start = { column = 1, row = 1 } }
+            Node { end = { column = 23, row = 1 }, leadingWhitespace = "", start = { column = 1, row = 1 } }
                 (NormalModule
                     { exposingList =
-                        Node { end = { column = 23, row = 1 }, start = { column = 10, row = 1 } }
-                            (All { end = { column = 22, row = 1 }, start = { column = 20, row = 1 } })
-                    , moduleName = Node { end = { column = 9, row = 1 }, start = { column = 8, row = 1 } } [ "A" ]
+                        Node { end = { column = 23, row = 1 }, leadingWhitespace = "", start = { column = 10, row = 1 } }
+                            (All { end = { column = 22, row = 1 }, leadingWhitespace = "", start = { column = 20, row = 1 } })
+                    , moduleName = Node { end = { column = 9, row = 1 }, leadingWhitespace = "", start = { column = 8, row = 1 } } [ "A" ]
                     }
                 )
       }

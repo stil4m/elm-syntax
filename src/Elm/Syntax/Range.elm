@@ -46,7 +46,8 @@ type alias Location =
 {-| Range for a piece of code with a start and end
 -}
 type alias Range =
-    { start : Location
+    { leadingWhitespace : String
+    , start : Location
     , end : Location
     }
 
@@ -55,7 +56,8 @@ type alias Range =
 -}
 emptyRange : Range
 emptyRange =
-    { start = { row = 0, column = 0 }
+    { leadingWhitespace = ""
+    , start = { row = 0, column = 0 }
     , end = { row = 0, column = 0 }
     }
 
@@ -86,7 +88,8 @@ fromList input =
     case input of
         [ a, b, c, d ] ->
             Ok
-                { start = { row = a, column = b }
+                { leadingWhitespace = ""
+                , start = { row = a, column = b }
                 , end = { row = c, column = d }
                 }
 
@@ -115,7 +118,7 @@ combine ranges =
         ends =
             List.map .end ranges |> sortLocations |> List.reverse
     in
-    Maybe.map2 Range (List.head starts) (List.head ends)
+    Maybe.map2 (Range "") (List.head starts) (List.head ends)
         |> Maybe.withDefault emptyRange
 
 

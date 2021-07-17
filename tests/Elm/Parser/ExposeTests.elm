@@ -81,10 +81,10 @@ all =
                         |> Expect.equal
                             (Just
                                 (Explicit
-                                    (Node { end = { column = 11, row = 2 }, start = { column = 7, row = 2 } }
+                                    (Node { end = { column = 11, row = 2 }, leadingWhitespace = "", start = { column = 7, row = 2 } }
                                         (TypeOrAliasExpose "Link")
                                     )
-                                    [ Node { end = { column = 11, row = 3 }, start = { column = 7, row = 3 } }
+                                    [ Node { end = { column = 11, row = 3 }, leadingWhitespace = "", start = { column = 7, row = 3 } }
                                         (FunctionExpose "init")
                                     ]
                                 )
