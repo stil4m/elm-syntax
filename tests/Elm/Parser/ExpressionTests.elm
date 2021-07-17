@@ -366,7 +366,7 @@ all =
                         (Just
                             (Application
                                 (Node empty <| FunctionOrValue [ "List" ] "map")
-                                [ Node empty <| RecordAccessFunction ".name"
+                                [ Node empty <| RecordAccessFunction "name"
                                 , Node empty <| FunctionOrValue [] "people"
                                 ]
                             )
@@ -381,7 +381,7 @@ all =
                             (TupleExpression
                                 [ Node empty <|
                                     Application
-                                        (Node empty <| RecordAccessFunction ".spaceEvenly")
+                                        (Node empty <| RecordAccessFunction "spaceEvenly")
                                         [ Node empty <| FunctionOrValue [ "Internal", "Style" ] "classes" ]
                                 ]
                             )

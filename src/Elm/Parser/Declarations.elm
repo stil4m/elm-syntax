@@ -635,7 +635,7 @@ referenceExpression =
 
 recordAccessFunctionExpression : Parser State (Node Expression)
 recordAccessFunctionExpression =
-    Combine.map (\field -> RecordAccessFunction ("." ++ field))
+    Combine.map RecordAccessFunction
         (string "."
             |> Combine.continueWith functionName
         )
