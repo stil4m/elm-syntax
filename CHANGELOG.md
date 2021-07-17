@@ -21,6 +21,8 @@
   - This removes the need to handle impossible patterns. For instance, you can't find a string pattern in `someFn (X "impossible") = x` in a function declaration.
 
 - Changed `Elm.Syntax.Expression.Expression`:
+  - **WARNING (will not result in compilation error)** Stripped the `.` in the `String` stored in `RecordAccessFunction` (for code like `.field`)
+    - Example: `RecordAccessFunction ".field"` -> `RecordAccessFunction "field"`
   - `Application (List (Node Expression))` -> `Application (Node Expression) (List (Node Expression))` (takes a non-empty list of arguments)
   - `RecordUpdateExpression (Node String) (List (Node RecordSetter))` -> `RecordUpdateExpression (Node String) (Node RecordSetter) (List (Node RecordSetter))` (takes a non-empty list of fields)
   - Renamed `TupledExpression` to `TupleExpression`

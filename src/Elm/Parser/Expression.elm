@@ -1006,7 +1006,7 @@ recordAccessFunctionExpression =
                     \( endRow, endColumn ) ->
                         { comments = Rope.empty
                         , end = { row = endRow, column = endColumn }
-                        , expression = RecordAccessFunction ("." ++ field)
+                        , expression = RecordAccessFunction field
                         }
                 )
                 Tokens.functionName
