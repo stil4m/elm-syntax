@@ -20,12 +20,13 @@ module Elm.Parser.Tokens exposing
     , typeName
     )
 
-import Char exposing (fromCode)
+import Char
 import Combine exposing (Parser, fail, many1, or, string, succeed)
 import Combine.Char exposing (anyChar, char, oneOf)
 import Hex
 import Parser as Core exposing ((|.), (|=), Nestable(..), Step(..))
 import Set
+import Unicode
 
 
 reservedList : List String
@@ -240,8 +241,8 @@ multiLineStringLiteral =
 functionName : Parser s String
 functionName =
     Core.variable
-        { start = isLower
-        , inner = \c -> isAlphaNum c || c == '_'
+        { start = Unicode.isLower
+        , inner = \c -> Unicode.isAlphaNum c || c == '_'
         , reserved = Set.fromList reservedList
         }
         |> Combine.fromCore
@@ -250,43 +251,11 @@ functionName =
 typeName : Parser s String
 typeName =
     Core.variable
-        { start = isUpper
-        , inner = \c -> isAlphaNum c || c == '_'
+        { start = Unicode.isUpper
+        , inner = \c -> Unicode.isAlphaNum c || c == '_'
         , reserved = Set.fromList reservedList
         }
         |> Combine.fromCore
-
-
-isAlphaNum : Char -> Bool
-isAlphaNum char =
-    isUpperOrLower char || Char.isDigit char
-
-
-isUpperOrLower : Char -> Bool
-isUpperOrLower char =
-    let
-        stringChar =
-            String.fromChar char
-    in
-    String.toUpper stringChar /= stringChar || String.toLower stringChar /= stringChar
-
-
-isLower : Char -> Bool
-isLower char =
-    let
-        stringChar =
-            String.fromChar char
-    in
-    String.toUpper stringChar /= stringChar && String.toLower stringChar == stringChar
-
-
-isUpper : Char -> Bool
-isUpper char =
-    let
-        stringChar =
-            String.fromChar char
-    in
-    String.toUpper stringChar == stringChar && String.toLower stringChar /= stringChar
 
 
 excludedOperators : List String
