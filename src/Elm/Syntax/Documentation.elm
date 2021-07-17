@@ -22,7 +22,6 @@ This syntax represents documentation comments in Elm.
 
 -}
 
-import Elm.Syntax.Node exposing (Node(..))
 import Json.Decode as JD exposing (Decoder)
 import Json.Encode as JE exposing (Value)
 

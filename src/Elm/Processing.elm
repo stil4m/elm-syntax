@@ -26,7 +26,7 @@ import Dict exposing (Dict)
 import Elm.DefaultImports as DefaultImports
 import Elm.Dependency exposing (Dependency)
 import Elm.Interface as Interface exposing (Infix, Interface)
-import Elm.Internal.RawFile as RawFile exposing (RawFile(..))
+import Elm.Internal.RawFile exposing (RawFile(..))
 import Elm.Processing.Documentation as Documentation
 import Elm.RawFile as RawFile
 import Elm.Syntax.Declaration exposing (Declaration(..))

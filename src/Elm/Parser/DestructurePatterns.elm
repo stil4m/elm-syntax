@@ -8,7 +8,7 @@ import Elm.Parser.State exposing (State)
 import Elm.Parser.Tokens exposing (functionName)
 import Elm.Syntax.DestructurePattern exposing (DestructurePattern(..))
 import Elm.Syntax.Node as Node exposing (Node(..))
-import Elm.Syntax.Pattern exposing (Pattern(..), QualifiedNameRef)
+import Elm.Syntax.Pattern exposing (QualifiedNameRef)
 import Elm.Syntax.Range as Range
 import Parser as Core
 

@@ -1,13 +1,11 @@
 module Elm.Parser.FileTests exposing (all)
 
 import Elm.Internal.RawFile exposing (RawFile(..))
-import Elm.Parser as Parser
 import Elm.Parser.CombineTestUtil exposing (..)
-import Elm.Parser.File as Parser exposing (file)
+import Elm.Parser.File as Parser
 import Elm.Parser.Samples as Samples
 import Elm.Parser.State exposing (emptyState)
 import Elm.RawFile as RawFile
-import Elm.Syntax.Node exposing (Node(..))
 import Expect
 import Json.Decode
 import Json.Encode

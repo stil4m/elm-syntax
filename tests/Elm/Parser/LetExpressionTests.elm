@@ -2,14 +2,13 @@ module Elm.Parser.LetExpressionTests exposing (all)
 
 import Combine exposing (string)
 import Elm.Parser.CombineTestUtil exposing (..)
-import Elm.Parser.Declarations as Parser exposing (..)
+import Elm.Parser.Declarations as Parser
 import Elm.Parser.Layout as Layout
 import Elm.Parser.State exposing (emptyState)
 import Elm.Parser.Tokens exposing (functionName)
 import Elm.Syntax.DestructurePattern exposing (DestructurePattern(..))
 import Elm.Syntax.Expression exposing (..)
 import Elm.Syntax.Node as Node exposing (Node(..))
-import Elm.Syntax.Pattern exposing (..)
 import Elm.Syntax.Range exposing (emptyRange)
 import Expect
 import Test exposing (..)

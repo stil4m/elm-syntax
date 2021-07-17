@@ -24,7 +24,7 @@ For example :
 
 -}
 
-import Elm.Syntax.Node as Node exposing (Node(..))
+import Elm.Syntax.Node as Node exposing (Node)
 import Elm.Syntax.TypeAnnotation as TypeAnnotation exposing (TypeAnnotation)
 import Json.Decode as JD exposing (Decoder)
 import Json.Encode as JE exposing (Value)

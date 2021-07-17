@@ -9,7 +9,7 @@ import Elm.Parser.Numbers
 import Elm.Parser.Patterns exposing (pattern)
 import Elm.Parser.Ranges as Ranges
 import Elm.Parser.State as State exposing (State, popIndent, pushColumn)
-import Elm.Parser.Tokens as Tokens exposing (caseToken, characterLiteral, elseToken, functionName, ifToken, infixOperatorToken, multiLineStringLiteral, ofToken, portToken, prefixOperatorToken, stringLiteral, thenToken, typeName)
+import Elm.Parser.Tokens as Tokens exposing (caseToken, characterLiteral, elseToken, functionName, ifToken, infixOperatorToken, multiLineStringLiteral, ofToken, portToken, prefixOperatorToken, stringLiteral, thenToken)
 import Elm.Parser.TypeAnnotation exposing (typeAnnotation)
 import Elm.Parser.Typings as Typings exposing (typeDefinition)
 import Elm.Parser.Whitespace exposing (manySpaces)
@@ -18,7 +18,6 @@ import Elm.Syntax.DestructurePattern exposing (DestructurePattern(..))
 import Elm.Syntax.Expression as Expression exposing (Case, CaseBlock, Expression(..), Function, FunctionImplementation, Lambda, LetBlock, LetDeclaration(..), RecordSetter)
 import Elm.Syntax.ModuleName exposing (ModuleName)
 import Elm.Syntax.Node as Node exposing (Node(..))
-import Elm.Syntax.Pattern exposing (..)
 import Elm.Syntax.Port exposing (Port)
 import Elm.Syntax.Range as Range
 import Elm.Syntax.Signature exposing (Signature)
