@@ -11,8 +11,8 @@
     "email": "mstijlaart@gmail.com"
   },
   "scripts": {
-    "elm:test": "./node_modules/.bin/elm-test",
-    "elm:validate-format": "./node_modules/.bin/elm-format --validate src/ tests/",
+    "elm:test": "elm-test",
+    "elm:validate-format": "elm-format --validate src/ tests/",
     "elm:lint": "elm-analyse",
     "elm:lint-server": "elm-analyse -s",
     "elm:build": "elm make --docs=./elm-stuff/temp.json"
