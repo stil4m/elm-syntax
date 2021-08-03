@@ -1,5 +1,0 @@
-Basics.elm 1147.08
-String.elm 544.08
-Maybe.elm 183.04
-Dict.elm 2979.6
-
