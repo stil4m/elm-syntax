@@ -18,13 +18,13 @@ jobs:
     - name: Setup Node.js environment
       uses: actions/setup-node@v1
 
-    # Re-use node_modules between runs until package-lock.json changes.
+    # Re-use node_modules between runs until yarn.lock changes.
     - name: Cache node_modules
       id: internal-cache-node_modules
       uses: actions/cache@v2
       with:
         path: node_modules
-        key: internal-node_modules-ubuntu-latest.x-${{ hashFiles('package-lock.json') }}
+        key: internal-node_modules-ubuntu-latest.x-${{ hashFiles('yarn.lock') }}
 
     # Re-use ~/.elm between runs until elm.json, elm-tooling.json or
     # review/elm.json changes. The Elm compiler saves downloaded Elm packages
@@ -41,13 +41,13 @@ jobs:
         # If you have a `"postinstall": "elm-tooling install"` script in your
         # package.json, this turns it into a no-op. We’ll run it in the next
         # step because of the caching. If elm-tooling.json changes but
-        # package-lock.json does not, the postinstall script needs running
+        # yarn.lock does not, the postinstall script needs running
         # but this step won’t.
         NO_ELM_TOOLING_INSTALL: 1
-      run: npm ci
+      run: yarn
 
     # Install tools from elm-tooling.json, unless we restored them from
-    # cache. package-lock.json and elm-tooling.json can change independently,
+    # cache. yarn.lock and elm-tooling.json can change independently,
     # so we need to install separately based on what was restored from cache.
     # This is run even if we restored ~/.elm from cache to be 100% sure
     # node_modules/.bin/ contains links to all your tools. `elm-tooling
@@ -57,7 +57,7 @@ jobs:
       run: npx --no-install elm-tooling install
 
     - name: Run tests
-      run: npm test
+      run: yarn test
 
   publish:
     needs: [test] # make sure all your other jobs succeed before trying to publish
@@ -73,13 +73,13 @@ jobs:
       - name: Setup Node.js environment
         uses: actions/setup-node@v1
 
-      # Re-use node_modules between runs until package-lock.json changes.
+      # Re-use node_modules between runs until yarn.lock changes.
       - name: Cache node_modules
         id: internal-cache-node_modules
         uses: actions/cache@v2
         with:
           path: node_modules
-          key: internal-node_modules-ubuntu-latest.x-${{ hashFiles('package-lock.json') }}
+          key: internal-node_modules-ubuntu-latest.x-${{ hashFiles('yarn.lock') }}
 
       # Re-use ~/.elm between runs until elm.json, elm-tooling.json or
       # review/elm.json changes. The Elm compiler saves downloaded Elm packages
@@ -96,13 +96,13 @@ jobs:
           # If you have a `"postinstall": "elm-tooling install"` script in your
           # package.json, this turns it into a no-op. We’ll run it in the next
           # step because of the caching. If elm-tooling.json changes but
-          # package-lock.json does not, the postinstall script needs running
+          # yarn.lock does not, the postinstall script needs running
           # but this step won’t.
           NO_ELM_TOOLING_INSTALL: 1
-        run: npm ci
+        run: yarn
 
       # Install tools from elm-tooling.json, unless we restored them from
-      # cache. package-lock.json and elm-tooling.json can change independently,
+      # cache. yarn.lock and elm-tooling.json can change independently,
       # so we need to install separately based on what was restored from cache.
       # This is run even if we restored ~/.elm from cache to be 100% sure
       # node_modules/.bin/ contains links to all your tools. `elm-tooling
