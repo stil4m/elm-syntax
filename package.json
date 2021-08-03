@@ -28,7 +28,7 @@
     "@types/node": "^14.0.13",
     "axios": "^0.21.1",
     "elm-analyse": "0.16.5",
-    "elm-format": "0.8.3",
+    "elm-format": "^0.8.5",
     "elm-live": "4.0.2",
     "elm-review": "^2.5.3",
     "elm-test": "0.19.1-revision6",
