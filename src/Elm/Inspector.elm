@@ -35,7 +35,8 @@ type alias Config context =
     , onSignature : Order context (Node Signature)
     , onExpression : Order context (Node Expression)
     , onOperatorApplication :
-        Order context
+        Order
+            context
             { operator : String
             , direction : InfixDirection
             , left : Node Expression
