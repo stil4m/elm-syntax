@@ -19,5 +19,6 @@ import Review.Rule exposing (Rule)
 
 config : List Rule
 config =
-    [ NoUnused.Modules.rule
+    [ NoUnused.Dependencies.rule
+    , NoUnused.Modules.rule
     ]
