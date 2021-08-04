@@ -32,10 +32,9 @@ ignoreSomething =
 
 inspect : Config a -> File -> a -> a
 inspect config file context =
-    ignoreSomething
-        (inspectImports config file.imports >> inspectDeclarations config file.declarations)
-        file
-        context
+    context
+        |> inspectImports config file.imports
+        |> inspectDeclarations config file.declarations
 
 
 inspectImports : Config context -> List (Node Import) -> context -> context
