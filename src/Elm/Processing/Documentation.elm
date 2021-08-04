@@ -65,12 +65,10 @@ inspectDeclaration (Node range declaration) context =
 
 addDocumentation : (Node Comment -> Declaration) -> Range -> ThingsToChange -> ThingsToChange
 addDocumentation howToUpdate range file =
-    case findDocumentationForRange range file.remainingComments of
-        Just doc ->
-            { unattachedComments = []
-            , remainingComments =
-                file.remainingComments
-                    |> List.filter ((/=) doc)
+    case findDocumentationForRange range file.remainingComments [] of
+        Just ( ignored, doc, remaining ) ->
+            { unattachedComments = ignored :: file.unattachedComments
+            , remainingComments = remaining
             , declarations =
                 List.map
                     (replaceDeclaration
@@ -118,18 +116,18 @@ replaceDeclaration (Node r1 new) (Node r2 old) =
         )
 
 
-findDocumentationForRange : Range -> List (Node String) -> Maybe (Node String)
-findDocumentationForRange range comments =
+findDocumentationForRange : Range -> List (Node String) -> List (Node String) -> Maybe ( List (Node String), Node String, List (Node String) )
+findDocumentationForRange range comments previousIgnored =
     case comments of
         [] ->
             Nothing
 
         comment :: restOfComments ->
             if isDocumentationForRange range comment then
-                Just comment
+                Just ( previousIgnored, comment, restOfComments )
 
             else
-                findDocumentationForRange range restOfComments
+                findDocumentationForRange range restOfComments (comment :: previousIgnored)
 
 
 isDocumentationForRange : Range -> Node String -> Bool
