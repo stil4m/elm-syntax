@@ -18,7 +18,7 @@ postProcess file =
             List.foldl
                 findAndAddDocumentation
                 { declarations = []
-                , unattachedComments = []
+                , previousComments = []
                 , remainingComments = file.comments
                 }
                 file.declarations
@@ -27,7 +27,7 @@ postProcess file =
     , imports = file.imports
     , declarations = List.reverse changes.declarations
     , comments =
-        (changes.remainingComments :: changes.unattachedComments)
+        (changes.remainingComments :: changes.previousComments)
             |> List.reverse
             |> List.concat
     }
@@ -35,7 +35,7 @@ postProcess file =
 
 type alias ThingsToChange =
     { declarations : List (Node Declaration)
-    , unattachedComments : List (List (Node Comment))
+    , previousComments : List (List (Node Comment))
     , remainingComments : List (Node Comment)
     }
 
@@ -62,20 +62,20 @@ findAndAddDocumentation declaration context =
                 context
 
         PortDeclaration _ ->
-            { unattachedComments = context.unattachedComments
+            { previousComments = context.previousComments
             , remainingComments = context.remainingComments
             , declarations = declaration :: context.declarations
             }
 
         InfixDeclaration _ ->
-            { unattachedComments = context.unattachedComments
+            { previousComments = context.previousComments
             , remainingComments = context.remainingComments
             , declarations = declaration :: context.declarations
             }
 
         Destructuring _ _ ->
             -- Will never happen. Will be removed in v8
-            { unattachedComments = context.unattachedComments
+            { previousComments = context.previousComments
             , remainingComments = context.remainingComments
             , declarations = declaration :: context.declarations
             }
@@ -84,28 +84,28 @@ findAndAddDocumentation declaration context =
 addDocumentation : (Node Comment -> Declaration) -> Node Declaration -> ThingsToChange -> ThingsToChange
 addDocumentation howToUpdate declaration file =
     let
-        ( ignored, maybeDoc, remaining ) =
+        ( previous, maybeDoc, remaining ) =
             findDocumentationForRange (Node.range declaration) file.remainingComments []
     in
     case maybeDoc of
         Just doc ->
-            { unattachedComments = ignored :: file.unattachedComments
+            { previousComments = previous :: file.previousComments
             , remainingComments = remaining
             , declarations = Node (Node.range declaration) (howToUpdate doc) :: file.declarations
             }
 
         Nothing ->
-            { unattachedComments = ignored :: file.unattachedComments
+            { previousComments = previous :: file.previousComments
             , remainingComments = remaining
             , declarations = declaration :: file.declarations
             }
 
 
 findDocumentationForRange : Range -> List (Node String) -> List (Node String) -> ( List (Node String), Maybe (Node String), List (Node String) )
-findDocumentationForRange range comments previousIgnored =
+findDocumentationForRange range comments previousComments =
     case comments of
         [] ->
-            ( previousIgnored, Nothing, [] )
+            ( previousComments, Nothing, [] )
 
         ((Node commentRange commentText) as comment) :: restOfComments ->
             -- Since both comments and declarations are in the order that they appear in the source code,
@@ -114,15 +114,15 @@ findDocumentationForRange range comments previousIgnored =
             case compare (commentRange.end.row + 1) range.start.row of
                 EQ ->
                     if String.startsWith "{-|" commentText then
-                        ( previousIgnored, Just comment, restOfComments )
+                        ( previousComments, Just comment, restOfComments )
 
                     else
                         -- Aborting because the next comment can't match the next declaration
-                        ( previousIgnored, Nothing, comment :: restOfComments )
+                        ( previousComments, Nothing, comment :: restOfComments )
 
                 LT ->
-                    findDocumentationForRange range restOfComments (comment :: previousIgnored)
+                    findDocumentationForRange range restOfComments (comment :: previousComments)
 
                 GT ->
                     -- Aborting because we went too far
-                    ( previousIgnored, Nothing, comment :: restOfComments )
+                    ( previousComments, Nothing, comment :: restOfComments )
