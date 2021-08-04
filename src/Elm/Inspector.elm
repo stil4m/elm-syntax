@@ -15,11 +15,8 @@ import Elm.Syntax.TypeAnnotation exposing (TypeAnnotation(..))
 
 
 type Order context x
-    = Skip
-    | Continue
-    | Pre (x -> context -> context)
+    = Continue
     | Post (x -> context -> context)
-    | Inner ((context -> context) -> x -> context -> context)
 
 
 type alias Config context =
@@ -77,20 +74,11 @@ defaultConfig =
 actionLambda : Order config x -> (config -> config) -> x -> config -> config
 actionLambda act =
     case act of
-        Skip ->
-            \_ _ c -> c
-
         Continue ->
             \f _ c -> f c
 
-        Pre g ->
-            \f x c -> g x c |> f
-
         Post g ->
             \f x c -> f c |> g x
-
-        Inner g ->
-            \f x c -> g f x c
 
 
 inspect : Config a -> File -> a -> a
