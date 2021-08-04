@@ -10,12 +10,6 @@ import Elm.Syntax.Type exposing (Type)
 import Elm.Syntax.TypeAlias exposing (TypeAlias)
 
 
-type alias ThingsToChange =
-    { declarations : List (Node Declaration)
-    , comments : List (Node Comment)
-    }
-
-
 postProcess : File -> File
 postProcess file =
     let
@@ -32,6 +26,12 @@ postProcess file =
     , imports = file.imports
     , declarations = changes.declarations
     , comments = changes.comments
+    }
+
+
+type alias ThingsToChange =
+    { declarations : List (Node Declaration)
+    , comments : List (Node Comment)
     }
 
 
