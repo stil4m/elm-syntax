@@ -112,10 +112,8 @@ inspectFunction : Config context -> Node Function -> context -> context
 inspectFunction config ((Node _ function) as node) context =
     actionLambda
         config.onFunction
-        (inspectExpression config (Node.value function.declaration).expression
-            >> (Maybe.withDefault identity <|
-                    Maybe.map (inspectSignature config) function.signature
-               )
+        (Maybe.withDefault identity <|
+            Maybe.map (inspectSignature config) function.signature
         )
         node
         context
