@@ -1,6 +1,7 @@
 module Elm.Processing.Documentation exposing (postProcess)
 
 import Elm.Inspector as Inspector
+import Elm.Syntax.Comments exposing (Comment)
 import Elm.Syntax.Declaration exposing (Declaration(..))
 import Elm.Syntax.Expression exposing (..)
 import Elm.Syntax.File exposing (File)
@@ -11,10 +12,16 @@ import Elm.Syntax.Type exposing (Type)
 import Elm.Syntax.TypeAlias exposing (TypeAlias)
 
 
+type alias ThingsToChange =
+    { declarations : List (Node Declaration)
+    , comments : List (Node Comment)
+    }
+
+
 postProcess : File -> File
 postProcess file =
     let
-        changes : File
+        changes : ThingsToChange
         changes =
             Inspector.inspect
                 { onFunction = onFunction
@@ -23,7 +30,9 @@ postProcess file =
                 , onPortDeclaration = onPort
                 }
                 file.declarations
-                file
+                { declarations = file.declarations
+                , comments = file.comments
+                }
     in
     { moduleDefinition = file.moduleDefinition
     , imports = file.imports
@@ -32,73 +41,70 @@ postProcess file =
     }
 
 
-onType : Node Type -> File -> File
+onType : Node Type -> ThingsToChange -> ThingsToChange
 onType (Node r customType) file =
     case findDocumentationForRange r file.comments of
         Just ((Node docRange docString) as doc) ->
-            { file
-                | comments =
-                    file.comments
-                        |> List.filter ((/=) doc)
-                , declarations =
-                    List.map
-                        (replaceDeclaration
-                            (Node r (CustomTypeDeclaration <| { customType | documentation = Just (Node docRange docString) }))
-                        )
-                        file.declarations
+            { comments =
+                file.comments
+                    |> List.filter ((/=) doc)
+            , declarations =
+                List.map
+                    (replaceDeclaration
+                        (Node r (CustomTypeDeclaration <| { customType | documentation = Just (Node docRange docString) }))
+                    )
+                    file.declarations
             }
 
         Nothing ->
             file
 
 
-onTypeAlias : Node TypeAlias -> File -> File
+onTypeAlias : Node TypeAlias -> ThingsToChange -> ThingsToChange
 onTypeAlias (Node r typeAlias) file =
     case findDocumentationForRange r file.comments of
         Just ((Node docRange docString) as doc) ->
-            { file
-                | comments =
-                    file.comments
-                        |> List.filter ((/=) doc)
-                , declarations =
-                    List.map
-                        (replaceDeclaration
-                            (Node r
-                                (AliasDeclaration
-                                    { typeAlias
-                                        | documentation =
-                                            Just (Node docRange docString)
-                                    }
-                                )
+            { comments =
+                file.comments
+                    |> List.filter ((/=) doc)
+            , declarations =
+                List.map
+                    (replaceDeclaration
+                        (Node r
+                            (AliasDeclaration
+                                { typeAlias
+                                    | documentation =
+                                        Just (Node docRange docString)
+                                }
                             )
                         )
-                        file.declarations
+                    )
+                    file.declarations
             }
 
         Nothing ->
             file
 
 
-onPort : Node Signature -> File -> File
+onPort : Node Signature -> ThingsToChange -> ThingsToChange
 onPort _ file =
     -- Implemented in v8
     file
 
 
-onFunction : Node Function -> File -> File
+onFunction : Node Function -> ThingsToChange -> ThingsToChange
 onFunction (Node functionRange function) file =
     case findDocumentationForRange functionRange file.comments of
         Just ((Node docRange docString) as doc) ->
-            { file
-                | comments =
-                    file.comments
-                        |> List.filter ((/=) doc)
-                , declarations =
-                    List.map
-                        (replaceDeclaration
-                            (Node functionRange (FunctionDeclaration { function | documentation = Just (Node docRange docString) }))
-                        )
-                        file.declarations
+            { comments =
+                file.comments
+                    |> List.filter ((/=) doc)
+            , declarations =
+                List.map
+                    (replaceDeclaration
+                        (Node functionRange (FunctionDeclaration { function | documentation = Just (Node docRange docString) }))
+                    )
+                    file.declarations
             }
 
         Nothing ->
