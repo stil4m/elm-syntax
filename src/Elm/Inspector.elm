@@ -70,10 +70,7 @@ inspectDeclaration config (Node r declaration) context =
             inspectPortDeclaration config (Node r signature) context
 
         InfixDeclaration inf ->
-            ignoreSomething
-                identity
-                (Node r inf)
-                context
+            context
 
         Destructuring pattern expresion ->
             inspectDestructuring config (Node r ( pattern, expresion )) context
@@ -194,11 +191,8 @@ inspectInnerExpression config expression context =
         UnitExpr ->
             context
 
-        FunctionOrValue moduleName functionOrVal ->
-            ignoreSomething
-                identity
-                ( moduleName, functionOrVal )
-                context
+        FunctionOrValue _ _ ->
+            context
 
         PrefixOperator _ ->
             context
