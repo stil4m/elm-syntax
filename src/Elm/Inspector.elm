@@ -85,12 +85,10 @@ inspectTypeAlias config ((Node _ typeAlias) as pair) context =
 
 
 inspectFunction : Config context -> Node Function -> context -> context
-inspectFunction config ((Node _ function) as node) context =
+inspectFunction config node context =
     actionLambda
         config.onFunction
-        (Maybe.withDefault identity <|
-            Maybe.map (inspectSignature config) function.signature
-        )
+        identity
         node
         context
 
