@@ -87,28 +87,10 @@ onType range customType file =
 
 onTypeAlias : Range -> TypeAlias -> ThingsToChange -> ThingsToChange
 onTypeAlias range typeAlias file =
-    case findDocumentationForRange range file.comments of
-        Just ((Node docRange docString) as doc) ->
-            { comments =
-                file.comments
-                    |> List.filter ((/=) doc)
-            , declarations =
-                List.map
-                    (replaceDeclaration
-                        (Node range
-                            (AliasDeclaration
-                                { typeAlias
-                                    | documentation =
-                                        Just (Node docRange docString)
-                                }
-                            )
-                        )
-                    )
-                    file.declarations
-            }
-
-        Nothing ->
-            file
+    foo
+        range
+        (\doc -> AliasDeclaration { typeAlias | documentation = Just doc })
+        file
 
 
 onFunction : Range -> Function -> ThingsToChange -> ThingsToChange
