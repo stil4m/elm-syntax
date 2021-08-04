@@ -1,10 +1,9 @@
 module Elm.Inspector exposing (Config, inspect)
 
 import Elm.Syntax.Declaration exposing (Declaration(..))
-import Elm.Syntax.Expression exposing (Case, Expression(..), Function, LetDeclaration(..))
+import Elm.Syntax.Expression exposing (Function)
 import Elm.Syntax.File exposing (File)
 import Elm.Syntax.Node as Node exposing (Node(..))
-import Elm.Syntax.Pattern exposing (Pattern)
 import Elm.Syntax.Signature exposing (Signature)
 import Elm.Syntax.Type exposing (Type, ValueConstructor)
 import Elm.Syntax.TypeAlias exposing (TypeAlias)
@@ -32,21 +31,6 @@ inspect config file context =
 inspectDeclarations : Config context -> List (Node Declaration) -> context -> context
 inspectDeclarations config declarations context =
     List.foldl (inspectDeclaration config) context declarations
-
-
-inspectLetDeclarations : Config context -> List (Node LetDeclaration) -> context -> context
-inspectLetDeclarations config declarations context =
-    List.foldl (inspectLetDeclaration config) context declarations
-
-
-inspectLetDeclaration : Config context -> Node LetDeclaration -> context -> context
-inspectLetDeclaration config (Node range declaration) context =
-    case declaration of
-        LetFunction function ->
-            inspectFunction config (Node range function) context
-
-        LetDestructuring pattern expression ->
-            inspectDestructuring config (Node range ( pattern, expression )) context
 
 
 inspectDeclaration : Config context -> Node Declaration -> context -> context
@@ -100,14 +84,6 @@ inspectTypeAlias config ((Node _ typeAlias) as pair) context =
         context
 
 
-inspectDestructuring : Config context -> Node ( Node Pattern, Node Expression ) -> context -> context
-inspectDestructuring config destructuring context =
-    inspectExpression
-        config
-        (Tuple.second <| Node.value destructuring)
-        context
-
-
 inspectFunction : Config context -> Node Function -> context -> context
 inspectFunction config ((Node _ function) as node) context =
     actionLambda
@@ -153,92 +129,3 @@ inspectTypeAnnotation config (Node _ typeReference) context =
 
         GenericType _ ->
             context
-
-
-inspectExpression : Config context -> Node Expression -> context -> context
-inspectExpression config (Node _ expression) context =
-    case expression of
-        UnitExpr ->
-            context
-
-        FunctionOrValue _ _ ->
-            context
-
-        PrefixOperator _ ->
-            context
-
-        Operator _ ->
-            context
-
-        Hex _ ->
-            context
-
-        Integer _ ->
-            context
-
-        Floatable _ ->
-            context
-
-        Negation x ->
-            inspectExpression config x context
-
-        Literal _ ->
-            context
-
-        CharLiteral _ ->
-            context
-
-        RecordAccess ex1 _ ->
-            inspectExpression config ex1 context
-
-        RecordAccessFunction _ ->
-            context
-
-        GLSLExpression _ ->
-            context
-
-        Application expressionList ->
-            List.foldl (inspectExpression config) context expressionList
-
-        OperatorApplication _ _ left right ->
-            List.foldl (inspectExpression config) context [ left, right ]
-
-        IfBlock e1 e2 e3 ->
-            List.foldl (inspectExpression config) context [ e1, e2, e3 ]
-
-        TupledExpression expressionList ->
-            List.foldl (inspectExpression config) context expressionList
-
-        ParenthesizedExpression inner ->
-            inspectExpression config inner context
-
-        LetExpression letBlock ->
-            (inspectLetDeclarations config letBlock.declarations >> inspectExpression config letBlock.expression)
-                context
-
-        CaseExpression caseBlock ->
-            let
-                context2 =
-                    inspectExpression config caseBlock.expression context
-
-                context3 =
-                    List.foldl (\a b -> inspectCase config a b) context2 caseBlock.cases
-            in
-            context3
-
-        LambdaExpression lambda ->
-            inspectExpression config lambda.expression context
-
-        ListExpr expressionList ->
-            List.foldl (inspectExpression config) context expressionList
-
-        RecordExpr expressionStringList ->
-            List.foldl (\a b -> inspectExpression config (Tuple.second <| Node.value a) b) context expressionStringList
-
-        RecordUpdateExpression _ updates ->
-            List.foldl (\a b -> inspectExpression config (Tuple.second <| Node.value a) b) context updates
-
-
-inspectCase : Config context -> Case -> context -> context
-inspectCase config caze context =
-    inspectExpression config (Tuple.second caze) context
