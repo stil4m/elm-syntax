@@ -69,11 +69,12 @@ inspectDeclaration config (Node r declaration) context =
         PortDeclaration signature ->
             inspectSignature config (Node r signature) context
 
-        InfixDeclaration inf ->
+        InfixDeclaration _ ->
             context
 
-        Destructuring pattern expresion ->
-            inspectDestructuring config (Node r ( pattern, expresion )) context
+        Destructuring _ _ ->
+            -- Will never happen. Will be removed in v8
+            context
 
 
 inspectType : Config context -> Node Type -> context -> context
