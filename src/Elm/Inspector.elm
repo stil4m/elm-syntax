@@ -37,7 +37,7 @@ inspectDeclaration : Config context -> Node Declaration -> context -> context
 inspectDeclaration config (Node r declaration) context =
     case declaration of
         FunctionDeclaration function ->
-            inspectFunction config (Node r function) context
+            config.onFunction (Node r function) context
 
         AliasDeclaration typeAlias ->
             inspectTypeAlias config (Node r typeAlias) context
@@ -81,15 +81,6 @@ inspectTypeAlias config ((Node _ typeAlias) as pair) context =
         config.onTypeAlias
         (inspectTypeAnnotation config typeAlias.typeAnnotation)
         pair
-        context
-
-
-inspectFunction : Config context -> Node Function -> context -> context
-inspectFunction config node context =
-    actionLambda
-        config.onFunction
-        identity
-        node
         context
 
 
