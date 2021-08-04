@@ -1,11 +1,9 @@
-module Elm.Inspector exposing (Config, Order(..), defaultConfig, inspect)
+module Elm.Inspector exposing (Config, Order(..), inspect)
 
 import Elm.Syntax.Declaration exposing (Declaration(..))
-import Elm.Syntax.Expression exposing (Case, Expression(..), Function, Lambda, LetBlock, LetDeclaration(..), RecordSetter)
+import Elm.Syntax.Expression exposing (Case, Expression(..), Function, LetDeclaration(..))
 import Elm.Syntax.File exposing (File)
 import Elm.Syntax.Import exposing (Import)
-import Elm.Syntax.Infix exposing (Infix, InfixDirection)
-import Elm.Syntax.ModuleName exposing (ModuleName)
 import Elm.Syntax.Node as Node exposing (Node(..))
 import Elm.Syntax.Pattern exposing (Pattern)
 import Elm.Syntax.Signature exposing (Signature)
@@ -15,75 +13,32 @@ import Elm.Syntax.TypeAnnotation exposing (TypeAnnotation(..))
 
 
 type Order context x
-    = Continue
-    | Post (x -> context -> context)
+    = Post (x -> context -> context)
 
 
 type alias Config context =
-    { onFile : Order context File
-    , onImport : Order context (Node Import)
-    , onFunction : Order context (Node Function)
+    { onFunction : Order context (Node Function)
     , onTypeAlias : Order context (Node TypeAlias)
     , onType : Order context (Node Type)
     , onPortDeclaration : Order context (Node Signature)
-    , onInfixDeclaration : Order context (Node Infix)
-    , onDestructuring : Order context (Node ( Node Pattern, Node Expression ))
-    , onSignature : Order context (Node Signature)
-    , onExpression : Order context (Node Expression)
-    , onOperatorApplication :
-        Order
-            context
-            { operator : String
-            , direction : InfixDirection
-            , left : Node Expression
-            , right : Node Expression
-            }
-    , onTypeAnnotation : Order context (Node TypeAnnotation)
-    , onLambda : Order context Lambda
-    , onLetBlock : Order context LetBlock
-    , onCase : Order context Case
-    , onFunctionOrValue : Order context ( ModuleName, String )
-    , onRecordAccess : Order context ( Node Expression, Node String )
-    , onRecordUpdate : Order context ( Node String, List (Node RecordSetter) )
-    }
-
-
-defaultConfig : Config x
-defaultConfig =
-    { onFile = Continue
-    , onImport = Continue
-    , onFunction = Continue
-    , onPortDeclaration = Continue
-    , onInfixDeclaration = Continue
-    , onSignature = Continue
-    , onTypeAnnotation = Continue
-    , onType = Continue
-    , onTypeAlias = Continue
-    , onDestructuring = Continue
-    , onExpression = Continue
-    , onLambda = Continue
-    , onOperatorApplication = Continue
-    , onLetBlock = Continue
-    , onCase = Continue
-    , onFunctionOrValue = Continue
-    , onRecordAccess = Continue
-    , onRecordUpdate = Continue
     }
 
 
 actionLambda : Order config x -> (config -> config) -> x -> config -> config
 actionLambda act =
     case act of
-        Continue ->
-            \f _ c -> f c
-
         Post g ->
             \f x c -> f c |> g x
 
 
+ignoreSomething : (c -> a) -> b -> c -> a
+ignoreSomething =
+    \f _ c -> f c
+
+
 inspect : Config a -> File -> a -> a
 inspect config file context =
-    actionLambda config.onFile
+    ignoreSomething
         (inspectImports config file.imports >> inspectDeclarations config file.declarations)
         file
         context
@@ -96,7 +51,7 @@ inspectImports config imports context =
 
 inspectImport : Config context -> Node Import -> context -> context
 inspectImport config imp context =
-    actionLambda config.onImport
+    ignoreSomething
         identity
         imp
         context
@@ -138,8 +93,7 @@ inspectDeclaration config (Node r declaration) context =
             inspectPortDeclaration config (Node r signature) context
 
         InfixDeclaration inf ->
-            actionLambda
-                config.onInfixDeclaration
+            ignoreSomething
                 identity
                 (Node r inf)
                 context
@@ -178,8 +132,7 @@ inspectTypeAlias config ((Node _ typeAlias) as pair) context =
 
 inspectDestructuring : Config context -> Node ( Node Pattern, Node Expression ) -> context -> context
 inspectDestructuring config destructuring context =
-    actionLambda
-        config.onDestructuring
+    ignoreSomething
         (\c ->
             c
                 |> inspectExpression config (Tuple.second <| Node.value destructuring)
@@ -203,8 +156,7 @@ inspectFunction config ((Node _ function) as node) context =
 
 inspectPortDeclaration : Config context -> Node Signature -> context -> context
 inspectPortDeclaration config signature context =
-    actionLambda
-        config.onPortDeclaration
+    ignoreSomething
         (inspectSignature config signature)
         signature
         context
@@ -212,8 +164,7 @@ inspectPortDeclaration config signature context =
 
 inspectSignature : Config context -> Node Signature -> context -> context
 inspectSignature config ((Node _ signature) as node) context =
-    actionLambda
-        config.onSignature
+    ignoreSomething
         (inspectTypeAnnotation config signature.typeAnnotation)
         node
         context
@@ -221,8 +172,7 @@ inspectSignature config ((Node _ signature) as node) context =
 
 inspectTypeAnnotation : Config context -> Node TypeAnnotation -> context -> context
 inspectTypeAnnotation config typeAnnotation context =
-    actionLambda
-        config.onTypeAnnotation
+    ignoreSomething
         (inspectTypeAnnotationInner config typeAnnotation)
         typeAnnotation
         context
@@ -255,8 +205,7 @@ inspectTypeAnnotationInner config (Node _ typeRefence) context =
 
 inspectExpression : Config context -> Node Expression -> context -> context
 inspectExpression config ((Node _ expression) as node) context =
-    actionLambda
-        config.onExpression
+    ignoreSomething
         (inspectInnerExpression config expression)
         node
         context
@@ -269,7 +218,7 @@ inspectInnerExpression config expression context =
             context
 
         FunctionOrValue moduleName functionOrVal ->
-            actionLambda config.onFunctionOrValue
+            ignoreSomething
                 identity
                 ( moduleName, functionOrVal )
                 context
@@ -299,7 +248,7 @@ inspectInnerExpression config expression context =
             context
 
         RecordAccess ex1 key ->
-            actionLambda config.onRecordAccess
+            ignoreSomething
                 (inspectExpression config ex1)
                 ( ex1, key )
                 context
@@ -314,7 +263,7 @@ inspectInnerExpression config expression context =
             List.foldl (inspectExpression config) context expressionList
 
         OperatorApplication op dir left right ->
-            actionLambda config.onOperatorApplication
+            ignoreSomething
                 (\base -> List.foldl (inspectExpression config) base [ left, right ])
                 { operator = op, direction = dir, left = left, right = right }
                 context
@@ -333,7 +282,7 @@ inspectInnerExpression config expression context =
                 next =
                     inspectLetDeclarations config letBlock.declarations >> inspectExpression config letBlock.expression
             in
-            actionLambda config.onLetBlock
+            ignoreSomething
                 next
                 letBlock
                 context
@@ -349,7 +298,7 @@ inspectInnerExpression config expression context =
             context3
 
         LambdaExpression lambda ->
-            actionLambda config.onLambda
+            ignoreSomething
                 (inspectExpression config lambda.expression)
                 lambda
                 context
@@ -361,7 +310,7 @@ inspectInnerExpression config expression context =
             List.foldl (\a b -> inspectExpression config (Tuple.second <| Node.value a) b) context expressionStringList
 
         RecordUpdateExpression name updates ->
-            actionLambda config.onRecordUpdate
+            ignoreSomething
                 (\c -> List.foldl (\a b -> inspectExpression config (Tuple.second <| Node.value a) b) c updates)
                 ( name, updates )
                 context
@@ -369,7 +318,7 @@ inspectInnerExpression config expression context =
 
 inspectCase : Config context -> Case -> context -> context
 inspectCase config caze context =
-    actionLambda config.onCase
+    ignoreSomething
         (inspectExpression config (Tuple.second caze))
         caze
         context

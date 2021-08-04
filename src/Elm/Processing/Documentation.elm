@@ -1,6 +1,6 @@
 module Elm.Processing.Documentation exposing (postProcess)
 
-import Elm.Inspector as Inspector exposing (Order(..), defaultConfig)
+import Elm.Inspector as Inspector exposing (Order(..))
 import Elm.Syntax.Declaration exposing (Declaration(..))
 import Elm.Syntax.Expression exposing (..)
 import Elm.Syntax.File exposing (File)
@@ -14,11 +14,10 @@ import Elm.Syntax.TypeAlias exposing (TypeAlias)
 postProcess : File -> File
 postProcess file =
     Inspector.inspect
-        { defaultConfig
-            | onFunction = Post onFunction
-            , onTypeAlias = Post onTypeAlias
-            , onType = Post onType
-            , onPortDeclaration = Post onPort
+        { onFunction = Post onFunction
+        , onTypeAlias = Post onTypeAlias
+        , onType = Post onType
+        , onPortDeclaration = Post onPort
         }
         file
         file
