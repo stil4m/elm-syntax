@@ -4,7 +4,7 @@ import Elm.Syntax.Comments exposing (Comment)
 import Elm.Syntax.Declaration exposing (Declaration(..))
 import Elm.Syntax.Expression exposing (..)
 import Elm.Syntax.File exposing (File)
-import Elm.Syntax.Node exposing (Node(..))
+import Elm.Syntax.Node as Node exposing (Node(..))
 import Elm.Syntax.Range exposing (Range)
 import Elm.Syntax.Type exposing (Type)
 import Elm.Syntax.TypeAlias exposing (TypeAlias)
@@ -17,7 +17,7 @@ postProcess file =
         changes =
             List.foldl
                 inspectDeclaration
-                { declarations = file.declarations
+                { declarations = []
                 , unattachedComments = []
                 , remainingComments = file.comments
                 }
@@ -25,7 +25,7 @@ postProcess file =
     in
     { moduleDefinition = file.moduleDefinition
     , imports = file.imports
-    , declarations = changes.declarations
+    , declarations = List.reverse changes.declarations
     , comments =
         (changes.remainingComments :: changes.unattachedComments)
             |> List.reverse
@@ -41,67 +41,74 @@ type alias ThingsToChange =
 
 
 inspectDeclaration : Node Declaration -> ThingsToChange -> ThingsToChange
-inspectDeclaration (Node range declaration) context =
-    case declaration of
+inspectDeclaration declaration context =
+    case Node.value declaration of
         FunctionDeclaration function ->
-            onFunction range function context
+            onFunction declaration function context
 
         AliasDeclaration typeAlias ->
-            onTypeAlias range typeAlias context
+            onTypeAlias declaration typeAlias context
 
         CustomTypeDeclaration typeDecl ->
-            onType range typeDecl context
+            onType declaration typeDecl context
 
         PortDeclaration _ ->
-            context
+            { unattachedComments = context.unattachedComments
+            , remainingComments = context.remainingComments
+            , declarations = declaration :: context.declarations
+            }
 
         InfixDeclaration _ ->
-            context
+            { unattachedComments = context.unattachedComments
+            , remainingComments = context.remainingComments
+            , declarations = declaration :: context.declarations
+            }
 
         Destructuring _ _ ->
             -- Will never happen. Will be removed in v8
-            context
+            { unattachedComments = context.unattachedComments
+            , remainingComments = context.remainingComments
+            , declarations = declaration :: context.declarations
+            }
 
 
-addDocumentation : (Node Comment -> Declaration) -> Range -> ThingsToChange -> ThingsToChange
-addDocumentation howToUpdate range file =
-    case findDocumentationForRange range file.remainingComments [] of
+addDocumentation : (Node Comment -> Declaration) -> Node Declaration -> ThingsToChange -> ThingsToChange
+addDocumentation howToUpdate declaration file =
+    case findDocumentationForRange (Node.range declaration) file.remainingComments [] of
         Just ( ignored, doc, remaining ) ->
             { unattachedComments = ignored :: file.unattachedComments
             , remainingComments = remaining
-            , declarations =
-                List.map
-                    (replaceDeclaration
-                        (Node range (howToUpdate doc))
-                    )
-                    file.declarations
+            , declarations = Node (Node.range declaration) (howToUpdate doc) :: file.declarations
             }
 
         Nothing ->
-            file
+            { unattachedComments = file.unattachedComments
+            , remainingComments = file.remainingComments
+            , declarations = declaration :: file.declarations
+            }
 
 
-onType : Range -> Type -> ThingsToChange -> ThingsToChange
-onType range customType file =
+onType : Node Declaration -> Type -> ThingsToChange -> ThingsToChange
+onType declaration customType file =
     addDocumentation
         (\doc -> CustomTypeDeclaration { customType | documentation = Just doc })
-        range
+        declaration
         file
 
 
-onTypeAlias : Range -> TypeAlias -> ThingsToChange -> ThingsToChange
-onTypeAlias range typeAlias file =
+onTypeAlias : Node Declaration -> TypeAlias -> ThingsToChange -> ThingsToChange
+onTypeAlias declaration typeAlias file =
     addDocumentation
         (\doc -> AliasDeclaration { typeAlias | documentation = Just doc })
-        range
+        declaration
         file
 
 
-onFunction : Range -> Function -> ThingsToChange -> ThingsToChange
-onFunction range function file =
+onFunction : Node Declaration -> Function -> ThingsToChange -> ThingsToChange
+onFunction declaration function file =
     addDocumentation
         (\doc -> FunctionDeclaration { function | documentation = Just doc })
-        range
+        declaration
         file
 
 
