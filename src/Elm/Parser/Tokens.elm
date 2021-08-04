@@ -24,7 +24,7 @@ import Char
 import Combine exposing (Parser, fail, many1, or, string, succeed)
 import Combine.Char exposing (anyChar, char, oneOf)
 import Hex
-import Parser as Core exposing ((|.), (|=), Nestable(..), Step(..))
+import Parser as Core exposing ((|.), (|=), Step(..))
 import Set
 import Unicode
 

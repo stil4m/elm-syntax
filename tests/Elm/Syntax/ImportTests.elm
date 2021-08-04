@@ -1,17 +1,9 @@
 module Elm.Syntax.ImportTests exposing (suite)
 
-import Elm.Syntax.Declaration exposing (..)
-import Elm.Syntax.Exposing as Exposing exposing (..)
-import Elm.Syntax.Expression exposing (..)
+import Elm.Syntax.Exposing exposing (..)
 import Elm.Syntax.Import as Import exposing (Import)
-import Elm.Syntax.Module exposing (..)
-import Elm.Syntax.ModuleName exposing (..)
 import Elm.Syntax.Node exposing (Node(..))
-import Elm.Syntax.Pattern exposing (..)
 import Elm.Syntax.Range exposing (emptyRange)
-import Elm.Syntax.Type exposing (..)
-import Elm.Syntax.TypeAnnotation
-import Elm.Writer as Writer
 import Expect
 import Json.Decode exposing (Decoder, Value)
 import Test exposing (..)

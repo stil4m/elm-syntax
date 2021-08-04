@@ -1,6 +1,6 @@
 module Elm.Parser.Node exposing (parser)
 
-import Combine exposing (ParseLocation, Parser, andMap, succeed, withLocation)
+import Combine exposing (ParseLocation, Parser, succeed, withLocation)
 import Elm.Parser.State exposing (State)
 import Elm.Syntax.Node exposing (Node(..))
 import Elm.Syntax.Range exposing (Location)

@@ -8,7 +8,7 @@ import Elm.Parser.Node as Node
 import Elm.Parser.State exposing (State)
 import Elm.Parser.Tokens exposing (functionName, moduleToken, portToken, typeName)
 import Elm.Syntax.Module exposing (DefaultModuleData, Module(..))
-import Elm.Syntax.Node as Node exposing (Node)
+import Elm.Syntax.Node exposing (Node)
 
 
 moduleDefinition : Parser State Module

@@ -1,7 +1,7 @@
 module Elm.Parser.PatternTests exposing (all)
 
 import Elm.Parser.CombineTestUtil exposing (..)
-import Elm.Parser.Patterns as Parser exposing (..)
+import Elm.Parser.Patterns as Parser
 import Elm.Parser.State exposing (emptyState)
 import Elm.Syntax.Node as Node exposing (Node(..))
 import Elm.Syntax.Pattern exposing (..)
