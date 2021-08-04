@@ -5,7 +5,7 @@ import Elm.Syntax.Expression exposing (Function)
 import Elm.Syntax.File exposing (File)
 import Elm.Syntax.Node as Node exposing (Node(..))
 import Elm.Syntax.Signature exposing (Signature)
-import Elm.Syntax.Type exposing (Type, ValueConstructor)
+import Elm.Syntax.Type exposing (Type)
 import Elm.Syntax.TypeAlias exposing (TypeAlias)
 import Elm.Syntax.TypeAnnotation exposing (TypeAnnotation(..))
 
@@ -16,11 +16,6 @@ type alias Config context =
     , onType : Node Type -> context -> context
     , onPortDeclaration : Node Signature -> context -> context
     }
-
-
-actionLambda : (x -> context -> context) -> (context -> context) -> x -> context -> context
-actionLambda g f x c =
-    f c |> g x
 
 
 inspect : Config a -> File -> a -> a
@@ -43,7 +38,7 @@ inspectDeclaration config (Node r declaration) context =
             config.onTypeAlias (Node r typeAlias) context
 
         CustomTypeDeclaration typeDecl ->
-            inspectType config (Node r typeDecl) context
+            config.onType (Node r typeDecl) context
 
         PortDeclaration signature ->
             inspectSignature config (Node r signature) context
@@ -54,25 +49,6 @@ inspectDeclaration config (Node r declaration) context =
         Destructuring _ _ ->
             -- Will never happen. Will be removed in v8
             context
-
-
-inspectType : Config context -> Node Type -> context -> context
-inspectType config tipe context =
-    actionLambda
-        config.onType
-        (inspectTypeInner config <| Node.value tipe)
-        tipe
-        context
-
-
-inspectTypeInner : Config context -> Type -> context -> context
-inspectTypeInner config typeDecl context =
-    List.foldl (inspectValueConstructor config) context typeDecl.constructors
-
-
-inspectValueConstructor : Config context -> Node ValueConstructor -> context -> context
-inspectValueConstructor config (Node _ valueConstructor) context =
-    List.foldl (inspectTypeAnnotation config) context valueConstructor.arguments
 
 
 inspectSignature : Config context -> Node Signature -> context -> context
