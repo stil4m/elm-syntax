@@ -67,7 +67,7 @@ inspectDeclaration config (Node r declaration) context =
             inspectType config (Node r typeDecl) context
 
         PortDeclaration signature ->
-            inspectPortDeclaration config (Node r signature) context
+            inspectSignature config (Node r signature) context
 
         InfixDeclaration inf ->
             context
@@ -123,11 +123,6 @@ inspectFunction config ((Node _ function) as node) context =
         )
         node
         context
-
-
-inspectPortDeclaration : Config context -> Node Signature -> context -> context
-inspectPortDeclaration config signature context =
-    inspectSignature config signature context
 
 
 inspectSignature : Config context -> Node Signature -> context -> context
