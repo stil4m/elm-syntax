@@ -105,6 +105,9 @@ findDocumentationForRange range comments previousIgnored =
 
         comment :: restOfComments ->
             if isDocumentationForRange range comment then
+                -- Since both comments and declarations are in the order that they appear in the source code,
+                -- all the comments we've evaluated until now don't need to be re-evaluated when
+                -- trying the find the documentation for later declarations.
                 Just ( previousIgnored, comment, restOfComments )
 
             else
