@@ -3,11 +3,10 @@ module Elm.Inspector exposing (Config, inspect)
 import Elm.Syntax.Declaration exposing (Declaration(..))
 import Elm.Syntax.Expression exposing (Function)
 import Elm.Syntax.File exposing (File)
-import Elm.Syntax.Node as Node exposing (Node(..))
+import Elm.Syntax.Node exposing (Node(..))
 import Elm.Syntax.Signature exposing (Signature)
 import Elm.Syntax.Type exposing (Type)
 import Elm.Syntax.TypeAlias exposing (TypeAlias)
-import Elm.Syntax.TypeAnnotation exposing (TypeAnnotation(..))
 
 
 type alias Config context =
@@ -40,48 +39,12 @@ inspectDeclaration config (Node r declaration) context =
         CustomTypeDeclaration typeDecl ->
             config.onType (Node r typeDecl) context
 
-        PortDeclaration signature ->
-            inspectSignature config (Node r signature) context
+        PortDeclaration _ ->
+            context
 
         InfixDeclaration _ ->
             context
 
         Destructuring _ _ ->
             -- Will never happen. Will be removed in v8
-            context
-
-
-inspectSignature : Config context -> Node Signature -> context -> context
-inspectSignature config (Node _ signature) context =
-    inspectTypeAnnotation config signature.typeAnnotation context
-
-
-inspectTypeAnnotation : Config context -> Node TypeAnnotation -> context -> context
-inspectTypeAnnotation config (Node _ typeReference) context =
-    case typeReference of
-        Typed _ typeArgs ->
-            List.foldl (inspectTypeAnnotation config) context typeArgs
-
-        Tupled typeAnnotations ->
-            List.foldl (inspectTypeAnnotation config) context typeAnnotations
-
-        Record recordDefinition ->
-            List.foldl
-                (Node.value >> Tuple.second >> inspectTypeAnnotation config)
-                context
-                recordDefinition
-
-        GenericRecord _ recordDefinition ->
-            List.foldl
-                (Node.value >> Tuple.second >> inspectTypeAnnotation config)
-                context
-                (Node.value recordDefinition)
-
-        FunctionTypeAnnotation left right ->
-            List.foldl (inspectTypeAnnotation config) context [ left, right ]
-
-        Unit ->
-            context
-
-        GenericType _ ->
             context
