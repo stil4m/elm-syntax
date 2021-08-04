@@ -103,8 +103,21 @@ findDocumentationForRange range comments previousIgnored =
         [] ->
             Nothing
 
-        comment :: restOfComments ->
-            if isDocumentationForRange range comment then
+        ((Node commentRange commentText) as comment) :: restOfComments ->
+            let
+                isForDeclaration =
+                    case compare (commentRange.end.row + 1) range.start.row of
+                        EQ ->
+                            String.startsWith "{-|" commentText
+
+                        LT ->
+                            False
+
+                        GT ->
+                            -- TODO Should abort
+                            False
+            in
+            if isForDeclaration then
                 -- Since both comments and declarations are in the order that they appear in the source code,
                 -- all the comments we've evaluated until now don't need to be re-evaluated when
                 -- trying the find the documentation for later declarations.
@@ -112,17 +125,3 @@ findDocumentationForRange range comments previousIgnored =
 
             else
                 findDocumentationForRange range restOfComments (comment :: previousIgnored)
-
-
-isDocumentationForRange : Range -> Node String -> Bool
-isDocumentationForRange range (Node commentRange commentText) =
-    case compare (commentRange.end.row + 1) range.start.row of
-        EQ ->
-            String.startsWith "{-|" commentText
-
-        LT ->
-            False
-
-        GT ->
-            -- TODO Should abort
-            False
