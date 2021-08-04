@@ -36,16 +36,16 @@ type alias ThingsToChange =
 
 
 inspectDeclaration : Node Declaration -> ThingsToChange -> ThingsToChange
-inspectDeclaration (Node r declaration) context =
+inspectDeclaration (Node range declaration) context =
     case declaration of
         FunctionDeclaration function ->
-            onFunction (Node r function) context
+            onFunction range function context
 
         AliasDeclaration typeAlias ->
-            onTypeAlias (Node r typeAlias) context
+            onTypeAlias range typeAlias context
 
         CustomTypeDeclaration typeDecl ->
-            onType (Node r typeDecl) context
+            onType range typeDecl context
 
         PortDeclaration _ ->
             context
@@ -58,9 +58,9 @@ inspectDeclaration (Node r declaration) context =
             context
 
 
-onType : Node Type -> ThingsToChange -> ThingsToChange
-onType (Node r customType) file =
-    case findDocumentationForRange r file.comments of
+onType : Range -> Type -> ThingsToChange -> ThingsToChange
+onType range customType file =
+    case findDocumentationForRange range file.comments of
         Just ((Node docRange docString) as doc) ->
             { comments =
                 file.comments
@@ -68,7 +68,7 @@ onType (Node r customType) file =
             , declarations =
                 List.map
                     (replaceDeclaration
-                        (Node r (CustomTypeDeclaration <| { customType | documentation = Just (Node docRange docString) }))
+                        (Node range (CustomTypeDeclaration <| { customType | documentation = Just (Node docRange docString) }))
                     )
                     file.declarations
             }
@@ -77,9 +77,9 @@ onType (Node r customType) file =
             file
 
 
-onTypeAlias : Node TypeAlias -> ThingsToChange -> ThingsToChange
-onTypeAlias (Node r typeAlias) file =
-    case findDocumentationForRange r file.comments of
+onTypeAlias : Range -> TypeAlias -> ThingsToChange -> ThingsToChange
+onTypeAlias range typeAlias file =
+    case findDocumentationForRange range file.comments of
         Just ((Node docRange docString) as doc) ->
             { comments =
                 file.comments
@@ -87,7 +87,7 @@ onTypeAlias (Node r typeAlias) file =
             , declarations =
                 List.map
                     (replaceDeclaration
-                        (Node r
+                        (Node range
                             (AliasDeclaration
                                 { typeAlias
                                     | documentation =
@@ -103,8 +103,8 @@ onTypeAlias (Node r typeAlias) file =
             file
 
 
-onFunction : Node Function -> ThingsToChange -> ThingsToChange
-onFunction (Node functionRange function) file =
+onFunction : Range -> Function -> ThingsToChange -> ThingsToChange
+onFunction functionRange function file =
     case findDocumentationForRange functionRange file.comments of
         Just ((Node docRange docString) as doc) ->
             { comments =
