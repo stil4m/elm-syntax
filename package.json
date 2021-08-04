@@ -10,7 +10,7 @@
     "url": "https://github.com/stil4m/elm-syntax/issues"
   },
   "scripts": {
-    "test": "npm-run-all --print-name --silent --sequential test:make test:format test:run",
+    "test": "npm-run-all --print-name --silent --sequential test:make test:format test:run test:review",
     "test:make": "elm make --docs=docs.json",
     "test:format": "elm-format --validate src/ tests/",
     "test:run": "elm-test",
