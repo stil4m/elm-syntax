@@ -194,11 +194,8 @@ inspectExpression config (Node _ expression) context =
         CharLiteral _ ->
             context
 
-        RecordAccess ex1 key ->
-            ignoreSomething
-                (inspectExpression config ex1)
-                ( ex1, key )
-                context
+        RecordAccess ex1 _ ->
+            inspectExpression config ex1 context
 
         RecordAccessFunction _ ->
             context
@@ -209,11 +206,8 @@ inspectExpression config (Node _ expression) context =
         Application expressionList ->
             List.foldl (inspectExpression config) context expressionList
 
-        OperatorApplication op dir left right ->
-            ignoreSomething
-                (\base -> List.foldl (inspectExpression config) base [ left, right ])
-                { operator = op, direction = dir, left = left, right = right }
-                context
+        OperatorApplication _ _ left right ->
+            List.foldl (inspectExpression config) context [ left, right ]
 
         IfBlock e1 e2 e3 ->
             List.foldl (inspectExpression config) context [ e1, e2, e3 ]
