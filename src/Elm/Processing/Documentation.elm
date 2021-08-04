@@ -2,12 +2,9 @@ module Elm.Processing.Documentation exposing (postProcess)
 
 import Elm.Syntax.Comments exposing (Comment)
 import Elm.Syntax.Declaration exposing (Declaration(..))
-import Elm.Syntax.Expression exposing (..)
 import Elm.Syntax.File exposing (File)
 import Elm.Syntax.Node as Node exposing (Node(..))
 import Elm.Syntax.Range exposing (Range)
-import Elm.Syntax.Type exposing (Type)
-import Elm.Syntax.TypeAlias exposing (TypeAlias)
 
 
 postProcess : File -> File
