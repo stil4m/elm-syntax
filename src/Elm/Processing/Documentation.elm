@@ -115,6 +115,7 @@ isDocumentationForRange : Range -> Node String -> Bool
 isDocumentationForRange range (Node commentRange commentText) =
     if String.startsWith "{-|" commentText then
         let
+            functionStartRow : Int
             functionStartRow =
                 range.start.row
         in
