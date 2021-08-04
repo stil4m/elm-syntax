@@ -19,12 +19,7 @@ type alias Config context =
 
 inspect : Config a -> File -> a -> a
 inspect config file context =
-    inspectDeclarations config file.declarations context
-
-
-inspectDeclarations : Config context -> List (Node Declaration) -> context -> context
-inspectDeclarations config declarations context =
-    List.foldl (inspectDeclaration config) context declarations
+    List.foldl (inspectDeclaration config) context file.declarations
 
 
 inspectDeclaration : Config context -> Node Declaration -> context -> context
