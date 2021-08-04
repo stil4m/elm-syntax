@@ -13,14 +13,19 @@ import Elm.Syntax.TypeAlias exposing (TypeAlias)
 
 postProcess : File -> File
 postProcess file =
-    Inspector.inspect
-        { onFunction = onFunction
-        , onTypeAlias = onTypeAlias
-        , onType = onType
-        , onPortDeclaration = onPort
-        }
-        file.declarations
-        file
+    let
+        changes : File
+        changes =
+            Inspector.inspect
+                { onFunction = onFunction
+                , onTypeAlias = onTypeAlias
+                , onType = onType
+                , onPortDeclaration = onPort
+                }
+                file.declarations
+                file
+    in
+    { file | declarations = changes.declarations, comments = changes.comments }
 
 
 onType : Node Type -> File -> File
