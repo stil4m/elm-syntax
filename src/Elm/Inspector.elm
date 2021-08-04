@@ -219,13 +219,7 @@ inspectExpression config (Node _ expression) context =
             inspectExpression config inner context
 
         LetExpression letBlock ->
-            let
-                next =
-                    inspectLetDeclarations config letBlock.declarations >> inspectExpression config letBlock.expression
-            in
-            ignoreSomething
-                next
-                letBlock
+            (inspectLetDeclarations config letBlock.declarations >> inspectExpression config letBlock.expression)
                 context
 
         CaseExpression caseBlock ->
