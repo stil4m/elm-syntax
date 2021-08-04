@@ -234,10 +234,7 @@ inspectExpression config (Node _ expression) context =
             context3
 
         LambdaExpression lambda ->
-            ignoreSomething
-                (inspectExpression config lambda.expression)
-                lambda
-                context
+            inspectExpression config lambda.expression context
 
         ListExpr expressionList ->
             List.foldl (inspectExpression config) context expressionList
@@ -245,11 +242,8 @@ inspectExpression config (Node _ expression) context =
         RecordExpr expressionStringList ->
             List.foldl (\a b -> inspectExpression config (Tuple.second <| Node.value a) b) context expressionStringList
 
-        RecordUpdateExpression name updates ->
-            ignoreSomething
-                (\c -> List.foldl (\a b -> inspectExpression config (Tuple.second <| Node.value a) b) c updates)
-                ( name, updates )
-                context
+        RecordUpdateExpression _ updates ->
+            List.foldl (\a b -> inspectExpression config (Tuple.second <| Node.value a) b) context updates
 
 
 inspectCase : Config context -> Case -> context -> context
