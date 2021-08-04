@@ -104,28 +104,21 @@ findDocumentationForRange range comments previousIgnored =
             Nothing
 
         ((Node commentRange commentText) as comment) :: restOfComments ->
-            let
-                isForDeclaration =
-                    case compare (commentRange.end.row + 1) range.start.row of
-                        EQ ->
-                            if String.startsWith "{-|" commentText then
-                                True
+            -- Since both comments and declarations are in the order that they appear in the source code,
+            -- all the comments we've evaluated until now don't need to be re-evaluated when
+            -- trying the find the documentation for later declarations.
+            case compare (commentRange.end.row + 1) range.start.row of
+                EQ ->
+                    if String.startsWith "{-|" commentText then
+                        Just ( previousIgnored, comment, restOfComments )
 
-                            else
-                                False
+                    else
+                        -- TODO Should abort
+                        findDocumentationForRange range restOfComments (comment :: previousIgnored)
 
-                        LT ->
-                            False
+                LT ->
+                    findDocumentationForRange range restOfComments (comment :: previousIgnored)
 
-                        GT ->
-                            -- TODO Should abort
-                            False
-            in
-            if isForDeclaration then
-                -- Since both comments and declarations are in the order that they appear in the source code,
-                -- all the comments we've evaluated until now don't need to be re-evaluated when
-                -- trying the find the documentation for later declarations.
-                Just ( previousIgnored, comment, restOfComments )
-
-            else
-                findDocumentationForRange range restOfComments (comment :: previousIgnored)
+                GT ->
+                    -- TODO Should abort
+                    findDocumentationForRange range restOfComments (comment :: previousIgnored)
