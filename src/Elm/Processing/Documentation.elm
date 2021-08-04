@@ -1,13 +1,11 @@
 module Elm.Processing.Documentation exposing (postProcess)
 
-import Elm.Inspector as Inspector
 import Elm.Syntax.Comments exposing (Comment)
 import Elm.Syntax.Declaration exposing (Declaration(..))
 import Elm.Syntax.Expression exposing (..)
 import Elm.Syntax.File exposing (File)
 import Elm.Syntax.Node exposing (Node(..))
 import Elm.Syntax.Range exposing (Range)
-import Elm.Syntax.Signature exposing (Signature)
 import Elm.Syntax.Type exposing (Type)
 import Elm.Syntax.TypeAlias exposing (TypeAlias)
 
@@ -23,22 +21,41 @@ postProcess file =
     let
         changes : ThingsToChange
         changes =
-            Inspector.inspect
-                { onFunction = onFunction
-                , onTypeAlias = onTypeAlias
-                , onType = onType
-                , onPortDeclaration = onPort
-                }
-                file.declarations
+            List.foldl
+                inspectDeclaration
                 { declarations = file.declarations
                 , comments = file.comments
                 }
+                file.declarations
     in
     { moduleDefinition = file.moduleDefinition
     , imports = file.imports
     , declarations = changes.declarations
     , comments = changes.comments
     }
+
+
+inspectDeclaration : Node Declaration -> ThingsToChange -> ThingsToChange
+inspectDeclaration (Node r declaration) context =
+    case declaration of
+        FunctionDeclaration function ->
+            onFunction (Node r function) context
+
+        AliasDeclaration typeAlias ->
+            onTypeAlias (Node r typeAlias) context
+
+        CustomTypeDeclaration typeDecl ->
+            onType (Node r typeDecl) context
+
+        PortDeclaration _ ->
+            context
+
+        InfixDeclaration _ ->
+            context
+
+        Destructuring _ _ ->
+            -- Will never happen. Will be removed in v8
+            context
 
 
 onType : Node Type -> ThingsToChange -> ThingsToChange
@@ -84,12 +101,6 @@ onTypeAlias (Node r typeAlias) file =
 
         Nothing ->
             file
-
-
-onPort : Node Signature -> ThingsToChange -> ThingsToChange
-onPort _ file =
-    -- Implemented in v8
-    file
 
 
 onFunction : Node Function -> ThingsToChange -> ThingsToChange
