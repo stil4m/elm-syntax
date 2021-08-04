@@ -6,6 +6,7 @@ import Elm.Syntax.Expression exposing (..)
 import Elm.Syntax.File exposing (File)
 import Elm.Syntax.Node exposing (Node(..))
 import Elm.Syntax.Range exposing (Range)
+import Elm.Syntax.Signature exposing (Signature)
 import Elm.Syntax.Type exposing (Type)
 import Elm.Syntax.TypeAlias exposing (TypeAlias)
 
@@ -17,6 +18,7 @@ postProcess file =
             | onFunction = Post onFunction
             , onTypeAlias = Post onTypeAlias
             , onType = Post onType
+            , onPortDeclaration = Post onPort
         }
         file
         file
@@ -67,6 +69,12 @@ onTypeAlias (Node r typeAlias) file =
 
         Nothing ->
             file
+
+
+onPort : Node Signature -> File -> File
+onPort _ file =
+    -- Implemented in v8
+    file
 
 
 onFunction : Node Function -> File -> File
