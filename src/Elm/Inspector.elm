@@ -126,11 +126,8 @@ inspectFunction config ((Node _ function) as node) context =
 
 
 inspectSignature : Config context -> Node Signature -> context -> context
-inspectSignature config ((Node _ signature) as node) context =
-    ignoreSomething
-        (inspectTypeAnnotation config signature.typeAnnotation)
-        node
-        context
+inspectSignature config (Node _ signature) context =
+    inspectTypeAnnotation config signature.typeAnnotation context
 
 
 inspectTypeAnnotation : Config context -> Node TypeAnnotation -> context -> context
