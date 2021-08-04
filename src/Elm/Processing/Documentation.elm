@@ -94,22 +94,11 @@ onTypeAlias range typeAlias file =
 
 
 onFunction : Range -> Function -> ThingsToChange -> ThingsToChange
-onFunction functionRange function file =
-    case findDocumentationForRange functionRange file.comments of
-        Just ((Node docRange docString) as doc) ->
-            { comments =
-                file.comments
-                    |> List.filter ((/=) doc)
-            , declarations =
-                List.map
-                    (replaceDeclaration
-                        (Node functionRange (FunctionDeclaration { function | documentation = Just (Node docRange docString) }))
-                    )
-                    file.declarations
-            }
-
-        Nothing ->
-            file
+onFunction range function file =
+    foo
+        range
+        (\doc -> FunctionDeclaration { function | documentation = Just doc })
+        file
 
 
 replaceDeclaration : Node Declaration -> Node Declaration -> Node Declaration
