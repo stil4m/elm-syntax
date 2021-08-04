@@ -1,4 +1,4 @@
-module Elm.Inspector exposing (Config, Order(..), inspect)
+module Elm.Inspector exposing (Config, inspect)
 
 import Elm.Syntax.Declaration exposing (Declaration(..))
 import Elm.Syntax.Expression exposing (Case, Expression(..), Function, LetDeclaration(..))
@@ -12,23 +12,17 @@ import Elm.Syntax.TypeAlias exposing (TypeAlias)
 import Elm.Syntax.TypeAnnotation exposing (TypeAnnotation(..))
 
 
-type Order context x
-    = Post (x -> context -> context)
-
-
 type alias Config context =
-    { onFunction : Order context (Node Function)
-    , onTypeAlias : Order context (Node TypeAlias)
-    , onType : Order context (Node Type)
-    , onPortDeclaration : Order context (Node Signature)
+    { onFunction : Node Function -> context -> context
+    , onTypeAlias : Node TypeAlias -> context -> context
+    , onType : Node Type -> context -> context
+    , onPortDeclaration : Node Signature -> context -> context
     }
 
 
-actionLambda : Order config x -> (config -> config) -> x -> config -> config
-actionLambda act =
-    case act of
-        Post g ->
-            \f x c -> f c |> g x
+actionLambda : (x -> context -> context) -> (context -> context) -> x -> context -> context
+actionLambda g f x c =
+    f c |> g x
 
 
 ignoreSomething : (c -> a) -> b -> c -> a
