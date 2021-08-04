@@ -11,11 +11,11 @@
     "email": "mstijlaart@gmail.com"
   },
   "scripts": {
-    "elm:test": "elm-test",
-    "elm:validate-format": "elm-format --validate src/ tests/",
-    "elm:lint": "elm-analyse",
-    "elm:lint-server": "elm-analyse -s",
-    "elm:build": "elm make --docs=./elm-stuff/temp.json",
+    "test": "npm-run-all --print-name --silent --sequential test:make test:format test:run test:review",
+    "test:make": "elm make --docs=docs.json",
+    "test:format": "elm-format --validate src/ tests/",
+    "test:run": "elm-test",
+    "test:review": "elm-review",
     "postinstall": "elm-tooling install"
   },
   "author": "Mats Stijlaart",
