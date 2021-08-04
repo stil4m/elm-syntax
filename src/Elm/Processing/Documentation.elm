@@ -25,7 +25,11 @@ postProcess file =
                 file.declarations
                 file
     in
-    { file | declarations = changes.declarations, comments = changes.comments }
+    { moduleDefinition = file.moduleDefinition
+    , imports = file.imports
+    , declarations = changes.declarations
+    , comments = changes.comments
+    }
 
 
 onType : Node Type -> File -> File
