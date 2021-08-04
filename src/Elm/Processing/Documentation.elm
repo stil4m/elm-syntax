@@ -120,5 +120,9 @@ isDocumentationForRange range (Node commentRange commentText) =
         EQ ->
             String.startsWith "{-|" commentText
 
-        _ ->
+        LT ->
+            False
+
+        GT ->
+            -- TODO Should abort
             False
