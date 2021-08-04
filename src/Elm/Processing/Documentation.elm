@@ -116,8 +116,9 @@ findDocumentationForRange range comments previousIgnored =
 
 isDocumentationForRange : Range -> Node String -> Bool
 isDocumentationForRange range (Node commentRange commentText) =
-    if String.startsWith "{-|" commentText then
-        (commentRange.end.row + 1) == range.start.row
+    case compare (commentRange.end.row + 1) range.start.row of
+        EQ ->
+            String.startsWith "{-|" commentText
 
-    else
-        False
+        _ ->
+            False
