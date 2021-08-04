@@ -106,13 +106,8 @@ inspectTypeAlias config ((Node _ typeAlias) as pair) context =
 
 inspectDestructuring : Config context -> Node ( Node Pattern, Node Expression ) -> context -> context
 inspectDestructuring config destructuring context =
-    ignoreSomething
-        (\c ->
-            c
-                |> inspectExpression config (Tuple.second <| Node.value destructuring)
-        )
-        destructuring
-        context
+    context
+        |> inspectExpression config (Tuple.second <| Node.value destructuring)
 
 
 inspectFunction : Config context -> Node Function -> context -> context
