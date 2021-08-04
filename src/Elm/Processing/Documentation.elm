@@ -16,7 +16,7 @@ postProcess file =
         changes : ThingsToChange
         changes =
             List.foldl
-                inspectDeclaration
+                findAndAddDocumentation
                 { declarations = []
                 , unattachedComments = []
                 , remainingComments = file.comments
@@ -40,8 +40,8 @@ type alias ThingsToChange =
     }
 
 
-inspectDeclaration : Node Declaration -> ThingsToChange -> ThingsToChange
-inspectDeclaration declaration context =
+findAndAddDocumentation : Node Declaration -> ThingsToChange -> ThingsToChange
+findAndAddDocumentation declaration context =
     case Node.value declaration of
         FunctionDeclaration function ->
             addDocumentation
