@@ -3,7 +3,6 @@ module Elm.Inspector exposing (Config, inspect)
 import Elm.Syntax.Declaration exposing (Declaration(..))
 import Elm.Syntax.Expression exposing (Case, Expression(..), Function, LetDeclaration(..))
 import Elm.Syntax.File exposing (File)
-import Elm.Syntax.Import exposing (Import)
 import Elm.Syntax.Node as Node exposing (Node(..))
 import Elm.Syntax.Pattern exposing (Pattern)
 import Elm.Syntax.Signature exposing (Signature)
@@ -32,22 +31,7 @@ ignoreSomething =
 
 inspect : Config a -> File -> a -> a
 inspect config file context =
-    context
-        |> inspectImports config file.imports
-        |> inspectDeclarations config file.declarations
-
-
-inspectImports : Config context -> List (Node Import) -> context -> context
-inspectImports config imports context =
-    List.foldl (inspectImport config) context imports
-
-
-inspectImport : Config context -> Node Import -> context -> context
-inspectImport config imp context =
-    ignoreSomething
-        identity
-        imp
-        context
+    inspectDeclarations config file.declarations context
 
 
 inspectDeclarations : Config context -> List (Node Declaration) -> context -> context
