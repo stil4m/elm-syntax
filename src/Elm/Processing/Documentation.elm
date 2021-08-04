@@ -58,8 +58,8 @@ inspectDeclaration (Node range declaration) context =
             context
 
 
-foo : (Node Comment -> Declaration) -> Range -> ThingsToChange -> ThingsToChange
-foo howToUpdate range file =
+addDocumentation : (Node Comment -> Declaration) -> Range -> ThingsToChange -> ThingsToChange
+addDocumentation howToUpdate range file =
     case findDocumentationForRange range file.comments of
         Just doc ->
             { comments =
@@ -79,7 +79,7 @@ foo howToUpdate range file =
 
 onType : Range -> Type -> ThingsToChange -> ThingsToChange
 onType range customType file =
-    foo
+    addDocumentation
         (\doc -> CustomTypeDeclaration { customType | documentation = Just doc })
         range
         file
@@ -87,7 +87,7 @@ onType range customType file =
 
 onTypeAlias : Range -> TypeAlias -> ThingsToChange -> ThingsToChange
 onTypeAlias range typeAlias file =
-    foo
+    addDocumentation
         (\doc -> AliasDeclaration { typeAlias | documentation = Just doc })
         range
         file
@@ -95,7 +95,7 @@ onTypeAlias range typeAlias file =
 
 onFunction : Range -> Function -> ThingsToChange -> ThingsToChange
 onFunction range function file =
-    foo
+    addDocumentation
         (\doc -> FunctionDeclaration { function | documentation = Just doc })
         range
         file
