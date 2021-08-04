@@ -77,11 +77,7 @@ inspectValueConstructor config (Node _ valueConstructor) context =
 
 inspectTypeAlias : Config context -> Node TypeAlias -> context -> context
 inspectTypeAlias config node context =
-    actionLambda
-        config.onTypeAlias
-        identity
-        node
-        context
+    config.onTypeAlias node context
 
 
 inspectSignature : Config context -> Node Signature -> context -> context
