@@ -18,20 +18,20 @@ postProcess file =
             List.foldl
                 inspectDeclaration
                 { declarations = file.declarations
-                , comments = file.comments
+                , remainingComments = file.comments
                 }
                 file.declarations
     in
     { moduleDefinition = file.moduleDefinition
     , imports = file.imports
     , declarations = changes.declarations
-    , comments = changes.comments
+    , comments = changes.remainingComments
     }
 
 
 type alias ThingsToChange =
     { declarations : List (Node Declaration)
-    , comments : List (Node Comment)
+    , remainingComments : List (Node Comment)
     }
 
 
@@ -60,10 +60,10 @@ inspectDeclaration (Node range declaration) context =
 
 addDocumentation : (Node Comment -> Declaration) -> Range -> ThingsToChange -> ThingsToChange
 addDocumentation howToUpdate range file =
-    case findDocumentationForRange range file.comments of
+    case findDocumentationForRange range file.remainingComments of
         Just doc ->
-            { comments =
-                file.comments
+            { remainingComments =
+                file.remainingComments
                     |> List.filter ((/=) doc)
             , declarations =
                 List.map
