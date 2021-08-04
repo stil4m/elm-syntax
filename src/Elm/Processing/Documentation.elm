@@ -108,7 +108,11 @@ findDocumentationForRange range comments previousIgnored =
                 isForDeclaration =
                     case compare (commentRange.end.row + 1) range.start.row of
                         EQ ->
-                            String.startsWith "{-|" commentText
+                            if String.startsWith "{-|" commentText then
+                                True
+
+                            else
+                                False
 
                         LT ->
                             False
