@@ -2,7 +2,6 @@ module Elm.Inspector exposing (Config, inspect)
 
 import Elm.Syntax.Declaration exposing (Declaration(..))
 import Elm.Syntax.Expression exposing (Function)
-import Elm.Syntax.File exposing (File)
 import Elm.Syntax.Node exposing (Node(..))
 import Elm.Syntax.Signature exposing (Signature)
 import Elm.Syntax.Type exposing (Type)
@@ -17,9 +16,9 @@ type alias Config context =
     }
 
 
-inspect : Config a -> File -> a -> a
-inspect config file context =
-    List.foldl (inspectDeclaration config) context file.declarations
+inspect : Config a -> List (Node Declaration) -> a -> a
+inspect config declarations context =
+    List.foldl (inspectDeclaration config) context declarations
 
 
 inspectDeclaration : Config context -> Node Declaration -> context -> context

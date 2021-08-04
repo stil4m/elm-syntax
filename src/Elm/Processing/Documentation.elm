@@ -19,7 +19,7 @@ postProcess file =
         , onType = onType
         , onPortDeclaration = onPort
         }
-        file
+        file.declarations
         file
 
 
