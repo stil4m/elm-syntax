@@ -24,11 +24,6 @@ actionLambda g f x c =
     f c |> g x
 
 
-ignoreSomething : (c -> a) -> b -> c -> a
-ignoreSomething =
-    \f _ c -> f c
-
-
 inspect : Config a -> File -> a -> a
 inspect config file context =
     inspectDeclarations config file.declarations context
@@ -248,7 +243,4 @@ inspectExpression config (Node _ expression) context =
 
 inspectCase : Config context -> Case -> context -> context
 inspectCase config caze context =
-    ignoreSomething
-        (inspectExpression config (Tuple.second caze))
-        caze
-        context
+    inspectExpression config (Tuple.second caze) context
