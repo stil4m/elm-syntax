@@ -131,16 +131,8 @@ inspectSignature config (Node _ signature) context =
 
 
 inspectTypeAnnotation : Config context -> Node TypeAnnotation -> context -> context
-inspectTypeAnnotation config typeAnnotation context =
-    ignoreSomething
-        (inspectTypeAnnotationInner config typeAnnotation)
-        typeAnnotation
-        context
-
-
-inspectTypeAnnotationInner : Config context -> Node TypeAnnotation -> context -> context
-inspectTypeAnnotationInner config (Node _ typeRefence) context =
-    case typeRefence of
+inspectTypeAnnotation config (Node _ typeReference) context =
+    case typeReference of
         Typed _ typeArgs ->
             List.foldl (inspectTypeAnnotation config) context typeArgs
 
