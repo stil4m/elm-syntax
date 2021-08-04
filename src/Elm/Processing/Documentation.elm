@@ -18,6 +18,7 @@ postProcess file =
             List.foldl
                 inspectDeclaration
                 { declarations = file.declarations
+                , unattachedComments = []
                 , remainingComments = file.comments
                 }
                 file.declarations
@@ -25,12 +26,16 @@ postProcess file =
     { moduleDefinition = file.moduleDefinition
     , imports = file.imports
     , declarations = changes.declarations
-    , comments = changes.remainingComments
+    , comments =
+        (changes.remainingComments :: changes.unattachedComments)
+            |> List.reverse
+            |> List.concat
     }
 
 
 type alias ThingsToChange =
     { declarations : List (Node Declaration)
+    , unattachedComments : List (List (Node Comment))
     , remainingComments : List (Node Comment)
     }
 
@@ -62,7 +67,8 @@ addDocumentation : (Node Comment -> Declaration) -> Range -> ThingsToChange -> T
 addDocumentation howToUpdate range file =
     case findDocumentationForRange range file.remainingComments of
         Just doc ->
-            { remainingComments =
+            { unattachedComments = []
+            , remainingComments =
                 file.remainingComments
                     |> List.filter ((/=) doc)
             , declarations =
