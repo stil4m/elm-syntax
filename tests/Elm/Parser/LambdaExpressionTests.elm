@@ -1,7 +1,7 @@
 module Elm.Parser.LambdaExpressionTests exposing (all)
 
 import Elm.Parser.CombineTestUtil exposing (..)
-import Elm.Parser.Declarations as Parser exposing (..)
+import Elm.Parser.Declarations as Parser
 import Elm.Parser.State exposing (emptyState)
 import Elm.Syntax.Expression exposing (..)
 import Elm.Syntax.Node as Node exposing (Node(..))

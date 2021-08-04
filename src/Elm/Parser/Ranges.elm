@@ -1,6 +1,6 @@
 module Elm.Parser.Ranges exposing (withCurrentPoint, withRange)
 
-import Combine exposing (ParseLocation, Parser, andMap, succeed, withLocation)
+import Combine exposing (ParseLocation, Parser, succeed, withLocation)
 import Elm.Parser.State exposing (State)
 import Elm.Syntax.Range exposing (Location, Range)
 

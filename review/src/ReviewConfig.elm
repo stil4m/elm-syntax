@@ -21,4 +21,5 @@ config : List Rule
 config =
     [ NoUnused.Dependencies.rule
     , NoUnused.Modules.rule
+    , NoUnused.Variables.rule
     ]

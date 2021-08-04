@@ -2,10 +2,9 @@ module Elm.Parser.ImportsTests exposing (all)
 
 import Elm.Parser.CombineTestUtil exposing (..)
 import Elm.Parser.Imports as Parser
-import Elm.Parser.Node as Node
 import Elm.Parser.State exposing (emptyState)
 import Elm.Syntax.Exposing exposing (..)
-import Elm.Syntax.Node as Node exposing (Node(..))
+import Elm.Syntax.Node exposing (Node(..))
 import Elm.Syntax.Range exposing (..)
 import Expect
 import Test exposing (..)

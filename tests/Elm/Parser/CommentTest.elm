@@ -3,7 +3,7 @@ module Elm.Parser.CommentTest exposing (all)
 import Elm.Parser.CombineTestUtil exposing (..)
 import Elm.Parser.Comments as Parser
 import Elm.Parser.State as State exposing (emptyState)
-import Elm.Syntax.Node as Node exposing (Node(..))
+import Elm.Syntax.Node exposing (Node(..))
 import Expect
 import Test exposing (..)
 
