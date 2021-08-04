@@ -40,7 +40,7 @@ inspectDeclaration config (Node r declaration) context =
             config.onFunction (Node r function) context
 
         AliasDeclaration typeAlias ->
-            inspectTypeAlias config (Node r typeAlias) context
+            config.onTypeAlias (Node r typeAlias) context
 
         CustomTypeDeclaration typeDecl ->
             inspectType config (Node r typeDecl) context
@@ -73,11 +73,6 @@ inspectTypeInner config typeDecl context =
 inspectValueConstructor : Config context -> Node ValueConstructor -> context -> context
 inspectValueConstructor config (Node _ valueConstructor) context =
     List.foldl (inspectTypeAnnotation config) context valueConstructor.arguments
-
-
-inspectTypeAlias : Config context -> Node TypeAlias -> context -> context
-inspectTypeAlias config node context =
-    config.onTypeAlias node context
 
 
 inspectSignature : Config context -> Node Signature -> context -> context
