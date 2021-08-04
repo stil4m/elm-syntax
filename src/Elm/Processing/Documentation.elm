@@ -83,42 +83,46 @@ findAndAddDocumentation declaration context =
 
 addDocumentation : (Node Comment -> Declaration) -> Node Declaration -> ThingsToChange -> ThingsToChange
 addDocumentation howToUpdate declaration file =
-    case findDocumentationForRange (Node.range declaration) file.remainingComments [] of
-        Just ( ignored, doc, remaining ) ->
+    let
+        ( ignored, maybeDoc, remaining ) =
+            findDocumentationForRange (Node.range declaration) file.remainingComments []
+    in
+    case maybeDoc of
+        Just doc ->
             { unattachedComments = ignored :: file.unattachedComments
             , remainingComments = remaining
             , declarations = Node (Node.range declaration) (howToUpdate doc) :: file.declarations
             }
 
         Nothing ->
-            { unattachedComments = file.unattachedComments
-            , remainingComments = file.remainingComments
+            { unattachedComments = ignored :: file.unattachedComments
+            , remainingComments = remaining
             , declarations = declaration :: file.declarations
             }
 
 
-findDocumentationForRange : Range -> List (Node String) -> List (Node String) -> Maybe ( List (Node String), Node String, List (Node String) )
+findDocumentationForRange : Range -> List (Node String) -> List (Node String) -> ( List (Node String), Maybe (Node String), List (Node String) )
 findDocumentationForRange range comments previousIgnored =
     case comments of
         [] ->
-            Nothing
+            ( previousIgnored, Nothing, [] )
 
         ((Node commentRange commentText) as comment) :: restOfComments ->
             -- Since both comments and declarations are in the order that they appear in the source code,
             -- all the comments we've evaluated until now don't need to be re-evaluated when
-            -- trying the find the documentation for later declarations.
+            -- trying the find the documentation for later declarations if the current comment is later than the current declaration.
             case compare (commentRange.end.row + 1) range.start.row of
                 EQ ->
                     if String.startsWith "{-|" commentText then
-                        Just ( previousIgnored, comment, restOfComments )
+                        ( previousIgnored, Just comment, restOfComments )
 
                     else
-                        -- TODO Should abort
-                        findDocumentationForRange range restOfComments (comment :: previousIgnored)
+                        -- Aborting because the next comment can't match the next declaration
+                        ( previousIgnored, Nothing, comment :: restOfComments )
 
                 LT ->
                     findDocumentationForRange range restOfComments (comment :: previousIgnored)
 
                 GT ->
-                    -- TODO Should abort
-                    findDocumentationForRange range restOfComments (comment :: previousIgnored)
+                    -- Aborting because we went too far
+                    ( previousIgnored, Nothing, comment :: restOfComments )
