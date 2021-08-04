@@ -76,11 +76,11 @@ inspectValueConstructor config (Node _ valueConstructor) context =
 
 
 inspectTypeAlias : Config context -> Node TypeAlias -> context -> context
-inspectTypeAlias config ((Node _ typeAlias) as pair) context =
+inspectTypeAlias config node context =
     actionLambda
         config.onTypeAlias
-        (inspectTypeAnnotation config typeAlias.typeAnnotation)
-        pair
+        identity
+        node
         context
 
 
