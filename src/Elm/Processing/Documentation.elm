@@ -117,12 +117,7 @@ findDocumentationForRange range comments previousIgnored =
 isDocumentationForRange : Range -> Node String -> Bool
 isDocumentationForRange range (Node commentRange commentText) =
     if String.startsWith "{-|" commentText then
-        let
-            functionStartRow : Int
-            functionStartRow =
-                range.start.row
-        in
-        (commentRange.end.row + 1) == functionStartRow
+        (commentRange.end.row + 1) == range.start.row
 
     else
         False
