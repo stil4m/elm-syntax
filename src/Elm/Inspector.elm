@@ -162,15 +162,7 @@ inspectTypeAnnotation config (Node _ typeReference) context =
 
 
 inspectExpression : Config context -> Node Expression -> context -> context
-inspectExpression config ((Node _ expression) as node) context =
-    ignoreSomething
-        (inspectInnerExpression config expression)
-        node
-        context
-
-
-inspectInnerExpression : Config context -> Expression -> context -> context
-inspectInnerExpression config expression context =
+inspectExpression config (Node _ expression) context =
     case expression of
         UnitExpr ->
             context
