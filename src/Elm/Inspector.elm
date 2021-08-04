@@ -127,10 +127,7 @@ inspectFunction config ((Node _ function) as node) context =
 
 inspectPortDeclaration : Config context -> Node Signature -> context -> context
 inspectPortDeclaration config signature context =
-    ignoreSomething
-        (inspectSignature config signature)
-        signature
-        context
+    inspectSignature config signature context
 
 
 inspectSignature : Config context -> Node Signature -> context -> context
