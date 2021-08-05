@@ -139,10 +139,6 @@ process processContext ((Raw fileBeforeProcessing) as rawFile) =
                     _ ->
                         expression
 
-        declarationsAfterPostProcessing : List (Node Declaration)
-        declarationsAfterPostProcessing =
-            fileBeforeProcessing.declarations
-
         changes : ThingsToChange
         changes =
             List.foldl
@@ -151,7 +147,7 @@ process processContext ((Raw fileBeforeProcessing) as rawFile) =
                 , previousComments = []
                 , remainingComments = fileBeforeProcessing.comments
                 }
-                declarationsAfterPostProcessing
+                fileBeforeProcessing.declarations
     in
     { moduleDefinition = fileBeforeProcessing.moduleDefinition
     , imports = fileBeforeProcessing.imports
