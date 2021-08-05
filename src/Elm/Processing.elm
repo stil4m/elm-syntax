@@ -132,7 +132,7 @@ process processContext ((Raw file) as rawFile) =
         changes : ThingsToChange
         changes =
             List.foldl
-                (findAndAddDocumentation table)
+                (attachDocumentationAndFixOperators table)
                 { declarations = []
                 , previousComments = []
                 , remainingComments = file.comments
@@ -156,8 +156,8 @@ type alias ThingsToChange =
     }
 
 
-findAndAddDocumentation : OperatorTable -> Node Declaration -> ThingsToChange -> ThingsToChange
-findAndAddDocumentation table declaration context =
+attachDocumentationAndFixOperators : OperatorTable -> Node Declaration -> ThingsToChange -> ThingsToChange
+attachDocumentationAndFixOperators table declaration context =
     case Node.value declaration of
         FunctionDeclaration functionBeforeOperatorFix ->
             let
