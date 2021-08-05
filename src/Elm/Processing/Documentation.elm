@@ -43,24 +43,28 @@ findAndAddDocumentation declaration context =
         FunctionDeclaration function ->
             addDocumentation
                 (\doc -> FunctionDeclaration { function | documentation = Just doc })
+                identity
                 declaration
                 context
 
         AliasDeclaration typeAlias ->
             addDocumentation
                 (\doc -> AliasDeclaration { typeAlias | documentation = Just doc })
+                identity
                 declaration
                 context
 
         CustomTypeDeclaration typeDecl ->
             addDocumentation
                 (\doc -> CustomTypeDeclaration { typeDecl | documentation = Just doc })
+                identity
                 declaration
                 context
 
         PortDeclaration portDeclaration ->
             addDocumentation
                 (\doc -> PortDeclaration { signature = portDeclaration.signature, documentation = Just doc })
+                identity
                 declaration
                 context
 
@@ -71,8 +75,8 @@ findAndAddDocumentation declaration context =
             }
 
 
-addDocumentation : (Node Comment -> Declaration) -> Node Declaration -> ThingsToChange -> ThingsToChange
-addDocumentation howToUpdate declaration file =
+addDocumentation : (Node Comment -> Declaration) -> (Range -> Range) -> Node Declaration -> ThingsToChange -> ThingsToChange
+addDocumentation howToUpdate updateRange declaration file =
     let
         ( previous, maybeDoc, remaining ) =
             findDocumentationForRange (Node.range declaration) file.remainingComments []
@@ -81,7 +85,7 @@ addDocumentation howToUpdate declaration file =
         Just doc ->
             { previousComments = previous :: file.previousComments
             , remainingComments = remaining
-            , declarations = Node (Node.range declaration) (howToUpdate doc) :: file.declarations
+            , declarations = Node (updateRange (Node.range declaration)) (howToUpdate doc) :: file.declarations
             }
 
         Nothing ->
