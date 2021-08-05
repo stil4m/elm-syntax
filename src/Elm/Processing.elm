@@ -129,18 +129,20 @@ process processContext ((Raw fileBeforeProcessing) as rawFile) =
         table =
             tableForFile rawFile processContext
 
+        visitor : OperatorTable -> (Node Expression -> b) -> Node Expression -> b
+        visitor context inner expression =
+            inner <|
+                case expression of
+                    Node r (Application args) ->
+                        Node r (fixApplication context args)
+
+                    _ ->
+                        expression
+
         declarationsAfterPostProcessing : List (Node Declaration)
         declarationsAfterPostProcessing =
             visitDeclarations
-                (\context inner expression ->
-                    inner <|
-                        case expression of
-                            Node r (Application args) ->
-                                Node r (fixApplication context args)
-
-                            _ ->
-                                expression
-                )
+                visitor
                 table
                 fileBeforeProcessing.declarations
 
