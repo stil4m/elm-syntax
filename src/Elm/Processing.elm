@@ -382,25 +382,9 @@ type alias Visitor =
     (Node Expression -> Node Expression) -> Node Expression -> Node Expression
 
 
-visitDeclarations : Visitor -> List (Node Declaration) -> List (Node Declaration)
-visitDeclarations visitor declarations =
-    List.map (visitDeclaration visitor) declarations
-
-
 visitLetDeclarations : Visitor -> List (Node LetDeclaration) -> List (Node LetDeclaration)
 visitLetDeclarations visitor declarations =
     List.map (visitLetDeclaration visitor) declarations
-
-
-visitDeclaration : Visitor -> Node Declaration -> Node Declaration
-visitDeclaration visitor (Node range declaration) =
-    Node range <|
-        case declaration of
-            FunctionDeclaration function ->
-                FunctionDeclaration (visitFunctionDecl visitor function)
-
-            _ ->
-                declaration
 
 
 visitLetDeclaration : Visitor -> Node LetDeclaration -> Node LetDeclaration
