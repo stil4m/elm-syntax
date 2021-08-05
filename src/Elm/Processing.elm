@@ -90,7 +90,7 @@ addFile file (ProcessContext x) =
 -}
 addDependency : Dependency -> ProcessContext -> ProcessContext
 addDependency dep (ProcessContext x) =
-    ProcessContext (Dict.foldl (\k v d -> Dict.insert k v d) x dep.interfaces)
+    ProcessContext (Dict.union dep.interfaces x)
 
 
 entryFromRawFile : RawFile -> ( ModuleName, Interface )
