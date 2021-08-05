@@ -205,35 +205,6 @@ fileToDefinitions file =
                             Nothing
                 )
                 file.declarations
-
-        getValidOperatorInterface : Exposed -> Exposed -> Maybe Exposed
-        getValidOperatorInterface t1 t2 =
-            case ( t1, t2 ) of
-                ( Operator x, Operator y ) ->
-                    if Node.value x.precedence == 5 && Node.value x.direction == Left then
-                        Just <| Operator y
-
-                    else
-                        Just <| Operator x
-
-                _ ->
-                    Nothing
-
-        resolveGroup : List ( String, Exposed ) -> Maybe ( String, Exposed )
-        resolveGroup g =
-            case g of
-                [] ->
-                    Nothing
-
-                [ x ] ->
-                    Just x
-
-                [ ( n1, t1 ), ( _, t2 ) ] ->
-                    getValidOperatorInterface t1 t2
-                        |> Maybe.map (\a -> ( n1, a ))
-
-                _ ->
-                    Nothing
     in
     allDeclarations
         |> List.map Tuple.first
@@ -246,3 +217,34 @@ fileToDefinitions file =
                 )
             )
         |> List.filterMap (Tuple.second >> resolveGroup)
+
+
+resolveGroup : List ( String, Exposed ) -> Maybe ( String, Exposed )
+resolveGroup g =
+    case g of
+        [] ->
+            Nothing
+
+        [ x ] ->
+            Just x
+
+        [ ( n1, t1 ), ( _, t2 ) ] ->
+            getValidOperatorInterface t1 t2
+                |> Maybe.map (\a -> ( n1, a ))
+
+        _ ->
+            Nothing
+
+
+getValidOperatorInterface : Exposed -> Exposed -> Maybe Exposed
+getValidOperatorInterface t1 t2 =
+    case ( t1, t2 ) of
+        ( Operator x, Operator y ) ->
+            if Node.value x.precedence == 5 && Node.value x.direction == Left then
+                Just <| Operator y
+
+            else
+                Just <| Operator x
+
+        _ ->
+            Nothing
