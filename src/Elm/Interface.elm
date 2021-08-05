@@ -83,22 +83,22 @@ exposesAlias k interface =
 -}
 exposesFunction : String -> Interface -> Bool
 exposesFunction k interface =
-    interface
-        |> List.any
-            (\x ->
-                case x of
-                    Function l ->
-                        k == l
+    List.any
+        (\x ->
+            case x of
+                Function l ->
+                    k == l
 
-                    CustomType ( _, constructors ) ->
-                        List.member k constructors
+                CustomType ( _, constructors ) ->
+                    List.member k constructors
 
-                    Operator inf ->
-                        Node.value inf.operator == k
+                Operator inf ->
+                    Node.value inf.operator == k
 
-                    Alias _ ->
-                        False
-            )
+                Alias _ ->
+                    False
+        )
+        interface
 
 
 {-| Retrieve all operators exposed by the `Interface`
