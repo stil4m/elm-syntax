@@ -115,8 +115,8 @@ buildSingle moduleIndex imp =
                 Just module_ ->
                     module_
                         |> Interface.operators
+                        |> List.filter (\elem -> List.member (Node.value elem.operator) selectedOperators)
                         |> List.map (\x -> ( Node.value x.operator, x ))
-                        |> List.filter (Tuple.first >> (\elem -> List.member elem selectedOperators))
 
                 Nothing ->
                     []
