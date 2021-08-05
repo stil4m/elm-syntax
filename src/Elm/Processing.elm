@@ -123,12 +123,7 @@ buildSingle imp moduleIndex =
 Operator precedence and documentation will be fixed.
 -}
 process : ProcessContext -> RawFile -> File
-process processContext rawFile =
-    postProcess processContext rawFile
-
-
-postProcess : ProcessContext -> RawFile -> File
-postProcess processContext ((Raw fileBeforeProcessing) as rawFile) =
+process processContext ((Raw fileBeforeProcessing) as rawFile) =
     let
         table : OperatorTable
         table =
