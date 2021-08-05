@@ -94,18 +94,18 @@ tableForFile rawFile (ProcessContext moduleIndex) =
 
 buildSingle : ModuleIndexInner -> Import -> List ( String, Infix )
 buildSingle moduleIndex imp =
-    case imp.exposingList of
+    case Maybe.map Node.value imp.exposingList of
         Nothing ->
             []
 
-        Just (Node _ (All _)) ->
+        Just (All _) ->
             moduleIndex
                 |> Dict.get (Node.value imp.moduleName)
                 |> Maybe.withDefault []
                 |> Interface.operators
                 |> List.map (\x -> ( Node.value x.operator, x ))
 
-        Just (Node _ (Explicit l)) ->
+        Just (Explicit l) ->
             let
                 selectedOperators : List String
                 selectedOperators =
