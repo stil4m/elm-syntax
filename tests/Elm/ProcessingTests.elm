@@ -34,7 +34,7 @@ bar = 1
                     }
       , imports = []
       , declarations =
-            [ Node { start = { row = 5, column = 1 }, end = { row = 5, column = 8 } } <|
+            [ Node { start = { row = 3, column = 1 }, end = { row = 5, column = 8 } } <|
                 FunctionDeclaration
                     { documentation = Just (Node { start = { row = 3, column = 1 }, end = { row = 4, column = 3 } } "{-| The docs\n-}")
                     , signature = Nothing
@@ -69,7 +69,7 @@ bar = 1
                     }
       , imports = []
       , declarations =
-            [ Node { start = { row = 5, column = 1 }, end = { row = 6, column = 8 } } <|
+            [ Node { start = { row = 3, column = 1 }, end = { row = 6, column = 8 } } <|
                 FunctionDeclaration
                     { documentation =
                         Just <| Node { start = { row = 3, column = 1 }, end = { row = 4, column = 3 } } "{-| The docs\n-}"
@@ -226,12 +226,11 @@ type alias Foo
                     }
       , imports = []
       , declarations =
-            [ Node { start = { row = 4, column = 1 }, end = { row = 5, column = 23 } } <|
+            [ Node { start = { row = 3, column = 1 }, end = { row = 5, column = 23 } } <|
                 AliasDeclaration
                     { documentation =
                         Just <|
-                            Node { start = { row = 3, column = 1 }, end = { row = 3, column = 15 } } <|
-                                "{-| The Doc -}"
+                            Node { start = { row = 3, column = 1 }, end = { row = 3, column = 15 } } "{-| The Doc -}"
                     , name = Node { end = { column = 15, row = 4 }, start = { column = 12, row = 4 } } "Foo"
                     , generics = []
                     , typeAnnotation =
@@ -263,7 +262,7 @@ type Foo
 """
     , { comments = []
       , declarations =
-            [ Node { end = { column = 10, row = 6 }, start = { column = 1, row = 4 } }
+            [ Node { end = { column = 10, row = 6 }, start = { column = 1, row = 3 } }
                 (CustomTypeDeclaration
                     { firstConstructor =
                         Node { end = { column = 9, row = 5 }, start = { column = 6, row = 5 } }
