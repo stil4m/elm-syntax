@@ -129,16 +129,6 @@ process processContext ((Raw file) as rawFile) =
         table =
             tableForFile rawFile processContext
 
-        visitor : (Node Expression -> b) -> Node Expression -> b
-        visitor inner expression =
-            inner <|
-                case expression of
-                    Node r (Application args) ->
-                        Node r (fixApplication table args)
-
-                    _ ->
-                        expression
-
         changes : ThingsToChange
         changes =
             List.foldl
