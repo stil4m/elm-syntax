@@ -286,10 +286,10 @@ fixApplication operators expressions =
             else
                 findNextSplit ops exps
                     |> Maybe.map
-                        (\( p, infix, s ) ->
+                        (\( p, infix_, s ) ->
                             OperatorApplication
-                                (Node.value infix.operator)
-                                (Node.value infix.direction)
+                                (Node.value infix_.operator)
+                                (Node.value infix_.direction)
                                 (Node (Range.combine <| List.map Node.range p) (divideAndConquer p))
                                 (Node (Range.combine <| List.map Node.range s) (divideAndConquer s))
                         )
