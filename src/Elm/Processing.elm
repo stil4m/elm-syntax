@@ -322,6 +322,7 @@ findNextSplit dict exps =
                 |> Maybe.map Node.value
                 |> Maybe.withDefault Right
 
+        prefix : List (Node Expression)
         prefix =
             case assocDirection of
                 Left ->
@@ -345,6 +346,7 @@ findNextSplit dict exps =
                                     |> (==) Nothing
                             )
 
+        suffix : List (Node Expression)
         suffix =
             List.drop (List.length prefix + 1) exps
     in
