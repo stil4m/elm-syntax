@@ -9,7 +9,7 @@ module Elm.Interface exposing
 # Elm.Interface
 
 A type that represents the interface for an Elm module.
-You can see this as a trimmed down version for of a file that only caontains the header (`module X exposing (..)`) and some small set of additional data.
+You can see this as a trimmed down version of a file that only contains the header (`module X exposing (..)`) and some small set of additional data.
 
 
 ## Types
