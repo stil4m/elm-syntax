@@ -133,7 +133,7 @@ build (Raw file) =
 
 lookupForDefinition : String -> List ( String, Exposed ) -> Maybe Exposed
 lookupForDefinition key =
-    List.filter (Tuple.first >> (==) key) >> List.head >> Maybe.map Tuple.second
+    List.Extra.find (Tuple.first >> (==) key) >> Maybe.map Tuple.second
 
 
 buildInterfaceFromExplicit : List (Node TopLevelExpose) -> List ( String, Exposed ) -> Interface
