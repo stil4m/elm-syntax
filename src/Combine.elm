@@ -292,5 +292,5 @@ ignore dropped target =
 continueWith : Parser s a -> Parser s x -> Parser s a
 continueWith target dropped =
     dropped
-        |> map (\b a -> always a b)
+        |> map (\_ a -> a)
         |> andMap target
