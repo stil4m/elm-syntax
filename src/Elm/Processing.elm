@@ -129,11 +129,11 @@ process processContext ((Raw fileBeforeProcessing) as rawFile) =
         table =
             tableForFile rawFile processContext
     in
-    postProcess table fileBeforeProcessing
+    postProcess table rawFile
 
 
-postProcess : OperatorTable -> File -> File
-postProcess table fileBeforeProcessing =
+postProcess : OperatorTable -> RawFile -> File
+postProcess table ((Raw fileBeforeProcessing) as rawFile) =
     let
         file : File
         file =
