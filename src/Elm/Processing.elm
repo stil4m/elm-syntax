@@ -123,7 +123,7 @@ buildSingle imp moduleIndex =
 Operator precedence and documentation will be fixed.
 -}
 process : ProcessContext -> RawFile -> File
-process processContext ((Raw fileBeforeProcessing) as rawFile) =
+process processContext ((Raw file) as rawFile) =
     let
         table : OperatorTable
         table =
@@ -145,12 +145,12 @@ process processContext ((Raw fileBeforeProcessing) as rawFile) =
                 (findAndAddDocumentation visitor)
                 { declarations = []
                 , previousComments = []
-                , remainingComments = fileBeforeProcessing.comments
+                , remainingComments = file.comments
                 }
-                fileBeforeProcessing.declarations
+                file.declarations
     in
-    { moduleDefinition = fileBeforeProcessing.moduleDefinition
-    , imports = fileBeforeProcessing.imports
+    { moduleDefinition = file.moduleDefinition
+    , imports = file.imports
     , declarations = List.reverse changes.declarations
     , comments =
         (changes.remainingComments :: changes.previousComments)
