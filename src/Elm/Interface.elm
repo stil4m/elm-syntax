@@ -219,6 +219,7 @@ fileToDefinitions file =
                 _ ->
                     Nothing
 
+        resolveGroup : List ( String, Exposed ) -> Maybe ( String, Exposed )
         resolveGroup g =
             case g of
                 [] ->
