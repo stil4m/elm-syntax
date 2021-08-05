@@ -66,12 +66,13 @@ init =
 {-| Add a file to the context that may be a dependency for the file that will be processed.
 -}
 addFile : RawFile -> ProcessContext -> ProcessContext
-addFile file (ProcessContext x) =
-    let
-        ( k, v ) =
-            entryFromRawFile file
-    in
-    ProcessContext (Dict.insert k v x)
+addFile file (ProcessContext context) =
+    ProcessContext
+        (Dict.insert
+            (RawFile.moduleName file)
+            (Interface.build file)
+            context
+        )
 
 
 {-| Add a whole dependency with its modules to the context.
@@ -81,42 +82,42 @@ addDependency dep (ProcessContext x) =
     ProcessContext (Dict.foldl (\k v d -> Dict.insert k v d) x dep.interfaces)
 
 
-entryFromRawFile : RawFile -> ( ModuleName, Interface )
-entryFromRawFile ((Raw _) as rawFile) =
-    ( RawFile.moduleName rawFile, Interface.build rawFile )
-
-
 tableForFile : RawFile -> ProcessContext -> OperatorTable
 tableForFile rawFile (ProcessContext moduleIndex) =
-    List.concatMap (\a -> buildSingle a moduleIndex) (DefaultImports.defaults ++ RawFile.imports rawFile)
+    (DefaultImports.defaults ++ RawFile.imports rawFile)
+        |> List.concatMap (buildSingle moduleIndex)
+        |> List.map (\x -> ( Node.value x.operator, x ))
         |> Dict.fromList
 
 
-buildSingle : Import -> ModuleIndexInner -> List ( String, Infix )
-buildSingle imp moduleIndex =
-    case imp.exposingList of
+buildSingle : ModuleIndexInner -> Import -> List Infix
+buildSingle moduleIndex imp =
+    case Maybe.map Node.value imp.exposingList of
         Nothing ->
             []
 
-        Just (Node _ (All _)) ->
-            moduleIndex
-                |> Dict.get (Node.value imp.moduleName)
-                |> Maybe.withDefault []
-                |> Interface.operators
-                |> List.map (\x -> ( Node.value x.operator, x ))
+        Just (All _) ->
+            case Dict.get (Node.value imp.moduleName) moduleIndex of
+                Just module_ ->
+                    Interface.operators module_
 
-        Just (Node _ (Explicit l)) ->
-            let
-                selectedOperators : List String
-                selectedOperators =
-                    Exposing.operators <| List.map Node.value l
-            in
-            moduleIndex
-                |> Dict.get (Node.value imp.moduleName)
-                |> Maybe.withDefault []
-                |> Interface.operators
-                |> List.map (\x -> ( Node.value x.operator, x ))
-                |> List.filter (Tuple.first >> (\elem -> List.member elem selectedOperators))
+                Nothing ->
+                    []
+
+        Just (Explicit l) ->
+            case Dict.get (Node.value imp.moduleName) moduleIndex of
+                Just module_ ->
+                    let
+                        importedOperators : List String
+                        importedOperators =
+                            Exposing.operators <| List.map Node.value l
+                    in
+                    module_
+                        |> Interface.operators
+                        |> List.filter (\elem -> List.member (Node.value elem.operator) importedOperators)
+
+                Nothing ->
+                    []
 
 
 {-| Process a rawfile with a context.
