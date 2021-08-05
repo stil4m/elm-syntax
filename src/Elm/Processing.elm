@@ -142,7 +142,7 @@ process processContext ((Raw file) as rawFile) =
         changes : ThingsToChange
         changes =
             List.foldl
-                (findAndAddDocumentation visitor)
+                (findAndAddDocumentation table)
                 { declarations = []
                 , previousComments = []
                 , remainingComments = file.comments
@@ -166,14 +166,14 @@ type alias ThingsToChange =
     }
 
 
-findAndAddDocumentation : Visitor -> Node Declaration -> ThingsToChange -> ThingsToChange
-findAndAddDocumentation visitor declaration context =
+findAndAddDocumentation : OperatorTable -> Node Declaration -> ThingsToChange -> ThingsToChange
+findAndAddDocumentation table declaration context =
     case Node.value declaration of
         FunctionDeclaration functionBeforeOperatorFix ->
             let
                 function : Function
                 function =
-                    visitFunctionDecl visitor functionBeforeOperatorFix
+                    visitFunctionDecl table functionBeforeOperatorFix
             in
             addDocumentation
                 (\doc -> FunctionDeclaration { function | documentation = Just doc })
@@ -382,55 +382,57 @@ type alias Visitor =
     (Node Expression -> Node Expression) -> Node Expression -> Node Expression
 
 
-visitLetDeclarations : Visitor -> List (Node LetDeclaration) -> List (Node LetDeclaration)
-visitLetDeclarations visitor declarations =
-    List.map (visitLetDeclaration visitor) declarations
+visitLetDeclarations : OperatorTable -> List (Node LetDeclaration) -> List (Node LetDeclaration)
+visitLetDeclarations table declarations =
+    List.map (visitLetDeclaration table) declarations
 
 
-visitLetDeclaration : Visitor -> Node LetDeclaration -> Node LetDeclaration
-visitLetDeclaration visitor (Node range declaration) =
+visitLetDeclaration : OperatorTable -> Node LetDeclaration -> Node LetDeclaration
+visitLetDeclaration table (Node range declaration) =
     Node range <|
         case declaration of
             LetFunction function ->
-                LetFunction (visitFunctionDecl visitor function)
+                LetFunction (visitFunctionDecl table function)
 
             LetDestructuring pattern expression ->
-                LetDestructuring pattern (visitExpression visitor expression)
+                LetDestructuring pattern (visitExpression table expression)
 
 
-visitFunctionDecl : Visitor -> Function -> Function
-visitFunctionDecl visitor function =
+visitFunctionDecl : OperatorTable -> Function -> Function
+visitFunctionDecl table function =
     let
         newFunctionDeclaration : Node FunctionImplementation
         newFunctionDeclaration =
-            Node.map (visitFunctionDeclaration visitor) function.declaration
+            Node.map (visitFunctionDeclaration table) function.declaration
     in
     { function | declaration = newFunctionDeclaration }
 
 
-visitFunctionDeclaration : Visitor -> FunctionImplementation -> FunctionImplementation
-visitFunctionDeclaration visitor functionDeclaration =
+visitFunctionDeclaration : OperatorTable -> FunctionImplementation -> FunctionImplementation
+visitFunctionDeclaration table functionDeclaration =
     let
         newExpression =
-            visitExpression visitor functionDeclaration.expression
+            visitExpression table functionDeclaration.expression
     in
     { functionDeclaration | expression = newExpression }
 
 
-visitExpression : Visitor -> Node Expression -> Node Expression
-visitExpression visitor expression =
-    let
-        inner =
-            visitExpressionInner visitor
-    in
-    visitor inner expression
+visitExpression : OperatorTable -> Node Expression -> Node Expression
+visitExpression table expression =
+    visitExpressionInner table <|
+        case expression of
+            Node r (Application args) ->
+                Node r (fixApplication table args)
+
+            _ ->
+                expression
 
 
-visitExpressionInner : Visitor -> Node Expression -> Node Expression
-visitExpressionInner visitor (Node range expression) =
+visitExpressionInner : OperatorTable -> Node Expression -> Node Expression
+visitExpressionInner table (Node range expression) =
     let
         subVisit =
-            visitExpression visitor
+            visitExpression table
     in
     (\newExpr -> Node range newExpr) <|
         case expression of
@@ -458,7 +460,7 @@ visitExpressionInner visitor (Node range expression) =
 
             LetExpression letBlock ->
                 LetExpression
-                    { declarations = visitLetDeclarations visitor letBlock.declarations
+                    { declarations = visitLetDeclarations table letBlock.declarations
                     , expression = subVisit letBlock.expression
                     }
 
