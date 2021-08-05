@@ -173,7 +173,12 @@ type alias ThingsToChange =
 findAndAddDocumentation : Visitor -> Node Declaration -> ThingsToChange -> ThingsToChange
 findAndAddDocumentation visitor declaration context =
     case Node.value declaration of
-        FunctionDeclaration function ->
+        FunctionDeclaration functionBeforeOperatorFix ->
+            let
+                function : Function
+                function =
+                    visitFunctionDecl visitor functionBeforeOperatorFix
+            in
             addDocumentation
                 (\doc -> FunctionDeclaration { function | documentation = Just doc })
                 declaration
