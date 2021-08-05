@@ -138,28 +138,28 @@ lookupForDefinition key =
 
 buildInterfaceFromExplicit : List (Node TopLevelExpose) -> List ( String, Exposed ) -> Interface
 buildInterfaceFromExplicit x fileDefinitionList =
-    x
-        |> List.filterMap
-            (\(Node _ expose) ->
-                case expose of
-                    InfixExpose k ->
-                        lookupForDefinition k fileDefinitionList
+    List.filterMap
+        (\(Node _ expose) ->
+            case expose of
+                InfixExpose k ->
+                    lookupForDefinition k fileDefinitionList
 
-                    TypeOrAliasExpose s ->
-                        lookupForDefinition s fileDefinitionList
-                            |> Maybe.map (ifCustomType (\( name, _ ) -> CustomType ( name, [] )))
+                TypeOrAliasExpose s ->
+                    lookupForDefinition s fileDefinitionList
+                        |> Maybe.map (ifCustomType (\( name, _ ) -> CustomType ( name, [] )))
 
-                    FunctionExpose s ->
-                        Just <| Function s
+                FunctionExpose s ->
+                    Just <| Function s
 
-                    TypeExpose exposedType ->
-                        case exposedType.open of
-                            Nothing ->
-                                Just <| CustomType ( exposedType.name, [] )
+                TypeExpose exposedType ->
+                    case exposedType.open of
+                        Nothing ->
+                            Just <| CustomType ( exposedType.name, [] )
 
-                            Just _ ->
-                                lookupForDefinition exposedType.name fileDefinitionList
-            )
+                        Just _ ->
+                            lookupForDefinition exposedType.name fileDefinitionList
+        )
+        x
 
 
 ifCustomType : (( String, List String ) -> Exposed) -> Exposed -> Exposed
