@@ -141,7 +141,7 @@ process processContext ((Raw fileBeforeProcessing) as rawFile) =
 
         declarationsAfterPostProcessing : List (Node Declaration)
         declarationsAfterPostProcessing =
-            visitDeclarations visitor fileBeforeProcessing.declarations
+            fileBeforeProcessing.declarations
 
         changes : ThingsToChange
         changes =
