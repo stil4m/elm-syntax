@@ -129,8 +129,8 @@ process processContext ((Raw fileBeforeProcessing) as rawFile) =
         table =
             tableForFile rawFile processContext
 
-        file : File
-        file =
+        declarationsAfterPostProcessing : List (Node Declaration)
+        declarationsAfterPostProcessing =
             visit
                 (\context inner expression ->
                     inner <|
@@ -150,12 +150,12 @@ process processContext ((Raw fileBeforeProcessing) as rawFile) =
                 findAndAddDocumentation
                 { declarations = []
                 , previousComments = []
-                , remainingComments = file.comments
+                , remainingComments = fileBeforeProcessing.comments
                 }
-                file.declarations
+                declarationsAfterPostProcessing
     in
-    { moduleDefinition = file.moduleDefinition
-    , imports = file.imports
+    { moduleDefinition = fileBeforeProcessing.moduleDefinition
+    , imports = fileBeforeProcessing.imports
     , declarations = List.reverse changes.declarations
     , comments =
         (changes.remainingComments :: changes.previousComments)
@@ -380,13 +380,13 @@ type alias Visitor a =
     a -> (Node Expression -> Node Expression) -> Node Expression -> Node Expression
 
 
-visit : Visitor context -> context -> File -> File
+visit : Visitor context -> context -> File -> List (Node Declaration)
 visit visitor context file =
     let
         newDeclarations =
             visitDeclarations visitor context file.declarations
     in
-    { file | declarations = newDeclarations }
+    newDeclarations
 
 
 visitDeclarations : Visitor context -> context -> List (Node Declaration) -> List (Node Declaration)
