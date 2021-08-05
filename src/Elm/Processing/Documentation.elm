@@ -1,164 +1,126 @@
 module Elm.Processing.Documentation exposing (postProcess)
 
-import Elm.Inspector as Inspector exposing (Order(..), defaultConfig)
+import Elm.Syntax.Comments exposing (Comment)
 import Elm.Syntax.Declaration exposing (Declaration(..))
-import Elm.Syntax.Expression exposing (..)
 import Elm.Syntax.File exposing (File)
-import Elm.Syntax.Node exposing (Node(..))
-import Elm.Syntax.Port exposing (Port)
+import Elm.Syntax.Node as Node exposing (Node(..))
 import Elm.Syntax.Range as Range exposing (Range)
-import Elm.Syntax.Type exposing (Type)
-import Elm.Syntax.TypeAlias exposing (TypeAlias)
 
 
 postProcess : File -> File
 postProcess file =
-    Inspector.inspect
-        { defaultConfig
-            | onFunction = Post onFunction
-            , onTypeAlias = Post onTypeAlias
-            , onType = Post onType
-            , onPortDeclaration = Post onPort
-        }
-        file
-        file
+    let
+        changes : ThingsToChange
+        changes =
+            List.foldl
+                findAndAddDocumentation
+                { declarations = []
+                , previousComments = []
+                , remainingComments = file.comments
+                }
+                file.declarations
+    in
+    { moduleDefinition = file.moduleDefinition
+    , imports = file.imports
+    , declarations = List.reverse changes.declarations
+    , comments =
+        (changes.remainingComments :: changes.previousComments)
+            |> List.reverse
+            |> List.concat
+    }
 
 
-onType : Node Type -> File -> File
-onType (Node r customType) file =
-    case findDocumentationForRange r file.comments of
-        Just ((Node docRange docString) as doc) ->
-            { file
-                | comments =
-                    file.comments
-                        |> List.filter ((/=) doc)
-                , declarations =
-                    List.map
-                        (replaceDeclaration
-                            (Node r (CustomTypeDeclaration <| { customType | documentation = Just (Node docRange docString) }))
-                        )
-                        file.declarations
+type alias ThingsToChange =
+    { declarations : List (Node Declaration)
+    , previousComments : List (List (Node Comment))
+    , remainingComments : List (Node Comment)
+    }
+
+
+findAndAddDocumentation : Node Declaration -> ThingsToChange -> ThingsToChange
+findAndAddDocumentation declaration context =
+    case Node.value declaration of
+        FunctionDeclaration function ->
+            addDocumentation
+                (\doc -> FunctionDeclaration { function | documentation = Just doc })
+                (always (Node.range declaration))
+                declaration
+                context
+
+        AliasDeclaration typeAlias ->
+            addDocumentation
+                (\doc -> AliasDeclaration { typeAlias | documentation = Just doc })
+                (always (Node.range declaration))
+                declaration
+                context
+
+        CustomTypeDeclaration typeDecl ->
+            addDocumentation
+                (\doc -> CustomTypeDeclaration { typeDecl | documentation = Just doc })
+                (always (Node.range declaration))
+                declaration
+                context
+
+        PortDeclaration portDeclaration ->
+            addDocumentation
+                (\doc -> PortDeclaration { signature = portDeclaration.signature, documentation = Just doc })
+                (\docRange -> Range.combine [ docRange, Node.range declaration ])
+                declaration
+                context
+
+        InfixDeclaration _ ->
+            { previousComments = context.previousComments
+            , remainingComments = context.remainingComments
+            , declarations = declaration :: context.declarations
+            }
+
+
+addDocumentation : (Node Comment -> Declaration) -> (Range -> Range) -> Node Declaration -> ThingsToChange -> ThingsToChange
+addDocumentation howToUpdate updateRange declaration file =
+    let
+        ( previous, maybeDoc, remaining ) =
+            findDocumentationForRange (Node.range declaration) file.remainingComments []
+    in
+    case maybeDoc of
+        Just doc ->
+            { previousComments = previous :: file.previousComments
+            , remainingComments = remaining
+            , declarations =
+                Node
+                    (updateRange (Node.range doc))
+                    (howToUpdate doc)
+                    :: file.declarations
             }
 
         Nothing ->
-            file
-
-
-onTypeAlias : Node TypeAlias -> File -> File
-onTypeAlias (Node r typeAlias) file =
-    case findDocumentationForRange r file.comments of
-        Just ((Node docRange docString) as doc) ->
-            { file
-                | comments =
-                    file.comments
-                        |> List.filter ((/=) doc)
-                , declarations =
-                    List.map
-                        (replaceDeclaration
-                            (Node r
-                                (AliasDeclaration
-                                    { typeAlias
-                                        | documentation =
-                                            Just (Node docRange docString)
-                                    }
-                                )
-                            )
-                        )
-                        file.declarations
+            { previousComments = previous :: file.previousComments
+            , remainingComments = remaining
+            , declarations = declaration :: file.declarations
             }
 
-        Nothing ->
-            file
 
-
-onPort : Node Port -> File -> File
-onPort (Node portRange portDeclaration) file =
-    case findDocumentationForRange portRange file.comments of
-        Just ((Node docRange _) as doc) ->
-            { file
-                | comments =
-                    file.comments
-                        |> List.filter ((/=) doc)
-                , declarations =
-                    List.map
-                        (replaceDeclarationByRange portRange
-                            (Node (Range.combine [ docRange, portRange ]) <|
-                                PortDeclaration
-                                    (Port
-                                        (Just doc)
-                                        portDeclaration.signature
-                                    )
-                            )
-                        )
-                        file.declarations
-            }
-
-        Nothing ->
-            file
-
-
-onFunction : Node Function -> File -> File
-onFunction (Node functionRange function) file =
-    case findDocumentationForRange functionRange file.comments of
-        Just ((Node docRange docString) as doc) ->
-            { file
-                | comments =
-                    file.comments
-                        |> List.filter ((/=) doc)
-                , declarations =
-                    List.map
-                        (replaceDeclaration
-                            (Node functionRange (FunctionDeclaration { function | documentation = Just (Node docRange docString) }))
-                        )
-                        file.declarations
-            }
-
-        Nothing ->
-            file
-
-
-replaceDeclarationByRange : Range -> Node Declaration -> Node Declaration -> Node Declaration
-replaceDeclarationByRange targetRange newNode ((Node oldRange _) as oldNode) =
-    if targetRange == oldRange then
-        newNode
-
-    else
-        oldNode
-
-
-replaceDeclaration : Node Declaration -> Node Declaration -> Node Declaration
-replaceDeclaration (Node r1 new) (Node r2 old) =
-    Node r2
-        (if r1 == r2 then
-            new
-
-         else
-            old
-        )
-
-
-findDocumentationForRange : Range -> List (Node String) -> Maybe (Node String)
-findDocumentationForRange range comments =
+findDocumentationForRange : Range -> List (Node String) -> List (Node String) -> ( List (Node String), Maybe (Node String), List (Node String) )
+findDocumentationForRange range comments previousComments =
     case comments of
         [] ->
-            Nothing
+            ( previousComments, Nothing, [] )
 
-        comment :: restOfComments ->
-            if isDocumentationForRange range comment then
-                Just comment
+        ((Node commentRange commentText) as comment) :: restOfComments ->
+            -- Since both comments and declarations are in the order that they appear in the source code,
+            -- all the comments we've evaluated until now don't need to be re-evaluated when
+            -- trying the find the documentation for later declarations if the current comment is later than the current declaration.
+            case compare (commentRange.end.row + 1) range.start.row of
+                EQ ->
+                    if String.startsWith "{-|" commentText then
+                        ( previousComments, Just comment, restOfComments )
 
-            else
-                findDocumentationForRange range restOfComments
+                    else
+                        -- Aborting because the next comment can't match the next declaration
+                        ( previousComments, Nothing, comment :: restOfComments )
 
+                LT ->
+                    findDocumentationForRange range restOfComments (comment :: previousComments)
 
-isDocumentationForRange : Range -> Node String -> Bool
-isDocumentationForRange range (Node commentRange commentText) =
-    if String.startsWith "{-|" commentText then
-        let
-            functionStartRow =
-                range.start.row
-        in
-        (commentRange.end.row + 1) == functionStartRow
-
-    else
-        False
+                GT ->
+                    -- Aborting because we went too far
+                    ( previousComments, Nothing, comment :: restOfComments )
