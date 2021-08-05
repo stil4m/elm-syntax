@@ -146,7 +146,7 @@ process processContext ((Raw fileBeforeProcessing) as rawFile) =
         changes : ThingsToChange
         changes =
             List.foldl
-                findAndAddDocumentation
+                (findAndAddDocumentation visitor)
                 { declarations = []
                 , previousComments = []
                 , remainingComments = fileBeforeProcessing.comments
@@ -170,8 +170,8 @@ type alias ThingsToChange =
     }
 
 
-findAndAddDocumentation : Node Declaration -> ThingsToChange -> ThingsToChange
-findAndAddDocumentation declaration context =
+findAndAddDocumentation : Visitor -> Node Declaration -> ThingsToChange -> ThingsToChange
+findAndAddDocumentation visitor declaration context =
     case Node.value declaration of
         FunctionDeclaration function ->
             addDocumentation
