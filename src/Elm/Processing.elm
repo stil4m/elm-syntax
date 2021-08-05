@@ -27,8 +27,8 @@ import Elm.DefaultImports as DefaultImports
 import Elm.Dependency exposing (Dependency)
 import Elm.Interface as Interface exposing (Interface)
 import Elm.Internal.RawFile exposing (RawFile(..))
-import Elm.Processing.Documentation as Documentation
 import Elm.RawFile as RawFile
+import Elm.Syntax.Comments exposing (Comment)
 import Elm.Syntax.Declaration exposing (Declaration(..))
 import Elm.Syntax.Exposing as Exposing exposing (..)
 import Elm.Syntax.Expression exposing (..)
@@ -37,7 +37,7 @@ import Elm.Syntax.Import exposing (Import)
 import Elm.Syntax.Infix exposing (Infix, InfixDirection(..))
 import Elm.Syntax.ModuleName exposing (ModuleName)
 import Elm.Syntax.Node as Node exposing (Node(..))
-import Elm.Syntax.Range as Range
+import Elm.Syntax.Range as Range exposing (Range)
 import List
 import List.Extra as List
 
@@ -125,29 +125,128 @@ Operator precedence and documentation will be fixed.
 process : ProcessContext -> RawFile -> File
 process processContext ((Raw file) as rawFile) =
     let
+        table : OperatorTable
         table =
             tableForFile rawFile processContext
 
-        operatorFixed =
-            visit
-                (Just
-                    (\context inner expression ->
-                        inner <|
-                            case expression of
-                                Node r (Application args) ->
-                                    Node r (fixApplication context args)
-
-                                _ ->
-                                    expression
-                    )
-                )
-                table
-                file
-
-        documentationFixed =
-            Documentation.postProcess operatorFixed
+        changes : DeclarationsAndComments
+        changes =
+            List.foldl
+                (attachDocumentationAndFixOperators table)
+                { declarations = []
+                , previousComments = []
+                , remainingComments = file.comments
+                }
+                file.declarations
     in
-    documentationFixed
+    { moduleDefinition = file.moduleDefinition
+    , imports = file.imports
+    , declarations = List.reverse changes.declarations
+    , comments =
+        (changes.remainingComments :: changes.previousComments)
+            |> List.reverse
+            |> List.concat
+    }
+
+
+type alias DeclarationsAndComments =
+    { declarations : List (Node Declaration)
+    , previousComments : List (List (Node Comment))
+    , remainingComments : List (Node Comment)
+    }
+
+
+attachDocumentationAndFixOperators : OperatorTable -> Node Declaration -> DeclarationsAndComments -> DeclarationsAndComments
+attachDocumentationAndFixOperators table declaration context =
+    case Node.value declaration of
+        FunctionDeclaration functionBeforeOperatorFix ->
+            let
+                function : Function
+                function =
+                    visitFunctionDecl table functionBeforeOperatorFix
+            in
+            addDocumentation
+                (\doc -> FunctionDeclaration { function | documentation = Just doc })
+                (Node (Node.range declaration) (FunctionDeclaration function))
+                context
+
+        AliasDeclaration typeAlias ->
+            addDocumentation
+                (\doc -> AliasDeclaration { typeAlias | documentation = Just doc })
+                declaration
+                context
+
+        CustomTypeDeclaration typeDecl ->
+            addDocumentation
+                (\doc -> CustomTypeDeclaration { typeDecl | documentation = Just doc })
+                declaration
+                context
+
+        PortDeclaration _ ->
+            { previousComments = context.previousComments
+            , remainingComments = context.remainingComments
+            , declarations = declaration :: context.declarations
+            }
+
+        InfixDeclaration _ ->
+            { previousComments = context.previousComments
+            , remainingComments = context.remainingComments
+            , declarations = declaration :: context.declarations
+            }
+
+        Destructuring _ _ ->
+            -- Will never happen. Will be removed in v8
+            { previousComments = context.previousComments
+            , remainingComments = context.remainingComments
+            , declarations = declaration :: context.declarations
+            }
+
+
+addDocumentation : (Node Comment -> Declaration) -> Node Declaration -> DeclarationsAndComments -> DeclarationsAndComments
+addDocumentation howToUpdate declaration file =
+    let
+        ( previous, maybeDoc, remaining ) =
+            findDocumentationForRange (Node.range declaration) file.remainingComments []
+    in
+    case maybeDoc of
+        Just doc ->
+            { previousComments = previous :: file.previousComments
+            , remainingComments = remaining
+            , declarations = Node (Node.range declaration) (howToUpdate doc) :: file.declarations
+            }
+
+        Nothing ->
+            { previousComments = previous :: file.previousComments
+            , remainingComments = remaining
+            , declarations = declaration :: file.declarations
+            }
+
+
+findDocumentationForRange : Range -> List (Node String) -> List (Node String) -> ( List (Node String), Maybe (Node String), List (Node String) )
+findDocumentationForRange range comments previousComments =
+    case comments of
+        [] ->
+            ( previousComments, Nothing, [] )
+
+        ((Node commentRange commentText) as comment) :: restOfComments ->
+            -- Since both comments and declarations are in the order that they appear in the source code,
+            -- all the comments we've evaluated until now don't need to be re-evaluated when
+            -- trying the find the documentation for later declarations if the current comment is later than the current declaration.
+            case compare (commentRange.end.row + 1) range.start.row of
+                EQ ->
+                    if String.startsWith "{-|" commentText then
+                        ( previousComments, Just comment, restOfComments )
+
+                    else
+                        -- Aborting because the next comment can't match the next declaration
+                        ( previousComments, Nothing, comment :: restOfComments )
+
+                LT ->
+                    findDocumentationForRange range restOfComments (comment :: previousComments)
+
+                GT ->
+                    -- Aborting because we went too far
+                    ( previousComments, Nothing, comment :: restOfComments )
 
 
 fixApplication : OperatorTable -> List (Node Expression) -> Expression
@@ -187,10 +286,10 @@ fixApplication operators expressions =
             else
                 findNextSplit ops exps
                     |> Maybe.map
-                        (\( p, infix, s ) ->
+                        (\( p, infix_, s ) ->
                             OperatorApplication
-                                (Node.value infix.operator)
-                                (Node.value infix.direction)
+                                (Node.value infix_.operator)
+                                (Node.value infix_.direction)
                                 (Node (Range.combine <| List.map Node.range p) (divideAndConquer p))
                                 (Node (Range.combine <| List.map Node.range s) (divideAndConquer s))
                         )
@@ -213,6 +312,7 @@ findNextSplit dict exps =
                 |> Maybe.map Node.value
                 |> Maybe.withDefault Right
 
+        prefix : List (Node Expression)
         prefix =
             case assocDirection of
                 Left ->
@@ -236,6 +336,7 @@ findNextSplit dict exps =
                                     |> (==) Nothing
                             )
 
+        suffix : List (Node Expression)
         suffix =
             List.drop (List.length prefix + 1) exps
     in
@@ -267,137 +368,109 @@ expressionOperators (Node _ expression) =
             Nothing
 
 
-type alias Visitor a =
-    Maybe (a -> (Node Expression -> Node Expression) -> Node Expression -> Node Expression)
+type alias Visitor =
+    (Node Expression -> Node Expression) -> Node Expression -> Node Expression
 
 
-visit : Visitor context -> context -> File -> File
-visit visitor context file =
-    let
-        newDeclarations =
-            visitDeclarations visitor context file.declarations
-    in
-    { file | declarations = newDeclarations }
+visitLetDeclarations : OperatorTable -> List (Node LetDeclaration) -> List (Node LetDeclaration)
+visitLetDeclarations table declarations =
+    List.map (visitLetDeclaration table) declarations
 
 
-visitDeclarations : Visitor context -> context -> List (Node Declaration) -> List (Node Declaration)
-visitDeclarations visitor context declarations =
-    List.map (visitDeclaration visitor context) declarations
-
-
-visitLetDeclarations : Visitor context -> context -> List (Node LetDeclaration) -> List (Node LetDeclaration)
-visitLetDeclarations visitor context declarations =
-    List.map (visitLetDeclaration visitor context) declarations
-
-
-visitDeclaration : Visitor context -> context -> Node Declaration -> Node Declaration
-visitDeclaration visitor context (Node range declaration) =
-    Node range <|
-        case declaration of
-            FunctionDeclaration function ->
-                FunctionDeclaration (visitFunctionDecl visitor context function)
-
-            _ ->
-                declaration
-
-
-visitLetDeclaration : Visitor context -> context -> Node LetDeclaration -> Node LetDeclaration
-visitLetDeclaration visitor context (Node range declaration) =
+visitLetDeclaration : OperatorTable -> Node LetDeclaration -> Node LetDeclaration
+visitLetDeclaration table (Node range declaration) =
     Node range <|
         case declaration of
             LetFunction function ->
-                LetFunction (visitFunctionDecl visitor context function)
+                LetFunction (visitFunctionDecl table function)
 
             LetDestructuring pattern expression ->
-                LetDestructuring pattern (visitExpression visitor context expression)
+                LetDestructuring pattern (visitExpression table expression)
 
 
-visitFunctionDecl : Visitor context -> context -> Function -> Function
-visitFunctionDecl visitor context function =
+visitFunctionDecl : OperatorTable -> Function -> Function
+visitFunctionDecl table function =
     let
+        newFunctionDeclaration : Node FunctionImplementation
         newFunctionDeclaration =
-            Node.map (visitFunctionDeclaration visitor context) function.declaration
+            Node.map (visitFunctionDeclaration table) function.declaration
     in
     { function | declaration = newFunctionDeclaration }
 
 
-visitFunctionDeclaration : Visitor context -> context -> FunctionImplementation -> FunctionImplementation
-visitFunctionDeclaration visitor context functionDeclaration =
+visitFunctionDeclaration : OperatorTable -> FunctionImplementation -> FunctionImplementation
+visitFunctionDeclaration table functionDeclaration =
     let
+        newExpression : Node Expression
         newExpression =
-            visitExpression visitor context functionDeclaration.expression
+            visitExpression table functionDeclaration.expression
     in
     { functionDeclaration | expression = newExpression }
 
 
-visitExpression : Visitor context -> context -> Node Expression -> Node Expression
-visitExpression visitor context expression =
-    let
-        inner =
-            visitExpressionInner visitor context
-    in
-    (visitor |> Maybe.withDefault (\_ nest expr -> nest expr))
-        context
-        inner
-        expression
+visitExpression : OperatorTable -> Node Expression -> Node Expression
+visitExpression table expression =
+    visitExpressionInner table <|
+        case expression of
+            Node r (Application args) ->
+                Node r (fixApplication table args)
+
+            _ ->
+                expression
 
 
-visitExpressionInner : Visitor context -> context -> Node Expression -> Node Expression
-visitExpressionInner visitor context (Node range expression) =
-    let
-        subVisit =
-            visitExpression visitor context
-    in
-    (\newExpr -> Node range newExpr) <|
+visitExpressionInner : OperatorTable -> Node Expression -> Node Expression
+visitExpressionInner table (Node range expression) =
+    Node range <|
         case expression of
             Application expressionList ->
                 expressionList
-                    |> List.map subVisit
+                    |> List.map (visitExpression table)
                     |> Application
 
             OperatorApplication op dir left right ->
                 OperatorApplication op
                     dir
-                    (subVisit left)
-                    (subVisit right)
+                    (visitExpression table left)
+                    (visitExpression table right)
 
             IfBlock e1 e2 e3 ->
-                IfBlock (subVisit e1) (subVisit e2) (subVisit e3)
+                IfBlock (visitExpression table e1) (visitExpression table e2) (visitExpression table e3)
 
             TupledExpression expressionList ->
                 expressionList
-                    |> List.map subVisit
+                    |> List.map (visitExpression table)
                     |> TupledExpression
 
             ParenthesizedExpression expr1 ->
-                ParenthesizedExpression (subVisit expr1)
+                ParenthesizedExpression (visitExpression table expr1)
 
             LetExpression letBlock ->
                 LetExpression
-                    { declarations = visitLetDeclarations visitor context letBlock.declarations
-                    , expression = subVisit letBlock.expression
+                    { declarations = visitLetDeclarations table letBlock.declarations
+                    , expression = visitExpression table letBlock.expression
                     }
 
             CaseExpression caseBlock ->
                 CaseExpression
-                    { expression = subVisit caseBlock.expression
-                    , cases = List.map (Tuple.mapSecond subVisit) caseBlock.cases
+                    { expression = visitExpression table caseBlock.expression
+                    , cases = List.map (Tuple.mapSecond (visitExpression table)) caseBlock.cases
                     }
 
             LambdaExpression lambda ->
-                LambdaExpression <| { lambda | expression = subVisit lambda.expression }
+                LambdaExpression <| { lambda | expression = visitExpression table lambda.expression }
 
             RecordExpr expressionStringList ->
                 expressionStringList
-                    |> List.map (Node.map (Tuple.mapSecond subVisit))
+                    |> List.map (Node.map (Tuple.mapSecond (visitExpression table)))
                     |> RecordExpr
 
             ListExpr expressionList ->
-                ListExpr (List.map subVisit expressionList)
+                ListExpr (List.map (visitExpression table) expressionList)
 
             RecordUpdateExpression name updates ->
                 updates
-                    |> List.map (Node.map (Tuple.mapSecond subVisit))
+                    |> List.map (Node.map (Tuple.mapSecond (visitExpression table)))
                     |> RecordUpdateExpression name
 
             _ ->
