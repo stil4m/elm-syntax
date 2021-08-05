@@ -421,7 +421,7 @@ visitExpression table expression =
 
 visitExpressionInner : OperatorTable -> Node Expression -> Node Expression
 visitExpressionInner table (Node range expression) =
-    (\newExpr -> Node range newExpr) <|
+    Node range <|
         case expression of
             Application expressionList ->
                 expressionList
