@@ -129,7 +129,7 @@ process processContext ((Raw file) as rawFile) =
         table =
             tableForFile rawFile processContext
 
-        changes : ThingsToChange
+        changes : DeclarationsAndComments
         changes =
             List.foldl
                 (attachDocumentationAndFixOperators table)
@@ -149,14 +149,14 @@ process processContext ((Raw file) as rawFile) =
     }
 
 
-type alias ThingsToChange =
+type alias DeclarationsAndComments =
     { declarations : List (Node Declaration)
     , previousComments : List (List (Node Comment))
     , remainingComments : List (Node Comment)
     }
 
 
-attachDocumentationAndFixOperators : OperatorTable -> Node Declaration -> ThingsToChange -> ThingsToChange
+attachDocumentationAndFixOperators : OperatorTable -> Node Declaration -> DeclarationsAndComments -> DeclarationsAndComments
 attachDocumentationAndFixOperators table declaration context =
     case Node.value declaration of
         FunctionDeclaration functionBeforeOperatorFix ->
@@ -202,7 +202,7 @@ attachDocumentationAndFixOperators table declaration context =
             }
 
 
-addDocumentation : (Node Comment -> Declaration) -> Node Declaration -> ThingsToChange -> ThingsToChange
+addDocumentation : (Node Comment -> Declaration) -> Node Declaration -> DeclarationsAndComments -> DeclarationsAndComments
 addDocumentation howToUpdate declaration file =
     let
         ( previous, maybeDoc, remaining ) =
