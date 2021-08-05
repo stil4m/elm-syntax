@@ -23,6 +23,7 @@ You can see this as a trimmed down version of a file that only contains the head
 
 -}
 
+import Dict exposing (Dict)
 import Elm.Internal.RawFile exposing (RawFile(..))
 import Elm.Syntax.Declaration exposing (Declaration(..))
 import Elm.Syntax.Exposing exposing (Exposing(..), TopLevelExpose(..))
@@ -125,27 +126,22 @@ build (Raw file) =
     in
     case Module.exposingList (Node.value file.moduleDefinition) of
         Explicit x ->
-            buildInterfaceFromExplicit x fileDefinitionList
+            buildInterfaceFromExplicit x (Dict.fromList fileDefinitionList)
 
         All _ ->
             List.map Tuple.second fileDefinitionList
 
 
-lookupForDefinition : String -> List ( String, Exposed ) -> Maybe Exposed
-lookupForDefinition key =
-    List.Extra.find (Tuple.first >> (==) key) >> Maybe.map Tuple.second
-
-
-buildInterfaceFromExplicit : List (Node TopLevelExpose) -> List ( String, Exposed ) -> Interface
-buildInterfaceFromExplicit x fileDefinitionList =
+buildInterfaceFromExplicit : List (Node TopLevelExpose) -> Dict String Exposed -> Interface
+buildInterfaceFromExplicit x fileDefinitionDict =
     List.filterMap
         (\(Node _ expose) ->
             case expose of
                 InfixExpose k ->
-                    lookupForDefinition k fileDefinitionList
+                    Dict.get k fileDefinitionDict
 
                 TypeOrAliasExpose s ->
-                    lookupForDefinition s fileDefinitionList
+                    Dict.get s fileDefinitionDict
                         |> Maybe.map (ifCustomType (\( name, _ ) -> CustomType ( name, [] )))
 
                 FunctionExpose s ->
@@ -157,7 +153,7 @@ buildInterfaceFromExplicit x fileDefinitionList =
                             Just <| CustomType ( exposedType.name, [] )
 
                         Just _ ->
-                            lookupForDefinition exposedType.name fileDefinitionList
+                            Dict.get exposedType.name fileDefinitionDict
         )
         x
 
