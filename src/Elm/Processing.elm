@@ -109,13 +109,13 @@ buildSingle moduleIndex imp =
                     []
 
         Just (Explicit l) ->
-            let
-                selectedOperators : List String
-                selectedOperators =
-                    Exposing.operators <| List.map Node.value l
-            in
             case Dict.get (Node.value imp.moduleName) moduleIndex of
                 Just module_ ->
+                    let
+                        selectedOperators : List String
+                        selectedOperators =
+                            Exposing.operators <| List.map Node.value l
+                    in
                     module_
                         |> Interface.operators
                         |> List.filter (\elem -> List.member (Node.value elem.operator) selectedOperators)
