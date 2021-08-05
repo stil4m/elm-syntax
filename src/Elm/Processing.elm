@@ -107,6 +107,7 @@ buildSingle imp moduleIndex =
 
         Just (Node _ (Explicit l)) ->
             let
+                selectedOperators : List String
                 selectedOperators =
                     Exposing.operators <| List.map Node.value l
             in
