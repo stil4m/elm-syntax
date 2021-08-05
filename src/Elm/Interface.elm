@@ -133,15 +133,15 @@ build (Raw file) =
 
 
 buildInterfaceFromExplicit : List (Node TopLevelExpose) -> Dict String Exposed -> Interface
-buildInterfaceFromExplicit x fileDefinitionDict =
+buildInterfaceFromExplicit x exposedDict =
     List.filterMap
         (\(Node _ expose) ->
             case expose of
                 InfixExpose k ->
-                    Dict.get k fileDefinitionDict
+                    Dict.get k exposedDict
 
                 TypeOrAliasExpose s ->
-                    Dict.get s fileDefinitionDict
+                    Dict.get s exposedDict
                         |> Maybe.map (ifCustomType (\( name, _ ) -> CustomType ( name, [] )))
 
                 FunctionExpose s ->
@@ -153,7 +153,7 @@ buildInterfaceFromExplicit x fileDefinitionDict =
                             Just <| CustomType ( exposedType.name, [] )
 
                         Just _ ->
-                            Dict.get exposedType.name fileDefinitionDict
+                            Dict.get exposedType.name exposedDict
         )
         x
 
