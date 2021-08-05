@@ -104,10 +104,10 @@ exposesFunction k interface =
 operators : Interface -> List Infix
 operators =
     List.filterMap
-        (\i ->
-            case i of
-                Operator o ->
-                    Just o
+        (\interface ->
+            case interface of
+                Operator operator ->
+                    Just operator
 
                 _ ->
                     Nothing
