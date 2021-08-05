@@ -125,10 +125,22 @@ Operator precedence and documentation will be fixed.
 process : ProcessContext -> RawFile -> File
 process processContext ((Raw file) as rawFile) =
     let
+        table : OperatorTable
         table =
             tableForFile rawFile processContext
 
-        operatorFixed =
+        documentationFixed : File
+        documentationFixed =
+            postProcess table file
+    in
+    documentationFixed
+
+
+postProcess : OperatorTable -> File -> File
+postProcess table fileBeforeProcessing =
+    let
+        file : File
+        file =
             visit
                 (\context inner expression ->
                     inner <|
@@ -140,17 +152,8 @@ process processContext ((Raw file) as rawFile) =
                                 expression
                 )
                 table
-                file
+                fileBeforeProcessing
 
-        documentationFixed =
-            postProcess operatorFixed
-    in
-    documentationFixed
-
-
-postProcess : File -> File
-postProcess file =
-    let
         changes : ThingsToChange
         changes =
             List.foldl
