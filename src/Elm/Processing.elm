@@ -86,7 +86,7 @@ addFile file (ProcessContext x) =
     ProcessContext (Dict.insert k v x)
 
 
-{-| Add a whole depenency with its modules to the context.
+{-| Add a whole dependency with its modules to the context.
 -}
 addDependency : Dependency -> ProcessContext -> ProcessContext
 addDependency dep (ProcessContext x) =
