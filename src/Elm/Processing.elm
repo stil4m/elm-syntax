@@ -401,6 +401,7 @@ visitLetDeclaration visitor (Node range declaration) =
 visitFunctionDecl : Visitor -> Function -> Function
 visitFunctionDecl visitor function =
     let
+        newFunctionDeclaration : Node FunctionImplementation
         newFunctionDeclaration =
             Node.map (visitFunctionDeclaration visitor) function.declaration
     in
