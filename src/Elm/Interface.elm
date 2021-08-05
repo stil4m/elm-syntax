@@ -173,35 +173,35 @@ fileToDefinitions file =
     let
         allDeclarations : List ( String, Exposed )
         allDeclarations =
-            file.declarations
-                |> List.filterMap
-                    (\(Node _ decl) ->
-                        case decl of
-                            CustomTypeDeclaration t ->
-                                Just ( Node.value t.name, CustomType ( Node.value t.name, t.constructors |> List.map (Node.value >> .name >> Node.value) ) )
+            List.filterMap
+                (\(Node _ decl) ->
+                    case decl of
+                        CustomTypeDeclaration t ->
+                            Just ( Node.value t.name, CustomType ( Node.value t.name, t.constructors |> List.map (Node.value >> .name >> Node.value) ) )
 
-                            AliasDeclaration a ->
-                                Just ( Node.value a.name, Alias <| Node.value a.name )
+                        AliasDeclaration a ->
+                            Just ( Node.value a.name, Alias <| Node.value a.name )
 
-                            PortDeclaration p ->
-                                Just ( Node.value p.name, Function (Node.value p.name) )
+                        PortDeclaration p ->
+                            Just ( Node.value p.name, Function (Node.value p.name) )
 
-                            FunctionDeclaration f ->
-                                let
-                                    declaration =
-                                        Node.value f.declaration
+                        FunctionDeclaration f ->
+                            let
+                                declaration =
+                                    Node.value f.declaration
 
-                                    name =
-                                        Node.value declaration.name
-                                in
-                                Just ( name, Function <| name )
+                                name =
+                                    Node.value declaration.name
+                            in
+                            Just ( name, Function <| name )
 
-                            InfixDeclaration i ->
-                                Just ( Node.value i.operator, Operator i )
+                        InfixDeclaration i ->
+                            Just ( Node.value i.operator, Operator i )
 
-                            Destructuring _ _ ->
-                                Nothing
-                    )
+                        Destructuring _ _ ->
+                            Nothing
+                )
+                file.declarations
 
         getValidOperatorInterface : Exposed -> Exposed -> Maybe Exposed
         getValidOperatorInterface t1 t2 =
