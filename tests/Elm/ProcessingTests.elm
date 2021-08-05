@@ -461,11 +461,11 @@ bar = -(1 * 2)
                                         (Node { end = { column = 15, row = 3 }, start = { column = 8, row = 3 } }
                                             (ParenthesizedExpression
                                                 (Node { end = { column = 14, row = 3 }, start = { column = 9, row = 3 } }
-                                                    (Application
-                                                        [ Node { end = { column = 10, row = 3 }, start = { column = 9, row = 3 } } (Integer 1)
-                                                        , Node { end = { column = 12, row = 3 }, start = { column = 11, row = 3 } } (Operator "*")
-                                                        , Node { end = { column = 14, row = 3 }, start = { column = 13, row = 3 } } (Integer 2)
-                                                        ]
+                                                    (OperatorApplication
+                                                        "*"
+                                                        Left
+                                                        (Node { end = { column = 10, row = 3 }, start = { column = 9, row = 3 } } (Integer 1))
+                                                        (Node { end = { column = 14, row = 3 }, start = { column = 13, row = 3 } } (Integer 2))
                                                     )
                                                 )
                                             )
@@ -510,11 +510,11 @@ bar = (1 * 2).x
                                         (Node { end = { column = 14, row = 3 }, start = { column = 7, row = 3 } }
                                             (ParenthesizedExpression
                                                 (Node { end = { column = 13, row = 3 }, start = { column = 8, row = 3 } }
-                                                    (Application
-                                                        [ Node { end = { column = 9, row = 3 }, start = { column = 8, row = 3 } } (Integer 1)
-                                                        , Node { end = { column = 11, row = 3 }, start = { column = 10, row = 3 } } (Operator "*")
-                                                        , Node { end = { column = 13, row = 3 }, start = { column = 12, row = 3 } } (Integer 2)
-                                                        ]
+                                                    (OperatorApplication
+                                                        "*"
+                                                        Left
+                                                        (Node { end = { column = 9, row = 3 }, start = { column = 8, row = 3 } } (Integer 1))
+                                                        (Node { end = { column = 13, row = 3 }, start = { column = 12, row = 3 } } (Integer 2))
                                                     )
                                                 )
                                             )
