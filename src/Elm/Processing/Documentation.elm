@@ -4,7 +4,7 @@ import Elm.Syntax.Comments exposing (Comment)
 import Elm.Syntax.Declaration exposing (Declaration(..))
 import Elm.Syntax.File exposing (File)
 import Elm.Syntax.Node as Node exposing (Node(..))
-import Elm.Syntax.Range exposing (Range)
+import Elm.Syntax.Range as Range exposing (Range)
 
 
 postProcess : File -> File
@@ -43,28 +43,28 @@ findAndAddDocumentation declaration context =
         FunctionDeclaration function ->
             addDocumentation
                 (\doc -> FunctionDeclaration { function | documentation = Just doc })
-                identity
+                (always (Node.range declaration))
                 declaration
                 context
 
         AliasDeclaration typeAlias ->
             addDocumentation
                 (\doc -> AliasDeclaration { typeAlias | documentation = Just doc })
-                identity
+                (always (Node.range declaration))
                 declaration
                 context
 
         CustomTypeDeclaration typeDecl ->
             addDocumentation
                 (\doc -> CustomTypeDeclaration { typeDecl | documentation = Just doc })
-                identity
+                (always (Node.range declaration))
                 declaration
                 context
 
         PortDeclaration portDeclaration ->
             addDocumentation
                 (\doc -> PortDeclaration { signature = portDeclaration.signature, documentation = Just doc })
-                identity
+                (\docRange -> Range.combine [ docRange, Node.range declaration ])
                 declaration
                 context
 
@@ -85,7 +85,11 @@ addDocumentation howToUpdate updateRange declaration file =
         Just doc ->
             { previousComments = previous :: file.previousComments
             , remainingComments = remaining
-            , declarations = Node (updateRange (Node.range declaration)) (howToUpdate doc) :: file.declarations
+            , declarations =
+                Node
+                    (updateRange (Node.range doc))
+                    (howToUpdate doc)
+                    :: file.declarations
             }
 
         Nothing ->
