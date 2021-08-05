@@ -111,12 +111,15 @@ buildSingle moduleIndex imp =
                 selectedOperators =
                     Exposing.operators <| List.map Node.value l
             in
-            moduleIndex
-                |> Dict.get (Node.value imp.moduleName)
-                |> Maybe.withDefault []
-                |> Interface.operators
-                |> List.map (\x -> ( Node.value x.operator, x ))
-                |> List.filter (Tuple.first >> (\elem -> List.member elem selectedOperators))
+            case Dict.get (Node.value imp.moduleName) moduleIndex of
+                Just module_ ->
+                    module_
+                        |> Interface.operators
+                        |> List.map (\x -> ( Node.value x.operator, x ))
+                        |> List.filter (Tuple.first >> (\elem -> List.member elem selectedOperators))
+
+                Nothing ->
+                    []
 
 
 {-| Process a rawfile with a context.
