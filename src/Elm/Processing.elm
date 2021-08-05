@@ -123,7 +123,7 @@ buildSingle imp moduleIndex =
 Operator precedence and documentation will be fixed.
 -}
 process : ProcessContext -> RawFile -> File
-process processContext ((Raw file) as rawFile) =
+process processContext ((Raw fileBeforeProcessing) as rawFile) =
     let
         table : OperatorTable
         table =
@@ -131,7 +131,7 @@ process processContext ((Raw file) as rawFile) =
 
         documentationFixed : File
         documentationFixed =
-            postProcess table file
+            postProcess table fileBeforeProcessing
     in
     documentationFixed
 
