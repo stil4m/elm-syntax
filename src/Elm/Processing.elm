@@ -89,10 +89,11 @@ entryFromRawFile rawFile =
 tableForFile : RawFile -> ProcessContext -> OperatorTable
 tableForFile rawFile (ProcessContext moduleIndex) =
     List.concatMap (buildSingle moduleIndex) (DefaultImports.defaults ++ RawFile.imports rawFile)
+        |> List.map (\x -> ( Node.value x.operator, x ))
         |> Dict.fromList
 
 
-buildSingle : ModuleIndexInner -> Import -> List ( String, Infix )
+buildSingle : ModuleIndexInner -> Import -> List Infix
 buildSingle moduleIndex imp =
     case Maybe.map Node.value imp.exposingList of
         Nothing ->
@@ -103,7 +104,6 @@ buildSingle moduleIndex imp =
                 Just module_ ->
                     module_
                         |> Interface.operators
-                        |> List.map (\x -> ( Node.value x.operator, x ))
 
                 Nothing ->
                     []
@@ -119,7 +119,6 @@ buildSingle moduleIndex imp =
                     module_
                         |> Interface.operators
                         |> List.filter (\elem -> List.member (Node.value elem.operator) selectedOperators)
-                        |> List.map (\x -> ( Node.value x.operator, x ))
 
                 Nothing ->
                     []
