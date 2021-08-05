@@ -61,16 +61,16 @@ type Exposed
 -}
 exposesAlias : String -> Interface -> Bool
 exposesAlias k interface =
-    interface
-        |> List.any
-            (\x ->
-                case x of
-                    Alias l ->
-                        k == l
+    List.any
+        (\x ->
+            case x of
+                Alias l ->
+                    k == l
 
-                    _ ->
-                        False
-            )
+                _ ->
+                    False
+        )
+        interface
 
 
 {-| Check whether an `Interface` exposes an function.
