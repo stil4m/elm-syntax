@@ -128,12 +128,8 @@ process processContext ((Raw fileBeforeProcessing) as rawFile) =
         table : OperatorTable
         table =
             tableForFile rawFile processContext
-
-        documentationFixed : File
-        documentationFixed =
-            postProcess table fileBeforeProcessing
     in
-    documentationFixed
+    postProcess table fileBeforeProcessing
 
 
 postProcess : OperatorTable -> File -> File
