@@ -171,6 +171,7 @@ ifCustomType f i =
 fileToDefinitions : File -> List ( String, Exposed )
 fileToDefinitions file =
     let
+        allDeclarations : List ( String, Exposed )
         allDeclarations =
             file.declarations
                 |> List.filterMap
