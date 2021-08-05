@@ -142,7 +142,7 @@ process processContext ((Raw fileBeforeProcessing) as rawFile) =
         declarationsAfterPostProcessing : List (Node Declaration)
         declarationsAfterPostProcessing =
             visitDeclarations
-                (\_ -> visitor)
+                visitor
                 table
                 fileBeforeProcessing.declarations
 
@@ -381,7 +381,7 @@ expressionOperators (Node _ expression) =
 
 
 type alias Visitor =
-    OperatorTable -> (Node Expression -> Node Expression) -> Node Expression -> Node Expression
+    (Node Expression -> Node Expression) -> Node Expression -> Node Expression
 
 
 visitDeclarations : Visitor -> OperatorTable -> List (Node Declaration) -> List (Node Declaration)
@@ -440,10 +440,7 @@ visitExpression visitor context expression =
         inner =
             visitExpressionInner visitor context
     in
-    visitor
-        context
-        inner
-        expression
+    visitor inner expression
 
 
 visitExpressionInner : Visitor -> OperatorTable -> Node Expression -> Node Expression
