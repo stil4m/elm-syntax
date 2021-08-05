@@ -112,13 +112,13 @@ buildSingle moduleIndex imp =
             case Dict.get (Node.value imp.moduleName) moduleIndex of
                 Just module_ ->
                     let
-                        selectedOperators : List String
-                        selectedOperators =
+                        importedOperators : List String
+                        importedOperators =
                             Exposing.operators <| List.map Node.value l
                     in
                     module_
                         |> Interface.operators
-                        |> List.filter (\elem -> List.member (Node.value elem.operator) selectedOperators)
+                        |> List.filter (\elem -> List.member (Node.value elem.operator) importedOperators)
 
                 Nothing ->
                     []
