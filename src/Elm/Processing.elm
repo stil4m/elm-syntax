@@ -88,12 +88,12 @@ entryFromRawFile rawFile =
 
 tableForFile : RawFile -> ProcessContext -> OperatorTable
 tableForFile rawFile (ProcessContext moduleIndex) =
-    List.concatMap (\a -> buildSingle a moduleIndex) (DefaultImports.defaults ++ RawFile.imports rawFile)
+    List.concatMap (buildSingle moduleIndex) (DefaultImports.defaults ++ RawFile.imports rawFile)
         |> Dict.fromList
 
 
-buildSingle : Import -> ModuleIndexInner -> List ( String, Infix )
-buildSingle imp moduleIndex =
+buildSingle : ModuleIndexInner -> Import -> List ( String, Infix )
+buildSingle moduleIndex imp =
     case imp.exposingList of
         Nothing ->
             []
