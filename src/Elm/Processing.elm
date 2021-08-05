@@ -99,11 +99,14 @@ buildSingle moduleIndex imp =
             []
 
         Just (All _) ->
-            moduleIndex
-                |> Dict.get (Node.value imp.moduleName)
-                |> Maybe.withDefault []
-                |> Interface.operators
-                |> List.map (\x -> ( Node.value x.operator, x ))
+            case Dict.get (Node.value imp.moduleName) moduleIndex of
+                Just module_ ->
+                    module_
+                        |> Interface.operators
+                        |> List.map (\x -> ( Node.value x.operator, x ))
+
+                Nothing ->
+                    []
 
         Just (Explicit l) ->
             let
