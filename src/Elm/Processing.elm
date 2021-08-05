@@ -88,7 +88,8 @@ entryFromRawFile rawFile =
 
 tableForFile : RawFile -> ProcessContext -> OperatorTable
 tableForFile rawFile (ProcessContext moduleIndex) =
-    List.concatMap (buildSingle moduleIndex) (DefaultImports.defaults ++ RawFile.imports rawFile)
+    (DefaultImports.defaults ++ RawFile.imports rawFile)
+        |> List.concatMap (buildSingle moduleIndex)
         |> List.map (\x -> ( Node.value x.operator, x ))
         |> Dict.fromList
 
