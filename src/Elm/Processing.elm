@@ -103,8 +103,7 @@ buildSingle moduleIndex imp =
         Just (All _) ->
             case Dict.get (Node.value imp.moduleName) moduleIndex of
                 Just module_ ->
-                    module_
-                        |> Interface.operators
+                    Interface.operators module_
 
                 Nothing ->
                     []
