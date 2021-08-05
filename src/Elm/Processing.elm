@@ -384,17 +384,17 @@ type alias Visitor a =
     a -> (Node Expression -> Node Expression) -> Node Expression -> Node Expression
 
 
-visitDeclarations : Visitor context -> context -> List (Node Declaration) -> List (Node Declaration)
+visitDeclarations : Visitor OperatorTable -> OperatorTable -> List (Node Declaration) -> List (Node Declaration)
 visitDeclarations visitor context declarations =
     List.map (visitDeclaration visitor context) declarations
 
 
-visitLetDeclarations : Visitor context -> context -> List (Node LetDeclaration) -> List (Node LetDeclaration)
+visitLetDeclarations : Visitor OperatorTable -> OperatorTable -> List (Node LetDeclaration) -> List (Node LetDeclaration)
 visitLetDeclarations visitor context declarations =
     List.map (visitLetDeclaration visitor context) declarations
 
 
-visitDeclaration : Visitor context -> context -> Node Declaration -> Node Declaration
+visitDeclaration : Visitor OperatorTable -> OperatorTable -> Node Declaration -> Node Declaration
 visitDeclaration visitor context (Node range declaration) =
     Node range <|
         case declaration of
@@ -405,7 +405,7 @@ visitDeclaration visitor context (Node range declaration) =
                 declaration
 
 
-visitLetDeclaration : Visitor context -> context -> Node LetDeclaration -> Node LetDeclaration
+visitLetDeclaration : Visitor OperatorTable -> OperatorTable -> Node LetDeclaration -> Node LetDeclaration
 visitLetDeclaration visitor context (Node range declaration) =
     Node range <|
         case declaration of
@@ -416,7 +416,7 @@ visitLetDeclaration visitor context (Node range declaration) =
                 LetDestructuring pattern (visitExpression visitor context expression)
 
 
-visitFunctionDecl : Visitor context -> context -> Function -> Function
+visitFunctionDecl : Visitor OperatorTable -> OperatorTable -> Function -> Function
 visitFunctionDecl visitor context function =
     let
         newFunctionDeclaration =
@@ -425,7 +425,7 @@ visitFunctionDecl visitor context function =
     { function | declaration = newFunctionDeclaration }
 
 
-visitFunctionDeclaration : Visitor context -> context -> FunctionImplementation -> FunctionImplementation
+visitFunctionDeclaration : Visitor OperatorTable -> OperatorTable -> FunctionImplementation -> FunctionImplementation
 visitFunctionDeclaration visitor context functionDeclaration =
     let
         newExpression =
@@ -434,7 +434,7 @@ visitFunctionDeclaration visitor context functionDeclaration =
     { functionDeclaration | expression = newExpression }
 
 
-visitExpression : Visitor context -> context -> Node Expression -> Node Expression
+visitExpression : Visitor OperatorTable -> OperatorTable -> Node Expression -> Node Expression
 visitExpression visitor context expression =
     let
         inner =
@@ -446,7 +446,7 @@ visitExpression visitor context expression =
         expression
 
 
-visitExpressionInner : Visitor context -> context -> Node Expression -> Node Expression
+visitExpressionInner : Visitor OperatorTable -> OperatorTable -> Node Expression -> Node Expression
 visitExpressionInner visitor context (Node range expression) =
     let
         subVisit =
