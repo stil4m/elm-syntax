@@ -66,12 +66,12 @@ init =
 {-| Add a file to the context that may be a dependency for the file that will be processed.
 -}
 addFile : RawFile -> ProcessContext -> ProcessContext
-addFile file (ProcessContext x) =
+addFile file (ProcessContext context) =
     ProcessContext
         (Dict.insert
             (RawFile.moduleName file)
             (Interface.build file)
-            x
+            context
         )
 
 
