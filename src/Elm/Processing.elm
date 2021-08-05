@@ -67,11 +67,12 @@ init =
 -}
 addFile : RawFile -> ProcessContext -> ProcessContext
 addFile file (ProcessContext x) =
-    let
-        ( k, v ) =
-            entryFromRawFile file
-    in
-    ProcessContext (Dict.insert k v x)
+    ProcessContext
+        (Dict.insert
+            (RawFile.moduleName file)
+            (Interface.build file)
+            x
+        )
 
 
 {-| Add a whole dependency with its modules to the context.
@@ -79,11 +80,6 @@ addFile file (ProcessContext x) =
 addDependency : Dependency -> ProcessContext -> ProcessContext
 addDependency dep (ProcessContext x) =
     ProcessContext (Dict.foldl (\k v d -> Dict.insert k v d) x dep.interfaces)
-
-
-entryFromRawFile : RawFile -> ( ModuleName, Interface )
-entryFromRawFile rawFile =
-    ( RawFile.moduleName rawFile, Interface.build rawFile )
 
 
 tableForFile : RawFile -> ProcessContext -> OperatorTable
