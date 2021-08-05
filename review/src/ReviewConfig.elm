@@ -11,6 +11,7 @@ when inside the directory containing this file.
 
 -}
 
+import NoUnused.CustomTypeConstructorArgs
 import NoUnused.CustomTypeConstructors
 import NoUnused.Dependencies
 import NoUnused.Modules
@@ -22,6 +23,7 @@ import Simplify
 config : List Rule
 config =
     [ NoUnused.CustomTypeConstructors.rule []
+    , NoUnused.CustomTypeConstructorArgs.rule
     , NoUnused.Dependencies.rule
     , NoUnused.Modules.rule
     , NoUnused.Variables.rule
