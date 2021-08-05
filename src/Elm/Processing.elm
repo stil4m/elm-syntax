@@ -181,7 +181,7 @@ findAndAddDocumentation visitor declaration context =
             in
             addDocumentation
                 (\doc -> FunctionDeclaration { function | documentation = Just doc })
-                declaration
+                (Node (Node.range declaration) (FunctionDeclaration function))
                 context
 
         AliasDeclaration typeAlias ->
