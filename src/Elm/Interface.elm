@@ -27,6 +27,7 @@ import Dict exposing (Dict)
 import Elm.Internal.RawFile exposing (RawFile(..))
 import Elm.Syntax.Declaration exposing (Declaration(..))
 import Elm.Syntax.Exposing exposing (Exposing(..), TopLevelExpose(..))
+import Elm.Syntax.Expression exposing (FunctionImplementation)
 import Elm.Syntax.File exposing (File)
 import Elm.Syntax.Infix exposing (Infix, InfixDirection(..))
 import Elm.Syntax.Module as Module
@@ -187,9 +188,11 @@ fileToDefinitions file =
 
                         FunctionDeclaration f ->
                             let
+                                declaration : FunctionImplementation
                                 declaration =
                                     Node.value f.declaration
 
+                                name : String
                                 name =
                                     Node.value declaration.name
                             in
