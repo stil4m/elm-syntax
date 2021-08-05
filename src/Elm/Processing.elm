@@ -141,10 +141,7 @@ process processContext ((Raw fileBeforeProcessing) as rawFile) =
 
         declarationsAfterPostProcessing : List (Node Declaration)
         declarationsAfterPostProcessing =
-            visitDeclarations
-                visitor
-                table
-                fileBeforeProcessing.declarations
+            visitDeclarations visitor fileBeforeProcessing.declarations
 
         changes : ThingsToChange
         changes =
@@ -384,70 +381,70 @@ type alias Visitor =
     (Node Expression -> Node Expression) -> Node Expression -> Node Expression
 
 
-visitDeclarations : Visitor -> OperatorTable -> List (Node Declaration) -> List (Node Declaration)
-visitDeclarations visitor context declarations =
-    List.map (visitDeclaration visitor context) declarations
+visitDeclarations : Visitor -> List (Node Declaration) -> List (Node Declaration)
+visitDeclarations visitor declarations =
+    List.map (visitDeclaration visitor) declarations
 
 
-visitLetDeclarations : Visitor -> OperatorTable -> List (Node LetDeclaration) -> List (Node LetDeclaration)
-visitLetDeclarations visitor context declarations =
-    List.map (visitLetDeclaration visitor context) declarations
+visitLetDeclarations : Visitor -> List (Node LetDeclaration) -> List (Node LetDeclaration)
+visitLetDeclarations visitor declarations =
+    List.map (visitLetDeclaration visitor) declarations
 
 
-visitDeclaration : Visitor -> OperatorTable -> Node Declaration -> Node Declaration
-visitDeclaration visitor context (Node range declaration) =
+visitDeclaration : Visitor -> Node Declaration -> Node Declaration
+visitDeclaration visitor (Node range declaration) =
     Node range <|
         case declaration of
             FunctionDeclaration function ->
-                FunctionDeclaration (visitFunctionDecl visitor context function)
+                FunctionDeclaration (visitFunctionDecl visitor function)
 
             _ ->
                 declaration
 
 
-visitLetDeclaration : Visitor -> OperatorTable -> Node LetDeclaration -> Node LetDeclaration
-visitLetDeclaration visitor context (Node range declaration) =
+visitLetDeclaration : Visitor -> Node LetDeclaration -> Node LetDeclaration
+visitLetDeclaration visitor (Node range declaration) =
     Node range <|
         case declaration of
             LetFunction function ->
-                LetFunction (visitFunctionDecl visitor context function)
+                LetFunction (visitFunctionDecl visitor function)
 
             LetDestructuring pattern expression ->
-                LetDestructuring pattern (visitExpression visitor context expression)
+                LetDestructuring pattern (visitExpression visitor expression)
 
 
-visitFunctionDecl : Visitor -> OperatorTable -> Function -> Function
-visitFunctionDecl visitor context function =
+visitFunctionDecl : Visitor -> Function -> Function
+visitFunctionDecl visitor function =
     let
         newFunctionDeclaration =
-            Node.map (visitFunctionDeclaration visitor context) function.declaration
+            Node.map (visitFunctionDeclaration visitor) function.declaration
     in
     { function | declaration = newFunctionDeclaration }
 
 
-visitFunctionDeclaration : Visitor -> OperatorTable -> FunctionImplementation -> FunctionImplementation
-visitFunctionDeclaration visitor context functionDeclaration =
+visitFunctionDeclaration : Visitor -> FunctionImplementation -> FunctionImplementation
+visitFunctionDeclaration visitor functionDeclaration =
     let
         newExpression =
-            visitExpression visitor context functionDeclaration.expression
+            visitExpression visitor functionDeclaration.expression
     in
     { functionDeclaration | expression = newExpression }
 
 
-visitExpression : Visitor -> OperatorTable -> Node Expression -> Node Expression
-visitExpression visitor context expression =
+visitExpression : Visitor -> Node Expression -> Node Expression
+visitExpression visitor expression =
     let
         inner =
-            visitExpressionInner visitor context
+            visitExpressionInner visitor
     in
     visitor inner expression
 
 
-visitExpressionInner : Visitor -> OperatorTable -> Node Expression -> Node Expression
-visitExpressionInner visitor context (Node range expression) =
+visitExpressionInner : Visitor -> Node Expression -> Node Expression
+visitExpressionInner visitor (Node range expression) =
     let
         subVisit =
-            visitExpression visitor context
+            visitExpression visitor
     in
     (\newExpr -> Node range newExpr) <|
         case expression of
@@ -475,7 +472,7 @@ visitExpressionInner visitor context (Node range expression) =
 
             LetExpression letBlock ->
                 LetExpression
-                    { declarations = visitLetDeclarations visitor context letBlock.declarations
+                    { declarations = visitLetDeclarations visitor letBlock.declarations
                     , expression = subVisit letBlock.expression
                     }
 
