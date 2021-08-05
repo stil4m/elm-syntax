@@ -421,61 +421,56 @@ visitExpression table expression =
 
 visitExpressionInner : OperatorTable -> Node Expression -> Node Expression
 visitExpressionInner table (Node range expression) =
-    let
-        subVisit : Node Expression -> Node Expression
-        subVisit =
-            visitExpression table
-    in
     (\newExpr -> Node range newExpr) <|
         case expression of
             Application expressionList ->
                 expressionList
-                    |> List.map subVisit
+                    |> List.map (visitExpression table)
                     |> Application
 
             OperatorApplication op dir left right ->
                 OperatorApplication op
                     dir
-                    (subVisit left)
-                    (subVisit right)
+                    (visitExpression table left)
+                    (visitExpression table right)
 
             IfBlock e1 e2 e3 ->
-                IfBlock (subVisit e1) (subVisit e2) (subVisit e3)
+                IfBlock (visitExpression table e1) (visitExpression table e2) (visitExpression table e3)
 
             TupledExpression expressionList ->
                 expressionList
-                    |> List.map subVisit
+                    |> List.map (visitExpression table)
                     |> TupledExpression
 
             ParenthesizedExpression expr1 ->
-                ParenthesizedExpression (subVisit expr1)
+                ParenthesizedExpression (visitExpression table expr1)
 
             LetExpression letBlock ->
                 LetExpression
                     { declarations = visitLetDeclarations table letBlock.declarations
-                    , expression = subVisit letBlock.expression
+                    , expression = visitExpression table letBlock.expression
                     }
 
             CaseExpression caseBlock ->
                 CaseExpression
-                    { expression = subVisit caseBlock.expression
-                    , cases = List.map (Tuple.mapSecond subVisit) caseBlock.cases
+                    { expression = visitExpression table caseBlock.expression
+                    , cases = List.map (Tuple.mapSecond (visitExpression table)) caseBlock.cases
                     }
 
             LambdaExpression lambda ->
-                LambdaExpression <| { lambda | expression = subVisit lambda.expression }
+                LambdaExpression <| { lambda | expression = visitExpression table lambda.expression }
 
             RecordExpr expressionStringList ->
                 expressionStringList
-                    |> List.map (Node.map (Tuple.mapSecond subVisit))
+                    |> List.map (Node.map (Tuple.mapSecond (visitExpression table)))
                     |> RecordExpr
 
             ListExpr expressionList ->
-                ListExpr (List.map subVisit expressionList)
+                ListExpr (List.map (visitExpression table) expressionList)
 
             RecordUpdateExpression name updates ->
                 updates
-                    |> List.map (Node.map (Tuple.mapSecond subVisit))
+                    |> List.map (Node.map (Tuple.mapSecond (visitExpression table)))
                     |> RecordUpdateExpression name
 
             _ ->
