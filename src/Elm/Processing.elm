@@ -401,6 +401,7 @@ visitFunctionDecl table function =
 visitFunctionDeclaration : OperatorTable -> FunctionImplementation -> FunctionImplementation
 visitFunctionDeclaration table functionDeclaration =
     let
+        newExpression : Node Expression
         newExpression =
             visitExpression table functionDeclaration.expression
     in
@@ -421,6 +422,7 @@ visitExpression table expression =
 visitExpressionInner : OperatorTable -> Node Expression -> Node Expression
 visitExpressionInner table (Node range expression) =
     let
+        subVisit : Node Expression -> Node Expression
         subVisit =
             visitExpression table
     in
