@@ -82,7 +82,7 @@ addDependency dep (ProcessContext x) =
 
 
 entryFromRawFile : RawFile -> ( ModuleName, Interface )
-entryFromRawFile ((Raw _) as rawFile) =
+entryFromRawFile rawFile =
     ( RawFile.moduleName rawFile, Interface.build rawFile )
 
 
