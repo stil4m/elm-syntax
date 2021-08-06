@@ -474,5 +474,11 @@ visitExpressionInner table (Node range expression) =
                     |> List.map (Node.map (Tuple.mapSecond (visitExpression table)))
                     |> RecordUpdateExpression name
 
+            Negation expr ->
+                Negation (visitExpression table expr)
+
+            RecordAccess expr name ->
+                RecordAccess (visitExpression table expr) name
+
             _ ->
                 expression

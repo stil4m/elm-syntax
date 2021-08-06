@@ -434,6 +434,105 @@ bar = x * 1 + 2
     )
 
 
+postProcessInfixOperatorsInNegation : ( String, String, File )
+postProcessInfixOperatorsInNegation =
+    ( "postProcessInfixOperatorsInNegation"
+    , """
+module Bar exposing (..)
+
+bar = -(1 * 2)
+"""
+    , { moduleDefinition =
+            Node { start = { row = 1, column = 1 }, end = { row = 1, column = 25 } } <|
+                NormalModule
+                    { moduleName = Node { end = { column = 11, row = 1 }, start = { column = 8, row = 1 } } [ "Bar" ]
+                    , exposingList = Node { end = { column = 25, row = 1 }, start = { column = 12, row = 1 } } <| All { start = { row = 1, column = 22 }, end = { row = 1, column = 24 } }
+                    }
+      , imports = []
+      , declarations =
+            [ Node { end = { column = 15, row = 3 }, start = { column = 1, row = 3 } }
+                (FunctionDeclaration
+                    { declaration =
+                        Node { end = { column = 15, row = 3 }, start = { column = 1, row = 3 } }
+                            { arguments = []
+                            , expression =
+                                Node { end = { column = 15, row = 3 }, start = { column = 7, row = 3 } }
+                                    (Negation
+                                        (Node { end = { column = 15, row = 3 }, start = { column = 8, row = 3 } }
+                                            (ParenthesizedExpression
+                                                (Node { end = { column = 14, row = 3 }, start = { column = 9, row = 3 } }
+                                                    (OperatorApplication
+                                                        "*"
+                                                        Left
+                                                        (Node { end = { column = 10, row = 3 }, start = { column = 9, row = 3 } } (Integer 1))
+                                                        (Node { end = { column = 14, row = 3 }, start = { column = 13, row = 3 } } (Integer 2))
+                                                    )
+                                                )
+                                            )
+                                        )
+                                    )
+                            , name = Node { end = { column = 4, row = 3 }, start = { column = 1, row = 3 } } "bar"
+                            }
+                    , documentation = Nothing
+                    , signature = Nothing
+                    }
+                )
+            ]
+      , comments = []
+      }
+    )
+
+
+postProcessInfixOperatorsInRecordAccess : ( String, String, File )
+postProcessInfixOperatorsInRecordAccess =
+    ( "postProcessInfixOperatorsInRecordAccess"
+    , """
+module Bar exposing (..)
+
+bar = (1 * 2).x
+"""
+    , { moduleDefinition =
+            Node { start = { row = 1, column = 1 }, end = { row = 1, column = 25 } } <|
+                NormalModule
+                    { moduleName = Node { end = { column = 11, row = 1 }, start = { column = 8, row = 1 } } [ "Bar" ]
+                    , exposingList = Node { end = { column = 25, row = 1 }, start = { column = 12, row = 1 } } <| All { start = { row = 1, column = 22 }, end = { row = 1, column = 24 } }
+                    }
+      , imports = []
+      , declarations =
+            [ Node { end = { column = 16, row = 3 }, start = { column = 1, row = 3 } }
+                (FunctionDeclaration
+                    { declaration =
+                        Node { end = { column = 16, row = 3 }, start = { column = 1, row = 3 } }
+                            { arguments = []
+                            , expression =
+                                Node { end = { column = 16, row = 3 }, start = { column = 7, row = 3 } }
+                                    (RecordAccess
+                                        (Node { end = { column = 14, row = 3 }, start = { column = 7, row = 3 } }
+                                            (ParenthesizedExpression
+                                                (Node { end = { column = 13, row = 3 }, start = { column = 8, row = 3 } }
+                                                    (OperatorApplication
+                                                        "*"
+                                                        Left
+                                                        (Node { end = { column = 9, row = 3 }, start = { column = 8, row = 3 } } (Integer 1))
+                                                        (Node { end = { column = 13, row = 3 }, start = { column = 12, row = 3 } } (Integer 2))
+                                                    )
+                                                )
+                                            )
+                                        )
+                                        (Node { end = { column = 16, row = 3 }, start = { column = 15, row = 3 } } "x")
+                                    )
+                            , name = Node { end = { column = 4, row = 3 }, start = { column = 1, row = 3 } } "bar"
+                            }
+                    , documentation = Nothing
+                    , signature = Nothing
+                    }
+                )
+            ]
+      , comments = []
+      }
+    )
+
+
 {-| Check to make sure this issue is fixed <https://github.com/stil4m/elm-syntax/issues/41>
 -}
 postProcessInfixOperatorsRegressionTest : ( String, String, File )
@@ -677,6 +776,8 @@ suite =
             , postProcessInfixOperators
             , postProcessInfixOperators2
             , postProcessInfixOperators3
+            , postProcessInfixOperatorsInNegation
+            , postProcessInfixOperatorsInRecordAccess
             , postProcessInfixOperatorsRegressionTest
             , postProcessInfixOperatorsAssociativityTest
             , typeAliasWithDocumentation
