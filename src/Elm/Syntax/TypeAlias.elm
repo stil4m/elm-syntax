@@ -3,12 +3,7 @@ module Elm.Syntax.TypeAlias exposing
     , encode, decoder
     )
 
-{-|
-
-
-# Exposing Syntax
-
-This syntax represents type aliases.
+{-| This syntax represents type aliases.
 For example:
 
     {-| This is a person
@@ -19,12 +14,12 @@ For example:
         }
 
 
-# Types
+## Types
 
 @docs TypeAlias
 
 
-# Serialization
+## Serialization
 
 @docs encode, decoder
 

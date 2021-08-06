@@ -3,12 +3,7 @@ module Elm.Syntax.Comments exposing
     , encode, decoder
     )
 
-{-|
-
-
-# Comment Syntax
-
-This syntax represents both single and multi line comments in Elm. For example:
+{-| This syntax represents both single and multi line comments in Elm. For example:
 
     -- A comment
 

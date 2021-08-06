@@ -3,14 +3,15 @@ module Elm.Syntax.Infix exposing
     , encode, encodeDirection, decoder, decodeDirection
     )
 
-{-| Infix Syntax
+{-|
 
-#Types
+
+## Types
 
 @docs Infix, InfixDirection
 
 
-# Json
+## Serialization
 
 @docs encode, encodeDirection, decoder, decodeDirection
 

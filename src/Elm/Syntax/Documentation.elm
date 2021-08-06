@@ -3,12 +3,7 @@ module Elm.Syntax.Documentation exposing
     , encode, decoder
     )
 
-{-|
-
-
-# Documentation Syntax
-
-This syntax represents documentation comments in Elm.
+{-| This syntax represents documentation comments in Elm.
 
 
 ## Types

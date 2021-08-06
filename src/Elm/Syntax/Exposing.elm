@@ -4,29 +4,24 @@ module Elm.Syntax.Exposing exposing
     , encode, decoder
     )
 
-{-|
-
-
-# Exposing Syntax
-
-This syntax represents the exposing declaration for both imports and module headers.
+{-| This syntax represents the exposing declaration for both imports and module headers.
 For example:
 
     exposing (Foo(..))
     exposing (..)
 
 
-# Types
+## Types
 
 @docs Exposing, TopLevelExpose, ExposedType
 
 
-# Functions
+## Functions
 
 @docs exposesFunction, operators
 
 
-# Serialization
+## Serialization
 
 @docs encode, decoder
 

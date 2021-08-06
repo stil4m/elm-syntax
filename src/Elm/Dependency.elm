@@ -1,11 +1,6 @@
 module Elm.Dependency exposing (Dependency, Version)
 
-{-|
-
-
-# Elm.Dependency
-
-This module contains types regarding dependencies of a codebase.
+{-| This module contains types regarding dependencies of a codebase.
 To gain the most information of a codebase, information of the dependencies may be required.
 For example, what operators does it define, or what constructors are defined for a custom type.
 

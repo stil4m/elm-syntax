@@ -1,11 +1,6 @@
 module Elm.Writer exposing (write, writeFile, writePattern, writeExpression, writeTypeAnnotation, writeDeclaration)
 
-{-|
-
-
-# Elm.Writer
-
-Write a file to a string.
+{-| Write a file to a string.
 
 @docs write, writeFile, writePattern, writeExpression, writeTypeAnnotation, writeDeclaration
 

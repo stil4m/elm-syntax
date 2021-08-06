@@ -3,10 +3,7 @@ module Elm.Syntax.Signature exposing
     , encode, decoder
     )
 
-{-|
-
-
-# Signature Syntax
+{-| This syntax represents type signatures in Elm.
 
 For example :
 

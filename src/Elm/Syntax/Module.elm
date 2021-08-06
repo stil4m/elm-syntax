@@ -4,12 +4,7 @@ module Elm.Syntax.Module exposing
     , encode, decoder
     )
 
-{-|
-
-
-# Module Syntax
-
-This syntax represents module definitions in Elm.
+{-| This syntax represents module definitions in Elm.
 For example:
 
     module Html.Attributes exposing (style)

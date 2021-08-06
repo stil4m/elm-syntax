@@ -4,19 +4,14 @@ module Elm.Syntax.Pattern exposing
     , encode, decoder
     )
 
-{-|
-
-
-# Pattern Syntax
-
-This syntax represents the patterns.
+{-| This syntax represents the patterns.
 For example:
 
     Just x as someMaybe
     {name, age}
 
 
-# Types
+## Types
 
 @docs Pattern, QualifiedNameRef
 

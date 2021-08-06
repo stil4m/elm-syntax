@@ -3,20 +3,15 @@ module Elm.Processing exposing
     , init, addFile, addDependency, process
     )
 
-{-|
+{-| Processing raw files with the context of other files and dependencies.
 
 
-# Elm.Processing
-
-Processing raw files with the context of other files and dependencies.
-
-
-# Types
+## Types
 
 @docs ProcessContext
 
 
-# Functions
+## Functions
 
 @docs init, addFile, addDependency, process
 

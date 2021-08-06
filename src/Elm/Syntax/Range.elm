@@ -5,27 +5,27 @@ module Elm.Syntax.Range exposing
     , encode, decoder
     )
 
-{-| Source Code Ranges
+{-|
 
 
-# Types
+## Types
 
 @docs Range, Location
 
 
-# Functions
+## Functions
 
 @docs emptyRange, combine
 
 
-# Comparison
+## Comparison
 
 See also [Basics.compare](https://package.elm-lang.org/packages/elm/core/latest/Basics#compare).
 
 @docs compare, compareLocations
 
 
-# Json
+## Serialization
 
 @docs encode, decoder
 

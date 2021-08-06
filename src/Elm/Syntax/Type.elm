@@ -3,9 +3,7 @@ module Elm.Syntax.Type exposing
     , encode, decoder
     )
 
-{-| #Type Syntax
-
-This syntax represents custom types.
+{-| This syntax represents custom types.
 For example:
 
     {-| This is a person

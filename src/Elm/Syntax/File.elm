@@ -3,12 +3,7 @@ module Elm.Syntax.File exposing
     , encode, decoder
     )
 
-{-|
-
-
-# File Syntax
-
-This syntax represents a whole Elm file.
+{-| This syntax represents a whole Elm file.
 
 
 ## Types

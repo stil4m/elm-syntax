@@ -4,20 +4,23 @@ module Elm.Syntax.Node exposing
     , encode, decoder
     )
 
-{-| Abstract Syntax Nodes
+{-| Represents a `Node` of the AST (Abstract Syntax Tree).
+
+The purpose of this type is to add the information of the [`Range`](./Elm-Syntax-Range), i.e. where in the source code the
+element of the tree was found.
 
 
-# Types
+## Types
 
 @docs Node
 
 
-# Functions
+## Functions
 
 @docs combine, range, value, map
 
 
-# Serialization
+## Serialization
 
 @docs encode, decoder
 
