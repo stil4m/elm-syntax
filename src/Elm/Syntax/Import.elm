@@ -3,23 +3,18 @@ module Elm.Syntax.Import exposing
     , encode, decoder
     )
 
-{-|
-
-
-# Import Syntax
-
-This syntax represents imports in Elm.
+{-| This syntax represents imports in Elm.
 For example:
 
     import Html.Attributes as HA exposing (style)
 
 
-# Types
+## Types
 
 @docs Import
 
 
-# Serialization
+## Serialization
 
 @docs encode, decoder
 

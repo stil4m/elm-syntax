@@ -6,9 +6,6 @@ module Elm.RawFile exposing
 
 {-|
 
-
-# Elm.RawFile
-
 @docs RawFile
 
 @docs moduleName, imports

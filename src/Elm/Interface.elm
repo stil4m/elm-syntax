@@ -3,12 +3,7 @@ module Elm.Interface exposing
     , build, exposesAlias, exposesFunction, operators
     )
 
-{-|
-
-
-# Elm.Interface
-
-A type that represents the interface for an Elm module.
+{-| A type that represents the interface for an Elm module.
 You can see this as a trimmed down version of a file that only contains the header (`module X exposing (..)`) and some small set of additional data.
 
 

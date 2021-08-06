@@ -3,12 +3,7 @@ module Elm.Syntax.Declaration exposing
     , encode, decoder
     )
 
-{-|
-
-
-# Declarations Syntax
-
-Syntax for the different top-level declarations in Elm.
+{-| Syntax for the different top-level declarations in Elm.
 These can be one of the following (all declared in `Declaration`):
 
   - Functions: `add x y = x + y`

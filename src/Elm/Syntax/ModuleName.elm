@@ -3,12 +3,7 @@ module Elm.Syntax.ModuleName exposing
     , encode, decoder
     )
 
-{-|
-
-
-# Module Name Syntax
-
-This syntax represents the module names in Elm. These can be used for imports, module names (duh), and for qualified access.
+{-| This syntax represents the module names in Elm. These can be used for imports, module names (duh), and for qualified access.
 For example:
 
     module Elm.Syntax.ModuleName ...

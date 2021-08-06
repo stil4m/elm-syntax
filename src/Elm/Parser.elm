@@ -2,9 +2,6 @@ module Elm.Parser exposing (parse)
 
 {-|
 
-
-# Elm Parser
-
 @docs parse
 
 -}

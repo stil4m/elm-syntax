@@ -4,12 +4,7 @@ module Elm.Syntax.Expression exposing
     , encode, encodeFunction, decoder, functionDecoder
     )
 
-{-|
-
-
-# Expression Syntax
-
-This syntax represents all that you can express in Elm.
+{-| This syntax represents all that you can express in Elm.
 Although it is a easy and simple language, you can express a lot! See the `Expression` type for all the things you can express.
 
 

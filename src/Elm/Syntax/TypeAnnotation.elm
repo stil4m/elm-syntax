@@ -3,12 +3,7 @@ module Elm.Syntax.TypeAnnotation exposing
     , encode, decoder
     )
 
-{-|
-
-
-# Type Annotation Syntax
-
-This syntax represents the type annotation syntax.
+{-| This syntax represents the type annotation syntax.
 For example:
 
     Int -> String
