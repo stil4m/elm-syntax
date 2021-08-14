@@ -1,5 +1,13 @@
 # CHANGELOG
 
+## Version 7.2.7
+
+* Fix incorrect range for declarations that have documentation
+* Fix incorrect parsing of expressions operators inside `Negation` and `RecordAccess` nodes [#147](https://github.com/stil4m/elm-syntax/pull/147)
+* Speed up the post-processing step by removing an unnecessary visit of the entire AST
+* Speed up the comment attachment in the post-processing step
+* Fix typos and formatting of docs
+
 ## Version 7.2.6
 
 * Fix incorrect range for function declarations in let expressions
