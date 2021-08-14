@@ -113,7 +113,6 @@ jobs:
 
       # Runs a single command using the runners shell
       - name: Elm Publish
-        if: steps.publish.outputs.is-publishable == 'true'
         uses: dillonkearns/elm-publish-action@v1
         with:
           # Token provided by GitHub
