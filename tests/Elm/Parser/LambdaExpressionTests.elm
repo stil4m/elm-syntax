@@ -1,7 +1,9 @@
 module Elm.Parser.LambdaExpressionTests exposing (all)
 
+import Combine
 import Elm.Parser.CombineTestUtil exposing (..)
 import Elm.Parser.Declarations as Parser
+import Elm.Parser.Layout as Layout
 import Elm.Parser.State exposing (emptyState)
 import Elm.Syntax.Expression exposing (..)
 import Elm.Syntax.Node as Node exposing (Node(..))
@@ -95,4 +97,9 @@ all =
                                 }
                             )
                         )
+        , test "lambda with trailing whitespace" <|
+            \() ->
+                parseFullStringState emptyState " \\a b -> a + b\n\n\n\n--some comment\n" (Layout.layout |> Combine.continueWith Parser.expression)
+                    |> Maybe.map Node.range
+                    |> Expect.equal (Just { end = { column = 15, row = 1 }, start = { column = 2, row = 1 } })
         ]
