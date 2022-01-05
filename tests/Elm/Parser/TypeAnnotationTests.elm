@@ -128,6 +128,11 @@ all =
                                     )
                             )
                         )
+        , test "generic record with no fields" <|
+            \() ->
+                parseFullStringWithNullState "{ attr |}" Parser.typeAnnotation
+                    |> Maybe.map noRangeTypeReference
+                    |> Expect.equal Nothing
         , test "recordTypeReference nested record" <|
             \() ->
                 parseFullStringWithNullState "{color: {r : Int, g :Int, b: Int } }" Parser.typeAnnotation
