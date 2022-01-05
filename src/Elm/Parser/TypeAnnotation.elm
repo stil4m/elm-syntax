@@ -123,27 +123,6 @@ recordTypeAnnotation : Parser State (Node TypeAnnotation)
 recordTypeAnnotation =
     lazy
         (\() ->
-            let
-                nextField : Parser State RecordField
-                nextField =
-                    Combine.succeed (\a b -> ( a, b ))
-                        |> Combine.ignore (Combine.string ",")
-                        |> Combine.ignore (maybe Layout.layout)
-                        |> Combine.andMap (Node.parser functionName)
-                        |> Combine.ignore (maybe Layout.layout)
-                        |> Combine.ignore (string ":")
-                        |> Combine.ignore (maybe Layout.layout)
-                        |> Combine.andMap typeAnnotation
-                        |> Combine.ignore Layout.optimisticLayout
-
-                additionalRecordFields : RecordDefinition -> Parser State RecordDefinition
-                additionalRecordFields items =
-                    Combine.choice
-                        [ Node.parser nextField
-                            |> Combine.andThen (\next -> additionalRecordFields (next :: items))
-                        , Combine.succeed (List.reverse items)
-                        ]
-            in
             Node.parser
                 (string "{"
                     |> Combine.ignore (maybe Layout.layout)
