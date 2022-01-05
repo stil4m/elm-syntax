@@ -116,7 +116,7 @@ genericTypeAnnotation =
 
 recordFieldsTypeAnnotation : Parser State RecordDefinition
 recordFieldsTypeAnnotation =
-    lazy (\() -> sepBy (string ",") (Layout.maybeAroundBothSides <| Node.parser recordFieldDefinition))
+    lazy (\() -> sepBy1 (string ",") (Layout.maybeAroundBothSides <| Node.parser recordFieldDefinition))
 
 
 recordTypeAnnotation : Parser State (Node TypeAnnotation)
