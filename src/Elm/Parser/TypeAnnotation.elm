@@ -165,10 +165,16 @@ recordTypeAnnotation =
                                                 |> Combine.ignore (maybe Layout.layout)
                                                 |> Combine.andThen
                                                     (\ta ->
-                                                        additionalRecordFields [ Node.combine Tuple.pair fname ta ]
-                                                            |> Combine.map Record
+                                                        Combine.choice
+                                                            [ -- Skip a comma and then look for at least 1 more field
+                                                              string ","
+                                                                |> Combine.continueWith recordFieldsTypeAnnotation
+                                                            , -- Single field record, so just end with no additional fields
+                                                              Combine.succeed []
+                                                            ]
+                                                            |> Combine.ignore (Combine.string "}")
+                                                            |> Combine.map (\rest -> Record <| Node.combine Tuple.pair fname ta :: rest)
                                                     )
-                                                |> Combine.ignore (Combine.string "}")
                                             ]
                                     )
                             ]
