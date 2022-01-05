@@ -116,34 +116,13 @@ genericTypeAnnotation =
 
 recordFieldsTypeAnnotation : Parser State RecordDefinition
 recordFieldsTypeAnnotation =
-    lazy (\() -> sepBy (string ",") (Layout.maybeAroundBothSides <| Node.parser recordFieldDefinition))
+    lazy (\() -> sepBy1 (string ",") (Layout.maybeAroundBothSides <| Node.parser recordFieldDefinition))
 
 
 recordTypeAnnotation : Parser State (Node TypeAnnotation)
 recordTypeAnnotation =
     lazy
         (\() ->
-            let
-                nextField : Parser State RecordField
-                nextField =
-                    Combine.succeed (\a b -> ( a, b ))
-                        |> Combine.ignore (Combine.string ",")
-                        |> Combine.ignore (maybe Layout.layout)
-                        |> Combine.andMap (Node.parser functionName)
-                        |> Combine.ignore (maybe Layout.layout)
-                        |> Combine.ignore (string ":")
-                        |> Combine.ignore (maybe Layout.layout)
-                        |> Combine.andMap typeAnnotation
-                        |> Combine.ignore Layout.optimisticLayout
-
-                additionalRecordFields : RecordDefinition -> Parser State RecordDefinition
-                additionalRecordFields items =
-                    Combine.choice
-                        [ Node.parser nextField
-                            |> Combine.andThen (\next -> additionalRecordFields (next :: items))
-                        , Combine.succeed (List.reverse items)
-                        ]
-            in
             Node.parser
                 (string "{"
                     |> Combine.ignore (maybe Layout.layout)
@@ -165,10 +144,16 @@ recordTypeAnnotation =
                                                 |> Combine.ignore (maybe Layout.layout)
                                                 |> Combine.andThen
                                                     (\ta ->
-                                                        additionalRecordFields [ Node.combine Tuple.pair fname ta ]
-                                                            |> Combine.map Record
+                                                        Combine.choice
+                                                            [ -- Skip a comma and then look for at least 1 more field
+                                                              string ","
+                                                                |> Combine.continueWith recordFieldsTypeAnnotation
+                                                            , -- Single field record, so just end with no additional fields
+                                                              Combine.succeed []
+                                                            ]
+                                                            |> Combine.ignore (Combine.string "}")
+                                                            |> Combine.map (\rest -> Record <| Node.combine Tuple.pair fname ta :: rest)
                                                     )
-                                                |> Combine.ignore (Combine.string "}")
                                             ]
                                     )
                             ]

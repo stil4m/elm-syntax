@@ -128,6 +128,11 @@ all =
                                     )
                             )
                         )
+        , test "generic record with no fields" <|
+            \() ->
+                parseFullStringWithNullState "{ attr |}" Parser.typeAnnotation
+                    |> Maybe.map noRangeTypeReference
+                    |> Expect.equal Nothing
         , test "recordTypeReference nested record" <|
             \() ->
                 parseFullStringWithNullState "{color: {r : Int, g :Int, b: Int } }" Parser.typeAnnotation
@@ -144,6 +149,31 @@ all =
                                                 , Node emptyRange ( Node emptyRange "g", Node emptyRange <| Typed (Node emptyRange ( [], "Int" )) [] )
                                                 , Node emptyRange ( Node emptyRange "b", Node emptyRange <| Typed (Node emptyRange ( [], "Int" )) [] )
                                                 ]
+                                        )
+                                    ]
+                            )
+                        )
+        , test "record field ranges" <|
+            \() ->
+                parseFullStringWithNullState "{ foo : Int, bar : Int, baz : Int }" Parser.typeAnnotation
+                    |> Expect.equal
+                        (Just <|
+                            (Node { start = { column = 1, row = 1 }, end = { column = 36, row = 1 } } <|
+                                Record
+                                    [ Node { start = { column = 3, row = 1 }, end = { column = 12, row = 1 } }
+                                        ( Node { start = { column = 3, row = 1 }, end = { column = 6, row = 1 } } "foo"
+                                        , Node { start = { column = 9, row = 1 }, end = { column = 12, row = 1 } } <|
+                                            Typed (Node { start = { column = 9, row = 1 }, end = { column = 12, row = 1 } } ( [], "Int" )) []
+                                        )
+                                    , Node { start = { column = 14, row = 1 }, end = { column = 23, row = 1 } }
+                                        ( Node { start = { column = 14, row = 1 }, end = { column = 17, row = 1 } } "bar"
+                                        , Node { start = { column = 20, row = 1 }, end = { column = 23, row = 1 } } <|
+                                            Typed (Node { start = { column = 20, row = 1 }, end = { column = 23, row = 1 } } ( [], "Int" )) []
+                                        )
+                                    , Node { start = { column = 25, row = 1 }, end = { column = 35, row = 1 } }
+                                        ( Node { start = { column = 25, row = 1 }, end = { column = 28, row = 1 } } "baz"
+                                        , Node { start = { column = 31, row = 1 }, end = { column = 34, row = 1 } } <|
+                                            Typed (Node { start = { column = 31, row = 1 }, end = { column = 34, row = 1 } } ( [], "Int" )) []
                                         )
                                     ]
                             )
