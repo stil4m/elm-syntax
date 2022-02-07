@@ -196,7 +196,6 @@ suite =
                             ("type Sample \n"
                                 ++ "    =Foo (List String)|Bar "
                             )
-
             , test "write function with case expression using the right indentations" <|
                 \() ->
                     let
