@@ -170,6 +170,33 @@ suite =
                             ("type Sample \n"
                                 ++ "    =Foo |Bar "
                             )
+            , test "write type declaration (with constructor arguments)" <|
+                \() ->
+                    let
+                        listT =
+                            Elm.Syntax.TypeAnnotation.Typed (Node emptyRange ( [], "List" ))
+                                [ Node emptyRange <|
+                                    Elm.Syntax.TypeAnnotation.Typed (Node emptyRange ( [], "String" )) []
+                                ]
+                    in
+                    (Node emptyRange <|
+                        CustomTypeDeclaration
+                            (Type
+                                Nothing
+                                (Node emptyRange "Sample")
+                                []
+                                [ Node emptyRange <| ValueConstructor (Node emptyRange "Foo") [ Node emptyRange listT ]
+                                , Node emptyRange <| ValueConstructor (Node emptyRange "Bar") []
+                                ]
+                            )
+                    )
+                        |> Writer.writeDeclaration
+                        |> Writer.write
+                        |> Expect.equal
+                            ("type Sample \n"
+                                ++ "    =Foo (List String)|Bar "
+                            )
+
             , test "write function with case expression using the right indentations" <|
                 \() ->
                     let

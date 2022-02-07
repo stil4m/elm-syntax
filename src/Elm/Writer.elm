@@ -280,7 +280,7 @@ writeValueConstructor : ValueConstructor -> Writer
 writeValueConstructor { name, arguments } =
     spaced
         [ string <| Node.value name
-        , spaced (List.map writeTypeAnnotation arguments)
+        , spaced (List.map (writeTypeAnnotation >> parensIfContainsSpaces) arguments)
         ]
 
 
