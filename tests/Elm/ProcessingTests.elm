@@ -24,6 +24,7 @@ functionWithDocs =
 -}
 bar = 1
 """
+        |> String.replace "\u{000D}\n" "\n"
     , { moduleDefinition =
             Node { start = { row = 1, column = 1 }, end = { row = 1, column = 25 } } <|
                 NormalModule
@@ -61,6 +62,7 @@ functionWithDocsAndSignature =
 bar : Int
 bar = 1
 """
+        |> String.replace "\u{000D}\n" "\n"
     , { moduleDefinition =
             Node { start = { row = 1, column = 1 }, end = { row = 1, column = 25 } } <|
                 NormalModule

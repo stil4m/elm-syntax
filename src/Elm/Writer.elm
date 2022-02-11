@@ -289,9 +289,9 @@ writeType type_ =
 writeValueConstructor : ValueConstructor -> Writer
 writeValueConstructor { name, arguments } =
     spaced
-        ((string <| Node.value name)
-            :: List.map writeTypeAnnotation arguments
-        )
+        [ string <| Node.value name
+        , spaced (List.map (wrapInSurroundingParentheses >> writeTypeAnnotation) arguments)
+        ]
 
 
 writePortDeclaration : Port -> Writer
@@ -675,3 +675,25 @@ parensIfContainsSpaces w =
 
     else
         w
+
+
+wrapInSurroundingParentheses : Node TypeAnnotation -> Node TypeAnnotation
+wrapInSurroundingParentheses node =
+    let
+        withParens n =
+            Node Elm.Syntax.Range.emptyRange (Elm.Syntax.TypeAnnotation.Tuple [ n ])
+    in
+    case Node.value node of
+        Elm.Syntax.TypeAnnotation.FunctionTypeAnnotation _ _ ->
+            withParens node
+
+        Elm.Syntax.TypeAnnotation.Type _ typeParameters ->
+            case typeParameters of
+                [] ->
+                    node
+
+                _ ->
+                    withParens node
+
+        _ ->
+            node
