@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## Version 7.2.9
+
+* Fix necessary parenthesis missing from some type annotations (i.e. `Typed Int -> String` vs `Typed (Int -> String)`) in Writer module
+
 ## Version 7.2.7
 
 * Fix incorrect range for declarations that have documentation
