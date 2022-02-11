@@ -280,7 +280,7 @@ writeValueConstructor : ValueConstructor -> Writer
 writeValueConstructor { name, arguments } =
     spaced
         [ string <| Node.value name
-        , spaced (List.map (writeTypeAnnotation >> parensIfContainsSpaces) arguments)
+        , spaced (List.map (wrapInSurroundingParentheses >> writeTypeAnnotation) arguments)
         ]
 
 
@@ -658,3 +658,25 @@ parensIfContainsSpaces w =
 
     else
         w
+
+
+wrapInSurroundingParentheses : Node TypeAnnotation -> Node TypeAnnotation
+wrapInSurroundingParentheses node =
+    let
+        withParens n =
+            Node emptyRange (Tupled [ n ])
+    in
+    case Node.value node of
+        FunctionTypeAnnotation _ _ ->
+            withParens node
+
+        Typed _ typeParameters ->
+            case typeParameters of
+                [] ->
+                    node
+
+                _ ->
+                    withParens node
+
+        _ ->
+            node

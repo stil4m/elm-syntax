@@ -151,7 +151,7 @@ suite =
                         |> Expect.equal "(a -> b) -> Int"
             ]
         , describe "Declaration"
-            [ test "write type declaration" <|
+            [ test "write type declaration > simple constructors" <|
                 \() ->
                     (Node emptyRange <|
                         CustomTypeDeclaration
@@ -170,7 +170,7 @@ suite =
                             ("type Sample \n"
                                 ++ "    =Foo |Bar "
                             )
-            , test "write type declaration (with constructor arguments)" <|
+            , test "write type declaration > constructors with arguments" <|
                 \() ->
                     let
                         listT =
@@ -178,6 +178,9 @@ suite =
                                 [ Node emptyRange <|
                                     Elm.Syntax.TypeAnnotation.Typed (Node emptyRange ( [], "String" )) []
                                 ]
+
+                        stringT =
+                            Elm.Syntax.TypeAnnotation.Typed (Node emptyRange ( [], "String" )) []
                     in
                     (Node emptyRange <|
                         CustomTypeDeclaration
@@ -185,7 +188,7 @@ suite =
                                 Nothing
                                 (Node emptyRange "Sample")
                                 []
-                                [ Node emptyRange <| ValueConstructor (Node emptyRange "Foo") [ Node emptyRange listT ]
+                                [ Node emptyRange <| ValueConstructor (Node emptyRange "Foo") [ Node emptyRange listT, Node emptyRange stringT ]
                                 , Node emptyRange <| ValueConstructor (Node emptyRange "Bar") []
                                 ]
                             )
@@ -194,7 +197,39 @@ suite =
                         |> Writer.write
                         |> Expect.equal
                             ("type Sample \n"
-                                ++ "    =Foo (List String)|Bar "
+                                ++ "    =Foo (List String) String|Bar "
+                            )
+            , test "write type declaration > constructors with functions as arguments" <|
+                \() ->
+                    let
+                        funcT =
+                            Elm.Syntax.TypeAnnotation.FunctionTypeAnnotation
+                                (Node emptyRange <| Elm.Syntax.TypeAnnotation.Typed (Node emptyRange ( [], "String" )) [])
+                                (Node emptyRange <| Elm.Syntax.TypeAnnotation.Typed (Node emptyRange ( [], "Int" )) [])
+
+                        stringT =
+                            Elm.Syntax.TypeAnnotation.Typed (Node emptyRange ( [], "String" )) []
+                    in
+                    (Node emptyRange <|
+                        CustomTypeDeclaration
+                            (Type
+                                Nothing
+                                (Node emptyRange "Sample")
+                                []
+                                [ Node emptyRange <|
+                                    ValueConstructor (Node emptyRange "Foo")
+                                        [ Node emptyRange funcT
+                                        , Node emptyRange stringT
+                                        ]
+                                , Node emptyRange <| ValueConstructor (Node emptyRange "Bar") []
+                                ]
+                            )
+                    )
+                        |> Writer.writeDeclaration
+                        |> Writer.write
+                        |> Expect.equal
+                            ("type Sample \n"
+                                ++ "    =Foo (String -> Int) String|Bar "
                             )
             , test "write function with case expression using the right indentations" <|
                 \() ->
