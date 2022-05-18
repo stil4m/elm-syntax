@@ -228,7 +228,7 @@ isCase e =
             False
 
 
-{-| Check whether an expression is an operator appliation expression
+{-| Check whether an expression is an operator application expression
 -}
 isOperatorApplication : Expression -> Bool
 isOperatorApplication e =
