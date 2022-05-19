@@ -96,5 +96,5 @@ decodeDirection =
                         JD.succeed Non
 
                     _ ->
-                        JD.fail "Invlalid direction"
+                        JD.fail "Invalid direction"
             )

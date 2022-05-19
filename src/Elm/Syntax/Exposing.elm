@@ -34,7 +34,7 @@ import Json.Decode as JD exposing (Decoder)
 import Json.Encode as JE exposing (Value)
 
 
-{-| Diffent kind of exposing declarations
+{-| Different kind of exposing declarations
 -}
 type Exposing
     = All Range

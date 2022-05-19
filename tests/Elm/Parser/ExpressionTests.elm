@@ -43,17 +43,17 @@ all =
                 parseFullStringWithNullState "\"\"\"Bar foo \n a\"\"\"" expression
                     |> Maybe.map Node.value
                     |> Expect.equal (Just (Literal "Bar foo \n a"))
-        , test "Regression test for muliline strings with backslashes" <|
+        , test "Regression test for multiline strings with backslashes" <|
             \() ->
                 parseFullStringWithNullState "\"\"\"\\{\\}\"\"\"" expression
                     |> Maybe.map Node.value
                     |> Expect.equal Nothing
-        , test "Regression test 2 for muliline strings with backslashes" <|
+        , test "Regression test 2 for multiline strings with backslashes" <|
             \() ->
                 parseFullStringWithNullState "\"\"\"\\\\{\\\\}\"\"\"" expression
                     |> Maybe.map Node.value
                     |> Expect.equal (Just (Literal "\\{\\}"))
-        , test "Regression test 3 for muliline strings with backslashes" <|
+        , test "Regression test 3 for multiline strings with backslashes" <|
             \() ->
                 parseFullStringWithNullState "\"\"\"\\\\a-blablabla-\\\\b\"\"\"" expression
                     |> Maybe.map Node.value
