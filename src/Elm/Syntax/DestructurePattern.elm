@@ -40,7 +40,7 @@ import Json.Decode as JD exposing (Decoder)
 import Json.Encode as JE exposing (Value)
 
 
-{-| Custom type for all destructur patterns such as:
+{-| Custom type for all destructuring patterns such as:
 
   - `AllPattern_`: `_`
   - `UnitPattern_`: `()`
