@@ -637,7 +637,7 @@ writeDestructurPattern (Node _ p) =
         VarPattern_ var ->
             string var
 
-        NamedPattern_ qnr others ->
+        NamedPattern_ (Node _ qnr) others ->
             spaced
                 [ writeQualifiedNameRef qnr
                 , spaced (List.map writeDestructurPattern others)

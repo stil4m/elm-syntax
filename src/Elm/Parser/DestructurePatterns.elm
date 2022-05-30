@@ -1,4 +1,4 @@
-module Elm.Parser.DestructurePatterns exposing (destructurPattern)
+module Elm.Parser.DestructurePatterns exposing (destructurePattern)
 
 import Combine exposing (Parser, between, lazy, many, maybe, parens, sepBy, string)
 import Elm.Parser.Base as Base
@@ -27,8 +27,8 @@ tryToCompose x =
             )
 
 
-destructurPattern : Parser State (Node DestructurePattern)
-destructurPattern =
+destructurePattern : Parser State (Node DestructurePattern)
+destructurePattern =
     composablePattern |> Combine.andThen tryToCompose
 
 
@@ -37,7 +37,7 @@ parensPattern =
     Combine.lazy
         (\() ->
             Node.parser
-                (parens (sepBy (string ",") (Layout.maybeAroundBothSides destructurPattern))
+                (parens (sepBy (string ",") (Layout.maybeAroundBothSides destructurePattern))
                     |> Combine.map
                         (\c ->
                             case c of
@@ -100,7 +100,7 @@ qualifiedPattern consumeArgs =
                         (\args ->
                             Node
                                 (Range.combine (range :: List.map (\(Node r _) -> r) args))
-                                (NamedPattern_ (QualifiedNameRef mod name) args)
+                                (NamedPattern_ (Node range (QualifiedNameRef mod name)) args)
                         )
             )
 

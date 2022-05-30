@@ -22,7 +22,7 @@ For example:
 -}
 
 import Elm.Json.Util exposing (decodeTyped, encodeTyped)
-import Elm.Syntax.ModuleName as ModuleName exposing (ModuleName)
+import Elm.Syntax.ModuleName as ModuleName
 import Elm.Syntax.Node as Node exposing (Node)
 import Elm.Syntax.Pattern exposing (QualifiedNameRef)
 import Json.Decode as JD exposing (Decoder)
@@ -47,7 +47,7 @@ type DestructurePattern
     | TuplePattern_ (List (Node DestructurePattern))
     | RecordPattern_ (List (Node String))
     | VarPattern_ String
-    | NamedPattern_ QualifiedNameRef (List (Node DestructurePattern))
+    | NamedPattern_ (Node QualifiedNameRef) (List (Node DestructurePattern))
     | AsPattern_ (Node DestructurePattern) (Node String)
     | ParenthesizedPattern_ (Node DestructurePattern)
 
@@ -92,10 +92,14 @@ encode pattern =
             encodeTyped "named" <|
                 JE.object
                     [ ( "qualified"
-                      , JE.object
-                            [ ( "moduleName", ModuleName.encode qualifiedNameRef.moduleName )
-                            , ( "name", JE.string qualifiedNameRef.name )
-                            ]
+                      , Node.encode
+                            (\{ moduleName, name } ->
+                                JE.object
+                                    [ ( "moduleName", ModuleName.encode moduleName )
+                                    , ( "name", JE.string name )
+                                    ]
+                            )
+                            qualifiedNameRef
                       )
                     , ( "patterns", JE.list (Node.encode encode) patterns )
                     ]
@@ -127,7 +131,7 @@ decoder =
                 , ( "tuple", JD.field "value" (JD.list (Node.decoder decoder)) |> JD.map TuplePattern_ )
                 , ( "record", JD.field "value" (JD.list (Node.decoder JD.string)) |> JD.map RecordPattern_ )
                 , ( "var", JD.field "value" JD.string |> JD.map VarPattern_ )
-                , ( "named", JD.map2 NamedPattern_ (JD.field "qualified" decodeQualifiedNameRef) (JD.field "patterns" (JD.list (Node.decoder decoder))) )
+                , ( "named", JD.map2 NamedPattern_ (JD.field "qualified" (Node.decoder decodeQualifiedNameRef)) (JD.field "patterns" (JD.list (Node.decoder decoder))) )
                 , ( "as", JD.map2 AsPattern_ (JD.field "pattern" (Node.decoder decoder)) (JD.field "name" (Node.decoder JD.string)) )
                 , ( "parentisized", JD.map ParenthesizedPattern_ (JD.field "value" (Node.decoder decoder)) )
                 ]
