@@ -160,7 +160,7 @@ noRangePattern (Node r p) =
                 VarPattern x
 
             NamedPattern x y ->
-                NamedPattern x (List.map noRangePattern y)
+                NamedPattern (unRange x) (List.map noRangePattern y)
 
             ParenthesizedPattern x ->
                 ParenthesizedPattern (noRangePattern x)

@@ -129,7 +129,7 @@ qualifiedPattern consumeArgs =
                         (\args ->
                             Node
                                 (Range.combine (range :: List.map (\(Node r _) -> r) args))
-                                (NamedPattern (QualifiedNameRef mod name) args)
+                                (NamedPattern (Node range (QualifiedNameRef mod name)) args)
                         )
             )
 

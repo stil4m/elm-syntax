@@ -163,7 +163,7 @@ all =
                                                                             Node emptyRange <|
                                                                                 CaseExpression
                                                                                     { firstCase =
-                                                                                        ( Node emptyRange <| NamedPattern { moduleName = [], name = "True" } []
+                                                                                        ( Node emptyRange <| NamedPattern (Node emptyRange { moduleName = [], name = "True" }) []
                                                                                         , Node emptyRange <| FunctionOrValue [] "z"
                                                                                         )
                                                                                     , restOfCases = []
@@ -363,7 +363,7 @@ all =
                                                 CaseExpression
                                                     { expression = Node emptyRange <| FunctionOrValue [] "msg"
                                                     , firstCase =
-                                                        ( Node emptyRange <| NamedPattern (QualifiedNameRef [] "Increment") []
+                                                        ( Node emptyRange <| NamedPattern (Node emptyRange { moduleName = [], name = "Increment" }) []
                                                         , Node emptyRange <|
                                                             Application
                                                                 (Node emptyRange <| FunctionOrValue [] "model")
@@ -372,7 +372,7 @@ all =
                                                                 ]
                                                         )
                                                     , restOfCases =
-                                                        [ ( Node emptyRange <| NamedPattern (QualifiedNameRef [] "Decrement") []
+                                                        [ ( Node emptyRange <| NamedPattern (Node emptyRange { moduleName = [], name = "Decrement" }) []
                                                           , Node emptyRange <|
                                                                 Application
                                                                     (Node emptyRange <| FunctionOrValue [] "model")
@@ -552,7 +552,7 @@ all =
                                             Node emptyRange <|
                                                 CaseExpression
                                                     { firstCase =
-                                                        ( Node emptyRange <| NamedPattern { moduleName = [], name = "Increment" } []
+                                                        ( Node emptyRange <| NamedPattern (Node emptyRange { moduleName = [], name = "Increment" }) []
                                                         , Node emptyRange <|
                                                             Application
                                                                 (Node emptyRange <| FunctionOrValue [] "model")
@@ -561,7 +561,7 @@ all =
                                                                 ]
                                                         )
                                                     , restOfCases =
-                                                        [ ( Node emptyRange <| NamedPattern { moduleName = [], name = "Decrement" } []
+                                                        [ ( Node emptyRange <| NamedPattern (Node emptyRange { moduleName = [], name = "Decrement" }) []
                                                           , Node emptyRange <|
                                                                 Application
                                                                     (Node emptyRange <| FunctionOrValue [] "model")

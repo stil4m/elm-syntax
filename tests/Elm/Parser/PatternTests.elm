@@ -37,8 +37,13 @@ all =
                     |> Expect.equal
                         (Just
                             (Node (Range (Location 1 1) (Location 1 4))
-                                (NamedPattern (QualifiedNameRef [] "X")
-                                    [ Node (Range (Location 1 3) (Location 1 4)) (VarPattern "x") ]
+                                (NamedPattern
+                                    (Node (Range (Location 1 1) (Location 1 2))
+                                        (QualifiedNameRef [] "X")
+                                    )
+                                    [ Node (Range (Location 1 3) (Location 1 4))
+                                        (VarPattern "x")
+                                    ]
                                 )
                             )
                         )
@@ -65,8 +70,13 @@ all =
                             (Node (Range (Location 1 1) (Location 1 6))
                                 (ParenthesizedPattern
                                     (Node (Range (Location 1 2) (Location 1 5))
-                                        (NamedPattern (QualifiedNameRef [] "X")
-                                            [ Node (Range (Location 1 4) (Location 1 5)) (VarPattern "x") ]
+                                        (NamedPattern
+                                            (Node (Range (Location 1 2) (Location 1 3))
+                                                (QualifiedNameRef [] "X")
+                                            )
+                                            [ Node (Range (Location 1 4) (Location 1 5))
+                                                (VarPattern "x")
+                                            ]
                                         )
                                     )
                                 )
@@ -77,16 +87,24 @@ all =
                 parseFullStringState emptyState "(X x) :: xs" Parser.pattern
                     |> Expect.equal
                         (Just
-                            (Node (Range (Location 1 1) (Location 1 12)) <|
-                                UnConsPattern
-                                    (Node (Range (Location 1 1) (Location 1 6)) <|
-                                        ParenthesizedPattern
-                                            (Node (Range (Location 1 2) (Location 1 5)) <|
-                                                NamedPattern (QualifiedNameRef [] "X")
+                            (Node (Range (Location 1 1) (Location 1 12))
+                                (UnConsPattern
+                                    (Node (Range (Location 1 1) (Location 1 6))
+                                        (ParenthesizedPattern
+                                            (Node (Range (Location 1 2) (Location 1 5))
+                                                (NamedPattern
+                                                    (Node (Range (Location 1 2) (Location 1 3))
+                                                        (QualifiedNameRef [] "X")
+                                                    )
                                                     [ Node (Range (Location 1 4) (Location 1 5)) <| VarPattern "x" ]
+                                                )
                                             )
+                                        )
                                     )
-                                    (Node (Range (Location 1 10) (Location 1 12)) <| VarPattern "xs")
+                                    (Node (Range (Location 1 10) (Location 1 12))
+                                        (VarPattern "xs")
+                                    )
+                                )
                             )
                         )
         , test "int pattern" <|
@@ -206,8 +224,17 @@ all =
         , test "named pattern" <|
             \() ->
                 parseFullStringState emptyState "True" Parser.pattern
-                    |> Maybe.map noRangePattern
-                    |> Expect.equal (Just (Node emptyRange <| NamedPattern (QualifiedNameRef [] "True") []))
+                    |> Expect.equal
+                        (Just
+                            (Node (Range (Location 1 1) (Location 1 5))
+                                (NamedPattern
+                                    (Node (Range (Location 1 1) (Location 1 5))
+                                        (QualifiedNameRef [] "True")
+                                    )
+                                    []
+                                )
+                            )
+                        )
         , test "tuple pattern" <|
             \() ->
                 parseFullStringState emptyState "(a,{b,c},())" Parser.pattern
@@ -229,12 +256,17 @@ all =
         , test "destructure pattern" <|
             \() ->
                 parseFullStringState emptyState "Set x" Parser.pattern
-                    |> Maybe.map noRangePattern
                     |> Expect.equal
                         (Just
-                            (Node emptyRange <|
-                                NamedPattern (QualifiedNameRef [] "Set")
-                                    [ Node emptyRange <| VarPattern "x" ]
+                            (Node (Range (Location 1 1) (Location 1 6))
+                                (NamedPattern
+                                    (Node (Range (Location 1 1) (Location 1 4))
+                                        (QualifiedNameRef [] "Set")
+                                    )
+                                    [ Node (Range (Location 1 5) (Location 1 6))
+                                        (VarPattern "x")
+                                    ]
+                                )
                             )
                         )
         , test "tuple pattern 2" <|
@@ -269,20 +301,28 @@ all =
         , test "complex pattern" <|
             \() ->
                 parseFullStringState emptyState "(Index irec as index, docVector)" Parser.pattern
-                    |> Maybe.map noRangePattern
                     |> Expect.equal
                         (Just
-                            (Node emptyRange <|
-                                TuplePattern
-                                    [ Node emptyRange <|
-                                        AsPattern
-                                            (Node emptyRange <|
-                                                NamedPattern (QualifiedNameRef [] "Index")
-                                                    [ Node emptyRange <| VarPattern "irec" ]
+                            (Node (Range (Location 1 1) (Location 1 33))
+                                (TuplePattern
+                                    [ Node (Range (Location 1 2) (Location 1 21))
+                                        (AsPattern
+                                            (Node (Range (Location 1 2) (Location 1 12))
+                                                (NamedPattern
+                                                    (Node (Range (Location 1 2) (Location 1 7))
+                                                        (QualifiedNameRef [] "Index")
+                                                    )
+                                                    [ Node (Range (Location 1 8) (Location 1 12))
+                                                        (VarPattern "irec")
+                                                    ]
+                                                )
                                             )
-                                            (Node emptyRange "index")
-                                    , Node emptyRange <| VarPattern "docVector"
+                                            (Node (Range (Location 1 16) (Location 1 21)) "index")
+                                        )
+                                    , Node (Range (Location 1 23) (Location 1 32))
+                                        (VarPattern "docVector")
                                     ]
+                                )
                             )
                         )
         , test "complex pattern 2" <|
@@ -291,25 +331,53 @@ all =
                     |> Maybe.map noRangePattern
                     |> Expect.equal
                         (Just
-                            (Node emptyRange <|
-                                NamedPattern (QualifiedNameRef [] "RBNode_elm_builtin")
-                                    [ Node emptyRange <| VarPattern "col"
-                                    , Node emptyRange <|
-                                        ParenthesizedPattern
-                                            (Node emptyRange <|
-                                                NamedPattern (QualifiedNameRef [] "RBNode_elm_builtin")
-                                                    [ Node emptyRange <| NamedPattern (QualifiedNameRef [] "Red") []
-                                                    , Node emptyRange <|
-                                                        ParenthesizedPattern
-                                                            (Node emptyRange <|
-                                                                NamedPattern (QualifiedNameRef [] "RBNode_elm_builtin")
-                                                                    [ Node emptyRange <| NamedPattern (QualifiedNameRef [] "Red") []
-                                                                    , Node emptyRange <| VarPattern "xv"
-                                                                    ]
+                            (Node emptyRange
+                                (NamedPattern
+                                    (Node emptyRange
+                                        (QualifiedNameRef [] "RBNode_elm_builtin")
+                                    )
+                                    [ Node emptyRange
+                                        (VarPattern "col")
+                                    , Node emptyRange
+                                        (ParenthesizedPattern
+                                            (Node emptyRange
+                                                (NamedPattern
+                                                    (Node emptyRange
+                                                        (QualifiedNameRef [] "RBNode_elm_builtin")
+                                                    )
+                                                    [ Node emptyRange
+                                                        (NamedPattern
+                                                            (Node emptyRange
+                                                                (QualifiedNameRef [] "Red")
                                                             )
+                                                            []
+                                                        )
+                                                    , Node emptyRange
+                                                        (ParenthesizedPattern
+                                                            (Node emptyRange
+                                                                (NamedPattern
+                                                                    (Node emptyRange
+                                                                        (QualifiedNameRef [] "RBNode_elm_builtin")
+                                                                    )
+                                                                    [ Node emptyRange
+                                                                        (NamedPattern
+                                                                            (Node emptyRange
+                                                                                (QualifiedNameRef [] "Red")
+                                                                            )
+                                                                            []
+                                                                        )
+                                                                    , Node emptyRange
+                                                                        (VarPattern "xv")
+                                                                    ]
+                                                                )
+                                                            )
+                                                        )
                                                     ]
+                                                )
                                             )
+                                        )
                                     ]
+                                )
                             )
                         )
         ]

@@ -27,7 +27,7 @@ For example:
 -}
 
 import Elm.Json.Util exposing (decodeTyped, encodeTyped)
-import Elm.Syntax.ModuleName as ModuleName exposing (ModuleName)
+import Elm.Syntax.ModuleName as ModuleName
 import Elm.Syntax.Node as Node exposing (Node)
 import Json.Decode as JD exposing (Decoder)
 import Json.Encode as JE exposing (Value)
@@ -64,7 +64,7 @@ type Pattern
     | UnConsPattern (Node Pattern) (Node Pattern)
     | ListPattern (List (Node Pattern))
     | VarPattern String
-    | NamedPattern QualifiedNameRef (List (Node Pattern))
+    | NamedPattern (Node QualifiedNameRef) (List (Node Pattern))
     | AsPattern (Node Pattern) (Node String)
     | ParenthesizedPattern (Node Pattern)
 
@@ -160,10 +160,14 @@ encode pattern =
             encodeTyped "named" <|
                 JE.object
                     [ ( "qualified"
-                      , JE.object
-                            [ ( "moduleName", ModuleName.encode qualifiedNameRef.moduleName )
-                            , ( "name", JE.string qualifiedNameRef.name )
-                            ]
+                      , Node.encode
+                            (\{ moduleName, name } ->
+                                JE.object
+                                    [ ( "moduleName", ModuleName.encode moduleName )
+                                    , ( "name", JE.string name )
+                                    ]
+                            )
+                            qualifiedNameRef
                       )
                     , ( "patterns", JE.list (Node.encode encode) patterns )
                     ]
@@ -201,7 +205,7 @@ decoder =
                 , ( "uncons", JD.map2 UnConsPattern (JD.field "left" (Node.decoder decoder)) (JD.field "right" (Node.decoder decoder)) )
                 , ( "list", JD.field "value" (JD.list (Node.decoder decoder)) |> JD.map ListPattern )
                 , ( "var", JD.field "value" JD.string |> JD.map VarPattern )
-                , ( "named", JD.map2 NamedPattern (JD.field "qualified" decodeQualifiedNameRef) (JD.field "patterns" (JD.list (Node.decoder decoder))) )
+                , ( "named", JD.map2 NamedPattern (JD.field "qualified" (Node.decoder decodeQualifiedNameRef)) (JD.field "patterns" (JD.list (Node.decoder decoder))) )
                 , ( "as", JD.map2 AsPattern (JD.field "pattern" (Node.decoder decoder)) (JD.field "name" (Node.decoder JD.string)) )
                 , ( "parentisized", JD.map ParenthesizedPattern (JD.field "value" (Node.decoder decoder)) )
                 ]

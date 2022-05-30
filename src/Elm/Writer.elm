@@ -606,7 +606,7 @@ writePattern (Node _ p) =
         VarPattern var ->
             string var
 
-        NamedPattern qnr others ->
+        NamedPattern (Node _ qnr) others ->
             spaced
                 [ writeQualifiedNameRef qnr
                 , spaced (List.map writePattern others)
