@@ -1,15 +1,9 @@
 module Elm.Syntax.DestructurePattern exposing
-    ( moduleNames
+    ( DestructurePattern(..)
     , encode, decoder
-    , DestructurePattern(..)
     )
 
-{-|
-
-
-# Destructur pattern Syntax
-
-This syntax represents patterns used for destructuring data.
+{-| This syntax represents patterns used for destructuring data.
 For example:
 
     Just x as someMaybe
@@ -18,12 +12,7 @@ For example:
 
 # Types
 
-@docs DestructurPattern
-
-
-## Functions
-
-@docs moduleNames
+@docs DestructurePattern
 
 
 ## Serialization
@@ -63,40 +52,11 @@ type DestructurePattern
     | ParenthesizedPattern_ (Node DestructurePattern)
 
 
-{-| Get all the modules names that are used in the pattern (and its nested patterns).
-Use this to collect qualified patterns, such as `Maybe.Just x`.
--}
-moduleNames : DestructurePattern -> List ModuleName
-moduleNames p =
-    let
-        recur =
-            Node.value >> moduleNames
-    in
-    case p of
-        TuplePattern_ xs ->
-            List.concatMap recur xs
-
-        RecordPattern_ _ ->
-            []
-
-        NamedPattern_ qualifiedNameRef subPatterns ->
-            qualifiedNameRef.moduleName :: List.concatMap recur subPatterns
-
-        AsPattern_ inner _ ->
-            recur inner
-
-        ParenthesizedPattern_ inner ->
-            recur inner
-
-        _ ->
-            []
-
-
 
 -- Serialization
 
 
-{-| Encode a `DestructurPattern` syntax element to JSON.
+{-| Encode a `DestructurePattern` syntax element to JSON.
 -}
 encode : DestructurePattern -> Value
 encode pattern =
@@ -155,7 +115,7 @@ encode pattern =
                 )
 
 
-{-| JSON decoder for a `DestructurPattern` syntax element.
+{-| JSON decoder for a `DestructurePattern` syntax element.
 -}
 decoder : Decoder DestructurePattern
 decoder =
