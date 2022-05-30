@@ -1,6 +1,5 @@
 module Elm.Syntax.Pattern exposing
     ( Pattern(..), QualifiedNameRef
-    , moduleNames
     , encode, decoder
     )
 
@@ -19,11 +18,6 @@ For example:
 # Types
 
 @docs Pattern, QualifiedNameRef
-
-
-## Functions
-
-@docs moduleNames
 
 
 ## Serialization
@@ -81,41 +75,6 @@ type alias QualifiedNameRef =
     { moduleName : List String
     , name : String
     }
-
-
-{-| Get all the modules names that are used in the pattern (and its nested patterns).
-Use this to collect qualified patterns, such as `Maybe.Just x`.
--}
-moduleNames : Pattern -> List ModuleName
-moduleNames p =
-    let
-        recur =
-            Node.value >> moduleNames
-    in
-    case p of
-        TuplePattern xs ->
-            List.concatMap recur xs
-
-        RecordPattern _ ->
-            []
-
-        UnConsPattern left right ->
-            recur left ++ recur right
-
-        ListPattern xs ->
-            List.concatMap recur xs
-
-        NamedPattern qualifiedNameRef subPatterns ->
-            qualifiedNameRef.moduleName :: List.concatMap recur subPatterns
-
-        AsPattern inner _ ->
-            recur inner
-
-        ParenthesizedPattern inner ->
-            recur inner
-
-        _ ->
-            []
 
 
 
