@@ -29,7 +29,7 @@ all =
                     |> Maybe.map (Tuple.mapSecond noRangeExpression >> Tuple.mapFirst noRangePattern)
                     |> Expect.equal
                         (Just
-                            ( Node emptyRange <| NamedPattern (QualifiedNameRef [] "True") []
+                            ( Node emptyRange <| NamedPattern (Node emptyRange { moduleName = [], name = "True" }) []
                             , Node emptyRange <| Integer 1
                             )
                         )
@@ -39,7 +39,7 @@ all =
                     |> Maybe.map (Tuple.mapSecond noRangeExpression >> Tuple.mapFirst noRangePattern)
                     |> Expect.equal
                         (Just
-                            ( Node emptyRange <| NamedPattern (QualifiedNameRef [ "Foo" ] "Bar") []
+                            ( Node emptyRange <| NamedPattern (Node emptyRange { moduleName = [ "Foo" ], name = "Bar" }) []
                             , Node emptyRange <| Integer 1
                             )
                         )
@@ -63,7 +63,7 @@ all =
                     |> Maybe.map (Tuple.mapSecond noRangeExpression >> Tuple.mapFirst noRangePattern)
                     |> Expect.equal
                         (Just
-                            ( Node emptyRange <| NamedPattern (QualifiedNameRef [] "True") []
+                            ( Node emptyRange <| NamedPattern (Node emptyRange { moduleName = [], name = "True" }) []
                             , Node emptyRange <| Integer 1
                             )
                         )
@@ -78,10 +78,10 @@ all =
                         )
                     |> Expect.equal
                         (Just
-                            ( ( Node emptyRange <| NamedPattern (QualifiedNameRef [] "True") []
+                            ( ( Node emptyRange <| NamedPattern (Node emptyRange { moduleName = [], name = "True" }) []
                               , Node emptyRange <| Integer 1
                               )
-                            , [ ( Node emptyRange <| NamedPattern (QualifiedNameRef [] "False") []
+                            , [ ( Node emptyRange <| NamedPattern (Node emptyRange { moduleName = [], name = "False" }) []
                                 , Node emptyRange <| Integer 2
                                 )
                               ]
@@ -98,13 +98,13 @@ all =
                         )
                     |> Expect.equal
                         (Just
-                            ( ( Node emptyRange <| NamedPattern (QualifiedNameRef [] "True") []
+                            ( ( Node emptyRange <| NamedPattern (Node emptyRange { moduleName = [], name = "True" }) []
                               , Node emptyRange <| Integer 1
                               )
-                            , [ ( Node emptyRange <| NamedPattern (QualifiedNameRef [] "False") []
+                            , [ ( Node emptyRange <| NamedPattern (Node emptyRange { moduleName = [], name = "False" }) []
                                 , Node emptyRange <| Integer 2
                                 )
-                              , ( Node emptyRange <| NamedPattern (QualifiedNameRef [] "False") []
+                              , ( Node emptyRange <| NamedPattern (Node emptyRange { moduleName = [], name = "False" }) []
                                 , Node emptyRange <| Integer 3
                                 )
                               ]
@@ -119,11 +119,11 @@ all =
                             (CaseExpression
                                 { expression = Node emptyRange <| FunctionOrValue [] "f"
                                 , firstCase =
-                                    ( Node emptyRange <| NamedPattern (QualifiedNameRef [] "True") []
+                                    ( Node emptyRange <| NamedPattern (Node emptyRange { moduleName = [], name = "True" }) []
                                     , Node emptyRange <| Integer 1
                                     )
                                 , restOfCases =
-                                    [ ( Node emptyRange <| NamedPattern (QualifiedNameRef [] "False") []
+                                    [ ( Node emptyRange <| NamedPattern (Node emptyRange { moduleName = [], name = "False" }) []
                                       , Node emptyRange <| Integer 2
                                       )
                                     ]
@@ -142,13 +142,21 @@ all =
                                             FunctionOrValue [] "f"
                                     , firstCase =
                                         ( Node { start = { row = 2, column = 3 }, end = { row = 2, column = 7 } } <|
-                                            NamedPattern (QualifiedNameRef [] "True") []
+                                            NamedPattern
+                                                (Node { start = { row = 2, column = 3 }, end = { row = 2, column = 7 } }
+                                                    { moduleName = [], name = "True" }
+                                                )
+                                                []
                                         , Node { start = { row = 2, column = 11 }, end = { row = 2, column = 12 } } <|
                                             Integer 1
                                         )
                                     , restOfCases =
                                         [ ( Node { start = { row = 3, column = 3 }, end = { row = 3, column = 8 } } <|
-                                                NamedPattern (QualifiedNameRef [] "False") []
+                                                NamedPattern
+                                                    (Node { start = { row = 3, column = 3 }, end = { row = 3, column = 8 } }
+                                                        { moduleName = [], name = "False" }
+                                                    )
+                                                    []
                                           , Node { start = { row = 3, column = 12 }, end = { row = 3, column = 13 } } <|
                                                 Integer 2
                                           )
@@ -169,13 +177,21 @@ all =
                                             FunctionOrValue [] "f"
                                     , firstCase =
                                         ( Node { start = { row = 2, column = 3 }, end = { row = 2, column = 7 } } <|
-                                            NamedPattern (QualifiedNameRef [] "True") []
+                                            NamedPattern
+                                                (Node { start = { row = 2, column = 3 }, end = { row = 2, column = 7 } }
+                                                    { moduleName = [], name = "True" }
+                                                )
+                                                []
                                         , Node { start = { row = 2, column = 11 }, end = { row = 2, column = 12 } } <|
                                             Integer 1
                                         )
                                     , restOfCases =
                                         [ ( Node { start = { row = 3, column = 3 }, end = { row = 3, column = 8 } } <|
-                                                NamedPattern (QualifiedNameRef [] "False") []
+                                                NamedPattern
+                                                    (Node { start = { row = 3, column = 3 }, end = { row = 3, column = 8 } }
+                                                        { moduleName = [], name = "False" }
+                                                    )
+                                                    []
                                           , Node { start = { row = 3, column = 12 }, end = { row = 3, column = 13 } } <|
                                                 Integer 2
                                           )
@@ -198,7 +214,7 @@ all =
                             (CaseExpression
                                 { expression = Node emptyRange <| FunctionOrValue [] "msg"
                                 , firstCase =
-                                    ( Node emptyRange <| NamedPattern (QualifiedNameRef [] "Increment") []
+                                    ( Node emptyRange <| NamedPattern (Node emptyRange { moduleName = [], name = "Increment" }) []
                                     , Node emptyRange <|
                                         Application
                                             (Node emptyRange <| FunctionOrValue [] "model")
@@ -207,7 +223,7 @@ all =
                                             ]
                                     )
                                 , restOfCases =
-                                    [ ( Node emptyRange <| NamedPattern (QualifiedNameRef [] "Decrement") []
+                                    [ ( Node emptyRange <| NamedPattern (Node emptyRange { moduleName = [], name = "Decrement" }) []
                                       , Node emptyRange <|
                                             Application
                                                 (Node emptyRange <| FunctionOrValue [] "model")

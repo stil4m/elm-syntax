@@ -1,7 +1,7 @@
 module Elm.Parser.Declarations exposing (caseBlock, caseStatement, caseStatements, declaration, expression, function, functionArgument, functionSignature, letBlock, letBody, letExpression, signature)
 
 import Combine exposing (Parser, choice, lazy, many, maybe, modifyState, or, sepBy1, string, succeed, withLocation)
-import Elm.Parser.DestructurePatterns as DestructurPatterns exposing (destructurPattern)
+import Elm.Parser.DestructurePatterns as DestructurPatterns exposing (destructurePattern)
 import Elm.Parser.Infix as Infix
 import Elm.Parser.Layout as Layout
 import Elm.Parser.Node as Node
@@ -149,7 +149,7 @@ portDeclaration =
 
 functionArgument : Parser State (Node DestructurePattern)
 functionArgument =
-    DestructurPatterns.destructurPattern
+    DestructurPatterns.destructurePattern
 
 
 
@@ -502,7 +502,7 @@ letBody =
             let
                 blockElement : Parser State LetDeclaration
                 blockElement =
-                    destructurPattern
+                    destructurePattern
                         |> Combine.andThen
                             (\(Node r p) ->
                                 case p of

@@ -1,6 +1,5 @@
 module Elm.Syntax.Pattern exposing
     ( Pattern(..), QualifiedNameRef
-    , moduleNames
     , encode, decoder
     )
 
@@ -21,11 +20,6 @@ For example:
 @docs Pattern, QualifiedNameRef
 
 
-## Functions
-
-@docs moduleNames
-
-
 ## Serialization
 
 @docs encode, decoder
@@ -33,7 +27,7 @@ For example:
 -}
 
 import Elm.Json.Util exposing (decodeTyped, encodeTyped)
-import Elm.Syntax.ModuleName as ModuleName exposing (ModuleName)
+import Elm.Syntax.ModuleName as ModuleName
 import Elm.Syntax.Node as Node exposing (Node)
 import Json.Decode as JD exposing (Decoder)
 import Json.Encode as JE exposing (Value)
@@ -70,7 +64,7 @@ type Pattern
     | UnConsPattern (Node Pattern) (Node Pattern)
     | ListPattern (List (Node Pattern))
     | VarPattern String
-    | NamedPattern QualifiedNameRef (List (Node Pattern))
+    | NamedPattern (Node QualifiedNameRef) (List (Node Pattern))
     | AsPattern (Node Pattern) (Node String)
     | ParenthesizedPattern (Node Pattern)
 
@@ -81,41 +75,6 @@ type alias QualifiedNameRef =
     { moduleName : List String
     , name : String
     }
-
-
-{-| Get all the modules names that are used in the pattern (and its nested patterns).
-Use this to collect qualified patterns, such as `Maybe.Just x`.
--}
-moduleNames : Pattern -> List ModuleName
-moduleNames p =
-    let
-        recur =
-            Node.value >> moduleNames
-    in
-    case p of
-        TuplePattern xs ->
-            List.concatMap recur xs
-
-        RecordPattern _ ->
-            []
-
-        UnConsPattern left right ->
-            recur left ++ recur right
-
-        ListPattern xs ->
-            List.concatMap recur xs
-
-        NamedPattern qualifiedNameRef subPatterns ->
-            qualifiedNameRef.moduleName :: List.concatMap recur subPatterns
-
-        AsPattern inner _ ->
-            recur inner
-
-        ParenthesizedPattern inner ->
-            recur inner
-
-        _ ->
-            []
 
 
 
@@ -201,10 +160,14 @@ encode pattern =
             encodeTyped "named" <|
                 JE.object
                     [ ( "qualified"
-                      , JE.object
-                            [ ( "moduleName", ModuleName.encode qualifiedNameRef.moduleName )
-                            , ( "name", JE.string qualifiedNameRef.name )
-                            ]
+                      , Node.encode
+                            (\{ moduleName, name } ->
+                                JE.object
+                                    [ ( "moduleName", ModuleName.encode moduleName )
+                                    , ( "name", JE.string name )
+                                    ]
+                            )
+                            qualifiedNameRef
                       )
                     , ( "patterns", JE.list (Node.encode encode) patterns )
                     ]
@@ -242,7 +205,7 @@ decoder =
                 , ( "uncons", JD.map2 UnConsPattern (JD.field "left" (Node.decoder decoder)) (JD.field "right" (Node.decoder decoder)) )
                 , ( "list", JD.field "value" (JD.list (Node.decoder decoder)) |> JD.map ListPattern )
                 , ( "var", JD.field "value" JD.string |> JD.map VarPattern )
-                , ( "named", JD.map2 NamedPattern (JD.field "qualified" decodeQualifiedNameRef) (JD.field "patterns" (JD.list (Node.decoder decoder))) )
+                , ( "named", JD.map2 NamedPattern (JD.field "qualified" (Node.decoder decodeQualifiedNameRef)) (JD.field "patterns" (JD.list (Node.decoder decoder))) )
                 , ( "as", JD.map2 AsPattern (JD.field "pattern" (Node.decoder decoder)) (JD.field "name" (Node.decoder JD.string)) )
                 , ( "parentisized", JD.map ParenthesizedPattern (JD.field "value" (Node.decoder decoder)) )
                 ]
