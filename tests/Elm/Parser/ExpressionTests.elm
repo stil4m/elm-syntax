@@ -37,6 +37,7 @@ all =
         , test "5-1" <|
             \() ->
                 parseFullStringWithNullState "5-1" expression
+                    |> Maybe.map noRangeExpression
                     |> Maybe.map Node.value
                     |> Expect.equal
                         (Just
@@ -45,6 +46,20 @@ all =
                                 Left
                                 (Node emptyRange (Integer 5))
                                 (Node emptyRange (Integer 1))
+                            )
+                        )
+        , test "5.1-1.2" <|
+            \() ->
+                parseFullStringWithNullState "5.1-1.2" expression
+                    |> Maybe.map noRangeExpression
+                    |> Maybe.map Node.value
+                    |> Expect.equal
+                        (Just
+                            (OperatorApplication
+                                "-"
+                                Left
+                                (Node emptyRange (Floatable 5))
+                                (Node emptyRange (Floatable 1))
                             )
                         )
         , test "prefix expression" <|
