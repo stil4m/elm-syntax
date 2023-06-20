@@ -3,6 +3,7 @@ module Elm.Parser.ExpressionTests exposing (all)
 import Elm.Parser.CombineTestUtil exposing (..)
 import Elm.Parser.Declarations exposing (..)
 import Elm.Syntax.Expression exposing (..)
+import Elm.Syntax.Infix exposing (InfixDirection(..))
 import Elm.Syntax.Node as Node exposing (Node(..))
 import Elm.Syntax.Pattern exposing (..)
 import Elm.Syntax.Range exposing (..)
@@ -33,6 +34,19 @@ all =
                     |> Maybe.map noRangeExpression
                     |> Maybe.map Node.value
                     |> Expect.equal (Just (TupledExpression [ Node emptyRange <| Integer 1, Node emptyRange <| Integer 2 ]))
+        , test "5-1" <|
+            \() ->
+                parseFullStringWithNullState "5-1" expression
+                    |> Maybe.map Node.value
+                    |> Expect.equal
+                        (Just
+                            (OperatorApplication
+                                "-"
+                                Left
+                                (Node emptyRange (Integer 5))
+                                (Node emptyRange (Integer 1))
+                            )
+                        )
         , test "prefix expression" <|
             \() ->
                 parseFullStringWithNullState "(,)" expression

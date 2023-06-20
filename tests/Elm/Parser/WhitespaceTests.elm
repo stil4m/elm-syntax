@@ -9,7 +9,7 @@ import Test exposing (..)
 
 all : Test
 all =
-    describe "LayoutTests"
+    describe "WhitespaceLayoutTests"
         [ test "nSpaces - full" <|
             \() ->
                 parseFullStringState emptyState "     " (Whitespace.nSpaces 5)
