@@ -62,6 +62,33 @@ all =
                                 (Node emptyRange (Floatable 1))
                             )
                         )
+        , test "let b=0 in-1" <|
+            \() ->
+                parseFullStringWithNullState "let b=0 in-1" expression
+                    |> Maybe.map noRangeExpression
+                    |> Maybe.map Node.value
+                    |> Expect.equal
+                        (Just
+                            (LetExpression
+                                (LetBlock
+                                    [ Node emptyRange
+                                        (LetFunction
+                                            { documentation = Nothing
+                                            , signature = Nothing
+                                            , declaration = Node emptyRange (FunctionImplementation (Node emptyRange "b") [] (Node emptyRange (Integer 0)))
+                                            }
+                                        )
+                                    ]
+                                    (Node emptyRange (Integer -1))
+                                )
+                            )
+                        )
+        , test "1--1" <|
+            \() ->
+                parseFullStringWithNullState "1--1" expression
+                    |> Maybe.map noRangeExpression
+                    |> Maybe.map Node.value
+                    |> Expect.equal (Just (Integer 1))
         , test "prefix expression" <|
             \() ->
                 parseFullStringWithNullState "(,)" expression
