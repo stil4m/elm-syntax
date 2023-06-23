@@ -1,16 +1,11 @@
 module Elm.OperatorTable exposing
-    ( OperatorTable
-    , SimpleInfix
+    ( SimpleInfix
     , table
     )
 
 import Dict exposing (Dict)
 import Elm.Syntax.Infix exposing (InfixDirection(..))
 import List
-
-
-type alias OperatorTable =
-    Dict String SimpleInfix
 
 
 type alias SimpleInfix =
@@ -20,7 +15,7 @@ type alias SimpleInfix =
     }
 
 
-table : OperatorTable
+table : Dict String SimpleInfix
 table =
     List.foldl
         (\infix_ acc ->
