@@ -163,7 +163,7 @@ stringLiteral =
                 escapedCharValue
                     |> Core.map
                         (\v ->
-                            Loop { escaped = False, parts = String.fromList [ v ] :: s.parts }
+                            Loop { escaped = False, parts = String.fromChar v :: s.parts }
                         )
 
             else

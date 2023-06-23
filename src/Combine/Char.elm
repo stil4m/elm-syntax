@@ -7,7 +7,7 @@ import Parser as Core
 char : Char -> Parser s Char
 char c =
     satisfy ((==) c)
-        |> Combine.andThen (Maybe.map Combine.succeed >> Maybe.withDefault (Combine.fail ("expected '" ++ String.fromList [ c ] ++ "'")))
+        |> Combine.andThen (Maybe.map Combine.succeed >> Maybe.withDefault (Combine.fail ("expected '" ++ String.fromChar c ++ "'")))
 
 
 anyChar : Parser s Char
