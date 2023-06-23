@@ -21,13 +21,13 @@ import Dict exposing (Dict)
 import Elm.Dependency exposing (Dependency)
 import Elm.Interface as Interface exposing (Interface)
 import Elm.Internal.RawFile as InternalRawFile
-import Elm.OperatorTable
+import Elm.OperatorTable exposing (SimpleInfix)
 import Elm.RawFile as RawFile
 import Elm.Syntax.Comments exposing (Comment)
 import Elm.Syntax.Declaration exposing (Declaration(..))
 import Elm.Syntax.Expression exposing (..)
 import Elm.Syntax.File exposing (File)
-import Elm.Syntax.Infix exposing (Infix, InfixDirection(..))
+import Elm.Syntax.Infix exposing (InfixDirection(..))
 import Elm.Syntax.ModuleName exposing (ModuleName)
 import Elm.Syntax.Node as Node exposing (Node(..))
 import Elm.Syntax.Range as Range exposing (Range)
@@ -197,7 +197,7 @@ findDocumentationForRange range comments previousComments =
 fixApplication : List (Node Expression) -> Expression
 fixApplication expressions =
     let
-        ops : Dict String Infix
+        ops : Dict String SimpleInfix
         ops =
             expressions
                 |> List.filterMap
@@ -231,8 +231,8 @@ fixApplication expressions =
                     |> Maybe.map
                         (\( p, infix_, s ) ->
                             OperatorApplication
-                                (Node.value infix_.operator)
-                                (Node.value infix_.direction)
+                                infix_.operator
+                                infix_.direction
                                 (Node (Range.combine <| List.map Node.range p) (divideAndConquer p))
                                 (Node (Range.combine <| List.map Node.range s) (divideAndConquer s))
                         )
@@ -241,7 +241,7 @@ fixApplication expressions =
     divideAndConquer expressions
 
 
-findNextSplit : Dict String Infix -> List (Node Expression) -> Maybe ( List (Node Expression), Infix, List (Node Expression) )
+findNextSplit : Dict String SimpleInfix -> List (Node Expression) -> Maybe ( List (Node Expression), SimpleInfix, List (Node Expression) )
 findNextSplit dict exps =
     let
         assocDirection : InfixDirection
@@ -252,7 +252,6 @@ findNextSplit dict exps =
                 -- At this point we should ideally check if all operators have the same associativity
                 -- and report an error if that's not the case.
                 |> List.head
-                |> Maybe.map Node.value
                 |> Maybe.withDefault Right
 
         prefix : List (Node Expression)
@@ -302,12 +301,12 @@ findNextSplit dict exps =
             Nothing
 
 
-lowestPrecedence : List ( String, Infix ) -> Dict String Infix
+lowestPrecedence : List ( String, SimpleInfix ) -> Dict String SimpleInfix
 lowestPrecedence input =
     input
-        |> List.map (Tuple.second >> .precedence >> Node.value)
+        |> List.map (Tuple.second >> .precedence)
         |> List.minimum
-        |> Maybe.map (\m -> List.filter (Tuple.second >> .precedence >> Node.value >> (==) m) input)
+        |> Maybe.map (\m -> List.filter (Tuple.second >> .precedence >> (==) m) input)
         |> Maybe.withDefault []
         |> Dict.fromList
 
