@@ -12,7 +12,7 @@ import Elm.Parser.Tokens as Tokens exposing (caseToken, characterLiteral, elseTo
 import Elm.Parser.TypeAnnotation exposing (typeAnnotation)
 import Elm.Parser.Typings as Typings exposing (typeDefinition)
 import Elm.Parser.Whitespace exposing (manySpaces)
-import Elm.Syntax.Declaration exposing (..)
+import Elm.Syntax.Declaration as Declaration exposing (Declaration)
 import Elm.Syntax.Expression as Expression exposing (Case, CaseBlock, Cases, Expression(..), Function, FunctionImplementation, Lambda, LetBlock, LetDeclaration(..), RecordSetter)
 import Elm.Syntax.ModuleName exposing (ModuleName)
 import Elm.Syntax.Node as Node exposing (Node(..))
@@ -32,10 +32,10 @@ declaration =
                 (\v ->
                     case v of
                         Typings.DefinedType r t ->
-                            Node r (CustomTypeDeclaration t)
+                            Node r (Declaration.CustomTypeDeclaration t)
 
                         Typings.DefinedAlias r a ->
-                            Node r (AliasDeclaration a)
+                            Node r (Declaration.AliasDeclaration a)
                 )
         , portDeclaration
         , destructuringDeclaration
@@ -103,7 +103,7 @@ function =
     Node.parser functionName
         |> Combine.ignore (maybe Layout.layout)
         |> Combine.andThen functionWithNameNode
-        |> Combine.map (\f -> Node (Expression.functionRange f) (FunctionDeclaration f))
+        |> Combine.map (\f -> Node (Expression.functionRange f) (Declaration.FunctionDeclaration f))
 
 
 signature : Parser State Signature
@@ -118,14 +118,14 @@ infixDeclaration =
     Ranges.withCurrentPoint
         (\current ->
             Infix.infixDefinition
-                |> Combine.map (\inf -> Node (Range.combine [ current, Node.range inf.function ]) (InfixDeclaration inf))
+                |> Combine.map (\inf -> Node (Range.combine [ current, Node.range inf.function ]) (Declaration.InfixDeclaration inf))
         )
 
 
 destructuringDeclaration : Parser State (Node Declaration)
 destructuringDeclaration =
     succeed
-        (\x y -> Node.combine Destructuring x y)
+        (\x y -> Node.combine Declaration.Destructuring x y)
         |> Combine.andMap pattern
         |> Combine.ignore (string "=")
         |> Combine.ignore Layout.layout
@@ -139,7 +139,7 @@ portDeclaration =
             portToken
                 |> Combine.ignore Layout.layout
                 |> Combine.continueWith signature
-                |> Combine.map (\sig -> Node (Range.combine [ current, (\(Node r _) -> r) sig.typeAnnotation ]) (PortDeclaration sig))
+                |> Combine.map (\sig -> Node (Range.combine [ current, (\(Node r _) -> r) sig.typeAnnotation ]) (Declaration.PortDeclaration sig))
         )
 
 
