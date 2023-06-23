@@ -1,0 +1,10 @@
+{
+  "version": 1,
+  "automatically created by": "elm-review suppress",
+  "learn more": "elm-review suppress --help",
+  "suppressions": [
+    { "count": 2, "filePath": "tests/Elm/ProcessingTests.elm" },
+    { "count": 1, "filePath": "src/Combine/Char.elm" },
+    { "count": 1, "filePath": "src/Elm/Parser/Tokens.elm" }
+  ]
+}
