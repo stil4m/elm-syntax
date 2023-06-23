@@ -16,7 +16,7 @@ import Elm.Syntax.Declaration exposing (..)
 import Elm.Syntax.Expression as Expression exposing (Case, CaseBlock, Cases, Expression(..), Function, FunctionImplementation, Lambda, LetBlock, LetDeclaration(..), RecordSetter)
 import Elm.Syntax.ModuleName exposing (ModuleName)
 import Elm.Syntax.Node as Node exposing (Node(..))
-import Elm.Syntax.Pattern exposing (..)
+import Elm.Syntax.Pattern as Pattern exposing (Pattern)
 import Elm.Syntax.Range as Range
 import Elm.Syntax.Signature exposing (Signature)
 import Parser as Core exposing (Nestable(..))
@@ -466,7 +466,7 @@ letBody =
                 |> Combine.andThen
                     (\(Node r p) ->
                         case p of
-                            VarPattern v ->
+                            Pattern.VarPattern v ->
                                 functionWithNameNode (Node r v)
                                     |> Combine.map LetFunction
 
