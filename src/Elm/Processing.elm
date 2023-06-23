@@ -303,12 +303,17 @@ lowestPrecedence expressions =
                 )
                 expressions
     in
-    input
-        |> List.map .precedence
-        |> List.minimum
-        |> Maybe.map (\m -> List.filter (.precedence >> (==) m) input)
-        |> Maybe.withDefault []
-        |> List.foldl (\infix_ acc -> Dict.insert infix_.operator infix_ acc) Dict.empty
+    case
+        input
+            |> List.map .precedence
+            |> List.minimum
+    of
+        Just m ->
+            List.filter (.precedence >> (==) m) input
+                |> List.foldl (\infix_ acc -> Dict.insert infix_.operator infix_ acc) Dict.empty
+
+        Nothing ->
+            Dict.empty
 
 
 expressionOperators : Node Expression -> Maybe String
