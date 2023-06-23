@@ -1,6 +1,6 @@
 module Elm.Parser.FileTests exposing (all)
 
-import Elm.Internal.RawFile exposing (RawFile(..))
+import Elm.Internal.RawFile as InternalRawFile
 import Elm.Parser.CombineTestUtil exposing (..)
 import Elm.Parser.File as Parser
 import Elm.Parser.Samples as Samples
@@ -48,7 +48,7 @@ all =
                                 let
                                     parsed =
                                         parseFullStringState emptyState s Parser.file
-                                            |> Maybe.map Raw
+                                            |> Maybe.map InternalRawFile.Raw
 
                                     roundTrip =
                                         parsed

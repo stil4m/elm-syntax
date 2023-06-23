@@ -21,8 +21,8 @@ import Dict exposing (Dict)
 import Elm.DefaultImports as DefaultImports
 import Elm.Dependency exposing (Dependency)
 import Elm.Interface as Interface exposing (Interface)
-import Elm.Internal.RawFile exposing (RawFile(..))
-import Elm.RawFile as RawFile
+import Elm.Internal.RawFile as InternalRawFile
+import Elm.RawFile as RawFile exposing (RawFile)
 import Elm.Syntax.Comments exposing (Comment)
 import Elm.Syntax.Declaration exposing (Declaration(..))
 import Elm.Syntax.Exposing as Exposing exposing (..)
@@ -119,7 +119,7 @@ buildSingle moduleIndex imp =
 Operator precedence and documentation will be fixed.
 -}
 process : ProcessContext -> RawFile.RawFile -> File
-process processContext ((Raw file) as rawFile) =
+process processContext ((InternalRawFile.Raw file) as rawFile) =
     let
         table : OperatorTable
         table =
