@@ -251,7 +251,7 @@ fixApplication operators expressions =
                 |> List.map
                     (\x ->
                         ( x
-                        , Dict.get x operators
+                        , Dict.get x Elm.OperatorTable.table
                             |> Maybe.withDefault
                                 { operator = Node Range.emptyRange x
                                 , function = Node Range.emptyRange "todo"
