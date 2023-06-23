@@ -199,18 +199,16 @@ fixApplication expressions =
     let
         ops : Dict String Infix
         ops =
-            List.filterMap expressionOperators expressions
-                |> List.map
-                    (\x ->
-                        ( x
-                        , Dict.get x Elm.OperatorTable.table
-                            |> Maybe.withDefault
-                                { operator = Node Range.emptyRange x
-                                , function = Node Range.emptyRange "todo"
-                                , precedence = Node Range.emptyRange 5
-                                , direction = Node Range.emptyRange Left
-                                }
-                        )
+            expressions
+                |> List.filterMap
+                    (\(Node _ expression) ->
+                        case expression of
+                            Operator s ->
+                                Dict.get s Elm.OperatorTable.table
+                                    |> Maybe.map (\operator -> ( s, operator ))
+
+                            _ ->
+                                Nothing
                     )
                 |> lowestPrecedence
 
