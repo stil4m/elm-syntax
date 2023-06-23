@@ -205,7 +205,6 @@ fixApplication expressions =
                         case expression of
                             Operator s ->
                                 Dict.get s Elm.OperatorTable.table
-                                    |> Maybe.map (\operator -> ( s, operator ))
 
                             _ ->
                                 Nothing
@@ -301,14 +300,14 @@ findNextSplit dict exps =
             Nothing
 
 
-lowestPrecedence : List ( String, SimpleInfix ) -> Dict String SimpleInfix
+lowestPrecedence : List SimpleInfix -> Dict String SimpleInfix
 lowestPrecedence input =
     input
-        |> List.map (Tuple.second >> .precedence)
+        |> List.map .precedence
         |> List.minimum
-        |> Maybe.map (\m -> List.filter (Tuple.second >> .precedence >> (==) m) input)
+        |> Maybe.map (\m -> List.filter (.precedence >> (==) m) input)
         |> Maybe.withDefault []
-        |> Dict.fromList
+        |> List.foldl (\infix_ acc -> Dict.insert infix_.operator infix_ acc) Dict.empty
 
 
 expressionOperators : Node Expression -> Maybe String
