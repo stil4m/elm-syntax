@@ -18,18 +18,15 @@ module Elm.Processing exposing
 -}
 
 import Dict exposing (Dict)
-import Elm.DefaultImports as DefaultImports
 import Elm.Dependency exposing (Dependency)
 import Elm.Interface as Interface exposing (Interface)
 import Elm.Internal.RawFile as InternalRawFile
-import Elm.OperatorTable exposing (OperatorTable)
-import Elm.RawFile as RawFile exposing (RawFile)
+import Elm.OperatorTable
+import Elm.RawFile as RawFile
 import Elm.Syntax.Comments exposing (Comment)
 import Elm.Syntax.Declaration exposing (Declaration(..))
-import Elm.Syntax.Exposing as Exposing exposing (..)
 import Elm.Syntax.Expression exposing (..)
 import Elm.Syntax.File exposing (File)
-import Elm.Syntax.Import exposing (Import)
 import Elm.Syntax.Infix exposing (Infix, InfixDirection(..))
 import Elm.Syntax.ModuleName exposing (ModuleName)
 import Elm.Syntax.Node as Node exposing (Node(..))
@@ -74,58 +71,16 @@ addDependency dep (ProcessContext x) =
     ProcessContext (Dict.union dep.interfaces x)
 
 
-tableForFile : RawFile -> ProcessContext -> OperatorTable
-tableForFile rawFile (ProcessContext moduleIndex) =
-    (DefaultImports.defaults ++ RawFile.imports rawFile)
-        |> List.concatMap (buildSingle moduleIndex)
-        |> List.map (\x -> ( Node.value x.operator, x ))
-        |> Dict.fromList
-
-
-buildSingle : ModuleIndexInner -> Import -> List Infix
-buildSingle moduleIndex imp =
-    case Maybe.map Node.value imp.exposingList of
-        Nothing ->
-            []
-
-        Just (All _) ->
-            case Dict.get (Node.value imp.moduleName) moduleIndex of
-                Just module_ ->
-                    Interface.operators module_
-
-                Nothing ->
-                    []
-
-        Just (Explicit l) ->
-            case Dict.get (Node.value imp.moduleName) moduleIndex of
-                Just module_ ->
-                    let
-                        importedOperators : List String
-                        importedOperators =
-                            Exposing.operators <| List.map Node.value l
-                    in
-                    module_
-                        |> Interface.operators
-                        |> List.filter (\elem -> List.member (Node.value elem.operator) importedOperators)
-
-                Nothing ->
-                    []
-
-
 {-| Process a rawfile with a context.
 Operator precedence and documentation will be fixed.
 -}
 process : ProcessContext -> RawFile.RawFile -> File
-process processContext ((InternalRawFile.Raw file) as rawFile) =
+process _ (InternalRawFile.Raw file) =
     let
-        table : OperatorTable
-        table =
-            tableForFile rawFile processContext
-
         changes : DeclarationsAndComments
         changes =
             List.foldl
-                (attachDocumentationAndFixOperators table)
+                attachDocumentationAndFixOperators
                 { declarations = []
                 , previousComments = []
                 , remainingComments = file.comments
@@ -149,14 +104,14 @@ type alias DeclarationsAndComments =
     }
 
 
-attachDocumentationAndFixOperators : OperatorTable -> Node Declaration -> DeclarationsAndComments -> DeclarationsAndComments
-attachDocumentationAndFixOperators table declaration context =
+attachDocumentationAndFixOperators : Node Declaration -> DeclarationsAndComments -> DeclarationsAndComments
+attachDocumentationAndFixOperators declaration context =
     case Node.value declaration of
         FunctionDeclaration functionBeforeOperatorFix ->
             let
                 function : Function
                 function =
-                    visitFunctionDecl table functionBeforeOperatorFix
+                    visitFunctionDecl functionBeforeOperatorFix
             in
             addDocumentation
                 (\doc -> FunctionDeclaration { function | documentation = Just doc })
@@ -242,8 +197,8 @@ findDocumentationForRange range comments previousComments =
                     ( previousComments, Nothing, comment :: restOfComments )
 
 
-fixApplication : OperatorTable -> List (Node Expression) -> Expression
-fixApplication operators expressions =
+fixApplication : List (Node Expression) -> Expression
+fixApplication expressions =
     let
         ops : Dict String Infix
         ops =
@@ -368,100 +323,100 @@ expressionOperators (Node _ expression) =
             Nothing
 
 
-visitLetDeclarations : OperatorTable -> List (Node LetDeclaration) -> List (Node LetDeclaration)
-visitLetDeclarations table declarations =
-    List.map (visitLetDeclaration table) declarations
+visitLetDeclarations : List (Node LetDeclaration) -> List (Node LetDeclaration)
+visitLetDeclarations declarations =
+    List.map visitLetDeclaration declarations
 
 
-visitLetDeclaration : OperatorTable -> Node LetDeclaration -> Node LetDeclaration
-visitLetDeclaration table (Node range declaration) =
+visitLetDeclaration : Node LetDeclaration -> Node LetDeclaration
+visitLetDeclaration (Node range declaration) =
     Node range <|
         case declaration of
             LetFunction function ->
-                LetFunction (visitFunctionDecl table function)
+                LetFunction (visitFunctionDecl function)
 
             LetDestructuring pattern expression ->
-                LetDestructuring pattern (visitExpression table expression)
+                LetDestructuring pattern (visitExpression expression)
 
 
-visitFunctionDecl : OperatorTable -> Function -> Function
-visitFunctionDecl table function =
+visitFunctionDecl : Function -> Function
+visitFunctionDecl function =
     let
         newFunctionDeclaration : Node FunctionImplementation
         newFunctionDeclaration =
-            Node.map (visitFunctionDeclaration table) function.declaration
+            Node.map visitFunctionDeclaration function.declaration
     in
     { function | declaration = newFunctionDeclaration }
 
 
-visitFunctionDeclaration : OperatorTable -> FunctionImplementation -> FunctionImplementation
-visitFunctionDeclaration table functionDeclaration =
+visitFunctionDeclaration : FunctionImplementation -> FunctionImplementation
+visitFunctionDeclaration functionDeclaration =
     let
         newExpression : Node Expression
         newExpression =
-            visitExpression table functionDeclaration.expression
+            visitExpression functionDeclaration.expression
     in
     { functionDeclaration | expression = newExpression }
 
 
-visitExpression : OperatorTable -> Node Expression -> Node Expression
-visitExpression table (Node range expression) =
+visitExpression : Node Expression -> Node Expression
+visitExpression (Node range expression) =
     Node range <|
         case expression of
             Application args ->
-                visitExpression table (Node range (fixApplication table args))
+                visitExpression (Node range (fixApplication args))
                     |> Node.value
 
             OperatorApplication op dir left right ->
                 OperatorApplication op
                     dir
-                    (visitExpression table left)
-                    (visitExpression table right)
+                    (visitExpression left)
+                    (visitExpression right)
 
             IfBlock e1 e2 e3 ->
-                IfBlock (visitExpression table e1) (visitExpression table e2) (visitExpression table e3)
+                IfBlock (visitExpression e1) (visitExpression e2) (visitExpression e3)
 
             TupledExpression expressionList ->
                 expressionList
-                    |> List.map (visitExpression table)
+                    |> List.map visitExpression
                     |> TupledExpression
 
             ParenthesizedExpression expr1 ->
-                ParenthesizedExpression (visitExpression table expr1)
+                ParenthesizedExpression (visitExpression expr1)
 
             LetExpression letBlock ->
                 LetExpression
-                    { declarations = visitLetDeclarations table letBlock.declarations
-                    , expression = visitExpression table letBlock.expression
+                    { declarations = visitLetDeclarations letBlock.declarations
+                    , expression = visitExpression letBlock.expression
                     }
 
             CaseExpression caseBlock ->
                 CaseExpression
-                    { expression = visitExpression table caseBlock.expression
-                    , cases = List.map (Tuple.mapSecond (visitExpression table)) caseBlock.cases
+                    { expression = visitExpression caseBlock.expression
+                    , cases = List.map (Tuple.mapSecond visitExpression) caseBlock.cases
                     }
 
             LambdaExpression lambda ->
-                LambdaExpression <| { lambda | expression = visitExpression table lambda.expression }
+                LambdaExpression <| { lambda | expression = visitExpression lambda.expression }
 
             RecordExpr expressionStringList ->
                 expressionStringList
-                    |> List.map (Node.map (Tuple.mapSecond (visitExpression table)))
+                    |> List.map (Node.map (Tuple.mapSecond visitExpression))
                     |> RecordExpr
 
             ListExpr expressionList ->
-                ListExpr (List.map (visitExpression table) expressionList)
+                ListExpr (List.map visitExpression expressionList)
 
             RecordUpdateExpression name updates ->
                 updates
-                    |> List.map (Node.map (Tuple.mapSecond (visitExpression table)))
+                    |> List.map (Node.map (Tuple.mapSecond visitExpression))
                     |> RecordUpdateExpression name
 
             Negation expr ->
-                Negation (visitExpression table expr)
+                Negation (visitExpression expr)
 
             RecordAccess expr name ->
-                RecordAccess (visitExpression table expr) name
+                RecordAccess (visitExpression expr) name
 
             _ ->
                 expression
