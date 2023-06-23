@@ -1,6 +1,6 @@
 module Elm.Parser.Patterns exposing (pattern)
 
-import Combine exposing (Parser, between, lazy, many, maybe, parens, sepBy, string)
+import Combine exposing (Parser, between, many, maybe, parens, sepBy, string)
 import Elm.Parser.Base as Base
 import Elm.Parser.Layout as Layout
 import Elm.Parser.Node as Node
@@ -33,24 +33,24 @@ tryToCompose x =
 
 pattern : Parser State (Node Pattern)
 pattern =
-    composablePattern |> Combine.andThen tryToCompose
+    Combine.lazy
+        (\() ->
+            composablePattern |> Combine.andThen tryToCompose
+        )
 
 
 parensPattern : Parser State (Node Pattern)
 parensPattern =
-    Combine.lazy
-        (\() ->
-            Node.parser
-                (parens (sepBy (string ",") (Layout.maybeAroundBothSides pattern))
-                    |> Combine.map
-                        (\c ->
-                            case c of
-                                [ x ] ->
-                                    ParenthesizedPattern x
+    Node.parser
+        (parens (sepBy (string ",") (Layout.maybeAroundBothSides pattern))
+            |> Combine.map
+                (\c ->
+                    case c of
+                        [ x ] ->
+                            ParenthesizedPattern x
 
-                                _ ->
-                                    TuplePattern c
-                        )
+                        _ ->
+                            TuplePattern c
                 )
         )
 
@@ -67,14 +67,11 @@ numberPart =
 
 listPattern : Parser State (Node Pattern)
 listPattern =
-    lazy
-        (\() ->
-            Node.parser <|
-                between
-                    (string "[" |> Combine.ignore (maybe Layout.layout))
-                    (string "]")
-                    (Combine.map ListPattern (sepBy (string ",") (Layout.maybeAroundBothSides pattern)))
-        )
+    Node.parser <|
+        between
+            (string "[" |> Combine.ignore (maybe Layout.layout))
+            (string "]")
+            (Combine.map ListPattern (sepBy (string ",") (Layout.maybeAroundBothSides pattern)))
 
 
 type alias ConsumeArgs =
@@ -136,13 +133,10 @@ qualifiedPattern consumeArgs =
 
 recordPattern : Parser State (Node Pattern)
 recordPattern =
-    lazy
-        (\() ->
-            Node.parser
-                (Combine.map RecordPattern <|
-                    between
-                        (string "{" |> Combine.continueWith (maybe Layout.layout))
-                        (string "}")
-                        (sepBy (string ",") (Layout.maybeAroundBothSides (Node.parser functionName)))
-                )
+    Node.parser
+        (Combine.map RecordPattern <|
+            between
+                (string "{" |> Combine.continueWith (maybe Layout.layout))
+                (string "}")
+                (sepBy (string ",") (Layout.maybeAroundBothSides (Node.parser functionName)))
         )

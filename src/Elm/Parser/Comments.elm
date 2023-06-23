@@ -1,6 +1,6 @@
 module Elm.Parser.Comments exposing (multilineComment, singleLineComment)
 
-import Combine exposing (Parser, lazy, modifyState, string, succeed)
+import Combine exposing (Parser, modifyState, string, succeed)
 import Elm.Parser.Node as Node
 import Elm.Parser.State exposing (State, addComment)
 import Elm.Parser.Whitespace exposing (untilNewlineToken)
@@ -35,4 +35,4 @@ multilineCommentInner =
 
 multilineComment : Parser State ()
 multilineComment =
-    lazy (\() -> parseComment multilineCommentInner)
+    parseComment multilineCommentInner
