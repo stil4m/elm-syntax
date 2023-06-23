@@ -32,22 +32,16 @@ exposingListInner =
 
 exposable : Parser State (Node TopLevelExpose)
 exposable =
-    Combine.lazy
-        (\() ->
-            choice
-                [ typeExpose
-                , infixExpose
-                , functionExpose
-                ]
-        )
+    choice
+        [ typeExpose
+        , infixExpose
+        , functionExpose
+        ]
 
 
 infixExpose : Parser State (Node TopLevelExpose)
 infixExpose =
-    Combine.lazy
-        (\() ->
-            Node.parser (Combine.map InfixExpose (parens (while ((/=) ')'))))
-        )
+    Node.parser (Combine.map InfixExpose (parens (while ((/=) ')'))))
 
 
 typeExpose : Parser State (Node TopLevelExpose)
