@@ -140,7 +140,7 @@ noRangeImport imp =
 noRangeExposingList : Exposing -> Exposing
 noRangeExposingList x =
     case x of
-        All r ->
+        All _ ->
             All emptyRange
 
         Explicit list ->
@@ -150,7 +150,7 @@ noRangeExposingList x =
 
 
 noRangePattern : Node Pattern -> Node Pattern
-noRangePattern (Node r p) =
+noRangePattern (Node _ p) =
     Node emptyRange <|
         case p of
             RecordPattern ls ->

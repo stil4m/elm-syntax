@@ -1,9 +1,0 @@
-{
-  "version": 1,
-  "automatically created by": "elm-review suppress",
-  "learn more": "elm-review suppress --help",
-  "suppressions": [
-    { "count": 2, "filePath": "tests/Elm/Parser/TypingsTests.elm" },
-    { "count": 1, "filePath": "tests/Elm/Parser/CombineTestUtil.elm" }
-  ]
-}
