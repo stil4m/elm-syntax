@@ -226,16 +226,16 @@ fixApplication expressions =
                 fixExprs exps
 
             else
-                findNextSplit ops exps
-                    |> Maybe.map
-                        (\( p, infix_, s ) ->
-                            OperatorApplication
-                                infix_.operator
-                                infix_.direction
-                                (Node (Range.combine <| List.map Node.range p) (divideAndConquer p))
-                                (Node (Range.combine <| List.map Node.range s) (divideAndConquer s))
-                        )
-                    |> Maybe.withDefault (fixExprs exps)
+                case findNextSplit ops exps of
+                    Just ( p, infix_, s ) ->
+                        OperatorApplication
+                            infix_.operator
+                            infix_.direction
+                            (Node (Range.combine <| List.map Node.range p) (divideAndConquer p))
+                            (Node (Range.combine <| List.map Node.range s) (divideAndConquer s))
+
+                    Nothing ->
+                        fixExprs exps
     in
     divideAndConquer expressions
 
