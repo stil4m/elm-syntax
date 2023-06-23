@@ -331,17 +331,24 @@ findNextSplit dict exps =
                                     |> Maybe.andThen (\key -> Dict.get key dict)
                                     |> (==) Nothing
                             )
-
-        suffix : List (Node Expression)
-        suffix =
-            List.drop (List.length prefix + 1) exps
     in
-    exps
-        |> List.drop (List.length prefix)
-        |> List.head
-        |> Maybe.andThen expressionOperators
-        |> Maybe.andThen (\x -> Dict.get x dict)
-        |> Maybe.map (\x -> ( prefix, x, suffix ))
+    case
+        exps
+            |> List.drop (List.length prefix)
+            |> List.head
+            |> Maybe.andThen expressionOperators
+            |> Maybe.andThen (\x -> Dict.get x dict)
+    of
+        Just x ->
+            let
+                suffix : List (Node Expression)
+                suffix =
+                    List.drop (List.length prefix + 1) exps
+            in
+            Just ( prefix, x, suffix )
+
+        Nothing ->
+            Nothing
 
 
 lowestPrecedence : List ( String, Infix ) -> Dict String Infix
