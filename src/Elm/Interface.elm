@@ -20,6 +20,7 @@ You can see this as a trimmed down version of a file that only contains the head
 
 import Dict exposing (Dict)
 import Elm.Internal.RawFile exposing (RawFile(..))
+import Elm.RawFile as RawFile
 import Elm.Syntax.Declaration exposing (Declaration(..))
 import Elm.Syntax.Exposing exposing (Exposing(..), TopLevelExpose(..))
 import Elm.Syntax.Expression exposing (FunctionImplementation)
@@ -113,7 +114,7 @@ operators =
 
 {-| Build an interface from a file
 -}
-build : RawFile -> Interface
+build : RawFile.RawFile -> Interface
 build (Raw file) =
     let
         fileDefinitionList : List ( String, Exposed )

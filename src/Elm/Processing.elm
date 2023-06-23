@@ -60,7 +60,7 @@ init =
 
 {-| Add a file to the context that may be a dependency for the file that will be processed.
 -}
-addFile : RawFile -> ProcessContext -> ProcessContext
+addFile : RawFile.RawFile -> ProcessContext -> ProcessContext
 addFile file (ProcessContext context) =
     ProcessContext
         (Dict.insert
@@ -118,7 +118,7 @@ buildSingle moduleIndex imp =
 {-| Process a rawfile with a context.
 Operator precedence and documentation will be fixed.
 -}
-process : ProcessContext -> RawFile -> File
+process : ProcessContext -> RawFile.RawFile -> File
 process processContext ((Raw file) as rawFile) =
     let
         table : OperatorTable
