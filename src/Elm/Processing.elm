@@ -31,8 +31,7 @@ import Elm.Syntax.Infix exposing (InfixDirection(..))
 import Elm.Syntax.ModuleName exposing (ModuleName)
 import Elm.Syntax.Node as Node exposing (Node(..))
 import Elm.Syntax.Range as Range exposing (Range)
-import List
-import List.Extra as List
+import List.Extra
 
 
 {-| Opaque type to hold context for the processing
@@ -246,7 +245,7 @@ findNextSplit dict exps =
                 Left ->
                     exps
                         |> List.reverse
-                        |> List.dropWhile
+                        |> List.Extra.dropWhile
                             (\x ->
                                 expressionOperators x
                                     |> Maybe.andThen (\key -> Dict.get key dict)
@@ -257,7 +256,7 @@ findNextSplit dict exps =
 
                 _ ->
                     exps
-                        |> List.takeWhile
+                        |> List.Extra.takeWhile
                             (\x ->
                                 expressionOperators x
                                     |> Maybe.andThen (\key -> Dict.get key dict)
