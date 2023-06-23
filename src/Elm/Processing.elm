@@ -22,6 +22,7 @@ import Elm.DefaultImports as DefaultImports
 import Elm.Dependency exposing (Dependency)
 import Elm.Interface as Interface exposing (Interface)
 import Elm.Internal.RawFile as InternalRawFile
+import Elm.OperatorTable exposing (OperatorTable)
 import Elm.RawFile as RawFile exposing (RawFile)
 import Elm.Syntax.Comments exposing (Comment)
 import Elm.Syntax.Declaration exposing (Declaration(..))
@@ -35,10 +36,6 @@ import Elm.Syntax.Node as Node exposing (Node(..))
 import Elm.Syntax.Range as Range exposing (Range)
 import List
 import List.Extra as List
-
-
-type alias OperatorTable =
-    Dict String Infix
 
 
 {-| Opaque type to hold context for the processing
