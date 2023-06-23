@@ -309,7 +309,8 @@ lowestPrecedence expressions =
             |> List.minimum
     of
         Just m ->
-            List.filter (.precedence >> (==) m) input
+            input
+                |> List.filter (.precedence >> (==) m)
                 |> List.foldl (\infix_ acc -> Dict.insert infix_.operator infix_ acc) Dict.empty
 
         Nothing ->
