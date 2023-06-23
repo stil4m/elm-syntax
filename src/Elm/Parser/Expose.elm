@@ -1,4 +1,4 @@
-module Elm.Parser.Expose exposing (exposable, exposeDefinition, exposingListInner, infixExpose, typeExpose)
+module Elm.Parser.Expose exposing (exposeDefinition, exposingListInner, infixExpose, typeExpose)
 
 import Combine exposing (Parser, choice, maybe, or, parens, sepBy, string, succeed, while)
 import Combine.Char exposing (char)

@@ -1,11 +1,10 @@
-module Elm.Parser.CombineTestUtil exposing (emptyRanged, noRangeDeclaration, noRangeExpose, noRangeExposingList, noRangeExpression, noRangeFile, noRangeFunction, noRangeFunctionImplementation, noRangeImport, noRangeInfix, noRangeInnerExpression, noRangeLetDeclaration, noRangeModule, noRangePattern, noRangeSignature, noRangeTypeAlias, noRangeTypeDeclaration, noRangeTypeReference, noRangeValueConstructor, parseAsFarAsPossible, parseAsFarAsPossibleWithState, parseFullString, parseFullStringState, parseFullStringWithNullState, parseStateToMaybe, pushIndent, unRanged)
+module Elm.Parser.CombineTestUtil exposing (emptyRanged, noRangeDeclaration, noRangeExpose, noRangeExposingList, noRangeExpression, noRangeImport, noRangeInfix, noRangeInnerExpression, noRangeLetDeclaration, noRangeModule, noRangePattern, noRangeSignature, noRangeTypeAlias, noRangeTypeDeclaration, noRangeTypeReference, parseAsFarAsPossible, parseAsFarAsPossibleWithState, parseFullString, parseFullStringState, parseFullStringWithNullState, parseStateToMaybe, pushIndent, unRanged)
 
 import Combine exposing (..)
 import Elm.Parser.State exposing (State, emptyState)
 import Elm.Syntax.Declaration exposing (..)
 import Elm.Syntax.Exposing exposing (..)
 import Elm.Syntax.Expression exposing (..)
-import Elm.Syntax.File exposing (..)
 import Elm.Syntax.Import exposing (Import)
 import Elm.Syntax.Infix exposing (..)
 import Elm.Syntax.Module exposing (..)
@@ -91,14 +90,6 @@ emptyRanged =
 noRangeExpression : Node Expression -> Node Expression
 noRangeExpression (Node _ inner) =
     Node emptyRange <| noRangeInnerExpression inner
-
-
-noRangeFile : File -> File
-noRangeFile file =
-    { file
-        | moduleDefinition = unRanged noRangeModule file.moduleDefinition
-        , imports = List.map (unRanged noRangeImport) file.imports
-    }
 
 
 noRangeModule : Module -> Module

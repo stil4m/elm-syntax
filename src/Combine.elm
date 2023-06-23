@@ -1,4 +1,4 @@
-module Combine exposing (ParseError, ParseFn, ParseLocation, ParseOk, ParseResult, Parser(..), Step(..), andMap, andThen, app, backtrackable, between, butTake, choice, continueWith, count, end, fail, fromCore, ignore, lazy, loop, many, many1, map, maybe, modifyState, optional, or, parens, parse, primitive, runParser, sepBy, sepBy1, string, succeed, while, whitespace, withLocation, withState)
+module Combine exposing (ParseError, ParseFn, ParseLocation, ParseOk, Parser(..), Step(..), andMap, andThen, backtrackable, between, choice, continueWith, end, fail, fromCore, ignore, lazy, loop, many, many1, map, maybe, modifyState, or, parens, parse, runParser, sepBy, sepBy1, string, succeed, while, withLocation, withState)
 
 import Parser as Core exposing ((|=))
 
@@ -7,10 +7,6 @@ type alias ParseLocation =
     { line : Int
     , column : Int
     }
-
-
-type alias ParseResult res =
-    Result (List String) res
 
 
 type alias ParseError =
@@ -35,11 +31,6 @@ fromCore p =
         (\state ->
             Core.succeed (\v -> ( state, v )) |= p
         )
-
-
-primitive : ParseFn state res -> Parser state res
-primitive =
-    Parser
 
 
 app : Parser state res -> ParseFn state res
@@ -163,11 +154,6 @@ choice xs =
     Parser <| \state -> Core.oneOf (List.map (\(Parser x) -> x state) xs)
 
 
-optional : a -> Parser s a -> Parser s a
-optional res p =
-    or p (succeed res)
-
-
 maybe : Parser s a -> Parser s (Maybe a)
 maybe (Parser p) =
     Parser <|
@@ -241,23 +227,6 @@ sepBy1 sep p =
         |> andMap (many (sep |> continueWith p))
 
 
-count : Int -> Parser s a -> Parser s (List a)
-count x p =
-    let
-        helper : ( s, Int, List a ) -> Core.Parser (Core.Step ( s, Int, List a ) ( s, List a ))
-        helper ( oldState, remaining, items ) =
-            if remaining == 0 then
-                Core.succeed (Core.Done ( oldState, List.reverse items ))
-
-            else
-                Core.succeed (\( newState, item ) -> Core.Loop ( newState, remaining - 1, item :: items ))
-                    |= app p oldState
-    in
-    Parser <|
-        \state ->
-            Core.loop ( state, x, [] ) helper
-
-
 between : Parser s l -> Parser s r -> Parser s a -> Parser s a
 between lp rp p =
     lp
@@ -268,18 +237,6 @@ between lp rp p =
 parens : Parser s a -> Parser s a
 parens =
     between (string "(") (string ")")
-
-
-whitespace : Parser s String
-whitespace =
-    Core.getChompedString (Core.chompWhile (\c -> c == ' ' || c == '\t' || c == '\u{000D}' || c == '\n'))
-        |> fromCore
-
-
-butTake : a -> Parser s x -> Parser s a
-butTake res p =
-    p
-        |> map (\_ -> res)
 
 
 ignore : Parser s x -> Parser s a -> Parser s a

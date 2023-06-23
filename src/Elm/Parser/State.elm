@@ -1,4 +1,4 @@
-module Elm.Parser.State exposing (State, addComment, currentIndent, emptyState, expectedColumn, getComments, popIndent, pushColumn, storedColumns)
+module Elm.Parser.State exposing (State, addComment, emptyState, expectedColumn, getComments, popIndent, pushColumn, storedColumns)
 
 import Elm.Syntax.Node exposing (Node)
 

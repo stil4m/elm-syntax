@@ -1,4 +1,4 @@
-module Elm.Parser.Layout exposing (LayoutStatus(..), anyComment, around, compute, layout, layoutAndNewLine, layoutStrict, maybeAroundBothSides, optimisticLayout, optimisticLayoutWith)
+module Elm.Parser.Layout exposing (LayoutStatus(..), layout, layoutStrict, maybeAroundBothSides, optimisticLayout, optimisticLayoutWith)
 
 import Combine exposing (Parser, choice, fail, many, many1, maybe, or, succeed, withLocation, withState)
 import Elm.Parser.Comments as Comments
@@ -115,22 +115,8 @@ verifyIndent f =
         )
 
 
-around : Parser State b -> Parser State b
-around x =
-    layout
-        |> Combine.continueWith x
-        |> Combine.ignore layout
-
-
 maybeAroundBothSides : Parser State b -> Parser State b
 maybeAroundBothSides x =
     maybe layout
         |> Combine.continueWith x
         |> Combine.ignore (maybe layout)
-
-
-layoutAndNewLine : Combine.Parser State ()
-layoutAndNewLine =
-    maybe layout
-        |> Combine.ignore (many1 realNewLine)
-        |> Combine.continueWith (succeed ())

@@ -4,7 +4,7 @@
   "learn more": "elm-review suppress --help",
   "suppressions": [
     { "count": 13, "filePath": "src/Elm/Writer.elm" },
-    { "count": 11, "filePath": "tests/Elm/Parser/CombineTestUtil.elm" },
+    { "count": 10, "filePath": "tests/Elm/Parser/CombineTestUtil.elm" },
     { "count": 8, "filePath": "tests/Elm/ProcessingTests.elm" },
     { "count": 7, "filePath": "tests/Elm/Parser/DeclarationsTests.elm" },
     { "count": 7, "filePath": "tests/Elm/WriterTests.elm" },

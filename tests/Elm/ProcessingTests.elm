@@ -1,4 +1,4 @@
-module Elm.ProcessingTests exposing (functionWithDocs, functionWithDocsAndSignature, functionWithMultiLineCommentAsDoc, functionWithSingleLineCommentAsDoc, postProcessInfixOperators, suite, typeAliasWithDocumentation)
+module Elm.ProcessingTests exposing (suite)
 
 import Elm.Parser as Parser
 import Elm.Processing as Processing
