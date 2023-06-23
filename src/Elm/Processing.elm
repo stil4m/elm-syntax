@@ -211,15 +211,6 @@ fixApplication expressions =
                     )
                 |> lowestPrecedence
 
-        fixExprs : List (Node Expression) -> Expression
-        fixExprs exps =
-            case exps of
-                [ Node _ x ] ->
-                    x
-
-                _ ->
-                    Application exps
-
         divideAndConquer : List (Node Expression) -> Expression
         divideAndConquer exps =
             if Dict.isEmpty ops then
@@ -238,6 +229,16 @@ fixApplication expressions =
                         fixExprs exps
     in
     divideAndConquer expressions
+
+
+fixExprs : List (Node Expression) -> Expression
+fixExprs exps =
+    case exps of
+        [ Node _ x ] ->
+            x
+
+        _ ->
+            Application exps
 
 
 findNextSplit : Dict String SimpleInfix -> List (Node Expression) -> Maybe ( List (Node Expression), SimpleInfix, List (Node Expression) )
