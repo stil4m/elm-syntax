@@ -15,7 +15,7 @@ import Test exposing (..)
 asType : TypeDefinition -> Maybe Type
 asType td =
     case td of
-        DefinedType range t ->
+        DefinedType _ t ->
             Just t
 
         _ ->
@@ -25,7 +25,7 @@ asType td =
 asTypeAlias : TypeDefinition -> Maybe TypeAlias
 asTypeAlias td =
     case td of
-        DefinedAlias r t ->
+        DefinedAlias _ t ->
             Just t
 
         _ ->
