@@ -210,25 +210,26 @@ fixApplication expressions =
                                 Nothing
                     )
                 |> lowestPrecedence
-
-        divideAndConquer : List (Node Expression) -> Expression
-        divideAndConquer exps =
-            if Dict.isEmpty ops then
-                fixExprs exps
-
-            else
-                case findNextSplit ops exps of
-                    Just ( p, infix_, s ) ->
-                        OperatorApplication
-                            infix_.operator
-                            infix_.direction
-                            (Node (Range.combine <| List.map Node.range p) (divideAndConquer p))
-                            (Node (Range.combine <| List.map Node.range s) (divideAndConquer s))
-
-                    Nothing ->
-                        fixExprs exps
     in
-    divideAndConquer expressions
+    divideAndConquer ops expressions
+
+
+divideAndConquer : Dict String SimpleInfix -> List (Node Expression) -> Expression
+divideAndConquer ops exps =
+    if Dict.isEmpty ops then
+        fixExprs exps
+
+    else
+        case findNextSplit ops exps of
+            Just ( p, infix_, s ) ->
+                OperatorApplication
+                    infix_.operator
+                    infix_.direction
+                    (Node (Range.combine <| List.map Node.range p) (divideAndConquer ops p))
+                    (Node (Range.combine <| List.map Node.range s) (divideAndConquer ops s))
+
+            Nothing ->
+                fixExprs exps
 
 
 fixExprs : List (Node Expression) -> Expression
