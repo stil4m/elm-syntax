@@ -8,7 +8,7 @@ import Elm.Parser.State exposing (State)
 import Elm.Parser.Tokens exposing (functionName)
 import Elm.Syntax.Node as Node exposing (Node(..))
 import Elm.Syntax.Range as Range
-import Elm.Syntax.TypeAnnotation exposing (..)
+import Elm.Syntax.TypeAnnotation as TypeAnnotation exposing (TypeAnnotation)
 
 
 type Mode
@@ -25,7 +25,7 @@ typeAnnotation =
                     (\() -> succeed typeRef)
                     (\() ->
                         or
-                            (Combine.map (\ta -> Node.combine FunctionTypeAnnotation typeRef ta)
+                            (Combine.map (\ta -> Node.combine TypeAnnotation.FunctionTypeAnnotation typeRef ta)
                                 (string "->"
                                     |> Combine.ignore (maybe Layout.layout)
                                     |> Combine.continueWith typeAnnotation
@@ -83,7 +83,7 @@ parensTypeAnnotation =
         (Combine.string "("
             |> Combine.continueWith
                 (Combine.choice
-                    [ Combine.string ")" |> Combine.map (always Unit)
+                    [ Combine.string ")" |> Combine.map (always TypeAnnotation.Unit)
                     , nested |> Combine.ignore (Combine.string ")")
                     ]
                 )
@@ -97,15 +97,15 @@ asTypeAnnotation ((Node _ value) as x) xs =
             value
 
         _ ->
-            Tupled (x :: xs)
+            TypeAnnotation.Tupled (x :: xs)
 
 
 genericTypeAnnotation : Parser State (Node TypeAnnotation)
 genericTypeAnnotation =
-    Node.parser (Combine.map GenericType functionName)
+    Node.parser (Combine.map TypeAnnotation.GenericType functionName)
 
 
-recordFieldsTypeAnnotation : Parser State RecordDefinition
+recordFieldsTypeAnnotation : Parser State TypeAnnotation.RecordDefinition
 recordFieldsTypeAnnotation =
     sepBy1 (string ",") (Layout.maybeAroundBothSides <| Node.parser recordFieldDefinition)
 
@@ -117,13 +117,13 @@ recordTypeAnnotation =
             |> Combine.ignore (maybe Layout.layout)
             |> Combine.continueWith
                 (Combine.choice
-                    [ Combine.string "}" |> Combine.continueWith (Combine.succeed (Record []))
+                    [ Combine.string "}" |> Combine.continueWith (Combine.succeed (TypeAnnotation.Record []))
                     , Node.parser functionName
                         |> Combine.ignore (maybe Layout.layout)
                         |> Combine.andThen
                             (\fname ->
                                 Combine.choice
-                                    [ Combine.succeed (GenericRecord fname)
+                                    [ Combine.succeed (TypeAnnotation.GenericRecord fname)
                                         |> Combine.ignore (Combine.string "|")
                                         |> Combine.andMap (Node.parser recordFieldsTypeAnnotation)
                                         |> Combine.ignore (Combine.string "}")
@@ -141,7 +141,7 @@ recordTypeAnnotation =
                                                       Combine.succeed []
                                                     ]
                                                     |> Combine.ignore (Combine.string "}")
-                                                    |> Combine.map (\rest -> Record <| Node.combine Tuple.pair fname ta :: rest)
+                                                    |> Combine.map (\rest -> TypeAnnotation.Record <| Node.combine Tuple.pair fname ta :: rest)
                                             )
                                     ]
                             )
@@ -150,7 +150,7 @@ recordTypeAnnotation =
         )
 
 
-recordFieldDefinition : Parser State RecordField
+recordFieldDefinition : Parser State TypeAnnotation.RecordField
 recordFieldDefinition =
     succeed Tuple.pair
         |> Combine.andMap (maybe Layout.layout |> Combine.continueWith (Node.parser functionName))
@@ -186,7 +186,7 @@ typedTypeAnnotation mode =
         |> Combine.andThen
             (\((Node tir _) as original) ->
                 Layout.optimisticLayoutWith
-                    (\() -> Combine.succeed (Node tir (Typed original [])))
+                    (\() -> Combine.succeed (Node tir (TypeAnnotation.Typed original [])))
                     (\() ->
                         case mode of
                             Eager ->
@@ -194,11 +194,11 @@ typedTypeAnnotation mode =
                                     (\args ->
                                         Node
                                             (Range.combine (tir :: nodeRanges args))
-                                            (Typed original args)
+                                            (TypeAnnotation.Typed original args)
                                     )
                                     (genericHelper [])
 
                             Lazy ->
-                                Combine.succeed (Node tir (Typed original []))
+                                Combine.succeed (Node tir (TypeAnnotation.Typed original []))
                     )
             )
