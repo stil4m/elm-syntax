@@ -408,16 +408,11 @@ visitFunctionDeclaration table functionDeclaration =
 
 
 visitExpression : OperatorTable -> Node Expression -> Node Expression
-visitExpression table expression =
-    visitExpressionInner table expression
-
-
-visitExpressionInner : OperatorTable -> Node Expression -> Node Expression
-visitExpressionInner table (Node range expression) =
+visitExpression table (Node range expression) =
     Node range <|
         case expression of
             Application args ->
-                visitExpressionInner table (Node range (fixApplication table args))
+                visitExpression table (Node range (fixApplication table args))
                     |> Node.value
 
             OperatorApplication op dir left right ->
