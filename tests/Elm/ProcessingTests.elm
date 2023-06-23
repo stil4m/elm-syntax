@@ -1,7 +1,6 @@
 module Elm.ProcessingTests exposing (suite)
 
 import Elm.Parser as Parser
-import Elm.Processing as Processing
 import Elm.Syntax.Declaration exposing (..)
 import Elm.Syntax.Exposing exposing (..)
 import Elm.Syntax.Expression exposing (..)
@@ -11,7 +10,6 @@ import Elm.Syntax.Module exposing (..)
 import Elm.Syntax.Node exposing (Node(..))
 import Elm.Syntax.TypeAnnotation exposing (..)
 import Expect
-import Parser exposing (DeadEnd)
 import Test exposing (..)
 
 
@@ -759,14 +757,8 @@ suite =
             (\( name, input, output ) ->
                 test name <|
                     \() ->
-                        case context of
-                            Ok context_ ->
-                                Parser.parse (String.trim input)
-                                    |> Result.map (Processing.process context_)
-                                    |> Expect.equal (Ok output)
-
-                            Err _ ->
-                                Expect.fail "Failed to generate context."
+                        Parser.parseToFile (String.trim input)
+                            |> Expect.equal (Ok output)
             )
             [ functionWithDocs
             , functionWithDocsAndSignature
@@ -784,33 +776,3 @@ suite =
             , typeWithDocumentation
             ]
         )
-
-
-context : Result (List DeadEnd) Processing.ProcessContext
-context =
-    """
-module Basics exposing ((+), (-), (*), (/), (//), (^), (==), (/=), (<), (>), (<=), (>=), (&&), (||), (++), (<|), (|>), (<<), (>>))
-         
-         
-infix right 0 (<|) = apL
-infix left  0 (|>) = apR
-infix right 2 (||) = or
-infix right 3 (&&) = and
-infix non   4 (==) = eq
-infix non   4 (/=) = neq
-infix non   4 (<)  = lt
-infix non   4 (>)  = gt
-infix non   4 (<=) = le
-infix non   4 (>=) = ge
-infix right 5 (++) = append
-infix left  6 (+)  = add
-infix left  6 (-)  = sub
-infix left  7 (*)  = mul
-infix left  7 (/)  = fdiv
-infix left  7 (//) = idiv
-infix right 8 (^)  = pow
-infix left  9 (<<) = composeL
-infix right 9 (>>) = composeR"""
-        |> String.trim
-        |> Parser.parse
-        |> Result.map (\a -> Processing.addFile a Processing.init)
