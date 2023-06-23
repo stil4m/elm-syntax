@@ -196,22 +196,7 @@ findDocumentationForRange range comments previousComments =
 
 fixApplication : List (Node Expression) -> Expression
 fixApplication expressions =
-    let
-        ops : Dict String SimpleInfix
-        ops =
-            expressions
-                |> List.filterMap
-                    (\(Node _ expression) ->
-                        case expression of
-                            Operator s ->
-                                Dict.get s Elm.OperatorTable.table
-
-                            _ ->
-                                Nothing
-                    )
-                |> lowestPrecedence
-    in
-    divideAndConquer ops expressions
+    divideAndConquer (lowestPrecedence expressions) expressions
 
 
 divideAndConquer : Dict String SimpleInfix -> List (Node Expression) -> Expression
@@ -302,8 +287,22 @@ findNextSplit dict exps =
             Nothing
 
 
-lowestPrecedence : List SimpleInfix -> Dict String SimpleInfix
-lowestPrecedence input =
+lowestPrecedence : List (Node Expression) -> Dict String SimpleInfix
+lowestPrecedence expressions =
+    let
+        input : List SimpleInfix
+        input =
+            List.filterMap
+                (\(Node _ expression) ->
+                    case expression of
+                        Operator s ->
+                            Dict.get s Elm.OperatorTable.table
+
+                        _ ->
+                            Nothing
+                )
+                expressions
+    in
     input
         |> List.map .precedence
         |> List.minimum
