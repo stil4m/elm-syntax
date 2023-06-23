@@ -303,11 +303,7 @@ lowestPrecedence expressions =
                 )
                 expressions
     in
-    case
-        input
-            |> List.map .precedence
-            |> List.minimum
-    of
+    case findMinimumPrecedence input of
         Just m ->
             input
                 |> List.filter (.precedence >> (==) m)
@@ -315,6 +311,13 @@ lowestPrecedence expressions =
 
         Nothing ->
             Dict.empty
+
+
+findMinimumPrecedence : List SimpleInfix -> Maybe Int
+findMinimumPrecedence ops =
+    ops
+        |> List.map .precedence
+        |> List.minimum
 
 
 expressionOperators : Node Expression -> Maybe String
