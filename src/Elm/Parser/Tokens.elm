@@ -3,7 +3,6 @@ module Elm.Parser.Tokens exposing
     , caseToken
     , characterLiteral
     , elseToken
-    , escapedCharValue
     , exposingToken
     , functionName
     , functionOrTypeName

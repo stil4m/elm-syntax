@@ -1,4 +1,4 @@
-module Elm.Parser.TypingsTests exposing (all, asType, asTypeAlias)
+module Elm.Parser.TypingsTests exposing (all)
 
 import Elm.Parser.CombineTestUtil exposing (..)
 import Elm.Parser.State exposing (emptyState)

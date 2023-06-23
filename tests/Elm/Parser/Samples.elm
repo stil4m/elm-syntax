@@ -1,4 +1,4 @@
-module Elm.Parser.Samples exposing (allSamples, sample1, sample10, sample11, sample12, sample13, sample14, sample15, sample16, sample17, sample18, sample19, sample2, sample20, sample21, sample22, sample23, sample24, sample25, sample26, sample27, sample28, sample29, sample3, sample30, sample31, sample32, sample33, sample34, sample4, sample5, sample6, sample7, sample8, sample9)
+module Elm.Parser.Samples exposing (allSamples)
 
 
 allSamples : List String
