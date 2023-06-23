@@ -364,10 +364,6 @@ expressionOperators (Node _ expression) =
             Nothing
 
 
-type alias Visitor =
-    (Node Expression -> Node Expression) -> Node Expression -> Node Expression
-
-
 visitLetDeclarations : OperatorTable -> List (Node LetDeclaration) -> List (Node LetDeclaration)
 visitLetDeclarations table declarations =
     List.map (visitLetDeclaration table) declarations
