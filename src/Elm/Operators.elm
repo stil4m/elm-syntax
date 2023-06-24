@@ -5,7 +5,6 @@ module Elm.Operators exposing
 
 import Dict exposing (Dict)
 import Elm.Syntax.Infix exposing (InfixDirection(..))
-import List
 
 
 type alias SimpleInfix =
