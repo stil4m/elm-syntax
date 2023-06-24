@@ -40,7 +40,7 @@ all =
         --                 |> Expect.equal (Err [ "Could not continue parsing on location (2,6)" ])
         --     ]
         , describe "FileTests - serialisation"
-            [ Samples.allSamples
+            (Samples.allSamples
                 |> List.indexedMap
                     (\n s ->
                         test ("sample " ++ String.fromInt (n + 1)) <|
@@ -57,6 +57,5 @@ all =
                                 in
                                 Expect.equal parsed roundTrip
                     )
-                |> Test.concat
-            ]
+            )
         ]
