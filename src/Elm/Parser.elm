@@ -20,11 +20,14 @@ import Elm.Syntax.File exposing (File)
 import Parser exposing (DeadEnd)
 
 
-{-| Parse some text as if it is an Elm source file.
+{-| **@deprecated** Use [`parseToFile`](#parseToFile) instead, which is simpler and doesn't require post-processing.
+
+Parse some text as if it is an Elm source file.
 When parsing fails, the result will contain a list of errors indicating what went wrong (and/or where).
 If it succeeds, you will get a `RawFile`.
 This `RawFile` will require some post-processing to properly setup documentation and ensure that operator precedence is applied correctly (based on dependencies).
 To process a `RawFile`, check out the `Processing` module.
+
 -}
 parse : String -> Result (List DeadEnd) RawFile
 parse input =
