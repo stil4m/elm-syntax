@@ -198,9 +198,9 @@ fixApplication expressions =
     divideAndConquer (lowestPrecedence expressions) expressions
 
 
-divideAndConquer : Dict String SimpleInfix -> List (Node Expression) -> Expression
+divideAndConquer : List ( String, SimpleInfix ) -> List (Node Expression) -> Expression
 divideAndConquer ops exps =
-    if Dict.isEmpty ops then
+    if List.isEmpty ops then
         fixExprs exps
 
     else
@@ -226,13 +226,9 @@ fixExprs exps =
             Application exps
 
 
-findNextSplit : Dict String SimpleInfix -> List (Node Expression) -> Maybe ( List (Node Expression), SimpleInfix, List (Node Expression) )
-findNextSplit dict exps =
+findNextSplit : List ( String, SimpleInfix ) -> List (Node Expression) -> Maybe ( List (Node Expression), SimpleInfix, List (Node Expression) )
+findNextSplit operators exps =
     let
-        operators : List ( String, SimpleInfix )
-        operators =
-            Dict.toList dict
-
         assocDirection : InfixDirection
         assocDirection =
             operators
@@ -275,7 +271,7 @@ findNextSplit dict exps =
             |> List.drop prefixLength
             |> List.head
             |> Maybe.andThen expressionOperators
-            |> Maybe.andThen (\x -> Dict.get x dict)
+            |> Maybe.andThen (\x -> findInfix x operators)
     of
         Just x ->
             let
@@ -303,7 +299,7 @@ findInfix symbol list =
                 findInfix symbol rest
 
 
-lowestPrecedence : List (Node Expression) -> Dict String SimpleInfix
+lowestPrecedence : List (Node Expression) -> List ( String, SimpleInfix )
 lowestPrecedence expressions =
     let
         operatorsInArguments : List SimpleInfix
@@ -324,16 +320,16 @@ lowestPrecedence expressions =
             List.foldl
                 (\infix_ acc ->
                     if infix_.precedence == m then
-                        Dict.insert infix_.operator infix_ acc
+                        ( infix_.operator, infix_ ) :: acc
 
                     else
                         acc
                 )
-                Dict.empty
+                []
                 operatorsInArguments
 
         Nothing ->
-            Dict.empty
+            []
 
 
 findMinimumPrecedence : List SimpleInfix -> Maybe Int
