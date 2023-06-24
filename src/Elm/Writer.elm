@@ -325,16 +325,9 @@ writeTypeAnnotation (Node _ typeAnnotation) =
         GenericType s ->
             string s
 
-        Typed moduleNameAndName args ->
-            let
-                moduleName =
-                    Node.value moduleNameAndName |> Tuple.first
-
-                k =
-                    Node.value moduleNameAndName |> Tuple.second
-            in
+        Typed (Node _ ( moduleName, name )) args ->
             spaced
-                ((string <| String.join "." (moduleName ++ [ k ]))
+                ((string <| String.join "." (moduleName ++ [ name ]))
                     :: List.map (writeTypeAnnotation >> parensIfContainsSpaces) args
                 )
 
