@@ -321,9 +321,30 @@ lowestPrecedence expressions =
 
 findMinimumPrecedence : List SimpleInfix -> Maybe Int
 findMinimumPrecedence ops =
-    ops
-        |> List.map .precedence
-        |> List.minimum
+    case ops of
+        [] ->
+            Nothing
+
+        x :: xs ->
+            if x.precedence == 0 then
+                Just 0
+
+            else
+                Just (findMinimumPrecedenceHelp x.precedence xs)
+
+
+findMinimumPrecedenceHelp : Int -> List SimpleInfix -> Int
+findMinimumPrecedenceHelp minPrecedence ops =
+    case ops of
+        [] ->
+            minPrecedence
+
+        x :: xs ->
+            if x.precedence == 0 then
+                0
+
+            else
+                findMinimumPrecedenceHelp (min minPrecedence x.precedence) xs
 
 
 expressionOperators : Node Expression -> Maybe String
