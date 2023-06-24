@@ -1,4 +1,4 @@
-module Elm.OperatorTable exposing
+module Elm.Operators exposing
     ( SimpleInfix
     , table
     )

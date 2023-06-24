@@ -21,7 +21,7 @@ import Dict exposing (Dict)
 import Elm.Dependency exposing (Dependency)
 import Elm.Interface as Interface exposing (Interface)
 import Elm.Internal.RawFile as InternalRawFile
-import Elm.OperatorTable exposing (SimpleInfix)
+import Elm.Operators exposing (SimpleInfix)
 import Elm.RawFile as RawFile
 import Elm.Syntax.Comments exposing (Comment)
 import Elm.Syntax.Declaration exposing (Declaration(..))
@@ -295,7 +295,7 @@ lowestPrecedence expressions =
                 (\(Node _ expression) ->
                     case expression of
                         Operator s ->
-                            Dict.get s Elm.OperatorTable.table
+                            Dict.get s Elm.Operators.table
 
                         _ ->
                             Nothing
