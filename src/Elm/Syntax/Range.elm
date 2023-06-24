@@ -77,31 +77,20 @@ encode { start, end } =
 decoder : Decoder Range
 decoder =
     JD.list JD.int
-        |> JD.andThen
-            (fromList >> fromResult)
+        |> JD.andThen fromList
 
 
-fromList : List Int -> Result String Range
+fromList : List Int -> Decoder Range
 fromList input =
     case input of
         [ a, b, c, d ] ->
-            Ok
+            JD.succeed
                 { start = { row = a, column = b }
                 , end = { row = c, column = d }
                 }
 
         _ ->
-            Err "Invalid input list"
-
-
-fromResult : Result String a -> Decoder a
-fromResult result =
-    case result of
-        Ok successValue ->
-            JD.succeed successValue
-
-        Err errorMessage ->
-            JD.fail errorMessage
+            JD.fail "Invalid input list"
 
 
 {-| Compute the largest area of a list of ranges.
