@@ -5,7 +5,7 @@ import Elm.Parser.CombineTestUtil exposing (..)
 import Elm.Parser.File as Parser
 import Elm.Parser.Samples as Samples
 import Elm.Parser.State exposing (emptyState)
-import Elm.RawFile as RawFile
+import Elm.RawFile as RawFile exposing (RawFile)
 import Expect
 import Json.Decode
 import Json.Encode
@@ -46,10 +46,12 @@ all =
                         test ("sample " ++ String.fromInt (n + 1)) <|
                             \() ->
                                 let
+                                    parsed : Maybe RawFile
                                     parsed =
                                         parseFullStringState emptyState s Parser.file
                                             |> Maybe.map InternalRawFile.Raw
 
+                                    roundTrip : Maybe RawFile
                                     roundTrip =
                                         parsed
                                             |> Maybe.map (RawFile.encode >> Json.Encode.encode 0)
