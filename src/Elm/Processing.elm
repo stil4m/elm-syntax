@@ -157,7 +157,7 @@ addDocumentation howToUpdate declaration file =
         Just doc ->
             { previousComments = previous ++ file.previousComments
             , remainingComments = remaining
-            , declarations = Node (Range.combine [ Node.range doc, Node.range declaration ]) (howToUpdate doc) :: file.declarations
+            , declarations = Node { start = (Node.range doc).start, end = (Node.range declaration).end } (howToUpdate doc) :: file.declarations
             }
 
         Nothing ->
