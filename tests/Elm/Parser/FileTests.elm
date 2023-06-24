@@ -93,10 +93,10 @@ f =
                     |> Result.map .comments
                     |> Expect.equal
                         (Ok
-                            [ Node { start = { row = 11, column = 1 }, end = { row = 11, column = 5 } } "-- 3"
-                            , Node { start = { row = 10, column = 1 }, end = { row = 10, column = 8 } } "{- 2 -}"
+                            [ Node { start = { row = 4, column = 1 }, end = { row = 5, column = 3 } } "{-| Module documentation\n-}"
                             , Node { start = { row = 9, column = 1 }, end = { row = 9, column = 5 } } "-- 1"
-                            , Node { start = { row = 4, column = 1 }, end = { row = 5, column = 3 } } "{-| Module documentation\n-}"
+                            , Node { start = { row = 10, column = 1 }, end = { row = 10, column = 8 } } "{- 2 -}"
+                            , Node { start = { row = 11, column = 1 }, end = { row = 11, column = 5 } } "-- 3"
                             , Node { start = { row = 16, column = 5 }, end = { row = 16, column = 9 } } "-- 4"
                             , Node { start = { row = 19, column = 1 }, end = { row = 19, column = 5 } } "-- 5"
                             , Node { start = { row = 20, column = 1 }, end = { row = 20, column = 8 } } "{- 6 -}"

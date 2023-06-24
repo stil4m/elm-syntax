@@ -90,16 +90,13 @@ process _ (InternalRawFile.Raw file) =
     { moduleDefinition = file.moduleDefinition
     , imports = file.imports
     , declarations = List.reverse changes.declarations
-    , comments =
-        (changes.remainingComments :: changes.previousComments)
-            |> List.reverse
-            |> List.concat
+    , comments = List.sortWith (\(Node a _) (Node b _) -> Range.compare a b) (changes.remainingComments ++ changes.previousComments)
     }
 
 
 type alias DeclarationsAndComments =
     { declarations : List (Node Declaration)
-    , previousComments : List (List (Node Comment))
+    , previousComments : List (Node Comment)
     , remainingComments : List (Node Comment)
     }
 
@@ -158,13 +155,13 @@ addDocumentation howToUpdate declaration file =
     in
     case maybeDoc of
         Just doc ->
-            { previousComments = previous :: file.previousComments
+            { previousComments = previous ++ file.previousComments
             , remainingComments = remaining
             , declarations = Node (Range.combine [ Node.range doc, Node.range declaration ]) (howToUpdate doc) :: file.declarations
             }
 
         Nothing ->
-            { previousComments = previous :: file.previousComments
+            { previousComments = previous ++ file.previousComments
             , remainingComments = remaining
             , declarations = declaration :: file.declarations
             }
