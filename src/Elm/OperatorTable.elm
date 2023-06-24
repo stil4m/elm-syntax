@@ -159,20 +159,7 @@ table =
           , function = Node Range.emptyRange "questionMark"
           }
         , -- elm/parser
-          -- Parser module
-          -- infix left 5 (|=) = keeper
-          { direction = Node Range.emptyRange Left
-          , precedence = Node Range.emptyRange 5
-          , operator = Node Range.emptyRange "|="
-          , function = Node Range.emptyRange "keeper"
-          }
-        , -- infix left 6 (|.) = ignorer
-          { direction = Node Range.emptyRange Left
-          , precedence = Node Range.emptyRange 6
-          , operator = Node Range.emptyRange "|."
-          , function = Node Range.emptyRange "ignorer"
-          }
-        , -- Parser.Advanced module
+          -- Parser and Parser.Advanced modules
           -- infix left 5 (|=) = keeper
           { direction = Node Range.emptyRange Left
           , precedence = Node Range.emptyRange 5
