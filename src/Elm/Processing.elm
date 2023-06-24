@@ -231,11 +231,11 @@ findNextSplit operators exps =
     let
         assocDirection : InfixDirection
         assocDirection =
+            -- At this point we should ideally check if all operators have the same associativity
+            -- and report an error if that's not the case.
             operators
-                |> List.map (Tuple.second >> .direction)
-                -- At this point we should ideally check if all operators have the same associativity
-                -- and report an error if that's not the case.
                 |> List.head
+                |> Maybe.map (Tuple.second >> .direction)
                 |> Maybe.withDefault Right
 
         prefix : List (Node Expression)
