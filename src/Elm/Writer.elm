@@ -124,6 +124,7 @@ writeExposureExpose x =
 
         Explicit exposeList ->
             let
+                diffLines : Bool
                 diffLines =
                     List.map Node.range exposeList
                         |> startOnDifferentLines
@@ -264,6 +265,7 @@ writeType type_ =
             , spaced (List.map (Node.value >> string) type_.generics)
             ]
         , let
+            diffLines : Bool
             diffLines =
                 List.map Node.range type_.constructors
                     |> startOnDifferentLines
@@ -351,6 +353,7 @@ writeTypeAnnotation (Node _ typeAnnotation) =
 
         FunctionTypeAnnotation left right ->
             let
+                addParensForSubTypeAnnotation : Node TypeAnnotation -> Writer
                 addParensForSubTypeAnnotation type_ =
                     case type_ of
                         Node _ (FunctionTypeAnnotation _ _) ->
@@ -380,6 +383,7 @@ writeRecordField (Node _ ( name, ref )) =
 writeExpression : Node Expression -> Writer
 writeExpression (Node range inner) =
     let
+        recurRangeHelper : Node Expression -> ( Range, Writer )
         recurRangeHelper (Node x y) =
             ( x, writeExpression (Node x y) )
 
@@ -392,6 +396,7 @@ writeExpression (Node range inner) =
         sepHelper : (Bool -> List Writer -> Writer) -> List ( Range, Writer ) -> Writer
         sepHelper f l =
             let
+                diffLines : Bool
                 diffLines =
                     List.map Tuple.first l
                         |> startOnDifferentLines
@@ -496,6 +501,7 @@ writeExpression (Node range inner) =
 
         CaseExpression caseBlock ->
             let
+                writeCaseBranch : ( Node Pattern, Node Expression ) -> Writer
                 writeCaseBranch ( pattern, expression ) =
                     indent 2 <|
                         breaked
@@ -656,6 +662,7 @@ parensIfContainsSpaces w =
 wrapInSurroundingParentheses : Node TypeAnnotation -> Node TypeAnnotation
 wrapInSurroundingParentheses node =
     let
+        withParens : Node TypeAnnotation -> Node TypeAnnotation
         withParens n =
             Node Elm.Syntax.Range.empty (Tupled [ n ])
     in
