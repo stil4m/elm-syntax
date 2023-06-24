@@ -1,6 +1,6 @@
 module Elm.Syntax.Node exposing
     ( Node(..)
-    , combine, range, value, map
+    , empty, combine, range, value, map
     , encode, decoder
     )
 
@@ -17,7 +17,7 @@ element of the tree was found.
 
 ## Functions
 
-@docs combine, range, value, map
+@docs empty, combine, range, value, map
 
 
 ## Serialization
@@ -35,6 +35,13 @@ import Json.Encode as JE exposing (Value)
 -}
 type Node a
     = Node Range a
+
+
+{-| Create a Node with an empty range.
+-}
+empty : a -> Node a
+empty a =
+    Node Range.empty a
 
 
 {-| Combine two nodes, constructing a new node which will have the outer most range of the child nodes
