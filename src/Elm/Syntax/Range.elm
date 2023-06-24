@@ -1,8 +1,9 @@
 module Elm.Syntax.Range exposing
     ( Range, Location
-    , emptyRange, combine
+    , empty, combine
     , compare, compareLocations
     , encode, decoder
+    , emptyRange
     )
 
 {-|
@@ -15,7 +16,7 @@ module Elm.Syntax.Range exposing
 
 ## Functions
 
-@docs emptyRange, combine
+@docs empty, combine
 
 
 ## Comparison
@@ -28,6 +29,11 @@ See also [Basics.compare](https://package.elm-lang.org/packages/elm/core/latest/
 ## Serialization
 
 @docs encode, decoder
+
+
+## Deprecated
+
+@docs emptyRange
 
 -}
 
@@ -53,11 +59,21 @@ type alias Range =
 
 {-| Construct an empty range
 -}
-emptyRange : Range
-emptyRange =
+empty : Range
+empty =
     { start = { row = 0, column = 0 }
     , end = { row = 0, column = 0 }
     }
+
+
+{-| **@deprecated** Use [`empty`](#empty) instead. It does the same thing but the name is more Elm-y.
+
+Construct an empty range
+
+-}
+emptyRange : Range
+emptyRange =
+    empty
 
 
 {-| Encode a range
