@@ -289,8 +289,8 @@ findNextSplit dict exps =
 lowestPrecedence : List (Node Expression) -> Dict String SimpleInfix
 lowestPrecedence expressions =
     let
-        input : List SimpleInfix
-        input =
+        operatorsInArguments : List SimpleInfix
+        operatorsInArguments =
             List.filterMap
                 (\(Node _ expression) ->
                     case expression of
@@ -302,7 +302,7 @@ lowestPrecedence expressions =
                 )
                 expressions
     in
-    case findMinimumPrecedence input of
+    case findMinimumPrecedence operatorsInArguments of
         Just m ->
             List.foldl
                 (\infix_ acc ->
@@ -313,7 +313,7 @@ lowestPrecedence expressions =
                         acc
                 )
                 Dict.empty
-                input
+                operatorsInArguments
 
         Nothing ->
             Dict.empty
