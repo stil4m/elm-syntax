@@ -229,10 +229,13 @@ fixExprs exps =
 findNextSplit : Dict String SimpleInfix -> List (Node Expression) -> Maybe ( List (Node Expression), SimpleInfix, List (Node Expression) )
 findNextSplit dict exps =
     let
+        operators : List ( String, SimpleInfix )
+        operators =
+            Dict.toList dict
+
         assocDirection : InfixDirection
         assocDirection =
-            dict
-                |> Dict.toList
+            operators
                 |> List.map (Tuple.second >> .direction)
                 -- At this point we should ideally check if all operators have the same associativity
                 -- and report an error if that's not the case.
@@ -248,7 +251,7 @@ findNextSplit dict exps =
                         |> List.Extra.dropWhile
                             (\x ->
                                 expressionOperators x
-                                    |> Maybe.andThen (\key -> Dict.get key dict)
+                                    |> Maybe.andThen (\key -> findInfix key operators)
                                     |> (==) Nothing
                             )
                         |> List.drop 1
@@ -259,7 +262,7 @@ findNextSplit dict exps =
                         |> List.Extra.takeWhile
                             (\x ->
                                 expressionOperators x
-                                    |> Maybe.andThen (\key -> Dict.get key dict)
+                                    |> Maybe.andThen (\key -> findInfix key operators)
                                     |> (==) Nothing
                             )
 
@@ -284,6 +287,20 @@ findNextSplit dict exps =
 
         Nothing ->
             Nothing
+
+
+findInfix : String -> List ( String, SimpleInfix ) -> Maybe SimpleInfix
+findInfix symbol list =
+    case list of
+        [] ->
+            Nothing
+
+        ( key, value ) :: rest ->
+            if key == symbol then
+                Just value
+
+            else
+                findInfix symbol rest
 
 
 lowestPrecedence : List (Node Expression) -> Dict String SimpleInfix
