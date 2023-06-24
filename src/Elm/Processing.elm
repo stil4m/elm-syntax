@@ -294,8 +294,8 @@ lowestPrecedence expressions =
             List.filterMap
                 (\(Node _ expression) ->
                     case expression of
-                        Operator s ->
-                            Dict.get s Elm.Operators.table
+                        Operator symbol ->
+                            Dict.get symbol Elm.Operators.bySymbol
 
                         _ ->
                             Nothing

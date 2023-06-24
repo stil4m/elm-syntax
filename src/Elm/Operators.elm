@@ -1,6 +1,6 @@
 module Elm.Operators exposing
     ( SimpleInfix
-    , table
+    , bySymbol
     )
 
 import Dict exposing (Dict)
@@ -15,8 +15,8 @@ type alias SimpleInfix =
     }
 
 
-table : Dict String SimpleInfix
-table =
+bySymbol : Dict String SimpleInfix
+bySymbol =
     List.foldl
         (\infix_ acc ->
             Dict.insert infix_.operator infix_ acc
