@@ -18,6 +18,7 @@ import Docs.UpToDateReadmeLinks
 import NoConfusingPrefixOperator
 import NoDebug.Log
 import NoDebug.TodoOrToString
+import NoDeprecated
 import NoExposingEverything
 import NoImportingEverything
 import NoMissingTypeAnnotation
@@ -49,6 +50,7 @@ config =
     , NoDebug.Log.rule
     , NoDebug.TodoOrToString.rule
         |> Rule.ignoreErrorsForDirectories [ "tests/" ]
+    , NoDeprecated.rule NoDeprecated.defaults
     , NoExposingEverything.rule
     , NoImportingEverything.rule []
         |> Rule.ignoreErrorsForDirectories [ "tests/" ]
