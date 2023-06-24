@@ -233,10 +233,12 @@ findNextSplit operators exps =
         assocDirection =
             -- At this point we should ideally check if all operators have the same associativity
             -- and report an error if that's not the case.
-            operators
-                |> List.head
-                |> Maybe.map (Tuple.second >> .direction)
-                |> Maybe.withDefault Right
+            case List.head operators of
+                Just ( _, { direction } ) ->
+                    direction
+
+                Nothing ->
+                    Right
 
         prefix : List (Node Expression)
         prefix =
