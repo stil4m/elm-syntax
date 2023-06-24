@@ -97,22 +97,41 @@ fromList input =
 -}
 combine : List Range -> Range
 combine ranges =
-    let
-        starts =
-            List.map .start ranges |> sortLocations
+    case ranges of
+        [] ->
+            emptyRange
 
-        ends =
-            List.map .end ranges |> sortLocations |> List.reverse
-    in
-    Maybe.map2 Range (List.head starts) (List.head ends)
-        |> Maybe.withDefault emptyRange
+        head :: tail ->
+            combineHelp tail head.start head.end
 
 
-{-| Could be faster via single fold
--}
-sortLocations : List Location -> List Location
-sortLocations =
-    List.sortWith compareLocations
+combineHelp : List Range -> Location -> Location -> Range
+combineHelp ranges previousStart previousEnd =
+    case ranges of
+        [] ->
+            { start = previousStart, end = previousEnd }
+
+        { start, end } :: rest ->
+            let
+                newStart : Location
+                newStart =
+                    case compareLocations start previousStart of
+                        LT ->
+                            start
+
+                        _ ->
+                            previousStart
+
+                newEnd : Location
+                newEnd =
+                    case compareLocations end previousEnd of
+                        GT ->
+                            end
+
+                        _ ->
+                            previousEnd
+            in
+            combineHelp rest newStart newEnd
 
 
 {-| Compare the position of two Ranges.
