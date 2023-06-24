@@ -19,15 +19,15 @@ all =
                     |> Maybe.map (unRanged noRangeImport)
                     |> Expect.equal
                         (Just <|
-                            Node emptyRange <|
-                                { moduleName = Node emptyRange <| [ "Foo" ]
+                            Node empty <|
+                                { moduleName = Node empty <| [ "Foo" ]
                                 , moduleAlias = Nothing
                                 , exposingList =
                                     Just <|
-                                        Node emptyRange <|
+                                        Node empty <|
                                             Explicit
-                                                [ Node emptyRange <| TypeOrAliasExpose "Model"
-                                                , Node emptyRange <| TypeExpose (ExposedType "Msg" (Just emptyRange))
+                                                [ Node empty <| TypeOrAliasExpose "Model"
+                                                , Node empty <| TypeExpose (ExposedType "Msg" (Just empty))
                                                 ]
                                 }
                         )
@@ -37,10 +37,10 @@ all =
                     |> Maybe.map (unRanged noRangeImport)
                     |> Expect.equal
                         (Just <|
-                            Node emptyRange <|
-                                { moduleName = Node emptyRange <| [ "Html" ]
+                            Node empty <|
+                                { moduleName = Node empty <| [ "Html" ]
                                 , moduleAlias = Nothing
-                                , exposingList = Just <| Node emptyRange <| Explicit [ Node emptyRange <| FunctionExpose "text" ]
+                                , exposingList = Just <| Node empty <| Explicit [ Node empty <| FunctionExpose "text" ]
                                 }
                         )
         , test "import minimal" <|
@@ -49,8 +49,8 @@ all =
                     |> Maybe.map (unRanged noRangeImport)
                     |> Expect.equal
                         (Just <|
-                            Node emptyRange <|
-                                { moduleName = Node emptyRange <| [ "Foo" ]
+                            Node empty <|
+                                { moduleName = Node empty <| [ "Foo" ]
                                 , moduleAlias = Nothing
                                 , exposingList = Nothing
                                 }
@@ -61,9 +61,9 @@ all =
                     |> Maybe.map (unRanged noRangeImport)
                     |> Expect.equal
                         (Just <|
-                            Node emptyRange <|
-                                { moduleName = Node emptyRange <| [ "Foo" ]
-                                , moduleAlias = Just <| Node emptyRange <| [ "Bar" ]
+                            Node empty <|
+                                { moduleName = Node empty <| [ "Foo" ]
+                                , moduleAlias = Just <| Node empty <| [ "Bar" ]
                                 , exposingList = Nothing
                                 }
                         )

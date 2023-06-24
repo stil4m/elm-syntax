@@ -4,7 +4,7 @@ import Elm.Parser.CombineTestUtil exposing (..)
 import Elm.Parser.State exposing (emptyState)
 import Elm.Parser.Typings as Parser exposing (TypeDefinition(..))
 import Elm.Syntax.Node exposing (Node(..))
-import Elm.Syntax.Range exposing (emptyRange)
+import Elm.Syntax.Range exposing (empty)
 import Elm.Syntax.Type exposing (Type)
 import Elm.Syntax.TypeAlias exposing (TypeAlias)
 import Elm.Syntax.TypeAnnotation exposing (..)
@@ -43,14 +43,14 @@ all =
                     |> Expect.equal
                         (Just <|
                             { documentation = Nothing
-                            , name = Node emptyRange "Foo"
+                            , name = Node empty "Foo"
                             , generics = []
                             , typeAnnotation =
-                                Node emptyRange <|
+                                Node empty <|
                                     Record
-                                        [ Node emptyRange <|
-                                            ( Node emptyRange <| "color"
-                                            , Node emptyRange <| Typed (Node emptyRange <| ( [], "String" )) []
+                                        [ Node empty <|
+                                            ( Node empty <| "color"
+                                            , Node empty <| Typed (Node empty <| ( [], "String" )) []
                                             )
                                         ]
                             }
@@ -63,14 +63,14 @@ all =
                     |> Expect.equal
                         (Just <|
                             { documentation = Nothing
-                            , name = Node emptyRange "Foo"
+                            , name = Node empty "Foo"
                             , generics = []
                             , typeAnnotation =
-                                Node emptyRange <|
+                                Node empty <|
                                     Record
-                                        [ Node emptyRange <|
-                                            ( Node emptyRange <| "color"
-                                            , Node emptyRange <| Typed (Node emptyRange <| ( [], "String" )) []
+                                        [ Node empty <|
+                                            ( Node empty <| "color"
+                                            , Node empty <| Typed (Node empty <| ( [], "String" )) []
                                             )
                                         ]
                             }
@@ -83,14 +83,14 @@ all =
                     |> Expect.equal
                         (Just <|
                             { documentation = Nothing
-                            , name = Node emptyRange <| "Foo"
-                            , generics = [ Node emptyRange <| "a" ]
+                            , name = Node empty <| "Foo"
+                            , generics = [ Node empty <| "a" ]
                             , typeAnnotation =
-                                Node emptyRange <|
+                                Node empty <|
                                     Record
-                                        [ Node emptyRange <|
-                                            ( Node emptyRange <| "some"
-                                            , Node emptyRange <| GenericType "a"
+                                        [ Node empty <|
+                                            ( Node empty <| "some"
+                                            , Node empty <| GenericType "a"
                                             )
                                         ]
                             }
@@ -103,19 +103,19 @@ all =
                     |> Expect.equal
                         (Just <|
                             { documentation = Nothing
-                            , name = Node emptyRange <| "Color"
+                            , name = Node empty <| "Color"
                             , generics = []
                             , constructors =
-                                [ Node emptyRange
-                                    { name = Node emptyRange <| "Blue"
-                                    , arguments = [ Node emptyRange <| Typed (Node emptyRange <| ( [], "String" )) [] ]
+                                [ Node empty
+                                    { name = Node empty <| "Blue"
+                                    , arguments = [ Node empty <| Typed (Node empty <| ( [], "String" )) [] ]
                                     }
-                                , Node emptyRange
-                                    { name = Node emptyRange <| "Red"
+                                , Node empty
+                                    { name = Node empty <| "Red"
                                     , arguments = []
                                     }
-                                , Node emptyRange
-                                    { name = Node emptyRange <| "Green"
+                                , Node empty
+                                    { name = Node empty <| "Green"
                                     , arguments = []
                                     }
                                 ]
@@ -130,16 +130,16 @@ all =
                         (Just
                             { documentation = Nothing
                             , constructors =
-                                [ Node emptyRange
+                                [ Node empty
                                     { arguments =
-                                        [ Node emptyRange <| GenericType "a"
-                                        , Node emptyRange <| Typed (Node emptyRange <| ( [], "B" )) []
+                                        [ Node empty <| GenericType "a"
+                                        , Node empty <| Typed (Node empty <| ( [], "B" )) []
                                         ]
-                                    , name = Node emptyRange <| "C"
+                                    , name = Node empty <| "C"
                                     }
                                 ]
                             , generics = []
-                            , name = Node emptyRange <| "D"
+                            , name = Node empty <| "D"
                             }
                         )
         , test "type with multiple args and correct distribution of args" <|
@@ -151,16 +151,16 @@ all =
                         (Just
                             { documentation = Nothing
                             , constructors =
-                                [ Node emptyRange
+                                [ Node empty
                                     { arguments =
-                                        [ Node emptyRange <| Typed (Node emptyRange <| ( [], "B" )) []
-                                        , Node emptyRange <| GenericType "a"
+                                        [ Node empty <| Typed (Node empty <| ( [], "B" )) []
+                                        , Node empty <| GenericType "a"
                                         ]
-                                    , name = Node emptyRange <| "C"
+                                    , name = Node empty <| "C"
                                     }
                                 ]
                             , generics = []
-                            , name = Node emptyRange <| "D"
+                            , name = Node empty <| "D"
                             }
                         )
         , test "type args should not continue on next line" <|
@@ -172,15 +172,15 @@ all =
                         (Just
                             { documentation = Nothing
                             , constructors =
-                                [ Node emptyRange
+                                [ Node empty
                                     { arguments =
-                                        [ Node emptyRange <| Typed (Node emptyRange <| ( [], "B" )) []
+                                        [ Node empty <| Typed (Node empty <| ( [], "B" )) []
                                         ]
-                                    , name = Node emptyRange <| "C"
+                                    , name = Node empty <| "C"
                                     }
                                 ]
                             , generics = []
-                            , name = Node emptyRange <| "D"
+                            , name = Node empty <| "D"
                             }
                         )
         , test "type and more" <|
@@ -192,13 +192,13 @@ all =
                         (Just
                             { documentation = Nothing
                             , constructors =
-                                [ Node emptyRange
+                                [ Node empty
                                     { arguments = []
-                                    , name = Node emptyRange <| "Blue"
+                                    , name = Node empty <| "Blue"
                                     }
                                 ]
                             , generics = []
-                            , name = Node emptyRange <| "Color"
+                            , name = Node empty <| "Color"
                             }
                         )
         , test "type with GenericType" <|
@@ -209,15 +209,15 @@ all =
                     |> Expect.equal
                         (Just <|
                             { documentation = Nothing
-                            , name = Node emptyRange <| "Maybe"
-                            , generics = [ Node emptyRange <| "a" ]
+                            , name = Node empty <| "Maybe"
+                            , generics = [ Node empty <| "a" ]
                             , constructors =
-                                [ Node emptyRange
-                                    { name = Node emptyRange <| "Just"
-                                    , arguments = [ Node emptyRange <| GenericType "a" ]
+                                [ Node empty
+                                    { name = Node empty <| "Just"
+                                    , arguments = [ Node empty <| GenericType "a" ]
                                     }
-                                , Node emptyRange
-                                    { name = Node emptyRange <| "Nothing"
+                                , Node empty
+                                    { name = Node empty <| "Nothing"
                                     , arguments = []
                                     }
                                 ]

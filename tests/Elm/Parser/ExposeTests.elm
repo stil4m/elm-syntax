@@ -16,17 +16,17 @@ all =
             \() ->
                 parseFullStringWithNullState "($>)" infixExpose
                     |> Maybe.map noRangeExpose
-                    |> Expect.equal (Just (Node emptyRange <| InfixExpose "$>"))
+                    |> Expect.equal (Just (Node empty <| InfixExpose "$>"))
         , test "definitionExpose" <|
             \() ->
                 parseFullStringWithNullState "Model" typeExpose
                     |> Maybe.map noRangeExpose
-                    |> Expect.equal (Just (Node emptyRange <| TypeOrAliasExpose "Model"))
+                    |> Expect.equal (Just (Node empty <| TypeOrAliasExpose "Model"))
         , test "typeExpose" <|
             \() ->
                 parseFullStringWithNullState "Msg(..)" typeExpose
                     |> Maybe.map noRangeExpose
-                    |> Expect.equal (Just (Node emptyRange <| TypeExpose (ExposedType "Msg" (Just emptyRange))))
+                    |> Expect.equal (Just (Node empty <| TypeExpose (ExposedType "Msg" (Just empty))))
         , test "exposingList" <|
             \() ->
                 parseFullStringWithNullState "exposing (Model,Msg(..),Info(..),init,(::))" exposeDefinition
@@ -34,11 +34,11 @@ all =
                     |> Expect.equal
                         (Just
                             (Explicit
-                                [ Node emptyRange <| TypeOrAliasExpose "Model"
-                                , Node emptyRange <| TypeExpose (ExposedType "Msg" (Just emptyRange))
-                                , Node emptyRange <| TypeExpose (ExposedType "Info" (Just emptyRange))
-                                , Node emptyRange <| FunctionExpose "init"
-                                , Node emptyRange <| InfixExpose "::"
+                                [ Node empty <| TypeOrAliasExpose "Model"
+                                , Node empty <| TypeExpose (ExposedType "Msg" (Just empty))
+                                , Node empty <| TypeExpose (ExposedType "Info" (Just empty))
+                                , Node empty <| FunctionExpose "init"
+                                , Node empty <| InfixExpose "::"
                                 ]
                             )
                         )
@@ -49,7 +49,7 @@ all =
                     |> Expect.equal
                         (Just
                             (Explicit
-                                [ Node emptyRange <| FunctionExpose "foo"
+                                [ Node empty <| FunctionExpose "foo"
                                 ]
                             )
                         )
@@ -60,7 +60,7 @@ all =
                     |> Expect.equal
                         (Just
                             (Explicit
-                                [ Node emptyRange <| FunctionExpose "foo"
+                                [ Node empty <| FunctionExpose "foo"
                                 ]
                             )
                         )
@@ -71,11 +71,11 @@ all =
                     |> Expect.equal
                         (Just
                             (Explicit
-                                [ Node emptyRange <| TypeOrAliasExpose "Model"
-                                , Node emptyRange <| TypeOrAliasExpose "Msg"
-                                , Node emptyRange <| TypeExpose (ExposedType "Info" (Just emptyRange))
-                                , Node emptyRange <| FunctionExpose "init"
-                                , Node emptyRange <| InfixExpose "::"
+                                [ Node empty <| TypeOrAliasExpose "Model"
+                                , Node empty <| TypeOrAliasExpose "Msg"
+                                , Node empty <| TypeExpose (ExposedType "Info" (Just empty))
+                                , Node empty <| FunctionExpose "init"
+                                , Node empty <| InfixExpose "::"
                                 ]
                             )
                         )

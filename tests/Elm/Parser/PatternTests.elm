@@ -5,7 +5,7 @@ import Elm.Parser.Patterns as Parser
 import Elm.Parser.State exposing (emptyState)
 import Elm.Syntax.Node as Node exposing (Node(..))
 import Elm.Syntax.Pattern exposing (..)
-import Elm.Syntax.Range exposing (Location, Range, emptyRange)
+import Elm.Syntax.Range exposing (Location, Range, empty)
 import Expect
 import Test exposing (..)
 
@@ -148,10 +148,10 @@ all =
                     |> Maybe.map noRangePattern
                     |> Expect.equal
                         (Just
-                            (Node emptyRange <|
+                            (Node empty <|
                                 RecordPattern
-                                    [ Node emptyRange "a"
-                                    , Node emptyRange "b"
+                                    [ Node empty "a"
+                                    , Node empty "b"
                                     ]
                             )
                         )
@@ -161,10 +161,10 @@ all =
                     |> Maybe.map noRangePattern
                     |> Expect.equal
                         (Just
-                            (Node emptyRange <|
+                            (Node empty <|
                                 RecordPattern
-                                    [ Node emptyRange "a"
-                                    , Node emptyRange "b"
+                                    [ Node empty "a"
+                                    , Node empty "b"
                                     ]
                             )
                         )
@@ -174,9 +174,9 @@ all =
                     |> Maybe.map noRangePattern
                     |> Expect.equal
                         (Just
-                            (Node emptyRange <|
+                            (Node empty <|
                                 RecordPattern
-                                    [ Node emptyRange "a"
+                                    [ Node empty "a"
                                     ]
                             )
                         )
@@ -186,9 +186,9 @@ all =
                     |> Maybe.map noRangePattern
                     |> Expect.equal
                         (Just
-                            (Node emptyRange <|
+                            (Node empty <|
                                 RecordPattern
-                                    [ Node emptyRange "a"
+                                    [ Node empty "a"
                                     ]
                             )
                         )
@@ -196,32 +196,32 @@ all =
             \() ->
                 parseFullStringState emptyState "{}" Parser.pattern
                     |> Maybe.map noRangePattern
-                    |> Expect.equal (Just (Node emptyRange <| RecordPattern []))
+                    |> Expect.equal (Just (Node empty <| RecordPattern []))
         , test "empty record pattern with whitespace" <|
             \() ->
                 parseFullStringState emptyState "{ }" Parser.pattern
                     |> Maybe.map noRangePattern
-                    |> Expect.equal (Just (Node emptyRange <| RecordPattern []))
+                    |> Expect.equal (Just (Node empty <| RecordPattern []))
         , test "named pattern" <|
             \() ->
                 parseFullStringState emptyState "True" Parser.pattern
                     |> Maybe.map noRangePattern
-                    |> Expect.equal (Just (Node emptyRange <| NamedPattern (QualifiedNameRef [] "True") []))
+                    |> Expect.equal (Just (Node empty <| NamedPattern (QualifiedNameRef [] "True") []))
         , test "tuple pattern" <|
             \() ->
                 parseFullStringState emptyState "(a,{b,c},())" Parser.pattern
                     |> Maybe.map noRangePattern
                     |> Expect.equal
                         (Just
-                            (Node emptyRange <|
+                            (Node empty <|
                                 TuplePattern
-                                    [ Node emptyRange <| VarPattern "a"
-                                    , Node emptyRange <|
+                                    [ Node empty <| VarPattern "a"
+                                    , Node empty <|
                                         RecordPattern
-                                            [ Node emptyRange "b"
-                                            , Node emptyRange "c"
+                                            [ Node empty "b"
+                                            , Node empty "c"
                                             ]
-                                    , Node emptyRange UnitPattern
+                                    , Node empty UnitPattern
                                     ]
                             )
                         )
@@ -231,9 +231,9 @@ all =
                     |> Maybe.map noRangePattern
                     |> Expect.equal
                         (Just
-                            (Node emptyRange <|
+                            (Node empty <|
                                 NamedPattern (QualifiedNameRef [] "Set")
-                                    [ Node emptyRange <| VarPattern "x" ]
+                                    [ Node empty <| VarPattern "x" ]
                             )
                         )
         , test "tuple pattern 2" <|
@@ -242,10 +242,10 @@ all =
                     |> Maybe.map noRangePattern
                     |> Expect.equal
                         (Just
-                            (Node emptyRange <|
+                            (Node empty <|
                                 TuplePattern
-                                    [ Node emptyRange <| VarPattern "model"
-                                    , Node emptyRange <| VarPattern "cmd"
+                                    [ Node empty <| VarPattern "model"
+                                    , Node empty <| VarPattern "cmd"
                                     ]
                             )
                         )
@@ -271,16 +271,16 @@ all =
                     |> Maybe.map noRangePattern
                     |> Expect.equal
                         (Just
-                            (Node emptyRange <|
+                            (Node empty <|
                                 TuplePattern
-                                    [ Node emptyRange <|
+                                    [ Node empty <|
                                         AsPattern
-                                            (Node emptyRange <|
+                                            (Node empty <|
                                                 NamedPattern (QualifiedNameRef [] "Index")
-                                                    [ Node emptyRange <| VarPattern "irec" ]
+                                                    [ Node empty <| VarPattern "irec" ]
                                             )
-                                            (Node emptyRange "index")
-                                    , Node emptyRange <| VarPattern "docVector"
+                                            (Node empty "index")
+                                    , Node empty <| VarPattern "docVector"
                                     ]
                             )
                         )
@@ -290,20 +290,20 @@ all =
                     |> Maybe.map noRangePattern
                     |> Expect.equal
                         (Just
-                            (Node emptyRange <|
+                            (Node empty <|
                                 NamedPattern (QualifiedNameRef [] "RBNode_elm_builtin")
-                                    [ Node emptyRange <| VarPattern "col"
-                                    , Node emptyRange <|
+                                    [ Node empty <| VarPattern "col"
+                                    , Node empty <|
                                         ParenthesizedPattern
-                                            (Node emptyRange <|
+                                            (Node empty <|
                                                 NamedPattern (QualifiedNameRef [] "RBNode_elm_builtin")
-                                                    [ Node emptyRange <| NamedPattern (QualifiedNameRef [] "Red") []
-                                                    , Node emptyRange <|
+                                                    [ Node empty <| NamedPattern (QualifiedNameRef [] "Red") []
+                                                    , Node empty <|
                                                         ParenthesizedPattern
-                                                            (Node emptyRange <|
+                                                            (Node empty <|
                                                                 NamedPattern (QualifiedNameRef [] "RBNode_elm_builtin")
-                                                                    [ Node emptyRange <| NamedPattern (QualifiedNameRef [] "Red") []
-                                                                    , Node emptyRange <| VarPattern "xv"
+                                                                    [ Node empty <| NamedPattern (QualifiedNameRef [] "Red") []
+                                                                    , Node empty <| VarPattern "xv"
                                                                     ]
                                                             )
                                                     ]

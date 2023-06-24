@@ -23,8 +23,8 @@ all =
                     |> Expect.equal
                         (Just
                             (LambdaExpression
-                                { args = [ Node emptyRange UnitPattern ]
-                                , expression = Node emptyRange <| FunctionOrValue [] "foo"
+                                { args = [ Node empty UnitPattern ]
+                                , expression = Node empty <| FunctionOrValue [] "foo"
                                 }
                             )
                         )
@@ -35,8 +35,8 @@ all =
                     |> Expect.equal
                         (Just
                             (LambdaExpression
-                                { args = [ Node emptyRange (RecordPattern [ Node { end = { column = 0, row = 0 }, start = { column = 0, row = 0 } } "foo" ]) ]
-                                , expression = Node emptyRange <| FunctionOrValue [] "foo"
+                                { args = [ Node empty (RecordPattern [ Node { end = { column = 0, row = 0 }, start = { column = 0, row = 0 } } "foo" ]) ]
+                                , expression = Node empty <| FunctionOrValue [] "foo"
                                 }
                             )
                         )
@@ -47,8 +47,8 @@ all =
                     |> Expect.equal
                         (Just
                             (LambdaExpression
-                                { args = [ Node emptyRange (RecordPattern []) ]
-                                , expression = Node emptyRange <| FunctionOrValue [] "foo"
+                                { args = [ Node empty (RecordPattern []) ]
+                                , expression = Node empty <| FunctionOrValue [] "foo"
                                 }
                             )
                         )
@@ -66,15 +66,15 @@ all =
                         (Just
                             (LambdaExpression
                                 { args =
-                                    [ Node emptyRange <| VarPattern "a"
-                                    , Node emptyRange <| VarPattern "b"
+                                    [ Node empty <| VarPattern "a"
+                                    , Node empty <| VarPattern "b"
                                     ]
                                 , expression =
-                                    Node emptyRange <|
+                                    Node empty <|
                                         Application
-                                            [ Node emptyRange <| FunctionOrValue [] "a"
-                                            , Node emptyRange <| Operator "+"
-                                            , Node emptyRange <| FunctionOrValue [] "b"
+                                            [ Node empty <| FunctionOrValue [] "a"
+                                            , Node empty <| Operator "+"
+                                            , Node empty <| FunctionOrValue [] "b"
                                             ]
                                 }
                             )
@@ -87,13 +87,13 @@ all =
                         (Just
                             (LambdaExpression
                                 { args =
-                                    [ Node emptyRange <|
+                                    [ Node empty <|
                                         TuplePattern
-                                            [ Node emptyRange <| VarPattern "a"
-                                            , Node emptyRange <| VarPattern "b"
+                                            [ Node empty <| VarPattern "a"
+                                            , Node empty <| VarPattern "b"
                                             ]
                                     ]
-                                , expression = Node emptyRange <| Application [ Node emptyRange <| FunctionOrValue [] "a", Node emptyRange <| Operator "+", Node emptyRange <| FunctionOrValue [] "b" ]
+                                , expression = Node empty <| Application [ Node empty <| FunctionOrValue [] "a", Node empty <| Operator "+", Node empty <| FunctionOrValue [] "b" ]
                                 }
                             )
                         )

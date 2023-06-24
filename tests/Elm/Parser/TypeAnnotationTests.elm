@@ -4,7 +4,7 @@ import Elm.Parser.CombineTestUtil exposing (..)
 import Elm.Parser.State exposing (emptyState)
 import Elm.Parser.TypeAnnotation as Parser
 import Elm.Syntax.Node exposing (Node(..))
-import Elm.Syntax.Range exposing (emptyRange)
+import Elm.Syntax.Range exposing (empty)
 import Elm.Syntax.TypeAnnotation exposing (..)
 import Expect
 import Test exposing (..)
@@ -17,7 +17,7 @@ all =
             \() ->
                 parseFullStringWithNullState "()" Parser.typeAnnotation
                     |> Maybe.map noRangeTypeReference
-                    |> Expect.equal (Just <| Node emptyRange Unit)
+                    |> Expect.equal (Just <| Node empty Unit)
         , test "unitTypeReference with spaces" <|
             \() ->
                 parseFullStringWithNullState "( )" Parser.typeAnnotation
@@ -27,22 +27,22 @@ all =
             \() ->
                 parseFullStringWithNullState "( (), ())" Parser.typeAnnotation
                     |> Maybe.map noRangeTypeReference
-                    |> Expect.equal (Just <| Node emptyRange <| Tupled [ Node emptyRange Unit, Node emptyRange Unit ])
+                    |> Expect.equal (Just <| Node empty <| Tupled [ Node empty Unit, Node empty Unit ])
         , test "tupledTypeReference 2" <|
             \() ->
                 parseFullStringWithNullState "( () )" Parser.typeAnnotation
                     |> Maybe.map noRangeTypeReference
-                    |> Expect.equal (Just <| Node emptyRange Unit)
+                    |> Expect.equal (Just <| Node empty Unit)
         , test "tupledTypeReference 3" <|
             \() ->
                 parseFullStringWithNullState "( () , Maybe m )" Parser.typeAnnotation
                     |> Maybe.map noRangeTypeReference
                     |> Expect.equal
                         (Just
-                            (Node emptyRange <|
+                            (Node empty <|
                                 Tupled
-                                    [ Node emptyRange Unit
-                                    , Node emptyRange <| Typed (Node emptyRange <| ( [], "Maybe" )) [ Node emptyRange <| GenericType "m" ]
+                                    [ Node empty Unit
+                                    , Node empty <| Typed (Node empty <| ( [], "Maybe" )) [ Node empty <| GenericType "m" ]
                                     ]
                             )
                         )
@@ -50,12 +50,12 @@ all =
             \() ->
                 parseFullStringWithNullState "Foo.Bar" Parser.typeAnnotation
                     |> Maybe.map noRangeTypeReference
-                    |> Expect.equal (Just (Node emptyRange <| Typed (Node emptyRange ( [ "Foo" ], "Bar" )) []))
+                    |> Expect.equal (Just (Node empty <| Typed (Node empty ( [ "Foo" ], "Bar" )) []))
         , test "typeAnnotationNoFn" <|
             \() ->
                 parseFullStringWithNullState "Bar" Parser.typeAnnotation
                     |> Maybe.map noRangeTypeReference
-                    |> Expect.equal (Just (Node emptyRange <| Typed (Node emptyRange ( [], "Bar" )) []))
+                    |> Expect.equal (Just (Node empty <| Typed (Node empty ( [], "Bar" )) []))
         , test "types with and without spacing should parse to the same" <|
             \() ->
                 let
@@ -73,11 +73,11 @@ all =
                     |> Maybe.map noRangeTypeReference
                     |> Expect.equal
                         (Just <|
-                            (Node emptyRange <|
-                                Typed (Node emptyRange ( [], "Foo" ))
-                                    [ Node emptyRange Unit
-                                    , Node emptyRange <| GenericType "a"
-                                    , Node emptyRange <| Typed (Node emptyRange ( [], "Bar" )) []
+                            (Node empty <|
+                                Typed (Node empty ( [], "Foo" ))
+                                    [ Node empty Unit
+                                    , Node empty <| GenericType "a"
+                                    , Node empty <| Typed (Node empty ( [], "Bar" )) []
                                     ]
                             )
                         )
@@ -87,11 +87,11 @@ all =
                     |> Maybe.map noRangeTypeReference
                     |> Expect.equal
                         (Just <|
-                            (Node emptyRange <|
-                                Typed (Node emptyRange ( [], "Foo" ))
-                                    [ Node emptyRange Unit
-                                    , Node emptyRange <| GenericType "a"
-                                    , Node emptyRange <| Typed (Node emptyRange ( [], "Bar" )) []
+                            (Node empty <|
+                                Typed (Node empty ( [], "Foo" ))
+                                    [ Node empty Unit
+                                    , Node empty <| GenericType "a"
+                                    , Node empty <| Typed (Node empty ( [], "Bar" )) []
                                     ]
                             )
                         )
@@ -101,7 +101,7 @@ all =
                     |> Maybe.map noRangeTypeReference
                     |> Expect.equal
                         (Just <|
-                            Node emptyRange <|
+                            Node empty <|
                                 Record []
                         )
         , test "recordTypeReference one field" <|
@@ -110,8 +110,8 @@ all =
                     |> Maybe.map noRangeTypeReference
                     |> Expect.equal
                         (Just <|
-                            Node emptyRange <|
-                                Record [ Node emptyRange ( Node emptyRange "color", Node emptyRange <| Typed (Node emptyRange ( [], "String" )) [] ) ]
+                            Node empty <|
+                                Record [ Node empty ( Node empty "color", Node empty <| Typed (Node empty ( [], "String" )) [] ) ]
                         )
         , test "record with generic" <|
             \() ->
@@ -119,11 +119,11 @@ all =
                     |> Maybe.map noRangeTypeReference
                     |> Expect.equal
                         (Just
-                            (Node emptyRange <|
-                                GenericRecord (Node emptyRange "attr")
-                                    (Node emptyRange
-                                        [ Node emptyRange ( Node emptyRange "position", Node emptyRange <| Typed (Node emptyRange <| ( [], "Vec2" )) [] )
-                                        , Node emptyRange ( Node emptyRange "texture", Node emptyRange <| Typed (Node emptyRange ( [], "Vec2" )) [] )
+                            (Node empty <|
+                                GenericRecord (Node empty "attr")
+                                    (Node empty
+                                        [ Node empty ( Node empty "position", Node empty <| Typed (Node empty <| ( [], "Vec2" )) [] )
+                                        , Node empty ( Node empty "texture", Node empty <| Typed (Node empty ( [], "Vec2" )) [] )
                                         ]
                                     )
                             )
@@ -139,15 +139,15 @@ all =
                     |> Maybe.map noRangeTypeReference
                     |> Expect.equal
                         (Just <|
-                            (Node emptyRange <|
+                            (Node empty <|
                                 Record
-                                    [ Node emptyRange
-                                        ( Node emptyRange "color"
-                                        , Node emptyRange <|
+                                    [ Node empty
+                                        ( Node empty "color"
+                                        , Node empty <|
                                             Record
-                                                [ Node emptyRange ( Node emptyRange "r", Node emptyRange <| Typed (Node emptyRange ( [], "Int" )) [] )
-                                                , Node emptyRange ( Node emptyRange "g", Node emptyRange <| Typed (Node emptyRange ( [], "Int" )) [] )
-                                                , Node emptyRange ( Node emptyRange "b", Node emptyRange <| Typed (Node emptyRange ( [], "Int" )) [] )
+                                                [ Node empty ( Node empty "r", Node empty <| Typed (Node empty ( [], "Int" )) [] )
+                                                , Node empty ( Node empty "g", Node empty <| Typed (Node empty ( [], "Int" )) [] )
+                                                , Node empty ( Node empty "b", Node empty <| Typed (Node empty ( [], "Int" )) [] )
                                                 ]
                                         )
                                     ]
@@ -184,11 +184,11 @@ all =
                     |> Maybe.map noRangeTypeReference
                     |> Expect.equal
                         (Just <|
-                            (Node emptyRange <|
+                            (Node empty <|
                                 Record
-                                    [ Node emptyRange
-                                        ( Node emptyRange "color"
-                                        , Node emptyRange <| GenericType "s"
+                                    [ Node empty
+                                        ( Node empty "color"
+                                        , Node empty <| GenericType "s"
                                         )
                                     ]
                             )
@@ -199,10 +199,10 @@ all =
                     |> Maybe.map noRangeTypeReference
                     |> Expect.equal
                         (Just <|
-                            (Node emptyRange <|
+                            (Node empty <|
                                 FunctionTypeAnnotation
-                                    (Node emptyRange <| Typed (Node emptyRange ( [], "Foo" )) [])
-                                    (Node emptyRange <| Typed (Node emptyRange ( [], "Bar" )) [])
+                                    (Node empty <| Typed (Node empty ( [], "Foo" )) [])
+                                    (Node empty <| Typed (Node empty ( [], "Bar" )) [])
                             )
                         )
         , test "function type reference multiple" <|
@@ -211,13 +211,13 @@ all =
                     |> Maybe.map noRangeTypeReference
                     |> Expect.equal
                         (Just <|
-                            (Node emptyRange <|
+                            (Node empty <|
                                 FunctionTypeAnnotation
-                                    (Node emptyRange <| Typed (Node emptyRange ( [], "Foo" )) [])
-                                    (Node emptyRange <|
+                                    (Node empty <| Typed (Node empty ( [], "Foo" )) [])
+                                    (Node empty <|
                                         FunctionTypeAnnotation
-                                            (Node emptyRange <| Typed (Node emptyRange ( [], "Bar" )) [])
-                                            (Node emptyRange <| GenericType "baz")
+                                            (Node empty <| Typed (Node empty ( [], "Bar" )) [])
+                                            (Node empty <| GenericType "baz")
                                     )
                             )
                         )
@@ -227,13 +227,13 @@ all =
                     |> Maybe.map noRangeTypeReference
                     |> Expect.equal
                         (Just <|
-                            (Node emptyRange <|
+                            (Node empty <|
                                 FunctionTypeAnnotation
-                                    (Node emptyRange <| GenericType "cMsg")
-                                    (Node emptyRange <|
+                                    (Node empty <| GenericType "cMsg")
+                                    (Node empty <|
                                         FunctionTypeAnnotation
-                                            (Node emptyRange <| GenericType "cModel")
-                                            (Node emptyRange <| GenericType "a")
+                                            (Node empty <| GenericType "cModel")
+                                            (Node empty <| GenericType "a")
                                     )
                             )
                         )
@@ -242,21 +242,21 @@ all =
                 parseAsFarAsPossibleWithState emptyState "Model\n\nsomeFunction" Parser.typeAnnotation
                     |> Maybe.map noRangeTypeReference
                     |> Expect.equal
-                        (Just (Node emptyRange <| Typed (Node emptyRange ( [], "Model" )) []))
+                        (Just (Node empty <| Typed (Node empty ( [], "Model" )) []))
         , test "annotation with parens" <|
             \() ->
                 parseAsFarAsPossibleWithState emptyState "Msg -> Model -> (Model, Cmd Msg)\n\n" Parser.typeAnnotation
                     |> Maybe.map noRangeTypeReference
                     |> Expect.equal
                         (Just
-                            (Node emptyRange <|
-                                FunctionTypeAnnotation (Node emptyRange <| Typed (Node emptyRange ( [], "Msg" )) [])
-                                    (Node emptyRange <|
-                                        FunctionTypeAnnotation (Node emptyRange <| Typed (Node emptyRange ( [], "Model" )) [])
-                                            (Node emptyRange <|
+                            (Node empty <|
+                                FunctionTypeAnnotation (Node empty <| Typed (Node empty ( [], "Msg" )) [])
+                                    (Node empty <|
+                                        FunctionTypeAnnotation (Node empty <| Typed (Node empty ( [], "Model" )) [])
+                                            (Node empty <|
                                                 Tupled
-                                                    [ Node emptyRange <| Typed (Node emptyRange ( [], "Model" )) []
-                                                    , Node emptyRange <| Typed (Node emptyRange ( [], "Cmd" )) [ Node emptyRange <| Typed (Node emptyRange ( [], "Msg" )) [] ]
+                                                    [ Node empty <| Typed (Node empty ( [], "Model" )) []
+                                                    , Node empty <| Typed (Node empty ( [], "Cmd" )) [ Node empty <| Typed (Node empty ( [], "Msg" )) [] ]
                                                     ]
                                             )
                                     )
@@ -268,9 +268,9 @@ all =
                     |> Maybe.map noRangeTypeReference
                     |> Expect.equal
                         (Just
-                            (Node emptyRange <|
-                                FunctionTypeAnnotation (Node emptyRange <| GenericType "msg")
-                                    (Node emptyRange <| Typed (Node emptyRange ( [], "Cmd" )) [ Node emptyRange <| GenericType "model" ])
+                            (Node empty <|
+                                FunctionTypeAnnotation (Node empty <| GenericType "msg")
+                                    (Node empty <| Typed (Node empty ( [], "Cmd" )) [ Node empty <| GenericType "model" ])
                             )
                         )
         , test "function as argument" <|
@@ -279,18 +279,18 @@ all =
                     |> Maybe.map noRangeTypeReference
                     |> Expect.equal
                         (Just <|
-                            (Node emptyRange <|
+                            (Node empty <|
                                 FunctionTypeAnnotation
-                                    (Node emptyRange <|
+                                    (Node empty <|
                                         FunctionTypeAnnotation
-                                            (Node emptyRange <| GenericType "cMsg")
-                                            (Node emptyRange <|
+                                            (Node empty <| GenericType "cMsg")
+                                            (Node empty <|
                                                 FunctionTypeAnnotation
-                                                    (Node emptyRange <| GenericType "cModel")
-                                                    (Node emptyRange <| GenericType "a")
+                                                    (Node empty <| GenericType "cModel")
+                                                    (Node empty <| GenericType "a")
                                             )
                                     )
-                                    (Node emptyRange <| GenericType "b")
+                                    (Node empty <| GenericType "b")
                             )
                         )
         , test "type with params" <|
@@ -299,10 +299,10 @@ all =
                     |> Maybe.map noRangeTypeReference
                     |> Expect.equal
                         (Just <|
-                            (Node emptyRange <|
+                            (Node empty <|
                                 FunctionTypeAnnotation
-                                    (Node emptyRange <| Typed (Node emptyRange ( [], "Foo" )) [])
-                                    (Node emptyRange <| Typed (Node emptyRange ( [], "Bar" )) [])
+                                    (Node empty <| Typed (Node empty ( [], "Foo" )) [])
+                                    (Node empty <| Typed (Node empty ( [], "Bar" )) [])
                             )
                         )
         , test "function type reference multiple and parens" <|
@@ -311,14 +311,14 @@ all =
                     |> Maybe.map noRangeTypeReference
                     |> Expect.equal
                         (Just <|
-                            (Node emptyRange <|
+                            (Node empty <|
                                 FunctionTypeAnnotation
-                                    (Node emptyRange <|
+                                    (Node empty <|
                                         FunctionTypeAnnotation
-                                            (Node emptyRange <| Typed (Node emptyRange ( [], "Foo" )) [])
-                                            (Node emptyRange <| Typed (Node emptyRange ( [], "Bar" )) [])
+                                            (Node empty <| Typed (Node empty ( [], "Foo" )) [])
+                                            (Node empty <| Typed (Node empty ( [], "Bar" )) [])
                                     )
-                                    (Node emptyRange <| GenericType "baz")
+                                    (Node empty <| GenericType "baz")
                             )
                         )
         , test "parseTypeWith wrong indent" <|
@@ -332,9 +332,9 @@ all =
                     |> Maybe.map noRangeTypeReference
                     |> Expect.equal
                         (Just
-                            (Node emptyRange <|
-                                Typed (Node emptyRange ( [], "Maybe" ))
-                                    [ Node emptyRange <| GenericType "a" ]
+                            (Node empty <|
+                                Typed (Node empty ( [], "Maybe" ))
+                                    [ Node empty <| GenericType "a" ]
                             )
                         )
         , test "issue #5 - no spaces between type and generic with parens" <|
@@ -343,9 +343,9 @@ all =
                     |> Maybe.map noRangeTypeReference
                     |> Expect.equal
                         (Just
-                            (Node emptyRange <|
-                                Typed (Node emptyRange ( [], "List" ))
-                                    [ Node emptyRange <| Typed (Node emptyRange ( [], "String" )) [] ]
+                            (Node empty <|
+                                Typed (Node empty ( [], "List" ))
+                                    [ Node empty <| Typed (Node empty ( [], "String" )) [] ]
                             )
                         )
         , test "parse type with multiple params" <|
@@ -354,10 +354,10 @@ all =
                     |> Maybe.map noRangeTypeReference
                     |> Expect.equal
                         (Just
-                            (Node emptyRange <|
-                                Typed (Node emptyRange ( [], "Dict" ))
-                                    [ Node emptyRange <| Typed (Node emptyRange ( [], "String" )) []
-                                    , Node emptyRange <| Typed (Node emptyRange ( [], "Int" )) []
+                            (Node empty <|
+                                Typed (Node empty ( [], "Dict" ))
+                                    [ Node empty <| Typed (Node empty ( [], "String" )) []
+                                    , Node empty <| Typed (Node empty ( [], "Int" )) []
                                     ]
                             )
                         )

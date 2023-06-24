@@ -5,7 +5,7 @@ import Elm.Parser.Infix as Infix
 import Elm.Parser.State exposing (emptyState)
 import Elm.Syntax.Infix exposing (..)
 import Elm.Syntax.Node exposing (Node(..))
-import Elm.Syntax.Range exposing (emptyRange)
+import Elm.Syntax.Range exposing (empty)
 import Expect
 import Test exposing (..)
 
@@ -19,10 +19,10 @@ all =
                     |> Maybe.map noRangeInfix
                     |> Expect.equal
                         (Just
-                            { direction = Node emptyRange Right
-                            , precedence = Node emptyRange 7
-                            , operator = Node emptyRange "</>"
-                            , function = Node emptyRange "slash"
+                            { direction = Node empty Right
+                            , precedence = Node empty 7
+                            , operator = Node empty "</>"
+                            , function = Node empty "slash"
                             }
                         )
         , test "left infix" <|
@@ -31,10 +31,10 @@ all =
                     |> Maybe.map noRangeInfix
                     |> Expect.equal
                         (Just
-                            { direction = Node emptyRange Left
-                            , precedence = Node emptyRange 8
-                            , operator = Node emptyRange "<?>"
-                            , function = Node emptyRange "questionMark"
+                            { direction = Node empty Left
+                            , precedence = Node empty 8
+                            , operator = Node empty "<?>"
+                            , function = Node empty "questionMark"
                             }
                         )
         , test "non infix" <|
@@ -43,10 +43,10 @@ all =
                     |> Maybe.map noRangeInfix
                     |> Expect.equal
                         (Just
-                            { direction = Node emptyRange Non
-                            , precedence = Node emptyRange 4
-                            , operator = Node emptyRange "=="
-                            , function = Node emptyRange "eq"
+                            { direction = Node empty Non
+                            , precedence = Node empty 4
+                            , operator = Node empty "=="
+                            , function = Node empty "eq"
                             }
                         )
         ]

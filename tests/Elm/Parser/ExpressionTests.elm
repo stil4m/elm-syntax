@@ -32,7 +32,7 @@ all =
                 parseFullStringWithNullState "(1,2)" expression
                     |> Maybe.map noRangeExpression
                     |> Maybe.map Node.value
-                    |> Expect.equal (Just (TupledExpression [ Node emptyRange <| Integer 1, Node emptyRange <| Integer 2 ]))
+                    |> Expect.equal (Just (TupledExpression [ Node empty <| Integer 1, Node empty <| Integer 2 ]))
         , test "prefix expression" <|
             \() ->
                 parseFullStringWithNullState "(,)" expression
@@ -81,7 +81,7 @@ all =
                     |> Expect.equal
                         (Just
                             (ParenthesizedExpression
-                                (Node emptyRange <| FunctionOrValue [] "bar")
+                                (Node empty <| FunctionOrValue [] "bar")
                             )
                         )
         , test "application expression" <|
@@ -156,9 +156,9 @@ all =
                     |> Expect.equal
                         (Just
                             (Application
-                                [ Node emptyRange <|
+                                [ Node empty <|
                                     FunctionOrValue [ "Task" ] "succeed"
-                                , Node emptyRange <| UnitExpr
+                                , Node empty <| UnitExpr
                                 ]
                             )
                         )
@@ -170,8 +170,8 @@ all =
                     |> Expect.equal
                         (Just
                             (Application
-                                [ Node emptyRange <| FunctionOrValue [] "foo"
-                                , Node emptyRange <| FunctionOrValue [] "bar"
+                                [ Node empty <| FunctionOrValue [] "foo"
+                                , Node empty <| FunctionOrValue [] "bar"
                                 ]
                             )
                         )
@@ -183,9 +183,9 @@ all =
                     |> Expect.equal
                         (Just
                             (Application
-                                [ Node emptyRange <| RecordExpr [ Node emptyRange ( Node emptyRange "key", Node emptyRange <| FunctionOrValue [] "value" ) ]
-                                , Node emptyRange <| Operator "!"
-                                , Node emptyRange <| ListExpr []
+                                [ Node empty <| RecordExpr [ Node empty ( Node empty "key", Node empty <| FunctionOrValue [] "value" ) ]
+                                , Node empty <| Operator "!"
+                                , Node empty <| ListExpr []
                                 ]
                             )
                         )
@@ -197,9 +197,9 @@ all =
                     |> Expect.equal
                         (Just
                             (IfBlock
-                                (Node emptyRange <| FunctionOrValue [] "True")
-                                (Node emptyRange <| FunctionOrValue [] "foo")
-                                (Node emptyRange <| FunctionOrValue [] "bar")
+                                (Node empty <| FunctionOrValue [] "True")
+                                (Node empty <| FunctionOrValue [] "foo")
+                                (Node empty <| FunctionOrValue [] "bar")
                             )
                         )
         , test "nestedIfExpression" <|
@@ -210,14 +210,14 @@ all =
                     |> Expect.equal
                         (Just
                             (IfBlock
-                                (Node emptyRange <| FunctionOrValue [] "True")
-                                (Node emptyRange <|
+                                (Node empty <| FunctionOrValue [] "True")
+                                (Node empty <|
                                     IfBlock
-                                        (Node emptyRange <| FunctionOrValue [] "False")
-                                        (Node emptyRange <| FunctionOrValue [] "foo")
-                                        (Node emptyRange <| FunctionOrValue [] "baz")
+                                        (Node empty <| FunctionOrValue [] "False")
+                                        (Node empty <| FunctionOrValue [] "foo")
+                                        (Node empty <| FunctionOrValue [] "baz")
                                 )
-                                (Node emptyRange <| FunctionOrValue [] "bar")
+                                (Node empty <| FunctionOrValue [] "bar")
                             )
                         )
         , test "recordExpression" <|
@@ -228,9 +228,9 @@ all =
                     |> Expect.equal
                         (Just
                             (RecordExpr
-                                [ Node emptyRange ( Node emptyRange "model", Node emptyRange <| Integer 0 )
-                                , Node emptyRange ( Node emptyRange "view", Node emptyRange <| FunctionOrValue [] "view" )
-                                , Node emptyRange ( Node emptyRange "update", Node emptyRange <| FunctionOrValue [] "update" )
+                                [ Node empty ( Node empty "model", Node empty <| Integer 0 )
+                                , Node empty ( Node empty "view", Node empty <| FunctionOrValue [] "view" )
+                                , Node empty ( Node empty "update", Node empty <| FunctionOrValue [] "update" )
                                 ]
                             )
                         )
@@ -242,8 +242,8 @@ all =
                     |> Expect.equal
                         (Just
                             (RecordExpr
-                                [ Node emptyRange ( Node emptyRange "foo", Node emptyRange <| Integer 1 )
-                                , Node emptyRange ( Node emptyRange "baz", Node emptyRange <| Integer 2 )
+                                [ Node empty ( Node empty "foo", Node empty <| Integer 1 )
+                                , Node empty ( Node empty "baz", Node empty <| Integer 2 )
                                 ]
                             )
                         )
@@ -255,8 +255,8 @@ all =
                     |> Expect.equal
                         (Just
                             (ListExpr
-                                [ Node emptyRange <| Application [ Node emptyRange <| FunctionOrValue [] "class", Node emptyRange <| Literal "a" ]
-                                , Node emptyRange <| Application [ Node emptyRange <| FunctionOrValue [] "text", Node emptyRange <| Literal "Foo" ]
+                                [ Node empty <| Application [ Node empty <| FunctionOrValue [] "class", Node empty <| Literal "a" ]
+                                , Node empty <| Application [ Node empty <| FunctionOrValue [] "text", Node empty <| Literal "Foo" ]
                                 ]
                             )
                         )
@@ -268,7 +268,7 @@ all =
                     |> Expect.equal
                         (Just
                             (ListExpr
-                                [ Node emptyRange <| Integer 1
+                                [ Node empty <| Integer 1
                                 ]
                             )
                         )
@@ -307,12 +307,12 @@ all =
                     |> Expect.equal
                         (Just
                             (RecordAccess
-                                (Node emptyRange <|
+                                (Node empty <|
                                     RecordAccess
-                                        (Node emptyRange <| FunctionOrValue [] "foo")
-                                        (Node emptyRange "bar")
+                                        (Node empty <| FunctionOrValue [] "foo")
+                                        (Node empty "bar")
                                 )
-                                (Node emptyRange "baz")
+                                (Node empty "baz")
                             )
                         )
         , test "multiple record access operations with module name" <|
@@ -323,12 +323,12 @@ all =
                     |> Expect.equal
                         (Just
                             (RecordAccess
-                                (Node emptyRange <|
+                                (Node empty <|
                                     RecordAccess
-                                        (Node emptyRange <| FunctionOrValue [ "A", "B" ] "foo")
-                                        (Node emptyRange "bar")
+                                        (Node empty <| FunctionOrValue [ "A", "B" ] "foo")
+                                        (Node empty "bar")
                                 )
-                                (Node emptyRange "baz")
+                                (Node empty "baz")
                             )
                         )
         , test "record update" <|
@@ -339,9 +339,9 @@ all =
                     |> Expect.equal
                         (Just
                             (RecordUpdateExpression
-                                (Node emptyRange "model")
-                                [ Node emptyRange ( Node emptyRange "count", Node emptyRange <| Integer 1 )
-                                , Node emptyRange ( Node emptyRange "loading", Node emptyRange <| FunctionOrValue [] "True" )
+                                (Node empty "model")
+                                [ Node empty ( Node empty "count", Node empty <| Integer 1 )
+                                , Node empty ( Node empty "loading", Node empty <| FunctionOrValue [] "True" )
                                 ]
                             )
                         )
@@ -353,9 +353,9 @@ all =
                     |> Expect.equal
                         (Just
                             (RecordUpdateExpression
-                                (Node emptyRange "model")
-                                [ Node emptyRange ( Node emptyRange "count", Node emptyRange <| Integer 1 )
-                                , Node emptyRange ( Node emptyRange "loading", Node emptyRange <| FunctionOrValue [] "True" )
+                                (Node empty "model")
+                                [ Node empty ( Node empty "count", Node empty <| Integer 1 )
+                                , Node empty ( Node empty "loading", Node empty <| FunctionOrValue [] "True" )
                                 ]
                             )
                         )
@@ -367,9 +367,9 @@ all =
                     |> Expect.equal
                         (Just
                             (Application
-                                [ Node emptyRange <| FunctionOrValue [ "List" ] "map"
-                                , Node emptyRange <| RecordAccessFunction ".name"
-                                , Node emptyRange <| FunctionOrValue [] "people"
+                                [ Node empty <| FunctionOrValue [ "List" ] "map"
+                                , Node empty <| RecordAccessFunction ".name"
+                                , Node empty <| FunctionOrValue [] "people"
                                 ]
                             )
                         )
@@ -381,10 +381,10 @@ all =
                     |> Expect.equal
                         (Just
                             (ParenthesizedExpression
-                                (Node emptyRange <|
+                                (Node empty <|
                                     Application
-                                        [ Node emptyRange <| RecordAccessFunction ".spaceEvenly"
-                                        , Node emptyRange <| FunctionOrValue [ "Internal", "Style" ] "classes"
+                                        [ Node empty <| RecordAccessFunction ".spaceEvenly"
+                                        , Node empty <| FunctionOrValue [ "Internal", "Style" ] "classes"
                                         ]
                                 )
                             )
@@ -409,8 +409,8 @@ all =
                     |> Expect.equal
                         (Just <|
                             Application
-                                [ Node emptyRange <| PrefixOperator "::"
-                                , Node emptyRange <| FunctionOrValue [] "x"
+                                [ Node empty <| PrefixOperator "::"
+                                , Node empty <| FunctionOrValue [] "x"
                                 ]
                         )
         , test "negated expression for value" <|
@@ -418,7 +418,7 @@ all =
                 parseFullStringWithNullState "-x" expression
                     |> Maybe.map noRangeExpression
                     |> Maybe.map Node.value
-                    |> Expect.equal (Just (Negation (Node emptyRange <| FunctionOrValue [] "x")))
+                    |> Expect.equal (Just (Negation (Node empty <| FunctionOrValue [] "x")))
         , test "negated expression in application" <|
             \() ->
                 parseFullStringWithNullState "toFloat -5" expression
@@ -427,8 +427,8 @@ all =
                     |> Expect.equal
                         (Just
                             (Application
-                                [ Node emptyRange <| FunctionOrValue [] "toFloat"
-                                , Node emptyRange <| Negation (Node emptyRange <| Integer 5)
+                                [ Node empty <| FunctionOrValue [] "toFloat"
+                                , Node empty <| Negation (Node empty <| Integer 5)
                                 ]
                             )
                         )
@@ -440,13 +440,13 @@ all =
                     |> Expect.equal
                         (Just
                             (Negation
-                                (Node emptyRange <|
+                                (Node empty <|
                                     ParenthesizedExpression
-                                        (Node emptyRange <|
+                                        (Node empty <|
                                             Application
-                                                [ Node emptyRange <| FunctionOrValue [] "x"
-                                                , Node emptyRange <| Operator "-"
-                                                , Node emptyRange <| FunctionOrValue [] "y"
+                                                [ Node empty <| FunctionOrValue [] "x"
+                                                , Node empty <| Operator "-"
+                                                , Node empty <| FunctionOrValue [] "y"
                                                 ]
                                         )
                                 )
@@ -460,26 +460,26 @@ all =
                     |> Expect.equal
                         (Just
                             (Application
-                                [ Node emptyRange (FunctionOrValue [] "chompWhile")
-                                , Node emptyRange
+                                [ Node empty (FunctionOrValue [] "chompWhile")
+                                , Node empty
                                     (ParenthesizedExpression
-                                        (Node emptyRange
+                                        (Node empty
                                             (LambdaExpression
-                                                { args = [ Node emptyRange (VarPattern "c") ]
+                                                { args = [ Node empty (VarPattern "c") ]
                                                 , expression =
-                                                    Node emptyRange
+                                                    Node empty
                                                         (Application
-                                                            [ Node emptyRange (FunctionOrValue [] "c")
-                                                            , Node emptyRange (Operator "==")
-                                                            , Node emptyRange (CharLiteral ' ')
-                                                            , Node emptyRange (Operator "||")
-                                                            , Node emptyRange (FunctionOrValue [] "c")
-                                                            , Node emptyRange (Operator "==")
-                                                            , Node emptyRange (CharLiteral '\n')
-                                                            , Node emptyRange (Operator "||")
-                                                            , Node emptyRange (FunctionOrValue [] "c")
-                                                            , Node emptyRange (Operator "==")
-                                                            , Node emptyRange (CharLiteral '\u{000D}')
+                                                            [ Node empty (FunctionOrValue [] "c")
+                                                            , Node empty (Operator "==")
+                                                            , Node empty (CharLiteral ' ')
+                                                            , Node empty (Operator "||")
+                                                            , Node empty (FunctionOrValue [] "c")
+                                                            , Node empty (Operator "==")
+                                                            , Node empty (CharLiteral '\n')
+                                                            , Node empty (Operator "||")
+                                                            , Node empty (FunctionOrValue [] "c")
+                                                            , Node empty (Operator "==")
+                                                            , Node empty (CharLiteral '\u{000D}')
                                                             ]
                                                         )
                                                 }

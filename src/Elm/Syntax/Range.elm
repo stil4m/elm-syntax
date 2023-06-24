@@ -115,7 +115,7 @@ combine : List Range -> Range
 combine ranges =
     case ranges of
         [] ->
-            emptyRange
+            empty
 
         head :: tail ->
             combineHelp tail head.start head.end

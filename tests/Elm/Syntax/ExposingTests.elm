@@ -2,7 +2,7 @@ module Elm.Syntax.ExposingTests exposing (suite)
 
 import Elm.Syntax.Exposing as Exposing exposing (..)
 import Elm.Syntax.Node exposing (Node(..))
-import Elm.Syntax.Range exposing (emptyRange)
+import Elm.Syntax.Range exposing (empty)
 import Expect
 import Json.Decode exposing (Decoder, Value)
 import Test exposing (..)
@@ -21,10 +21,10 @@ suite =
                 \() ->
                     symmetric
                         (Explicit
-                            [ Node emptyRange (FunctionExpose "beginnerProgram")
-                            , Node emptyRange (FunctionExpose "div")
-                            , Node emptyRange (FunctionExpose "button")
-                            , Node emptyRange (FunctionExpose "text")
+                            [ Node empty (FunctionExpose "beginnerProgram")
+                            , Node empty (FunctionExpose "div")
+                            , Node empty (FunctionExpose "button")
+                            , Node empty (FunctionExpose "text")
                             ]
                         )
                         Exposing.encode

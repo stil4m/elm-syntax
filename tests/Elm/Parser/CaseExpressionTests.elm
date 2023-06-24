@@ -6,7 +6,7 @@ import Elm.Parser.State exposing (emptyState)
 import Elm.Syntax.Expression exposing (..)
 import Elm.Syntax.Node as Node exposing (Node(..))
 import Elm.Syntax.Pattern exposing (..)
-import Elm.Syntax.Range exposing (emptyRange)
+import Elm.Syntax.Range exposing (empty)
 import Expect
 import Test exposing (..)
 
@@ -29,8 +29,8 @@ all =
                     |> Maybe.map (Tuple.mapSecond noRangeExpression >> Tuple.mapFirst noRangePattern)
                     |> Expect.equal
                         (Just
-                            ( Node emptyRange <| NamedPattern (QualifiedNameRef [] "True") []
-                            , Node emptyRange <| Integer 1
+                            ( Node empty <| NamedPattern (QualifiedNameRef [] "True") []
+                            , Node empty <| Integer 1
                             )
                         )
         , test "caseStatement qualified" <|
@@ -39,8 +39,8 @@ all =
                     |> Maybe.map (Tuple.mapSecond noRangeExpression >> Tuple.mapFirst noRangePattern)
                     |> Expect.equal
                         (Just
-                            ( Node emptyRange <| NamedPattern (QualifiedNameRef [ "Foo" ] "Bar") []
-                            , Node emptyRange <| Integer 1
+                            ( Node empty <| NamedPattern (QualifiedNameRef [ "Foo" ] "Bar") []
+                            , Node empty <| Integer 1
                             )
                         )
         , test "caseStatement no spacing" <|
@@ -49,8 +49,8 @@ all =
                     |> Maybe.map (Tuple.mapSecond noRangeExpression >> Tuple.mapFirst noRangePattern)
                     |> Expect.equal
                         (Just
-                            ( Node emptyRange <| IntPattern 32
-                            , Node emptyRange <| FunctionOrValue [] "Backspace"
+                            ( Node empty <| IntPattern 32
+                            , Node empty <| FunctionOrValue [] "Backspace"
                             )
                         )
         , test "caseStatement wrong indent" <|
@@ -63,8 +63,8 @@ all =
                     |> Maybe.map (Tuple.mapSecond noRangeExpression >> Tuple.mapFirst noRangePattern)
                     |> Expect.equal
                         (Just
-                            ( Node emptyRange <| NamedPattern (QualifiedNameRef [] "True") []
-                            , Node emptyRange <| Integer 1
+                            ( Node empty <| NamedPattern (QualifiedNameRef [] "True") []
+                            , Node empty <| Integer 1
                             )
                         )
         , test "caseStatements" <|
@@ -73,11 +73,11 @@ all =
                     |> Maybe.map (List.map (Tuple.mapSecond noRangeExpression >> Tuple.mapFirst noRangePattern))
                     |> Expect.equal
                         (Just
-                            [ ( Node emptyRange <| NamedPattern (QualifiedNameRef [] "True") []
-                              , Node emptyRange <| Integer 1
+                            [ ( Node empty <| NamedPattern (QualifiedNameRef [] "True") []
+                              , Node empty <| Integer 1
                               )
-                            , ( Node emptyRange <| NamedPattern (QualifiedNameRef [] "False") []
-                              , Node emptyRange <| Integer 2
+                            , ( Node empty <| NamedPattern (QualifiedNameRef [] "False") []
+                              , Node empty <| Integer 2
                               )
                             ]
                         )
@@ -88,13 +88,13 @@ all =
                     |> Expect.equal
                         (Just
                             (CaseExpression
-                                { expression = Node emptyRange <| FunctionOrValue [] "f"
+                                { expression = Node empty <| FunctionOrValue [] "f"
                                 , cases =
-                                    [ ( Node emptyRange <| NamedPattern (QualifiedNameRef [] "True") []
-                                      , Node emptyRange <| Integer 1
+                                    [ ( Node empty <| NamedPattern (QualifiedNameRef [] "True") []
+                                      , Node empty <| Integer 1
                                       )
-                                    , ( Node emptyRange <| NamedPattern (QualifiedNameRef [] "False") []
-                                      , Node emptyRange <| Integer 2
+                                    , ( Node empty <| NamedPattern (QualifiedNameRef [] "False") []
+                                      , Node empty <| Integer 2
                                       )
                                     ]
                                 }
@@ -164,22 +164,22 @@ all =
                     |> Expect.equal
                         (Just
                             (CaseExpression
-                                { expression = Node emptyRange <| FunctionOrValue [] "msg"
+                                { expression = Node empty <| FunctionOrValue [] "msg"
                                 , cases =
-                                    [ ( Node emptyRange <| NamedPattern (QualifiedNameRef [] "Increment") []
-                                      , Node emptyRange <|
+                                    [ ( Node empty <| NamedPattern (QualifiedNameRef [] "Increment") []
+                                      , Node empty <|
                                             Application
-                                                [ Node emptyRange <| FunctionOrValue [] "model"
-                                                , Node emptyRange <| Operator "+"
-                                                , Node emptyRange <| Integer 1
+                                                [ Node empty <| FunctionOrValue [] "model"
+                                                , Node empty <| Operator "+"
+                                                , Node empty <| Integer 1
                                                 ]
                                       )
-                                    , ( Node emptyRange <| NamedPattern (QualifiedNameRef [] "Decrement") []
-                                      , Node emptyRange <|
+                                    , ( Node empty <| NamedPattern (QualifiedNameRef [] "Decrement") []
+                                      , Node empty <|
                                             Application
-                                                [ Node emptyRange <| FunctionOrValue [] "model"
-                                                , Node emptyRange <| Operator "-"
-                                                , Node emptyRange <| Integer 1
+                                                [ Node empty <| FunctionOrValue [] "model"
+                                                , Node empty <| Operator "-"
+                                                , Node empty <| Integer 1
                                                 ]
                                       )
                                     ]

@@ -3,7 +3,7 @@ module Elm.Syntax.ImportTests exposing (suite)
 import Elm.Syntax.Exposing exposing (..)
 import Elm.Syntax.Import as Import exposing (Import)
 import Elm.Syntax.Node exposing (Node(..))
-import Elm.Syntax.Range exposing (emptyRange)
+import Elm.Syntax.Range exposing (empty)
 import Expect
 import Json.Decode exposing (Decoder, Value)
 import Test exposing (..)
@@ -20,21 +20,21 @@ suite =
         [ describe "serialization"
             [ test "case 1" <|
                 \() ->
-                    symmetric (Import (Node emptyRange [ "A", "B" ]) (Just <| Node emptyRange [ "C" ]) (Just <| Node emptyRange <| All emptyRange))
+                    symmetric (Import (Node empty [ "A", "B" ]) (Just <| Node empty [ "C" ]) (Just <| Node empty <| All empty))
                         Import.encode
                         Import.decoder
             , test "import Html exposing (beginnerProgram, div, button, text)" <|
                 \() ->
                     symmetric
-                        (Import (Node emptyRange [ "Html" ])
+                        (Import (Node empty [ "Html" ])
                             Nothing
                             (Just <|
-                                Node emptyRange <|
+                                Node empty <|
                                     Explicit
-                                        [ Node emptyRange (FunctionExpose "beginnerProgram")
-                                        , Node emptyRange (FunctionExpose "div")
-                                        , Node emptyRange (FunctionExpose "button")
-                                        , Node emptyRange (FunctionExpose "text")
+                                        [ Node empty (FunctionExpose "beginnerProgram")
+                                        , Node empty (FunctionExpose "div")
+                                        , Node empty (FunctionExpose "button")
+                                        , Node empty (FunctionExpose "text")
                                         ]
                             )
                         )

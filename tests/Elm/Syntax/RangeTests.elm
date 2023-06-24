@@ -19,7 +19,7 @@ combineTests =
     [ test "given an empty list is an empty range" <|
         \() ->
             Range.combine []
-                |> Expect.equal Range.emptyRange
+                |> Expect.equal Range.empty
     , test "given a singleton list is the same range" <|
         \() ->
             let

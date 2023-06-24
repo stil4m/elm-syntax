@@ -9,7 +9,7 @@ import Elm.Parser.Tokens exposing (functionName)
 import Elm.Syntax.Expression exposing (..)
 import Elm.Syntax.Node as Node exposing (Node(..))
 import Elm.Syntax.Pattern exposing (..)
-import Elm.Syntax.Range exposing (emptyRange)
+import Elm.Syntax.Range exposing (empty)
 import Expect
 import Test exposing (..)
 
@@ -23,26 +23,26 @@ all =
                     |> Maybe.map (List.map noRangeLetDeclaration)
                     |> Expect.equal
                         (Just
-                            [ Node emptyRange <|
+                            [ Node empty <|
                                 LetFunction
                                     { documentation = Nothing
                                     , signature = Nothing
                                     , declaration =
-                                        Node emptyRange <|
-                                            { name = Node emptyRange "foo"
+                                        Node empty <|
+                                            { name = Node empty "foo"
                                             , arguments = []
-                                            , expression = Node emptyRange <| FunctionOrValue [] "bar"
+                                            , expression = Node empty <| FunctionOrValue [] "bar"
                                             }
                                     }
-                            , Node emptyRange <|
+                            , Node empty <|
                                 LetFunction
                                     { documentation = Nothing
                                     , signature = Nothing
                                     , declaration =
-                                        Node emptyRange <|
-                                            { name = Node emptyRange "john"
+                                        Node empty <|
+                                            { name = Node empty "john"
                                             , arguments = []
-                                            , expression = Node emptyRange <| FunctionOrValue [] "doe"
+                                            , expression = Node empty <| FunctionOrValue [] "doe"
                                             }
                                     }
                             ]
@@ -109,19 +109,19 @@ all =
                         (Just
                             (LetExpression
                                 { declarations =
-                                    [ Node emptyRange <|
+                                    [ Node empty <|
                                         LetFunction
                                             { documentation = Nothing
                                             , signature = Nothing
                                             , declaration =
-                                                Node emptyRange <|
-                                                    { name = Node emptyRange "bar"
+                                                Node empty <|
+                                                    { name = Node empty "bar"
                                                     , arguments = []
-                                                    , expression = Node emptyRange <| Integer 1
+                                                    , expression = Node empty <| Integer 1
                                                     }
                                             }
                                     ]
-                                , expression = Node emptyRange <| FunctionOrValue [] "bar"
+                                , expression = Node empty <| FunctionOrValue [] "bar"
                                 }
                             )
                         )
@@ -133,22 +133,22 @@ all =
                     |> Expect.equal
                         (Just
                             (ListExpr
-                                [ Node emptyRange <|
+                                [ Node empty <|
                                     LetExpression
                                         { declarations =
-                                            [ Node emptyRange <|
+                                            [ Node empty <|
                                                 LetFunction
                                                     { documentation = Nothing
                                                     , signature = Nothing
                                                     , declaration =
-                                                        Node emptyRange
-                                                            { name = Node emptyRange "bar"
+                                                        Node empty
+                                                            { name = Node empty "bar"
                                                             , arguments = []
-                                                            , expression = Node emptyRange <| Integer 1
+                                                            , expression = Node empty <| Integer 1
                                                             }
                                                     }
                                             ]
-                                        , expression = Node emptyRange <| FunctionOrValue [] "bar"
+                                        , expression = Node empty <| FunctionOrValue [] "bar"
                                         }
                                 ]
                             )
@@ -179,24 +179,24 @@ all =
                         (Just
                             (LetExpression
                                 { declarations =
-                                    [ Node emptyRange <|
+                                    [ Node empty <|
                                         LetFunction
                                             { documentation = Nothing
                                             , signature = Nothing
                                             , declaration =
-                                                Node emptyRange <|
-                                                    { name = Node emptyRange "indent"
+                                                Node empty <|
+                                                    { name = Node empty "indent"
                                                     , arguments = []
                                                     , expression =
-                                                        Node emptyRange <|
+                                                        Node empty <|
                                                             Application
-                                                                [ Node emptyRange <| FunctionOrValue [ "String" ] "length"
-                                                                , Node emptyRange <| FunctionOrValue [] "s"
+                                                                [ Node empty <| FunctionOrValue [ "String" ] "length"
+                                                                , Node empty <| FunctionOrValue [] "s"
                                                                 ]
                                                     }
                                             }
                                     ]
-                                , expression = Node emptyRange <| FunctionOrValue [] "indent"
+                                , expression = Node empty <| FunctionOrValue [] "indent"
                                 }
                             )
                         )
@@ -209,20 +209,20 @@ all =
                         (Just
                             (LetExpression
                                 { declarations =
-                                    [ Node emptyRange <|
+                                    [ Node empty <|
                                         LetFunction
                                             { documentation = Nothing
                                             , signature =
                                                 Nothing
                                             , declaration =
-                                                Node emptyRange <|
-                                                    { name = Node emptyRange "indent"
+                                                Node empty <|
+                                                    { name = Node empty "indent"
                                                     , arguments = []
-                                                    , expression = Node emptyRange <| Integer 1
+                                                    , expression = Node empty <| Integer 1
                                                     }
                                             }
                                     ]
-                                , expression = Node emptyRange <| FunctionOrValue [] "indent"
+                                , expression = Node empty <| FunctionOrValue [] "indent"
                                 }
                             )
                         )
@@ -235,20 +235,20 @@ all =
                         (Just
                             (LetExpression
                                 { declarations =
-                                    [ Node emptyRange <|
+                                    [ Node empty <|
                                         LetFunction
                                             { documentation = Nothing
                                             , signature =
                                                 Nothing
                                             , declaration =
-                                                Node emptyRange <|
-                                                    { name = Node emptyRange "b"
+                                                Node empty <|
+                                                    { name = Node empty "b"
                                                     , arguments = []
-                                                    , expression = Node emptyRange <| Integer 1
+                                                    , expression = Node empty <| Integer 1
                                                     }
                                             }
                                     ]
-                                , expression = Node emptyRange <| FunctionOrValue [] "b"
+                                , expression = Node empty <| FunctionOrValue [] "b"
                                 }
                             )
                         )

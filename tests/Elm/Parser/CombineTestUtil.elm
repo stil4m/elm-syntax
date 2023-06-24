@@ -10,7 +10,7 @@ import Elm.Syntax.Infix exposing (..)
 import Elm.Syntax.Module exposing (..)
 import Elm.Syntax.Node exposing (Node(..))
 import Elm.Syntax.Pattern exposing (..)
-import Elm.Syntax.Range exposing (emptyRange)
+import Elm.Syntax.Range exposing (empty)
 import Elm.Syntax.Signature exposing (Signature)
 import Elm.Syntax.Type exposing (..)
 import Elm.Syntax.TypeAlias exposing (..)
@@ -84,12 +84,12 @@ parseAsFarAsPossible s p =
 
 emptyRanged : Expression -> Node Expression
 emptyRanged =
-    Node emptyRange
+    Node empty
 
 
 noRangeExpression : Node Expression -> Node Expression
 noRangeExpression (Node _ inner) =
-    Node emptyRange <| noRangeInnerExpression inner
+    Node empty <| noRangeInnerExpression inner
 
 
 noRangeModule : Module -> Module
@@ -132,7 +132,7 @@ noRangeExposingList : Exposing -> Exposing
 noRangeExposingList x =
     case x of
         All _ ->
-            All emptyRange
+            All empty
 
         Explicit list ->
             list
@@ -142,7 +142,7 @@ noRangeExposingList x =
 
 noRangePattern : Node Pattern -> Node Pattern
 noRangePattern (Node _ p) =
-    Node emptyRange <|
+    Node empty <|
         case p of
             RecordPattern ls ->
                 RecordPattern (List.map unRange ls)
@@ -197,12 +197,12 @@ unRange n =
 
 unRanged : (a -> a) -> Node a -> Node a
 unRanged f (Node _ a) =
-    Node emptyRange <| f a
+    Node empty <| f a
 
 
 noRangeExpose : Node TopLevelExpose -> Node TopLevelExpose
 noRangeExpose (Node _ l) =
-    Node emptyRange <|
+    Node empty <|
         case l of
             InfixExpose s ->
                 InfixExpose s
@@ -214,7 +214,7 @@ noRangeExpose (Node _ l) =
                 TypeOrAliasExpose s
 
             TypeExpose { name, open } ->
-                TypeExpose (ExposedType name (Maybe.map (always emptyRange) open))
+                TypeExpose (ExposedType name (Maybe.map (always empty) open))
 
 
 noRangeInfix : Infix -> Infix
@@ -252,7 +252,7 @@ noRangeDeclaration decl =
 
 noRangeLetDeclaration : Node LetDeclaration -> Node LetDeclaration
 noRangeLetDeclaration (Node _ decl) =
-    Node emptyRange <|
+    Node empty <|
         case decl of
             LetFunction function ->
                 LetFunction (noRangeFunction function)
@@ -283,13 +283,13 @@ noRangeRecordDefinition =
 
 noRangeTypeReference : Node TypeAnnotation -> Node TypeAnnotation
 noRangeTypeReference (Node _ typeAnnotation) =
-    Node emptyRange <|
+    Node empty <|
         case typeAnnotation of
             GenericType x ->
                 GenericType x
 
             Typed (Node _ ( a, b )) c ->
-                Typed (Node emptyRange ( a, b )) (List.map noRangeTypeReference c)
+                Typed (Node empty ( a, b )) (List.map noRangeTypeReference c)
 
             Unit ->
                 Unit

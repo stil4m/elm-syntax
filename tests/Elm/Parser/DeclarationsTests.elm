@@ -7,7 +7,7 @@ import Elm.Syntax.Declaration exposing (..)
 import Elm.Syntax.Expression exposing (..)
 import Elm.Syntax.Node as Node exposing (Node(..))
 import Elm.Syntax.Pattern exposing (..)
-import Elm.Syntax.Range exposing (emptyRange)
+import Elm.Syntax.Range exposing (empty)
 import Elm.Syntax.TypeAnnotation exposing (..)
 import Expect
 import Test exposing (..)
@@ -22,8 +22,8 @@ all =
                     |> Maybe.map noRangeSignature
                     |> Expect.equal
                         (Just
-                            { name = Node emptyRange "foo"
-                            , typeAnnotation = Node emptyRange <| Typed (Node emptyRange ( [], "Int" )) []
+                            { name = Node empty "foo"
+                            , typeAnnotation = Node empty <| Typed (Node empty ( [], "Int" )) []
                             }
                         )
         , test "complex signature" <|
@@ -32,40 +32,40 @@ all =
                     |> Maybe.map noRangeSignature
                     |> Expect.equal
                         (Just
-                            { name = Node emptyRange "updateState"
+                            { name = Node empty "updateState"
                             , typeAnnotation =
-                                Node emptyRange <|
+                                Node empty <|
                                     FunctionTypeAnnotation
-                                        (Node emptyRange <|
+                                        (Node empty <|
                                             FunctionTypeAnnotation
-                                                (Node emptyRange <| GenericType "msg")
-                                                (Node emptyRange <|
+                                                (Node empty <| GenericType "msg")
+                                                (Node empty <|
                                                     FunctionTypeAnnotation
-                                                        (Node emptyRange <| GenericType "model")
-                                                        (Node emptyRange <|
+                                                        (Node empty <| GenericType "model")
+                                                        (Node empty <|
                                                             Tupled
-                                                                [ Node emptyRange <| GenericType "model"
-                                                                , Node emptyRange <| Typed (Node emptyRange ( [], "Cmd" )) [ Node emptyRange <| GenericType "msg" ]
+                                                                [ Node empty <| GenericType "model"
+                                                                , Node empty <| Typed (Node empty ( [], "Cmd" )) [ Node empty <| GenericType "msg" ]
                                                                 ]
                                                         )
                                                 )
                                         )
-                                        (Node emptyRange <|
+                                        (Node empty <|
                                             FunctionTypeAnnotation
-                                                (Node emptyRange <|
-                                                    Typed (Node emptyRange ( [], "SendPort" ))
-                                                        [ Node emptyRange <| GenericType "msg"
-                                                        , Node emptyRange <| GenericType "model"
+                                                (Node empty <|
+                                                    Typed (Node empty ( [], "SendPort" ))
+                                                        [ Node empty <| GenericType "msg"
+                                                        , Node empty <| GenericType "model"
                                                         ]
                                                 )
-                                                (Node emptyRange <|
-                                                    FunctionTypeAnnotation (Node emptyRange <| GenericType "msg")
-                                                        (Node emptyRange <|
-                                                            FunctionTypeAnnotation (Node emptyRange <| GenericType "model")
-                                                                (Node emptyRange <|
+                                                (Node empty <|
+                                                    FunctionTypeAnnotation (Node empty <| GenericType "msg")
+                                                        (Node empty <|
+                                                            FunctionTypeAnnotation (Node empty <| GenericType "model")
+                                                                (Node empty <|
                                                                     Tupled
-                                                                        [ Node emptyRange <| GenericType "model"
-                                                                        , Node emptyRange <| Typed (Node emptyRange ( [], "Cmd" )) [ Node emptyRange <| GenericType "msg" ]
+                                                                        [ Node empty <| GenericType "model"
+                                                                        , Node empty <| Typed (Node empty ( [], "Cmd" )) [ Node empty <| GenericType "msg" ]
                                                                         ]
                                                                 )
                                                         )
@@ -79,8 +79,8 @@ all =
                     |> Maybe.map noRangeSignature
                     |> Expect.equal
                         (Just
-                            { name = Node emptyRange "foo"
-                            , typeAnnotation = Node emptyRange <| Typed (Node emptyRange ( [], "Int" )) []
+                            { name = Node empty "foo"
+                            , typeAnnotation = Node empty <| Typed (Node empty ( [], "Int" )) []
                             }
                         )
         , test "on newline signature with wrong indent " <|
@@ -94,8 +94,8 @@ all =
                     |> Maybe.map noRangeSignature
                     |> Expect.equal
                         (Just
-                            { name = Node emptyRange "foo"
-                            , typeAnnotation = Node emptyRange <| Typed (Node emptyRange ( [], "Int" )) []
+                            { name = Node empty "foo"
+                            , typeAnnotation = Node empty <| Typed (Node empty ( [], "Int" )) []
                             }
                         )
         , test "on newline signature with colon on start of line" <|
@@ -112,10 +112,10 @@ all =
                         (Just <|
                             FunctionDeclaration
                                 { declaration =
-                                    Node emptyRange
-                                        { name = Node emptyRange "foo"
+                                    Node empty
+                                        { name = Node empty "foo"
                                         , arguments = []
-                                        , expression = Node emptyRange <| FunctionOrValue [] "bar"
+                                        , expression = Node empty <| FunctionOrValue [] "bar"
                                         }
                                 , documentation = Nothing
                                 , signature = Nothing
@@ -131,10 +131,10 @@ all =
                                 { documentation = Nothing
                                 , signature = Nothing
                                 , declaration =
-                                    Node emptyRange
-                                        { name = Node emptyRange "foo"
+                                    Node empty
+                                        { name = Node empty "foo"
                                         , arguments = []
-                                        , expression = Node emptyRange <| RecordExpr []
+                                        , expression = Node empty <| RecordExpr []
                                         }
                                 }
                         )
@@ -147,47 +147,47 @@ all =
                         (Just
                             (FunctionDeclaration
                                 { declaration =
-                                    Node emptyRange <|
-                                        { arguments = [ Node emptyRange <| VarPattern "x" ]
+                                    Node empty <|
+                                        { arguments = [ Node empty <| VarPattern "x" ]
                                         , expression =
-                                            Node emptyRange <|
+                                            Node empty <|
                                                 LetExpression
                                                     { declarations =
-                                                        [ Node emptyRange <|
+                                                        [ Node empty <|
                                                             LetFunction
                                                                 { declaration =
-                                                                    Node emptyRange <|
+                                                                    Node empty <|
                                                                         { arguments = []
                                                                         , expression =
-                                                                            Node emptyRange <|
+                                                                            Node empty <|
                                                                                 CaseExpression
                                                                                     { cases =
-                                                                                        [ ( Node emptyRange <| NamedPattern { moduleName = [], name = "True" } []
-                                                                                          , Node emptyRange <| FunctionOrValue [] "z"
+                                                                                        [ ( Node empty <| NamedPattern { moduleName = [], name = "True" } []
+                                                                                          , Node empty <| FunctionOrValue [] "z"
                                                                                           )
                                                                                         ]
-                                                                                    , expression = Node emptyRange <| FunctionOrValue [] "x"
+                                                                                    , expression = Node empty <| FunctionOrValue [] "x"
                                                                                     }
-                                                                        , name = Node emptyRange "y"
+                                                                        , name = Node empty "y"
                                                                         }
                                                                 , documentation = Nothing
                                                                 , signature = Nothing
                                                                 }
-                                                        , Node emptyRange <|
+                                                        , Node empty <|
                                                             LetFunction
                                                                 { declaration =
-                                                                    Node emptyRange <|
+                                                                    Node empty <|
                                                                         { arguments = []
-                                                                        , expression = Node emptyRange <| FunctionOrValue [] "b"
-                                                                        , name = Node emptyRange "a"
+                                                                        , expression = Node empty <| FunctionOrValue [] "b"
+                                                                        , name = Node empty "a"
                                                                         }
                                                                 , documentation = Nothing
                                                                 , signature = Nothing
                                                                 }
                                                         ]
-                                                    , expression = Node emptyRange <| FunctionOrValue [] "a"
+                                                    , expression = Node empty <| FunctionOrValue [] "a"
                                                     }
-                                        , name = Node emptyRange "inc"
+                                        , name = Node empty "inc"
                                         }
                                 , documentation = Nothing
                                 , signature = Nothing
@@ -203,15 +203,15 @@ all =
                         (Just <|
                             FunctionDeclaration
                                 { declaration =
-                                    Node emptyRange <|
-                                        { name = Node emptyRange "inc"
-                                        , arguments = [ Node emptyRange <| VarPattern "x" ]
+                                    Node empty <|
+                                        { name = Node empty "inc"
+                                        , arguments = [ Node empty <| VarPattern "x" ]
                                         , expression =
-                                            Node emptyRange <|
+                                            Node empty <|
                                                 Application
-                                                    [ Node emptyRange <| FunctionOrValue [] "x"
-                                                    , Node emptyRange <| Operator "+"
-                                                    , Node emptyRange <| Integer 1
+                                                    [ Node empty <| FunctionOrValue [] "x"
+                                                    , Node empty <| Operator "+"
+                                                    , Node empty <| Integer 1
                                                     ]
                                         }
                                 , documentation = Nothing
@@ -225,14 +225,14 @@ all =
                     |> Maybe.map noRangeSignature
                     |> Expect.equal
                         (Just
-                            { name = Node emptyRange "bar"
+                            { name = Node empty "bar"
                             , typeAnnotation =
-                                Node emptyRange <|
-                                    Typed (Node emptyRange ( [], "List" ))
-                                        [ Node emptyRange <|
+                                Node empty <|
+                                    Typed (Node empty ( [], "List" ))
+                                        [ Node empty <|
                                             Tupled
-                                                [ Node emptyRange <| Typed (Node emptyRange ( [], "Int" )) []
-                                                , Node emptyRange <| Typed (Node emptyRange ( [], "Maybe" )) [ Node emptyRange <| GenericType "m" ]
+                                                [ Node empty <| Typed (Node empty ( [], "Int" )) []
+                                                , Node empty <| Typed (Node empty ( [], "Maybe" )) [ Node empty <| GenericType "m" ]
                                                 ]
                                         ]
                             }
@@ -248,26 +248,26 @@ all =
                                 { signature = Nothing
                                 , documentation = Nothing
                                 , declaration =
-                                    Node emptyRange <|
-                                        { name = Node emptyRange "foo"
+                                    Node empty <|
+                                        { name = Node empty "foo"
                                         , arguments = []
                                         , expression =
-                                            Node emptyRange <|
+                                            Node empty <|
                                                 LetExpression
                                                     { declarations =
-                                                        [ Node emptyRange <|
+                                                        [ Node empty <|
                                                             LetFunction
                                                                 { documentation = Nothing
                                                                 , signature = Nothing
                                                                 , declaration =
-                                                                    Node emptyRange <|
-                                                                        { name = Node emptyRange "b"
+                                                                    Node empty <|
+                                                                        { name = Node empty "b"
                                                                         , arguments = []
-                                                                        , expression = Node emptyRange <| Integer 1
+                                                                        , expression = Node empty <| Integer 1
                                                                         }
                                                                 }
                                                         ]
-                                                    , expression = Node emptyRange <| FunctionOrValue [] "b"
+                                                    , expression = Node empty <| FunctionOrValue [] "b"
                                                     }
                                         }
                                 }
@@ -283,31 +283,31 @@ all =
                                 { signature = Nothing
                                 , documentation = Nothing
                                 , declaration =
-                                    Node emptyRange <|
-                                        { name = Node emptyRange "foo"
+                                    Node empty <|
+                                        { name = Node empty "foo"
                                         , arguments = []
                                         , expression =
-                                            Node emptyRange <|
+                                            Node empty <|
                                                 LetExpression
                                                     { declarations =
-                                                        [ Node emptyRange <|
+                                                        [ Node empty <|
                                                             LetDestructuring
-                                                                (Node emptyRange
+                                                                (Node empty
                                                                     (TuplePattern
-                                                                        [ Node emptyRange (VarPattern "b")
-                                                                        , Node emptyRange (VarPattern "c")
+                                                                        [ Node empty (VarPattern "b")
+                                                                        , Node empty (VarPattern "c")
                                                                         ]
                                                                     )
                                                                 )
-                                                                (Node emptyRange
+                                                                (Node empty
                                                                     (TupledExpression
-                                                                        [ Node emptyRange (Integer 1)
-                                                                        , Node emptyRange (Integer 2)
+                                                                        [ Node empty (Integer 1)
+                                                                        , Node empty (Integer 2)
                                                                         ]
                                                                     )
                                                                 )
                                                         ]
-                                                    , expression = Node emptyRange <| FunctionOrValue [] "b"
+                                                    , expression = Node empty <| FunctionOrValue [] "b"
                                                     }
                                         }
                                 }
@@ -323,18 +323,18 @@ all =
                                 { signature = Nothing
                                 , documentation = Nothing
                                 , declaration =
-                                    Node emptyRange <|
-                                        { name = Node emptyRange "main"
+                                    Node empty <|
+                                        { name = Node empty "main"
                                         , arguments = []
                                         , expression =
-                                            Node emptyRange <|
+                                            Node empty <|
                                                 Application
-                                                    [ Node emptyRange <| FunctionOrValue [] "beginnerProgram"
-                                                    , Node emptyRange <|
+                                                    [ Node empty <| FunctionOrValue [] "beginnerProgram"
+                                                    , Node empty <|
                                                         RecordExpr
-                                                            [ Node emptyRange ( Node emptyRange "model", Node emptyRange <| Integer 0 )
-                                                            , Node emptyRange ( Node emptyRange "view", Node emptyRange <| FunctionOrValue [] "view" )
-                                                            , Node emptyRange ( Node emptyRange "update", Node emptyRange <| FunctionOrValue [] "update" )
+                                                            [ Node empty ( Node empty "model", Node empty <| Integer 0 )
+                                                            , Node empty ( Node empty "view", Node empty <| FunctionOrValue [] "view" )
+                                                            , Node empty ( Node empty "update", Node empty <| FunctionOrValue [] "update" )
                                                             ]
                                                     ]
                                         }
@@ -351,28 +351,28 @@ all =
                                 { signature = Nothing
                                 , documentation = Nothing
                                 , declaration =
-                                    Node emptyRange <|
-                                        { name = Node emptyRange "update"
-                                        , arguments = [ Node emptyRange <| VarPattern "msg", Node emptyRange <| VarPattern "model" ]
+                                    Node empty <|
+                                        { name = Node empty "update"
+                                        , arguments = [ Node empty <| VarPattern "msg", Node empty <| VarPattern "model" ]
                                         , expression =
-                                            Node emptyRange <|
+                                            Node empty <|
                                                 CaseExpression
-                                                    { expression = Node emptyRange <| FunctionOrValue [] "msg"
+                                                    { expression = Node empty <| FunctionOrValue [] "msg"
                                                     , cases =
-                                                        [ ( Node emptyRange <| NamedPattern (QualifiedNameRef [] "Increment") []
-                                                          , Node emptyRange <|
+                                                        [ ( Node empty <| NamedPattern (QualifiedNameRef [] "Increment") []
+                                                          , Node empty <|
                                                                 Application
-                                                                    [ Node emptyRange <| FunctionOrValue [] "model"
-                                                                    , Node emptyRange <| Operator "+"
-                                                                    , Node emptyRange <| Integer 1
+                                                                    [ Node empty <| FunctionOrValue [] "model"
+                                                                    , Node empty <| Operator "+"
+                                                                    , Node empty <| Integer 1
                                                                     ]
                                                           )
-                                                        , ( Node emptyRange <| NamedPattern (QualifiedNameRef [] "Decrement") []
-                                                          , Node emptyRange <|
+                                                        , ( Node empty <| NamedPattern (QualifiedNameRef [] "Decrement") []
+                                                          , Node empty <|
                                                                 Application
-                                                                    [ Node emptyRange <| FunctionOrValue [] "model"
-                                                                    , Node emptyRange <| Operator "-"
-                                                                    , Node emptyRange <| Integer 1
+                                                                    [ Node empty <| FunctionOrValue [] "model"
+                                                                    , Node empty <| Operator "-"
+                                                                    , Node empty <| Integer 1
                                                                     ]
                                                           )
                                                         ]
@@ -388,17 +388,17 @@ all =
                     |> Expect.equal
                         (Just
                             (PortDeclaration
-                                { name = Node emptyRange "parseResponse"
+                                { name = Node empty "parseResponse"
                                 , typeAnnotation =
-                                    Node emptyRange <|
+                                    Node empty <|
                                         FunctionTypeAnnotation
-                                            (Node emptyRange <|
+                                            (Node empty <|
                                                 Tupled
-                                                    [ Node emptyRange <| Typed (Node emptyRange ( [], "String" )) []
-                                                    , Node emptyRange <| Typed (Node emptyRange ( [], "String" )) []
+                                                    [ Node empty <| Typed (Node empty ( [], "String" )) []
+                                                    , Node empty <| Typed (Node empty ( [], "String" )) []
                                                     ]
                                             )
-                                            (Node emptyRange <| Typed (Node emptyRange ( [], "Cmd" )) [ Node emptyRange <| GenericType "msg" ])
+                                            (Node empty <| Typed (Node empty ( [], "Cmd" )) [ Node empty <| GenericType "msg" ])
                                 }
                             )
                         )
@@ -410,15 +410,15 @@ all =
                     |> Expect.equal
                         (Just <|
                             PortDeclaration
-                                { name = Node emptyRange "scroll"
+                                { name = Node empty "scroll"
                                 , typeAnnotation =
-                                    Node emptyRange <|
+                                    Node empty <|
                                         FunctionTypeAnnotation
-                                            (Node emptyRange <|
-                                                FunctionTypeAnnotation (Node emptyRange <| Typed (Node emptyRange ( [], "Move" )) [])
-                                                    (Node emptyRange <| GenericType "msg")
+                                            (Node empty <|
+                                                FunctionTypeAnnotation (Node empty <| Typed (Node empty ( [], "Move" )) [])
+                                                    (Node empty <| GenericType "msg")
                                             )
-                                            (Node emptyRange <| Typed (Node emptyRange ( [], "Sub" )) [ Node emptyRange <| GenericType "msg" ])
+                                            (Node empty <| Typed (Node empty ( [], "Sub" )) [ Node empty <| GenericType "msg" ])
                                 }
                         )
         , test "Destructuring declaration" <|
@@ -429,8 +429,8 @@ all =
                     |> Expect.equal
                         (Just <|
                             Destructuring
-                                (Node emptyRange AllPattern)
-                                (Node emptyRange <| FunctionOrValue [] "b")
+                                (Node empty AllPattern)
+                                (Node empty <| FunctionOrValue [] "b")
                         )
         , test "declaration" <|
             \() ->
@@ -443,14 +443,14 @@ all =
                                 { signature = Nothing
                                 , documentation = Nothing
                                 , declaration =
-                                    Node emptyRange
-                                        { name = Node emptyRange "main"
+                                    Node empty
+                                        { name = Node empty "main"
                                         , arguments = []
                                         , expression =
-                                            Node emptyRange <|
+                                            Node empty <|
                                                 Application
-                                                    [ Node emptyRange <| FunctionOrValue [] "text"
-                                                    , Node emptyRange <| Literal "Hello, World!"
+                                                    [ Node empty <| FunctionOrValue [] "text"
+                                                    , Node empty <| Literal "Hello, World!"
                                                     ]
                                         }
                                 }
@@ -466,15 +466,15 @@ all =
                                 { documentation = Nothing
                                 , signature = Nothing
                                 , declaration =
-                                    Node emptyRange
+                                    Node empty
                                         { name =
-                                            Node emptyRange "main"
+                                            Node empty "main"
                                         , arguments = []
                                         , expression =
-                                            Node emptyRange <|
+                                            Node empty <|
                                                 Application
-                                                    [ Node emptyRange <| FunctionOrValue [] "text"
-                                                    , Node emptyRange <| Literal "Hello, World!"
+                                                    [ Node empty <| FunctionOrValue [] "text"
+                                                    , Node empty <| Literal "Hello, World!"
                                                     ]
                                         }
                                 }
@@ -490,9 +490,9 @@ all =
                                 { documentation = Nothing
                                 , signature = Nothing
                                 , declaration =
-                                    Node emptyRange
+                                    Node empty
                                         { name =
-                                            Node emptyRange "main"
+                                            Node empty "main"
                                         , arguments = []
                                         , expression = emptyRanged (FunctionOrValue [] "x")
                                         }
@@ -507,26 +507,26 @@ all =
                         (Just <|
                             FunctionDeclaration
                                 { declaration =
-                                    Node emptyRange
-                                        { arguments = [ Node emptyRange <| VarPattern "update", Node emptyRange <| VarPattern "sendPort" ]
+                                    Node empty
+                                        { arguments = [ Node empty <| VarPattern "update", Node empty <| VarPattern "sendPort" ]
                                         , expression =
-                                            Node emptyRange <|
+                                            Node empty <|
                                                 Application
-                                                    [ Node emptyRange <| FunctionOrValue [] "curry"
-                                                    , Node emptyRange <| Operator "<|"
-                                                    , Node emptyRange <|
+                                                    [ Node empty <| FunctionOrValue [] "curry"
+                                                    , Node empty <| Operator "<|"
+                                                    , Node empty <|
                                                         ParenthesizedExpression
-                                                            (Node emptyRange <|
+                                                            (Node empty <|
                                                                 Application
-                                                                    [ Node emptyRange <| FunctionOrValue [] "uncurry"
-                                                                    , Node emptyRange <| FunctionOrValue [] "update"
+                                                                    [ Node empty <| FunctionOrValue [] "uncurry"
+                                                                    , Node empty <| FunctionOrValue [] "update"
                                                                     ]
                                                             )
-                                                    , Node emptyRange <| Operator ">>"
-                                                    , Node emptyRange <| FunctionOrValue [] "batchStateCmds"
-                                                    , Node emptyRange <| FunctionOrValue [] "sendPort"
+                                                    , Node empty <| Operator ">>"
+                                                    , Node empty <| FunctionOrValue [] "batchStateCmds"
+                                                    , Node empty <| FunctionOrValue [] "sendPort"
                                                     ]
-                                        , name = Node emptyRange "updateState"
+                                        , name = Node empty "updateState"
                                         }
                                 , documentation = Nothing
                                 , signature = Nothing
@@ -541,35 +541,35 @@ all =
                         (Just <|
                             FunctionDeclaration
                                 { declaration =
-                                    Node emptyRange
+                                    Node empty
                                         { arguments =
-                                            [ Node emptyRange <| VarPattern "msg"
-                                            , Node emptyRange <| VarPattern "model"
+                                            [ Node empty <| VarPattern "msg"
+                                            , Node empty <| VarPattern "model"
                                             ]
                                         , expression =
-                                            Node emptyRange <|
+                                            Node empty <|
                                                 CaseExpression
                                                     { cases =
-                                                        [ ( Node emptyRange <| NamedPattern { moduleName = [], name = "Increment" } []
-                                                          , Node emptyRange <|
+                                                        [ ( Node empty <| NamedPattern { moduleName = [], name = "Increment" } []
+                                                          , Node empty <|
                                                                 Application
-                                                                    [ Node emptyRange <| FunctionOrValue [] "model"
-                                                                    , Node emptyRange <| Operator "+"
-                                                                    , Node emptyRange <| Integer 1
+                                                                    [ Node empty <| FunctionOrValue [] "model"
+                                                                    , Node empty <| Operator "+"
+                                                                    , Node empty <| Integer 1
                                                                     ]
                                                           )
-                                                        , ( Node emptyRange <| NamedPattern { moduleName = [], name = "Decrement" } []
-                                                          , Node emptyRange <|
+                                                        , ( Node empty <| NamedPattern { moduleName = [], name = "Decrement" } []
+                                                          , Node empty <|
                                                                 Application
-                                                                    [ Node emptyRange <| FunctionOrValue [] "model"
-                                                                    , Node emptyRange <| Operator "-"
-                                                                    , Node emptyRange <| Integer 1
+                                                                    [ Node empty <| FunctionOrValue [] "model"
+                                                                    , Node empty <| Operator "-"
+                                                                    , Node empty <| Integer 1
                                                                     ]
                                                           )
                                                         ]
-                                                    , expression = Node emptyRange <| FunctionOrValue [] "msg"
+                                                    , expression = Node empty <| FunctionOrValue [] "msg"
                                                     }
-                                        , name = Node emptyRange "update"
+                                        , name = Node empty "update"
                                         }
                                 , documentation = Nothing
                                 , signature = Nothing
@@ -584,20 +584,20 @@ all =
                         (Just <|
                             FunctionDeclaration
                                 { declaration =
-                                    Node emptyRange
+                                    Node empty
                                         { arguments =
-                                            [ Node emptyRange <| VarPattern "msg"
-                                            , Node emptyRange <| VarPattern "model"
+                                            [ Node empty <| VarPattern "msg"
+                                            , Node empty <| VarPattern "model"
                                             ]
-                                        , expression = Node emptyRange <| FunctionOrValue [] "msg"
-                                        , name = Node emptyRange "update"
+                                        , expression = Node empty <| FunctionOrValue [] "msg"
+                                        , name = Node empty "update"
                                         }
                                 , documentation = Nothing
                                 , signature =
                                     Just
-                                        (Node emptyRange <|
-                                            { name = Node emptyRange "update"
-                                            , typeAnnotation = Node emptyRange <| Typed (Node emptyRange ( [], "Model" )) []
+                                        (Node empty <|
+                                            { name = Node empty "update"
+                                            , typeAnnotation = Node empty <| Typed (Node empty ( [], "Model" )) []
                                             }
                                         )
                                 }
