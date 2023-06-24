@@ -304,9 +304,16 @@ lowestPrecedence expressions =
     in
     case findMinimumPrecedence input of
         Just m ->
-            input
-                |> List.filter (.precedence >> (==) m)
-                |> List.foldl (\infix_ acc -> Dict.insert infix_.operator infix_ acc) Dict.empty
+            List.foldl
+                (\infix_ acc ->
+                    if infix_.precedence == m then
+                        Dict.insert infix_.operator infix_ acc
+
+                    else
+                        acc
+                )
+                Dict.empty
+                input
 
         Nothing ->
             Dict.empty
