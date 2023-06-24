@@ -664,7 +664,7 @@ wrapInSurroundingParentheses node =
     let
         withParens : Node TypeAnnotation -> Node TypeAnnotation
         withParens n =
-            Node Elm.Syntax.Range.empty (Tupled [ n ])
+            Node.empty (Tupled [ n ])
     in
     case Node.value node of
         FunctionTypeAnnotation _ _ ->
