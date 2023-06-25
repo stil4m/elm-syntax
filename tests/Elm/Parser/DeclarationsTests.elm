@@ -531,20 +531,19 @@ all =
             \() ->
                 parseFullStringState emptyState "main =\n  {- y -} x" Parser.function
                     |> Maybe.map Node.value
-                    |> Maybe.map noRangeDeclaration
                     |> Expect.equal
-                        (Just <|
-                            FunctionDeclaration
+                        (Just
+                            (FunctionDeclaration
                                 { documentation = Nothing
                                 , signature = Nothing
                                 , declaration =
-                                    Node empty
-                                        { name =
-                                            Node empty "main"
-                                        , arguments = []
-                                        , expression = Node.empty (FunctionOrValue [] "x")
+                                    Node { start = { row = 1, column = 1 }, end = { row = 2, column = 12 } }
+                                        { arguments = []
+                                        , expression = Node { start = { row = 2, column = 11 }, end = { row = 2, column = 12 } } (FunctionOrValue [] "x")
+                                        , name = Node { start = { row = 1, column = 1 }, end = { row = 1, column = 5 } } "main"
                                         }
                                 }
+                            )
                         )
         , test "function with a lot of symbols" <|
             \() ->
