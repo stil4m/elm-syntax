@@ -280,10 +280,14 @@ findNextSplit dict exps =
                                     |> Maybe.andThen (\key -> Dict.get key dict)
                                     |> (==) Nothing
                             )
+
+        prefixLength : Int
+        prefixLength =
+            List.length prefix
     in
     case
         exps
-            |> List.drop (List.length prefix)
+            |> List.drop prefixLength
             |> List.head
             |> Maybe.andThen expressionOperators
             |> Maybe.andThen (\x -> Dict.get x dict)
@@ -292,7 +296,7 @@ findNextSplit dict exps =
             let
                 suffix : List (Node Expression)
                 suffix =
-                    List.drop (List.length prefix + 1) exps
+                    List.drop (prefixLength + 1) exps
             in
             Just ( prefix, x, suffix )
 
