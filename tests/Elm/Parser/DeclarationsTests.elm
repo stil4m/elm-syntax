@@ -473,12 +473,11 @@ all =
             \() ->
                 parseFullStringWithNullState "_ = b" declaration
                     |> Maybe.map Node.value
-                    |> Maybe.map noRangeDeclaration
                     |> Expect.equal
-                        (Just <|
-                            Destructuring
-                                (Node empty AllPattern)
-                                (Node empty <| FunctionOrValue [] "b")
+                        (Just
+                            (Destructuring (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 2 } } AllPattern)
+                                (Node { start = { row = 1, column = 5 }, end = { row = 1, column = 6 } } (FunctionOrValue [] "b"))
+                            )
                         )
         , test "declaration" <|
             \() ->
