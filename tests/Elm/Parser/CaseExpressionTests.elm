@@ -35,11 +35,10 @@ all =
         , test "caseStatement qualified" <|
             \() ->
                 parseFullStringState emptyState "Foo.Bar -> 1" Parser.caseStatement
-                    |> Maybe.map (Tuple.mapSecond noRangeExpression >> Tuple.mapFirst noRangePattern)
                     |> Expect.equal
                         (Just
-                            ( Node.empty <| NamedPattern (QualifiedNameRef [ "Foo" ] "Bar") []
-                            , Node.empty <| Integer 1
+                            ( Node { start = { row = 1, column = 1 }, end = { row = 1, column = 8 } } <| NamedPattern (QualifiedNameRef [ "Foo" ] "Bar") []
+                            , Node { start = { row = 1, column = 12 }, end = { row = 1, column = 13 } } <| Integer 1
                             )
                         )
         , test "caseStatement no spacing" <|
