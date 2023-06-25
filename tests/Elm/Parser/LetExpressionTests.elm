@@ -6,9 +6,9 @@ import Elm.Parser.Declarations as Parser
 import Elm.Parser.Layout as Layout
 import Elm.Parser.State exposing (emptyState)
 import Elm.Parser.Tokens exposing (functionName)
+import Elm.Syntax.DestructurePattern exposing (DestructurePattern(..))
 import Elm.Syntax.Expression exposing (..)
 import Elm.Syntax.Node as Node exposing (Node(..))
-import Elm.Syntax.Pattern exposing (..)
 import Elm.Syntax.Range exposing (empty)
 import Expect
 import Test exposing (..)
@@ -163,7 +163,7 @@ all =
                                 { declarations =
                                     [ Node { start = { row = 2, column = 5 }, end = { row = 2, column = 10 } } <|
                                         LetDestructuring
-                                            (Node { start = { row = 2, column = 5 }, end = { row = 2, column = 6 } } AllPattern)
+                                            (Node { start = { row = 2, column = 5 }, end = { row = 2, column = 6 } } AllPattern_)
                                             (Node { start = { row = 2, column = 9 }, end = { row = 2, column = 10 } } <| FunctionOrValue [] "b")
                                     ]
                                 , expression = Node { start = { row = 4, column = 5 }, end = { row = 4, column = 6 } } <| FunctionOrValue [] "z"

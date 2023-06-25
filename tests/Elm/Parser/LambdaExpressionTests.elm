@@ -5,10 +5,9 @@ import Elm.Parser.CombineTestUtil exposing (..)
 import Elm.Parser.Declarations as Parser
 import Elm.Parser.Layout as Layout
 import Elm.Parser.State exposing (emptyState)
+import Elm.Syntax.DestructurePattern exposing (DestructurePattern(..))
 import Elm.Syntax.Expression exposing (..)
 import Elm.Syntax.Node as Node exposing (Node(..))
-import Elm.Syntax.Pattern exposing (..)
-import Elm.Syntax.Range exposing (..)
 import Expect
 import Test exposing (..)
 
@@ -23,8 +22,9 @@ all =
                     |> Expect.equal
                         (Just
                             (LambdaExpression
-                                { args = [ Node.empty UnitPattern ]
-                                , expression = Node empty <| FunctionOrValue [] "foo"
+                                { firstArg = Node.empty UnitPattern_
+                                , restOfArgs = []
+                                , expression = Node.empty <| FunctionOrValue [] "foo"
                                 }
                             )
                         )
@@ -35,8 +35,9 @@ all =
                     |> Expect.equal
                         (Just
                             (LambdaExpression
-                                { args = [ Node empty (RecordPattern [ Node { start = { row = 0, column = 0 }, end = { row = 0, column = 0 } } "foo" ]) ]
-                                , expression = Node empty <| FunctionOrValue [] "foo"
+                                { firstArg = Node.empty (RecordPattern_ [ Node { start = { row = 0, column = 0 }, end = { row = 0, column = 0 } } "foo" ])
+                                , restOfArgs = []
+                                , expression = Node.empty <| FunctionOrValue [] "foo"
                                 }
                             )
                         )
@@ -47,8 +48,9 @@ all =
                     |> Expect.equal
                         (Just
                             (LambdaExpression
-                                { args = [ Node empty (RecordPattern []) ]
-                                , expression = Node empty <| FunctionOrValue [] "foo"
+                                { firstArg = Node.empty (RecordPattern_ [])
+                                , restOfArgs = []
+                                , expression = Node.empty <| FunctionOrValue [] "foo"
                                 }
                             )
                         )
@@ -57,7 +59,7 @@ all =
                 parseAsFarAsPossibleWithState emptyState "a b" Parser.functionArgument
                     |> Maybe.map Node.value
                     |> Expect.equal
-                        (Just (VarPattern "a"))
+                        (Just (VarPattern_ "a"))
         , test "args lambda" <|
             \() ->
                 parseFullStringState emptyState "\\a b -> a + b" Parser.expression
@@ -65,16 +67,15 @@ all =
                     |> Expect.equal
                         (Just
                             (LambdaExpression
-                                { args =
-                                    [ Node empty <| VarPattern "a"
-                                    , Node empty <| VarPattern "b"
-                                    ]
+                                { firstArg =
+                                    Node.empty <| VarPattern_ "a"
+                                , restOfArgs = [ Node.empty <| VarPattern_ "b" ]
                                 , expression =
-                                    Node empty <|
+                                    Node.empty <|
                                         Application
-                                            (Node empty <| FunctionOrValue [] "a")
-                                            [ Node empty <| Operator "+"
-                                            , Node empty <| FunctionOrValue [] "b"
+                                            (Node.empty <| FunctionOrValue [] "a")
+                                            [ Node.empty <| Operator "+"
+                                            , Node.empty <| FunctionOrValue [] "b"
                                             ]
                                 }
                             )
@@ -86,19 +87,19 @@ all =
                     |> Expect.equal
                         (Just
                             (LambdaExpression
-                                { args =
-                                    [ Node empty <|
-                                        TuplePattern
-                                            [ Node empty <| VarPattern "a"
-                                            , Node empty <| VarPattern "b"
+                                { firstArg =
+                                    Node.empty <|
+                                        TuplePattern_
+                                            [ Node.empty <| VarPattern_ "a"
+                                            , Node.empty <| VarPattern_ "b"
                                             ]
-                                    ]
+                                , restOfArgs = []
                                 , expression =
-                                    Node empty <|
+                                    Node.empty <|
                                         Application
-                                            (Node empty <| FunctionOrValue [] "a")
-                                            [ Node empty <| Operator "+"
-                                            , Node empty <| FunctionOrValue [] "b"
+                                            (Node.empty <| FunctionOrValue [] "a")
+                                            [ Node.empty <| Operator "+"
+                                            , Node.empty <| FunctionOrValue [] "b"
                                             ]
                                 }
                             )

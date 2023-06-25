@@ -3,6 +3,7 @@ module Elm.WriterTests exposing (suite)
 import Elm.Parser.CombineTestUtil exposing (parseFullStringWithNullState)
 import Elm.Parser.Declarations exposing (expression)
 import Elm.Syntax.Declaration exposing (..)
+import Elm.Syntax.DestructurePattern exposing (DestructurePattern(..))
 import Elm.Syntax.Exposing exposing (..)
 import Elm.Syntax.Expression exposing (..)
 import Elm.Syntax.Module exposing (..)
@@ -237,6 +238,7 @@ suite =
             , test "write function with case expression using the right indentations" <|
                 \() ->
                     let
+                        body : Expression
                         body =
                             CaseExpression
                                 (CaseBlock (Node empty <| FunctionOrValue [] "someCase")
@@ -245,6 +247,7 @@ suite =
                                     ]
                                 )
 
+                        function : Declaration
                         function =
                             FunctionDeclaration
                                 (Function Nothing
@@ -273,9 +276,11 @@ suite =
             , test "regression test for incorrect indentation in case expression" <|
                 \() ->
                     let
+                        body : Expression
                         body =
                             LambdaExpression
-                                { args = [ Node empty (VarPattern "myArgument") ]
+                                { firstArg = Node empty (VarPattern_ "myArgument")
+                                , restOfArgs = []
                                 , expression =
                                     Node empty <|
                                         CaseExpression
@@ -286,6 +291,7 @@ suite =
                                             )
                                 }
 
+                        function : Declaration
                         function =
                             FunctionDeclaration
                                 (Function Nothing
@@ -314,11 +320,13 @@ suite =
             , test "regression test for incorrect parenthesis placement in case expression" <|
                 \() ->
                     let
+                        body : Expression
                         body =
                             TupleExpression
                                 [ Node empty <|
                                     LambdaExpression
-                                        { args = [ Node empty (VarPattern "myArgument") ]
+                                        { firstArg = Node empty (VarPattern_ "myArgument")
+                                        , restOfArgs = []
                                         , expression =
                                             Node empty <|
                                                 CaseExpression
@@ -330,6 +338,7 @@ suite =
                                         }
                                 ]
 
+                        function : Declaration
                         function =
                             FunctionDeclaration
                                 (Function Nothing
@@ -407,7 +416,8 @@ suite =
                                                 (TupleExpression
                                                     [ Node empty <|
                                                         LambdaExpression
-                                                            { args = [ Node empty (VarPattern "myArgument") ]
+                                                            { firstArg = Node empty (VarPattern_ "myArgument")
+                                                            , restOfArgs = []
                                                             , expression =
                                                                 body (body (Node empty (TupleExpression [])))
                                                             }

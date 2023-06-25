@@ -1,18 +1,16 @@
 module Elm.ProcessingTests exposing (suite, suiteDeprecated)
 
 import Elm.Parser as Parser
-import Elm.Processing as Processing
 import Elm.Syntax.Declaration exposing (..)
+import Elm.Syntax.DestructurePattern exposing (DestructurePattern(..))
 import Elm.Syntax.Exposing exposing (..)
 import Elm.Syntax.Expression exposing (..)
 import Elm.Syntax.File exposing (..)
 import Elm.Syntax.Infix exposing (..)
 import Elm.Syntax.Module exposing (..)
 import Elm.Syntax.Node exposing (Node(..))
-import Elm.Syntax.Pattern exposing (Pattern(..))
 import Elm.Syntax.TypeAnnotation exposing (..)
 import Expect
-import Parser exposing (DeadEnd)
 import Test exposing (..)
 
 
@@ -353,7 +351,7 @@ log a =
       , declarations =
             [ Node { end = { column = 21, row = 6 }, start = { column = 1, row = 4 } }
                 (FunctionDeclaration
-                    { declaration = Node { end = { column = 21, row = 6 }, start = { column = 1, row = 5 } } { arguments = [ Node { end = { column = 6, row = 5 }, start = { column = 5, row = 5 } } (VarPattern "a") ], expression = Node { end = { column = 21, row = 6 }, start = { column = 5, row = 6 } } (Application (Node { end = { column = 14, row = 6 }, start = { column = 5, row = 6 } } (FunctionOrValue [ "Debug" ] "log")) [ Node { end = { column = 19, row = 6 }, start = { column = 15, row = 6 } } (Literal "ok"), Node { end = { column = 21, row = 6 }, start = { column = 20, row = 6 } } (FunctionOrValue [] "a") ]), name = Node { end = { column = 4, row = 5 }, start = { column = 1, row = 5 } } "log" }
+                    { declaration = Node { end = { column = 21, row = 6 }, start = { column = 1, row = 5 } } { arguments = [ Node { end = { column = 6, row = 5 }, start = { column = 5, row = 5 } } (VarPattern_ "a") ], expression = Node { end = { column = 21, row = 6 }, start = { column = 5, row = 6 } } (Application (Node { end = { column = 14, row = 6 }, start = { column = 5, row = 6 } } (FunctionOrValue [ "Debug" ] "log")) [ Node { end = { column = 19, row = 6 }, start = { column = 15, row = 6 } } (Literal "ok"), Node { end = { column = 21, row = 6 }, start = { column = 20, row = 6 } } (FunctionOrValue [] "a") ]), name = Node { end = { column = 4, row = 5 }, start = { column = 1, row = 5 } } "log" }
                     , documentation = Nothing
                     , signature = Just (Node { end = { column = 17, row = 4 }, start = { column = 1, row = 4 } } { name = Node { end = { column = 4, row = 4 }, start = { column = 1, row = 4 } } "log", typeAnnotation = Node { end = { column = 17, row = 4 }, start = { column = 7, row = 4 } } (FunctionTypeAnnotation (Node { end = { column = 10, row = 4 }, start = { column = 7, row = 4 } } (Type (Node { end = { column = 10, row = 4 }, start = { column = 7, row = 4 } } ( [], "Int" )) [])) (Node { end = { column = 17, row = 4 }, start = { column = 14, row = 4 } } (Type (Node { end = { column = 17, row = 4 }, start = { column = 14, row = 4 } } ( [], "Int" )) []))) })
                     }

@@ -2,9 +2,9 @@ module Elm.Parser.ExpressionTests exposing (all)
 
 import Elm.Parser.CombineTestUtil exposing (..)
 import Elm.Parser.Declarations exposing (..)
+import Elm.Syntax.DestructurePattern exposing (DestructurePattern(..))
 import Elm.Syntax.Expression exposing (..)
 import Elm.Syntax.Node as Node exposing (Node(..))
-import Elm.Syntax.Pattern exposing (..)
 import Elm.Syntax.Range exposing (..)
 import Expect
 import Test exposing (..)
@@ -460,7 +460,8 @@ all =
                                     (TupleExpression
                                         [ Node empty
                                             (LambdaExpression
-                                                { args = [ Node empty (VarPattern "c") ]
+                                                { firstArg = Node empty (VarPattern_ "c")
+                                                , restOfArgs = []
                                                 , expression =
                                                     Node empty
                                                         (Application
