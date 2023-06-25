@@ -327,29 +327,40 @@ all =
             \() ->
                 parseFullStringWithNullState "main =\n  beginnerProgram { model = 0, view = view, update = update }" Parser.function
                     |> Maybe.map Node.value
-                    |> Maybe.map noRangeDeclaration
                     |> Expect.equal
-                        (Just <|
-                            FunctionDeclaration
-                                { signature = Nothing
-                                , documentation = Nothing
-                                , declaration =
-                                    Node empty <|
-                                        { name = Node empty "main"
-                                        , arguments = []
+                        (Just
+                            (FunctionDeclaration
+                                { declaration =
+                                    Node { start = { row = 1, column = 1 }, end = { row = 2, column = 62 } }
+                                        { arguments = []
                                         , expression =
-                                            Node empty <|
-                                                Application
-                                                    [ Node empty <| FunctionOrValue [] "beginnerProgram"
-                                                    , Node empty <|
-                                                        RecordExpr
-                                                            [ Node empty ( Node empty "model", Node empty <| Integer 0 )
-                                                            , Node empty ( Node empty "view", Node empty <| FunctionOrValue [] "view" )
-                                                            , Node empty ( Node empty "update", Node empty <| FunctionOrValue [] "update" )
+                                            Node { start = { row = 2, column = 3 }, end = { row = 2, column = 62 } }
+                                                (Application
+                                                    [ Node { start = { row = 2, column = 3 }, end = { row = 2, column = 18 } } (FunctionOrValue [] "beginnerProgram")
+                                                    , Node { start = { row = 2, column = 19 }, end = { row = 2, column = 62 } }
+                                                        (RecordExpr
+                                                            [ Node { start = { row = 2, column = 21 }, end = { row = 2, column = 30 } }
+                                                                ( Node { start = { row = 2, column = 21 }, end = { row = 2, column = 26 } } "model"
+                                                                , Node { start = { row = 2, column = 29 }, end = { row = 2, column = 30 } } (Integer 0)
+                                                                )
+                                                            , Node { start = { row = 2, column = 32 }, end = { row = 2, column = 43 } }
+                                                                ( Node { start = { row = 2, column = 32 }, end = { row = 2, column = 36 } } "view"
+                                                                , Node { start = { row = 2, column = 39 }, end = { row = 2, column = 43 } } (FunctionOrValue [] "view")
+                                                                )
+                                                            , Node { start = { row = 2, column = 45 }, end = { row = 2, column = 61 } }
+                                                                ( Node { start = { row = 2, column = 45 }, end = { row = 2, column = 51 } } "update"
+                                                                , Node { start = { row = 2, column = 54 }, end = { row = 2, column = 60 } } (FunctionOrValue [] "update")
+                                                                )
                                                             ]
+                                                        )
                                                     ]
+                                                )
+                                        , name = Node { start = { row = 1, column = 1 }, end = { row = 1, column = 5 } } "main"
                                         }
+                                , documentation = Nothing
+                                , signature = Nothing
                                 }
+                            )
                         )
         , test "update function" <|
             \() ->
