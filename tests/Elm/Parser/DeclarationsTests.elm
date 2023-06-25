@@ -143,57 +143,61 @@ all =
         , test "function with case in let" <|
             \() ->
                 parseFullStringWithNullState "inc x =\n  let\n    y =\n      case x of\n        True -> z\n    a = b\n  in a" Parser.function
-                    |> Maybe.map Node.value
-                    |> Maybe.map noRangeDeclaration
                     |> Expect.equal
                         (Just
-                            (FunctionDeclaration
-                                { declaration =
-                                    Node empty <|
-                                        { arguments = [ Node empty <| VarPattern "x" ]
-                                        , expression =
-                                            Node empty <|
-                                                LetExpression
-                                                    { declarations =
-                                                        [ Node empty <|
-                                                            LetFunction
-                                                                { declaration =
-                                                                    Node empty <|
-                                                                        { arguments = []
-                                                                        , expression =
-                                                                            Node empty <|
-                                                                                CaseExpression
-                                                                                    { cases =
-                                                                                        [ ( Node empty <| NamedPattern { moduleName = [], name = "True" } []
-                                                                                          , Node empty <| FunctionOrValue [] "z"
-                                                                                          )
-                                                                                        ]
-                                                                                    , expression = Node empty <| FunctionOrValue [] "x"
-                                                                                    }
-                                                                        , name = Node empty "y"
-                                                                        }
-                                                                , documentation = Nothing
-                                                                , signature = Nothing
-                                                                }
-                                                        , Node empty <|
-                                                            LetFunction
-                                                                { declaration =
-                                                                    Node empty <|
-                                                                        { arguments = []
-                                                                        , expression = Node empty <| FunctionOrValue [] "b"
-                                                                        , name = Node empty "a"
-                                                                        }
-                                                                , documentation = Nothing
-                                                                , signature = Nothing
-                                                                }
-                                                        ]
-                                                    , expression = Node empty <| FunctionOrValue [] "a"
-                                                    }
-                                        , name = Node empty "inc"
-                                        }
-                                , documentation = Nothing
-                                , signature = Nothing
-                                }
+                            (Node { start = { row = 1, column = 1 }, end = { row = 7, column = 7 } }
+                                (FunctionDeclaration
+                                    { documentation = Nothing
+                                    , signature = Nothing
+                                    , declaration =
+                                        Node { start = { row = 1, column = 1 }, end = { row = 7, column = 7 } }
+                                            { name = Node { start = { row = 1, column = 1 }, end = { row = 1, column = 4 } } "inc"
+                                            , arguments = [ Node { start = { row = 1, column = 5 }, end = { row = 1, column = 6 } } (VarPattern "x") ]
+                                            , expression =
+                                                Node { start = { row = 2, column = 3 }, end = { row = 7, column = 7 } }
+                                                    (LetExpression
+                                                        { declarations =
+                                                            [ Node { start = { row = 3, column = 5 }, end = { row = 5, column = 18 } }
+                                                                (LetFunction
+                                                                    { documentation = Nothing
+                                                                    , signature = Nothing
+                                                                    , declaration =
+                                                                        Node { start = { row = 3, column = 5 }, end = { row = 5, column = 18 } }
+                                                                            { name = Node { start = { row = 3, column = 5 }, end = { row = 3, column = 6 } } "y"
+                                                                            , arguments = []
+                                                                            , expression =
+                                                                                Node { start = { row = 4, column = 7 }, end = { row = 5, column = 18 } }
+                                                                                    (CaseExpression
+                                                                                        { expression = Node { start = { row = 4, column = 12 }, end = { row = 4, column = 13 } } (FunctionOrValue [] "x")
+                                                                                        , cases =
+                                                                                            [ ( Node { start = { row = 5, column = 9 }, end = { row = 5, column = 13 } } (NamedPattern { moduleName = [], name = "True" } [])
+                                                                                              , Node { start = { row = 5, column = 17 }, end = { row = 5, column = 18 } } (FunctionOrValue [] "z")
+                                                                                              )
+                                                                                            ]
+                                                                                        }
+                                                                                    )
+                                                                            }
+                                                                    }
+                                                                )
+                                                            , Node { start = { row = 6, column = 5 }, end = { row = 6, column = 10 } }
+                                                                (LetFunction
+                                                                    { documentation = Nothing
+                                                                    , signature = Nothing
+                                                                    , declaration =
+                                                                        Node { start = { row = 6, column = 5 }, end = { row = 6, column = 10 } }
+                                                                            { name = Node { start = { row = 6, column = 5 }, end = { row = 6, column = 6 } } "a"
+                                                                            , arguments = []
+                                                                            , expression = Node { start = { row = 6, column = 9 }, end = { row = 6, column = 10 } } (FunctionOrValue [] "b")
+                                                                            }
+                                                                    }
+                                                                )
+                                                            ]
+                                                        , expression = Node { start = { row = 7, column = 6 }, end = { row = 7, column = 7 } } (FunctionOrValue [] "a")
+                                                        }
+                                                    )
+                                            }
+                                    }
+                                )
                             )
                         )
         , test "function declaration with args" <|
