@@ -1,4 +1,4 @@
-module Elm.Parser.CombineTestUtil exposing (emptyRanged, noRangeDeclaration, noRangeExpose, noRangeExposingList, noRangeExpression, noRangeImport, noRangeInfix, noRangeInnerExpression, noRangeLetDeclaration, noRangeModule, noRangePattern, noRangeSignature, noRangeTypeAlias, noRangeTypeDeclaration, noRangeTypeReference, parseAsFarAsPossible, parseAsFarAsPossibleWithState, parseFullString, parseFullStringState, parseFullStringWithNullState, parseStateToMaybe, pushIndent, unRanged)
+module Elm.Parser.CombineTestUtil exposing (noRangeDeclaration, noRangeExpose, noRangeExposingList, noRangeExpression, noRangeImport, noRangeInfix, noRangeInnerExpression, noRangeLetDeclaration, noRangeModule, noRangePattern, noRangeSignature, noRangeTypeAlias, noRangeTypeDeclaration, noRangeTypeReference, parseAsFarAsPossible, parseAsFarAsPossibleWithState, parseFullString, parseFullStringState, parseFullStringWithNullState, parseStateToMaybe, pushIndent, unRanged)
 
 import Combine exposing (..)
 import Elm.Parser.State exposing (State, emptyState)
@@ -80,11 +80,6 @@ parseAsFarAsPossible s p =
 
         _ ->
             Nothing
-
-
-emptyRanged : Expression -> Node Expression
-emptyRanged =
-    Node.empty
 
 
 noRangeExpression : Node Expression -> Node Expression

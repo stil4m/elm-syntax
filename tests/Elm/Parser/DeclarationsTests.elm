@@ -494,7 +494,7 @@ all =
                                         { name =
                                             Node empty "main"
                                         , arguments = []
-                                        , expression = emptyRanged (FunctionOrValue [] "x")
+                                        , expression = Node.empty (FunctionOrValue [] "x")
                                         }
                                 }
                         )
