@@ -205,12 +205,10 @@ fileToDefinitions file =
         |> List.map Tuple.first
         |> List.map
             (\x ->
-                ( x
-                , allDeclarations
+                allDeclarations
                     |> List.filter (Tuple.first >> (==) x)
-                )
             )
-        |> List.filterMap (Tuple.second >> resolveGroup)
+        |> List.filterMap resolveGroup
 
 
 resolveGroup : List ( String, Exposed ) -> Maybe ( String, Exposed )
