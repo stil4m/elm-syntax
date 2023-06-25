@@ -412,21 +412,31 @@ all =
             \() ->
                 parseFullStringWithNullState "port parseResponse : ( String, String ) -> Cmd msg" Parser.declaration
                     |> Maybe.map Node.value
-                    |> Maybe.map noRangeDeclaration
                     |> Expect.equal
                         (Just
                             (PortDeclaration
-                                { name = Node empty "parseResponse"
+                                { name = Node { start = { row = 1, column = 6 }, end = { row = 1, column = 19 } } "parseResponse"
                                 , typeAnnotation =
-                                    Node empty <|
-                                        FunctionTypeAnnotation
-                                            (Node empty <|
-                                                Tupled
-                                                    [ Node empty <| Typed (Node empty ( [], "String" )) []
-                                                    , Node empty <| Typed (Node empty ( [], "String" )) []
+                                    Node { start = { row = 1, column = 22 }, end = { row = 1, column = 51 } }
+                                        (FunctionTypeAnnotation
+                                            (Node { start = { row = 1, column = 22 }, end = { row = 1, column = 40 } }
+                                                (Tupled
+                                                    [ Node { start = { row = 1, column = 24 }, end = { row = 1, column = 30 } } (Typed (Node { start = { row = 1, column = 24 }, end = { row = 1, column = 30 } } ( [], "String" )) [])
+                                                    , Node { start = { row = 1, column = 32 }, end = { row = 1, column = 38 } }
+                                                        (Typed
+                                                            (Node { start = { row = 1, column = 32 }, end = { row = 1, column = 38 } } ( [], "String" ))
+                                                            []
+                                                        )
                                                     ]
+                                                )
                                             )
-                                            (Node empty <| Typed (Node empty ( [], "Cmd" )) [ Node empty <| GenericType "msg" ])
+                                            (Node { start = { row = 1, column = 44 }, end = { row = 1, column = 51 } }
+                                                (Typed
+                                                    (Node { start = { row = 1, column = 44 }, end = { row = 1, column = 47 } } ( [], "Cmd" ))
+                                                    [ Node { start = { row = 1, column = 48 }, end = { row = 1, column = 51 } } (GenericType "msg") ]
+                                                )
+                                            )
+                                        )
                                 }
                             )
                         )
