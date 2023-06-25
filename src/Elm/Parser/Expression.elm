@@ -1,15 +1,16 @@
 module Elm.Parser.Expression exposing (expression)
 
+import Elm.Parser.DestructurePatterns as DestructurePatterns
 import Elm.Parser.Layout as Layout
 import Elm.Parser.Node as Node
 import Elm.Parser.Numbers
 import Elm.Parser.Patterns as Patterns
 import Elm.Parser.Tokens as Tokens
 import Elm.Parser.TypeAnnotation as TypeAnnotation
+import Elm.Syntax.DestructurePattern exposing (DestructurePattern)
 import Elm.Syntax.Expression as Expression exposing (Case, Expression(..), LetDeclaration(..), RecordSetter)
 import Elm.Syntax.Infix as Infix
 import Elm.Syntax.Node as Node exposing (Node(..))
-import Elm.Syntax.Pattern exposing (Pattern)
 import Elm.Syntax.Range exposing (Location)
 import Elm.Syntax.Signature exposing (Signature)
 import Parser exposing ((|.), (|=), Parser)
@@ -452,7 +453,8 @@ lambdaExpression =
                                             |> Rope.prependTo expressionResult.comments
                                     , end = end
                                     , expression =
-                                        { args = firstArg.syntax :: secondUpArgs.syntax
+                                        { firstArg = firstArg.syntax
+                                        , restOfArgs = secondUpArgs.syntax
                                         , expression = expressionResult.syntax
                                         }
                                             |> LambdaExpression
@@ -461,7 +463,7 @@ lambdaExpression =
                 Layout.maybeLayout
             )
     )
-        |= Patterns.pattern
+        |= DestructurePatterns.destructurePattern
         |= Layout.maybeLayout
         |= ParserWithComments.until Tokens.arrowRight
             (Parser.map
@@ -473,7 +475,7 @@ lambdaExpression =
                         , syntax = patternResult.syntax
                         }
                 )
-                Patterns.pattern
+                DestructurePatterns.destructurePattern
                 |= Layout.maybeLayout
             )
         |= expression
@@ -675,7 +677,7 @@ letDestructuringDeclaration =
                         (LetDestructuring pattern.syntax expressionResult.syntax)
                 }
         )
-        Patterns.pattern
+        DestructurePatterns.destructurePattern
         |. Tokens.equal
         |= expression
 
@@ -810,7 +812,7 @@ letFunction =
         |> Parser.andThen identity
 
 
-parameterPatternsEqual : Parser (WithComments (List (Node Pattern)))
+parameterPatternsEqual : Parser (WithComments (List (Node DestructurePattern)))
 parameterPatternsEqual =
     ParserWithComments.until Tokens.equal
         (Parser.map
@@ -820,7 +822,7 @@ parameterPatternsEqual =
                     , syntax = patternResult.syntax
                     }
             )
-            Patterns.pattern
+            DestructurePatterns.destructurePattern
             |= Layout.maybeLayout
         )
 

@@ -18,6 +18,7 @@ Although it is a easy and simple language, you can express a lot! See the `Expre
 
 -}
 
+import Elm.Syntax.DestructurePattern exposing (DestructurePattern)
 import Elm.Syntax.Documentation exposing (Documentation)
 import Elm.Syntax.Infix exposing (InfixDirection)
 import Elm.Syntax.ModuleName exposing (ModuleName)
@@ -68,7 +69,7 @@ functionRange function =
 -}
 type alias FunctionImplementation =
     { name : Node String
-    , arguments : List (Node Pattern)
+    , arguments : List (Node DestructurePattern)
     , expression : Node Expression
     }
 
@@ -144,13 +145,14 @@ type alias LetBlock =
 -}
 type LetDeclaration
     = LetFunction Function
-    | LetDestructuring (Node Pattern) (Node Expression)
+    | LetDestructuring (Node DestructurePattern) (Node Expression)
 
 
 {-| Expression for a lambda
 -}
 type alias Lambda =
-    { args : List (Node Pattern)
+    { firstArg : Node DestructurePattern
+    , restOfArgs : List (Node DestructurePattern)
     , expression : Node Expression
     }
 
