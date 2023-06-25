@@ -60,7 +60,7 @@ uniqueHelp : List a -> List a -> List a -> List a
 uniqueHelp existing remaining accumulator =
     case remaining of
         [] ->
-            List.reverse accumulator
+            accumulator
 
         first :: rest ->
             if List.member first existing then
