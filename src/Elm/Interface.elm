@@ -203,9 +203,9 @@ fileToDefinitions file =
     in
     allDeclarations
         |> List.map
-            (\( x, _ ) ->
+            (\( name, _ ) ->
                 allDeclarations
-                    |> List.filter (Tuple.first >> (==) x)
+                    |> List.filter (\( otherDeclarationName, _ ) -> otherDeclarationName == name)
             )
         |> List.filterMap resolveGroup
 
