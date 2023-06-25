@@ -635,28 +635,28 @@ all =
             \() ->
                 parseFullStringState emptyState "update : Model\nupdate msg model =\n    msg" Parser.function
                     |> Maybe.map Node.value
-                    |> Maybe.map noRangeDeclaration
                     |> Expect.equal
-                        (Just <|
-                            FunctionDeclaration
+                        (Just
+                            (FunctionDeclaration
                                 { declaration =
-                                    Node empty
+                                    Node { start = { row = 2, column = 1 }, end = { row = 3, column = 8 } }
                                         { arguments =
-                                            [ Node empty <| VarPattern "msg"
-                                            , Node empty <| VarPattern "model"
+                                            [ Node { start = { row = 2, column = 8 }, end = { row = 2, column = 11 } } (VarPattern "msg")
+                                            , Node { start = { row = 2, column = 12 }, end = { row = 2, column = 17 } } (VarPattern "model")
                                             ]
-                                        , expression = Node empty <| FunctionOrValue [] "msg"
-                                        , name = Node empty "update"
+                                        , expression = Node { start = { row = 3, column = 5 }, end = { row = 3, column = 8 } } (FunctionOrValue [] "msg")
+                                        , name = Node { start = { row = 2, column = 1 }, end = { row = 2, column = 7 } } "update"
                                         }
                                 , documentation = Nothing
                                 , signature =
                                     Just
-                                        (Node empty <|
-                                            { name = Node empty "update"
-                                            , typeAnnotation = Node empty <| Typed (Node empty ( [], "Model" )) []
+                                        (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 15 } }
+                                            { name = Node { start = { row = 1, column = 1 }, end = { row = 1, column = 7 } } "update"
+                                            , typeAnnotation = Node { start = { row = 1, column = 10 }, end = { row = 1, column = 15 } } (Typed (Node { start = { row = 1, column = 10 }, end = { row = 1, column = 15 } } ( [], "Model" )) [])
                                             }
                                         )
                                 }
+                            )
                         )
         , test "regression test for disallowing ( +)" <|
             \() ->
