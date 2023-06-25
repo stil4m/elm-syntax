@@ -53,23 +53,18 @@ dropWhile predicate list =
 -}
 unique : List a -> List a
 unique list =
-    uniqueHelp identity [] list []
+    uniqueHelp [] list []
 
 
-uniqueHelp : (a -> b) -> List b -> List a -> List a -> List a
-uniqueHelp f existing remaining accumulator =
+uniqueHelp : List a -> List a -> List a -> List a
+uniqueHelp existing remaining accumulator =
     case remaining of
         [] ->
             List.reverse accumulator
 
         first :: rest ->
-            let
-                computedFirst : b
-                computedFirst =
-                    f first
-            in
-            if List.member computedFirst existing then
-                uniqueHelp f existing rest accumulator
+            if List.member first existing then
+                uniqueHelp existing rest accumulator
 
             else
-                uniqueHelp f (computedFirst :: existing) rest (first :: accumulator)
+                uniqueHelp (first :: existing) rest (first :: accumulator)
