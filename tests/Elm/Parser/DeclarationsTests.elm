@@ -124,19 +124,21 @@ all =
         , test "function declaration with empty record" <|
             \() ->
                 parseFullStringWithNullState "foo = {}" Parser.function
-                    |> Maybe.map (Node.value >> noRangeDeclaration)
                     |> Expect.equal
-                        (Just <|
-                            FunctionDeclaration
-                                { documentation = Nothing
-                                , signature = Nothing
-                                , declaration =
-                                    Node empty
-                                        { name = Node empty "foo"
-                                        , arguments = []
-                                        , expression = Node empty <| RecordExpr []
-                                        }
-                                }
+                        (Just
+                            (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 9 } }
+                                (FunctionDeclaration
+                                    { documentation = Nothing
+                                    , signature = Nothing
+                                    , declaration =
+                                        Node { start = { row = 1, column = 1 }, end = { row = 1, column = 9 } }
+                                            { arguments = []
+                                            , name = Node { start = { row = 1, column = 1 }, end = { row = 1, column = 4 } } "foo"
+                                            , expression = Node { start = { row = 1, column = 7 }, end = { row = 1, column = 9 } } (RecordExpr [])
+                                            }
+                                    }
+                                )
+                            )
                         )
         , test "function with case in let" <|
             \() ->
