@@ -106,20 +106,20 @@ all =
         , test "function declaration" <|
             \() ->
                 parseFullStringWithNullState "foo = bar" Parser.function
-                    |> Maybe.map Node.value
-                    |> Maybe.map noRangeDeclaration
                     |> Expect.equal
                         (Just <|
-                            FunctionDeclaration
-                                { declaration =
-                                    Node empty
-                                        { name = Node empty "foo"
-                                        , arguments = []
-                                        , expression = Node empty <| FunctionOrValue [] "bar"
-                                        }
-                                , documentation = Nothing
-                                , signature = Nothing
-                                }
+                            Node { start = { row = 1, column = 1 }, end = { row = 1, column = 10 } }
+                                (FunctionDeclaration
+                                    { declaration =
+                                        Node { start = { row = 1, column = 1 }, end = { row = 1, column = 10 } }
+                                            { name = Node { start = { row = 1, column = 1 }, end = { row = 1, column = 4 } } "foo"
+                                            , arguments = []
+                                            , expression = Node { start = { row = 1, column = 7 }, end = { row = 1, column = 10 } } (FunctionOrValue [] "bar")
+                                            }
+                                    , documentation = Nothing
+                                    , signature = Nothing
+                                    }
+                                )
                         )
         , test "function declaration with empty record" <|
             \() ->
