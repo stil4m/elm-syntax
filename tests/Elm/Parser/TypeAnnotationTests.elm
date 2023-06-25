@@ -116,16 +116,25 @@ all =
         , test "record with generic" <|
             \() ->
                 parseFullStringWithNullState "{ attr | position : Vec2, texture : Vec2 }" Parser.typeAnnotation
-                    |> Maybe.map noRangeTypeReference
                     |> Expect.equal
                         (Just
-                            (Node empty <|
-                                GenericRecord (Node empty "attr")
-                                    (Node empty
-                                        [ Node empty ( Node empty "position", Node empty <| Typed (Node empty <| ( [], "Vec2" )) [] )
-                                        , Node empty ( Node empty "texture", Node empty <| Typed (Node empty ( [], "Vec2" )) [] )
+                            (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 43 } }
+                                (GenericRecord
+                                    (Node { start = { row = 1, column = 3 }, end = { row = 1, column = 7 } } "attr")
+                                    (Node { start = { row = 1, column = 9 }, end = { row = 1, column = 42 } }
+                                        [ Node { start = { row = 1, column = 10 }, end = { row = 1, column = 25 } }
+                                            ( Node { start = { row = 1, column = 10 }, end = { row = 1, column = 18 } } "position"
+                                            , Node { start = { row = 1, column = 21 }, end = { row = 1, column = 25 } }
+                                                (Typed (Node { start = { row = 1, column = 21 }, end = { row = 1, column = 25 } } ( [], "Vec2" )) [])
+                                            )
+                                        , Node { start = { row = 1, column = 27 }, end = { row = 1, column = 42 } }
+                                            ( Node { start = { row = 1, column = 27 }, end = { row = 1, column = 34 } } "texture"
+                                            , Node { start = { row = 1, column = 37 }, end = { row = 1, column = 41 } }
+                                                (Typed (Node { start = { row = 1, column = 37 }, end = { row = 1, column = 41 } } ( [], "Vec2" )) [])
+                                            )
                                         ]
                                     )
+                                )
                             )
                         )
         , test "generic record with no fields" <|
