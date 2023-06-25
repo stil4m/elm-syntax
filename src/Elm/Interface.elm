@@ -169,17 +169,17 @@ fileToDefinitions file =
     let
         allDeclarations : List ( String, Exposed )
         allDeclarations =
-            List.filterMap
+            List.map
                 (\(Node _ decl) ->
                     case decl of
                         CustomTypeDeclaration t ->
-                            Just ( Node.value t.name, CustomType ( Node.value t.name, t.constructors |> List.map (Node.value >> .name >> Node.value) ) )
+                            ( Node.value t.name, CustomType ( Node.value t.name, t.constructors |> List.map (Node.value >> .name >> Node.value) ) )
 
                         AliasDeclaration a ->
-                            Just ( Node.value a.name, Alias <| Node.value a.name )
+                            ( Node.value a.name, Alias <| Node.value a.name )
 
                         PortDeclaration p ->
-                            Just ( Node.value p.name, Function (Node.value p.name) )
+                            ( Node.value p.name, Function (Node.value p.name) )
 
                         FunctionDeclaration f ->
                             let
@@ -191,10 +191,10 @@ fileToDefinitions file =
                                 name =
                                     Node.value declaration.name
                             in
-                            Just ( name, Function <| name )
+                            ( name, Function <| name )
 
                         InfixDeclaration i ->
-                            Just ( Node.value i.operator, Operator i )
+                            ( Node.value i.operator, Operator i )
                 )
                 file.declarations
     in
