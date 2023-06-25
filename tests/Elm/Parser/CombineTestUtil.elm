@@ -1,8 +1,7 @@
-module Elm.Parser.CombineTestUtil exposing (noRangeDeclaration, noRangeExpose, noRangeExposingList, noRangeExpression, noRangeImport, noRangeInfix, noRangeInnerExpression, noRangeLetDeclaration, noRangeModule, noRangePattern, noRangeSignature, noRangeTypeAlias, noRangeTypeDeclaration, noRangeTypeReference, parseAsFarAsPossible, parseAsFarAsPossibleWithState, parseFullString, parseFullStringState, parseFullStringWithNullState, parseStateToMaybe, pushIndent, unRanged)
+module Elm.Parser.CombineTestUtil exposing (noRangeExpose, noRangeExposingList, noRangeExpression, noRangeImport, noRangeInfix, noRangeInnerExpression, noRangeLetDeclaration, noRangeModule, noRangePattern, noRangeSignature, noRangeTypeAlias, noRangeTypeDeclaration, noRangeTypeReference, parseAsFarAsPossible, parseAsFarAsPossibleWithState, parseFullString, parseFullStringState, parseFullStringWithNullState, parseStateToMaybe, pushIndent, unRanged)
 
 import Combine exposing (..)
 import Elm.Parser.State exposing (State, emptyState)
-import Elm.Syntax.Declaration exposing (..)
 import Elm.Syntax.Exposing exposing (..)
 import Elm.Syntax.Expression exposing (..)
 import Elm.Syntax.Import exposing (Import)
@@ -219,30 +218,6 @@ noRangeInfix { direction, precedence, operator, function } =
         (unRange precedence)
         (unRange operator)
         (unRange function)
-
-
-noRangeDeclaration : Declaration -> Declaration
-noRangeDeclaration decl =
-    case decl of
-        Destructuring pattern expression ->
-            Destructuring
-                (noRangePattern pattern)
-                (noRangeExpression expression)
-
-        FunctionDeclaration f ->
-            FunctionDeclaration <| noRangeFunction f
-
-        CustomTypeDeclaration d ->
-            CustomTypeDeclaration <| noRangeTypeDeclaration d
-
-        PortDeclaration d ->
-            PortDeclaration (noRangeSignature d)
-
-        AliasDeclaration aliasDecl ->
-            AliasDeclaration (noRangeTypeAlias aliasDecl)
-
-        InfixDeclaration infixDecl ->
-            InfixDeclaration infixDecl
 
 
 noRangeLetDeclaration : Node LetDeclaration -> Node LetDeclaration
