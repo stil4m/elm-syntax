@@ -507,25 +507,25 @@ all =
             \() ->
                 parseFullStringState emptyState "main =\n  text \"Hello, World!\"" Parser.function
                     |> Maybe.map Node.value
-                    |> Maybe.map noRangeDeclaration
                     |> Expect.equal
-                        (Just <|
-                            FunctionDeclaration
-                                { documentation = Nothing
-                                , signature = Nothing
-                                , declaration =
-                                    Node empty
-                                        { name =
-                                            Node empty "main"
-                                        , arguments = []
+                        (Just
+                            (FunctionDeclaration
+                                { declaration =
+                                    Node { start = { row = 1, column = 1 }, end = { row = 2, column = 23 } }
+                                        { arguments = []
                                         , expression =
-                                            Node empty <|
-                                                Application
-                                                    [ Node empty <| FunctionOrValue [] "text"
-                                                    , Node empty <| Literal "Hello, World!"
+                                            Node { start = { row = 2, column = 3 }, end = { row = 2, column = 23 } }
+                                                (Application
+                                                    [ Node { start = { row = 2, column = 3 }, end = { row = 2, column = 7 } } (FunctionOrValue [] "text")
+                                                    , Node { start = { row = 2, column = 8 }, end = { row = 2, column = 23 } } (Literal "Hello, World!")
                                                     ]
+                                                )
+                                        , name = Node { start = { row = 1, column = 1 }, end = { row = 1, column = 5 } } "main"
                                         }
+                                , documentation = Nothing
+                                , signature = Nothing
                                 }
+                            )
                         )
         , test "function starting with multi line comment" <|
             \() ->
