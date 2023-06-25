@@ -4,6 +4,7 @@ import Elm.Parser
 import Elm.Parser.File as Parser
 import Elm.Parser.Samples as Samples
 import Elm.Syntax.Declaration exposing (Declaration(..))
+import Elm.Syntax.DestructurePattern exposing (DestructurePattern(..))
 import Elm.Syntax.Exposing exposing (Exposing(..))
 import Elm.Syntax.Expression exposing (Expression(..), LetDeclaration(..))
 import Elm.Syntax.Infix exposing (InfixDirection(..))
@@ -155,7 +156,7 @@ caseWhitespace f = case f   of
                                         , declaration =
                                             Node { start = { row = 4, column = 1 }, end = { row = 11, column = 11 } }
                                                 { name = Node { start = { row = 4, column = 1 }, end = { row = 4, column = 15 } } "caseWhitespace"
-                                                , arguments = [ Node { start = { row = 4, column = 16 }, end = { row = 4, column = 17 } } (VarPattern "f") ]
+                                                , arguments = [ Node { start = { row = 4, column = 16 }, end = { row = 4, column = 17 } } (VarPattern_ "f") ]
                                                 , expression =
                                                     Node { start = { row = 4, column = 20 }, end = { row = 11, column = 11 } }
                                                         (CaseExpression
@@ -218,10 +219,9 @@ lambdaWhitespace =   \\ a b ->    a
                                                 , expression =
                                                     Node { start = { row = 4, column = 22 }, end = { row = 8, column = 6 } }
                                                         (LambdaExpression
-                                                            { args =
-                                                                [ Node { start = { row = 4, column = 24 }, end = { row = 4, column = 25 } } (VarPattern "a")
-                                                                , Node { start = { row = 4, column = 26 }, end = { row = 4, column = 27 } } (VarPattern "b")
-                                                                ]
+                                                            { firstArg = Node { start = { row = 4, column = 24 }, end = { row = 4, column = 25 } } (VarPattern_ "a")
+                                                            , restOfArgs =
+                                                                [ Node { start = { row = 4, column = 26 }, end = { row = 4, column = 27 } } (VarPattern_ "b") ]
                                                             , expression =
                                                                 Node { start = { row = 4, column = 34 }, end = { row = 8, column = 6 } }
                                                                     (OperatorApplication "+"

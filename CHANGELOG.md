@@ -17,6 +17,9 @@
     - `PortDeclaration Signature` -> `PortDeclaration Port` where `type alias Port = { documentation : Maybe (Node Documentation), signature : Signature }`
     - The comment for the port declaration is now removed from the `Elm.Syntax.File.File.comments` field.
 
+- Add a new module `Elm.Syntax.DeconstructPattern` which mimics `Elm.Syntax.Pattern` but for patterns in functions and let declarations.
+  - This removes the need to handle impossible patterns. For instance, you can't find a string pattern in `someFn (X "impossible") = x` in a function declaration.
+
 - Changed `Elm.Syntax.Expression.Expression`:
   - `Application (List (Node Expression))` -> `Application (Node Expression) (List (Node Expression))` (takes a non-empty list of arguments)
   - `RecordUpdateExpression (Node String) (List (Node RecordSetter))` -> `RecordUpdateExpression (Node String) (Node RecordSetter) (List (Node RecordSetter))` (takes a non-empty list of fields)
