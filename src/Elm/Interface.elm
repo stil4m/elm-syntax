@@ -201,9 +201,12 @@ fileToDefinitions file =
                 )
                 file.declarations
     in
+    -- I really don't understand what this part of the function does.
     allDeclarations
         |> List.map
             (\( name, _ ) ->
+                -- AFAIK, it's not possible to have two declarations with the same name
+                -- in the same file, so this seems pointless.
                 allDeclarations
                     |> List.filter (\( otherDeclarationName, _ ) -> otherDeclarationName == name)
             )
