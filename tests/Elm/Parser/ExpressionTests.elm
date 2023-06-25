@@ -103,9 +103,9 @@ all =
                         (Just
                             (Node (Range { column = 1, row = 1 } { column = 10, row = 1 }) <|
                                 Application
-                                    [ Node { end = { column = 6, row = 1 }, start = { column = 1, row = 1 } } <| FunctionOrValue [] "model"
-                                    , Node { end = { column = 8, row = 1 }, start = { column = 7, row = 1 } } <| Operator "+"
-                                    , Node { end = { column = 10, row = 1 }, start = { column = 9, row = 1 } } <| Integer 1
+                                    [ Node { start = { row = 1, column = 1 }, end = { row = 1, column = 6 } } <| FunctionOrValue [] "model"
+                                    , Node { start = { row = 1, column = 7 }, end = { row = 1, column = 8 } } <| Operator "+"
+                                    , Node { start = { row = 1, column = 9 }, end = { row = 1, column = 10 } } <| Integer 1
                                     ]
                             )
                         )

@@ -35,7 +35,7 @@ all =
                     |> Expect.equal
                         (Just
                             (LambdaExpression
-                                { args = [ Node empty (RecordPattern [ Node { end = { column = 0, row = 0 }, start = { column = 0, row = 0 } } "foo" ]) ]
+                                { args = [ Node empty (RecordPattern [ Node { start = { row = 0, column = 0 }, end = { row = 0, column = 0 } } "foo" ]) ]
                                 , expression = Node empty <| FunctionOrValue [] "foo"
                                 }
                             )
@@ -101,5 +101,5 @@ all =
             \() ->
                 parseFullStringState emptyState " \\a b -> a + b\n\n\n\n--some comment\n" (Layout.layout |> Combine.continueWith Parser.expression)
                     |> Maybe.map Node.range
-                    |> Expect.equal (Just { end = { column = 15, row = 1 }, start = { column = 2, row = 1 } })
+                    |> Expect.equal (Just { start = { row = 1, column = 2 }, end = { row = 1, column = 15 } })
         ]

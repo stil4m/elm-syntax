@@ -26,9 +26,9 @@ bar = 1
     , { moduleDefinition =
             Node { start = { row = 1, column = 1 }, end = { row = 1, column = 25 } } <|
                 NormalModule
-                    { moduleName = Node { end = { column = 11, row = 1 }, start = { column = 8, row = 1 } } [ "Bar" ]
+                    { moduleName = Node { start = { row = 1, column = 8 }, end = { row = 1, column = 11 } } [ "Bar" ]
                     , exposingList =
-                        Node { end = { column = 25, row = 1 }, start = { column = 12, row = 1 } } <|
+                        Node { start = { row = 1, column = 12 }, end = { row = 1, column = 25 } } <|
                             All { start = { row = 1, column = 22 }, end = { row = 1, column = 24 } }
                     }
       , imports = []
@@ -38,7 +38,7 @@ bar = 1
                     { documentation = Just (Node { start = { row = 3, column = 1 }, end = { row = 4, column = 3 } } "{-| The docs\n-}")
                     , signature = Nothing
                     , declaration =
-                        Node { end = { column = 8, row = 5 }, start = { column = 1, row = 5 } }
+                        Node { start = { row = 5, column = 1 }, end = { row = 5, column = 8 } }
                             { name = Node { start = { row = 5, column = 1 }, end = { row = 5, column = 4 } } "bar"
                             , arguments = []
                             , expression = Node { start = { row = 5, column = 7 }, end = { row = 5, column = 8 } } <| Integer 1
@@ -64,8 +64,8 @@ bar = 1
     , { moduleDefinition =
             Node { start = { row = 1, column = 1 }, end = { row = 1, column = 25 } } <|
                 NormalModule
-                    { moduleName = Node { end = { column = 11, row = 1 }, start = { column = 8, row = 1 } } [ "Bar" ]
-                    , exposingList = Node { end = { column = 25, row = 1 }, start = { column = 12, row = 1 } } <| All { start = { row = 1, column = 22 }, end = { row = 1, column = 24 } }
+                    { moduleName = Node { start = { row = 1, column = 8 }, end = { row = 1, column = 11 } } [ "Bar" ]
+                    , exposingList = Node { start = { row = 1, column = 12 }, end = { row = 1, column = 25 } } <| All { start = { row = 1, column = 22 }, end = { row = 1, column = 24 } }
                     }
       , imports = []
       , declarations =
@@ -79,11 +79,11 @@ bar = 1
                                 { name = Node { start = { row = 5, column = 1 }, end = { row = 5, column = 4 } } "bar"
                                 , typeAnnotation =
                                     Node { start = { row = 5, column = 7 }, end = { row = 5, column = 10 } } <|
-                                        Typed (Node { end = { column = 10, row = 5 }, start = { column = 7, row = 5 } } ( [], "Int" )) []
+                                        Typed (Node { start = { row = 5, column = 7 }, end = { row = 5, column = 10 } } ( [], "Int" )) []
                                 }
                             )
                     , declaration =
-                        Node { end = { column = 8, row = 6 }, start = { column = 1, row = 6 } }
+                        Node { start = { row = 6, column = 1 }, end = { row = 6, column = 8 } }
                             { name = Node { start = { row = 6, column = 1 }, end = { row = 6, column = 4 } } "bar"
                             , arguments = []
                             , expression = Node { start = { row = 6, column = 7 }, end = { row = 6, column = 8 } } <| Integer 1
@@ -107,8 +107,8 @@ bar = 1
     , { moduleDefinition =
             Node { start = { row = 1, column = 1 }, end = { row = 1, column = 25 } } <|
                 NormalModule
-                    { moduleName = Node { end = { column = 11, row = 1 }, start = { column = 8, row = 1 } } [ "Bar" ]
-                    , exposingList = Node { end = { column = 25, row = 1 }, start = { column = 12, row = 1 } } <| All { start = { row = 1, column = 22 }, end = { row = 1, column = 24 } }
+                    { moduleName = Node { start = { row = 1, column = 8 }, end = { row = 1, column = 11 } } [ "Bar" ]
+                    , exposingList = Node { start = { row = 1, column = 12 }, end = { row = 1, column = 25 } } <| All { start = { row = 1, column = 22 }, end = { row = 1, column = 24 } }
                     }
       , imports = []
       , declarations =
@@ -117,7 +117,7 @@ bar = 1
                     { documentation = Nothing
                     , signature = Nothing
                     , declaration =
-                        Node { end = { column = 8, row = 4 }, start = { column = 1, row = 4 } }
+                        Node { start = { row = 4, column = 1 }, end = { row = 4, column = 8 } }
                             { name = Node { start = { row = 4, column = 1 }, end = { row = 4, column = 4 } } "bar"
                             , arguments = []
                             , expression = Node { start = { row = 4, column = 7 }, end = { row = 4, column = 8 } } <| Integer 1
@@ -143,30 +143,30 @@ bar = {- comment 3 -} 1 -- comment 4
     , { moduleDefinition =
             Node { start = { row = 2, column = 1 }, end = { row = 2, column = 25 } } <|
                 NormalModule
-                    { moduleName = Node { end = { column = 11, row = 2 }, start = { column = 8, row = 2 } } [ "Bar" ]
-                    , exposingList = Node { end = { column = 25, row = 2 }, start = { column = 12, row = 2 } } <| All { start = { row = 2, column = 22 }, end = { row = 2, column = 24 } }
+                    { moduleName = Node { start = { row = 2, column = 8 }, end = { row = 2, column = 11 } } [ "Bar" ]
+                    , exposingList = Node { start = { row = 2, column = 12 }, end = { row = 2, column = 25 } } <| All { start = { row = 2, column = 22 }, end = { row = 2, column = 24 } }
                     }
       , imports = []
       , declarations =
-            [ Node { end = { column = 24, row = 5 }, start = { column = 1, row = 5 } }
+            [ Node { start = { row = 5, column = 1 }, end = { row = 5, column = 24 } }
                 (FunctionDeclaration
                     { documentation = Nothing
                     , signature = Nothing
                     , declaration =
-                        Node { end = { column = 24, row = 5 }, start = { column = 1, row = 5 } }
+                        Node { start = { row = 5, column = 1 }, end = { row = 5, column = 24 } }
                             { arguments = []
-                            , expression = Node { end = { column = 24, row = 5 }, start = { column = 23, row = 5 } } (Integer 1)
-                            , name = Node { end = { column = 4, row = 5 }, start = { column = 1, row = 5 } } "bar"
+                            , expression = Node { start = { row = 5, column = 23 }, end = { row = 5, column = 24 } } (Integer 1)
+                            , name = Node { start = { row = 5, column = 1 }, end = { row = 5, column = 4 } } "bar"
                             }
                     }
                 )
             ]
       , comments =
-            [ Node { end = { column = 13, row = 1 }, start = { column = 1, row = 1 } } "-- comment 1"
-            , Node { end = { column = 13, row = 4 }, start = { column = 1, row = 4 } } "-- comment 2"
-            , Node { end = { column = 22, row = 5 }, start = { column = 7, row = 5 } } "{- comment 3 -}"
-            , Node { end = { column = 37, row = 5 }, start = { column = 25, row = 5 } } "-- comment 4"
-            , Node { end = { column = 14, row = 6 }, start = { column = 2, row = 6 } } "-- comment 5"
+            [ Node { start = { row = 1, column = 1 }, end = { row = 1, column = 13 } } "-- comment 1"
+            , Node { start = { row = 4, column = 1 }, end = { row = 4, column = 13 } } "-- comment 2"
+            , Node { start = { row = 5, column = 7 }, end = { row = 5, column = 22 } } "{- comment 3 -}"
+            , Node { start = { row = 5, column = 25 }, end = { row = 5, column = 37 } } "-- comment 4"
+            , Node { start = { row = 6, column = 2 }, end = { row = 6, column = 14 } } "-- comment 5"
             ]
       }
     )
@@ -184,9 +184,9 @@ bar = 1
     , { moduleDefinition =
             Node { start = { row = 1, column = 1 }, end = { row = 1, column = 25 } } <|
                 NormalModule
-                    { moduleName = Node { end = { column = 11, row = 1 }, start = { column = 8, row = 1 } } [ "Bar" ]
+                    { moduleName = Node { start = { row = 1, column = 8 }, end = { row = 1, column = 11 } } [ "Bar" ]
                     , exposingList =
-                        Node { end = { column = 25, row = 1 }, start = { column = 12, row = 1 } } <|
+                        Node { start = { row = 1, column = 12 }, end = { row = 1, column = 25 } } <|
                             All { start = { row = 1, column = 22 }, end = { row = 1, column = 24 } }
                     }
       , imports = []
@@ -196,7 +196,7 @@ bar = 1
                     { documentation = Nothing
                     , signature = Nothing
                     , declaration =
-                        Node { end = { column = 8, row = 4 }, start = { column = 1, row = 4 } }
+                        Node { start = { row = 4, column = 1 }, end = { row = 4, column = 8 } }
                             { name = Node { start = { row = 4, column = 1 }, end = { row = 4, column = 4 } } "bar"
                             , arguments = []
                             , expression = Node { start = { row = 4, column = 7 }, end = { row = 4, column = 8 } } <| Integer 1
@@ -221,8 +221,8 @@ type alias Foo
     , { moduleDefinition =
             Node { start = { row = 1, column = 1 }, end = { row = 1, column = 25 } } <|
                 NormalModule
-                    { moduleName = Node { end = { column = 11, row = 1 }, start = { column = 8, row = 1 } } [ "Bar" ]
-                    , exposingList = Node { end = { column = 25, row = 1 }, start = { column = 12, row = 1 } } <| All { start = { row = 1, column = 22 }, end = { row = 1, column = 24 } }
+                    { moduleName = Node { start = { row = 1, column = 8 }, end = { row = 1, column = 11 } } [ "Bar" ]
+                    , exposingList = Node { start = { row = 1, column = 12 }, end = { row = 1, column = 25 } } <| All { start = { row = 1, column = 22 }, end = { row = 1, column = 24 } }
                     }
       , imports = []
       , declarations =
@@ -231,15 +231,15 @@ type alias Foo
                     { documentation =
                         Just <|
                             Node { start = { row = 3, column = 1 }, end = { row = 3, column = 15 } } "{-| The Doc -}"
-                    , name = Node { end = { column = 15, row = 4 }, start = { column = 12, row = 4 } } "Foo"
+                    , name = Node { start = { row = 4, column = 12 }, end = { row = 4, column = 15 } } "Foo"
                     , generics = []
                     , typeAnnotation =
                         Node { start = { row = 5, column = 6 }, end = { row = 5, column = 23 } } <|
                             Record
-                                [ Node { end = { column = 21, row = 5 }, start = { column = 8, row = 5 } }
-                                    ( Node { end = { column = 12, row = 5 }, start = { column = 8, row = 5 } } "name"
+                                [ Node { start = { row = 5, column = 8 }, end = { row = 5, column = 21 } }
+                                    ( Node { start = { row = 5, column = 8 }, end = { row = 5, column = 12 } } "name"
                                     , Node { start = { row = 5, column = 15 }, end = { row = 5, column = 21 } } <|
-                                        Typed (Node { end = { column = 21, row = 5 }, start = { column = 15, row = 5 } } ( [], "String" )) []
+                                        Typed (Node { start = { row = 5, column = 15 }, end = { row = 5, column = 21 } } ( [], "String" )) []
                                     )
                                 ]
                     }
@@ -262,26 +262,26 @@ type Foo
 """
     , { comments = []
       , declarations =
-            [ Node { end = { column = 10, row = 6 }, start = { column = 1, row = 3 } }
+            [ Node { start = { row = 3, column = 1 }, end = { row = 6, column = 10 } }
                 (CustomTypeDeclaration
                     { constructors =
-                        [ Node { end = { column = 9, row = 5 }, start = { column = 6, row = 5 } }
-                            { arguments = [], name = Node { end = { column = 9, row = 5 }, start = { column = 6, row = 5 } } "Red" }
-                        , Node { end = { column = 10, row = 6 }, start = { column = 6, row = 6 } }
-                            { arguments = [], name = Node { end = { column = 10, row = 6 }, start = { column = 6, row = 6 } } "Blue" }
+                        [ Node { start = { row = 5, column = 6 }, end = { row = 5, column = 9 } }
+                            { arguments = [], name = Node { start = { row = 5, column = 6 }, end = { row = 5, column = 9 } } "Red" }
+                        , Node { start = { row = 6, column = 6 }, end = { row = 6, column = 10 } }
+                            { arguments = [], name = Node { start = { row = 6, column = 6 }, end = { row = 6, column = 10 } } "Blue" }
                         ]
                     , documentation =
                         Just
-                            (Node { end = { column = 15, row = 3 }, start = { column = 1, row = 3 } }
+                            (Node { start = { row = 3, column = 1 }, end = { row = 3, column = 15 } }
                                 "{-| The Doc -}"
                             )
                     , generics = []
-                    , name = Node { end = { column = 9, row = 4 }, start = { column = 6, row = 4 } } "Foo"
+                    , name = Node { start = { row = 4, column = 6 }, end = { row = 4, column = 9 } } "Foo"
                     }
                 )
             ]
       , imports = []
-      , moduleDefinition = Node { end = { column = 25, row = 1 }, start = { column = 1, row = 1 } } (NormalModule { exposingList = Node { end = { column = 25, row = 1 }, start = { column = 12, row = 1 } } (All { end = { column = 24, row = 1 }, start = { column = 22, row = 1 } }), moduleName = Node { end = { column = 11, row = 1 }, start = { column = 8, row = 1 } } [ "Bar" ] })
+      , moduleDefinition = Node { start = { row = 1, column = 1 }, end = { row = 1, column = 25 } } (NormalModule { exposingList = Node { start = { row = 1, column = 12 }, end = { row = 1, column = 25 } } (All { start = { row = 1, column = 22 }, end = { row = 1, column = 24 } }), moduleName = Node { start = { row = 1, column = 8 }, end = { row = 1, column = 11 } } [ "Bar" ] })
       }
     )
 
@@ -297,8 +297,8 @@ bar = (x + 1) * (2 * y)
     , { moduleDefinition =
             Node { start = { row = 1, column = 1 }, end = { row = 1, column = 25 } } <|
                 NormalModule
-                    { moduleName = Node { end = { column = 11, row = 1 }, start = { column = 8, row = 1 } } [ "Bar" ]
-                    , exposingList = Node { end = { column = 25, row = 1 }, start = { column = 12, row = 1 } } <| All { start = { row = 1, column = 22 }, end = { row = 1, column = 24 } }
+                    { moduleName = Node { start = { row = 1, column = 8 }, end = { row = 1, column = 11 } } [ "Bar" ]
+                    , exposingList = Node { start = { row = 1, column = 12 }, end = { row = 1, column = 25 } } <| All { start = { row = 1, column = 22 }, end = { row = 1, column = 24 } }
                     }
       , imports = []
       , declarations =
@@ -307,7 +307,7 @@ bar = (x + 1) * (2 * y)
                     { documentation = Nothing
                     , signature = Nothing
                     , declaration =
-                        Node { end = { column = 24, row = 3 }, start = { column = 1, row = 3 } }
+                        Node { start = { row = 3, column = 1 }, end = { row = 3, column = 24 } }
                             { name = Node { start = { row = 3, column = 1 }, end = { row = 3, column = 4 } } "bar"
                             , arguments = []
                             , expression =
@@ -353,8 +353,8 @@ bar = x + 1 * 2
     , { moduleDefinition =
             Node { start = { row = 1, column = 1 }, end = { row = 1, column = 25 } } <|
                 NormalModule
-                    { moduleName = Node { end = { column = 11, row = 1 }, start = { column = 8, row = 1 } } [ "Bar" ]
-                    , exposingList = Node { end = { column = 25, row = 1 }, start = { column = 12, row = 1 } } <| All { start = { row = 1, column = 22 }, end = { row = 1, column = 24 } }
+                    { moduleName = Node { start = { row = 1, column = 8 }, end = { row = 1, column = 11 } } [ "Bar" ]
+                    , exposingList = Node { start = { row = 1, column = 12 }, end = { row = 1, column = 25 } } <| All { start = { row = 1, column = 22 }, end = { row = 1, column = 24 } }
                     }
       , imports = []
       , declarations =
@@ -363,7 +363,7 @@ bar = x + 1 * 2
                     { documentation = Nothing
                     , signature = Nothing
                     , declaration =
-                        Node { end = { column = 16, row = 3 }, start = { column = 1, row = 3 } }
+                        Node { start = { row = 3, column = 1 }, end = { row = 3, column = 16 } }
                             { name = Node { start = { row = 3, column = 1 }, end = { row = 3, column = 4 } } "bar"
                             , arguments = []
                             , expression =
@@ -400,8 +400,8 @@ bar = x * 1 + 2
                 { start = { row = 1, column = 1 }, end = { row = 1, column = 25 } }
             <|
                 NormalModule
-                    { moduleName = Node { end = { column = 11, row = 1 }, start = { column = 8, row = 1 } } [ "Bar" ]
-                    , exposingList = Node { end = { column = 25, row = 1 }, start = { column = 12, row = 1 } } <| All { start = { row = 1, column = 22 }, end = { row = 1, column = 24 } }
+                    { moduleName = Node { start = { row = 1, column = 8 }, end = { row = 1, column = 11 } } [ "Bar" ]
+                    , exposingList = Node { start = { row = 1, column = 12 }, end = { row = 1, column = 25 } } <| All { start = { row = 1, column = 22 }, end = { row = 1, column = 24 } }
                     }
       , imports = []
       , declarations =
@@ -410,7 +410,7 @@ bar = x * 1 + 2
                     { documentation = Nothing
                     , signature = Nothing
                     , declaration =
-                        Node { end = { column = 16, row = 3 }, start = { column = 1, row = 3 } }
+                        Node { start = { row = 3, column = 1 }, end = { row = 3, column = 16 } }
                             { name = Node { start = { row = 3, column = 1 }, end = { row = 3, column = 4 } } "bar"
                             , arguments = []
                             , expression =
@@ -443,33 +443,33 @@ bar = -(1 * 2)
     , { moduleDefinition =
             Node { start = { row = 1, column = 1 }, end = { row = 1, column = 25 } } <|
                 NormalModule
-                    { moduleName = Node { end = { column = 11, row = 1 }, start = { column = 8, row = 1 } } [ "Bar" ]
-                    , exposingList = Node { end = { column = 25, row = 1 }, start = { column = 12, row = 1 } } <| All { start = { row = 1, column = 22 }, end = { row = 1, column = 24 } }
+                    { moduleName = Node { start = { row = 1, column = 8 }, end = { row = 1, column = 11 } } [ "Bar" ]
+                    , exposingList = Node { start = { row = 1, column = 12 }, end = { row = 1, column = 25 } } <| All { start = { row = 1, column = 22 }, end = { row = 1, column = 24 } }
                     }
       , imports = []
       , declarations =
-            [ Node { end = { column = 15, row = 3 }, start = { column = 1, row = 3 } }
+            [ Node { start = { row = 3, column = 1 }, end = { row = 3, column = 15 } }
                 (FunctionDeclaration
                     { declaration =
-                        Node { end = { column = 15, row = 3 }, start = { column = 1, row = 3 } }
+                        Node { start = { row = 3, column = 1 }, end = { row = 3, column = 15 } }
                             { arguments = []
                             , expression =
-                                Node { end = { column = 15, row = 3 }, start = { column = 7, row = 3 } }
+                                Node { start = { row = 3, column = 7 }, end = { row = 3, column = 15 } }
                                     (Negation
-                                        (Node { end = { column = 15, row = 3 }, start = { column = 8, row = 3 } }
+                                        (Node { start = { row = 3, column = 8 }, end = { row = 3, column = 15 } }
                                             (ParenthesizedExpression
-                                                (Node { end = { column = 14, row = 3 }, start = { column = 9, row = 3 } }
+                                                (Node { start = { row = 3, column = 9 }, end = { row = 3, column = 14 } }
                                                     (OperatorApplication
                                                         "*"
                                                         Left
-                                                        (Node { end = { column = 10, row = 3 }, start = { column = 9, row = 3 } } (Integer 1))
-                                                        (Node { end = { column = 14, row = 3 }, start = { column = 13, row = 3 } } (Integer 2))
+                                                        (Node { start = { row = 3, column = 9 }, end = { row = 3, column = 10 } } (Integer 1))
+                                                        (Node { start = { row = 3, column = 13 }, end = { row = 3, column = 14 } } (Integer 2))
                                                     )
                                                 )
                                             )
                                         )
                                     )
-                            , name = Node { end = { column = 4, row = 3 }, start = { column = 1, row = 3 } } "bar"
+                            , name = Node { start = { row = 3, column = 1 }, end = { row = 3, column = 4 } } "bar"
                             }
                     , documentation = Nothing
                     , signature = Nothing
@@ -492,34 +492,34 @@ bar = (1 * 2).x
     , { moduleDefinition =
             Node { start = { row = 1, column = 1 }, end = { row = 1, column = 25 } } <|
                 NormalModule
-                    { moduleName = Node { end = { column = 11, row = 1 }, start = { column = 8, row = 1 } } [ "Bar" ]
-                    , exposingList = Node { end = { column = 25, row = 1 }, start = { column = 12, row = 1 } } <| All { start = { row = 1, column = 22 }, end = { row = 1, column = 24 } }
+                    { moduleName = Node { start = { row = 1, column = 8 }, end = { row = 1, column = 11 } } [ "Bar" ]
+                    , exposingList = Node { start = { row = 1, column = 12 }, end = { row = 1, column = 25 } } <| All { start = { row = 1, column = 22 }, end = { row = 1, column = 24 } }
                     }
       , imports = []
       , declarations =
-            [ Node { end = { column = 16, row = 3 }, start = { column = 1, row = 3 } }
+            [ Node { start = { row = 3, column = 1 }, end = { row = 3, column = 16 } }
                 (FunctionDeclaration
                     { declaration =
-                        Node { end = { column = 16, row = 3 }, start = { column = 1, row = 3 } }
+                        Node { start = { row = 3, column = 1 }, end = { row = 3, column = 16 } }
                             { arguments = []
                             , expression =
-                                Node { end = { column = 16, row = 3 }, start = { column = 7, row = 3 } }
+                                Node { start = { row = 3, column = 7 }, end = { row = 3, column = 16 } }
                                     (RecordAccess
-                                        (Node { end = { column = 14, row = 3 }, start = { column = 7, row = 3 } }
+                                        (Node { start = { row = 3, column = 7 }, end = { row = 3, column = 14 } }
                                             (ParenthesizedExpression
-                                                (Node { end = { column = 13, row = 3 }, start = { column = 8, row = 3 } }
+                                                (Node { start = { row = 3, column = 8 }, end = { row = 3, column = 13 } }
                                                     (OperatorApplication
                                                         "*"
                                                         Left
-                                                        (Node { end = { column = 9, row = 3 }, start = { column = 8, row = 3 } } (Integer 1))
-                                                        (Node { end = { column = 13, row = 3 }, start = { column = 12, row = 3 } } (Integer 2))
+                                                        (Node { start = { row = 3, column = 8 }, end = { row = 3, column = 9 } } (Integer 1))
+                                                        (Node { start = { row = 3, column = 12 }, end = { row = 3, column = 13 } } (Integer 2))
                                                     )
                                                 )
                                             )
                                         )
-                                        (Node { end = { column = 16, row = 3 }, start = { column = 15, row = 3 } } "x")
+                                        (Node { start = { row = 3, column = 15 }, end = { row = 3, column = 16 } } "x")
                                     )
-                            , name = Node { end = { column = 4, row = 3 }, start = { column = 1, row = 3 } } "bar"
+                            , name = Node { start = { row = 3, column = 1 }, end = { row = 3, column = 4 } } "bar"
                             }
                     , documentation = Nothing
                     , signature = Nothing
@@ -547,112 +547,112 @@ numeric2 = 1 + 2 * 3 ^ 4
 """
     , { comments = []
       , declarations =
-            [ Node { end = { column = 29, row = 3 }, start = { column = 1, row = 3 } }
+            [ Node { start = { row = 3, column = 1 }, end = { row = 3, column = 29 } }
                 (FunctionDeclaration
                     { declaration =
-                        Node { end = { column = 29, row = 3 }, start = { column = 1, row = 3 } }
+                        Node { start = { row = 3, column = 1 }, end = { row = 3, column = 29 } }
                             { arguments = []
                             , expression =
-                                Node { end = { column = 29, row = 3 }, start = { column = 9, row = 3 } }
+                                Node { start = { row = 3, column = 9 }, end = { row = 3, column = 29 } }
                                     (OperatorApplication "||"
                                         Right
-                                        (Node { end = { column = 21, row = 3 }, start = { column = 9, row = 3 } }
+                                        (Node { start = { row = 3, column = 9 }, end = { row = 3, column = 21 } }
                                             (OperatorApplication "&&"
                                                 Right
-                                                (Node { end = { column = 13, row = 3 }, start = { column = 9, row = 3 } } (FunctionOrValue [] "True"))
-                                                (Node { end = { column = 21, row = 3 }, start = { column = 17, row = 3 } } (FunctionOrValue [] "True"))
+                                                (Node { start = { row = 3, column = 9 }, end = { row = 3, column = 13 } } (FunctionOrValue [] "True"))
+                                                (Node { start = { row = 3, column = 17 }, end = { row = 3, column = 21 } } (FunctionOrValue [] "True"))
                                             )
                                         )
-                                        (Node { end = { column = 29, row = 3 }, start = { column = 25, row = 3 } } (FunctionOrValue [] "True"))
+                                        (Node { start = { row = 3, column = 25 }, end = { row = 3, column = 29 } } (FunctionOrValue [] "True"))
                                     )
-                            , name = Node { end = { column = 6, row = 3 }, start = { column = 1, row = 3 } } "bool1"
+                            , name = Node { start = { row = 3, column = 1 }, end = { row = 3, column = 6 } } "bool1"
                             }
                     , documentation = Nothing
                     , signature = Nothing
                     }
                 )
-            , Node { end = { column = 29, row = 4 }, start = { column = 1, row = 4 } }
+            , Node { start = { row = 4, column = 1 }, end = { row = 4, column = 29 } }
                 (FunctionDeclaration
                     { declaration =
-                        Node { end = { column = 29, row = 4 }, start = { column = 1, row = 4 } }
+                        Node { start = { row = 4, column = 1 }, end = { row = 4, column = 29 } }
                             { arguments = []
                             , expression =
-                                Node { end = { column = 29, row = 4 }, start = { column = 9, row = 4 } }
+                                Node { start = { row = 4, column = 9 }, end = { row = 4, column = 29 } }
                                     (OperatorApplication "||"
                                         Right
-                                        (Node { end = { column = 13, row = 4 }, start = { column = 9, row = 4 } } (FunctionOrValue [] "True"))
-                                        (Node { end = { column = 29, row = 4 }, start = { column = 17, row = 4 } }
+                                        (Node { start = { row = 4, column = 9 }, end = { row = 4, column = 13 } } (FunctionOrValue [] "True"))
+                                        (Node { start = { row = 4, column = 17 }, end = { row = 4, column = 29 } }
                                             (OperatorApplication "&&"
                                                 Right
-                                                (Node { end = { column = 21, row = 4 }, start = { column = 17, row = 4 } } (FunctionOrValue [] "True"))
-                                                (Node { end = { column = 29, row = 4 }, start = { column = 25, row = 4 } } (FunctionOrValue [] "True"))
+                                                (Node { start = { row = 4, column = 17 }, end = { row = 4, column = 21 } } (FunctionOrValue [] "True"))
+                                                (Node { start = { row = 4, column = 25 }, end = { row = 4, column = 29 } } (FunctionOrValue [] "True"))
                                             )
                                         )
                                     )
-                            , name = Node { end = { column = 6, row = 4 }, start = { column = 1, row = 4 } } "bool2"
+                            , name = Node { start = { row = 4, column = 1 }, end = { row = 4, column = 6 } } "bool2"
                             }
                     , documentation = Nothing
                     , signature = Nothing
                     }
                 )
-            , Node { end = { column = 25, row = 6 }, start = { column = 1, row = 6 } }
+            , Node { start = { row = 6, column = 1 }, end = { row = 6, column = 25 } }
                 (FunctionDeclaration
                     { declaration =
-                        Node { end = { column = 25, row = 6 }, start = { column = 1, row = 6 } }
+                        Node { start = { row = 6, column = 1 }, end = { row = 6, column = 25 } }
                             { arguments = []
                             , expression =
-                                Node { end = { column = 25, row = 6 }, start = { column = 12, row = 6 } }
+                                Node { start = { row = 6, column = 12 }, end = { row = 6, column = 25 } }
                                     (OperatorApplication "+"
                                         Left
-                                        (Node { end = { column = 21, row = 6 }, start = { column = 12, row = 6 } }
+                                        (Node { start = { row = 6, column = 12 }, end = { row = 6, column = 21 } }
                                             (OperatorApplication "*"
                                                 Left
-                                                (Node { end = { column = 17, row = 6 }, start = { column = 12, row = 6 } }
+                                                (Node { start = { row = 6, column = 12 }, end = { row = 6, column = 17 } }
                                                     (OperatorApplication "^"
                                                         Right
-                                                        (Node { end = { column = 13, row = 6 }, start = { column = 12, row = 6 } } (Integer 1))
-                                                        (Node { end = { column = 17, row = 6 }, start = { column = 16, row = 6 } } (Integer 2))
+                                                        (Node { start = { row = 6, column = 12 }, end = { row = 6, column = 13 } } (Integer 1))
+                                                        (Node { start = { row = 6, column = 16 }, end = { row = 6, column = 17 } } (Integer 2))
                                                     )
                                                 )
-                                                (Node { end = { column = 21, row = 6 }, start = { column = 20, row = 6 } } (Integer 3))
+                                                (Node { start = { row = 6, column = 20 }, end = { row = 6, column = 21 } } (Integer 3))
                                             )
                                         )
                                         (Node
-                                            { end = { column = 25, row = 6 }, start = { column = 24, row = 6 } }
+                                            { start = { row = 6, column = 24 }, end = { row = 6, column = 25 } }
                                             (Integer 4)
                                         )
                                     )
-                            , name = Node { end = { column = 9, row = 6 }, start = { column = 1, row = 6 } } "numeric1"
+                            , name = Node { start = { row = 6, column = 1 }, end = { row = 6, column = 9 } } "numeric1"
                             }
                     , documentation = Nothing
                     , signature = Nothing
                     }
                 )
-            , Node { end = { column = 25, row = 7 }, start = { column = 1, row = 7 } }
+            , Node { start = { row = 7, column = 1 }, end = { row = 7, column = 25 } }
                 (FunctionDeclaration
                     { declaration =
-                        Node { end = { column = 25, row = 7 }, start = { column = 1, row = 7 } }
+                        Node { start = { row = 7, column = 1 }, end = { row = 7, column = 25 } }
                             { arguments = []
                             , expression =
-                                Node { end = { column = 25, row = 7 }, start = { column = 12, row = 7 } }
+                                Node { start = { row = 7, column = 12 }, end = { row = 7, column = 25 } }
                                     (OperatorApplication "+"
                                         Left
-                                        (Node { end = { column = 13, row = 7 }, start = { column = 12, row = 7 } } (Integer 1))
-                                        (Node { end = { column = 25, row = 7 }, start = { column = 16, row = 7 } }
+                                        (Node { start = { row = 7, column = 12 }, end = { row = 7, column = 13 } } (Integer 1))
+                                        (Node { start = { row = 7, column = 16 }, end = { row = 7, column = 25 } }
                                             (OperatorApplication "*"
                                                 Left
-                                                (Node { end = { column = 17, row = 7 }, start = { column = 16, row = 7 } } (Integer 2))
-                                                (Node { end = { column = 25, row = 7 }, start = { column = 20, row = 7 } }
+                                                (Node { start = { row = 7, column = 16 }, end = { row = 7, column = 17 } } (Integer 2))
+                                                (Node { start = { row = 7, column = 20 }, end = { row = 7, column = 25 } }
                                                     (OperatorApplication "^"
                                                         Right
-                                                        (Node { end = { column = 21, row = 7 }, start = { column = 20, row = 7 } } (Integer 3))
-                                                        (Node { end = { column = 25, row = 7 }, start = { column = 24, row = 7 } } (Integer 4))
+                                                        (Node { start = { row = 7, column = 20 }, end = { row = 7, column = 21 } } (Integer 3))
+                                                        (Node { start = { row = 7, column = 24 }, end = { row = 7, column = 25 } } (Integer 4))
                                                     )
                                                 )
                                             )
                                         )
                                     )
-                            , name = Node { end = { column = 9, row = 7 }, start = { column = 1, row = 7 } } "numeric2"
+                            , name = Node { start = { row = 7, column = 1 }, end = { row = 7, column = 9 } } "numeric2"
                             }
                     , documentation = Nothing
                     , signature = Nothing
@@ -661,12 +661,12 @@ numeric2 = 1 + 2 * 3 ^ 4
             ]
       , imports = []
       , moduleDefinition =
-            Node { end = { column = 23, row = 1 }, start = { column = 1, row = 1 } }
+            Node { start = { row = 1, column = 1 }, end = { row = 1, column = 23 } }
                 (NormalModule
                     { exposingList =
-                        Node { end = { column = 23, row = 1 }, start = { column = 10, row = 1 } }
-                            (All { end = { column = 22, row = 1 }, start = { column = 20, row = 1 } })
-                    , moduleName = Node { end = { column = 9, row = 1 }, start = { column = 8, row = 1 } } [ "A" ]
+                        Node { start = { row = 1, column = 10 }, end = { row = 1, column = 23 } }
+                            (All { start = { row = 1, column = 20 }, end = { row = 1, column = 22 } })
+                    , moduleName = Node { start = { row = 1, column = 8 }, end = { row = 1, column = 9 } } [ "A" ]
                     }
                 )
       }
@@ -687,49 +687,49 @@ pipeline1 = 1 |> 2 |> 3
 """
     , { comments = []
       , declarations =
-            [ Node { end = { column = 21, row = 3 }, start = { column = 1, row = 3 } }
+            [ Node { start = { row = 3, column = 1 }, end = { row = 3, column = 21 } }
                 (FunctionDeclaration
                     { declaration =
-                        Node { end = { column = 21, row = 3 }, start = { column = 1, row = 3 } }
+                        Node { start = { row = 3, column = 1 }, end = { row = 3, column = 21 } }
                             { arguments = []
                             , expression =
-                                Node { end = { column = 21, row = 3 }, start = { column = 12, row = 3 } }
+                                Node { start = { row = 3, column = 12 }, end = { row = 3, column = 21 } }
                                     (OperatorApplication "-"
                                         Left
-                                        (Node { end = { column = 17, row = 3 }, start = { column = 12, row = 3 } }
+                                        (Node { start = { row = 3, column = 12 }, end = { row = 3, column = 17 } }
                                             (OperatorApplication "+"
                                                 Left
-                                                (Node { end = { column = 13, row = 3 }, start = { column = 12, row = 3 } } (Integer 1))
-                                                (Node { end = { column = 17, row = 3 }, start = { column = 16, row = 3 } } (Integer 2))
+                                                (Node { start = { row = 3, column = 12 }, end = { row = 3, column = 13 } } (Integer 1))
+                                                (Node { start = { row = 3, column = 16 }, end = { row = 3, column = 17 } } (Integer 2))
                                             )
                                         )
-                                        (Node { end = { column = 21, row = 3 }, start = { column = 20, row = 3 } } (Integer 3))
+                                        (Node { start = { row = 3, column = 20 }, end = { row = 3, column = 21 } } (Integer 3))
                                     )
-                            , name = Node { end = { column = 9, row = 3 }, start = { column = 1, row = 3 } } "numeric1"
+                            , name = Node { start = { row = 3, column = 1 }, end = { row = 3, column = 9 } } "numeric1"
                             }
                     , documentation = Nothing
                     , signature = Nothing
                     }
                 )
-            , Node { end = { column = 24, row = 5 }, start = { column = 1, row = 5 } }
+            , Node { start = { row = 5, column = 1 }, end = { row = 5, column = 24 } }
                 (FunctionDeclaration
                     { declaration =
-                        Node { end = { column = 24, row = 5 }, start = { column = 1, row = 5 } }
+                        Node { start = { row = 5, column = 1 }, end = { row = 5, column = 24 } }
                             { arguments = []
                             , expression =
-                                Node { end = { column = 24, row = 5 }, start = { column = 13, row = 5 } }
+                                Node { start = { row = 5, column = 13 }, end = { row = 5, column = 24 } }
                                     (OperatorApplication "|>"
                                         Left
-                                        (Node { end = { column = 19, row = 5 }, start = { column = 13, row = 5 } }
+                                        (Node { start = { row = 5, column = 13 }, end = { row = 5, column = 19 } }
                                             (OperatorApplication "|>"
                                                 Left
-                                                (Node { end = { column = 14, row = 5 }, start = { column = 13, row = 5 } } (Integer 1))
-                                                (Node { end = { column = 19, row = 5 }, start = { column = 18, row = 5 } } (Integer 2))
+                                                (Node { start = { row = 5, column = 13 }, end = { row = 5, column = 14 } } (Integer 1))
+                                                (Node { start = { row = 5, column = 18 }, end = { row = 5, column = 19 } } (Integer 2))
                                             )
                                         )
-                                        (Node { end = { column = 24, row = 5 }, start = { column = 23, row = 5 } } (Integer 3))
+                                        (Node { start = { row = 5, column = 23 }, end = { row = 5, column = 24 } } (Integer 3))
                                     )
-                            , name = Node { end = { column = 10, row = 5 }, start = { column = 1, row = 5 } } "pipeline1"
+                            , name = Node { start = { row = 5, column = 1 }, end = { row = 5, column = 10 } } "pipeline1"
                             }
                     , documentation = Nothing
                     , signature = Nothing
@@ -738,12 +738,12 @@ pipeline1 = 1 |> 2 |> 3
             ]
       , imports = []
       , moduleDefinition =
-            Node { end = { column = 23, row = 1 }, start = { column = 1, row = 1 } }
+            Node { start = { row = 1, column = 1 }, end = { row = 1, column = 23 } }
                 (NormalModule
                     { exposingList =
-                        Node { end = { column = 23, row = 1 }, start = { column = 10, row = 1 } }
-                            (All { end = { column = 22, row = 1 }, start = { column = 20, row = 1 } })
-                    , moduleName = Node { end = { column = 9, row = 1 }, start = { column = 8, row = 1 } } [ "A" ]
+                        Node { start = { row = 1, column = 10 }, end = { row = 1, column = 23 } }
+                            (All { start = { row = 1, column = 20 }, end = { row = 1, column = 22 } })
+                    , moduleName = Node { start = { row = 1, column = 8 }, end = { row = 1, column = 9 } } [ "A" ]
                     }
                 )
       }

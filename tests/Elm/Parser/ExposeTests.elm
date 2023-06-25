@@ -93,9 +93,9 @@ all =
                         |> Expect.equal
                             (Just
                                 (Explicit
-                                    [ Node { end = { column = 11, row = 2 }, start = { column = 7, row = 2 } }
+                                    [ Node { start = { row = 2, column = 7 }, end = { row = 2, column = 11 } }
                                         (TypeOrAliasExpose "Link")
-                                    , Node { end = { column = 11, row = 3 }, start = { column = 7, row = 3 } }
+                                    , Node { start = { row = 3, column = 7 }, end = { row = 3, column = 11 } }
                                         (FunctionExpose "init")
                                     ]
                                 )

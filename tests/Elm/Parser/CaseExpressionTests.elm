@@ -105,7 +105,7 @@ all =
                 parseFullStringState emptyState "case f of\n  True -> 1\n  False -> 2" Parser.expression
                     |> Expect.equal
                         (Just
-                            (Node { end = { column = 13, row = 3 }, start = { column = 1, row = 1 } }
+                            (Node { start = { row = 1, column = 1 }, end = { row = 3, column = 13 } }
                                 (CaseExpression
                                     { expression =
                                         Node { start = { row = 1, column = 6 }, end = { row = 1, column = 7 } } <|
@@ -131,7 +131,7 @@ all =
                 parseAsFarAsPossibleWithState emptyState "case f of\n  True -> 1\n  False -> 2\n\n" Parser.expression
                     |> Expect.equal
                         (Just
-                            (Node { end = { column = 13, row = 3 }, start = { column = 1, row = 1 } }
+                            (Node { start = { row = 1, column = 1 }, end = { row = 3, column = 13 } }
                                 (CaseExpression
                                     { expression =
                                         Node { start = { row = 1, column = 6 }, end = { row = 1, column = 7 } } <|

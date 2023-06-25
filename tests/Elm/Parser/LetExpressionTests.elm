@@ -52,26 +52,26 @@ all =
                 parseFullStringState emptyState "let\n  foo = bar\n  \n  john = doe\n in" Parser.letBlock
                     |> Expect.equal
                         (Just
-                            [ Node { end = { column = 12, row = 2 }, start = { column = 3, row = 2 } } <|
+                            [ Node { start = { row = 2, column = 3 }, end = { row = 2, column = 12 } } <|
                                 LetFunction
                                     { documentation = Nothing
                                     , signature = Nothing
                                     , declaration =
-                                        Node { end = { column = 12, row = 2 }, start = { column = 3, row = 2 } }
-                                            { name = Node { end = { column = 6, row = 2 }, start = { column = 3, row = 2 } } "foo"
+                                        Node { start = { row = 2, column = 3 }, end = { row = 2, column = 12 } }
+                                            { name = Node { start = { row = 2, column = 3 }, end = { row = 2, column = 6 } } "foo"
                                             , arguments = []
-                                            , expression = Node { end = { column = 12, row = 2 }, start = { column = 9, row = 2 } } <| FunctionOrValue [] "bar"
+                                            , expression = Node { start = { row = 2, column = 9 }, end = { row = 2, column = 12 } } <| FunctionOrValue [] "bar"
                                             }
                                     }
-                            , Node { end = { column = 13, row = 4 }, start = { column = 3, row = 4 } } <|
+                            , Node { start = { row = 4, column = 3 }, end = { row = 4, column = 13 } } <|
                                 LetFunction
                                     { documentation = Nothing
                                     , signature = Nothing
                                     , declaration =
-                                        Node { end = { column = 13, row = 4 }, start = { column = 3, row = 4 } } <|
-                                            { name = Node { end = { column = 7, row = 4 }, start = { column = 3, row = 4 } } "john"
+                                        Node { start = { row = 4, column = 3 }, end = { row = 4, column = 13 } } <|
+                                            { name = Node { start = { row = 4, column = 3 }, end = { row = 4, column = 7 } } "john"
                                             , arguments = []
-                                            , expression = Node { end = { column = 13, row = 4 }, start = { column = 10, row = 4 } } <| FunctionOrValue [] "doe"
+                                            , expression = Node { start = { row = 4, column = 10 }, end = { row = 4, column = 13 } } <| FunctionOrValue [] "doe"
                                             }
                                     }
                             ]
@@ -84,19 +84,19 @@ all =
                         (Just
                             (LetExpression
                                 { declarations =
-                                    [ Node { end = { column = 10, row = 2 }, start = { column = 3, row = 2 } } <|
+                                    [ Node { start = { row = 2, column = 3 }, end = { row = 2, column = 10 } } <|
                                         LetFunction
                                             { documentation = Nothing
                                             , signature = Nothing
                                             , declaration =
-                                                Node { end = { column = 10, row = 2 }, start = { column = 3, row = 2 } } <|
-                                                    { name = Node { end = { column = 6, row = 2 }, start = { column = 3, row = 2 } } "bar"
+                                                Node { start = { row = 2, column = 3 }, end = { row = 2, column = 10 } } <|
+                                                    { name = Node { start = { row = 2, column = 3 }, end = { row = 2, column = 6 } } "bar"
                                                     , arguments = []
-                                                    , expression = Node { end = { column = 10, row = 2 }, start = { column = 9, row = 2 } } <| Integer 1
+                                                    , expression = Node { start = { row = 2, column = 9 }, end = { row = 2, column = 10 } } <| Integer 1
                                                     }
                                             }
                                     ]
-                                , expression = Node { end = { column = 6, row = 4 }, start = { column = 3, row = 4 } } <| FunctionOrValue [] "bar"
+                                , expression = Node { start = { row = 4, column = 3 }, end = { row = 4, column = 6 } } <| FunctionOrValue [] "bar"
                                 }
                             )
                         )
@@ -161,12 +161,12 @@ all =
                         (Just
                             (LetExpression
                                 { declarations =
-                                    [ Node { end = { column = 10, row = 2 }, start = { column = 5, row = 2 } } <|
+                                    [ Node { start = { row = 2, column = 5 }, end = { row = 2, column = 10 } } <|
                                         LetDestructuring
-                                            (Node { end = { column = 6, row = 2 }, start = { column = 5, row = 2 } } AllPattern)
-                                            (Node { end = { column = 10, row = 2 }, start = { column = 9, row = 2 } } <| FunctionOrValue [] "b")
+                                            (Node { start = { row = 2, column = 5 }, end = { row = 2, column = 6 } } AllPattern)
+                                            (Node { start = { row = 2, column = 9 }, end = { row = 2, column = 10 } } <| FunctionOrValue [] "b")
                                     ]
-                                , expression = Node { end = { column = 6, row = 4 }, start = { column = 5, row = 4 } } <| FunctionOrValue [] "z"
+                                , expression = Node { start = { row = 4, column = 5 }, end = { row = 4, column = 6 } } <| FunctionOrValue [] "z"
                                 }
                             )
                         )
@@ -256,5 +256,5 @@ all =
             \() ->
                 parseFullStringState emptyState " let\n b = 1\n in\n b\n\n\n\n--some comment\n" (Layout.layout |> Combine.continueWith Parser.letExpression)
                     |> Maybe.map Node.range
-                    |> Expect.equal (Just { end = { column = 3, row = 4 }, start = { column = 2, row = 1 } })
+                    |> Expect.equal (Just { start = { row = 1, column = 2 }, end = { row = 4, column = 3 } })
         ]
