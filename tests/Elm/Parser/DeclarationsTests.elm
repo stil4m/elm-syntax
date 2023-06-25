@@ -248,36 +248,38 @@ all =
             \() ->
                 parseFullStringWithNullState "foo =\n let\n  b = 1\n in\n  b" Parser.function
                     |> Maybe.map Node.value
-                    |> Maybe.map noRangeDeclaration
                     |> Expect.equal
-                        (Just <|
-                            FunctionDeclaration
-                                { signature = Nothing
-                                , documentation = Nothing
-                                , declaration =
-                                    Node empty <|
-                                        { name = Node empty "foo"
-                                        , arguments = []
+                        (Just
+                            (FunctionDeclaration
+                                { declaration =
+                                    Node { start = { row = 1, column = 1 }, end = { row = 5, column = 4 } }
+                                        { arguments = []
                                         , expression =
-                                            Node empty <|
-                                                LetExpression
+                                            Node { start = { row = 2, column = 2 }, end = { row = 5, column = 4 } }
+                                                (LetExpression
                                                     { declarations =
-                                                        [ Node empty <|
-                                                            LetFunction
-                                                                { documentation = Nothing
-                                                                , signature = Nothing
-                                                                , declaration =
-                                                                    Node empty <|
-                                                                        { name = Node empty "b"
-                                                                        , arguments = []
-                                                                        , expression = Node empty <| Integer 1
+                                                        [ Node { start = { row = 3, column = 3 }, end = { row = 3, column = 8 } }
+                                                            (LetFunction
+                                                                { declaration =
+                                                                    Node { start = { row = 3, column = 3 }, end = { row = 3, column = 8 } }
+                                                                        { arguments = []
+                                                                        , expression = Node { start = { row = 3, column = 7 }, end = { row = 3, column = 8 } } (Integer 1)
+                                                                        , name = Node { start = { row = 3, column = 3 }, end = { row = 3, column = 4 } } "b"
                                                                         }
+                                                                , documentation = Nothing
+                                                                , signature = Nothing
                                                                 }
+                                                            )
                                                         ]
-                                                    , expression = Node empty <| FunctionOrValue [] "b"
+                                                    , expression = Node { start = { row = 5, column = 3 }, end = { row = 5, column = 4 } } (FunctionOrValue [] "b")
                                                     }
+                                                )
+                                        , name = Node { start = { row = 1, column = 1 }, end = { row = 1, column = 4 } } "foo"
                                         }
+                                , documentation = Nothing
+                                , signature = Nothing
                                 }
+                            )
                         )
         , test "let destructuring with no spaces around '='" <|
             \() ->
