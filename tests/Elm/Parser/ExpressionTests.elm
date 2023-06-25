@@ -32,7 +32,7 @@ all =
                 parseFullStringWithNullState "(1,2)" expression
                     |> Maybe.map noRangeExpression
                     |> Maybe.map Node.value
-                    |> Expect.equal (Just (TupledExpression [ Node empty <| Integer 1, Node empty <| Integer 2 ]))
+                    |> Expect.equal (Just (TupledExpression [ Node.empty <| Integer 1, Node.empty <| Integer 2 ]))
         , test "prefix expression" <|
             \() ->
                 parseFullStringWithNullState "(,)" expression
@@ -81,7 +81,7 @@ all =
                     |> Expect.equal
                         (Just
                             (ParenthesizedExpression
-                                (Node empty <| FunctionOrValue [] "bar")
+                                (Node.empty <| FunctionOrValue [] "bar")
                             )
                         )
         , test "application expression" <|
@@ -156,9 +156,9 @@ all =
                     |> Expect.equal
                         (Just
                             (Application
-                                [ Node empty <|
+                                [ Node.empty <|
                                     FunctionOrValue [ "Task" ] "succeed"
-                                , Node empty <| UnitExpr
+                                , Node.empty <| UnitExpr
                                 ]
                             )
                         )
@@ -170,8 +170,8 @@ all =
                     |> Expect.equal
                         (Just
                             (Application
-                                [ Node empty <| FunctionOrValue [] "foo"
-                                , Node empty <| FunctionOrValue [] "bar"
+                                [ Node.empty <| FunctionOrValue [] "foo"
+                                , Node.empty <| FunctionOrValue [] "bar"
                                 ]
                             )
                         )

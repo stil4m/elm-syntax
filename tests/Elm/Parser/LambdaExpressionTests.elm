@@ -23,7 +23,7 @@ all =
                     |> Expect.equal
                         (Just
                             (LambdaExpression
-                                { args = [ Node empty UnitPattern ]
+                                { args = [ Node.empty UnitPattern ]
                                 , expression = Node empty <| FunctionOrValue [] "foo"
                                 }
                             )

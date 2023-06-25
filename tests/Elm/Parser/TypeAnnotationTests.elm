@@ -3,7 +3,7 @@ module Elm.Parser.TypeAnnotationTests exposing (all)
 import Elm.Parser.CombineTestUtil exposing (..)
 import Elm.Parser.State exposing (emptyState)
 import Elm.Parser.TypeAnnotation as Parser
-import Elm.Syntax.Node exposing (Node(..))
+import Elm.Syntax.Node as Node exposing (Node(..))
 import Elm.Syntax.Range exposing (empty)
 import Elm.Syntax.TypeAnnotation exposing (..)
 import Expect
@@ -17,7 +17,7 @@ all =
             \() ->
                 parseFullStringWithNullState "()" Parser.typeAnnotation
                     |> Maybe.map noRangeTypeReference
-                    |> Expect.equal (Just <| Node empty Unit)
+                    |> Expect.equal (Just <| Node.empty Unit)
         , test "unitTypeReference with spaces" <|
             \() ->
                 parseFullStringWithNullState "( )" Parser.typeAnnotation
@@ -27,21 +27,21 @@ all =
             \() ->
                 parseFullStringWithNullState "( (), ())" Parser.typeAnnotation
                     |> Maybe.map noRangeTypeReference
-                    |> Expect.equal (Just <| Node empty <| Tupled [ Node empty Unit, Node empty Unit ])
+                    |> Expect.equal (Just <| Node.empty <| Tupled [ Node.empty Unit, Node.empty Unit ])
         , test "tupledTypeReference 2" <|
             \() ->
                 parseFullStringWithNullState "( () )" Parser.typeAnnotation
                     |> Maybe.map noRangeTypeReference
-                    |> Expect.equal (Just <| Node empty Unit)
+                    |> Expect.equal (Just <| Node.empty Unit)
         , test "tupledTypeReference 3" <|
             \() ->
                 parseFullStringWithNullState "( () , Maybe m )" Parser.typeAnnotation
                     |> Maybe.map noRangeTypeReference
                     |> Expect.equal
                         (Just
-                            (Node empty <|
+                            (Node.empty <|
                                 Tupled
-                                    [ Node empty Unit
+                                    [ Node.empty Unit
                                     , Node empty <| Typed (Node empty <| ( [], "Maybe" )) [ Node empty <| GenericType "m" ]
                                     ]
                             )

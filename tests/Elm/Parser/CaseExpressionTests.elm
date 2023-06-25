@@ -29,8 +29,8 @@ all =
                     |> Maybe.map (Tuple.mapSecond noRangeExpression >> Tuple.mapFirst noRangePattern)
                     |> Expect.equal
                         (Just
-                            ( Node empty <| NamedPattern (QualifiedNameRef [] "True") []
-                            , Node empty <| Integer 1
+                            ( Node.empty <| NamedPattern (QualifiedNameRef [] "True") []
+                            , Node.empty <| Integer 1
                             )
                         )
         , test "caseStatement qualified" <|
@@ -39,8 +39,8 @@ all =
                     |> Maybe.map (Tuple.mapSecond noRangeExpression >> Tuple.mapFirst noRangePattern)
                     |> Expect.equal
                         (Just
-                            ( Node empty <| NamedPattern (QualifiedNameRef [ "Foo" ] "Bar") []
-                            , Node empty <| Integer 1
+                            ( Node.empty <| NamedPattern (QualifiedNameRef [ "Foo" ] "Bar") []
+                            , Node.empty <| Integer 1
                             )
                         )
         , test "caseStatement no spacing" <|
@@ -49,8 +49,8 @@ all =
                     |> Maybe.map (Tuple.mapSecond noRangeExpression >> Tuple.mapFirst noRangePattern)
                     |> Expect.equal
                         (Just
-                            ( Node empty <| IntPattern 32
-                            , Node empty <| FunctionOrValue [] "Backspace"
+                            ( Node.empty <| IntPattern 32
+                            , Node.empty <| FunctionOrValue [] "Backspace"
                             )
                         )
         , test "caseStatement wrong indent" <|
@@ -63,8 +63,8 @@ all =
                     |> Maybe.map (Tuple.mapSecond noRangeExpression >> Tuple.mapFirst noRangePattern)
                     |> Expect.equal
                         (Just
-                            ( Node empty <| NamedPattern (QualifiedNameRef [] "True") []
-                            , Node empty <| Integer 1
+                            ( Node.empty <| NamedPattern (QualifiedNameRef [] "True") []
+                            , Node.empty <| Integer 1
                             )
                         )
         , test "caseStatements" <|
@@ -73,11 +73,11 @@ all =
                     |> Maybe.map (List.map (Tuple.mapSecond noRangeExpression >> Tuple.mapFirst noRangePattern))
                     |> Expect.equal
                         (Just
-                            [ ( Node empty <| NamedPattern (QualifiedNameRef [] "True") []
-                              , Node empty <| Integer 1
+                            [ ( Node.empty <| NamedPattern (QualifiedNameRef [] "True") []
+                              , Node.empty <| Integer 1
                               )
-                            , ( Node empty <| NamedPattern (QualifiedNameRef [] "False") []
-                              , Node empty <| Integer 2
+                            , ( Node.empty <| NamedPattern (QualifiedNameRef [] "False") []
+                              , Node.empty <| Integer 2
                               )
                             ]
                         )
@@ -88,10 +88,10 @@ all =
                     |> Expect.equal
                         (Just
                             (CaseExpression
-                                { expression = Node empty <| FunctionOrValue [] "f"
+                                { expression = Node.empty <| FunctionOrValue [] "f"
                                 , cases =
-                                    [ ( Node empty <| NamedPattern (QualifiedNameRef [] "True") []
-                                      , Node empty <| Integer 1
+                                    [ ( Node.empty <| NamedPattern (QualifiedNameRef [] "True") []
+                                      , Node.empty <| Integer 1
                                       )
                                     , ( Node empty <| NamedPattern (QualifiedNameRef [] "False") []
                                       , Node empty <| Integer 2

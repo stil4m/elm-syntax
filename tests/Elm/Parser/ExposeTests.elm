@@ -3,7 +3,7 @@ module Elm.Parser.ExposeTests exposing (all)
 import Elm.Parser.CombineTestUtil exposing (..)
 import Elm.Parser.Expose exposing (..)
 import Elm.Syntax.Exposing exposing (..)
-import Elm.Syntax.Node exposing (Node(..))
+import Elm.Syntax.Node as Node exposing (Node(..))
 import Elm.Syntax.Range exposing (..)
 import Expect
 import Test exposing (..)
@@ -16,17 +16,17 @@ all =
             \() ->
                 parseFullStringWithNullState "($>)" infixExpose
                     |> Maybe.map noRangeExpose
-                    |> Expect.equal (Just (Node empty <| InfixExpose "$>"))
+                    |> Expect.equal (Just (Node.empty <| InfixExpose "$>"))
         , test "definitionExpose" <|
             \() ->
                 parseFullStringWithNullState "Model" typeExpose
                     |> Maybe.map noRangeExpose
-                    |> Expect.equal (Just (Node empty <| TypeOrAliasExpose "Model"))
+                    |> Expect.equal (Just (Node.empty <| TypeOrAliasExpose "Model"))
         , test "typeExpose" <|
             \() ->
                 parseFullStringWithNullState "Msg(..)" typeExpose
                     |> Maybe.map noRangeExpose
-                    |> Expect.equal (Just (Node empty <| TypeExpose (ExposedType "Msg" (Just empty))))
+                    |> Expect.equal (Just (Node.empty <| TypeExpose (ExposedType "Msg" (Just empty))))
         , test "exposingList" <|
             \() ->
                 parseFullStringWithNullState "exposing (Model,Msg(..),Info(..),init,(::))" exposeDefinition
@@ -34,7 +34,7 @@ all =
                     |> Expect.equal
                         (Just
                             (Explicit
-                                [ Node empty <| TypeOrAliasExpose "Model"
+                                [ Node.empty <| TypeOrAliasExpose "Model"
                                 , Node empty <| TypeExpose (ExposedType "Msg" (Just empty))
                                 , Node empty <| TypeExpose (ExposedType "Info" (Just empty))
                                 , Node empty <| FunctionExpose "init"

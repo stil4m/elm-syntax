@@ -22,8 +22,8 @@ all =
                     |> Maybe.map noRangeSignature
                     |> Expect.equal
                         (Just
-                            { name = Node empty "foo"
-                            , typeAnnotation = Node empty <| Typed (Node empty ( [], "Int" )) []
+                            { name = Node.empty "foo"
+                            , typeAnnotation = Node.empty <| Typed (Node.empty ( [], "Int" )) []
                             }
                         )
         , test "complex signature" <|
@@ -32,20 +32,20 @@ all =
                     |> Maybe.map noRangeSignature
                     |> Expect.equal
                         (Just
-                            { name = Node empty "updateState"
+                            { name = Node.empty "updateState"
                             , typeAnnotation =
-                                Node empty <|
+                                Node.empty <|
                                     FunctionTypeAnnotation
-                                        (Node empty <|
+                                        (Node.empty <|
                                             FunctionTypeAnnotation
-                                                (Node empty <| GenericType "msg")
-                                                (Node empty <|
+                                                (Node.empty <| GenericType "msg")
+                                                (Node.empty <|
                                                     FunctionTypeAnnotation
-                                                        (Node empty <| GenericType "model")
-                                                        (Node empty <|
+                                                        (Node.empty <| GenericType "model")
+                                                        (Node.empty <|
                                                             Tupled
-                                                                [ Node empty <| GenericType "model"
-                                                                , Node empty <| Typed (Node empty ( [], "Cmd" )) [ Node empty <| GenericType "msg" ]
+                                                                [ Node.empty <| GenericType "model"
+                                                                , Node.empty <| Typed (Node.empty ( [], "Cmd" )) [ Node empty <| GenericType "msg" ]
                                                                 ]
                                                         )
                                                 )

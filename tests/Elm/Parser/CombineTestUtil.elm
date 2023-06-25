@@ -8,7 +8,7 @@ import Elm.Syntax.Expression exposing (..)
 import Elm.Syntax.Import exposing (Import)
 import Elm.Syntax.Infix exposing (..)
 import Elm.Syntax.Module exposing (..)
-import Elm.Syntax.Node exposing (Node(..))
+import Elm.Syntax.Node as Node exposing (Node(..))
 import Elm.Syntax.Pattern exposing (..)
 import Elm.Syntax.Range exposing (empty)
 import Elm.Syntax.Signature exposing (Signature)
@@ -84,12 +84,12 @@ parseAsFarAsPossible s p =
 
 emptyRanged : Expression -> Node Expression
 emptyRanged =
-    Node empty
+    Node.empty
 
 
 noRangeExpression : Node Expression -> Node Expression
 noRangeExpression (Node _ inner) =
-    Node empty <| noRangeInnerExpression inner
+    Node.empty <| noRangeInnerExpression inner
 
 
 noRangeModule : Module -> Module
@@ -142,7 +142,7 @@ noRangeExposingList x =
 
 noRangePattern : Node Pattern -> Node Pattern
 noRangePattern (Node _ p) =
-    Node empty <|
+    Node.empty <|
         case p of
             RecordPattern ls ->
                 RecordPattern (List.map unRange ls)
@@ -197,12 +197,12 @@ unRange n =
 
 unRanged : (a -> a) -> Node a -> Node a
 unRanged f (Node _ a) =
-    Node empty <| f a
+    Node.empty <| f a
 
 
 noRangeExpose : Node TopLevelExpose -> Node TopLevelExpose
 noRangeExpose (Node _ l) =
-    Node empty <|
+    Node.empty <|
         case l of
             InfixExpose s ->
                 InfixExpose s
@@ -252,7 +252,7 @@ noRangeDeclaration decl =
 
 noRangeLetDeclaration : Node LetDeclaration -> Node LetDeclaration
 noRangeLetDeclaration (Node _ decl) =
-    Node empty <|
+    Node.empty <|
         case decl of
             LetFunction function ->
                 LetFunction (noRangeFunction function)
@@ -283,13 +283,13 @@ noRangeRecordDefinition =
 
 noRangeTypeReference : Node TypeAnnotation -> Node TypeAnnotation
 noRangeTypeReference (Node _ typeAnnotation) =
-    Node empty <|
+    Node.empty <|
         case typeAnnotation of
             GenericType x ->
                 GenericType x
 
             Typed (Node _ ( a, b )) c ->
-                Typed (Node empty ( a, b )) (List.map noRangeTypeReference c)
+                Typed (Node.empty ( a, b )) (List.map noRangeTypeReference c)
 
             Unit ->
                 Unit

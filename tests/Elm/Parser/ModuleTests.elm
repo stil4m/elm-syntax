@@ -7,7 +7,7 @@ import Elm.Syntax.Declaration exposing (Declaration(..))
 import Elm.Syntax.Exposing exposing (..)
 import Elm.Syntax.Expression exposing (Expression(..))
 import Elm.Syntax.Module exposing (..)
-import Elm.Syntax.Node exposing (Node(..))
+import Elm.Syntax.Node as Node exposing (Node(..))
 import Elm.Syntax.Range exposing (empty)
 import Expect
 import Test exposing (..)
@@ -23,8 +23,8 @@ all =
                     |> Expect.equal
                         (Just
                             (NormalModule
-                                { moduleName = Node empty <| [ "Foo" ]
-                                , exposingList = Node empty <| Explicit [ Node empty <| TypeOrAliasExpose "Bar" ]
+                                { moduleName = Node.empty [ "Foo" ]
+                                , exposingList = Node.empty <| Explicit [ Node.empty <| TypeOrAliasExpose "Bar" ]
                                 }
                             )
                         )
@@ -32,12 +32,12 @@ all =
             \() ->
                 parseFullStringWithNullState "port module Foo exposing (Bar)" Parser.moduleDefinition
                     |> Maybe.map noRangeModule
-                    |> Expect.equal (Just (PortModule { moduleName = Node empty <| [ "Foo" ], exposingList = Node empty <| Explicit [ Node empty <| TypeOrAliasExpose "Bar" ] }))
+                    |> Expect.equal (Just (PortModule { moduleName = Node.empty <| [ "Foo" ], exposingList = Node.empty <| Explicit [ Node.empty <| TypeOrAliasExpose "Bar" ] }))
         , test "port moduleDefinition with spacing" <|
             \() ->
                 parseFullStringWithNullState "port module Foo exposing ( Bar )" Parser.moduleDefinition
                     |> Maybe.map noRangeModule
-                    |> Expect.equal (Just (PortModule { moduleName = Node empty <| [ "Foo" ], exposingList = Node empty <| Explicit [ Node empty <| TypeOrAliasExpose "Bar" ] }))
+                    |> Expect.equal (Just (PortModule { moduleName = Node.empty <| [ "Foo" ], exposingList = Node empty <| Explicit [ Node empty <| TypeOrAliasExpose "Bar" ] }))
         , test "effect moduleDefinition" <|
             \() ->
                 parseFullStringWithNullState "effect module Foo where {command = MyCmd, subscription = MySub } exposing (Bar)" Parser.moduleDefinition

@@ -3,7 +3,7 @@ module Elm.Parser.TypingsTests exposing (all)
 import Elm.Parser.CombineTestUtil exposing (..)
 import Elm.Parser.State exposing (emptyState)
 import Elm.Parser.Typings as Parser exposing (TypeDefinition(..))
-import Elm.Syntax.Node exposing (Node(..))
+import Elm.Syntax.Node as Node exposing (Node(..))
 import Elm.Syntax.Range exposing (empty)
 import Elm.Syntax.Type exposing (Type)
 import Elm.Syntax.TypeAlias exposing (TypeAlias)
@@ -43,14 +43,14 @@ all =
                     |> Expect.equal
                         (Just <|
                             { documentation = Nothing
-                            , name = Node empty "Foo"
+                            , name = Node.empty "Foo"
                             , generics = []
                             , typeAnnotation =
-                                Node empty <|
+                                Node.empty <|
                                     Record
-                                        [ Node empty <|
-                                            ( Node empty <| "color"
-                                            , Node empty <| Typed (Node empty <| ( [], "String" )) []
+                                        [ Node.empty <|
+                                            ( Node.empty <| "color"
+                                            , Node.empty <| Typed (Node.empty <| ( [], "String" )) []
                                             )
                                         ]
                             }
@@ -63,14 +63,14 @@ all =
                     |> Expect.equal
                         (Just <|
                             { documentation = Nothing
-                            , name = Node empty "Foo"
+                            , name = Node.empty "Foo"
                             , generics = []
                             , typeAnnotation =
-                                Node empty <|
+                                Node.empty <|
                                     Record
-                                        [ Node empty <|
-                                            ( Node empty <| "color"
-                                            , Node empty <| Typed (Node empty <| ( [], "String" )) []
+                                        [ Node.empty <|
+                                            ( Node.empty <| "color"
+                                            , Node.empty <| Typed (Node.empty <| ( [], "String" )) []
                                             )
                                         ]
                             }
