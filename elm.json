@@ -8,6 +8,7 @@
         "Elm.Parser",
         "Elm.Syntax.Comments",
         "Elm.Syntax.Declaration",
+        "Elm.Syntax.DestructurePattern",
         "Elm.Syntax.Documentation",
         "Elm.Syntax.Exposing",
         "Elm.Syntax.Expression",

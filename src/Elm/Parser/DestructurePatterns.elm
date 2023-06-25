@@ -1,11 +1,10 @@
-module Elm.Parser.Patterns exposing (pattern)
+module Elm.Parser.DestructurePatterns exposing (destructurePattern)
 
 import Elm.Parser.Layout as Layout
 import Elm.Parser.Node as Node
-import Elm.Parser.Numbers
 import Elm.Parser.Tokens as Tokens
+import Elm.Syntax.DestructurePattern exposing (DestructurePattern(..))
 import Elm.Syntax.Node as Node exposing (Node(..))
-import Elm.Syntax.Pattern as Pattern exposing (Pattern(..))
 import ParserFast exposing (Parser)
 import ParserWithComments exposing (WithComments)
 import Rope
@@ -14,15 +13,14 @@ import Rope
 type PatternComposedWith
     = PatternComposedWithNothing ()
     | PatternComposedWithAs (Node String)
-    | PatternComposedWithCons (Node Pattern)
 
 
-pattern : Parser (WithComments (Node Pattern))
-pattern =
+subDestructurePattern : Parser (WithComments (Node DestructurePattern))
+subDestructurePattern =
     ParserFast.lazy (\() -> composablePatternTryToCompose)
 
 
-composablePatternTryToCompose : Parser (WithComments (Node Pattern))
+composablePatternTryToCompose : Parser (WithComments (Node DestructurePattern))
 composablePatternTryToCompose =
     ParserFast.map3
         (\x commentsAfterLeft maybeComposedWithResult ->
@@ -36,10 +34,7 @@ composablePatternTryToCompose =
                         x.syntax
 
                     PatternComposedWithAs anotherName ->
-                        Node.combine Pattern.AsPattern x.syntax anotherName
-
-                    PatternComposedWithCons y ->
-                        Node.combine Pattern.UnConsPattern x.syntax y
+                        Node.combine AsPattern_ x.syntax anotherName
             }
         )
         composablePattern
@@ -58,19 +53,11 @@ maybeComposedWith =
             )
             (ParserFast.keywordFollowedBy "as" Layout.maybeLayout)
             (Node.parserCore Tokens.functionName)
-        , ParserFast.map2
-            (\commentsAfterCons patternResult ->
-                { comments = patternResult.comments |> Rope.prependTo commentsAfterCons
-                , syntax = PatternComposedWithCons patternResult.syntax
-                }
-            )
-            (ParserFast.symbolFollowedBy "::" Layout.maybeLayout)
-            pattern
         , ParserFast.succeed { comments = Rope.empty, syntax = PatternComposedWithNothing () }
         ]
 
 
-parensPattern : Parser (WithComments (Node Pattern))
+parensPattern : Parser (WithComments (Node DestructurePattern))
 parensPattern =
     ParserFast.map2
         (\commentsBeforeHead contentResult ->
@@ -92,102 +79,39 @@ parensPattern =
                     , syntax =
                         case tailResult.syntax of
                             [] ->
-                                ParenthesizedPattern headResult.syntax
+                                ParenthesizedPattern_ headResult.syntax
 
                             _ ->
-                                TuplePattern (headResult.syntax :: tailResult.syntax)
+                                TuplePattern_ (headResult.syntax :: tailResult.syntax)
                     }
                 )
-                pattern
+                subDestructurePattern
                 Layout.maybeLayout
                 (ParserWithComments.until
                     Tokens.parensEnd
                     (ParserFast.symbolFollowedBy ","
-                        (Layout.maybeAroundBothSides pattern)
+                        (Layout.maybeAroundBothSides subDestructurePattern)
                     )
                 )
             )
-            (ParserFast.symbol ")" { comments = Rope.empty, syntax = UnitPattern })
+            (ParserFast.symbol ")" { comments = Rope.empty, syntax = UnitPattern_ })
         )
         |> Node.parser
 
 
-varPattern : Parser (WithComments (Node Pattern))
+varPattern : Parser (WithComments (Node DestructurePattern))
 varPattern =
     Tokens.functionName
         |> ParserFast.mapWithStartAndEndPosition
             (\start var end ->
                 { comments = Rope.empty
                 , syntax =
-                    Node { start = start, end = end } (VarPattern var)
+                    Node { start = start, end = end } (VarPattern_ var)
                 }
             )
 
 
-numberPart : Parser (WithComments (Node Pattern))
-numberPart =
-    Elm.Parser.Numbers.intOrHex
-        (\n -> { comments = Rope.empty, syntax = IntPattern n })
-        (\n -> { comments = Rope.empty, syntax = HexPattern n })
-        |> Node.parser
-
-
-charPattern : Parser (WithComments (Node Pattern))
-charPattern =
-    Tokens.characterLiteral
-        |> ParserFast.mapWithStartAndEndPosition
-            (\start char end ->
-                { comments = Rope.empty, syntax = Node { start = start, end = end } (CharPattern char) }
-            )
-
-
-listPattern : Parser (WithComments (Node Pattern))
-listPattern =
-    ParserFast.map2
-        (\commentsBeforeElements maybeElements ->
-            case maybeElements of
-                Nothing ->
-                    { comments = commentsBeforeElements
-                    , syntax = patternListEmpty
-                    }
-
-                Just elements ->
-                    { comments = commentsBeforeElements |> Rope.prependTo elements.comments
-                    , syntax = ListPattern elements.syntax
-                    }
-        )
-        (ParserFast.symbolFollowedBy "[" Layout.maybeLayout)
-        (ParserFast.oneOf2
-            (ParserFast.symbol "]" Nothing)
-            (ParserFast.map4
-                (\head commentsAfterHead tail () ->
-                    Just
-                        { comments =
-                            head.comments
-                                |> Rope.prependTo tail.comments
-                                |> Rope.prependTo commentsAfterHead
-                        , syntax = head.syntax :: tail.syntax
-                        }
-                )
-                pattern
-                Layout.maybeLayout
-                (ParserWithComments.many
-                    (ParserFast.symbolFollowedBy ","
-                        (Layout.maybeAroundBothSides pattern)
-                    )
-                )
-                Tokens.squareEnd
-            )
-        )
-        |> Node.parser
-
-
-patternListEmpty : Pattern
-patternListEmpty =
-    ListPattern []
-
-
-composablePattern : Parser (WithComments (Node Pattern))
+composablePattern : Parser (WithComments (Node DestructurePattern))
 composablePattern =
     ParserFast.oneOf
         [ varPattern
@@ -196,15 +120,11 @@ composablePattern =
         , unitPattern
         , parensPattern
         , recordPattern
-        , stringPattern
-        , listPattern
-        , numberPart
-        , charPattern
         ]
 
 
-patternNotDirectlyComposing : Parser (WithComments (Node Pattern))
-patternNotDirectlyComposing =
+destructurePattern : Parser (WithComments (Node DestructurePattern))
+destructurePattern =
     ParserFast.oneOf
         [ varPattern
         , qualifiedPatternWithoutConsumeArgs
@@ -212,35 +132,19 @@ patternNotDirectlyComposing =
         , unitPattern
         , parensPattern
         , recordPattern
-        , stringPattern
-        , listPattern
-        , numberPart
-        , charPattern
         ]
 
 
-allPattern : Parser (WithComments (Node Pattern))
+allPattern : Parser (WithComments (Node DestructurePattern))
 allPattern =
-    ParserFast.symbol "_" { comments = Rope.empty, syntax = AllPattern }
+    ParserFast.symbol "_" { comments = Rope.empty, syntax = AllPattern_ }
         |> Node.parser
 
 
-unitPattern : Parser (WithComments (Node Pattern))
+unitPattern : Parser (WithComments (Node DestructurePattern))
 unitPattern =
-    ParserFast.symbol "()" { comments = Rope.empty, syntax = UnitPattern }
+    ParserFast.symbol "()" { comments = Rope.empty, syntax = UnitPattern_ }
         |> Node.parser
-
-
-stringPattern : Parser (WithComments (Node Pattern))
-stringPattern =
-    Tokens.singleOrTripleQuotedStringLiteral
-        |> ParserFast.mapWithStartAndEndPosition
-            (\start string end ->
-                { comments = Rope.empty
-                , syntax =
-                    Node { start = start, end = end } (StringPattern string)
-                }
-            )
 
 
 maybeDotTypeNamesTuple : ParserFast.Parser (Maybe ( List String, String ))
@@ -261,13 +165,13 @@ maybeDotTypeNamesTuple =
         Nothing
 
 
-qualifiedPatternWithConsumeArgs : Parser (WithComments (Node Pattern))
+qualifiedPatternWithConsumeArgs : Parser (WithComments (Node DestructurePattern))
 qualifiedPatternWithConsumeArgs =
     ParserFast.map3
         (\startName afterStartName args ->
             { comments = args.comments
             , syntax =
-                NamedPattern
+                NamedPattern_
                     (case afterStartName of
                         Nothing ->
                             { moduleName = [], name = startName }
@@ -288,19 +192,19 @@ qualifiedPatternWithConsumeArgs =
                     }
                 )
                 (Layout.maybeLayout |> ParserFast.backtrackable)
-                patternNotDirectlyComposing
+                destructurePattern
             )
         )
         |> Node.parser
 
 
-qualifiedPatternWithoutConsumeArgs : Parser (WithComments (Node Pattern))
+qualifiedPatternWithoutConsumeArgs : Parser (WithComments (Node DestructurePattern))
 qualifiedPatternWithoutConsumeArgs =
     ParserFast.mapWithStartAndEndPosition
         (\start name end ->
             { comments = Rope.empty
             , syntax =
-                Node { start = start, end = end } (NamedPattern name [])
+                Node { start = start, end = end } (NamedPattern_ name [])
             }
         )
         (ParserFast.map2
@@ -317,7 +221,7 @@ qualifiedPatternWithoutConsumeArgs =
         )
 
 
-recordPattern : Parser (WithComments (Node Pattern))
+recordPattern : Parser (WithComments (Node DestructurePattern))
 recordPattern =
     ParserFast.map2
         (\commentsBeforeElements maybeElements ->
@@ -329,7 +233,7 @@ recordPattern =
 
                 Just elements ->
                     { comments = commentsBeforeElements |> Rope.prependTo elements.comments
-                    , syntax = RecordPattern elements.syntax
+                    , syntax = RecordPattern_ elements.syntax
                     }
         )
         (ParserFast.symbolFollowedBy "{" Layout.maybeLayout)
@@ -364,6 +268,6 @@ recordPattern =
         |> Node.parser
 
 
-patternRecordEmpty : Pattern
+patternRecordEmpty : DestructurePattern
 patternRecordEmpty =
-    RecordPattern []
+    RecordPattern_ []

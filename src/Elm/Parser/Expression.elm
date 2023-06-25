@@ -1,15 +1,16 @@
 module Elm.Parser.Expression exposing (expression)
 
+import Elm.Parser.DestructurePatterns as DestructurePatterns
 import Elm.Parser.Layout as Layout
 import Elm.Parser.Node as Node
 import Elm.Parser.Numbers
 import Elm.Parser.Patterns as Patterns
 import Elm.Parser.Tokens as Tokens
 import Elm.Parser.TypeAnnotation as TypeAnnotation
+import Elm.Syntax.DestructurePattern exposing (DestructurePattern)
 import Elm.Syntax.Expression as Expression exposing (Case, Expression(..), LetDeclaration(..), RecordSetter)
 import Elm.Syntax.Infix as Infix
 import Elm.Syntax.Node as Node exposing (Node(..))
-import Elm.Syntax.Pattern exposing (Pattern)
 import Elm.Syntax.Range exposing (Location)
 import Elm.Syntax.Signature exposing (Signature)
 import ParserFast exposing (Parser)
@@ -362,7 +363,8 @@ lambdaExpression =
             , syntax =
                 Node { start = start, end = expressionRange.end }
                     (LambdaExpression
-                        { args = lambda.args
+                        { firstArg = lambda.firstArg
+                        , restOfArgs = lambda.restOfArgs
                         , expression = lambda.expression
                         }
                     )
@@ -370,18 +372,19 @@ lambdaExpression =
         )
         (ParserFast.map5
             (\commentsAfterBackslash firstArg commentsAfterFirstArg secondUpArgs expressionResult ->
-                { args = firstArg.syntax :: secondUpArgs.syntax
-                , comments =
+                { comments =
                     commentsAfterBackslash
                         |> Rope.prependTo firstArg.comments
                         |> Rope.prependTo commentsAfterFirstArg
                         |> Rope.prependTo secondUpArgs.comments
                         |> Rope.prependTo expressionResult.comments
                 , expression = expressionResult.syntax
+                , firstArg = firstArg.syntax
+                , restOfArgs = secondUpArgs.syntax
                 }
             )
             (ParserFast.symbolFollowedBy "\\" Layout.maybeLayout)
-            Patterns.patternNotDirectlyComposing
+            DestructurePatterns.destructurePattern
             Layout.maybeLayout
             (ParserWithComments.until
                 Tokens.arrowRight
@@ -393,7 +396,7 @@ lambdaExpression =
                         , syntax = patternResult.syntax
                         }
                     )
-                    Patterns.patternNotDirectlyComposing
+                    DestructurePatterns.destructurePattern
                     Layout.maybeLayout
                 )
             )
@@ -613,7 +616,7 @@ letDestructuringDeclaration =
                     (LetDestructuring pattern.syntax expressionResult.syntax)
             }
         )
-        Patterns.patternNotDirectlyComposing
+        DestructurePatterns.destructurePattern
         Layout.maybeLayout
         (ParserFast.symbolFollowedBy "=" Layout.maybeLayout)
         expression
@@ -727,7 +730,7 @@ letFunction =
         |> ParserFast.andThen identity
 
 
-parameterPatternsEqual : Parser (WithComments (List (Node Pattern)))
+parameterPatternsEqual : Parser (WithComments (List (Node DestructurePattern)))
 parameterPatternsEqual =
     ParserWithComments.until Tokens.equal
         (ParserFast.map2
@@ -736,7 +739,7 @@ parameterPatternsEqual =
                 , syntax = patternResult.syntax
                 }
             )
-            Patterns.patternNotDirectlyComposing
+            DestructurePatterns.destructurePattern
             Layout.maybeLayout
         )
 
