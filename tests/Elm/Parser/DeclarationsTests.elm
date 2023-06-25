@@ -285,41 +285,43 @@ all =
             \() ->
                 parseFullStringWithNullState "foo =\n let\n  (b, c)=(1, 2)\n in\n  b" Parser.function
                     |> Maybe.map Node.value
-                    |> Maybe.map noRangeDeclaration
                     |> Expect.equal
-                        (Just <|
-                            FunctionDeclaration
-                                { signature = Nothing
-                                , documentation = Nothing
-                                , declaration =
-                                    Node empty <|
-                                        { name = Node empty "foo"
-                                        , arguments = []
+                        (Just
+                            (FunctionDeclaration
+                                { declaration =
+                                    Node { start = { row = 1, column = 1 }, end = { row = 5, column = 4 } }
+                                        { arguments = []
                                         , expression =
-                                            Node empty <|
-                                                LetExpression
+                                            Node { start = { row = 2, column = 2 }, end = { row = 5, column = 4 } }
+                                                (LetExpression
                                                     { declarations =
-                                                        [ Node empty <|
-                                                            LetDestructuring
-                                                                (Node empty
+                                                        [ Node { start = { row = 3, column = 3 }, end = { row = 3, column = 16 } }
+                                                            (LetDestructuring
+                                                                (Node { start = { row = 3, column = 3 }, end = { row = 3, column = 9 } }
                                                                     (TuplePattern
-                                                                        [ Node empty (VarPattern "b")
-                                                                        , Node empty (VarPattern "c")
+                                                                        [ Node { start = { row = 3, column = 4 }, end = { row = 3, column = 5 } } (VarPattern "b")
+                                                                        , Node { start = { row = 3, column = 7 }, end = { row = 3, column = 8 } } (VarPattern "c")
                                                                         ]
                                                                     )
                                                                 )
-                                                                (Node empty
+                                                                (Node { start = { row = 3, column = 10 }, end = { row = 3, column = 16 } }
                                                                     (TupledExpression
-                                                                        [ Node empty (Integer 1)
-                                                                        , Node empty (Integer 2)
+                                                                        [ Node { start = { row = 3, column = 11 }, end = { row = 3, column = 12 } } (Integer 1)
+                                                                        , Node { start = { row = 3, column = 14 }, end = { row = 3, column = 15 } } (Integer 2)
                                                                         ]
                                                                     )
                                                                 )
+                                                            )
                                                         ]
-                                                    , expression = Node empty <| FunctionOrValue [] "b"
+                                                    , expression = Node { start = { row = 5, column = 3 }, end = { row = 5, column = 4 } } (FunctionOrValue [] "b")
                                                     }
+                                                )
+                                        , name = Node { start = { row = 1, column = 1 }, end = { row = 1, column = 4 } } "foo"
                                         }
+                                , documentation = Nothing
+                                , signature = Nothing
                                 }
+                            )
                         )
         , test "declaration with record" <|
             \() ->
