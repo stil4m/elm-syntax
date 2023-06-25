@@ -2,9 +2,9 @@ module Elm.Parser.LetExpressionTests exposing (all)
 
 import Elm.Parser.CombineTestUtil as CombineTestUtil
 import Elm.Parser.Expression exposing (expression)
+import Elm.Syntax.DestructurePattern exposing (DestructurePattern(..))
 import Elm.Syntax.Expression exposing (..)
 import Elm.Syntax.Node exposing (Node(..))
-import Elm.Syntax.Pattern exposing (..)
 import Elm.Syntax.TypeAnnotation exposing (TypeAnnotation(..))
 import Expect
 import Test exposing (..)
@@ -42,7 +42,7 @@ all =
                                             , declaration =
                                                 Node { start = { row = 4, column = 3 }, end = { row = 4, column = 13 } }
                                                     { name = Node { start = { row = 4, column = 3 }, end = { row = 4, column = 7 } } "john"
-                                                    , arguments = [ Node { start = { row = 4, column = 8 }, end = { row = 4, column = 9 } } (VarPattern "n") ]
+                                                    , arguments = [ Node { start = { row = 4, column = 8 }, end = { row = 4, column = 9 } } (VarPattern_ "n") ]
                                                     , expression = Node { start = { row = 4, column = 12 }, end = { row = 4, column = 13 } } (FunctionOrValue [] "n")
                                                     }
                                             }
@@ -247,20 +247,20 @@ all =
                             (LetExpression
                                 { declarations =
                                     [ Node { start = { row = 2, column = 5 }, end = { row = 2, column = 10 } }
-                                        (LetDestructuring (Node { start = { row = 2, column = 5 }, end = { row = 2, column = 6 } } AllPattern) (Node { start = { row = 2, column = 9 }, end = { row = 2, column = 10 } } (FunctionOrValue [] "b")))
+                                        (LetDestructuring (Node { start = { row = 2, column = 5 }, end = { row = 2, column = 6 } } AllPattern_) (Node { start = { row = 2, column = 9 }, end = { row = 2, column = 10 } } (FunctionOrValue [] "b")))
                                     , Node { start = { row = 3, column = 5 }, end = { row = 3, column = 12 } }
                                         (LetDestructuring
                                             (Node { start = { row = 3, column = 5 }, end = { row = 3, column = 8 } }
-                                                (RecordPattern [ Node { start = { row = 3, column = 6 }, end = { row = 3, column = 7 } } "a" ])
+                                                (RecordPattern_ [ Node { start = { row = 3, column = 6 }, end = { row = 3, column = 7 } } "a" ])
                                             )
                                             (Node { start = { row = 3, column = 11 }, end = { row = 3, column = 12 } } (FunctionOrValue [] "b"))
                                         )
                                     , Node { start = { row = 4, column = 5 }, end = { row = 4, column = 15 } }
                                         (LetDestructuring
                                             (Node { start = { row = 4, column = 5 }, end = { row = 4, column = 11 } }
-                                                (TuplePattern
-                                                    [ Node { start = { row = 4, column = 6 }, end = { row = 4, column = 7 } } (VarPattern "c")
-                                                    , Node { start = { row = 4, column = 9 }, end = { row = 4, column = 10 } } (VarPattern "d")
+                                                (TuplePattern_
+                                                    [ Node { start = { row = 4, column = 6 }, end = { row = 4, column = 7 } } (VarPattern_ "c")
+                                                    , Node { start = { row = 4, column = 9 }, end = { row = 4, column = 10 } } (VarPattern_ "d")
                                                     ]
                                                 )
                                             )
@@ -269,8 +269,14 @@ all =
                                     , Node { start = { row = 5, column = 5 }, end = { row = 5, column = 19 } }
                                         (LetDestructuring
                                             (Node { start = { row = 5, column = 5 }, end = { row = 5, column = 15 } }
-                                                (ParenthesizedPattern
-                                                    (Node { start = { row = 5, column = 6 }, end = { row = 5, column = 14 } } (NamedPattern { moduleName = [], name = "Node" } [ Node { start = { row = 5, column = 11 }, end = { row = 5, column = 12 } } AllPattern, Node { start = { row = 5, column = 13 }, end = { row = 5, column = 14 } } (VarPattern "f") ]))
+                                                (ParenthesizedPattern_
+                                                    (Node { start = { row = 5, column = 6 }, end = { row = 5, column = 14 } }
+                                                        (NamedPattern_ { moduleName = [], name = "Node" }
+                                                            [ Node { start = { row = 5, column = 11 }, end = { row = 5, column = 12 } } AllPattern_
+                                                            , Node { start = { row = 5, column = 13 }, end = { row = 5, column = 14 } } (VarPattern_ "f")
+                                                            ]
+                                                        )
+                                                    )
                                                 )
                                             )
                                             (Node { start = { row = 5, column = 18 }, end = { row = 5, column = 19 } } (FunctionOrValue [] "g"))
@@ -386,7 +392,12 @@ all =
                                     ]
                                 , expression =
                                     Node { start = { row = 3, column = 7 }, end = { row = 3, column = 14 } }
-                                        (LambdaExpression { args = [ Node { start = { row = 3, column = 8 }, end = { row = 3, column = 9 } } AllPattern ], expression = Node { start = { row = 3, column = 13 }, end = { row = 3, column = 14 } } (Integer 1) })
+                                        (LambdaExpression
+                                            { firstArg = Node { start = { row = 3, column = 8 }, end = { row = 3, column = 9 } } AllPattern_
+                                            , restOfArgs = []
+                                            , expression = Node { start = { row = 3, column = 13 }, end = { row = 3, column = 14 } } (Integer 1)
+                                            }
+                                        )
                                 }
                             )
                         )

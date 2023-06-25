@@ -35,7 +35,6 @@ module Combine exposing
     , runParser
     , sepBy
     , sepBy1
-    , sepBy1WithState
     , succeed
     , withState
     , withStateFromCore
@@ -315,12 +314,6 @@ sepBy1 : String -> Parser state a -> Parser state (List a)
 sepBy1 sep p =
     map cons p
         |> keep (many (Core.symbol sep |> continueWithFromCore p))
-
-
-sepBy1WithState : Parser state () -> Parser state a -> Parser state (List a)
-sepBy1WithState sep p =
-    map cons p
-        |> keep (many (sep |> continueWith p))
 
 
 between : Core.Parser () -> Core.Parser () -> Parser state a -> Parser state a

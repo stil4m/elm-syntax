@@ -2,18 +2,18 @@ module Elm.Parser.Declarations exposing (declaration)
 
 import Combine exposing (Parser)
 import Elm.Parser.Comments as Comments
+import Elm.Parser.DestructurePatterns as DestructurePatterns
 import Elm.Parser.Expression exposing (expression)
 import Elm.Parser.Layout as Layout
 import Elm.Parser.Node as Node
-import Elm.Parser.Patterns as Patterns
 import Elm.Parser.State exposing (State)
 import Elm.Parser.Tokens as Tokens
 import Elm.Parser.TypeAnnotation as TypeAnnotation exposing (typeAnnotation, typeAnnotationNoFnExcludingTypedWithArguments)
 import Elm.Syntax.Declaration as Declaration exposing (Declaration)
+import Elm.Syntax.DestructurePattern exposing (DestructurePattern)
 import Elm.Syntax.Expression exposing (Expression)
 import Elm.Syntax.Infix as Infix
 import Elm.Syntax.Node as Node exposing (Node(..))
-import Elm.Syntax.Pattern exposing (Pattern)
 import Elm.Syntax.Range exposing (Location)
 import Elm.Syntax.Signature exposing (Signature)
 import Elm.Syntax.Type exposing (ValueConstructor)
@@ -183,7 +183,7 @@ type DeclarationAfterDocumentation
                 { typeAnnotation : Node TypeAnnotation
                 , implementationName : Node String
                 }
-        , arguments : List (Node Pattern)
+        , arguments : List (Node DestructurePattern)
         , expression : Node Expression
         }
     | TypeDeclarationAfterDocumentation
@@ -253,7 +253,7 @@ functionAfterDocumentation =
                     |> Combine.ignore Layout.maybeLayout
                 )
             )
-        |> Combine.keep (Combine.many (Patterns.pattern |> Combine.ignore Layout.maybeLayout))
+        |> Combine.keep (Combine.many (DestructurePatterns.destructurePattern |> Combine.ignore Layout.maybeLayout))
         |> Combine.ignoreEntirely Tokens.equal
         |> Combine.ignore Layout.maybeLayout
         |> Combine.keep expression
@@ -336,7 +336,7 @@ functionDeclarationWithoutDocumentation =
                     |> Combine.ignore Layout.maybeLayout
                 )
             )
-        |> Combine.keep (Combine.many (Patterns.pattern |> Combine.ignore Layout.maybeLayout))
+        |> Combine.keep (Combine.many (DestructurePatterns.destructurePattern |> Combine.ignore Layout.maybeLayout))
         |> Combine.ignoreEntirely Tokens.equal
         |> Combine.ignore Layout.maybeLayout
         |> Combine.keep expression
