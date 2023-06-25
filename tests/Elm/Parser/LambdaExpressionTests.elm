@@ -2,10 +2,10 @@ module Elm.Parser.LambdaExpressionTests exposing (all)
 
 import Elm.Parser.CombineTestUtil as CombineTestUtil
 import Elm.Parser.Expression exposing (expression)
+import Elm.Syntax.DestructurePattern exposing (DestructurePattern(..))
 import Elm.Syntax.Expression exposing (..)
 import Elm.Syntax.Infix exposing (InfixDirection(..))
 import Elm.Syntax.Node exposing (Node(..))
-import Elm.Syntax.Pattern exposing (..)
 import Expect
 import Test exposing (..)
 
@@ -19,7 +19,8 @@ all =
                     |> expectAst
                         (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 11 } }
                             (LambdaExpression
-                                { args = [ Node { start = { row = 1, column = 2 }, end = { row = 1, column = 4 } } UnitPattern ]
+                                { firstArg = Node { start = { row = 1, column = 2 }, end = { row = 1, column = 4 } } UnitPattern_
+                                , restOfArgs = []
                                 , expression = Node { start = { row = 1, column = 8 }, end = { row = 1, column = 11 } } (FunctionOrValue [] "foo")
                                 }
                             )
@@ -30,7 +31,8 @@ all =
                     |> expectAst
                         (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 14 } }
                             (LambdaExpression
-                                { args = [ Node { start = { row = 1, column = 2 }, end = { row = 1, column = 7 } } (RecordPattern [ Node { start = { row = 1, column = 3 }, end = { row = 1, column = 6 } } "foo" ]) ]
+                                { firstArg = Node { start = { row = 1, column = 2 }, end = { row = 1, column = 7 } } (RecordPattern_ [ Node { start = { row = 1, column = 3 }, end = { row = 1, column = 6 } } "foo" ])
+                                , restOfArgs = []
                                 , expression = Node { start = { row = 1, column = 11 }, end = { row = 1, column = 14 } } (FunctionOrValue [] "foo")
                                 }
                             )
@@ -41,7 +43,8 @@ all =
                     |> expectAst
                         (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 11 } }
                             (LambdaExpression
-                                { args = [ Node { start = { row = 1, column = 2 }, end = { row = 1, column = 4 } } (RecordPattern []) ]
+                                { firstArg = Node { start = { row = 1, column = 2 }, end = { row = 1, column = 4 } } (RecordPattern_ [])
+                                , restOfArgs = []
                                 , expression = Node { start = { row = 1, column = 8 }, end = { row = 1, column = 11 } } (FunctionOrValue [] "foo")
                                 }
                             )
@@ -52,9 +55,9 @@ all =
                     |> expectAst
                         (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 14 } }
                             (LambdaExpression
-                                { args =
-                                    [ Node { start = { row = 1, column = 2 }, end = { row = 1, column = 3 } } (VarPattern "a")
-                                    , Node { start = { row = 1, column = 4 }, end = { row = 1, column = 5 } } (VarPattern "b")
+                                { firstArg = Node { start = { row = 1, column = 2 }, end = { row = 1, column = 3 } } (VarPattern_ "a")
+                                , restOfArgs =
+                                    [ Node { start = { row = 1, column = 4 }, end = { row = 1, column = 5 } } (VarPattern_ "b")
                                     ]
                                 , expression =
                                     Node { start = { row = 1, column = 9 }, end = { row = 1, column = 14 } }
@@ -72,14 +75,14 @@ all =
                     |> expectAst
                         (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 16 } }
                             (LambdaExpression
-                                { args =
-                                    [ Node { start = { row = 1, column = 2 }, end = { row = 1, column = 7 } }
-                                        (TuplePattern
-                                            [ Node { start = { row = 1, column = 3 }, end = { row = 1, column = 4 } } (VarPattern "a")
-                                            , Node { start = { row = 1, column = 5 }, end = { row = 1, column = 6 } } (VarPattern "b")
+                                { firstArg =
+                                    Node { start = { row = 1, column = 2 }, end = { row = 1, column = 7 } }
+                                        (TuplePattern_
+                                            [ Node { start = { row = 1, column = 3 }, end = { row = 1, column = 4 } } (VarPattern_ "a")
+                                            , Node { start = { row = 1, column = 5 }, end = { row = 1, column = 6 } } (VarPattern_ "b")
                                             ]
                                         )
-                                    ]
+                                , restOfArgs = []
                                 , expression =
                                     Node { start = { row = 1, column = 11 }, end = { row = 1, column = 16 } }
                                         (OperatorApplication "+"

@@ -3,13 +3,13 @@ module Elm.ProcessingTests exposing (suite, suiteDeprecated)
 import Elm.Parser as Parser
 import Elm.Processing as Processing
 import Elm.Syntax.Declaration exposing (..)
+import Elm.Syntax.DestructurePattern exposing (DestructurePattern(..))
 import Elm.Syntax.Exposing exposing (..)
 import Elm.Syntax.Expression exposing (..)
 import Elm.Syntax.File exposing (..)
 import Elm.Syntax.Infix exposing (..)
 import Elm.Syntax.Module exposing (..)
 import Elm.Syntax.Node exposing (Node(..))
-import Elm.Syntax.Pattern exposing (Pattern(..))
 import Elm.Syntax.TypeAnnotation exposing (..)
 import Expect
 import Parser exposing (DeadEnd)
@@ -383,7 +383,7 @@ log a =
                 (FunctionDeclaration
                     { declaration =
                         Node { start = { row = 5, column = 1 }, end = { row = 6, column = 21 } }
-                            { arguments = [ Node { start = { row = 5, column = 5 }, end = { row = 5, column = 6 } } (VarPattern "a") ]
+                            { arguments = [ Node { start = { row = 5, column = 5 }, end = { row = 5, column = 6 } } (VarPattern_ "a") ]
                             , expression =
                                 Node { start = { row = 6, column = 5 }, end = { row = 6, column = 21 } }
                                     (Application

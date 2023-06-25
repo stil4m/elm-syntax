@@ -2,10 +2,10 @@ module Elm.Parser.Declarations exposing (declaration)
 
 import Combine exposing (Parser)
 import Elm.Parser.Comments as Comments
+import Elm.Parser.DestructurePatterns as DestructurePatterns
 import Elm.Parser.Expression exposing (expression, failIfDifferentFrom, functionSignatureFromVarPointer)
 import Elm.Parser.Layout as Layout
 import Elm.Parser.Node as Node
-import Elm.Parser.Patterns exposing (pattern)
 import Elm.Parser.State exposing (State)
 import Elm.Parser.Tokens as Tokens
 import Elm.Parser.TypeAnnotation exposing (typeAnnotation)
@@ -79,7 +79,7 @@ functionWithNameNode pointer =
                             (FunctionImplementation varPointer args expr)
                     }
                 )
-                |> Combine.keep (Combine.many (pattern |> Combine.ignore (Combine.maybeIgnore Layout.layout)))
+                |> Combine.keep (Combine.many (DestructurePatterns.destructurePattern |> Combine.ignore (Combine.maybeIgnore Layout.layout)))
                 |> Combine.ignoreEntirely Tokens.equal
                 |> Combine.ignore (Combine.maybeIgnore Layout.layout)
                 |> Combine.keep expression

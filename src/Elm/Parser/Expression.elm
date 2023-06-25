@@ -2,6 +2,7 @@ module Elm.Parser.Expression exposing (expression, failIfDifferentFrom, function
 
 import Combine exposing (Parser, Step(..))
 import Dict exposing (Dict)
+import Elm.Parser.DestructurePatterns as DestructurePatterns
 import Elm.Parser.Layout as Layout
 import Elm.Parser.Node as Node
 import Elm.Parser.Numbers
@@ -10,11 +11,11 @@ import Elm.Parser.State as State exposing (State)
 import Elm.Parser.Tokens as Tokens
 import Elm.Parser.TypeAnnotation as TypeAnnotation
 import Elm.Parser.Whitespace as Whitespace
+import Elm.Syntax.DestructurePattern exposing (DestructurePattern(..))
 import Elm.Syntax.Expression as Expression exposing (Case, CaseBlock, Expression(..), Function, FunctionImplementation, Lambda, LetBlock, LetDeclaration(..), RecordSetter)
 import Elm.Syntax.Infix as Infix
 import Elm.Syntax.ModuleName exposing (ModuleName)
 import Elm.Syntax.Node as Node exposing (Node(..))
-import Elm.Syntax.Pattern as Pattern exposing (Pattern)
 import Elm.Syntax.Range exposing (Location)
 import Elm.Syntax.Signature exposing (Signature)
 import List.Extra
@@ -283,16 +284,16 @@ lambdaExpression : Parser State (Node Expression)
 lambdaExpression =
     Combine.succeed
         (\start ->
-            \args ->
+            \( firstArg, args ) ->
                 \((Node { end } _) as expr) ->
-                    Lambda args expr
+                    Lambda firstArg args expr
                         |> LambdaExpression
                         |> Node { start = start, end = end }
         )
         |> Combine.keepFromCore Parser.Extra.location
         |> Combine.ignoreEntirely Tokens.backSlash
         |> Combine.ignore (Combine.maybeIgnore Layout.layout)
-        |> Combine.keep (Combine.sepBy1WithState (Combine.maybeIgnore Layout.layout) Patterns.pattern)
+        |> Combine.keep (Combine.sepBy1WithState (Combine.maybeIgnore Layout.layout) DestructurePatterns.destructurePattern)
         |> Combine.ignore (Combine.maybeIgnore Layout.layout)
         |> Combine.ignoreEntirely Tokens.arrowRight
         |> Combine.keep expression
@@ -369,11 +370,11 @@ letDeclarations =
 blockElement : Parser State (Node LetDeclaration)
 blockElement =
     Layout.onTopIndentation
-        |> Combine.continueWith Patterns.pattern
+        |> Combine.continueWith DestructurePatterns.destructurePattern
         |> Combine.andThen
             (\(Node r p) ->
                 case p of
-                    Pattern.VarPattern v ->
+                    VarPattern_ v ->
                         functionWithNameNode (Node r v)
                             |> Combine.map (\fn -> Node (Expression.functionRange fn) (LetFunction fn))
 
@@ -382,11 +383,11 @@ blockElement =
             )
 
 
-letDestructuringDeclarationWithPattern : Node Pattern -> Parser State (Node LetDeclaration)
-letDestructuringDeclarationWithPattern ((Node { start } _) as pattern) =
+letDestructuringDeclarationWithPattern : Node DestructurePattern -> Parser State (Node LetDeclaration)
+letDestructuringDeclarationWithPattern ((Node { start } _) as destructurePattern) =
     Combine.succeed
         (\((Node { end } _) as expr) ->
-            Node { start = start, end = end } (LetDestructuring pattern expr)
+            Node { start = start, end = end } (LetDestructuring destructurePattern expr)
         )
         |> Combine.ignoreEntirely Tokens.equal
         |> Combine.keep expression
@@ -563,7 +564,7 @@ functionImplementationFromVarPointer ((Node { start } _) as varPointer) =
                 Node { start = start, end = end }
                     (FunctionImplementation varPointer args expr)
         )
-        |> Combine.keep (Combine.many (Patterns.pattern |> Combine.ignore (Combine.maybeIgnore Layout.layout)))
+        |> Combine.keep (Combine.many (DestructurePatterns.destructurePattern |> Combine.ignore (Combine.maybeIgnore Layout.layout)))
         |> Combine.ignoreEntirely Tokens.equal
         |> Combine.keep expression
 

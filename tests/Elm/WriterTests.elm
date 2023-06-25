@@ -3,6 +3,7 @@ module Elm.WriterTests exposing (suite)
 import Elm.Parser.CombineTestUtil exposing (parse)
 import Elm.Parser.Expression exposing (expression)
 import Elm.Syntax.Declaration exposing (..)
+import Elm.Syntax.DestructurePattern exposing (DestructurePattern(..))
 import Elm.Syntax.Exposing exposing (..)
 import Elm.Syntax.Expression exposing (..)
 import Elm.Syntax.Module exposing (..)
@@ -283,7 +284,8 @@ suite =
                         body : Expression
                         body =
                             LambdaExpression
-                                { args = [ Node empty (VarPattern "myArgument") ]
+                                { firstArg = Node empty (VarPattern_ "myArgument")
+                                , restOfArgs = []
                                 , expression =
                                     Node empty <|
                                         CaseExpression
@@ -328,7 +330,8 @@ suite =
                             TupleExpression
                                 [ Node empty <|
                                     LambdaExpression
-                                        { args = [ Node empty (VarPattern "myArgument") ]
+                                        { firstArg = Node empty (VarPattern_ "myArgument")
+                                        , restOfArgs = []
                                         , expression =
                                             Node empty <|
                                                 CaseExpression
@@ -420,7 +423,8 @@ suite =
                                                 (TupleExpression
                                                     [ Node empty <|
                                                         LambdaExpression
-                                                            { args = [ Node empty (VarPattern "myArgument") ]
+                                                            { firstArg = Node empty (VarPattern_ "myArgument")
+                                                            , restOfArgs = []
                                                             , expression =
                                                                 body (body (Node empty (TupleExpression [])))
                                                             }

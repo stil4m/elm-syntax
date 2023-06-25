@@ -330,9 +330,9 @@ sepBy1 sep p =
         |> keep (many (symbol sep |> continueWith p))
 
 
-sepBy1WithState : Parser state () -> Parser state a -> Parser state (List a)
+sepBy1WithState : Parser state () -> Parser state a -> Parser state ( a, List a )
 sepBy1WithState sep p =
-    succeed cons
+    succeed Tuple.pair
         |> keep p
         |> keep (many (sep |> continueWith p))
 

@@ -3,6 +3,7 @@ module Elm.Parser.DeclarationsTests exposing (all)
 import Elm.Parser.CombineTestUtil as CombineTestUtil
 import Elm.Parser.Declarations exposing (..)
 import Elm.Syntax.Declaration exposing (..)
+import Elm.Syntax.DestructurePattern exposing (DestructurePattern(..))
 import Elm.Syntax.Expression exposing (..)
 import Elm.Syntax.Infix as Infix exposing (InfixDirection(..))
 import Elm.Syntax.Node exposing (Node(..))
@@ -84,7 +85,7 @@ foo = bar"""
                                 , declaration =
                                     Node { start = { row = 1, column = 1 }, end = { row = 7, column = 7 } }
                                         { name = Node { start = { row = 1, column = 1 }, end = { row = 1, column = 4 } } "inc"
-                                        , arguments = [ Node { start = { row = 1, column = 5 }, end = { row = 1, column = 6 } } (VarPattern "x") ]
+                                        , arguments = [ Node { start = { row = 1, column = 5 }, end = { row = 1, column = 6 } } (VarPattern_ "x") ]
                                         , expression =
                                             Node { start = { row = 2, column = 3 }, end = { row = 7, column = 7 } }
                                                 (LetExpression
@@ -142,7 +143,7 @@ foo = bar"""
                                 , declaration =
                                     Node { start = { row = 1, column = 1 }, end = { row = 1, column = 14 } }
                                         { name = Node { start = { row = 1, column = 1 }, end = { row = 1, column = 4 } } "inc"
-                                        , arguments = [ Node { start = { row = 1, column = 5 }, end = { row = 1, column = 6 } } (VarPattern "x") ]
+                                        , arguments = [ Node { start = { row = 1, column = 5 }, end = { row = 1, column = 6 } } (VarPattern_ "x") ]
                                         , expression =
                                             Node { start = { row = 1, column = 9 }, end = { row = 1, column = 14 } }
                                                 (OperatorApplication "+"
@@ -222,9 +223,9 @@ foo = bar"""
                                                         [ Node { start = { row = 3, column = 3 }, end = { row = 3, column = 16 } }
                                                             (LetDestructuring
                                                                 (Node { start = { row = 3, column = 3 }, end = { row = 3, column = 9 } }
-                                                                    (TuplePattern
-                                                                        [ Node { start = { row = 3, column = 4 }, end = { row = 3, column = 5 } } (VarPattern "b")
-                                                                        , Node { start = { row = 3, column = 7 }, end = { row = 3, column = 8 } } (VarPattern "c")
+                                                                    (TuplePattern_
+                                                                        [ Node { start = { row = 3, column = 4 }, end = { row = 3, column = 5 } } (VarPattern_ "b")
+                                                                        , Node { start = { row = 3, column = 7 }, end = { row = 3, column = 8 } } (VarPattern_ "c")
                                                                         ]
                                                                     )
                                                                 )
@@ -301,8 +302,8 @@ foo = bar"""
                                 { declaration =
                                     Node { start = { row = 1, column = 1 }, end = { row = 7, column = 16 } }
                                         { arguments =
-                                            [ Node { start = { row = 1, column = 8 }, end = { row = 1, column = 11 } } (VarPattern "msg")
-                                            , Node { start = { row = 1, column = 12 }, end = { row = 1, column = 17 } } (VarPattern "model")
+                                            [ Node { start = { row = 1, column = 8 }, end = { row = 1, column = 11 } } (VarPattern_ "msg")
+                                            , Node { start = { row = 1, column = 12 }, end = { row = 1, column = 17 } } (VarPattern_ "model")
                                             ]
                                         , expression =
                                             Node { start = { row = 2, column = 3 }, end = { row = 7, column = 16 } }
@@ -483,7 +484,7 @@ foo = bar"""
                             (FunctionDeclaration
                                 { declaration =
                                     Node { start = { row = 1, column = 1 }, end = { row = 1, column = 83 } }
-                                        { arguments = [ Node { start = { row = 1, column = 13 }, end = { row = 1, column = 19 } } (VarPattern "update"), Node { start = { row = 1, column = 20 }, end = { row = 1, column = 28 } } (VarPattern "sendPort") ]
+                                        { arguments = [ Node { start = { row = 1, column = 13 }, end = { row = 1, column = 19 } } (VarPattern_ "update"), Node { start = { row = 1, column = 20 }, end = { row = 1, column = 28 } } (VarPattern_ "sendPort") ]
                                         , expression =
                                             Node { start = { row = 1, column = 31 }, end = { row = 1, column = 83 } }
                                                 (OperatorApplication "<|"
@@ -534,8 +535,8 @@ foo = bar"""
                                 { declaration =
                                     Node { start = { row = 1, column = 1 }, end = { row = 7, column = 16 } }
                                         { arguments =
-                                            [ Node { start = { row = 1, column = 8 }, end = { row = 1, column = 11 } } (VarPattern "msg")
-                                            , Node { start = { row = 1, column = 12 }, end = { row = 1, column = 17 } } (VarPattern "model")
+                                            [ Node { start = { row = 1, column = 8 }, end = { row = 1, column = 11 } } (VarPattern_ "msg")
+                                            , Node { start = { row = 1, column = 12 }, end = { row = 1, column = 17 } } (VarPattern_ "model")
                                             ]
                                         , expression =
                                             Node { start = { row = 2, column = 3 }, end = { row = 7, column = 16 } }
@@ -582,8 +583,8 @@ update msg model =
                                 { declaration =
                                     Node { start = { row = 2, column = 1 }, end = { row = 3, column = 8 } }
                                         { arguments =
-                                            [ Node { start = { row = 2, column = 8 }, end = { row = 2, column = 11 } } (VarPattern "msg")
-                                            , Node { start = { row = 2, column = 12 }, end = { row = 2, column = 17 } } (VarPattern "model")
+                                            [ Node { start = { row = 2, column = 8 }, end = { row = 2, column = 11 } } (VarPattern_ "msg")
+                                            , Node { start = { row = 2, column = 12 }, end = { row = 2, column = 17 } } (VarPattern_ "model")
                                             ]
                                         , expression = Node { start = { row = 3, column = 5 }, end = { row = 3, column = 8 } } (FunctionOrValue [] "msg")
                                         , name = Node { start = { row = 2, column = 1 }, end = { row = 2, column = 7 } } "update"
