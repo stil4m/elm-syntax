@@ -202,9 +202,8 @@ fileToDefinitions file =
                 file.declarations
     in
     allDeclarations
-        |> List.map Tuple.first
         |> List.map
-            (\x ->
+            (\( x, _ ) ->
                 allDeclarations
                     |> List.filter (Tuple.first >> (==) x)
             )
