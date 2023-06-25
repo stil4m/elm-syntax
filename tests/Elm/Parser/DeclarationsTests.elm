@@ -444,20 +444,30 @@ all =
             \() ->
                 parseFullStringWithNullState "port scroll : (Move -> msg) -> Sub msg" declaration
                     |> Maybe.map Node.value
-                    |> Maybe.map noRangeDeclaration
                     |> Expect.equal
-                        (Just <|
-                            PortDeclaration
-                                { name = Node empty "scroll"
+                        (Just
+                            (PortDeclaration
+                                { name = Node { start = { row = 1, column = 6 }, end = { row = 1, column = 12 } } "scroll"
                                 , typeAnnotation =
-                                    Node empty <|
-                                        FunctionTypeAnnotation
-                                            (Node empty <|
-                                                FunctionTypeAnnotation (Node empty <| Typed (Node empty ( [], "Move" )) [])
-                                                    (Node empty <| GenericType "msg")
+                                    Node { start = { row = 1, column = 15 }, end = { row = 1, column = 39 } }
+                                        (FunctionTypeAnnotation
+                                            (Node { start = { row = 1, column = 15 }, end = { row = 1, column = 28 } }
+                                                (FunctionTypeAnnotation
+                                                    (Node { start = { row = 1, column = 16 }, end = { row = 1, column = 20 } }
+                                                        (Typed (Node { start = { row = 1, column = 16 }, end = { row = 1, column = 20 } } ( [], "Move" )) [])
+                                                    )
+                                                    (Node { start = { row = 1, column = 24 }, end = { row = 1, column = 27 } } (GenericType "msg"))
+                                                )
                                             )
-                                            (Node empty <| Typed (Node empty ( [], "Sub" )) [ Node empty <| GenericType "msg" ])
+                                            (Node { start = { row = 1, column = 32 }, end = { row = 1, column = 39 } }
+                                                (Typed (Node { start = { row = 1, column = 32 }, end = { row = 1, column = 35 } } ( [], "Sub" ))
+                                                    [ Node { start = { row = 1, column = 36 }, end = { row = 1, column = 39 } } (GenericType "msg")
+                                                    ]
+                                                )
+                                            )
+                                        )
                                 }
+                            )
                         )
         , test "Destructuring declaration" <|
             \() ->
