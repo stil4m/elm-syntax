@@ -204,25 +204,26 @@ all =
             \() ->
                 parseFullStringWithNullState "inc x = x + 1" Parser.function
                     |> Maybe.map Node.value
-                    |> Maybe.map noRangeDeclaration
                     |> Expect.equal
-                        (Just <|
-                            FunctionDeclaration
-                                { declaration =
-                                    Node empty <|
-                                        { name = Node empty "inc"
-                                        , arguments = [ Node empty <| VarPattern "x" ]
-                                        , expression =
-                                            Node empty <|
-                                                Application
-                                                    [ Node empty <| FunctionOrValue [] "x"
-                                                    , Node empty <| Operator "+"
-                                                    , Node empty <| Integer 1
-                                                    ]
-                                        }
-                                , documentation = Nothing
+                        (Just
+                            (FunctionDeclaration
+                                { documentation = Nothing
                                 , signature = Nothing
+                                , declaration =
+                                    Node { start = { row = 1, column = 1 }, end = { row = 1, column = 14 } }
+                                        { name = Node { start = { row = 1, column = 1 }, end = { row = 1, column = 4 } } "inc"
+                                        , arguments = [ Node { start = { row = 1, column = 5 }, end = { row = 1, column = 6 } } (VarPattern "x") ]
+                                        , expression =
+                                            Node { start = { row = 1, column = 9 }, end = { row = 1, column = 14 } }
+                                                (Application
+                                                    [ Node { start = { row = 1, column = 9 }, end = { row = 1, column = 10 } } (FunctionOrValue [] "x")
+                                                    , Node { start = { row = 1, column = 11 }, end = { row = 1, column = 12 } } (Operator "+")
+                                                    , Node { start = { row = 1, column = 13 }, end = { row = 1, column = 14 } } (Integer 1)
+                                                    ]
+                                                )
+                                        }
                                 }
+                            )
                         )
         , test "some signature" <|
             \() ->
