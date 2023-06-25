@@ -28,7 +28,6 @@ import Elm.Syntax.File exposing (File)
 import Elm.Syntax.Infix exposing (Infix, InfixDirection(..))
 import Elm.Syntax.Module as Module
 import Elm.Syntax.Node as Node exposing (Node(..))
-import List.Extra
 
 
 {-| An interface is just a list of 'things' that are exposed by a module.
@@ -204,7 +203,6 @@ fileToDefinitions file =
     in
     allDeclarations
         |> List.map Tuple.first
-        |> List.Extra.unique
         |> List.map
             (\x ->
                 ( x
