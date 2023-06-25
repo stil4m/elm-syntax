@@ -17,7 +17,7 @@ all =
         [ test "case block" <|
             \() ->
                 parseFullStringState emptyState "case True of" Parser.caseBlock
-                    |> Maybe.map (Node.value >> noRangeInnerExpression)
+                    |> Maybe.map Node.value
                     |> Expect.equal (Just (FunctionOrValue [] "True"))
         , test "case block with wrong indent" <|
             \() ->
