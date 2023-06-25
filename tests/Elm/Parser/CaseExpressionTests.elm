@@ -44,11 +44,10 @@ all =
         , test "caseStatement no spacing" <|
             \() ->
                 parseFullStringState emptyState "32->Backspace" Parser.caseStatement
-                    |> Maybe.map (Tuple.mapSecond noRangeExpression >> Tuple.mapFirst noRangePattern)
                     |> Expect.equal
                         (Just
-                            ( Node.empty <| IntPattern 32
-                            , Node.empty <| FunctionOrValue [] "Backspace"
+                            ( Node { start = { row = 1, column = 1 }, end = { row = 1, column = 3 } } <| IntPattern 32
+                            , Node { start = { row = 1, column = 5 }, end = { row = 1, column = 14 } } <| FunctionOrValue [] "Backspace"
                             )
                         )
         , test "caseStatement wrong indent" <|
