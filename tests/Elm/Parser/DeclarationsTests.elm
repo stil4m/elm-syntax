@@ -550,35 +550,38 @@ all =
             \() ->
                 parseFullStringState emptyState "updateState update sendPort = curry <| (uncurry update) >> batchStateCmds sendPort" Parser.function
                     |> Maybe.map Node.value
-                    |> Maybe.map noRangeDeclaration
                     |> Expect.equal
-                        (Just <|
-                            FunctionDeclaration
+                        (Just
+                            (FunctionDeclaration
                                 { declaration =
-                                    Node empty
-                                        { arguments = [ Node empty <| VarPattern "update", Node empty <| VarPattern "sendPort" ]
+                                    Node { start = { row = 1, column = 1 }, end = { row = 1, column = 83 } }
+                                        { arguments = [ Node { start = { row = 1, column = 13 }, end = { row = 1, column = 19 } } (VarPattern "update"), Node { start = { row = 1, column = 20 }, end = { row = 1, column = 28 } } (VarPattern "sendPort") ]
                                         , expression =
-                                            Node empty <|
-                                                Application
-                                                    [ Node empty <| FunctionOrValue [] "curry"
-                                                    , Node empty <| Operator "<|"
-                                                    , Node empty <|
-                                                        ParenthesizedExpression
-                                                            (Node empty <|
-                                                                Application
-                                                                    [ Node empty <| FunctionOrValue [] "uncurry"
-                                                                    , Node empty <| FunctionOrValue [] "update"
+                                            Node { start = { row = 1, column = 31 }, end = { row = 1, column = 83 } }
+                                                (Application
+                                                    [ Node { start = { row = 1, column = 31 }, end = { row = 1, column = 36 } } (FunctionOrValue [] "curry")
+                                                    , Node { start = { row = 1, column = 37 }, end = { row = 1, column = 39 } } (Operator "<|")
+                                                    , Node { start = { row = 1, column = 40 }, end = { row = 1, column = 56 } }
+                                                        (ParenthesizedExpression
+                                                            (Node { start = { row = 1, column = 41 }, end = { row = 1, column = 55 } }
+                                                                (Application
+                                                                    [ Node { start = { row = 1, column = 41 }, end = { row = 1, column = 48 } } (FunctionOrValue [] "uncurry")
+                                                                    , Node { start = { row = 1, column = 49 }, end = { row = 1, column = 55 } } (FunctionOrValue [] "update")
                                                                     ]
+                                                                )
                                                             )
-                                                    , Node empty <| Operator ">>"
-                                                    , Node empty <| FunctionOrValue [] "batchStateCmds"
-                                                    , Node empty <| FunctionOrValue [] "sendPort"
+                                                        )
+                                                    , Node { start = { row = 1, column = 57 }, end = { row = 1, column = 59 } } (Operator ">>")
+                                                    , Node { start = { row = 1, column = 60 }, end = { row = 1, column = 74 } } (FunctionOrValue [] "batchStateCmds")
+                                                    , Node { start = { row = 1, column = 75 }, end = { row = 1, column = 83 } } (FunctionOrValue [] "sendPort")
                                                     ]
-                                        , name = Node empty "updateState"
+                                                )
+                                        , name = Node { start = { row = 1, column = 1 }, end = { row = 1, column = 12 } } "updateState"
                                         }
                                 , documentation = Nothing
                                 , signature = Nothing
                                 }
+                            )
                         )
         , test "Some function" <|
             \() ->
