@@ -96,7 +96,7 @@ all =
                         (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 12 } }
                             (TupleExpression
                                 [ Node { start = { row = 1, column = 2 }, end = { row = 1, column = 11 } }
-                                    (OperatorApplication "*"
+                                    (Operation "*"
                                         Left
                                         (Node { start = { row = 1, column = 2 }, end = { row = 1, column = 4 } }
                                             (Negation (Node { start = { row = 1, column = 3 }, end = { row = 1, column = 4 } } (IntegerLiteral 1)))
@@ -120,7 +120,7 @@ all =
                 "model + 1"
                     |> expectAst
                         (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 10 } } <|
-                            OperatorApplication "+"
+                            Operation "+"
                                 Infix.Left
                                 (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 6 } } <| FunctionOrValue [] "model")
                                 (Node { start = { row = 1, column = 9 }, end = { row = 1, column = 10 } } <| IntegerLiteral 1)
@@ -418,7 +418,7 @@ all =
                 "2-1"
                     |> expectAst
                         (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 4 } }
-                            (OperatorApplication "-"
+                            (Operation "-"
                                 Left
                                 (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 2 } } (IntegerLiteral 2))
                                 (Node { start = { row = 1, column = 3 }, end = { row = 1, column = 4 } } (IntegerLiteral 1))
@@ -451,7 +451,7 @@ all =
                                 (Node { start = { row = 1, column = 2 }, end = { row = 1, column = 9 } }
                                     (TupleExpression
                                         [ Node { start = { row = 1, column = 3 }, end = { row = 1, column = 8 } }
-                                            (OperatorApplication "-"
+                                            (Operation "-"
                                                 Left
                                                 (Node { start = { row = 1, column = 3 }, end = { row = 1, column = 4 } } (FunctionOrValue [] "x"))
                                                 (Node { start = { row = 1, column = 7 }, end = { row = 1, column = 8 } } (FunctionOrValue [] "y"))
@@ -466,22 +466,22 @@ all =
                 "-1 + -10 * -100^2 == -100001"
                     |> expectAst
                         (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 29 } }
-                            (OperatorApplication "=="
+                            (Operation "=="
                                 Non
                                 (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 18 } }
-                                    (OperatorApplication "+"
+                                    (Operation "+"
                                         Left
                                         (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 3 } }
                                             (Negation (Node { start = { row = 1, column = 2 }, end = { row = 1, column = 3 } } (IntegerLiteral 1)))
                                         )
                                         (Node { start = { row = 1, column = 6 }, end = { row = 1, column = 18 } }
-                                            (OperatorApplication "*"
+                                            (Operation "*"
                                                 Left
                                                 (Node { start = { row = 1, column = 6 }, end = { row = 1, column = 9 } }
                                                     (Negation (Node { start = { row = 1, column = 7 }, end = { row = 1, column = 9 } } (IntegerLiteral 10)))
                                                 )
                                                 (Node { start = { row = 1, column = 12 }, end = { row = 1, column = 18 } }
-                                                    (OperatorApplication "^"
+                                                    (Operation "^"
                                                         Right
                                                         (Node { start = { row = 1, column = 12 }, end = { row = 1, column = 16 } }
                                                             (Negation
@@ -506,10 +506,10 @@ all =
                     |> expectAst
                         (Node
                             { start = { row = 1, column = 2 }, end = { row = 1, column = 11 } }
-                            (OperatorApplication "-"
+                            (Operation "-"
                                 Left
                                 (Node { start = { row = 1, column = 2 }, end = { row = 1, column = 7 } }
-                                    (OperatorApplication "+"
+                                    (Operation "+"
                                         Left
                                         (Node { start = { row = 1, column = 2 }, end = { row = 1, column = 3 } } (IntegerLiteral 1))
                                         (Node { start = { row = 1, column = 6 }, end = { row = 1, column = 7 } } (IntegerLiteral 2))
@@ -523,7 +523,7 @@ all =
                 "a |> b"
                     |> expectAst
                         (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 7 } }
-                            (OperatorApplication "|>"
+                            (Operation "|>"
                                 Left
                                 (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 2 } } (FunctionOrValue [] "a"))
                                 (Node { start = { row = 1, column = 6 }, end = { row = 1, column = 7 } } (FunctionOrValue [] "b"))
@@ -543,20 +543,20 @@ all =
                                                 , restOfArgs = []
                                                 , expression =
                                                     Node { start = { row = 1, column = 19 }, end = { row = 1, column = 53 } }
-                                                        (OperatorApplication "||"
+                                                        (Operation "||"
                                                             Right
                                                             (Node { start = { row = 1, column = 19 }, end = { row = 1, column = 27 } }
-                                                                (OperatorApplication "=="
+                                                                (Operation "=="
                                                                     Non
                                                                     (Node { start = { row = 1, column = 19 }, end = { row = 1, column = 20 } } (FunctionOrValue [] "c"))
                                                                     (Node { start = { row = 1, column = 24 }, end = { row = 1, column = 27 } } (CharLiteral ' '))
                                                                 )
                                                             )
                                                             (Node { start = { row = 1, column = 31 }, end = { row = 1, column = 53 } }
-                                                                (OperatorApplication "||"
+                                                                (Operation "||"
                                                                     Right
                                                                     (Node { start = { row = 1, column = 31 }, end = { row = 1, column = 40 } }
-                                                                        (OperatorApplication "=="
+                                                                        (Operation "=="
                                                                             Non
                                                                             (Node { start = { row = 1, column = 31 }, end = { row = 1, column = 32 } } (FunctionOrValue [] "c"))
                                                                             (Node { start = { row = 1, column = 36 }, end = { row = 1, column = 40 } }
@@ -565,7 +565,7 @@ all =
                                                                         )
                                                                     )
                                                                     (Node { start = { row = 1, column = 44 }, end = { row = 1, column = 53 } }
-                                                                        (OperatorApplication "=="
+                                                                        (Operation "=="
                                                                             Non
                                                                             (Node { start = { row = 1, column = 44 }, end = { row = 1, column = 45 } } (FunctionOrValue [] "c"))
                                                                             (Node { start = { row = 1, column = 49 }, end = { row = 1, column = 53 } }
@@ -633,7 +633,7 @@ all =
                 "1 + -{x = 10}.x"
                     |> expectAst
                         (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 16 } }
-                            (OperatorApplication "+"
+                            (Operation "+"
                                 Left
                                 (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 2 } } (IntegerLiteral 1))
                                 (Node { start = { row = 1, column = 5 }, end = { row = 1, column = 16 } }
