@@ -511,7 +511,7 @@ ifBlockExpression =
                     \((Node { end } _) as ifFalse) ->
                         Node
                             { start = { row = startRow, column = startColumn }, end = end }
-                            (IfBlock condition ifTrue ifFalse)
+                            (If condition ifTrue ifFalse)
         )
         Core.getPosition
         |. Tokens.ifToken
