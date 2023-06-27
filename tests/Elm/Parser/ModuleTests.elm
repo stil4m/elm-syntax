@@ -439,7 +439,7 @@ fun2 n =
                                                 { arguments = [ Node { start = { row = 3, column = 6 }, end = { row = 3, column = 7 } } (VarPattern_ "n") ]
                                                 , expression =
                                                     Node { start = { row = 4, column = 3 }, end = { row = 5, column = 11 } }
-                                                        (OperatorApplication "+"
+                                                        (Operation "+"
                                                             Left
                                                             (Node { start = { row = 4, column = 3 }, end = { row = 4, column = 9 } }
                                                                 (Application

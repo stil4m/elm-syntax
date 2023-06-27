@@ -146,7 +146,7 @@ foo = bar"""
                                         , arguments = [ Node { start = { row = 1, column = 5 }, end = { row = 1, column = 6 } } (VarPattern_ "x") ]
                                         , expression =
                                             Node { start = { row = 1, column = 9 }, end = { row = 1, column = 14 } }
-                                                (OperatorApplication "+"
+                                                (Operation "+"
                                                     Infix.Left
                                                     (Node { start = { row = 1, column = 9 }, end = { row = 1, column = 10 } } (FunctionOrValue [] "x"))
                                                     (Node { start = { row = 1, column = 13 }, end = { row = 1, column = 14 } } (IntegerLiteral 1))
@@ -311,7 +311,7 @@ foo = bar"""
                                                     { firstCase =
                                                         ( Node { start = { row = 3, column = 5 }, end = { row = 3, column = 14 } } (NamedPattern { moduleName = [], name = "Increment" } [])
                                                         , Node { start = { row = 4, column = 7 }, end = { row = 4, column = 16 } }
-                                                            (OperatorApplication "+"
+                                                            (Operation "+"
                                                                 Left
                                                                 (Node { start = { row = 4, column = 7 }, end = { row = 4, column = 12 } } (FunctionOrValue [] "model"))
                                                                 (Node { start = { row = 4, column = 15 }, end = { row = 4, column = 16 } } (IntegerLiteral 1))
@@ -320,7 +320,7 @@ foo = bar"""
                                                     , restOfCases =
                                                         [ ( Node { start = { row = 6, column = 5 }, end = { row = 6, column = 14 } } (NamedPattern { moduleName = [], name = "Decrement" } [])
                                                           , Node { start = { row = 7, column = 7 }, end = { row = 7, column = 16 } }
-                                                                (OperatorApplication "-"
+                                                                (Operation "-"
                                                                     Left
                                                                     (Node { start = { row = 7, column = 7 }, end = { row = 7, column = 12 } } (FunctionOrValue [] "model"))
                                                                     (Node { start = { row = 7, column = 15 }, end = { row = 7, column = 16 } } (IntegerLiteral 1))
@@ -487,11 +487,11 @@ foo = bar"""
                                         { arguments = [ Node { start = { row = 1, column = 13 }, end = { row = 1, column = 19 } } (VarPattern_ "update"), Node { start = { row = 1, column = 20 }, end = { row = 1, column = 28 } } (VarPattern_ "sendPort") ]
                                         , expression =
                                             Node { start = { row = 1, column = 31 }, end = { row = 1, column = 83 } }
-                                                (OperatorApplication "<|"
+                                                (Operation "<|"
                                                     Right
                                                     (Node { start = { row = 1, column = 31 }, end = { row = 1, column = 36 } } (FunctionOrValue [] "curry"))
                                                     (Node { start = { row = 1, column = 40 }, end = { row = 1, column = 83 } }
-                                                        (OperatorApplication ">>"
+                                                        (Operation ">>"
                                                             Right
                                                             (Node { start = { row = 1, column = 40 }, end = { row = 1, column = 56 } }
                                                                 (TupleExpression
@@ -545,7 +545,7 @@ foo = bar"""
                                                         ( Node { start = { row = 3, column = 5 }, end = { row = 3, column = 14 } }
                                                             (NamedPattern { moduleName = [], name = "Increment" } [])
                                                         , Node { start = { row = 4, column = 7 }, end = { row = 4, column = 16 } }
-                                                            (OperatorApplication "+"
+                                                            (Operation "+"
                                                                 Left
                                                                 (Node { start = { row = 4, column = 7 }, end = { row = 4, column = 12 } } (FunctionOrValue [] "model"))
                                                                 (Node { start = { row = 4, column = 15 }, end = { row = 4, column = 16 } } (IntegerLiteral 1))
@@ -555,7 +555,7 @@ foo = bar"""
                                                         [ ( Node { start = { row = 6, column = 5 }, end = { row = 6, column = 14 } }
                                                                 (NamedPattern { moduleName = [], name = "Decrement" } [])
                                                           , Node { start = { row = 7, column = 7 }, end = { row = 7, column = 16 } }
-                                                                (OperatorApplication "-"
+                                                                (Operation "-"
                                                                     Left
                                                                     (Node { start = { row = 7, column = 7 }, end = { row = 7, column = 12 } } (FunctionOrValue [] "model"))
                                                                     (Node { start = { row = 7, column = 15 }, end = { row = 7, column = 16 } } (IntegerLiteral 1))

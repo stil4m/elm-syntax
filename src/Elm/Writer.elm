@@ -430,7 +430,7 @@ writeExpression (Node range inner) =
                         , sepHelper sepBySpace (List.map recurRangeHelper rest)
                         ]
 
-        OperatorApplication x dir left right ->
+        Operation x dir left right ->
             case dir of
                 Left ->
                     sepHelper sepBySpace
