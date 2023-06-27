@@ -80,7 +80,7 @@ type alias FunctionImplementation =
   - `Application`: `add a b`
   - `OperatorApplication`: `a + b`
   - `FunctionOrValue`: `add` or `True`
-  - `IfBlock`: `if a then b else c`
+  - `If`: `if a then b else c`
   - `PrefixOperator`: `(+)`
   - `Operator`: `+` (not possible to get in practice)
   - `Integer`: `42`
@@ -106,7 +106,7 @@ type Expression
     = Application (Node Expression) (List (Node Expression))
     | OperatorApplication String InfixDirection (Node Expression) (Node Expression)
     | FunctionOrValue ModuleName String
-    | IfBlock (Node Expression) (Node Expression) (Node Expression)
+    | If (Node Expression) (Node Expression) (Node Expression)
     | PrefixOperator String
     | Operator String
     | Integer Int
@@ -208,7 +208,7 @@ isLet e =
 isIfElse : Expression -> Bool
 isIfElse e =
     case e of
-        IfBlock _ _ _ ->
+        If _ _ _ ->
             True
 
         _ ->
