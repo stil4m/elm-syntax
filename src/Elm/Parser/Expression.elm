@@ -406,7 +406,7 @@ literalExpression =
             \( endRow, endColumn ) ->
                 { comments = Rope.empty
                 , end = { row = endRow, column = endColumn }
-                , expression = Literal stringLiteralType string
+                , expression = StringLiteral stringLiteralType string
                 }
         )
         Tokens.singleOrTripleQuotedStringLiteral
