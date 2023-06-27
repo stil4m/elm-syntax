@@ -87,7 +87,7 @@ type alias FunctionImplementation =
   - `HexLiteral`: `0x1F`
   - `FloatLiteral`: `42.0`
   - `Negation`: `-a`
-  - `Literal`: `"text"`
+  - `StringLiteral`: `"text"` or `"""text"""`
   - `CharLiteral`: `'a'`
   - `TupleExpression`: `(a, b)` or `(a, b, c)`
   - `ParenthesizedExpression`: `(a)`
@@ -113,7 +113,7 @@ type Expression
     | HexLiteral Int
     | FloatLiteral Float
     | Negation (Node Expression)
-    | Literal StringLiteralType String
+    | StringLiteral StringLiteralType String
     | CharLiteral Char
     | TupleExpression (List (Node Expression))
     | LetExpression LetBlock
