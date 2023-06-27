@@ -1195,7 +1195,7 @@ applyExtensionRight extensionRight ((Node { start } left) as leftNode) =
                     extendRightOperation.expression
             in
             Node { start = start, end = end }
-                (OperatorApplication extendRightOperation.symbol extendRightOperation.direction leftNode right)
+                (Operation extendRightOperation.symbol extendRightOperation.direction leftNode right)
 
 
 abovePrecedence0 : Parser (WithComments ExtensionRight)
