@@ -449,9 +449,9 @@ recordSetterNodeWithLayout =
 literalExpression : Parser (WithComments (Node Expression))
 literalExpression =
     Tokens.singleOrTripleQuotedStringLiteralMapWithRange
-        (\range string ->
+        (\range stringLiteralType string ->
             { comments = Rope.empty
-            , syntax = Node range (Literal string)
+            , syntax = Node range (Literal stringLiteralType string)
             }
         )
 

@@ -23,6 +23,9 @@
 - Changed `Elm.Syntax.Expression.Expression`:
   - **WARNING (will not result in compilation error)** Stripped the `.` in the `String` stored in `RecordAccessFunction` (for code like `.field`)
     - Example: `RecordAccessFunction ".field"` -> `RecordAccessFunction "field"`
+  - Added information to `String` literal as to whether `"""` or `"` was used:
+    - `Literal String` -> `Literal StringLiteralType String`
+    - Added `type StringLiteralType = TripleQuote | SingleQuote`
   - `Application (List (Node Expression))` -> `Application (Node Expression) (List (Node Expression))` (takes a non-empty list of arguments)
   - `RecordUpdateExpression (Node String) (List (Node RecordSetter))` -> `RecordUpdateExpression (Node String) (Node RecordSetter) (List (Node RecordSetter))` (takes a non-empty list of fields)
   - Renamed `TupledExpression` to `TupleExpression`
@@ -43,6 +46,8 @@
 
 - Changed `Elm.Syntax.Exposing.Exposing`:
   - `Explicit (List (Node TopLevelExpose))` -> `Explicit (Node TopLevelExpose) (List (Node TopLevelExpose))` (takes a non-empty list of elements)
+
+- Added module `Elm.Syntax.StringLiteralType` containing `type StringLiteralType = TripleQuote | SingleQuote`
 
 ## [7.3.6] - 2024-09-11
 

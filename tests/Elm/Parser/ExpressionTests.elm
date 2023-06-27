@@ -7,6 +7,7 @@ import Elm.Syntax.DestructurePattern exposing (DestructurePattern(..))
 import Elm.Syntax.Expression exposing (Expression(..))
 import Elm.Syntax.Infix as Infix exposing (InfixDirection(..))
 import Elm.Syntax.Node exposing (Node(..))
+import Elm.Syntax.StringLiteralType exposing (StringLiteralType(..))
 import Expect
 import Test exposing (Test, describe, test)
 
@@ -29,7 +30,7 @@ all =
         , test "String literal" <|
             \() ->
                 "\"Bar\""
-                    |> expectAst (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 6 } } (Literal "Bar"))
+                    |> expectAst (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 6 } } (Literal SingleQuote "Bar"))
         , test "character literal" <|
             \() ->
                 "'c'"
@@ -75,7 +76,7 @@ all =
         , test "String literal multiline" <|
             \() ->
                 "\"\"\"Bar foo \n a\"\"\""
-                    |> expectAst (Node { start = { row = 1, column = 1 }, end = { row = 2, column = 6 } } (Literal "Bar foo \n a"))
+                    |> expectAst (Node { start = { row = 1, column = 1 }, end = { row = 2, column = 6 } } (Literal TripleQuote "Bar foo \n a"))
         , test "Regression test for multiline strings with backslashes" <|
             \() ->
                 "a = \"\"\"\\{\\}\"\"\""
@@ -83,11 +84,11 @@ all =
         , test "Regression test 2 for multiline strings with backslashes" <|
             \() ->
                 "\"\"\"\\\\{\\\\}\"\"\""
-                    |> expectAst (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 13 } } (Literal "\\{\\}"))
+                    |> expectAst (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 13 } } (Literal TripleQuote "\\{\\}"))
         , test "Regression test 3 for multiline strings with backslashes" <|
             \() ->
                 "\"\"\"\\\\a-blablabla-\\\\b\"\"\""
-                    |> expectAst (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 24 } } (Literal "\\a-blablabla-\\b"))
+                    |> expectAst (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 24 } } (Literal TripleQuote "\\a-blablabla-\\b"))
         , test "Type expression for upper case" <|
             \() ->
                 "Bar"
@@ -219,7 +220,7 @@ all =
                     |> expectAst
                         (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 48 } } <|
                             TupleExpression
-                                [ Node { start = { row = 1, column = 2 }, end = { row = 1, column = 4 } } <| Literal ""
+                                [ Node { start = { row = 1, column = 2 }, end = { row = 1, column = 4 } } <| Literal SingleQuote ""
                                 , Node { start = { row = 1, column = 6 }, end = { row = 1, column = 47 } } <|
                                     Application (Node { start = { row = 1, column = 6 }, end = { row = 1, column = 12 } } <| FunctionOrValue [] "always")
                                         [ Node { start = { row = 1, column = 13 }, end = { row = 1, column = 47 } } <|
@@ -345,12 +346,12 @@ all =
                             (ListExpr
                                 [ Node { start = { row = 1, column = 3 }, end = { row = 1, column = 12 } }
                                     (Application (Node { start = { row = 1, column = 3 }, end = { row = 1, column = 8 } } (FunctionOrValue [] "class"))
-                                        [ Node { start = { row = 1, column = 9 }, end = { row = 1, column = 12 } } (Literal "a")
+                                        [ Node { start = { row = 1, column = 9 }, end = { row = 1, column = 12 } } (Literal SingleQuote "a")
                                         ]
                                     )
                                 , Node { start = { row = 1, column = 14 }, end = { row = 1, column = 24 } }
                                     (Application (Node { start = { row = 1, column = 14 }, end = { row = 1, column = 18 } } (FunctionOrValue [] "text"))
-                                        [ Node { start = { row = 1, column = 19 }, end = { row = 1, column = 24 } } (Literal "Foo")
+                                        [ Node { start = { row = 1, column = 19 }, end = { row = 1, column = 24 } } (Literal SingleQuote "Foo")
                                         ]
                                     )
                                 ]

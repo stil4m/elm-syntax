@@ -267,7 +267,7 @@ allPattern =
 stringPattern : Parser (WithComments (Node Pattern))
 stringPattern =
     Tokens.singleOrTripleQuotedStringLiteralMapWithRange
-        (\range string ->
+        (\range _ string ->
             { comments = Rope.empty
             , syntax = Node range (StringPattern string)
             }

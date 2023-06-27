@@ -22,6 +22,7 @@ import Char
 import Char.Extra
 import Elm.Syntax.Node exposing (Node(..))
 import Elm.Syntax.Range exposing (Range)
+import Elm.Syntax.StringLiteralType exposing (StringLiteralType(..))
 import ParserFast
 
 
@@ -213,32 +214,34 @@ characterLiteralMapWithRange rangeAndCharToRes =
         )
 
 
-singleOrTripleQuotedStringLiteralMapWithRange : (Range -> String -> res) -> ParserFast.Parser res
+singleOrTripleQuotedStringLiteralMapWithRange : (Range -> StringLiteralType -> String -> res) -> ParserFast.Parser res
 singleOrTripleQuotedStringLiteralMapWithRange rangeAndStringToRes =
     ParserFast.symbolFollowedBy "\""
         (ParserFast.oneOf2MapWithStartRowColumnAndEndRowColumn
-            (\startRow startColumn string endRow endColumn ->
+            (\startRow startColumn ( stringLiteralType, string ) endRow endColumn ->
                 rangeAndStringToRes
                     { start = { row = startRow, column = startColumn - 1 }
                     , end = { row = endRow, column = endColumn }
                     }
+                    stringLiteralType
                     string
             )
             (ParserFast.symbolFollowedBy "\"\""
                 tripleQuotedStringLiteralOfterTripleDoubleQuote
             )
-            (\startRow startColumn string endRow endColumn ->
+            (\startRow startColumn ( stringLiteralType, string ) endRow endColumn ->
                 rangeAndStringToRes
                     { start = { row = startRow, column = startColumn - 1 }
                     , end = { row = endRow, column = endColumn }
                     }
+                    stringLiteralType
                     string
             )
             singleQuotedStringLiteralAfterDoubleQuote
         )
 
 
-singleQuotedStringLiteralAfterDoubleQuote : ParserFast.Parser String
+singleQuotedStringLiteralAfterDoubleQuote : ParserFast.Parser ( StringLiteralType, String )
 singleQuotedStringLiteralAfterDoubleQuote =
     ParserFast.loopUntil (ParserFast.symbol "\"" ())
         (ParserFast.oneOf2
@@ -249,10 +252,10 @@ singleQuotedStringLiteralAfterDoubleQuote =
         (\extension soFar ->
             soFar ++ extension ++ ""
         )
-        identity
+        (\str -> ( SingleQuote, str ))
 
 
-tripleQuotedStringLiteralOfterTripleDoubleQuote : ParserFast.Parser String
+tripleQuotedStringLiteralOfterTripleDoubleQuote : ParserFast.Parser ( StringLiteralType, String )
 tripleQuotedStringLiteralOfterTripleDoubleQuote =
     ParserFast.loopUntil (ParserFast.symbol "\"\"\"" ())
         (ParserFast.oneOf3
@@ -264,7 +267,7 @@ tripleQuotedStringLiteralOfterTripleDoubleQuote =
         (\extension soFar ->
             soFar ++ extension ++ ""
         )
-        identity
+        (\str -> ( TripleQuote, str ))
 
 
 functionName : ParserFast.Parser String
