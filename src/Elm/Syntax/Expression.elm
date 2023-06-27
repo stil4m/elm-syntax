@@ -1,5 +1,5 @@
 module Elm.Syntax.Expression exposing
-    ( Expression(..), Lambda, LetBlock, LetDeclaration(..), RecordSetter, CaseBlock, Case, Function, FunctionImplementation
+    ( Expression(..), StringLiteralType(..), Lambda, LetBlock, LetDeclaration(..), RecordSetter, CaseBlock, Case, Function, FunctionImplementation
     , functionRange, isLambda, isLet, isIfElse, isCase, isOperatorApplication
     , encode, encodeFunction, decoder, functionDecoder
     )
@@ -10,7 +10,7 @@ Although it is a easy and simple language, you can express a lot! See the `Expre
 
 ## Types
 
-@docs Expression, Lambda, LetBlock, LetDeclaration, RecordSetter, CaseBlock, Case, Function, FunctionImplementation
+@docs Expression, StringLiteralType, Lambda, LetBlock, LetDeclaration, RecordSetter, CaseBlock, Case, Function, FunctionImplementation
 
 
 ## Functions
@@ -121,7 +121,7 @@ type Expression
     | Hex Int
     | Floatable Float
     | Negation (Node Expression)
-    | Literal String
+    | Literal StringLiteralType String
     | CharLiteral Char
     | TupleExpression (List (Node Expression))
     | LetExpression LetBlock
@@ -133,6 +133,13 @@ type Expression
     | RecordAccessFunction String
     | RecordUpdateExpression (Node String) (Node RecordSetter) (List (Node RecordSetter))
     | GLSLExpression String
+
+
+{-| Indicates whether a string literal is single (`"abc"`) or triple-quoted (`"""abc"""`).
+-}
+type StringLiteralType
+    = SingleQuote
+    | TripleQuote
 
 
 {-| Expression for setting a record field
@@ -289,8 +296,13 @@ encode expr =
         Negation x ->
             encodeTyped "negation" (Node.encode encode x)
 
-        Literal x ->
-            encodeTyped "literal" (JE.string x)
+        Literal quotes x ->
+            case quotes of
+                SingleQuote ->
+                    encodeTyped "literal" (JE.string x)
+
+                TripleQuote ->
+                    encodeTyped "multilineLiteral" (JE.string x)
 
         CharLiteral c ->
             encodeTyped "charLiteral" (JE.string <| String.fromChar c)
@@ -467,7 +479,8 @@ decoder =
                 , ( "integer", JD.int |> JD.map Integer )
                 , ( "float", JD.float |> JD.map Floatable )
                 , ( "negation", decodeNested |> JD.map Negation )
-                , ( "literal", JD.string |> JD.map Literal )
+                , ( "literal", JD.string |> JD.map (\str -> Literal SingleQuote str) )
+                , ( "multilineLiteral", JD.string |> JD.map (\str -> Literal TripleQuote str) )
                 , ( "charLiteral", decodeChar |> JD.map CharLiteral )
                 , ( "tuple", JD.list decodeNested |> JD.map TupleExpression )
                 , ( "list", JD.list decodeNested |> JD.map ListExpr )

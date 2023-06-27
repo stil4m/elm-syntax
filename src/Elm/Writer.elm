@@ -488,8 +488,11 @@ writeExpression (Node range inner) =
         Negation x ->
             append (string "-") (writeExpression x)
 
-        Literal s ->
+        Literal SingleQuote s ->
             string ("\"" ++ s ++ "\"")
+
+        Literal TripleQuote s ->
+            string ("\"\"\"" ++ s ++ "\"\"\"")
 
         CharLiteral c ->
             writeChar c

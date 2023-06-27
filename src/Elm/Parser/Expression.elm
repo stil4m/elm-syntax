@@ -12,7 +12,7 @@ import Elm.Parser.Tokens as Tokens
 import Elm.Parser.TypeAnnotation as TypeAnnotation
 import Elm.Parser.Whitespace as Whitespace
 import Elm.Syntax.DestructurePattern exposing (DestructurePattern(..))
-import Elm.Syntax.Expression as Expression exposing (Case, CaseBlock, Expression(..), Function, FunctionImplementation, Lambda, LetBlock, LetDeclaration(..), RecordSetter)
+import Elm.Syntax.Expression as Expression exposing (Case, CaseBlock, Expression(..), Function, FunctionImplementation, Lambda, LetBlock, LetDeclaration(..), RecordSetter, StringLiteralType(..))
 import Elm.Syntax.Infix as Infix
 import Elm.Syntax.ModuleName exposing (ModuleName)
 import Elm.Syntax.Node as Node exposing (Node(..))
@@ -260,10 +260,9 @@ recordFieldWithoutValue =
 literalExpression : Parser State (Node Expression)
 literalExpression =
     Core.oneOf
-        [ Tokens.multiLineStringLiteral
-        , Tokens.stringLiteral
+        [ Tokens.multiLineStringLiteral |> Core.map (\str -> Literal TripleQuote str)
+        , Tokens.stringLiteral |> Core.map (\str -> Literal SingleQuote str)
         ]
-        |> Core.map Literal
         |> Node.parserCore
         |> Combine.fromCore
 
