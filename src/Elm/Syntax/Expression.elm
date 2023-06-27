@@ -78,7 +78,7 @@ type alias FunctionImplementation =
 
   - `Unit`: `()`
   - `Application`: `add a b`
-  - `OperatorApplication`: `a + b`
+  - `Operation`: `a + b`
   - `FunctionOrValue`: `add` or `True`
   - `If`: `if a then b else c`
   - `PrefixOperator`: `(+)`
@@ -104,7 +104,7 @@ type alias FunctionImplementation =
 -}
 type Expression
     = Application (Node Expression) (List (Node Expression))
-    | OperatorApplication String InfixDirection (Node Expression) (Node Expression)
+    | Operation String InfixDirection (Node Expression) (Node Expression)
     | FunctionOrValue ModuleName String
     | If (Node Expression) (Node Expression) (Node Expression)
     | PrefixOperator String
@@ -232,7 +232,7 @@ isCase e =
 isOperatorApplication : Expression -> Bool
 isOperatorApplication e =
     case e of
-        OperatorApplication _ _ _ _ ->
+        Operation _ _ _ _ ->
             True
 
         _ ->
