@@ -18,10 +18,10 @@ all =
             \() ->
                 ""
                     |> expectInvalid
-        , test "Integer literal" <|
+        , test "IntegerLiteral literal" <|
             \() ->
                 "101"
-                    |> expectAst (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 4 } } (Integer 101))
+                    |> expectAst (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 4 } } (IntegerLiteral 101))
         , test "String literal" <|
             \() ->
                 "\"Bar\""
@@ -36,8 +36,8 @@ all =
                     |> expectAst
                         (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 6 } }
                             (TupleExpression
-                                [ Node { start = { row = 1, column = 2 }, end = { row = 1, column = 3 } } (Integer 1)
-                                , Node { start = { row = 1, column = 4 }, end = { row = 1, column = 5 } } (Integer 2)
+                                [ Node { start = { row = 1, column = 2 }, end = { row = 1, column = 3 } } (IntegerLiteral 1)
+                                , Node { start = { row = 1, column = 4 }, end = { row = 1, column = 5 } } (IntegerLiteral 2)
                                 ]
                             )
                         )
@@ -47,8 +47,8 @@ all =
                     |> expectAst
                         (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 12 } }
                             (TupleExpression
-                                [ Node { start = { row = 1, column = 3 }, end = { row = 1, column = 4 } } (Integer 1)
-                                , Node { start = { row = 1, column = 9 }, end = { row = 1, column = 10 } } (Integer 2)
+                                [ Node { start = { row = 1, column = 3 }, end = { row = 1, column = 4 } } (IntegerLiteral 1)
+                                , Node { start = { row = 1, column = 9 }, end = { row = 1, column = 10 } } (IntegerLiteral 2)
                                 ]
                             )
                         )
@@ -99,7 +99,7 @@ all =
                                     (OperatorApplication "*"
                                         Left
                                         (Node { start = { row = 1, column = 2 }, end = { row = 1, column = 4 } }
-                                            (Negation (Node { start = { row = 1, column = 3 }, end = { row = 1, column = 4 } } (Integer 1)))
+                                            (Negation (Node { start = { row = 1, column = 3 }, end = { row = 1, column = 4 } } (IntegerLiteral 1)))
                                         )
                                         (Node { start = { row = 1, column = 7 }, end = { row = 1, column = 11 } } (FunctionOrValue [] "sign"))
                                     )
@@ -123,7 +123,7 @@ all =
                             OperatorApplication "+"
                                 Infix.Left
                                 (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 6 } } <| FunctionOrValue [] "model")
-                                (Node { start = { row = 1, column = 9 }, end = { row = 1, column = 10 } } <| Integer 1)
+                                (Node { start = { row = 1, column = 9 }, end = { row = 1, column = 10 } } <| IntegerLiteral 1)
                         )
         , test "application expression 2" <|
             \() ->
@@ -217,7 +217,7 @@ all =
                             (RecordExpr
                                 [ Node { start = { row = 1, column = 3 }, end = { row = 1, column = 12 } }
                                     ( Node { start = { row = 1, column = 3 }, end = { row = 1, column = 8 } } "model"
-                                    , Node { start = { row = 1, column = 11 }, end = { row = 1, column = 12 } } (Integer 0)
+                                    , Node { start = { row = 1, column = 11 }, end = { row = 1, column = 12 } } (IntegerLiteral 0)
                                     )
                                 , Node { start = { row = 1, column = 14 }, end = { row = 1, column = 25 } }
                                     ( Node { start = { row = 1, column = 14 }, end = { row = 1, column = 18 } } "view"
@@ -239,11 +239,11 @@ all =
                                 (RecordExpr
                                     [ Node { start = { row = 1, column = 3 }, end = { row = 1, column = 10 } }
                                         ( Node { start = { row = 1, column = 3 }, end = { row = 1, column = 6 } } "foo"
-                                        , Node { start = { row = 1, column = 9 }, end = { row = 1, column = 10 } } (Integer 1)
+                                        , Node { start = { row = 1, column = 9 }, end = { row = 1, column = 10 } } (IntegerLiteral 1)
                                         )
                                     , Node { start = { row = 2, column = 4 }, end = { row = 2, column = 12 } }
                                         ( Node { start = { row = 2, column = 4 }, end = { row = 2, column = 7 } } "baz"
-                                        , Node { start = { row = 2, column = 10 }, end = { row = 2, column = 11 } } (Integer 2)
+                                        , Node { start = { row = 2, column = 10 }, end = { row = 2, column = 11 } } (IntegerLiteral 2)
                                         )
                                     ]
                                 )
@@ -275,7 +275,7 @@ all =
                         { ast =
                             Node { start = { row = 1, column = 1 }, end = { row = 1, column = 15 } }
                                 (ListExpr
-                                    [ Node { start = { row = 1, column = 3 }, end = { row = 1, column = 4 } } (Integer 1)
+                                    [ Node { start = { row = 1, column = 3 }, end = { row = 1, column = 4 } } (IntegerLiteral 1)
                                     ]
                                 )
                         , comments = [ Node { start = { row = 1, column = 5 }, end = { row = 1, column = 13 } } "{- Foo-}" ]
@@ -340,7 +340,7 @@ all =
                                 (Node { start = { row = 1, column = 3 }, end = { row = 1, column = 8 } } "model")
                                 (Node { start = { row = 1, column = 11 }, end = { row = 1, column = 20 } }
                                     ( Node { start = { row = 1, column = 11 }, end = { row = 1, column = 16 } } "count"
-                                    , Node { start = { row = 1, column = 19 }, end = { row = 1, column = 20 } } (Integer 1)
+                                    , Node { start = { row = 1, column = 19 }, end = { row = 1, column = 20 } } (IntegerLiteral 1)
                                     )
                                 )
                                 [ Node { start = { row = 1, column = 22 }, end = { row = 1, column = 37 } }
@@ -359,7 +359,7 @@ all =
                                 (Node { start = { row = 1, column = 2 }, end = { row = 1, column = 7 } } "model")
                                 (Node { start = { row = 1, column = 9 }, end = { row = 1, column = 18 } }
                                     ( Node { start = { row = 1, column = 9 }, end = { row = 1, column = 14 } } "count"
-                                    , Node { start = { row = 1, column = 17 }, end = { row = 1, column = 18 } } (Integer 1)
+                                    , Node { start = { row = 1, column = 17 }, end = { row = 1, column = 18 } } (IntegerLiteral 1)
                                     )
                                 )
                                 [ Node { start = { row = 1, column = 20 }, end = { row = 1, column = 35 } }
@@ -420,8 +420,8 @@ all =
                         (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 4 } }
                             (OperatorApplication "-"
                                 Left
-                                (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 2 } } (Integer 2))
-                                (Node { start = { row = 1, column = 3 }, end = { row = 1, column = 4 } } (Integer 1))
+                                (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 2 } } (IntegerLiteral 2))
+                                (Node { start = { row = 1, column = 3 }, end = { row = 1, column = 4 } } (IntegerLiteral 1))
                             )
                         )
         , test "negated expression for value" <|
@@ -438,7 +438,7 @@ all =
                         (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 11 } }
                             (Application (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 8 } } (FunctionOrValue [] "toFloat"))
                                 [ Node { start = { row = 1, column = 9 }, end = { row = 1, column = 11 } }
-                                    (Negation (Node { start = { row = 1, column = 10 }, end = { row = 1, column = 11 } } (Integer 5)))
+                                    (Negation (Node { start = { row = 1, column = 10 }, end = { row = 1, column = 11 } } (IntegerLiteral 5)))
                                 ]
                             )
                         )
@@ -472,23 +472,23 @@ all =
                                     (OperatorApplication "+"
                                         Left
                                         (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 3 } }
-                                            (Negation (Node { start = { row = 1, column = 2 }, end = { row = 1, column = 3 } } (Integer 1)))
+                                            (Negation (Node { start = { row = 1, column = 2 }, end = { row = 1, column = 3 } } (IntegerLiteral 1)))
                                         )
                                         (Node { start = { row = 1, column = 6 }, end = { row = 1, column = 18 } }
                                             (OperatorApplication "*"
                                                 Left
                                                 (Node { start = { row = 1, column = 6 }, end = { row = 1, column = 9 } }
-                                                    (Negation (Node { start = { row = 1, column = 7 }, end = { row = 1, column = 9 } } (Integer 10)))
+                                                    (Negation (Node { start = { row = 1, column = 7 }, end = { row = 1, column = 9 } } (IntegerLiteral 10)))
                                                 )
                                                 (Node { start = { row = 1, column = 12 }, end = { row = 1, column = 18 } }
                                                     (OperatorApplication "^"
                                                         Right
                                                         (Node { start = { row = 1, column = 12 }, end = { row = 1, column = 16 } }
                                                             (Negation
-                                                                (Node { start = { row = 1, column = 13 }, end = { row = 1, column = 16 } } (Integer 100))
+                                                                (Node { start = { row = 1, column = 13 }, end = { row = 1, column = 16 } } (IntegerLiteral 100))
                                                             )
                                                         )
-                                                        (Node { start = { row = 1, column = 17 }, end = { row = 1, column = 18 } } (Integer 2))
+                                                        (Node { start = { row = 1, column = 17 }, end = { row = 1, column = 18 } } (IntegerLiteral 2))
                                                     )
                                                 )
                                             )
@@ -496,7 +496,7 @@ all =
                                     )
                                 )
                                 (Node { start = { row = 1, column = 22 }, end = { row = 1, column = 29 } }
-                                    (Negation (Node { start = { row = 1, column = 23 }, end = { row = 1, column = 29 } } (Integer 100001)))
+                                    (Negation (Node { start = { row = 1, column = 23 }, end = { row = 1, column = 29 } } (IntegerLiteral 100001)))
                                 )
                             )
                         )
@@ -511,11 +511,11 @@ all =
                                 (Node { start = { row = 1, column = 2 }, end = { row = 1, column = 7 } }
                                     (OperatorApplication "+"
                                         Left
-                                        (Node { start = { row = 1, column = 2 }, end = { row = 1, column = 3 } } (Integer 1))
-                                        (Node { start = { row = 1, column = 6 }, end = { row = 1, column = 7 } } (Integer 2))
+                                        (Node { start = { row = 1, column = 2 }, end = { row = 1, column = 3 } } (IntegerLiteral 1))
+                                        (Node { start = { row = 1, column = 6 }, end = { row = 1, column = 7 } } (IntegerLiteral 2))
                                     )
                                 )
-                                (Node { start = { row = 1, column = 10 }, end = { row = 1, column = 11 } } (Integer 3))
+                                (Node { start = { row = 1, column = 10 }, end = { row = 1, column = 11 } } (IntegerLiteral 3))
                             )
                         )
         , test "pipe operation" <|
@@ -621,7 +621,7 @@ all =
                                 [ Node { start = { row = 1, column = 13 }, end = { row = 1, column = 15 } }
                                     (Negation
                                         (Node { start = { row = 1, column = 14 }, end = { row = 1, column = 15 } }
-                                            (Integer 1)
+                                            (IntegerLiteral 1)
                                         )
                                     )
                                 , Node { start = { row = 1, column = 16 }, end = { row = 1, column = 25 } } (FunctionOrValue [] "generator")
@@ -635,7 +635,7 @@ all =
                         (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 16 } }
                             (OperatorApplication "+"
                                 Left
-                                (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 2 } } (Integer 1))
+                                (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 2 } } (IntegerLiteral 1))
                                 (Node { start = { row = 1, column = 5 }, end = { row = 1, column = 16 } }
                                     (Negation
                                         (Node { start = { row = 1, column = 6 }, end = { row = 1, column = 16 } }
@@ -644,7 +644,7 @@ all =
                                                     (RecordExpr
                                                         [ Node { start = { row = 1, column = 7 }, end = { row = 1, column = 13 } }
                                                             ( Node { start = { row = 1, column = 7 }, end = { row = 1, column = 8 } } "x"
-                                                            , Node { start = { row = 1, column = 11 }, end = { row = 1, column = 13 } } (Integer 10)
+                                                            , Node { start = { row = 1, column = 11 }, end = { row = 1, column = 13 } } (IntegerLiteral 10)
                                                             )
                                                         ]
                                                     )
