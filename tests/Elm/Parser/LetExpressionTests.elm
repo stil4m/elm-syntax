@@ -48,7 +48,7 @@ all =
                                             }
                                         )
                                     ]
-                                , expression = Node { start = { row = 4, column = 17 }, end = { row = 4, column = 18 } } (Integer 1)
+                                , expression = Node { start = { row = 4, column = 17 }, end = { row = 4, column = 18 } } (IntegerLiteral 1)
                                 }
                             )
                         )
@@ -70,7 +70,7 @@ all =
                                                 Node { start = { row = 2, column = 3 }, end = { row = 2, column = 10 } }
                                                     { name = Node { start = { row = 2, column = 3 }, end = { row = 2, column = 6 } } "bar"
                                                     , arguments = []
-                                                    , expression = Node { start = { row = 2, column = 9 }, end = { row = 2, column = 10 } } (Integer 1)
+                                                    , expression = Node { start = { row = 2, column = 9 }, end = { row = 2, column = 10 } } (IntegerLiteral 1)
                                                     }
                                             }
                                         )
@@ -112,7 +112,7 @@ all =
                                                 Node { start = { row = 2, column = 3 }, end = { row = 2, column = 10 } }
                                                     { name = Node { start = { row = 2, column = 3 }, end = { row = 2, column = 6 } } "bar"
                                                     , arguments = []
-                                                    , expression = Node { start = { row = 2, column = 9 }, end = { row = 2, column = 10 } } (Integer 1)
+                                                    , expression = Node { start = { row = 2, column = 9 }, end = { row = 2, column = 10 } } (IntegerLiteral 1)
                                                     }
                                             }
                                         )
@@ -148,7 +148,7 @@ all =
                                                 Node { start = { row = 3, column = 5 }, end = { row = 3, column = 12 } }
                                                     { name = Node { start = { row = 3, column = 5 }, end = { row = 3, column = 8 } } "bar"
                                                     , arguments = []
-                                                    , expression = Node { start = { row = 3, column = 11 }, end = { row = 3, column = 12 } } (Integer 1)
+                                                    , expression = Node { start = { row = 3, column = 11 }, end = { row = 3, column = 12 } } (IntegerLiteral 1)
                                                     }
                                             }
                                         )
@@ -184,7 +184,7 @@ all =
                                                 Node { start = { row = 5, column = 5 }, end = { row = 5, column = 12 } }
                                                     { name = Node { start = { row = 5, column = 5 }, end = { row = 5, column = 8 } } "bar"
                                                     , arguments = []
-                                                    , expression = Node { start = { row = 5, column = 11 }, end = { row = 5, column = 12 } } (Integer 1)
+                                                    , expression = Node { start = { row = 5, column = 11 }, end = { row = 5, column = 12 } } (IntegerLiteral 1)
                                                     }
                                             }
                                         )
@@ -237,7 +237,7 @@ all =
                                                         [ Node { start = { row = 2, column = 15 }, end = { row = 2, column = 18 } } (NamedPattern_ { moduleName = [], name = "Bar" } [])
                                                         , Node { start = { row = 2, column = 19 }, end = { row = 2, column = 20 } } (VarPattern_ "m")
                                                         ]
-                                                    , expression = Node { start = { row = 2, column = 23 }, end = { row = 2, column = 24 } } (Integer 1)
+                                                    , expression = Node { start = { row = 2, column = 23 }, end = { row = 2, column = 24 } } (IntegerLiteral 1)
                                                     }
                                             }
                                         )
@@ -340,7 +340,7 @@ all =
                                             (Node { start = { row = 5, column = 18 }, end = { row = 5, column = 19 } } (FunctionOrValue [] "g"))
                                         )
                                     ]
-                                , expression = Node { start = { row = 7, column = 5 }, end = { row = 7, column = 6 } } (Integer 1)
+                                , expression = Node { start = { row = 7, column = 5 }, end = { row = 7, column = 6 } } (IntegerLiteral 1)
                                 }
                             )
                         )
@@ -391,7 +391,7 @@ all =
                                                 Node { start = { row = 2, column = 9 }, end = { row = 2, column = 14 } }
                                                     { name = Node { start = { row = 2, column = 9 }, end = { row = 2, column = 10 } } "a"
                                                     , arguments = []
-                                                    , expression = Node { start = { row = 2, column = 13 }, end = { row = 2, column = 14 } } (Integer 1)
+                                                    , expression = Node { start = { row = 2, column = 13 }, end = { row = 2, column = 14 } } (IntegerLiteral 1)
                                                     }
                                             }
                                         )
@@ -417,7 +417,7 @@ all =
                                                 Node { start = { row = 2, column = 9 }, end = { row = 2, column = 14 } }
                                                     { name = Node { start = { row = 2, column = 9 }, end = { row = 2, column = 10 } } "a"
                                                     , arguments = []
-                                                    , expression = Node { start = { row = 2, column = 13 }, end = { row = 2, column = 14 } } (Integer 1)
+                                                    , expression = Node { start = { row = 2, column = 13 }, end = { row = 2, column = 14 } } (IntegerLiteral 1)
                                                     }
                                             }
                                         )
@@ -443,7 +443,7 @@ all =
                                                 Node { start = { row = 2, column = 9 }, end = { row = 2, column = 14 } }
                                                     { name = Node { start = { row = 2, column = 9 }, end = { row = 2, column = 10 } } "a"
                                                     , arguments = []
-                                                    , expression = Node { start = { row = 2, column = 13 }, end = { row = 2, column = 14 } } (Integer 1)
+                                                    , expression = Node { start = { row = 2, column = 13 }, end = { row = 2, column = 14 } } (IntegerLiteral 1)
                                                     }
                                             }
                                         )
@@ -453,7 +453,7 @@ all =
                                         (LambdaExpression
                                             { firstArg = Node { start = { row = 3, column = 8 }, end = { row = 3, column = 9 } } AllPattern_
                                             , restOfArgs = []
-                                            , expression = Node { start = { row = 3, column = 13 }, end = { row = 3, column = 14 } } (Integer 1)
+                                            , expression = Node { start = { row = 3, column = 13 }, end = { row = 3, column = 14 } } (IntegerLiteral 1)
                                             }
                                         )
                                 }

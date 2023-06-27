@@ -12,12 +12,12 @@ Code: `3 + 4 * 2`
 AST:
 ```elm
 OperatorApplication
-    (Integer 3)
+    (IntegerLiteral 3)
     "+"
     (OperatorApplication
-        (Integer 4)
+        (IntegerLiteral 4)
         "*"
-        (Integer 2)
+        (IntegerLiteral 2)
     )
 ```
 

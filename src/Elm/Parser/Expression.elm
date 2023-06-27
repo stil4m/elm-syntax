@@ -873,7 +873,7 @@ numberExpression =
         )
         (\range n ->
             { comments = Rope.empty
-            , syntax = Node range (Integer n)
+            , syntax = Node range (IntegerLiteral n)
             }
         )
         (\range n ->
