@@ -906,7 +906,7 @@ ifBlockExpression =
                         { start = { row = start.row, column = start.column - 2 }
                         , end = ifFalseRange.end
                         }
-                        (IfBlock
+                        (If
                             condition.syntax
                             ifTrue.syntax
                             ifFalse.syntax

@@ -275,7 +275,7 @@ all =
                 "if True then foo else bar"
                     |> expectAst
                         (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 26 } }
-                            (IfBlock
+                            (If
                                 (Node { start = { row = 1, column = 4 }, end = { row = 1, column = 8 } } (FunctionOrValue [] "True"))
                                 (Node { start = { row = 1, column = 14 }, end = { row = 1, column = 17 } } (FunctionOrValue [] "foo"))
                                 (Node { start = { row = 1, column = 23 }, end = { row = 1, column = 26 } } (FunctionOrValue [] "bar"))
@@ -286,10 +286,10 @@ all =
                 "if True then if False then foo else baz else bar"
                     |> expectAst
                         (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 49 } }
-                            (IfBlock
+                            (If
                                 (Node { start = { row = 1, column = 4 }, end = { row = 1, column = 8 } } (FunctionOrValue [] "True"))
                                 (Node { start = { row = 1, column = 14 }, end = { row = 1, column = 40 } }
-                                    (IfBlock
+                                    (If
                                         (Node { start = { row = 1, column = 17 }, end = { row = 1, column = 22 } } (FunctionOrValue [] "False"))
                                         (Node { start = { row = 1, column = 28 }, end = { row = 1, column = 31 } } (FunctionOrValue [] "foo"))
                                         (Node { start = { row = 1, column = 37 }, end = { row = 1, column = 40 } } (FunctionOrValue [] "baz"))
