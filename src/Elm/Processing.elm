@@ -1,25 +1,12 @@
-module Elm.Processing exposing
-    ( ProcessContext
-    , init, addFile, addDependency, process
-    )
+module Elm.Processing exposing (process)
 
 {-| Processing raw files with the context of other files and dependencies.
 
-
-## Types
-
-@docs ProcessContext
-
-
-## Functions
-
-@docs init, addFile, addDependency, process
+@docs process
 
 -}
 
-import Dict exposing (Dict)
-import Elm.Dependency exposing (Dependency)
-import Elm.Interface as Interface exposing (Interface)
+import Dict
 import Elm.Internal.RawFile as InternalRawFile
 import Elm.Operators exposing (SimpleInfix)
 import Elm.RawFile as RawFile
@@ -28,53 +15,16 @@ import Elm.Syntax.Declaration exposing (Declaration(..))
 import Elm.Syntax.Expression exposing (..)
 import Elm.Syntax.File exposing (File)
 import Elm.Syntax.Infix exposing (InfixDirection(..))
-import Elm.Syntax.ModuleName exposing (ModuleName)
 import Elm.Syntax.Node as Node exposing (Node(..))
 import Elm.Syntax.Range as Range exposing (Range)
 import List.Extra
 
 
-{-| Opaque type to hold context for the processing
--}
-type ProcessContext
-    = ProcessContext ModuleIndexInner
-
-
-type alias ModuleIndexInner =
-    Dict ModuleName Interface
-
-
-{-| Initialise an empty context
--}
-init : ProcessContext
-init =
-    ProcessContext Dict.empty
-
-
-{-| Add a file to the context that may be a dependency for the file that will be processed.
--}
-addFile : RawFile.RawFile -> ProcessContext -> ProcessContext
-addFile file (ProcessContext context) =
-    ProcessContext
-        (Dict.insert
-            (RawFile.moduleName file)
-            (Interface.build file)
-            context
-        )
-
-
-{-| Add a whole dependency with its modules to the context.
--}
-addDependency : Dependency -> ProcessContext -> ProcessContext
-addDependency dep (ProcessContext x) =
-    ProcessContext (Dict.union dep.interfaces x)
-
-
 {-| Process a rawfile with a context.
 Operator precedence and documentation will be fixed.
 -}
-process : ProcessContext -> RawFile.RawFile -> File
-process _ (InternalRawFile.Raw file) =
+process : RawFile.RawFile -> File
+process (InternalRawFile.Raw file) =
     let
         changes : DeclarationsAndComments
         changes =

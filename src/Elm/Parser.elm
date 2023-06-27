@@ -23,7 +23,7 @@ parse input =
     -- A single line is added for unfinished ranges produced by `parser-combinators` on the last line.
     case Combine.runParser (withEnd file) emptyState (input ++ "\n") of
         Ok ( _, r ) ->
-            Ok (Processing.process Processing.init (InternalRawFile.fromFile r))
+            Ok (Processing.process (InternalRawFile.fromFile r))
 
         Err s ->
             Err s
