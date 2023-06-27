@@ -88,7 +88,7 @@ type alias FunctionImplementation =
   - `Operator`: `+` (not possible to get in practice)
   - `Integer`: `42`
   - `Hex`: `0x1F`
-  - `Floatable`: `42.0`
+  - `FloatLiteral`: `42.0`
   - `Negation`: `-a`
   - `Literal`: `"text"`
   - `CharLiteral`: `'a'`
@@ -114,7 +114,7 @@ type Expression
     | Operator String
     | Integer Int
     | Hex Int
-    | Floatable Float
+    | FloatLiteral Float
     | Negation (Node Expression)
     | Literal StringLiteralType String
     | CharLiteral Char
@@ -285,7 +285,7 @@ encode expr =
         Integer x ->
             encodeTyped "integer" (JE.int x)
 
-        Floatable x ->
+        FloatLiteral x ->
             encodeTyped "float" (JE.float x)
 
         Negation x ->
@@ -472,7 +472,7 @@ decoder =
                 , ( "operator", JD.string |> JD.map Operator )
                 , ( "hex", JD.int |> JD.map Hex )
                 , ( "integer", JD.int |> JD.map Integer )
-                , ( "float", JD.float |> JD.map Floatable )
+                , ( "float", JD.float |> JD.map FloatLiteral )
                 , ( "negation", decodeNested |> JD.map Negation )
                 , ( "literal", JD.string |> JD.map (\str -> Literal SingleQuote str) )
                 , ( "multilineLiteral", JD.string |> JD.map (\str -> Literal TripleQuote str) )

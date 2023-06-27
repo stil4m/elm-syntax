@@ -537,7 +537,7 @@ letExpression =
 
 numberExpression : Parser State (Node Expression)
 numberExpression =
-    Node.parser (Elm.Parser.Numbers.forgivingNumber Floatable Integer Hex)
+    Node.parser (Elm.Parser.Numbers.forgivingNumber FloatLiteral Integer Hex)
 
 
 ifBlockExpression : Parser State (Node Expression)
