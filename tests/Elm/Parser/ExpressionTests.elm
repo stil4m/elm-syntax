@@ -26,7 +26,7 @@ all =
         , test "Hex integer literal" <|
             \() ->
                 "0x56"
-                    |> expectAst (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 5 } } (Hex 86))
+                    |> expectAst (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 5 } } (HexLiteral 86))
         , test "String literal" <|
             \() ->
                 "\"Bar\""

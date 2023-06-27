@@ -878,7 +878,7 @@ numberExpression =
         )
         (\range n ->
             { comments = Rope.empty
-            , syntax = Node range (Hex n)
+            , syntax = Node range (HexLiteral n)
             }
         )
 

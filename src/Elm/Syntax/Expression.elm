@@ -85,7 +85,7 @@ type alias FunctionImplementation =
   - `PrefixOperator`: `(+)`
   - `Operator`: `+` (not possible to get in practice)
   - `IntegerLiteral`: `42`
-  - `Hex`: `0x1F`
+  - `HexLiteral`: `0x1F`
   - `FloatLiteral`: `42.0`
   - `Negation`: `-a`
   - `Literal`: `"text"`
@@ -111,7 +111,7 @@ type Expression
     | PrefixOperator String
     | Operator String
     | IntegerLiteral Int
-    | Hex Int
+    | HexLiteral Int
     | FloatLiteral Float
     | Negation (Node Expression)
     | Literal StringLiteralType String
