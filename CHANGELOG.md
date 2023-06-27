@@ -33,6 +33,7 @@
   - Renamed `Floatable` to `FloatLiteral`
   - Renamed `Integer` to `IntegerLiteral`
   - Renamed `Hex` to `HexLiteral`
+  - Renamed `ListExpr` to `ListLiteral`
   - `UnitExpr` -> `TupleExpression []`
   - `ParenthesizedExpression x` -> `TupleExpression [ x ]`
   - Removed `Elm.Syntax.Expression.Cases` type alias (it was `type alias Cases = List Case`)

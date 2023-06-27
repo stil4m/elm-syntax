@@ -187,7 +187,7 @@ expressionAfterOpeningSquareBracket =
                             Just elements ->
                                 { comments = commentsBefore |> Rope.prependTo elements.comments
                                 , end = { row = endRow, column = endColumn }
-                                , expression = ListExpr elements.syntax
+                                , expression = ListLiteral elements.syntax
                                 }
             )
             Layout.maybeLayout
@@ -219,7 +219,7 @@ expressionAfterOpeningSquareBracket =
 
 expressionListEmpty : Expression
 expressionListEmpty =
-    ListExpr []
+    ListLiteral []
 
 
 

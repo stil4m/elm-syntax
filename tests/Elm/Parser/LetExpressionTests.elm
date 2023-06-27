@@ -338,7 +338,7 @@ all =
                                             }
                                         )
                                     ]
-                                , expression = Node { start = { row = 3, column = 7 }, end = { row = 3, column = 9 } } (ListExpr [])
+                                , expression = Node { start = { row = 3, column = 7 }, end = { row = 3, column = 9 } } (ListLiteral [])
                                 }
                             )
                         )

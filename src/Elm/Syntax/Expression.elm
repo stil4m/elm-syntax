@@ -95,7 +95,7 @@ type alias FunctionImplementation =
   - `CaseExpression`: `case a of` followed by pattern matches
   - `LambdaExpression`: `(\a -> a)`
   - `RecordExpr`: `{ name = "text" }`
-  - `ListExpr`: `[ x, y ]`
+  - `ListLiteral`: `[ x, y ]`
   - `RecordAccess`: `a.name`
   - `RecordAccessFunction`: `.name`
   - `RecordUpdateExpression`: `{ a | name = "text" }`
@@ -120,7 +120,7 @@ type Expression
     | CaseExpression CaseBlock
     | LambdaExpression Lambda
     | RecordExpr (List (Node RecordSetter))
-    | ListExpr (List (Node Expression))
+    | ListLiteral (List (Node Expression))
     | RecordAccess (Node Expression) (Node String)
     | RecordAccessFunction String
     | RecordUpdateExpression (Node String) (Node RecordSetter) (List (Node RecordSetter))
