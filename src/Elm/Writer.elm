@@ -482,7 +482,7 @@ writeExpression (Node range inner) =
         Integer i ->
             string (String.fromInt i)
 
-        Floatable f ->
+        FloatLiteral f ->
             string (String.fromFloat f)
 
         Negation x ->
