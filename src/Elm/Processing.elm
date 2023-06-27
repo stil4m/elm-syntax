@@ -200,20 +200,21 @@ fixApplication expressions =
 
 divideAndConquer : List ( String, SimpleInfix ) -> List (Node Expression) -> Expression
 divideAndConquer ops exps =
-    if List.isEmpty ops then
-        fixExprs exps
+    case ops of
+        [] ->
+            fixExprs exps
 
-    else
-        case findNextSplit ops exps of
-            Just ( p, infix_, s ) ->
-                OperatorApplication
-                    infix_.operator
-                    infix_.direction
-                    (Node (Range.combine <| List.map Node.range p) (divideAndConquer ops p))
-                    (Node (Range.combine <| List.map Node.range s) (divideAndConquer ops s))
+        op :: restOfOps ->
+            case findNextSplit op restOfOps exps of
+                Just ( p, infix_, s ) ->
+                    OperatorApplication
+                        infix_.operator
+                        infix_.direction
+                        (Node (Range.combine <| List.map Node.range p) (divideAndConquer ops p))
+                        (Node (Range.combine <| List.map Node.range s) (divideAndConquer ops s))
 
-            Nothing ->
-                fixExprs exps
+                Nothing ->
+                    fixExprs exps
 
 
 fixExprs : List (Node Expression) -> Expression
@@ -226,19 +227,18 @@ fixExprs exps =
             Application exps
 
 
-findNextSplit : List ( String, SimpleInfix ) -> List (Node Expression) -> Maybe ( List (Node Expression), SimpleInfix, List (Node Expression) )
-findNextSplit operators exps =
+findNextSplit : ( String, SimpleInfix ) -> List ( String, SimpleInfix ) -> List (Node Expression) -> Maybe ( List (Node Expression), SimpleInfix, List (Node Expression) )
+findNextSplit op restOfOperators exps =
     let
         assocDirection : InfixDirection
         assocDirection =
             -- At this point we should ideally check if all operators have the same associativity
             -- and report an error if that's not the case.
-            case List.head operators of
-                Just ( _, { direction } ) ->
-                    direction
+            (Tuple.second op).direction
 
-                Nothing ->
-                    Right
+        operators : List ( String, SimpleInfix )
+        operators =
+            op :: restOfOperators
 
         prefix : List (Node Expression)
         prefix =
