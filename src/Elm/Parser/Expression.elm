@@ -848,7 +848,7 @@ numberExpression =
             \( endRow, endColumn ) ->
                 { comments = Rope.empty
                 , end = { row = endRow, column = endColumn }
-                , expression = Hex n
+                , expression = HexLiteral n
                 }
         )
         |= Parser.getPosition
