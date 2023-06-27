@@ -402,11 +402,11 @@ recordSetterNodeWithLayout =
 literalExpression : Parser { comments : Comments, end : Location, expression : Expression }
 literalExpression =
     Parser.map
-        (\string ->
+        (\( stringLiteralType, string ) ->
             \( endRow, endColumn ) ->
                 { comments = Rope.empty
                 , end = { row = endRow, column = endColumn }
-                , expression = Literal string
+                , expression = Literal stringLiteralType string
                 }
         )
         Tokens.singleOrTripleQuotedStringLiteral
