@@ -48,7 +48,7 @@ all =
                                             }
                                         )
                                     ]
-                                , expression = Node { start = { row = 4, column = 17 }, end = { row = 4, column = 18 } } (Integer 1)
+                                , expression = Node { start = { row = 4, column = 17 }, end = { row = 4, column = 18 } } (IntegerLiteral 1)
                                 }
                             )
                         )
@@ -67,7 +67,7 @@ all =
                                             { declaration =
                                                 Node { start = { row = 2, column = 3 }, end = { row = 2, column = 10 } }
                                                     { arguments = []
-                                                    , expression = Node { start = { row = 2, column = 9 }, end = { row = 2, column = 10 } } (Integer 1)
+                                                    , expression = Node { start = { row = 2, column = 9 }, end = { row = 2, column = 10 } } (IntegerLiteral 1)
                                                     , name = Node { start = { row = 2, column = 3 }, end = { row = 2, column = 6 } } "bar"
                                                     }
                                             , documentation = Nothing
@@ -109,7 +109,7 @@ all =
                                             { declaration =
                                                 Node { start = { row = 2, column = 3 }, end = { row = 2, column = 10 } }
                                                     { arguments = []
-                                                    , expression = Node { start = { row = 2, column = 9 }, end = { row = 2, column = 10 } } (Integer 1)
+                                                    , expression = Node { start = { row = 2, column = 9 }, end = { row = 2, column = 10 } } (IntegerLiteral 1)
                                                     , name = Node { start = { row = 2, column = 3 }, end = { row = 2, column = 6 } } "bar"
                                                     }
                                             , documentation = Nothing
@@ -147,7 +147,7 @@ all =
                                             , declaration =
                                                 Node { start = { row = 3, column = 5 }, end = { row = 3, column = 12 } }
                                                     { arguments = []
-                                                    , expression = Node { start = { row = 3, column = 11 }, end = { row = 3, column = 12 } } (Integer 1)
+                                                    , expression = Node { start = { row = 3, column = 11 }, end = { row = 3, column = 12 } } (IntegerLiteral 1)
                                                     , name = Node { start = { row = 3, column = 5 }, end = { row = 3, column = 8 } } "bar"
                                                     }
                                             }
@@ -183,7 +183,7 @@ all =
                                             , declaration =
                                                 Node { start = { row = 5, column = 5 }, end = { row = 5, column = 12 } }
                                                     { arguments = []
-                                                    , expression = Node { start = { row = 5, column = 11 }, end = { row = 5, column = 12 } } (Integer 1)
+                                                    , expression = Node { start = { row = 5, column = 11 }, end = { row = 5, column = 12 } } (IntegerLiteral 1)
                                                     , name = Node { start = { row = 5, column = 5 }, end = { row = 5, column = 8 } } "bar"
                                                     }
                                             }
@@ -282,7 +282,7 @@ all =
                                             (Node { start = { row = 5, column = 18 }, end = { row = 5, column = 19 } } (FunctionOrValue [] "g"))
                                         )
                                     ]
-                                , expression = Node { start = { row = 7, column = 5 }, end = { row = 7, column = 6 } } (Integer 1)
+                                , expression = Node { start = { row = 7, column = 5 }, end = { row = 7, column = 6 } } (IntegerLiteral 1)
                                 }
                             )
                         )
@@ -330,7 +330,7 @@ all =
                                             { declaration =
                                                 Node { start = { row = 2, column = 9 }, end = { row = 2, column = 14 } }
                                                     { arguments = []
-                                                    , expression = Node { start = { row = 2, column = 13 }, end = { row = 2, column = 14 } } (Integer 1)
+                                                    , expression = Node { start = { row = 2, column = 13 }, end = { row = 2, column = 14 } } (IntegerLiteral 1)
                                                     , name = Node { start = { row = 2, column = 9 }, end = { row = 2, column = 10 } } "a"
                                                     }
                                             , documentation = Nothing
@@ -356,7 +356,7 @@ all =
                                             { declaration =
                                                 Node { start = { row = 2, column = 9 }, end = { row = 2, column = 14 } }
                                                     { arguments = []
-                                                    , expression = Node { start = { row = 2, column = 13 }, end = { row = 2, column = 14 } } (Integer 1)
+                                                    , expression = Node { start = { row = 2, column = 13 }, end = { row = 2, column = 14 } } (IntegerLiteral 1)
                                                     , name = Node { start = { row = 2, column = 9 }, end = { row = 2, column = 10 } } "a"
                                                     }
                                             , documentation = Nothing
@@ -382,7 +382,7 @@ all =
                                             { declaration =
                                                 Node { start = { row = 2, column = 9 }, end = { row = 2, column = 14 } }
                                                     { arguments = []
-                                                    , expression = Node { start = { row = 2, column = 13 }, end = { row = 2, column = 14 } } (Integer 1)
+                                                    , expression = Node { start = { row = 2, column = 13 }, end = { row = 2, column = 14 } } (IntegerLiteral 1)
                                                     , name = Node { start = { row = 2, column = 9 }, end = { row = 2, column = 10 } } "a"
                                                     }
                                             , documentation = Nothing
@@ -395,7 +395,7 @@ all =
                                         (LambdaExpression
                                             { firstArg = Node { start = { row = 3, column = 8 }, end = { row = 3, column = 9 } } AllPattern_
                                             , restOfArgs = []
-                                            , expression = Node { start = { row = 3, column = 13 }, end = { row = 3, column = 14 } } (Integer 1)
+                                            , expression = Node { start = { row = 3, column = 13 }, end = { row = 3, column = 14 } } (IntegerLiteral 1)
                                             }
                                         )
                                 }

@@ -151,11 +151,11 @@ caseWhitespace f = case f   of
                                                         (CaseExpression
                                                             { firstCase =
                                                                 ( Node { start = { row = 5, column = 3 }, end = { row = 5, column = 7 } } (NamedPattern { moduleName = [], name = "True" } [])
-                                                                , Node { start = { row = 6, column = 5 }, end = { row = 6, column = 6 } } (Integer 1)
+                                                                , Node { start = { row = 6, column = 5 }, end = { row = 6, column = 6 } } (IntegerLiteral 1)
                                                                 )
                                                             , restOfCases =
                                                                 [ ( Node { start = { row = 7, column = 3 }, end = { row = 7, column = 8 } } (NamedPattern { moduleName = [], name = "False" } [])
-                                                                  , Node { start = { row = 11, column = 10 }, end = { row = 11, column = 11 } } (Integer 2)
+                                                                  , Node { start = { row = 11, column = 10 }, end = { row = 11, column = 11 } } (IntegerLiteral 2)
                                                                   )
                                                                 ]
                                                             , expression = Node { start = { row = 4, column = 25 }, end = { row = 4, column = 26 } } (FunctionOrValue [] "f")
@@ -273,7 +273,7 @@ letWhitespace = let
                                                                         { declaration =
                                                                             Node { start = { row = 5, column = 19 }, end = { row = 5, column = 26 } }
                                                                                 { arguments = []
-                                                                                , expression = Node { start = { row = 5, column = 25 }, end = { row = 5, column = 26 } } (Integer 1)
+                                                                                , expression = Node { start = { row = 5, column = 25 }, end = { row = 5, column = 26 } } (IntegerLiteral 1)
                                                                                 , name = Node { start = { row = 5, column = 19 }, end = { row = 5, column = 20 } } "b"
                                                                                 }
                                                                         , documentation = Nothing

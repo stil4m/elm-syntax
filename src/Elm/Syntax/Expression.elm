@@ -91,7 +91,7 @@ type alias FunctionImplementation =
   - `If`: `if a then b else c`
   - `PrefixOperator`: `(+)`
   - `Operator`: `+` (not possible to get in practice)
-  - `Integer`: `42`
+  - `IntegerLiteral`: `42`
   - `Hex`: `0x1F`
   - `FloatLiteral`: `42.0`
   - `Negation`: `-a`
@@ -117,7 +117,7 @@ type Expression
     | If (Node Expression) (Node Expression) (Node Expression)
     | PrefixOperator String
     | Operator String
-    | Integer Int
+    | IntegerLiteral Int
     | Hex Int
     | FloatLiteral Float
     | Negation (Node Expression)
@@ -287,7 +287,7 @@ encode expr =
         Hex h ->
             encodeTyped "hex" (JE.int h)
 
-        Integer x ->
+        IntegerLiteral x ->
             encodeTyped "integer" (JE.int x)
 
         FloatLiteral x ->
@@ -476,7 +476,7 @@ decoder =
                 , ( "prefixoperator", JD.string |> JD.map PrefixOperator )
                 , ( "operator", JD.string |> JD.map Operator )
                 , ( "hex", JD.int |> JD.map Hex )
-                , ( "integer", JD.int |> JD.map Integer )
+                , ( "integer", JD.int |> JD.map IntegerLiteral )
                 , ( "float", JD.float |> JD.map FloatLiteral )
                 , ( "negation", decodeNested |> JD.map Negation )
                 , ( "literal", JD.string |> JD.map (\str -> Literal SingleQuote str) )

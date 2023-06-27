@@ -149,7 +149,7 @@ foo = bar"""
                                                 (OperatorApplication "+"
                                                     Infix.Left
                                                     (Node { start = { row = 1, column = 9 }, end = { row = 1, column = 10 } } (FunctionOrValue [] "x"))
-                                                    (Node { start = { row = 1, column = 13 }, end = { row = 1, column = 14 } } (Integer 1))
+                                                    (Node { start = { row = 1, column = 13 }, end = { row = 1, column = 14 } } (IntegerLiteral 1))
                                                 )
                                         }
                                 }
@@ -177,7 +177,7 @@ foo = bar"""
                                                                 { declaration =
                                                                     Node { start = { row = 3, column = 3 }, end = { row = 3, column = 8 } }
                                                                         { arguments = []
-                                                                        , expression = Node { start = { row = 3, column = 7 }, end = { row = 3, column = 8 } } (Integer 1)
+                                                                        , expression = Node { start = { row = 3, column = 7 }, end = { row = 3, column = 8 } } (IntegerLiteral 1)
                                                                         , name = Node { start = { row = 3, column = 3 }, end = { row = 3, column = 4 } } "b"
                                                                         }
                                                                 , documentation = Nothing
@@ -231,8 +231,8 @@ foo = bar"""
                                                                 )
                                                                 (Node { start = { row = 3, column = 10 }, end = { row = 3, column = 16 } }
                                                                     (TupleExpression
-                                                                        [ Node { start = { row = 3, column = 11 }, end = { row = 3, column = 12 } } (Integer 1)
-                                                                        , Node { start = { row = 3, column = 14 }, end = { row = 3, column = 15 } } (Integer 2)
+                                                                        [ Node { start = { row = 3, column = 11 }, end = { row = 3, column = 12 } } (IntegerLiteral 1)
+                                                                        , Node { start = { row = 3, column = 14 }, end = { row = 3, column = 15 } } (IntegerLiteral 2)
                                                                         ]
                                                                     )
                                                                 )
@@ -266,7 +266,7 @@ foo = bar"""
                                                         (RecordExpr
                                                             [ Node { start = { row = 2, column = 21 }, end = { row = 2, column = 30 } }
                                                                 ( Node { start = { row = 2, column = 21 }, end = { row = 2, column = 26 } } "model"
-                                                                , Node { start = { row = 2, column = 29 }, end = { row = 2, column = 30 } } (Integer 0)
+                                                                , Node { start = { row = 2, column = 29 }, end = { row = 2, column = 30 } } (IntegerLiteral 0)
                                                                 )
                                                             , Node { start = { row = 2, column = 32 }, end = { row = 2, column = 43 } }
                                                                 ( Node { start = { row = 2, column = 32 }, end = { row = 2, column = 36 } } "view"
@@ -314,7 +314,7 @@ foo = bar"""
                                                             (OperatorApplication "+"
                                                                 Left
                                                                 (Node { start = { row = 4, column = 7 }, end = { row = 4, column = 12 } } (FunctionOrValue [] "model"))
-                                                                (Node { start = { row = 4, column = 15 }, end = { row = 4, column = 16 } } (Integer 1))
+                                                                (Node { start = { row = 4, column = 15 }, end = { row = 4, column = 16 } } (IntegerLiteral 1))
                                                             )
                                                         )
                                                     , restOfCases =
@@ -323,7 +323,7 @@ foo = bar"""
                                                                 (OperatorApplication "-"
                                                                     Left
                                                                     (Node { start = { row = 7, column = 7 }, end = { row = 7, column = 12 } } (FunctionOrValue [] "model"))
-                                                                    (Node { start = { row = 7, column = 15 }, end = { row = 7, column = 16 } } (Integer 1))
+                                                                    (Node { start = { row = 7, column = 15 }, end = { row = 7, column = 16 } } (IntegerLiteral 1))
                                                                 )
                                                           )
                                                         ]
@@ -548,7 +548,7 @@ foo = bar"""
                                                             (OperatorApplication "+"
                                                                 Left
                                                                 (Node { start = { row = 4, column = 7 }, end = { row = 4, column = 12 } } (FunctionOrValue [] "model"))
-                                                                (Node { start = { row = 4, column = 15 }, end = { row = 4, column = 16 } } (Integer 1))
+                                                                (Node { start = { row = 4, column = 15 }, end = { row = 4, column = 16 } } (IntegerLiteral 1))
                                                             )
                                                         )
                                                     , restOfCases =
@@ -558,7 +558,7 @@ foo = bar"""
                                                                 (OperatorApplication "-"
                                                                     Left
                                                                     (Node { start = { row = 7, column = 7 }, end = { row = 7, column = 12 } } (FunctionOrValue [] "model"))
-                                                                    (Node { start = { row = 7, column = 15 }, end = { row = 7, column = 16 } } (Integer 1))
+                                                                    (Node { start = { row = 7, column = 15 }, end = { row = 7, column = 16 } } (IntegerLiteral 1))
                                                                 )
                                                           )
                                                         ]

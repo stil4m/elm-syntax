@@ -470,8 +470,8 @@ suite =
                 \() ->
                     (Node empty <|
                         TupleExpression
-                            [ Node empty <| Integer 1
-                            , Node empty <| Integer 2
+                            [ Node empty <| IntegerLiteral 1
+                            , Node empty <| IntegerLiteral 2
                             ]
                     )
                         |> Writer.writeExpression
