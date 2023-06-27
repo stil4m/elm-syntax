@@ -755,7 +755,7 @@ numberExpression =
         (Elm.Parser.Numbers.floatOrIntOrHex
             FloatLiteral
             IntegerLiteral
-            Hex
+            HexLiteral
         )
 
 
