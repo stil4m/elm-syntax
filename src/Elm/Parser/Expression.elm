@@ -753,7 +753,7 @@ numberExpression =
             }
         )
         (Elm.Parser.Numbers.floatOrIntOrHex
-            Floatable
+            FloatLiteral
             Integer
             Hex
         )
