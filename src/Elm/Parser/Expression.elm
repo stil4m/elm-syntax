@@ -832,7 +832,7 @@ infixLeft precedence symbol =
         (\((Node { start } _) as left) ((Node { end } _) as right) ->
             Node
                 { start = start, end = end }
-                (OperatorApplication symbol Infix.Left left right)
+                (Operation symbol Infix.Left left right)
         )
 
 
@@ -843,7 +843,7 @@ infixNonAssociative precedence symbol =
         (\((Node { start } _) as left) ((Node { end } _) as right) ->
             Node
                 { start = start, end = end }
-                (OperatorApplication symbol Infix.Non left right)
+                (Operation symbol Infix.Non left right)
         )
 
 
@@ -854,7 +854,7 @@ infixRight precedence symbol =
         (\((Node { start } _) as left) ((Node { end } _) as right) ->
             Node
                 { start = start, end = end }
-                (OperatorApplication symbol Infix.Right left right)
+                (Operation symbol Infix.Right left right)
         )
 
 
@@ -882,7 +882,7 @@ infixLeftSubtraction precedence =
         (\((Node { start } _) as left) ((Node { end } _) as right) ->
             Node
                 { start = start, end = end }
-                (OperatorApplication "-" Infix.Left left right)
+                (Operation "-" Infix.Left left right)
         )
 
 
