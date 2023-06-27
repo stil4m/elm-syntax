@@ -1,5 +1,5 @@
 module Elm.Syntax.Expression exposing
-    ( Expression(..), Lambda, LetBlock, LetDeclaration(..), RecordSetter, CaseBlock, Case, Function, FunctionImplementation
+    ( Expression(..), StringLiteralType(..), Lambda, LetBlock, LetDeclaration(..), RecordSetter, CaseBlock, Case, Function, FunctionImplementation
     , functionRange, isLambda, isLet, isIfElse, isCase, isOperatorApplication
     )
 
@@ -9,7 +9,7 @@ Although it is a easy and simple language, you can express a lot! See the `Expre
 
 ## Types
 
-@docs Expression, Lambda, LetBlock, LetDeclaration, RecordSetter, CaseBlock, Case, Function, FunctionImplementation
+@docs Expression, StringLiteralType, Lambda, LetBlock, LetDeclaration, RecordSetter, CaseBlock, Case, Function, FunctionImplementation
 
 
 ## Functions
@@ -113,7 +113,7 @@ type Expression
     | Hex Int
     | Floatable Float
     | Negation (Node Expression)
-    | Literal String
+    | Literal StringLiteralType String
     | CharLiteral Char
     | TupleExpression (List (Node Expression))
     | LetExpression LetBlock
@@ -125,6 +125,13 @@ type Expression
     | RecordAccessFunction String
     | RecordUpdateExpression (Node String) (Node RecordSetter) (List (Node RecordSetter))
     | GLSLExpression String
+
+
+{-| Indicates whether a string literal is single (`"abc"`) or triple-quoted (`"""abc"""`).
+-}
+type StringLiteralType
+    = SingleQuote
+    | TripleQuote
 
 
 {-| Expression for setting a record field

@@ -21,6 +21,7 @@ module Elm.Parser.Tokens exposing
 -}
 
 import Char
+import Elm.Syntax.Expression exposing (StringLiteralType(..))
 import Hex
 import Parser as Core exposing ((|.), (|=), Step(..))
 import Parser.Extra
@@ -173,14 +174,16 @@ characterLiteral =
         |. Core.symbol "'"
 
 
-singleOrTripleQuotedStringLiteral : Core.Parser String
+singleOrTripleQuotedStringLiteral : Core.Parser ( StringLiteralType, String )
 singleOrTripleQuotedStringLiteral =
     doubleQuote
         |> Parser.Extra.continueWith
             (Core.oneOf
                 [ twoDoubleQuotes
                     |> Parser.Extra.continueWith (Core.loop "" tripleQuotedStringLiteralStep)
+                    |> Core.map (\str -> ( TripleQuote, str ))
                 , Core.loop "" stringLiteralHelper
+                    |> Core.map (\str -> ( SingleQuote, str ))
                 ]
             )
 

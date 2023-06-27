@@ -261,7 +261,7 @@ recordSetterNodeWithLayout =
 literalExpression : Parser State Expression
 literalExpression =
     Tokens.singleOrTripleQuotedStringLiteral
-        |> Combine.fromCoreMap Literal
+        |> Combine.fromCoreMap (\( stringLiteralType, str ) -> Literal stringLiteralType str)
 
 
 charLiteralExpression : Parser State Expression

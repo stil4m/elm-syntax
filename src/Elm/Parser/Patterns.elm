@@ -153,7 +153,8 @@ unitPattern =
 stringPattern : Parser state Pattern
 stringPattern =
     Tokens.singleOrTripleQuotedStringLiteral
-        |> Combine.fromCoreMap StringPattern
+        -- TODO Store the StringLiteralType information in StringPattern
+        |> Combine.fromCoreMap (\( _, str ) -> StringPattern str)
 
 
 qualifiedNameRef : Core.Parser QualifiedNameRef
