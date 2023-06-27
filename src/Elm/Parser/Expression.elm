@@ -868,7 +868,7 @@ numberExpression =
     ParserFast.floatOrIntegerDecimalOrHexadecimalMapWithRange
         (\range n ->
             { comments = Rope.empty
-            , syntax = Node range (Floatable n)
+            , syntax = Node range (FloatLiteral n)
             }
         )
         (\range n ->
