@@ -834,7 +834,7 @@ numberExpression =
             \( endRow, endColumn ) ->
                 { comments = Rope.empty
                 , end = { row = endRow, column = endColumn }
-                , expression = Floatable n
+                , expression = FloatLiteral n
                 }
         )
         (\n ->
