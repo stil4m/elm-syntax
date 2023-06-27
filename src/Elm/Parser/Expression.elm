@@ -770,7 +770,7 @@ ifBlockExpression =
             { comments = ifBlock.comments
             , syntax =
                 Node { start = start, end = ifFalseRange.end }
-                    (IfBlock
+                    (If
                         ifBlock.condition
                         ifBlock.ifTrue
                         ifBlock.ifFalse
