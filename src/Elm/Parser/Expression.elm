@@ -260,8 +260,8 @@ recordFieldWithoutValue =
 literalExpression : Parser State (Node Expression)
 literalExpression =
     Core.oneOf
-        [ Tokens.multiLineStringLiteral |> Core.map (\str -> Literal TripleQuote str)
-        , Tokens.stringLiteral |> Core.map (\str -> Literal SingleQuote str)
+        [ Tokens.multiLineStringLiteral |> Core.map (\str -> StringLiteral TripleQuote str)
+        , Tokens.stringLiteral |> Core.map (\str -> StringLiteral SingleQuote str)
         ]
         |> Node.parserCore
         |> Combine.fromCore

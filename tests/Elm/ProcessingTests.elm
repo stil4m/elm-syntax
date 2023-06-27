@@ -334,7 +334,7 @@ log a =
                                 Node { start = { row = 6, column = 5 }, end = { row = 6, column = 21 } }
                                     (Application
                                         (Node { start = { row = 6, column = 5 }, end = { row = 6, column = 14 } } (FunctionOrValue [ "Debug" ] "log"))
-                                        [ Node { start = { row = 6, column = 15 }, end = { row = 6, column = 19 } } (Literal SingleQuote "ok")
+                                        [ Node { start = { row = 6, column = 15 }, end = { row = 6, column = 19 } } (StringLiteral SingleQuote "ok")
                                         , Node { start = { row = 6, column = 20 }, end = { row = 6, column = 21 } } (FunctionOrValue [] "a")
                                         ]
                                     )
