@@ -22,6 +22,7 @@ module Elm.Parser.Tokens exposing
 
 import Char
 import Char.Extra
+import Elm.Syntax.StringLiteralType exposing (StringLiteralType(..))
 import Hex
 import ParserFast
 import ParserFast.Advanced
@@ -110,14 +111,17 @@ characterLiteral =
         (ParserFast.symbol "'" ())
 
 
-singleOrTripleQuotedStringLiteral : ParserFast.Parser String
+singleOrTripleQuotedStringLiteral : ParserFast.Parser ( StringLiteralType, String )
 singleOrTripleQuotedStringLiteral =
     ParserFast.symbolFollowedBy "\""
         (ParserFast.oneOf2
             (ParserFast.symbolFollowedBy "\"\""
                 (ParserFast.Advanced.loop "" tripleQuotedStringLiteralStep)
+                |> ParserFast.map (\str -> ( TripleQuote, str ))
             )
-            (ParserFast.Advanced.loop "" stringLiteralHelper)
+            (ParserFast.Advanced.loop "" stringLiteralHelper
+                |> ParserFast.map (\str -> ( SingleQuote, str ))
+            )
         )
 
 

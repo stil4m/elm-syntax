@@ -328,9 +328,9 @@ recordSetterNodeWithLayout =
 literalExpression : Parser (WithComments (Node Expression))
 literalExpression =
     ParserFast.mapWithStartAndEndPosition
-        (\start string end ->
+        (\start ( stringLiteralType, string ) end ->
             { comments = Rope.empty
-            , syntax = Node { start = start, end = end } (Literal string)
+            , syntax = Node { start = start, end = end } (Literal stringLiteralType string)
             }
         )
         Tokens.singleOrTripleQuotedStringLiteral

@@ -22,6 +22,8 @@
         "Elm.Syntax.Port",
         "Elm.Syntax.Range",
         "Elm.Syntax.Signature",
+        "Elm.Syntax.StringLiteralType",
+        "Elm.Syntax.TypeAlias",
         "Elm.Syntax.TypeAlias",
         "Elm.Syntax.TypeAnnotation",
         "Elm.Syntax.Type"

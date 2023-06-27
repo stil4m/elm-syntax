@@ -8,6 +8,7 @@ import Elm.Syntax.Expression exposing (..)
 import Elm.Syntax.Infix as Infix exposing (InfixDirection(..))
 import Elm.Syntax.Node exposing (Node(..))
 import Elm.Syntax.Pattern exposing (..)
+import Elm.Syntax.StringLiteralType exposing (StringLiteralType(..))
 import Elm.Syntax.TypeAnnotation exposing (..)
 import Expect
 import Test exposing (..)
@@ -425,7 +426,7 @@ foo = bar"""
                                             Node { start = { row = 2, column = 3 }, end = { row = 2, column = 23 } }
                                                 (Application
                                                     (Node { start = { row = 2, column = 3 }, end = { row = 2, column = 7 } } (FunctionOrValue [] "text"))
-                                                    [ Node { start = { row = 2, column = 8 }, end = { row = 2, column = 23 } } (Literal "Hello, World!")
+                                                    [ Node { start = { row = 2, column = 8 }, end = { row = 2, column = 23 } } (Literal SingleQuote "Hello, World!")
                                                     ]
                                                 )
                                         }
@@ -449,7 +450,7 @@ foo = bar"""
                                             Node { start = { row = 2, column = 3 }, end = { row = 2, column = 23 } }
                                                 (Application
                                                     (Node { start = { row = 2, column = 3 }, end = { row = 2, column = 7 } } (FunctionOrValue [] "text"))
-                                                    [ Node { start = { row = 2, column = 8 }, end = { row = 2, column = 23 } } (Literal "Hello, World!")
+                                                    [ Node { start = { row = 2, column = 8 }, end = { row = 2, column = 23 } } (Literal SingleQuote "Hello, World!")
                                                     ]
                                                 )
                                         }
