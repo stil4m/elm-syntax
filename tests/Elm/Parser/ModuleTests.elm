@@ -161,7 +161,7 @@ b = 3
                                                             (Node { start = { row = 4, column = 8 }, end = { row = 4, column = 12 } }
                                                                 (FunctionOrValue [] "cond")
                                                             )
-                                                            (Node { start = { row = 5, column = 9 }, end = { row = 5, column = 10 } } (Integer 1))
+                                                            (Node { start = { row = 5, column = 9 }, end = { row = 5, column = 10 } } (IntegerLiteral 1))
                                                             (Node
                                                                 { start =
                                                                     { row = 7
@@ -169,7 +169,7 @@ b = 3
                                                                     }
                                                                 , end = { row = 7, column = 10 }
                                                                 }
-                                                                (Integer 2)
+                                                                (IntegerLiteral 2)
                                                             )
                                                         )
                                                 }
@@ -189,7 +189,7 @@ b = 3
                                                 }
                                                 { name = Node { start = { row = 13, column = 1 }, end = { row = 13, column = 2 } } "b"
                                                 , arguments = []
-                                                , expression = Node { start = { row = 13, column = 5 }, end = { row = 13, column = 6 } } (Integer 3)
+                                                , expression = Node { start = { row = 13, column = 5 }, end = { row = 13, column = 6 } } (IntegerLiteral 3)
                                                 }
                                         }
                                     )
@@ -245,7 +245,7 @@ b = 3
                                                         { start = { row = 4, column = 5 }
                                                         , end = { row = 4, column = 6 }
                                                         }
-                                                        (Integer 2)
+                                                        (IntegerLiteral 2)
                                                 }
                                         }
                                     )
@@ -265,7 +265,7 @@ b = 3
                                                         { start = { row = 10, column = 5 }
                                                         , end = { row = 10, column = 6 }
                                                         }
-                                                        (Integer 3)
+                                                        (IntegerLiteral 3)
                                                 }
                                         }
                                     )
@@ -315,7 +315,7 @@ a = 1
                                             Node { start = { row = 5, column = 1 }, end = { row = 5, column = 6 } }
                                                 { name = Node { start = { row = 5, column = 1 }, end = { row = 5, column = 2 } } "a"
                                                 , arguments = []
-                                                , expression = Node { start = { row = 5, column = 5 }, end = { row = 5, column = 6 } } (Integer 1)
+                                                , expression = Node { start = { row = 5, column = 5 }, end = { row = 5, column = 6 } } (IntegerLiteral 1)
                                                 }
                                         }
                                     )
@@ -371,7 +371,7 @@ b = 2
                                             Node { start = { row = 3, column = 1 }, end = { row = 3, column = 6 } }
                                                 { name = Node { start = { row = 3, column = 1 }, end = { row = 3, column = 2 } } "a"
                                                 , arguments = []
-                                                , expression = Node { start = { row = 3, column = 5 }, end = { row = 3, column = 6 } } (Integer 1)
+                                                , expression = Node { start = { row = 3, column = 5 }, end = { row = 3, column = 6 } } (IntegerLiteral 1)
                                                 }
                                         }
                                     )
@@ -399,7 +399,7 @@ b = 2
                                             Node { start = { row = 6, column = 1 }, end = { row = 6, column = 6 } }
                                                 { name = Node { start = { row = 6, column = 1 }, end = { row = 6, column = 2 } } "b"
                                                 , arguments = []
-                                                , expression = Node { start = { row = 6, column = 5 }, end = { row = 6, column = 6 } } (Integer 2)
+                                                , expression = Node { start = { row = 6, column = 5 }, end = { row = 6, column = 6 } } (IntegerLiteral 2)
                                                 }
                                         }
                                     )
