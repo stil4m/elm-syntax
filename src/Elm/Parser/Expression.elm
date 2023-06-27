@@ -841,7 +841,7 @@ numberExpression =
             \( endRow, endColumn ) ->
                 { comments = Rope.empty
                 , end = { row = endRow, column = endColumn }
-                , expression = Integer n
+                , expression = IntegerLiteral n
                 }
         )
         (\n ->
