@@ -881,7 +881,7 @@ ifBlockExpression =
                                                         |> Rope.prependTo commentsAfterElse
                                                         |> Rope.prependTo ifFalse.comments
                                                 , end = end
-                                                , expression = IfBlock condition.syntax ifTrue.syntax ifFalse.syntax
+                                                , expression = If condition.syntax ifTrue.syntax ifFalse.syntax
                                                 }
                 )
                 Layout.maybeLayout
