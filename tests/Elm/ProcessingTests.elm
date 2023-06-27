@@ -386,12 +386,12 @@ bar = (x + 1) * (2 * y)
                             , arguments = []
                             , expression =
                                 Node { start = { row = 3, column = 7 }, end = { row = 3, column = 24 } } <|
-                                    OperatorApplication "*"
+                                    Operation "*"
                                         Left
                                         (Node { start = { row = 3, column = 7 }, end = { row = 3, column = 14 } } <|
                                             TupleExpression
                                                 [ Node { start = { row = 3, column = 8 }, end = { row = 3, column = 13 } } <|
-                                                    OperatorApplication "+"
+                                                    Operation "+"
                                                         Left
                                                         (Node { start = { row = 3, column = 8 }, end = { row = 3, column = 9 } } <|
                                                             FunctionOrValue [] "x"
@@ -402,7 +402,7 @@ bar = (x + 1) * (2 * y)
                                         (Node { start = { row = 3, column = 17 }, end = { row = 3, column = 24 } } <|
                                             TupleExpression
                                                 [ Node { start = { row = 3, column = 18 }, end = { row = 3, column = 23 } } <|
-                                                    OperatorApplication "*"
+                                                    Operation "*"
                                                         Left
                                                         (Node { start = { row = 3, column = 18 }, end = { row = 3, column = 19 } } <| IntegerLiteral 2)
                                                         (Node { start = { row = 3, column = 22 }, end = { row = 3, column = 23 } } <| FunctionOrValue [] "y")
@@ -442,13 +442,13 @@ bar = x + 1 * 2
                             , arguments = []
                             , expression =
                                 Node { start = { row = 3, column = 7 }, end = { row = 3, column = 16 } } <|
-                                    OperatorApplication "+"
+                                    Operation "+"
                                         Left
                                         (Node { start = { row = 3, column = 7 }, end = { row = 3, column = 8 } } <|
                                             FunctionOrValue [] "x"
                                         )
                                         (Node { start = { row = 3, column = 11 }, end = { row = 3, column = 16 } } <|
-                                            OperatorApplication "*"
+                                            Operation "*"
                                                 Left
                                                 (Node { start = { row = 3, column = 11 }, end = { row = 3, column = 12 } } <| IntegerLiteral 1)
                                                 (Node { start = { row = 3, column = 15 }, end = { row = 3, column = 16 } } <| IntegerLiteral 2)
@@ -489,10 +489,10 @@ bar = x * 1 + 2
                             , arguments = []
                             , expression =
                                 Node { start = { row = 3, column = 7 }, end = { row = 3, column = 16 } } <|
-                                    OperatorApplication "+"
+                                    Operation "+"
                                         Left
                                         (Node { start = { row = 3, column = 7 }, end = { row = 3, column = 12 } } <|
-                                            OperatorApplication "*"
+                                            Operation "*"
                                                 Left
                                                 (Node { start = { row = 3, column = 7 }, end = { row = 3, column = 8 } } <| FunctionOrValue [] "x")
                                                 (Node { start = { row = 3, column = 11 }, end = { row = 3, column = 12 } } <| IntegerLiteral 1)
@@ -533,7 +533,7 @@ bar = -(1 * 2)
                                         (Node { start = { row = 3, column = 8 }, end = { row = 3, column = 15 } }
                                             (TupleExpression
                                                 [ Node { start = { row = 3, column = 9 }, end = { row = 3, column = 14 } }
-                                                    (OperatorApplication
+                                                    (Operation
                                                         "*"
                                                         Left
                                                         (Node { start = { row = 3, column = 9 }, end = { row = 3, column = 10 } } (IntegerLiteral 1))
@@ -582,7 +582,7 @@ bar = (1 * 2).x
                                         (Node { start = { row = 3, column = 7 }, end = { row = 3, column = 14 } }
                                             (TupleExpression
                                                 [ Node { start = { row = 3, column = 8 }, end = { row = 3, column = 13 } }
-                                                    (OperatorApplication
+                                                    (Operation
                                                         "*"
                                                         Left
                                                         (Node { start = { row = 3, column = 8 }, end = { row = 3, column = 9 } } (IntegerLiteral 1))
@@ -673,10 +673,10 @@ numeric2 = 1 + 2 * 3 ^ 4
                             { arguments = []
                             , expression =
                                 Node { start = { row = 3, column = 9 }, end = { row = 3, column = 29 } }
-                                    (OperatorApplication "||"
+                                    (Operation "||"
                                         Right
                                         (Node { start = { row = 3, column = 9 }, end = { row = 3, column = 21 } }
-                                            (OperatorApplication "&&"
+                                            (Operation "&&"
                                                 Right
                                                 (Node { start = { row = 3, column = 9 }, end = { row = 3, column = 13 } } (FunctionOrValue [] "True"))
                                                 (Node { start = { row = 3, column = 17 }, end = { row = 3, column = 21 } } (FunctionOrValue [] "True"))
@@ -697,11 +697,11 @@ numeric2 = 1 + 2 * 3 ^ 4
                             { arguments = []
                             , expression =
                                 Node { start = { row = 4, column = 9 }, end = { row = 4, column = 29 } }
-                                    (OperatorApplication "||"
+                                    (Operation "||"
                                         Right
                                         (Node { start = { row = 4, column = 9 }, end = { row = 4, column = 13 } } (FunctionOrValue [] "True"))
                                         (Node { start = { row = 4, column = 17 }, end = { row = 4, column = 29 } }
-                                            (OperatorApplication "&&"
+                                            (Operation "&&"
                                                 Right
                                                 (Node { start = { row = 4, column = 17 }, end = { row = 4, column = 21 } } (FunctionOrValue [] "True"))
                                                 (Node { start = { row = 4, column = 25 }, end = { row = 4, column = 29 } } (FunctionOrValue [] "True"))
@@ -721,13 +721,13 @@ numeric2 = 1 + 2 * 3 ^ 4
                             { arguments = []
                             , expression =
                                 Node { start = { row = 6, column = 12 }, end = { row = 6, column = 25 } }
-                                    (OperatorApplication "+"
+                                    (Operation "+"
                                         Left
                                         (Node { start = { row = 6, column = 12 }, end = { row = 6, column = 21 } }
-                                            (OperatorApplication "*"
+                                            (Operation "*"
                                                 Left
                                                 (Node { start = { row = 6, column = 12 }, end = { row = 6, column = 17 } }
-                                                    (OperatorApplication "^"
+                                                    (Operation "^"
                                                         Right
                                                         (Node { start = { row = 6, column = 12 }, end = { row = 6, column = 13 } } (IntegerLiteral 1))
                                                         (Node { start = { row = 6, column = 16 }, end = { row = 6, column = 17 } } (IntegerLiteral 2))
@@ -754,15 +754,15 @@ numeric2 = 1 + 2 * 3 ^ 4
                             { arguments = []
                             , expression =
                                 Node { start = { row = 7, column = 12 }, end = { row = 7, column = 25 } }
-                                    (OperatorApplication "+"
+                                    (Operation "+"
                                         Left
                                         (Node { start = { row = 7, column = 12 }, end = { row = 7, column = 13 } } (IntegerLiteral 1))
                                         (Node { start = { row = 7, column = 16 }, end = { row = 7, column = 25 } }
-                                            (OperatorApplication "*"
+                                            (Operation "*"
                                                 Left
                                                 (Node { start = { row = 7, column = 16 }, end = { row = 7, column = 17 } } (IntegerLiteral 2))
                                                 (Node { start = { row = 7, column = 20 }, end = { row = 7, column = 25 } }
-                                                    (OperatorApplication "^"
+                                                    (Operation "^"
                                                         Right
                                                         (Node { start = { row = 7, column = 20 }, end = { row = 7, column = 21 } } (IntegerLiteral 3))
                                                         (Node { start = { row = 7, column = 24 }, end = { row = 7, column = 25 } } (IntegerLiteral 4))
@@ -813,10 +813,10 @@ pipeline1 = 1 |> 2 |> 3
                             { arguments = []
                             , expression =
                                 Node { start = { row = 3, column = 12 }, end = { row = 3, column = 21 } }
-                                    (OperatorApplication "-"
+                                    (Operation "-"
                                         Left
                                         (Node { start = { row = 3, column = 12 }, end = { row = 3, column = 17 } }
-                                            (OperatorApplication "+"
+                                            (Operation "+"
                                                 Left
                                                 (Node { start = { row = 3, column = 12 }, end = { row = 3, column = 13 } } (IntegerLiteral 1))
                                                 (Node { start = { row = 3, column = 16 }, end = { row = 3, column = 17 } } (IntegerLiteral 2))
@@ -837,10 +837,10 @@ pipeline1 = 1 |> 2 |> 3
                             { arguments = []
                             , expression =
                                 Node { start = { row = 5, column = 13 }, end = { row = 5, column = 24 } }
-                                    (OperatorApplication "|>"
+                                    (Operation "|>"
                                         Left
                                         (Node { start = { row = 5, column = 13 }, end = { row = 5, column = 19 } }
-                                            (OperatorApplication "|>"
+                                            (Operation "|>"
                                                 Left
                                                 (Node { start = { row = 5, column = 13 }, end = { row = 5, column = 14 } } (IntegerLiteral 1))
                                                 (Node { start = { row = 5, column = 18 }, end = { row = 5, column = 19 } } (IntegerLiteral 2))

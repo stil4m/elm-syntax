@@ -150,7 +150,7 @@ divideAndConquer ops exps =
         op :: restOfOps ->
             case findNextSplit op restOfOps exps of
                 Just ( p, infix_, s ) ->
-                    OperatorApplication
+                    Operation
                         infix_.operator
                         infix_.direction
                         (Node (Range.combine <| List.map Node.range p) (divideAndConquer ops p))
@@ -373,8 +373,8 @@ visitExpressionInner (Node range expression) =
             Application function args ->
                 Application (visitExpression function) (List.map visitExpression args)
 
-            OperatorApplication op dir left right ->
-                OperatorApplication op
+            Operation op dir left right ->
+                Operation op
                     dir
                     (visitExpression left)
                     (visitExpression right)

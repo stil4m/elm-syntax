@@ -349,8 +349,8 @@ noRangeInnerExpression inner =
         Application head xs ->
             Application (noRangeExpression head) (List.map noRangeExpression xs)
 
-        OperatorApplication op dir left right ->
-            OperatorApplication op dir (noRangeExpression left) (noRangeExpression right)
+        Operation op dir left right ->
+            Operation op dir (noRangeExpression left) (noRangeExpression right)
 
         ListLiteral xs ->
             ListLiteral <| List.map noRangeExpression xs
