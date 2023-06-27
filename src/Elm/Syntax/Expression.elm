@@ -83,7 +83,7 @@ type alias FunctionImplementation =
   - `If`: `if a then b else c`
   - `PrefixOperator`: `(+)`
   - `Operator`: `+` (not possible to get in practice)
-  - `Integer`: `42`
+  - `IntegerLiteral`: `42`
   - `Hex`: `0x1F`
   - `FloatLiteral`: `42.0`
   - `Negation`: `-a`
@@ -109,7 +109,7 @@ type Expression
     | If (Node Expression) (Node Expression) (Node Expression)
     | PrefixOperator String
     | Operator String
-    | Integer Int
+    | IntegerLiteral Int
     | Hex Int
     | FloatLiteral Float
     | Negation (Node Expression)
