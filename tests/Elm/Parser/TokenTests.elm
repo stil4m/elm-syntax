@@ -2,6 +2,7 @@ module Elm.Parser.TokenTests exposing (all)
 
 import Elm.Parser.TestUtil exposing (..)
 import Elm.Parser.Tokens as Parser
+import Elm.Syntax.StringLiteralType exposing (StringLiteralType(..))
 import Expect
 import Test exposing (..)
 
@@ -90,11 +91,11 @@ all =
         , test "multiline string" <|
             \() ->
                 parse "\"\"\"Bar foo \n a\"\"\"" Parser.singleOrTripleQuotedStringLiteral
-                    |> Expect.equal (Just "Bar foo \n a")
+                    |> Expect.equal (Just ( TripleQuote, "Bar foo \n a" ))
         , test "multiline string escape" <|
             \() ->
                 parse """\"\"\" \\\"\"\" \"\"\"""" Parser.singleOrTripleQuotedStringLiteral
-                    |> Expect.equal (Just """ \"\"\" """)
+                    |> Expect.equal (Just ( TripleQuote, """ \"\"\" """ ))
         , test "character escaped" <|
             \() ->
                 parse "'\\''" Parser.characterLiteral
@@ -114,11 +115,11 @@ all =
         , test "string escaped 3" <|
             \() ->
                 parse "\"\\\"\"" Parser.singleOrTripleQuotedStringLiteral
-                    |> Expect.equal (Just "\"")
+                    |> Expect.equal (Just ( SingleQuote, "\"" ))
         , test "string escaped" <|
             \() ->
                 parse "\"foo\\\\\"" Parser.singleOrTripleQuotedStringLiteral
-                    |> Expect.equal (Just "foo\\")
+                    |> Expect.equal (Just ( SingleQuote, "foo\\" ))
         , test "character escaped 3" <|
             \() ->
                 parse "'\\n'" Parser.characterLiteral

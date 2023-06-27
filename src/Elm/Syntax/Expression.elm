@@ -26,6 +26,7 @@ import Elm.Syntax.Node as Node exposing (Node(..))
 import Elm.Syntax.Pattern exposing (Pattern)
 import Elm.Syntax.Range exposing (Range)
 import Elm.Syntax.Signature exposing (Signature)
+import Elm.Syntax.StringLiteralType exposing (StringLiteralType)
 
 
 {-| Type alias for a full function
@@ -113,7 +114,7 @@ type Expression
     | Hex Int
     | Floatable Float
     | Negation (Node Expression)
-    | Literal String
+    | Literal StringLiteralType String
     | CharLiteral Char
     | TupleExpression (List (Node Expression))
     | LetExpression LetBlock
