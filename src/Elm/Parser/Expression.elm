@@ -394,7 +394,7 @@ letDestructuringDeclarationWithPattern ((Node { start } _) as destructurePattern
 
 numberExpression : Parser State (Node Expression)
 numberExpression =
-    Node.parserCore (Elm.Parser.Numbers.forgivingNumber FloatLiteral IntegerLiteral Hex)
+    Node.parserCore (Elm.Parser.Numbers.forgivingNumber FloatLiteral IntegerLiteral HexLiteral)
         |> Combine.fromCore
 
 

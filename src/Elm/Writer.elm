@@ -476,7 +476,7 @@ writeExpression (Node range inner) =
         Operator x ->
             string x
 
-        Hex h ->
+        HexLiteral h ->
             join [ string "0x", string (Hex.toString h) ]
 
         IntegerLiteral i ->
