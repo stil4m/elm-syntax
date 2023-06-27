@@ -188,14 +188,14 @@ expressionAfterOpeningSquareBracket =
                 )
                 Layout.maybeLayout
                 (ParserFast.oneOf2
-                    (ParserFast.symbol "]" { comments = Rope.empty, syntax = ListExpr [] })
+                    (ParserFast.symbol "]" { comments = Rope.empty, syntax = ListLiteral [] })
                     (ParserFast.map4
                         (\head commentsAfterHead tail () ->
                             { comments =
                                 head.comments
                                     |> Rope.prependTo commentsAfterHead
                                     |> Rope.prependTo tail.comments
-                            , syntax = ListExpr (head.syntax :: tail.syntax)
+                            , syntax = ListLiteral (head.syntax :: tail.syntax)
                             }
                         )
                         expression
