@@ -476,7 +476,7 @@ writeExpression (Node range inner) =
         Hex h ->
             join [ string "0x", string (Hex.toString h) ]
 
-        Integer i ->
+        IntegerLiteral i ->
             string (String.fromInt i)
 
         FloatLiteral f ->

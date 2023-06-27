@@ -29,7 +29,7 @@ all =
                     |> Expect.equal
                         (Just
                             ( Node { start = { row = 1, column = 1 }, end = { row = 1, column = 5 } } <| NamedPattern (QualifiedNameRef [] "True") []
-                            , Node { start = { row = 1, column = 9 }, end = { row = 1, column = 10 } } <| Integer 1
+                            , Node { start = { row = 1, column = 9 }, end = { row = 1, column = 10 } } <| IntegerLiteral 1
                             )
                         )
         , test "caseStatement qualified" <|
@@ -38,7 +38,7 @@ all =
                     |> Expect.equal
                         (Just
                             ( Node { start = { row = 1, column = 1 }, end = { row = 1, column = 8 } } <| NamedPattern (QualifiedNameRef [ "Foo" ] "Bar") []
-                            , Node { start = { row = 1, column = 12 }, end = { row = 1, column = 13 } } <| Integer 1
+                            , Node { start = { row = 1, column = 12 }, end = { row = 1, column = 13 } } <| IntegerLiteral 1
                             )
                         )
         , test "caseStatement no spacing" <|
@@ -60,7 +60,7 @@ all =
                     |> Expect.equal
                         (Just
                             ( Node { start = { row = 1, column = 1 }, end = { row = 1, column = 5 } } <| NamedPattern (QualifiedNameRef [] "True") []
-                            , Node { start = { row = 2, column = 3 }, end = { row = 2, column = 4 } } <| Integer 1
+                            , Node { start = { row = 2, column = 3 }, end = { row = 2, column = 4 } } <| IntegerLiteral 1
                             )
                         )
         , test "caseStatements" <|
@@ -75,10 +75,10 @@ all =
                     |> Expect.equal
                         (Just
                             ( ( Node.empty <| NamedPattern (QualifiedNameRef [] "True") []
-                              , Node.empty <| Integer 1
+                              , Node.empty <| IntegerLiteral 1
                               )
                             , [ ( Node.empty <| NamedPattern (QualifiedNameRef [] "False") []
-                                , Node.empty <| Integer 2
+                                , Node.empty <| IntegerLiteral 2
                                 )
                               ]
                             )
@@ -95,13 +95,13 @@ all =
                     |> Expect.equal
                         (Just
                             ( ( Node.empty <| NamedPattern (QualifiedNameRef [] "True") []
-                              , Node.empty <| Integer 1
+                              , Node.empty <| IntegerLiteral 1
                               )
                             , [ ( Node.empty <| NamedPattern (QualifiedNameRef [] "False") []
-                                , Node.empty <| Integer 2
+                                , Node.empty <| IntegerLiteral 2
                                 )
                               , ( Node.empty <| NamedPattern (QualifiedNameRef [] "False") []
-                                , Node.empty <| Integer 3
+                                , Node.empty <| IntegerLiteral 3
                                 )
                               ]
                             )
@@ -116,11 +116,11 @@ all =
                                 { expression = Node.empty <| FunctionOrValue [] "f"
                                 , firstCase =
                                     ( Node.empty <| NamedPattern (QualifiedNameRef [] "True") []
-                                    , Node.empty <| Integer 1
+                                    , Node.empty <| IntegerLiteral 1
                                     )
                                 , restOfCases =
                                     [ ( Node empty <| NamedPattern (QualifiedNameRef [] "False") []
-                                      , Node empty <| Integer 2
+                                      , Node empty <| IntegerLiteral 2
                                       )
                                     ]
                                 }
@@ -140,13 +140,13 @@ all =
                                         ( Node { start = { row = 2, column = 3 }, end = { row = 2, column = 7 } } <|
                                             NamedPattern (QualifiedNameRef [] "True") []
                                         , Node { start = { row = 2, column = 11 }, end = { row = 2, column = 12 } } <|
-                                            Integer 1
+                                            IntegerLiteral 1
                                         )
                                     , restOfCases =
                                         [ ( Node { start = { row = 3, column = 3 }, end = { row = 3, column = 8 } } <|
                                                 NamedPattern (QualifiedNameRef [] "False") []
                                           , Node { start = { row = 3, column = 12 }, end = { row = 3, column = 13 } } <|
-                                                Integer 2
+                                                IntegerLiteral 2
                                           )
                                         ]
                                     }
@@ -167,13 +167,13 @@ all =
                                         ( Node { start = { row = 2, column = 3 }, end = { row = 2, column = 7 } } <|
                                             NamedPattern (QualifiedNameRef [] "True") []
                                         , Node { start = { row = 2, column = 11 }, end = { row = 2, column = 12 } } <|
-                                            Integer 1
+                                            IntegerLiteral 1
                                         )
                                     , restOfCases =
                                         [ ( Node { start = { row = 3, column = 3 }, end = { row = 3, column = 8 } } <|
                                                 NamedPattern (QualifiedNameRef [] "False") []
                                           , Node { start = { row = 3, column = 12 }, end = { row = 3, column = 13 } } <|
-                                                Integer 2
+                                                IntegerLiteral 2
                                           )
                                         ]
                                     }
@@ -199,7 +199,7 @@ all =
                                         Application
                                             (Node empty <| FunctionOrValue [] "model")
                                             [ Node empty <| Operator "+"
-                                            , Node empty <| Integer 1
+                                            , Node empty <| IntegerLiteral 1
                                             ]
                                     )
                                 , restOfCases =
@@ -208,7 +208,7 @@ all =
                                             Application
                                                 (Node empty <| FunctionOrValue [] "model")
                                                 [ Node empty <| Operator "-"
-                                                , Node empty <| Integer 1
+                                                , Node empty <| IntegerLiteral 1
                                                 ]
                                       )
                                     ]

@@ -92,7 +92,7 @@ all =
                                                 Node { start = { row = 2, column = 3 }, end = { row = 2, column = 10 } } <|
                                                     { name = Node { start = { row = 2, column = 3 }, end = { row = 2, column = 6 } } "bar"
                                                     , arguments = []
-                                                    , expression = Node { start = { row = 2, column = 9 }, end = { row = 2, column = 10 } } <| Integer 1
+                                                    , expression = Node { start = { row = 2, column = 9 }, end = { row = 2, column = 10 } } <| IntegerLiteral 1
                                                     }
                                             }
                                     ]
@@ -117,7 +117,7 @@ all =
                                                 Node empty <|
                                                     { name = Node empty "bar"
                                                     , arguments = []
-                                                    , expression = Node empty <| Integer 1
+                                                    , expression = Node empty <| IntegerLiteral 1
                                                     }
                                             }
                                     ]
@@ -144,7 +144,7 @@ all =
                                                         Node empty
                                                             { name = Node empty "bar"
                                                             , arguments = []
-                                                            , expression = Node empty <| Integer 1
+                                                            , expression = Node empty <| IntegerLiteral 1
                                                             }
                                                     }
                                             ]
@@ -217,7 +217,7 @@ all =
                                                 Node empty <|
                                                     { name = Node empty "indent"
                                                     , arguments = []
-                                                    , expression = Node empty <| Integer 1
+                                                    , expression = Node empty <| IntegerLiteral 1
                                                     }
                                             }
                                     ]
@@ -243,7 +243,7 @@ all =
                                                 Node empty <|
                                                     { name = Node empty "b"
                                                     , arguments = []
-                                                    , expression = Node empty <| Integer 1
+                                                    , expression = Node empty <| IntegerLiteral 1
                                                     }
                                             }
                                     ]

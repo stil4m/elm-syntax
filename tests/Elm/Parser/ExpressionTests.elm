@@ -32,7 +32,7 @@ all =
                 parseFullStringWithNullState "(1,2)" expression
                     |> Maybe.map noRangeExpression
                     |> Maybe.map Node.value
-                    |> Expect.equal (Just (TupleExpression [ Node.empty <| Integer 1, Node.empty <| Integer 2 ]))
+                    |> Expect.equal (Just (TupleExpression [ Node.empty <| IntegerLiteral 1, Node.empty <| IntegerLiteral 2 ]))
         , test "prefix expression" <|
             \() ->
                 parseFullStringWithNullState "(,)" expression
@@ -105,7 +105,7 @@ all =
                                 Application
                                     (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 6 } } <| FunctionOrValue [] "model")
                                     [ Node { start = { row = 1, column = 7 }, end = { row = 1, column = 8 } } <| Operator "+"
-                                    , Node { start = { row = 1, column = 9 }, end = { row = 1, column = 10 } } <| Integer 1
+                                    , Node { start = { row = 1, column = 9 }, end = { row = 1, column = 10 } } <| IntegerLiteral 1
                                     ]
                             )
                         )
@@ -228,7 +228,7 @@ all =
                     |> Expect.equal
                         (Just
                             (RecordExpr
-                                [ Node empty ( Node empty "model", Node empty <| Integer 0 )
+                                [ Node empty ( Node empty "model", Node empty <| IntegerLiteral 0 )
                                 , Node empty ( Node empty "view", Node empty <| FunctionOrValue [] "view" )
                                 , Node empty ( Node empty "update", Node empty <| FunctionOrValue [] "update" )
                                 ]
@@ -242,8 +242,8 @@ all =
                     |> Expect.equal
                         (Just
                             (RecordExpr
-                                [ Node empty ( Node empty "foo", Node empty <| Integer 1 )
-                                , Node empty ( Node empty "baz", Node empty <| Integer 2 )
+                                [ Node empty ( Node empty "foo", Node empty <| IntegerLiteral 1 )
+                                , Node empty ( Node empty "baz", Node empty <| IntegerLiteral 2 )
                                 ]
                             )
                         )
@@ -268,7 +268,7 @@ all =
                     |> Expect.equal
                         (Just
                             (ListExpr
-                                [ Node empty <| Integer 1
+                                [ Node empty <| IntegerLiteral 1
                                 ]
                             )
                         )
@@ -340,7 +340,7 @@ all =
                         (Just
                             (RecordUpdateExpression
                                 (Node empty "model")
-                                (Node empty ( Node empty "count", Node empty <| Integer 1 ))
+                                (Node empty ( Node empty "count", Node empty <| IntegerLiteral 1 ))
                                 [ Node empty ( Node empty "loading", Node empty <| FunctionOrValue [] "True" ) ]
                             )
                         )
@@ -353,7 +353,7 @@ all =
                         (Just
                             (RecordUpdateExpression
                                 (Node empty "model")
-                                (Node empty ( Node empty "count", Node empty <| Integer 1 ))
+                                (Node empty ( Node empty "count", Node empty <| IntegerLiteral 1 ))
                                 [ Node empty ( Node empty "loading", Node empty <| FunctionOrValue [] "True" ) ]
                             )
                         )
@@ -424,7 +424,7 @@ all =
                         (Just
                             (Application
                                 (Node empty <| FunctionOrValue [] "toFloat")
-                                [ Node empty <| Negation (Node empty <| Integer 5) ]
+                                [ Node empty <| Negation (Node empty <| IntegerLiteral 5) ]
                             )
                         )
         , test "negated expression for parenthesized" <|
