@@ -330,7 +330,7 @@ literalExpression =
     ParserFast.mapWithStartAndEndPosition
         (\start ( stringLiteralType, string ) end ->
             { comments = Rope.empty
-            , syntax = Node { start = start, end = end } (Literal stringLiteralType string)
+            , syntax = Node { start = start, end = end } (StringLiteral stringLiteralType string)
             }
         )
         Tokens.singleOrTripleQuotedStringLiteral
