@@ -426,7 +426,7 @@ foo = bar"""
                                             Node { start = { row = 2, column = 3 }, end = { row = 2, column = 23 } }
                                                 (Application
                                                     (Node { start = { row = 2, column = 3 }, end = { row = 2, column = 7 } } (FunctionOrValue [] "text"))
-                                                    [ Node { start = { row = 2, column = 8 }, end = { row = 2, column = 23 } } (Literal SingleQuote "Hello, World!")
+                                                    [ Node { start = { row = 2, column = 8 }, end = { row = 2, column = 23 } } (StringLiteral SingleQuote "Hello, World!")
                                                     ]
                                                 )
                                         }
@@ -450,7 +450,7 @@ foo = bar"""
                                             Node { start = { row = 2, column = 3 }, end = { row = 2, column = 23 } }
                                                 (Application
                                                     (Node { start = { row = 2, column = 3 }, end = { row = 2, column = 7 } } (FunctionOrValue [] "text"))
-                                                    [ Node { start = { row = 2, column = 8 }, end = { row = 2, column = 23 } } (Literal SingleQuote "Hello, World!")
+                                                    [ Node { start = { row = 2, column = 8 }, end = { row = 2, column = 23 } } (StringLiteral SingleQuote "Hello, World!")
                                                     ]
                                                 )
                                         }
