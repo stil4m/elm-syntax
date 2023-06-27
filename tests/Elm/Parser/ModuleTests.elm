@@ -100,7 +100,7 @@ b = 3
                                                 { arguments = []
                                                 , expression =
                                                     Node { start = { row = 4, column = 5 }, end = { row = 7, column = 10 } }
-                                                        (IfBlock
+                                                        (If
                                                             (Node { start = { row = 4, column = 8 }, end = { row = 4, column = 12 } }
                                                                 (FunctionOrValue [] "cond")
                                                             )

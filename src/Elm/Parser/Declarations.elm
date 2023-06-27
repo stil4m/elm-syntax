@@ -550,7 +550,7 @@ ifBlockExpression =
                         (\condition ifTrue ifFalse ->
                             Node
                                 { start = current.start, end = (Node.range ifFalse).end }
-                                (IfBlock condition ifTrue ifFalse)
+                                (If condition ifTrue ifFalse)
                         )
                         |> Combine.ignore (maybe Layout.layout)
                         |> Combine.andMap expression

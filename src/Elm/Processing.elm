@@ -379,8 +379,8 @@ visitExpressionInner (Node range expression) =
                     (visitExpression left)
                     (visitExpression right)
 
-            IfBlock e1 e2 e3 ->
-                IfBlock (visitExpression e1) (visitExpression e2) (visitExpression e3)
+            If e1 e2 e3 ->
+                If (visitExpression e1) (visitExpression e2) (visitExpression e3)
 
             TupleExpression expressionList ->
                 expressionList

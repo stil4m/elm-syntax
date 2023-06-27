@@ -83,7 +83,7 @@ type alias FunctionImplementation =
   - `Application`: `add a b`
   - `OperatorApplication`: `a + b`
   - `FunctionOrValue`: `add` or `True`
-  - `IfBlock`: `if a then b else c`
+  - `If`: `if a then b else c`
   - `PrefixOperator`: `(+)`
   - `Operator`: `+` (not possible to get in practice)
   - `Integer`: `42`
@@ -109,7 +109,7 @@ type Expression
     = Application (Node Expression) (List (Node Expression))
     | OperatorApplication String InfixDirection (Node Expression) (Node Expression)
     | FunctionOrValue ModuleName String
-    | IfBlock (Node Expression) (Node Expression) (Node Expression)
+    | If (Node Expression) (Node Expression) (Node Expression)
     | PrefixOperator String
     | Operator String
     | Integer Int
@@ -211,7 +211,7 @@ isLet e =
 isIfElse : Expression -> Bool
 isIfElse e =
     case e of
-        IfBlock _ _ _ ->
+        If _ _ _ ->
             True
 
         _ ->
@@ -265,7 +265,7 @@ encode expr =
                     ]
                 )
 
-        IfBlock c t e ->
+        If c t e ->
             encodeTyped "ifBlock" <|
                 JE.object
                     [ ( "clause", Node.encode encode c )
@@ -467,7 +467,7 @@ decoder =
                   )
                 , ( "operatorapplication", decodeOperatorApplication )
                 , ( "functionOrValue", JD.map2 FunctionOrValue (JD.field "moduleName" ModuleName.decoder) (JD.field "name" JD.string) )
-                , ( "ifBlock", JD.map3 IfBlock (JD.field "clause" decodeNested) (JD.field "then" decodeNested) (JD.field "else" decodeNested) )
+                , ( "ifBlock", JD.map3 If (JD.field "clause" decodeNested) (JD.field "then" decodeNested) (JD.field "else" decodeNested) )
                 , ( "prefixoperator", JD.string |> JD.map PrefixOperator )
                 , ( "operator", JD.string |> JD.map Operator )
                 , ( "hex", JD.int |> JD.map Hex )

@@ -355,8 +355,8 @@ noRangeInnerExpression inner =
         ListExpr xs ->
             ListExpr <| List.map noRangeExpression xs
 
-        IfBlock a b c ->
-            IfBlock
+        If a b c ->
+            If
                 (noRangeExpression a)
                 (noRangeExpression b)
                 (noRangeExpression c)

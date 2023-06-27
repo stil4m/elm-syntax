@@ -196,7 +196,7 @@ all =
                     |> Maybe.map Node.value
                     |> Expect.equal
                         (Just
-                            (IfBlock
+                            (If
                                 (Node empty <| FunctionOrValue [] "True")
                                 (Node empty <| FunctionOrValue [] "foo")
                                 (Node empty <| FunctionOrValue [] "bar")
@@ -209,10 +209,10 @@ all =
                     |> Maybe.map Node.value
                     |> Expect.equal
                         (Just
-                            (IfBlock
+                            (If
                                 (Node empty <| FunctionOrValue [] "True")
                                 (Node empty <|
-                                    IfBlock
+                                    If
                                         (Node empty <| FunctionOrValue [] "False")
                                         (Node empty <| FunctionOrValue [] "foo")
                                         (Node empty <| FunctionOrValue [] "baz")
