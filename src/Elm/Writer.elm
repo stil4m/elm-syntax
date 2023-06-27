@@ -462,7 +462,7 @@ writeExpression (Node range inner) =
                         , string <| name
                         ]
 
-        IfBlock condition thenCase elseCase ->
+        If condition thenCase elseCase ->
             breaked
                 [ spaced [ string "if", writeExpression condition, string "then" ]
                 , indent 2 (writeExpression thenCase)

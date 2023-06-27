@@ -407,7 +407,7 @@ ifBlockExpression =
                     \((Node { end } _) as ifFalse) ->
                         Node
                             { start = start, end = end }
-                            (IfBlock condition ifTrue ifFalse)
+                            (If condition ifTrue ifFalse)
         )
         |> Combine.keepFromCore Parser.Extra.location
         |> Combine.ignoreEntirely Tokens.ifToken
