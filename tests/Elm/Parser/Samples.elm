@@ -207,7 +207,7 @@ module B exposing (x)
 c =
   Maybe.map
       (\\( p, v, s ) ->
-          OperatorApplication
+          Operation
       )
 
 
