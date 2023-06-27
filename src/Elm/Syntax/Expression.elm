@@ -90,7 +90,7 @@ type alias FunctionImplementation =
   - `HexLiteral`: `0x1F`
   - `FloatLiteral`: `42.0`
   - `Negation`: `-a`
-  - `Literal`: `"text"`
+  - `StringLiteral`: `"text"` or `"""text"""`
   - `CharLiteral`: `'a'`
   - `TupleExpression`: `(a, b)` or `(a, b, c)`
   - `ParenthesizedExpression`: `(a)`
@@ -116,7 +116,7 @@ type Expression
     | HexLiteral Int
     | FloatLiteral Float
     | Negation (Node Expression)
-    | Literal StringLiteralType String
+    | StringLiteral StringLiteralType String
     | CharLiteral Char
     | TupleExpression (List (Node Expression))
     | LetExpression LetBlock
@@ -291,7 +291,7 @@ encode expr =
         Negation x ->
             encodeTyped "negation" (Node.encode encode x)
 
-        Literal quotes x ->
+        StringLiteral quotes x ->
             case quotes of
                 SingleQuote ->
                     encodeTyped "literal" (JE.string x)
@@ -474,8 +474,8 @@ decoder =
                 , ( "integer", JD.int |> JD.map IntegerLiteral )
                 , ( "float", JD.float |> JD.map FloatLiteral )
                 , ( "negation", decodeNested |> JD.map Negation )
-                , ( "literal", JD.string |> JD.map (\str -> Literal SingleQuote str) )
-                , ( "multilineLiteral", JD.string |> JD.map (\str -> Literal TripleQuote str) )
+                , ( "literal", JD.string |> JD.map (\str -> StringLiteral SingleQuote str) )
+                , ( "multilineLiteral", JD.string |> JD.map (\str -> StringLiteral TripleQuote str) )
                 , ( "charLiteral", decodeChar |> JD.map CharLiteral )
                 , ( "tuple", JD.list decodeNested |> JD.map TupleExpression )
                 , ( "list", JD.list decodeNested |> JD.map ListLiteral )

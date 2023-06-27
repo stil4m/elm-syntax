@@ -21,7 +21,7 @@ all =
             \() ->
                 parseFullStringWithNullState "\"Bar\"" expression
                     |> Maybe.map Node.value
-                    |> Expect.equal (Just (Literal SingleQuote "Bar"))
+                    |> Expect.equal (Just (StringLiteral SingleQuote "Bar"))
         , test "character literal" <|
             \() ->
                 parseFullStringWithNullState "'c'" expression
@@ -42,7 +42,7 @@ all =
             \() ->
                 parseFullStringWithNullState "\"\"\"Bar foo \n a\"\"\"" expression
                     |> Maybe.map Node.value
-                    |> Expect.equal (Just (Literal TripleQuote "Bar foo \n a"))
+                    |> Expect.equal (Just (StringLiteral TripleQuote "Bar foo \n a"))
         , test "Regression test for multiline strings with backslashes" <|
             \() ->
                 parseFullStringWithNullState "\"\"\"\\{\\}\"\"\"" expression
@@ -52,12 +52,12 @@ all =
             \() ->
                 parseFullStringWithNullState "\"\"\"\\\\{\\\\}\"\"\"" expression
                     |> Maybe.map Node.value
-                    |> Expect.equal (Just (Literal TripleQuote "\\{\\}"))
+                    |> Expect.equal (Just (StringLiteral TripleQuote "\\{\\}"))
         , test "Regression test 3 for multiline strings with backslashes" <|
             \() ->
                 parseFullStringWithNullState "\"\"\"\\\\a-blablabla-\\\\b\"\"\"" expression
                     |> Maybe.map Node.value
-                    |> Expect.equal (Just (Literal TripleQuote "\\a-blablabla-\\b"))
+                    |> Expect.equal (Just (StringLiteral TripleQuote "\\a-blablabla-\\b"))
         , test "Type expression for upper case" <|
             \() ->
                 parseFullStringWithNullState "Bar" expression
@@ -116,7 +116,7 @@ all =
                         (Just
                             (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 48 } } <|
                                 TupleExpression
-                                    [ Node { start = { row = 1, column = 2 }, end = { row = 1, column = 4 } } <| Literal SingleQuote ""
+                                    [ Node { start = { row = 1, column = 2 }, end = { row = 1, column = 4 } } <| StringLiteral SingleQuote ""
                                     , Node { start = { row = 1, column = 6 }, end = { row = 1, column = 47 } } <|
                                         Application
                                             (Node { start = { row = 1, column = 6 }, end = { row = 1, column = 12 } } <| FunctionOrValue [] "always")
@@ -255,8 +255,8 @@ all =
                     |> Expect.equal
                         (Just
                             (ListLiteral
-                                [ Node empty <| Application (Node empty <| FunctionOrValue [] "class") [ Node empty <| Literal SingleQuote "a" ]
-                                , Node empty <| Application (Node empty <| FunctionOrValue [] "text") [ Node empty <| Literal SingleQuote "Foo" ]
+                                [ Node empty <| Application (Node empty <| FunctionOrValue [] "class") [ Node empty <| StringLiteral SingleQuote "a" ]
+                                , Node empty <| Application (Node empty <| FunctionOrValue [] "text") [ Node empty <| StringLiteral SingleQuote "Foo" ]
                                 ]
                             )
                         )
