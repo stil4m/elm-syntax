@@ -112,7 +112,7 @@ all =
                     |> expectAst
                         (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 15 } } <|
                             Application (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 12 } } <| FunctionOrValue [ "List" ] "concat")
-                                [ Node { start = { row = 1, column = 13 }, end = { row = 1, column = 15 } } <| ListExpr []
+                                [ Node { start = { row = 1, column = 13 }, end = { row = 1, column = 15 } } (ListLiteral [])
                                 ]
                         )
         , test "application expression with operator" <|
@@ -139,14 +139,14 @@ all =
                                                 [ Node { start = { row = 1, column = 14 }, end = { row = 1, column = 46 } } <|
                                                     Application (Node { start = { row = 1, column = 14 }, end = { row = 1, column = 25 } } (FunctionOrValue [ "List" ] "concat"))
                                                         [ Node { start = { row = 1, column = 26 }, end = { row = 1, column = 46 } } <|
-                                                            ListExpr
+                                                            ListLiteral
                                                                 [ Node { start = { row = 1, column = 28 }, end = { row = 1, column = 40 } } <|
-                                                                    ListExpr
+                                                                    ListLiteral
                                                                         [ Node { start = { row = 1, column = 30 }, end = { row = 1, column = 38 } } <|
                                                                             FunctionOrValue [] "fileName"
                                                                         ]
                                                                 , Node { start = { row = 1, column = 42 }, end = { row = 1, column = 44 } } <|
-                                                                    ListExpr []
+                                                                    ListLiteral []
                                                                 ]
                                                         ]
                                                 ]
@@ -254,7 +254,7 @@ all =
                 "[ class \"a\", text \"Foo\"]"
                     |> expectAst
                         (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 25 } }
-                            (ListExpr
+                            (ListLiteral
                                 [ Node { start = { row = 1, column = 3 }, end = { row = 1, column = 12 } }
                                     (Application (Node { start = { row = 1, column = 3 }, end = { row = 1, column = 8 } } (FunctionOrValue [] "class"))
                                         [ Node { start = { row = 1, column = 9 }, end = { row = 1, column = 12 } } (Literal SingleQuote "a")
@@ -274,7 +274,7 @@ all =
                     |> expectAstWithComments
                         { ast =
                             Node { start = { row = 1, column = 1 }, end = { row = 1, column = 15 } }
-                                (ListExpr
+                                (ListLiteral
                                     [ Node { start = { row = 1, column = 3 }, end = { row = 1, column = 4 } } (IntegerLiteral 1)
                                     ]
                                 )
@@ -284,7 +284,7 @@ all =
             \() ->
                 "[{- Foo -}]"
                     |> expectAstWithComments
-                        { ast = Node { start = { row = 1, column = 1 }, end = { row = 1, column = 12 } } (ListExpr [])
+                        { ast = Node { start = { row = 1, column = 1 }, end = { row = 1, column = 12 } } (ListLiteral [])
                         , comments = [ Node { start = { row = 1, column = 2 }, end = { row = 1, column = 11 } } "{- Foo -}" ]
                         }
         , test "qualified expression" <|
