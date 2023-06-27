@@ -170,7 +170,7 @@ glslExpression =
 
 listExpression : Parser State Expression
 listExpression =
-    Core.map (\() -> ListExpr)
+    Core.map (\() -> ListLiteral)
         Tokens.squareStart
         |> Combine.fromCoreIgnore Layout.maybeLayout
         |> Combine.keep (Combine.sepBy "," expression)
