@@ -30,7 +30,7 @@ all =
         , test "String literal" <|
             \() ->
                 "\"Bar\""
-                    |> expectAst (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 6 } } (Literal SingleQuote "Bar"))
+                    |> expectAst (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 6 } } (StringLiteral SingleQuote "Bar"))
         , test "character literal" <|
             \() ->
                 "'c'"
@@ -76,7 +76,7 @@ all =
         , test "String literal multiline" <|
             \() ->
                 "\"\"\"Bar foo \n a\"\"\""
-                    |> expectAst (Node { start = { row = 1, column = 1 }, end = { row = 2, column = 6 } } (Literal TripleQuote "Bar foo \n a"))
+                    |> expectAst (Node { start = { row = 1, column = 1 }, end = { row = 2, column = 6 } } (StringLiteral TripleQuote "Bar foo \n a"))
         , test "Regression test for multiline strings with backslashes" <|
             \() ->
                 "a = \"\"\"\\{\\}\"\"\""
@@ -84,11 +84,11 @@ all =
         , test "Regression test 2 for multiline strings with backslashes" <|
             \() ->
                 "\"\"\"\\\\{\\\\}\"\"\""
-                    |> expectAst (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 13 } } (Literal TripleQuote "\\{\\}"))
+                    |> expectAst (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 13 } } (StringLiteral TripleQuote "\\{\\}"))
         , test "Regression test 3 for multiline strings with backslashes" <|
             \() ->
                 "\"\"\"\\\\a-blablabla-\\\\b\"\"\""
-                    |> expectAst (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 24 } } (Literal TripleQuote "\\a-blablabla-\\b"))
+                    |> expectAst (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 24 } } (StringLiteral TripleQuote "\\a-blablabla-\\b"))
         , test "Type expression for upper case" <|
             \() ->
                 "Bar"
@@ -220,7 +220,7 @@ all =
                     |> expectAst
                         (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 48 } } <|
                             TupleExpression
-                                [ Node { start = { row = 1, column = 2 }, end = { row = 1, column = 4 } } <| Literal SingleQuote ""
+                                [ Node { start = { row = 1, column = 2 }, end = { row = 1, column = 4 } } <| StringLiteral SingleQuote ""
                                 , Node { start = { row = 1, column = 6 }, end = { row = 1, column = 47 } } <|
                                     Application (Node { start = { row = 1, column = 6 }, end = { row = 1, column = 12 } } <| FunctionOrValue [] "always")
                                         [ Node { start = { row = 1, column = 13 }, end = { row = 1, column = 47 } } <|
@@ -346,12 +346,12 @@ all =
                             (ListLiteral
                                 [ Node { start = { row = 1, column = 3 }, end = { row = 1, column = 12 } }
                                     (Application (Node { start = { row = 1, column = 3 }, end = { row = 1, column = 8 } } (FunctionOrValue [] "class"))
-                                        [ Node { start = { row = 1, column = 9 }, end = { row = 1, column = 12 } } (Literal SingleQuote "a")
+                                        [ Node { start = { row = 1, column = 9 }, end = { row = 1, column = 12 } } (StringLiteral SingleQuote "a")
                                         ]
                                     )
                                 , Node { start = { row = 1, column = 14 }, end = { row = 1, column = 24 } }
                                     (Application (Node { start = { row = 1, column = 14 }, end = { row = 1, column = 18 } } (FunctionOrValue [] "text"))
-                                        [ Node { start = { row = 1, column = 19 }, end = { row = 1, column = 24 } } (Literal SingleQuote "Foo")
+                                        [ Node { start = { row = 1, column = 19 }, end = { row = 1, column = 24 } } (StringLiteral SingleQuote "Foo")
                                         ]
                                     )
                                 ]

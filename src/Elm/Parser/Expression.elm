@@ -451,7 +451,7 @@ literalExpression =
     Tokens.singleOrTripleQuotedStringLiteralMapWithRange
         (\range stringLiteralType string ->
             { comments = Rope.empty
-            , syntax = Node range (Literal stringLiteralType string)
+            , syntax = Node range (StringLiteral stringLiteralType string)
             }
         )
 
