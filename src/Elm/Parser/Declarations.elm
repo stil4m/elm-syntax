@@ -15,7 +15,7 @@ import Elm.Parser.Typings as Typings exposing (typeDefinition)
 import Elm.Parser.Whitespace exposing (manySpaces)
 import Elm.Syntax.Declaration as Declaration exposing (Declaration)
 import Elm.Syntax.DestructurePattern exposing (DestructurePattern(..))
-import Elm.Syntax.Expression as Expression exposing (Case, CaseBlock, Expression(..), Function, FunctionImplementation, Lambda, LetBlock, LetDeclaration(..), RecordSetter)
+import Elm.Syntax.Expression as Expression exposing (Case, CaseBlock, Expression(..), Function, FunctionImplementation, Lambda, LetBlock, LetDeclaration(..), RecordSetter, StringLiteralType(..))
 import Elm.Syntax.ModuleName exposing (ModuleName)
 import Elm.Syntax.Node as Node exposing (Node(..))
 import Elm.Syntax.Port exposing (Port)
@@ -364,7 +364,8 @@ recordExpression =
 
 literalExpression : Parser State (Node Expression)
 literalExpression =
-    Combine.map Literal (or multiLineStringLiteral stringLiteral)
+    or (Combine.map (\str -> Literal TripleQuote str) multiLineStringLiteral)
+        (Combine.map (\str -> Literal SingleQuote str) stringLiteral)
         |> Node.parser
 
 

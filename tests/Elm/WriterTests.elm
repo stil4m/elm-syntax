@@ -90,6 +90,17 @@ suite =
                         |> Writer.writeExpression
                         |> Writer.write
                         |> Expect.equal "List.map .name people"
+            , test "should be able to write strings while keeping their quotes" <|
+                \() ->
+                    let
+                        input : String
+                        input =
+                            """("a" ++ \"\"\"b\"\"\")"""
+                    in
+                    parseFullStringWithNullState input expression
+                        |> Maybe.map Writer.writeExpression
+                        |> Maybe.map Writer.write
+                        |> Expect.equal (Just input)
             ]
         , describe "Pattern"
             [ test "write string pattern" <|

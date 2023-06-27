@@ -493,7 +493,7 @@ all =
                                             Node { start = { row = 2, column = 3 }, end = { row = 2, column = 23 } }
                                                 (Application
                                                     (Node { start = { row = 2, column = 3 }, end = { row = 2, column = 7 } } (FunctionOrValue [] "text"))
-                                                    [ Node { start = { row = 2, column = 8 }, end = { row = 2, column = 23 } } (Literal "Hello, World!")
+                                                    [ Node { start = { row = 2, column = 8 }, end = { row = 2, column = 23 } } (Literal SingleQuote "Hello, World!")
                                                     ]
                                                 )
                                         , name = Node { start = { row = 1, column = 1 }, end = { row = 1, column = 5 } } "main"
@@ -517,7 +517,7 @@ all =
                                             Node { start = { row = 2, column = 3 }, end = { row = 2, column = 23 } }
                                                 (Application
                                                     (Node { start = { row = 2, column = 3 }, end = { row = 2, column = 7 } } (FunctionOrValue [] "text"))
-                                                    [ Node { start = { row = 2, column = 8 }, end = { row = 2, column = 23 } } (Literal "Hello, World!")
+                                                    [ Node { start = { row = 2, column = 8 }, end = { row = 2, column = 23 } } (Literal SingleQuote "Hello, World!")
                                                     ]
                                                 )
                                         , name = Node { start = { row = 1, column = 1 }, end = { row = 1, column = 5 } } "main"
