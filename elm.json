@@ -8,7 +8,6 @@
         "Elm.Dependency",
         "Elm.Interface",
         "Elm.Parser",
-        "Elm.Processing",
         "Elm.RawFile",
         "Elm.Writer",
         "Elm.Syntax.Comments",
