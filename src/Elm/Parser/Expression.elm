@@ -155,7 +155,7 @@ glslExpression =
 
 listExpression : Parser State (Node Expression)
 listExpression =
-    Combine.succeed ListExpr
+    Combine.succeed ListLiteral
         |> Combine.ignoreEntirely Tokens.squareStart
         |> Combine.ignore (Combine.maybeIgnore Layout.layout)
         |> Combine.keep (Combine.sepBy "," expression)

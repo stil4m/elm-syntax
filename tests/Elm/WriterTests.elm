@@ -382,7 +382,7 @@ suite =
                             )
             , test "regression test for char literals not being escaped" <|
                 \() ->
-                    ListExpr
+                    ListLiteral
                         [ Node empty (CharLiteral '\\')
                         , Node empty (CharLiteral '"')
                         , Node empty (CharLiteral '\'')

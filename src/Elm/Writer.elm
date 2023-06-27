@@ -538,7 +538,7 @@ writeExpression (Node range inner) =
         RecordExpr setters ->
             sepHelper bracesComma (List.map (Node.value >> writeRecordSetter) setters)
 
-        ListExpr xs ->
+        ListLiteral xs ->
             sepHelper bracketsComma (List.map recurRangeHelper xs)
 
         RecordAccess expression accessor ->
