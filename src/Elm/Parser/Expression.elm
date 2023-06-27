@@ -498,7 +498,7 @@ letFunction =
 
 numberExpression : Parser State Expression
 numberExpression =
-    Elm.Parser.Numbers.forgivingNumber FloatLiteral IntegerLiteral Hex
+    Elm.Parser.Numbers.forgivingNumber FloatLiteral IntegerLiteral HexLiteral
         |> Combine.fromCore
 
 
