@@ -98,7 +98,7 @@ type alias FunctionImplementation =
   - `CaseExpression`: `case a of` followed by pattern matches
   - `LambdaExpression`: `(\a -> a)`
   - `RecordExpr`: `{ name = "text" }`
-  - `ListExpr`: `[ x, y ]`
+  - `ListLiteral`: `[ x, y ]`
   - `RecordAccess`: `a.name`
   - `RecordAccessFunction`: `.name`
   - `RecordUpdateExpression`: `{ a | name = "text" }`
@@ -123,7 +123,7 @@ type Expression
     | CaseExpression CaseBlock
     | LambdaExpression Lambda
     | RecordExpr (List (Node RecordSetter))
-    | ListExpr (List (Node Expression))
+    | ListLiteral (List (Node Expression))
     | RecordAccess (Node Expression) (Node String)
     | RecordAccessFunction String
     | RecordUpdateExpression (Node String) (Node RecordSetter) (List (Node RecordSetter))
@@ -305,7 +305,7 @@ encode expr =
         TupleExpression xs ->
             encodeTyped "tuple" (JE.list (Node.encode encode) xs)
 
-        ListExpr xs ->
+        ListLiteral xs ->
             encodeTyped "list" (JE.list (Node.encode encode) xs)
 
         LetExpression x ->
@@ -478,7 +478,7 @@ decoder =
                 , ( "multilineLiteral", JD.string |> JD.map (\str -> Literal TripleQuote str) )
                 , ( "charLiteral", decodeChar |> JD.map CharLiteral )
                 , ( "tuple", JD.list decodeNested |> JD.map TupleExpression )
-                , ( "list", JD.list decodeNested |> JD.map ListExpr )
+                , ( "list", JD.list decodeNested |> JD.map ListLiteral )
                 , ( "let", decodeLetBlock |> JD.map LetExpression )
                 , ( "case", decodeCaseBlock |> JD.map CaseExpression )
                 , ( "lambda", decodeLambda |> JD.map LambdaExpression )

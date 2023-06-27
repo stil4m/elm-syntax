@@ -352,8 +352,8 @@ noRangeInnerExpression inner =
         OperatorApplication op dir left right ->
             OperatorApplication op dir (noRangeExpression left) (noRangeExpression right)
 
-        ListExpr xs ->
-            ListExpr <| List.map noRangeExpression xs
+        ListLiteral xs ->
+            ListLiteral <| List.map noRangeExpression xs
 
         If a b c ->
             If

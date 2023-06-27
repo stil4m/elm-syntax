@@ -263,13 +263,13 @@ listExpression =
                 |> Combine.andMap expression
                 |> Combine.ignore (maybe Layout.layout)
                 |> Combine.andMap (many (string "," |> Combine.ignore (maybe Layout.layout) |> Combine.continueWith expression))
-                |> Combine.map ListExpr
+                |> Combine.map ListLiteral
     in
     string "["
         |> Combine.ignore (maybe Layout.layout)
         |> Combine.continueWith
             (Combine.choice
-                [ string "]" |> Combine.map (always (ListExpr []))
+                [ string "]" |> Combine.map (always (ListLiteral []))
                 , innerExpressions |> Combine.ignore (string "]")
                 ]
             )

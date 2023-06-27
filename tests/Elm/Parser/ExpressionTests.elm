@@ -92,7 +92,7 @@ all =
                             (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 15 } } <|
                                 Application
                                     (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 12 } } <| FunctionOrValue [ "List" ] "concat")
-                                    [ Node { start = { row = 1, column = 13 }, end = { row = 1, column = 15 } } <| ListExpr []
+                                    [ Node { start = { row = 1, column = 13 }, end = { row = 1, column = 15 } } <| ListLiteral []
                                     ]
                             )
                         )
@@ -128,14 +128,14 @@ all =
                                                                 FunctionOrValue [ "List" ] "concat"
                                                             )
                                                             [ Node { start = { row = 1, column = 26 }, end = { row = 1, column = 46 } } <|
-                                                                ListExpr
+                                                                ListLiteral
                                                                     [ Node { start = { row = 1, column = 28 }, end = { row = 1, column = 40 } } <|
-                                                                        ListExpr
+                                                                        ListLiteral
                                                                             [ Node { start = { row = 1, column = 30 }, end = { row = 1, column = 38 } } <|
                                                                                 FunctionOrValue [] "fileName"
                                                                             ]
                                                                     , Node { start = { row = 1, column = 42 }, end = { row = 1, column = 44 } } <|
-                                                                        ListExpr []
+                                                                        ListLiteral []
                                                                     ]
                                                             ]
                                                     ]
@@ -185,7 +185,7 @@ all =
                             (Application
                                 (Node empty <| RecordExpr [ Node empty ( Node empty "key", Node empty <| FunctionOrValue [] "value" ) ])
                                 [ Node empty <| Operator "!"
-                                , Node empty <| ListExpr []
+                                , Node empty <| ListLiteral []
                                 ]
                             )
                         )
@@ -254,7 +254,7 @@ all =
                     |> Maybe.map Node.value
                     |> Expect.equal
                         (Just
-                            (ListExpr
+                            (ListLiteral
                                 [ Node empty <| Application (Node empty <| FunctionOrValue [] "class") [ Node empty <| Literal SingleQuote "a" ]
                                 , Node empty <| Application (Node empty <| FunctionOrValue [] "text") [ Node empty <| Literal SingleQuote "Foo" ]
                                 ]
@@ -267,7 +267,7 @@ all =
                     |> Maybe.map Node.value
                     |> Expect.equal
                         (Just
-                            (ListExpr
+                            (ListLiteral
                                 [ Node empty <| IntegerLiteral 1
                                 ]
                             )
@@ -277,7 +277,7 @@ all =
                 parseFullStringWithNullState "[{-| Foo -}]" expression
                     |> Maybe.map noRangeExpression
                     |> Maybe.map Node.value
-                    |> Expect.equal (Just (ListExpr []))
+                    |> Expect.equal (Just (ListLiteral []))
         , test "qualified expression" <|
             \() ->
                 parseFullStringWithNullState "Html.text" expression
