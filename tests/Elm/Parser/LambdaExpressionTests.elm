@@ -61,7 +61,7 @@ all =
                                     ]
                                 , expression =
                                     Node { start = { row = 1, column = 9 }, end = { row = 1, column = 14 } }
-                                        (OperatorApplication "+"
+                                        (Operation "+"
                                             Left
                                             (Node { start = { row = 1, column = 9 }, end = { row = 1, column = 10 } } (FunctionOrValue [] "a"))
                                             (Node { start = { row = 1, column = 13 }, end = { row = 1, column = 14 } } (FunctionOrValue [] "b"))
@@ -85,7 +85,7 @@ all =
                                 , restOfArgs = []
                                 , expression =
                                     Node { start = { row = 1, column = 11 }, end = { row = 1, column = 16 } }
-                                        (OperatorApplication "+"
+                                        (Operation "+"
                                             Left
                                             (Node { start = { row = 1, column = 11 }, end = { row = 1, column = 12 } } (FunctionOrValue [] "a"))
                                             (Node { start = { row = 1, column = 15 }, end = { row = 1, column = 16 } } (FunctionOrValue [] "b"))

@@ -1412,7 +1412,7 @@ applyExtensionRight (ExtendRightByOperation operation) ((Node leftRange _) as le
             operation.expression
     in
     Node { start = leftRange.start, end = rightExpressionRange.end }
-        (OperatorApplication operation.symbol
+        (Operation operation.symbol
             operation.direction
             leftNode
             rightExpressionNode

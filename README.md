@@ -11,10 +11,10 @@ Here's an example of that:
 Code: `3 + 4 * 2`
 AST:
 ```elm
-OperatorApplication
+Operation
     (IntegerLiteral 3)
     "+"
-    (OperatorApplication
+    (Operation
         (IntegerLiteral 4)
         "*"
         (IntegerLiteral 2)
