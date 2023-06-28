@@ -220,7 +220,7 @@ recordContents =
 
 recordUpdateSyntaxParser : Node String -> Parser State Expression
 recordUpdateSyntaxParser fname =
-    Combine.succeed (\( head, tail ) -> RecordUpdateExpression fname head tail)
+    Combine.succeed (\( head, tail ) -> RecordUpdate fname head tail)
         |> Combine.ignoreEntirely Tokens.pipe
         |> Combine.ignore (Combine.maybeIgnore Layout.layout)
         |> Combine.keep recordFields

@@ -551,7 +551,7 @@ writeExpression (Node range inner) =
             else
                 join [ string ".", string s ]
 
-        RecordUpdateExpression name firstUpdate updates ->
+        RecordUpdate name firstUpdate updates ->
             spaced
                 [ string "{"
                 , string <| Node.value name
