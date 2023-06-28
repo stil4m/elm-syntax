@@ -28,7 +28,8 @@
     - `Literal String` -> `StringLiteral StringLiteralType String`
     - Added `type StringLiteralType = TripleQuote | SingleQuote`
   - `Application (List (Node Expression))` -> `Application (Node Expression) (List (Node Expression))` (takes a non-empty list of arguments)
-  - `RecordUpdateExpression (Node String) (List (Node RecordSetter))` -> `RecordUpdateExpression (Node String) (Node RecordSetter) (List (Node RecordSetter))` (takes a non-empty list of fields)
+  - Renamed `RecordUpdateExpression` to `RecordUpdate`
+  - `RecordUpdateExpression (Node String) (List (Node RecordSetter))` -> `RecordUpdate (Node String) (Node RecordSetter) (List (Node RecordSetter))` (takes a non-empty list of fields)
   - Renamed `TupledExpression` to `TupleExpression`
   - Renamed `IfBlock` to `If`
   - Renamed `Floatable` to `FloatLiteral`
