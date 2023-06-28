@@ -96,7 +96,7 @@ type alias FunctionImplementation =
   - `ListLiteral`: `[ x, y ]`
   - `RecordAccess`: `a.name`
   - `RecordAccessFunction`: `.name`
-  - `RecordUpdateExpression`: `{ a | name = "text" }`
+  - `RecordUpdate`: `{ a | name = "text" }`
   - `GLSLExpression`: `[glsl| ... |]`
 
 -}
@@ -121,7 +121,7 @@ type Expression
     | ListLiteral (List (Node Expression))
     | RecordAccess (Node Expression) (Node String)
     | RecordAccessFunction String
-    | RecordUpdateExpression (Node String) (Node RecordSetter) (List (Node RecordSetter))
+    | RecordUpdate (Node String) (Node RecordSetter) (List (Node RecordSetter))
     | GLSLExpression String
 
 

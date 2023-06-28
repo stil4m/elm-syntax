@@ -335,7 +335,7 @@ all =
                 "{ model | count = 1, loading = True }"
                     |> expectAst
                         (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 38 } }
-                            (RecordUpdateExpression
+                            (RecordUpdate
                                 (Node { start = { row = 1, column = 3 }, end = { row = 1, column = 8 } } "model")
                                 (Node { start = { row = 1, column = 11 }, end = { row = 1, column = 20 } }
                                     ( Node { start = { row = 1, column = 11 }, end = { row = 1, column = 16 } } "count"
@@ -354,7 +354,7 @@ all =
                 "{model| count = 1, loading = True }"
                     |> expectAst
                         (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 36 } }
-                            (RecordUpdateExpression
+                            (RecordUpdate
                                 (Node { start = { row = 1, column = 2 }, end = { row = 1, column = 7 } } "model")
                                 (Node { start = { row = 1, column = 9 }, end = { row = 1, column = 18 } }
                                     ( Node { start = { row = 1, column = 9 }, end = { row = 1, column = 14 } } "count"
@@ -591,7 +591,7 @@ all =
                                 [ Node { start = { row = 1, column = 5 }, end = { row = 1, column = 24 } }
                                     (RecordAccess
                                         (Node { start = { row = 1, column = 5 }, end = { row = 1, column = 22 } }
-                                            (RecordUpdateExpression (Node { start = { row = 1, column = 7 }, end = { row = 1, column = 8 } } "d")
+                                            (RecordUpdate (Node { start = { row = 1, column = 7 }, end = { row = 1, column = 8 } } "d")
                                                 (Node { start = { row = 1, column = 11 }, end = { row = 1, column = 21 } }
                                                     ( Node { start = { row = 1, column = 11 }, end = { row = 1, column = 12 } } "b"
                                                     , Node { start = { row = 1, column = 15 }, end = { row = 1, column = 20 } }
