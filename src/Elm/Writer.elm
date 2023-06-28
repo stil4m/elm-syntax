@@ -29,7 +29,7 @@ import Elm.Syntax.TypeAlias exposing (TypeAlias)
 import Elm.Syntax.TypeAnnotation as TypeAnnotation exposing (TypeAnnotation)
 import Hex
 import List.Extra
-import StructuredWriter as Writer exposing (..)
+import StructuredWriter as Writer exposing (Writer, bracesComma, bracketsComma, breaked, epsilon, indent, parensComma, sepByComma, sepBySpace, spaced)
 
 
 {-| Transform a writer to a string
@@ -58,7 +58,7 @@ writeModule m =
 
         Module.PortModule defaultModuleData ->
             spaced
-                [ string "port"
+                [ Writer.string "port"
                 , writeDefaultModuleData defaultModuleData
                 ]
 
@@ -69,7 +69,7 @@ writeModule m =
 writeDefaultModuleData : Module.DefaultModuleData -> Writer
 writeDefaultModuleData { moduleName, exposingList } =
     spaced
-        [ string "module"
+        [ Writer.string "module"
         , writeModuleName <| Node.value moduleName
         , writeExposureExpose <| Node.value exposingList
         ]
@@ -78,8 +78,8 @@ writeDefaultModuleData { moduleName, exposingList } =
 writeEffectModuleData : Module.EffectModuleData -> Writer
 writeEffectModuleData { moduleName, exposingList, command, subscription } =
     spaced
-        [ string "effect"
-        , string "module"
+        [ Writer.string "effect"
+        , Writer.string "module"
         , writeModuleName <| Node.value moduleName
         , writeWhere ( command, subscription )
         , writeExposureExpose <| Node.value exposingList
@@ -94,38 +94,38 @@ writeWhere input =
 
         ( Just x, Nothing ) ->
             spaced
-                [ string "where { command ="
-                , string <| Node.value x
-                , string "}"
+                [ Writer.string "where { command ="
+                , Writer.string <| Node.value x
+                , Writer.string "}"
                 ]
 
         ( Nothing, Just x ) ->
             spaced
-                [ string "where { subscription ="
-                , string <| Node.value x
-                , string "}"
+                [ Writer.string "where { subscription ="
+                , Writer.string <| Node.value x
+                , Writer.string "}"
                 ]
 
         ( Just x, Just y ) ->
             spaced
-                [ string "where { command ="
-                , string <| Node.value x
-                , string ", subscription ="
-                , string <| Node.value y
-                , string "}"
+                [ Writer.string "where { command ="
+                , Writer.string <| Node.value x
+                , Writer.string ", subscription ="
+                , Writer.string <| Node.value y
+                , Writer.string "}"
                 ]
 
 
 writeModuleName : ModuleName -> Writer
 writeModuleName moduleName =
-    string (String.join "." moduleName)
+    Writer.string (String.join "." moduleName)
 
 
 writeExposureExpose : Exposing -> Writer
 writeExposureExpose x =
     case x of
         Exposing.All _ ->
-            string "exposing (..)"
+            Writer.string "exposing (..)"
 
         Exposing.Explicit head rest ->
             let
@@ -139,7 +139,7 @@ writeExposureExpose x =
                         |> startOnDifferentLines
             in
             spaced
-                [ string "exposing"
+                [ Writer.string "exposing"
                 , parensComma diffLines (List.map writeExpose exposeList)
                 ]
 
@@ -148,24 +148,24 @@ writeExpose : Node Exposing.TopLevelExpose -> Writer
 writeExpose (Node _ exp) =
     case exp of
         Exposing.InfixExpose x ->
-            string ("(" ++ x ++ ")")
+            Writer.string ("(" ++ x ++ ")")
 
         Exposing.FunctionExpose f ->
-            string f
+            Writer.string f
 
         Exposing.TypeOrAliasExpose t ->
-            string t
+            Writer.string t
 
         Exposing.TypeExpose { name, open } ->
             case open of
                 Just _ ->
                     spaced
-                        [ string name
-                        , string "(..)"
+                        [ Writer.string name
+                        , Writer.string "(..)"
                         ]
 
                 Nothing ->
-                    string name
+                    Writer.string name
 
 
 startOnDifferentLines : List Range -> Bool
@@ -176,10 +176,10 @@ startOnDifferentLines xs =
 writeImport : Import -> Writer
 writeImport { moduleName, moduleAlias, exposingList } =
     spaced
-        [ string "import"
+        [ Writer.string "import"
         , writeModuleName <| Node.value moduleName
-        , maybe (Maybe.map (Node.value >> writeModuleName >> (\x -> spaced [ string "as", x ])) moduleAlias)
-        , maybe (Maybe.map (Node.value >> writeExposureExpose) exposingList)
+        , Writer.maybe (Maybe.map (Node.value >> writeModuleName >> (\x -> spaced [ Writer.string "as", x ])) moduleAlias)
+        , Writer.maybe (Maybe.map (Node.value >> writeExposureExpose) exposingList)
         ]
 
 
@@ -217,8 +217,8 @@ writeDeclaration (Node _ decl) =
 writeFunction : Expression.Function -> Writer
 writeFunction { documentation, signature, declaration } =
     breaked
-        [ maybe (Maybe.map writeDocumentation documentation)
-        , maybe (Maybe.map (Node.value >> writeSignature) signature)
+        [ Writer.maybe (Maybe.map writeDocumentation documentation)
+        , Writer.maybe (Maybe.map (Node.value >> writeSignature) signature)
         , writeFunctionImplementation <| Node.value declaration
         ]
 
@@ -227,9 +227,9 @@ writeFunctionImplementation : Expression.FunctionImplementation -> Writer
 writeFunctionImplementation declaration =
     breaked
         [ spaced
-            [ string <| Node.value declaration.name
+            [ Writer.string <| Node.value declaration.name
             , spaced (List.map writeDestructurePattern declaration.arguments)
-            , string "="
+            , Writer.string "="
             ]
         , indent 4 (writeExpression declaration.expression)
         ]
@@ -238,25 +238,25 @@ writeFunctionImplementation declaration =
 writeSignature : Signature -> Writer
 writeSignature signature =
     spaced
-        [ string <| Node.value signature.name
-        , string ":"
+        [ Writer.string <| Node.value signature.name
+        , Writer.string ":"
         , writeTypeAnnotation signature.typeAnnotation
         ]
 
 
 writeDocumentation : Node Documentation -> Writer
 writeDocumentation =
-    Node.value >> string
+    Node.value >> Writer.string
 
 
 writeTypeAlias : TypeAlias -> Writer
 writeTypeAlias typeAlias =
     breaked
         [ spaced
-            [ string "type alias"
-            , string <| Node.value typeAlias.name
-            , spaced (List.map (Node.value >> string) typeAlias.generics)
-            , string "="
+            [ Writer.string "type alias"
+            , Writer.string <| Node.value typeAlias.name
+            , spaced (List.map (Node.value >> Writer.string) typeAlias.generics)
+            , Writer.string "="
             ]
         , indent 4 (writeTypeAnnotation typeAlias.typeAnnotation)
         ]
@@ -266,9 +266,9 @@ writeType : Type -> Writer
 writeType type_ =
     breaked
         [ spaced
-            [ string "type"
-            , string <| Node.value type_.name
-            , spaced (List.map (Node.value >> string) type_.generics)
+            [ Writer.string "type"
+            , Writer.string <| Node.value type_.name
+            , spaced (List.map (Node.value >> Writer.string) type_.generics)
             ]
         , let
             constructors : List (Node Type.ValueConstructor)
@@ -281,7 +281,7 @@ writeType type_ =
                     |> startOnDifferentLines
           in
           indent 4
-            (sepBy ( "= ", " | ", "" )
+            (Writer.sepBy ( "= ", " | ", "" )
                 diffLines
                 (List.map (Node.value >> writeValueConstructor) constructors)
             )
@@ -291,7 +291,7 @@ writeType type_ =
 writeValueConstructor : Type.ValueConstructor -> Writer
 writeValueConstructor { name, arguments } =
     spaced
-        ((string <| Node.value name)
+        ((Writer.string <| Node.value name)
             :: List.map (wrapInSurroundingParentheses >> writeTypeAnnotation) arguments
         )
 
@@ -302,37 +302,37 @@ writePortDeclaration { signature, documentation } =
         Just doc ->
             breaked
                 [ writeDocumentation doc
-                , spaced [ string "port", writeSignature <| Node.value signature ]
+                , spaced [ Writer.string "port", writeSignature <| Node.value signature ]
                 ]
 
         Nothing ->
-            spaced [ string "port", writeSignature <| Node.value signature ]
+            spaced [ Writer.string "port", writeSignature <| Node.value signature ]
 
 
 writeInfix : Infix -> Writer
 writeInfix { direction, precedence, operator, function } =
     spaced
-        [ string "infix"
+        [ Writer.string "infix"
         , case Node.value direction of
             Infix.Left ->
-                string "left"
+                Writer.string "left"
 
             Infix.Right ->
-                string "right"
+                Writer.string "right"
 
             Infix.Non ->
-                string "non"
-        , string (String.fromInt (Node.value precedence))
-        , string (Node.value operator)
-        , string "="
-        , string (Node.value function)
+                Writer.string "non"
+        , Writer.string (String.fromInt (Node.value precedence))
+        , Writer.string (Node.value operator)
+        , Writer.string "="
+        , Writer.string (Node.value function)
         ]
 
 
 writeDestructuring : Node DestructurePattern -> Node Expression -> Writer
 writeDestructuring pattern expression =
     breaked
-        [ spaced [ writeDestructurePattern pattern, string "=" ]
+        [ spaced [ writeDestructurePattern pattern, Writer.string "=" ]
         , indent 4 (writeExpression expression)
         ]
 
@@ -343,11 +343,11 @@ writeTypeAnnotation : Node TypeAnnotation -> Writer
 writeTypeAnnotation (Node _ typeAnnotation) =
     case typeAnnotation of
         TypeAnnotation.Var s ->
-            string s
+            Writer.string s
 
         TypeAnnotation.Type (Node _ ( moduleName, name )) args ->
             spaced
-                ((string <| String.join "." (moduleName ++ [ name ]))
+                ((Writer.string <| String.join "." (moduleName ++ [ name ]))
                     :: List.map (writeTypeAnnotation >> parensIfContainsSpaces) args
                 )
 
@@ -359,11 +359,11 @@ writeTypeAnnotation (Node _ typeAnnotation) =
 
         TypeAnnotation.GenericRecord name fields ->
             spaced
-                [ string "{"
-                , string <| Node.value name
-                , string "|"
+                [ Writer.string "{"
+                , Writer.string <| Node.value name
+                , Writer.string "|"
                 , sepByComma False (List.map writeRecordField <| Node.value fields)
-                , string "}"
+                , Writer.string "}"
                 ]
 
         TypeAnnotation.FunctionTypeAnnotation left right ->
@@ -372,14 +372,14 @@ writeTypeAnnotation (Node _ typeAnnotation) =
                 addParensForSubTypeAnnotation type_ =
                     case type_ of
                         Node _ (TypeAnnotation.FunctionTypeAnnotation _ _) ->
-                            join [ string "(", writeTypeAnnotation type_, string ")" ]
+                            Writer.join [ Writer.string "(", writeTypeAnnotation type_, Writer.string ")" ]
 
                         _ ->
                             writeTypeAnnotation type_
             in
             spaced
                 [ addParensForSubTypeAnnotation left
-                , string "->"
+                , Writer.string "->"
                 , addParensForSubTypeAnnotation right
                 ]
 
@@ -387,8 +387,8 @@ writeTypeAnnotation (Node _ typeAnnotation) =
 writeRecordField : Node TypeAnnotation.RecordField -> Writer
 writeRecordField (Node _ ( name, ref )) =
     spaced
-        [ string <| Node.value name
-        , string ":"
+        [ Writer.string <| Node.value name
+        , Writer.string ":"
         , writeTypeAnnotation ref
         ]
 
@@ -405,7 +405,7 @@ writeExpression (Node range inner) =
         writeRecordSetter : Expression.RecordSetter -> ( Range, Writer )
         writeRecordSetter ( name, expr ) =
             ( Node.range expr
-            , spaced [ string <| Node.value name, string "=", writeExpression expr ]
+            , spaced [ Writer.string <| Node.value name, Writer.string "=", writeExpression expr ]
             )
 
         sepHelper : (Bool -> List Writer -> Writer) -> List ( Range, Writer ) -> Writer
@@ -435,76 +435,76 @@ writeExpression (Node range inner) =
                 Infix.Left ->
                     sepHelper sepBySpace
                         [ ( Node.range left, writeExpression left )
-                        , ( range, spaced [ string x, writeExpression right ] )
+                        , ( range, spaced [ Writer.string x, writeExpression right ] )
                         ]
 
                 Infix.Right ->
                     sepHelper sepBySpace
-                        [ ( Node.range left, spaced [ writeExpression left, string x ] )
+                        [ ( Node.range left, spaced [ writeExpression left, Writer.string x ] )
                         , ( Node.range right, writeExpression right )
                         ]
 
                 Infix.Non ->
                     sepHelper sepBySpace
-                        [ ( Node.range left, spaced [ writeExpression left, string x ] )
+                        [ ( Node.range left, spaced [ writeExpression left, Writer.string x ] )
                         , ( Node.range right, writeExpression right )
                         ]
 
         Expression.FunctionOrValue moduleName name ->
             case moduleName of
                 [] ->
-                    string name
+                    Writer.string name
 
                 _ ->
-                    join
+                    Writer.join
                         [ writeModuleName <| moduleName
-                        , string "."
-                        , string <| name
+                        , Writer.string "."
+                        , Writer.string <| name
                         ]
 
         Expression.If condition thenCase elseCase ->
             breaked
-                [ spaced [ string "if", writeExpression condition, string "then" ]
+                [ spaced [ Writer.string "if", writeExpression condition, Writer.string "then" ]
                 , indent 2 (writeExpression thenCase)
-                , string "else"
+                , Writer.string "else"
                 , indent 2 (writeExpression elseCase)
                 ]
 
         Expression.PrefixOperator x ->
-            string ("(" ++ x ++ ")")
+            Writer.string ("(" ++ x ++ ")")
 
         Expression.Operator x ->
-            string x
+            Writer.string x
 
         Expression.HexLiteral h ->
-            join [ string "0x", string (Hex.toString h) ]
+            Writer.join [ Writer.string "0x", Writer.string (Hex.toString h) ]
 
         Expression.IntegerLiteral i ->
-            string (String.fromInt i)
+            Writer.string (String.fromInt i)
 
         Expression.FloatLiteral f ->
-            string (String.fromFloat f)
+            Writer.string (String.fromFloat f)
 
         Expression.Negation x ->
-            append (string "-") (writeExpression x)
+            Writer.append (Writer.string "-") (writeExpression x)
 
         Expression.StringLiteral Expression.SingleQuote s ->
-            string ("\"" ++ s ++ "\"")
+            Writer.string ("\"" ++ s ++ "\"")
 
         Expression.StringLiteral Expression.TripleQuote s ->
-            string ("\"\"\"" ++ s ++ "\"\"\"")
+            Writer.string ("\"\"\"" ++ s ++ "\"\"\"")
 
         Expression.CharLiteral c ->
             writeChar c
 
         Expression.TupleExpression t ->
-            join [ string "(", sepHelper sepByComma (List.map recurRangeHelper t), string ")" ]
+            Writer.join [ Writer.string "(", sepHelper Writer.sepByComma (List.map recurRangeHelper t), Writer.string ")" ]
 
         Expression.LetExpression letBlock ->
             breaked
-                [ string "let"
+                [ Writer.string "let"
                 , indent 2 (breaked (List.map writeLetDeclaration letBlock.declarations))
-                , string "in"
+                , Writer.string "in"
                 , indent 2 (writeExpression letBlock.expression)
                 ]
 
@@ -514,57 +514,57 @@ writeExpression (Node range inner) =
                 writeCaseBranch ( pattern, expression ) =
                     indent 2 <|
                         breaked
-                            [ spaced [ writePattern pattern, string "->" ]
+                            [ spaced [ writePattern pattern, Writer.string "->" ]
                             , indent 2 (writeExpression expression)
                             ]
             in
             breaked
-                [ string ""
-                , spaced [ string "case", writeExpression caseBlock.expression, string "of" ]
+                [ Writer.string ""
+                , spaced [ Writer.string "case", writeExpression caseBlock.expression, Writer.string "of" ]
                 , breaked (List.map writeCaseBranch (caseBlock.firstCase :: caseBlock.restOfCases))
-                , string ""
+                , Writer.string ""
                 ]
 
         Expression.LambdaExpression lambda ->
             spaced
-                [ join
-                    [ string "\\"
+                [ Writer.join
+                    [ Writer.string "\\"
                     , spaced (List.map writeDestructurePattern (lambda.firstArg :: lambda.restOfArgs))
                     ]
-                , string "->"
+                , Writer.string "->"
                 , writeExpression lambda.expression
                 ]
 
         Expression.RecordExpr setters ->
-            sepHelper bracesComma (List.map (Node.value >> writeRecordSetter) setters)
+            sepHelper Writer.bracesComma (List.map (Node.value >> writeRecordSetter) setters)
 
         Expression.ListLiteral xs ->
-            sepHelper bracketsComma (List.map recurRangeHelper xs)
+            sepHelper Writer.bracketsComma (List.map recurRangeHelper xs)
 
         Expression.RecordAccess expression accessor ->
-            join [ writeExpression expression, string ".", string <| Node.value accessor ]
+            Writer.join [ writeExpression expression, Writer.string ".", Writer.string <| Node.value accessor ]
 
         Expression.RecordAccessFunction s ->
             if String.startsWith "." s then
-                string s
+                Writer.string s
 
             else
-                join [ string ".", string s ]
+                Writer.join [ Writer.string ".", Writer.string s ]
 
         Expression.RecordUpdate name firstUpdate updates ->
             spaced
-                [ string "{"
-                , string <| Node.value name
-                , string "|"
-                , sepHelper sepByComma (List.map (Node.value >> writeRecordSetter) (firstUpdate :: updates))
-                , string "}"
+                [ Writer.string "{"
+                , Writer.string <| Node.value name
+                , Writer.string "|"
+                , sepHelper Writer.sepByComma (List.map (Node.value >> writeRecordSetter) (firstUpdate :: updates))
+                , Writer.string "}"
                 ]
 
         Expression.GLSLExpression s ->
-            join
-                [ string "[glsl|"
-                , string s
-                , string "|]"
+            Writer.join
+                [ Writer.string "[glsl|"
+                , Writer.string s
+                , Writer.string "|]"
                 ]
 
 
@@ -584,7 +584,7 @@ writeChar c =
             else
                 ""
     in
-    string ("'" ++ escape ++ String.fromChar c ++ "'")
+    Writer.string ("'" ++ escape ++ String.fromChar c ++ "'")
 
 
 {-| Write a pattern
@@ -593,37 +593,37 @@ writePattern : Node Pattern -> Writer
 writePattern (Node _ p) =
     case p of
         Pattern.AllPattern ->
-            string "_"
+            Writer.string "_"
 
         Pattern.UnitPattern ->
-            string "()"
+            Writer.string "()"
 
         Pattern.CharPattern c ->
             writeChar c
 
         Pattern.StringPattern s ->
-            string ("\"" ++ escapeString s ++ "\"")
+            Writer.string ("\"" ++ escapeString s ++ "\"")
 
         Pattern.HexPattern h ->
-            join [ string "0x", string (Hex.toString h) ]
+            Writer.join [ Writer.string "0x", Writer.string (Hex.toString h) ]
 
         Pattern.IntPattern i ->
-            string (String.fromInt i)
+            Writer.string (String.fromInt i)
 
         Pattern.TuplePattern inner ->
             parensComma False (List.map writePattern inner)
 
         Pattern.RecordPattern inner ->
-            bracesComma False (List.map (Node.value >> string) inner)
+            bracesComma False (List.map (Node.value >> Writer.string) inner)
 
         Pattern.UnConsPattern left right ->
-            spaced [ writePattern left, string "::", writePattern right ]
+            spaced [ writePattern left, Writer.string "::", writePattern right ]
 
         Pattern.ListPattern inner ->
             bracketsComma False (List.map writePattern inner)
 
         Pattern.VarPattern var ->
-            string var
+            Writer.string var
 
         Pattern.NamedPattern qnr others ->
             spaced
@@ -632,29 +632,29 @@ writePattern (Node _ p) =
                 ]
 
         Pattern.AsPattern innerPattern asName ->
-            spaced [ writePattern innerPattern, string "as", string <| Node.value asName ]
+            spaced [ writePattern innerPattern, Writer.string "as", Writer.string <| Node.value asName ]
 
         Pattern.ParenthesizedPattern innerPattern ->
-            spaced [ string "(", writePattern innerPattern, string ")" ]
+            spaced [ Writer.string "(", writePattern innerPattern, Writer.string ")" ]
 
 
 writeDestructurePattern : Node DestructurePattern -> Writer
 writeDestructurePattern (Node _ p) =
     case p of
         DestructurePattern.AllPattern_ ->
-            string "_"
+            Writer.string "_"
 
         DestructurePattern.UnitPattern_ ->
-            string "()"
+            Writer.string "()"
 
         DestructurePattern.TuplePattern_ inner ->
             parensComma False (List.map writeDestructurePattern inner)
 
         DestructurePattern.RecordPattern_ inner ->
-            bracesComma False (List.map (Node.value >> string) inner)
+            bracesComma False (List.map (Node.value >> Writer.string) inner)
 
         DestructurePattern.VarPattern_ var ->
-            string var
+            Writer.string var
 
         DestructurePattern.NamedPattern_ qnr others ->
             spaced
@@ -663,23 +663,23 @@ writeDestructurePattern (Node _ p) =
                 ]
 
         DestructurePattern.AsPattern_ innerPattern asName ->
-            spaced [ writeDestructurePattern innerPattern, string "as", string <| Node.value asName ]
+            spaced [ writeDestructurePattern innerPattern, Writer.string "as", Writer.string <| Node.value asName ]
 
         DestructurePattern.ParenthesizedPattern_ innerPattern ->
-            spaced [ string "(", writeDestructurePattern innerPattern, string ")" ]
+            spaced [ Writer.string "(", writeDestructurePattern innerPattern, Writer.string ")" ]
 
 
 writeQualifiedNameRef : Pattern.QualifiedNameRef -> Writer
 writeQualifiedNameRef { moduleName, name } =
     case moduleName of
         [] ->
-            string name
+            Writer.string name
 
         _ ->
-            join
+            Writer.join
                 [ writeModuleName moduleName
-                , string "."
-                , string name
+                , Writer.string "."
+                , Writer.string name
                 ]
 
 
@@ -690,7 +690,7 @@ writeQualifiedNameRef { moduleName, name } =
 parensIfContainsSpaces : Writer -> Writer
 parensIfContainsSpaces w =
     if Writer.write w |> String.contains " " then
-        join [ string "(", w, string ")" ]
+        Writer.join [ Writer.string "(", w, Writer.string ")" ]
 
     else
         w
