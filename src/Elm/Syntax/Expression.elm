@@ -79,7 +79,6 @@ type alias FunctionImplementation =
 
 {-| Custom type for all expressions such as:
 
-  - `Unit`: `()`
   - `Application`: `add a b`
   - `Operation`: `a + b`
   - `FunctionOrValue`: `add` or `True`
@@ -92,8 +91,7 @@ type alias FunctionImplementation =
   - `Negation`: `-a`
   - `StringLiteral`: `"text"` or `"""text"""`
   - `CharLiteral`: `'a'`
-  - `TupleExpression`: `(a, b)` or `(a, b, c)`
-  - `ParenthesizedExpression`: `(a)`
+  - `TupleExpression`: Something wrapped in parentheses like unit `()`, parentheses `(a)`, or a tuple `( a, b )`
   - `LetExpression`: `let a = 4 in a`
   - `CaseExpression`: `case a of` followed by pattern matches
   - `LambdaExpression`: `(\a -> a)`
