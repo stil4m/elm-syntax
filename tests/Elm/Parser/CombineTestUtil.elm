@@ -1,28 +1,28 @@
 module Elm.Parser.CombineTestUtil exposing (noRangeExpose, noRangeExposingList, noRangeExpression, noRangeImport, noRangeInfix, noRangeInnerExpression, noRangeLetDeclaration, noRangeModule, noRangePattern, noRangeSignature, noRangeTypeAlias, noRangeTypeDeclaration, noRangeTypeReference, parseAsFarAsPossible, parseAsFarAsPossibleWithState, parseFullString, parseFullStringState, parseFullStringWithNullState, parseStateToMaybe, pushIndent, unRanged)
 
-import Combine exposing (..)
+import Combine
 import Elm.Parser.State exposing (State, emptyState)
 import Elm.Syntax.DestructurePattern exposing (DestructurePattern(..))
-import Elm.Syntax.Exposing exposing (..)
-import Elm.Syntax.Expression exposing (..)
+import Elm.Syntax.Exposing as Exposing exposing (Exposing)
+import Elm.Syntax.Expression as Expression exposing (Expression)
 import Elm.Syntax.Import exposing (Import)
-import Elm.Syntax.Infix exposing (..)
-import Elm.Syntax.Module exposing (..)
+import Elm.Syntax.Infix exposing (Infix)
+import Elm.Syntax.Module as Module exposing (Module)
 import Elm.Syntax.Node as Node exposing (Node(..))
-import Elm.Syntax.Pattern exposing (..)
+import Elm.Syntax.Pattern as Pattern exposing (Pattern)
 import Elm.Syntax.Range exposing (empty)
 import Elm.Syntax.Signature exposing (Signature)
-import Elm.Syntax.Type exposing (..)
-import Elm.Syntax.TypeAlias exposing (..)
-import Elm.Syntax.TypeAnnotation exposing (..)
+import Elm.Syntax.Type as Type exposing (Type)
+import Elm.Syntax.TypeAlias exposing (TypeAlias)
+import Elm.Syntax.TypeAnnotation as TypeAnnotation exposing (TypeAnnotation)
 
 
-pushIndent : Int -> Parser State b -> Parser State b
+pushIndent : Int -> Combine.Parser State b -> Combine.Parser State b
 pushIndent x p =
-    modifyState (Elm.Parser.State.pushColumn (x + 1)) |> Combine.continueWith p
+    Combine.modifyState (Elm.Parser.State.pushColumn (x + 1)) |> Combine.continueWith p
 
 
-parseFullStringState : State -> String -> Parser State b -> Maybe b
+parseFullStringState : State -> String -> Combine.Parser State b -> Maybe b
 parseFullStringState state s p =
     case Combine.runParser (p |> Combine.ignore Combine.end) state s of
         Ok ( _, r ) ->
@@ -32,7 +32,7 @@ parseFullStringState state s p =
             Nothing
 
 
-parseStateToMaybe : State -> String -> Parser State b -> Maybe ( b, State )
+parseStateToMaybe : State -> String -> Combine.Parser State b -> Maybe ( b, State )
 parseStateToMaybe state s p =
     case Combine.runParser (p |> Combine.ignore Combine.end) state s of
         Ok ( x, r ) ->
@@ -42,7 +42,7 @@ parseStateToMaybe state s p =
             Nothing
 
 
-parseFullStringWithNullState : String -> Parser State b -> Maybe b
+parseFullStringWithNullState : String -> Combine.Parser State b -> Maybe b
 parseFullStringWithNullState s p =
     case Combine.runParser (p |> Combine.ignore Combine.end) emptyState s of
         Ok ( _, r ) ->
@@ -52,7 +52,7 @@ parseFullStringWithNullState s p =
             Nothing
 
 
-parseFullString : String -> Parser () b -> Maybe b
+parseFullString : String -> Combine.Parser () b -> Maybe b
 parseFullString s p =
     case Combine.parse (p |> Combine.ignore Combine.end) s of
         Ok ( _, r ) ->
@@ -62,7 +62,7 @@ parseFullString s p =
             Nothing
 
 
-parseAsFarAsPossibleWithState : State -> String -> Parser State b -> Maybe b
+parseAsFarAsPossibleWithState : State -> String -> Combine.Parser State b -> Maybe b
 parseAsFarAsPossibleWithState state s p =
     case Combine.runParser p state s of
         Ok ( _, r ) ->
@@ -72,7 +72,7 @@ parseAsFarAsPossibleWithState state s p =
             Nothing
 
 
-parseAsFarAsPossible : String -> Parser () b -> Maybe b
+parseAsFarAsPossible : String -> Combine.Parser () b -> Maybe b
 parseAsFarAsPossible s p =
     case Combine.parse p s of
         Ok ( _, r ) ->
@@ -90,22 +90,22 @@ noRangeExpression (Node _ inner) =
 noRangeModule : Module -> Module
 noRangeModule m =
     case m of
-        NormalModule n ->
-            NormalModule
+        Module.NormalModule n ->
+            Module.NormalModule
                 { n
                     | moduleName = unRange n.moduleName
                     , exposingList = unRanged noRangeExposingList n.exposingList
                 }
 
-        PortModule n ->
-            PortModule
+        Module.PortModule n ->
+            Module.PortModule
                 { n
                     | moduleName = unRange n.moduleName
                     , exposingList = unRanged noRangeExposingList n.exposingList
                 }
 
-        EffectModule n ->
-            EffectModule
+        Module.EffectModule n ->
+            Module.EffectModule
                 { n
                     | moduleName = unRange n.moduleName
                     , exposingList = unRanged noRangeExposingList n.exposingList
@@ -126,58 +126,58 @@ noRangeImport imp =
 noRangeExposingList : Exposing -> Exposing
 noRangeExposingList x =
     case x of
-        All _ ->
-            All empty
+        Exposing.All _ ->
+            Exposing.All empty
 
-        Explicit head rest ->
-            Explicit (noRangeExpose head) (List.map noRangeExpose rest)
+        Exposing.Explicit head rest ->
+            Exposing.Explicit (noRangeExpose head) (List.map noRangeExpose rest)
 
 
 noRangePattern : Node Pattern -> Node Pattern
 noRangePattern (Node _ p) =
     Node.empty <|
         case p of
-            RecordPattern ls ->
-                RecordPattern (List.map unRange ls)
+            Pattern.RecordPattern ls ->
+                Pattern.RecordPattern (List.map unRange ls)
 
-            VarPattern x ->
-                VarPattern x
+            Pattern.VarPattern x ->
+                Pattern.VarPattern x
 
-            NamedPattern x y ->
-                NamedPattern x (List.map noRangePattern y)
+            Pattern.NamedPattern x y ->
+                Pattern.NamedPattern x (List.map noRangePattern y)
 
-            ParenthesizedPattern x ->
-                ParenthesizedPattern (noRangePattern x)
+            Pattern.ParenthesizedPattern x ->
+                Pattern.ParenthesizedPattern (noRangePattern x)
 
-            AsPattern x y ->
-                AsPattern (noRangePattern x) (unRange y)
+            Pattern.AsPattern x y ->
+                Pattern.AsPattern (noRangePattern x) (unRange y)
 
-            UnConsPattern x y ->
-                UnConsPattern (noRangePattern x) (noRangePattern y)
+            Pattern.UnConsPattern x y ->
+                Pattern.UnConsPattern (noRangePattern x) (noRangePattern y)
 
-            CharPattern c ->
-                CharPattern c
+            Pattern.CharPattern c ->
+                Pattern.CharPattern c
 
-            StringPattern s ->
-                StringPattern s
+            Pattern.StringPattern s ->
+                Pattern.StringPattern s
 
-            HexPattern h ->
-                HexPattern h
+            Pattern.HexPattern h ->
+                Pattern.HexPattern h
 
-            IntPattern i ->
-                IntPattern i
+            Pattern.IntPattern i ->
+                Pattern.IntPattern i
 
-            AllPattern ->
-                AllPattern
+            Pattern.AllPattern ->
+                Pattern.AllPattern
 
-            UnitPattern ->
-                UnitPattern
+            Pattern.UnitPattern ->
+                Pattern.UnitPattern
 
-            ListPattern x ->
-                ListPattern (List.map noRangePattern x)
+            Pattern.ListPattern x ->
+                Pattern.ListPattern (List.map noRangePattern x)
 
-            TuplePattern x ->
-                TuplePattern (List.map noRangePattern x)
+            Pattern.TuplePattern x ->
+                Pattern.TuplePattern (List.map noRangePattern x)
 
 
 noRangeDestructurePattern : Node DestructurePattern -> Node DestructurePattern
@@ -219,21 +219,21 @@ unRanged f (Node _ a) =
     Node.empty <| f a
 
 
-noRangeExpose : Node TopLevelExpose -> Node TopLevelExpose
+noRangeExpose : Node Exposing.TopLevelExpose -> Node Exposing.TopLevelExpose
 noRangeExpose (Node _ l) =
     Node.empty <|
         case l of
-            InfixExpose s ->
-                InfixExpose s
+            Exposing.InfixExpose s ->
+                Exposing.InfixExpose s
 
-            FunctionExpose s ->
-                FunctionExpose s
+            Exposing.FunctionExpose s ->
+                Exposing.FunctionExpose s
 
-            TypeOrAliasExpose s ->
-                TypeOrAliasExpose s
+            Exposing.TypeOrAliasExpose s ->
+                Exposing.TypeOrAliasExpose s
 
-            TypeExpose { name, open } ->
-                TypeExpose (ExposedType name (Maybe.map (always empty) open))
+            Exposing.TypeExpose { name, open } ->
+                Exposing.TypeExpose (Exposing.ExposedType name (Maybe.map (always empty) open))
 
 
 noRangeInfix : Infix -> Infix
@@ -245,15 +245,15 @@ noRangeInfix { direction, precedence, operator, function } =
         (unRange function)
 
 
-noRangeLetDeclaration : Node LetDeclaration -> Node LetDeclaration
+noRangeLetDeclaration : Node Expression.LetDeclaration -> Node Expression.LetDeclaration
 noRangeLetDeclaration (Node _ decl) =
     Node.empty <|
         case decl of
-            LetFunction function ->
-                LetFunction (noRangeFunction function)
+            Expression.LetFunction function ->
+                Expression.LetFunction (noRangeFunction function)
 
-            LetDestructuring pattern expression ->
-                LetDestructuring (noRangeDestructurePattern pattern) (noRangeExpression expression)
+            Expression.LetDestructuring pattern expression ->
+                Expression.LetDestructuring (noRangeDestructurePattern pattern) (noRangeExpression expression)
 
 
 noRangeTypeAlias : TypeAlias -> TypeAlias
@@ -266,12 +266,12 @@ noRangeTypeAlias typeAlias =
     }
 
 
-noRangeRecordField : RecordField -> RecordField
+noRangeRecordField : TypeAnnotation.RecordField -> TypeAnnotation.RecordField
 noRangeRecordField ( a, b ) =
     ( unRange a, noRangeTypeReference b )
 
 
-noRangeRecordDefinition : RecordDefinition -> RecordDefinition
+noRangeRecordDefinition : TypeAnnotation.RecordDefinition -> TypeAnnotation.RecordDefinition
 noRangeRecordDefinition =
     List.map (unRanged noRangeRecordField)
 
@@ -280,23 +280,23 @@ noRangeTypeReference : Node TypeAnnotation -> Node TypeAnnotation
 noRangeTypeReference (Node _ typeAnnotation) =
     Node.empty <|
         case typeAnnotation of
-            Var x ->
-                Var x
+            TypeAnnotation.Var x ->
+                TypeAnnotation.Var x
 
-            Elm.Syntax.TypeAnnotation.Type (Node _ ( a, b )) c ->
-                Elm.Syntax.TypeAnnotation.Type (Node.empty ( a, b )) (List.map noRangeTypeReference c)
+            TypeAnnotation.Type (Node _ ( a, b )) c ->
+                TypeAnnotation.Type (Node.empty ( a, b )) (List.map noRangeTypeReference c)
 
-            Tuple a ->
-                Tuple (List.map noRangeTypeReference a)
+            TypeAnnotation.Tuple a ->
+                TypeAnnotation.Tuple (List.map noRangeTypeReference a)
 
-            Record a ->
-                Record (List.map (unRanged noRangeRecordField) a)
+            TypeAnnotation.Record a ->
+                TypeAnnotation.Record (List.map (unRanged noRangeRecordField) a)
 
-            GenericRecord a b ->
-                GenericRecord (unRanged identity a) (unRanged noRangeRecordDefinition b)
+            TypeAnnotation.GenericRecord a b ->
+                TypeAnnotation.GenericRecord (unRanged identity a) (unRanged noRangeRecordDefinition b)
 
-            FunctionTypeAnnotation a b ->
-                FunctionTypeAnnotation
+            TypeAnnotation.FunctionTypeAnnotation a b ->
+                TypeAnnotation.FunctionTypeAnnotation
                     (noRangeTypeReference a)
                     (noRangeTypeReference b)
 
@@ -311,12 +311,12 @@ noRangeTypeDeclaration x =
     }
 
 
-noRangeValueConstructor : ValueConstructor -> ValueConstructor
+noRangeValueConstructor : Type.ValueConstructor -> Type.ValueConstructor
 noRangeValueConstructor valueConstructor =
     { valueConstructor | arguments = List.map noRangeTypeReference valueConstructor.arguments, name = unRange valueConstructor.name }
 
 
-noRangeFunction : Function -> Function
+noRangeFunction : Expression.Function -> Expression.Function
 noRangeFunction f =
     { f
         | declaration = unRanged noRangeFunctionImplementation f.declaration
@@ -329,7 +329,7 @@ noRangeSignature signature =
     { signature | typeAnnotation = noRangeTypeReference signature.typeAnnotation, name = unRange signature.name }
 
 
-noRangeFunctionImplementation : FunctionImplementation -> FunctionImplementation
+noRangeFunctionImplementation : Expression.FunctionImplementation -> Expression.FunctionImplementation
 noRangeFunctionImplementation d =
     { d
         | expression = noRangeExpression d.expression
@@ -338,7 +338,7 @@ noRangeFunctionImplementation d =
     }
 
 
-noRangeRecordSetter : RecordSetter -> RecordSetter
+noRangeRecordSetter : Expression.RecordSetter -> Expression.RecordSetter
 noRangeRecordSetter ( a, b ) =
     ( unRange a, unRanged noRangeInnerExpression b )
 
@@ -346,59 +346,59 @@ noRangeRecordSetter ( a, b ) =
 noRangeInnerExpression : Expression -> Expression
 noRangeInnerExpression inner =
     case inner of
-        Application head xs ->
-            Application (noRangeExpression head) (List.map noRangeExpression xs)
+        Expression.Application head xs ->
+            Expression.Application (noRangeExpression head) (List.map noRangeExpression xs)
 
-        Operation op dir left right ->
-            Operation op dir (noRangeExpression left) (noRangeExpression right)
+        Expression.Operation op dir left right ->
+            Expression.Operation op dir (noRangeExpression left) (noRangeExpression right)
 
-        ListLiteral xs ->
-            ListLiteral <| List.map noRangeExpression xs
+        Expression.ListLiteral xs ->
+            Expression.ListLiteral <| List.map noRangeExpression xs
 
-        If a b c ->
-            If
+        Expression.If a b c ->
+            Expression.If
                 (noRangeExpression a)
                 (noRangeExpression b)
                 (noRangeExpression c)
 
-        RecordExpr fields ->
-            RecordExpr <| List.map (unRanged noRangeRecordSetter) fields
+        Expression.RecordExpr fields ->
+            Expression.RecordExpr <| List.map (unRanged noRangeRecordSetter) fields
 
-        LambdaExpression lambda ->
-            LambdaExpression
+        Expression.LambdaExpression lambda ->
+            Expression.LambdaExpression
                 { lambda
                     | expression = noRangeExpression lambda.expression
                     , firstArg = noRangeDestructurePattern lambda.firstArg
                     , restOfArgs = List.map noRangeDestructurePattern lambda.restOfArgs
                 }
 
-        RecordUpdate name firstUpdate updates ->
-            RecordUpdate
+        Expression.RecordUpdate name firstUpdate updates ->
+            Expression.RecordUpdate
                 (unRanged identity name)
                 (unRanged noRangeRecordSetter firstUpdate)
                 (List.map (unRanged noRangeRecordSetter) updates)
 
-        CaseExpression { firstCase, restOfCases, expression } ->
-            CaseExpression
+        Expression.CaseExpression { firstCase, restOfCases, expression } ->
+            Expression.CaseExpression
                 { firstCase = Tuple.mapBoth noRangePattern noRangeExpression firstCase
                 , restOfCases = List.map (Tuple.mapBoth noRangePattern noRangeExpression) restOfCases
                 , expression = noRangeExpression expression
                 }
 
-        LetExpression { declarations, expression } ->
-            LetExpression
+        Expression.LetExpression { declarations, expression } ->
+            Expression.LetExpression
                 { declarations = List.map noRangeLetDeclaration declarations
                 , expression = noRangeExpression expression
                 }
 
-        TupleExpression x ->
-            TupleExpression <| List.map noRangeExpression x
+        Expression.TupleExpression x ->
+            Expression.TupleExpression <| List.map noRangeExpression x
 
-        RecordAccess e n ->
-            RecordAccess (noRangeExpression e) (unRange n)
+        Expression.RecordAccess e n ->
+            Expression.RecordAccess (noRangeExpression e) (unRange n)
 
-        Negation expr ->
-            Negation (noRangeExpression expr)
+        Expression.Negation expr ->
+            Expression.Negation (noRangeExpression expr)
 
         _ ->
             inner
