@@ -372,8 +372,8 @@ noRangeInnerExpression inner =
                     , restOfArgs = List.map noRangeDestructurePattern lambda.restOfArgs
                 }
 
-        RecordUpdateExpression name firstUpdate updates ->
-            RecordUpdateExpression
+        RecordUpdate name firstUpdate updates ->
+            RecordUpdate
                 (unRanged identity name)
                 (unRanged noRangeRecordSetter firstUpdate)
                 (List.map (unRanged noRangeRecordSetter) updates)

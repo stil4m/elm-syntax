@@ -99,7 +99,7 @@ type alias FunctionImplementation =
   - `ListLiteral`: `[ x, y ]`
   - `RecordAccess`: `a.name`
   - `RecordAccessFunction`: `.name`
-  - `RecordUpdateExpression`: `{ a | name = "text" }`
+  - `RecordUpdate`: `{ a | name = "text" }`
   - `GLSLExpression`: `[glsl| ... |]`
 
 -}
@@ -124,7 +124,7 @@ type Expression
     | ListLiteral (List (Node Expression))
     | RecordAccess (Node Expression) (Node String)
     | RecordAccessFunction String
-    | RecordUpdateExpression (Node String) (Node RecordSetter) (List (Node RecordSetter))
+    | RecordUpdate (Node String) (Node RecordSetter) (List (Node RecordSetter))
     | GLSLExpression String
 
 
@@ -328,7 +328,7 @@ encode expr =
         RecordExpr xs ->
             encodeTyped "record" (JE.list (Node.encode encodeRecordSetter) xs)
 
-        RecordUpdateExpression name firstUpdate updates ->
+        RecordUpdate name firstUpdate updates ->
             encodeTyped "recordUpdate" (encodeRecordUpdate name firstUpdate updates)
 
         GLSLExpression x ->
@@ -484,7 +484,7 @@ decoder =
                 , ( "recordAccessFunction", JD.string |> JD.map RecordAccessFunction )
                 , ( "record", JD.list (Node.decoder decodeRecordSetter) |> JD.map RecordExpr )
                 , ( "recordUpdate"
-                  , JD.map3 RecordUpdateExpression
+                  , JD.map3 RecordUpdate
                         (JD.field "name" <| Node.decoder JD.string)
                         (JD.field "firstUpdate" (Node.decoder decodeRecordSetter))
                         (JD.field "updates" (JD.list <| Node.decoder decodeRecordSetter))

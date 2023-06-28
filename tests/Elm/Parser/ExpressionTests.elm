@@ -338,7 +338,7 @@ all =
                     |> Maybe.map Node.value
                     |> Expect.equal
                         (Just
-                            (RecordUpdateExpression
+                            (RecordUpdate
                                 (Node empty "model")
                                 (Node empty ( Node empty "count", Node empty <| IntegerLiteral 1 ))
                                 [ Node empty ( Node empty "loading", Node empty <| FunctionOrValue [] "True" ) ]
@@ -351,7 +351,7 @@ all =
                     |> Maybe.map Node.value
                     |> Expect.equal
                         (Just
-                            (RecordUpdateExpression
+                            (RecordUpdate
                                 (Node empty "model")
                                 (Node empty ( Node empty "count", Node empty <| IntegerLiteral 1 ))
                                 [ Node empty ( Node empty "loading", Node empty <| FunctionOrValue [] "True" ) ]

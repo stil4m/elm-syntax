@@ -411,8 +411,8 @@ visitExpressionInner (Node range expression) =
             ListLiteral expressionList ->
                 ListLiteral (List.map visitExpression expressionList)
 
-            RecordUpdateExpression name firstUpdate updates ->
-                RecordUpdateExpression
+            RecordUpdate name firstUpdate updates ->
+                RecordUpdate
                     name
                     (Node.map (Tuple.mapSecond visitExpression) firstUpdate)
                     (List.map (Node.map (Tuple.mapSecond visitExpression)) updates)

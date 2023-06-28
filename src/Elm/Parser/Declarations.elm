@@ -317,7 +317,7 @@ recordExpression =
                     (\e ->
                         case e of
                             head :: rest ->
-                                RecordUpdateExpression fname head rest |> Combine.succeed
+                                RecordUpdate fname head rest |> Combine.succeed
 
                             [] ->
                                 Combine.fail "Record update must have at least one field being updated."
