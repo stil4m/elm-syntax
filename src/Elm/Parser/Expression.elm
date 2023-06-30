@@ -174,7 +174,7 @@ recordExpression =
         |> Combine.continueWith
             (Combine.oneOf
                 [ Tokens.curlyEnd
-                    |> Core.map (\() -> RecordExpr [])
+                    |> Core.map (\() -> Record [])
                     |> Combine.fromCore
                 , recordContents
                 ]
@@ -199,15 +199,15 @@ recordContents =
                                     fieldUpdate =
                                         Node.combine Tuple.pair fname e
 
-                                    toRecordExpr : ( Node RecordSetter, List (Node RecordSetter) ) -> Expression
-                                    toRecordExpr ( head, tail ) =
-                                        RecordExpr (fieldUpdate :: head :: tail)
+                                    toRecord : ( Node RecordSetter, List (Node RecordSetter) ) -> Expression
+                                    toRecord ( head, tail ) =
+                                        Record (fieldUpdate :: head :: tail)
                                 in
                                 Combine.oneOf
                                     [ Tokens.curlyEnd
-                                        |> Core.map (\() -> RecordExpr [ fieldUpdate ])
+                                        |> Core.map (\() -> Record [ fieldUpdate ])
                                         |> Combine.fromCore
-                                    , Combine.succeed toRecordExpr
+                                    , Combine.succeed toRecord
                                         |> Combine.ignoreEntirely Tokens.comma
                                         |> Combine.ignore (Combine.maybeIgnore Layout.layout)
                                         |> Combine.keep recordFields

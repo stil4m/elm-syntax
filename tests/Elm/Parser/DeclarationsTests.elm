@@ -4,7 +4,7 @@ import Elm.Parser.CombineTestUtil as CombineTestUtil
 import Elm.Parser.Declarations exposing (..)
 import Elm.Syntax.Declaration exposing (..)
 import Elm.Syntax.DestructurePattern exposing (DestructurePattern(..))
-import Elm.Syntax.Expression exposing (..)
+import Elm.Syntax.Expression as Expression exposing (..)
 import Elm.Syntax.Infix as Infix exposing (InfixDirection(..))
 import Elm.Syntax.Node exposing (Node(..))
 import Elm.Syntax.Pattern exposing (..)
@@ -63,7 +63,7 @@ foo = bar"""
                                     Node { start = { row = 1, column = 1 }, end = { row = 1, column = 9 } }
                                         { arguments = []
                                         , name = Node { start = { row = 1, column = 1 }, end = { row = 1, column = 4 } } "foo"
-                                        , expression = Node { start = { row = 1, column = 7 }, end = { row = 1, column = 9 } } (RecordExpr [])
+                                        , expression = Node { start = { row = 1, column = 7 }, end = { row = 1, column = 9 } } (Expression.Record [])
                                         }
                                 }
                             )
@@ -263,7 +263,7 @@ foo = bar"""
                                                 (Application
                                                     (Node { start = { row = 2, column = 3 }, end = { row = 2, column = 18 } } (FunctionOrValue [] "beginnerProgram"))
                                                     [ Node { start = { row = 2, column = 19 }, end = { row = 2, column = 62 } }
-                                                        (RecordExpr
+                                                        (Expression.Record
                                                             [ Node { start = { row = 2, column = 21 }, end = { row = 2, column = 30 } }
                                                                 ( Node { start = { row = 2, column = 21 }, end = { row = 2, column = 26 } } "model"
                                                                 , Node { start = { row = 2, column = 29 }, end = { row = 2, column = 30 } } (IntegerLiteral 0)

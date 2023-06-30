@@ -535,7 +535,7 @@ writeExpression (Node range inner) =
                 , writeExpression lambda.expression
                 ]
 
-        Expression.RecordExpr setters ->
+        Expression.Record setters ->
             sepHelper Writer.bracesComma (List.map (Node.value >> writeRecordSetter) setters)
 
         Expression.ListLiteral xs ->

@@ -3,7 +3,7 @@ module Elm.Parser.LetExpressionTests exposing (all)
 import Elm.Parser.CombineTestUtil as CombineTestUtil
 import Elm.Parser.Expression exposing (expression)
 import Elm.Syntax.DestructurePattern exposing (DestructurePattern(..))
-import Elm.Syntax.Expression exposing (..)
+import Elm.Syntax.Expression as Expression exposing (..)
 import Elm.Syntax.Node exposing (Node(..))
 import Elm.Syntax.TypeAnnotation exposing (TypeAnnotation(..))
 import Expect
@@ -364,7 +364,7 @@ all =
                                             }
                                         )
                                     ]
-                                , expression = Node { start = { row = 3, column = 7 }, end = { row = 3, column = 9 } } (RecordExpr [])
+                                , expression = Node { start = { row = 3, column = 7 }, end = { row = 3, column = 9 } } (Expression.Record [])
                                 }
                             )
                         )

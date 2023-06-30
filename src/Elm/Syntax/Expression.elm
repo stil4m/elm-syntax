@@ -100,7 +100,7 @@ type alias FunctionImplementation =
   - `LetExpression`: `let a = 4 in a`
   - `CaseExpression`: `case a of` followed by pattern matches
   - `LambdaExpression`: `(\a -> a)`
-  - `RecordExpr`: `{ name = "text" }`
+  - `Record`: `{ name = "text" }`
   - `ListLiteral`: `[ x, y ]`
   - `RecordAccess`: `a.name`
   - `RecordAccessFunction`: `.name`
@@ -125,7 +125,7 @@ type Expression
     | LetExpression LetBlock
     | CaseExpression CaseBlock
     | LambdaExpression Lambda
-    | RecordExpr (List (Node RecordSetter))
+    | Record (List (Node RecordSetter))
     | ListLiteral (List (Node Expression))
     | RecordAccess (Node Expression) (Node String)
     | RecordAccessFunction String
@@ -330,7 +330,7 @@ encode expr =
         RecordAccessFunction x ->
             encodeTyped "recordAccessFunction" (JE.string x)
 
-        RecordExpr xs ->
+        Record xs ->
             encodeTyped "record" (JE.list (Node.encode encodeRecordSetter) xs)
 
         RecordUpdate name firstUpdate updates ->
@@ -487,7 +487,7 @@ decoder =
                 , ( "lambda", decodeLambda |> JD.map LambdaExpression )
                 , ( "recordAccess", JD.map2 RecordAccess (JD.field "expression" decodeNested) (JD.field "name" (Node.decoder JD.string)) )
                 , ( "recordAccessFunction", JD.string |> JD.map RecordAccessFunction )
-                , ( "record", JD.list (Node.decoder decodeRecordSetter) |> JD.map RecordExpr )
+                , ( "record", JD.list (Node.decoder decodeRecordSetter) |> JD.map Record )
                 , ( "recordUpdate"
                   , JD.map3 RecordUpdate
                         (JD.field "name" <| Node.decoder JD.string)
