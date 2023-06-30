@@ -608,7 +608,7 @@ letExpression =
                                             |> Rope.prependTo commentsAfterIn
                                             |> Rope.prependTo expressionResult.comments
                                     , end = end
-                                    , expression = LetExpression { declarations = declarations.syntax, expression = expr }
+                                    , expression = Let { declarations = declarations.syntax, expression = expr }
                                     }
                     )
                     Layout.maybeLayout
