@@ -513,7 +513,7 @@ caseExpression =
                                             ( _, Node lastCaseExpressionRange _ ) :: _ ->
                                                 lastCaseExpressionRange.end
                                     , expression =
-                                        CaseExpression
+                                        Case
                                             { expression = casedExpressionResult.syntax
                                             , firstCase = firstCase
                                             , restOfCases = List.reverse lastToSecondCase
