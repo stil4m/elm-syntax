@@ -428,7 +428,7 @@ caseExpression =
                                 in
                                 firstCaseExpressionRange.end
                     }
-                    (CaseExpression
+                    (Case
                         { expression = caseBlock.casedExpression
                         , firstCase = caseBlock.firstCase
                         , restOfCases = List.reverse caseBlock.lastToSecondCase
