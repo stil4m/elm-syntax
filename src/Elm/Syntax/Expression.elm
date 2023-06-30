@@ -97,7 +97,7 @@ type alias FunctionImplementation =
   - `StringLiteral`: `"text"` or `"""text"""`
   - `CharLiteral`: `'a'`
   - `TupleExpression`: Something wrapped in parentheses like unit `()`, parentheses `(a)`, or a tuple `( a, b )`
-  - `LetExpression`: `let a = 4 in a`
+  - `Let`: `let a = 4 in a`
   - `Case`: `case a of` followed by pattern matches
   - `LambdaExpression`: `(\a -> a)`
   - `Record`: `{ name = "text" }`
@@ -122,7 +122,7 @@ type Expression
     | StringLiteral StringLiteralType String
     | CharLiteral Char
     | TupleExpression (List (Node Expression))
-    | LetExpression LetBlock
+    | Let LetBlock
     | Case CaseBlock
     | LambdaExpression Lambda
     | Record (List (Node RecordSetter))
@@ -202,7 +202,7 @@ isLambda e =
 isLet : Expression -> Bool
 isLet e =
     case e of
-        LetExpression _ ->
+        Let _ ->
             True
 
         _ ->
@@ -311,7 +311,7 @@ encode expr =
         ListLiteral xs ->
             encodeTyped "list" (JE.list (Node.encode encode) xs)
 
-        LetExpression x ->
+        Let x ->
             encodeTyped "let" <| encodeLetBlock x
 
         Case x ->
@@ -482,7 +482,7 @@ decoder =
                 , ( "charLiteral", decodeChar |> JD.map CharLiteral )
                 , ( "tuple", JD.list decodeNested |> JD.map TupleExpression )
                 , ( "list", JD.list decodeNested |> JD.map ListLiteral )
-                , ( "let", decodeLetBlock |> JD.map LetExpression )
+                , ( "let", decodeLetBlock |> JD.map Let )
                 , ( "case", decodeCaseBlock |> JD.map Case )
                 , ( "lambda", decodeLambda |> JD.map LambdaExpression )
                 , ( "recordAccess", JD.map2 RecordAccess (JD.field "expression" decodeNested) (JD.field "name" (Node.decoder JD.string)) )

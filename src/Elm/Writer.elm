@@ -500,7 +500,7 @@ writeExpression (Node range inner) =
         Expression.TupleExpression t ->
             Writer.join [ Writer.string "(", sepHelper Writer.sepByComma (List.map recurRangeHelper t), Writer.string ")" ]
 
-        Expression.LetExpression letBlock ->
+        Expression.Let letBlock ->
             breaked
                 [ Writer.string "let"
                 , indent 2 (breaked (List.map writeLetDeclaration letBlock.declarations))

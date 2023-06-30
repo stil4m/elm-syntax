@@ -349,7 +349,7 @@ letExpression =
                 \declarations ->
                     \((Node { end } _) as expr) ->
                         Node { start = start, end = end }
-                            (LetExpression (LetBlock declarations expr))
+                            (Let (LetBlock declarations expr))
             )
             |> Combine.keepFromCore Parser.Extra.location
             |> Combine.ignoreEntirely Tokens.letToken
