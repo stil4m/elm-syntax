@@ -247,7 +247,7 @@ recordContentsCurlyEnd =
                             RecordUpdate nameNode firstField tailFields.syntax
 
                         FieldsFirstValue firstFieldValue ->
-                            RecordExpr (Node.combine Tuple.pair nameNode firstFieldValue :: tailFields.syntax)
+                            Record (Node.combine Tuple.pair nameNode firstFieldValue :: tailFields.syntax)
                 }
             )
             (Node.parserCore Tokens.functionName)
@@ -279,7 +279,7 @@ recordContentsCurlyEnd =
             recordFields
             (Layout.maybeLayoutUntilIgnored ParserFast.symbolFollowedBy "}")
         )
-        (ParserFast.symbol "}" { comments = Rope.empty, syntax = RecordExpr [] })
+        (ParserFast.symbol "}" { comments = Rope.empty, syntax = Record [] })
 
 
 type RecordFieldsOrUpdateAfterName

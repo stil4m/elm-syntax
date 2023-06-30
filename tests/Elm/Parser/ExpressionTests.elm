@@ -214,7 +214,7 @@ all =
                 "{ model = 0, view = view, update = update }"
                     |> expectAst
                         (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 44 } }
-                            (RecordExpr
+                            (Record
                                 [ Node { start = { row = 1, column = 3 }, end = { row = 1, column = 12 } }
                                     ( Node { start = { row = 1, column = 3 }, end = { row = 1, column = 8 } } "model"
                                     , Node { start = { row = 1, column = 11 }, end = { row = 1, column = 12 } } (IntegerLiteral 0)
@@ -236,7 +236,7 @@ all =
                     |> expectAstWithComments
                         { ast =
                             Node { start = { row = 1, column = 1 }, end = { row = 2, column = 13 } }
-                                (RecordExpr
+                                (Record
                                     [ Node { start = { row = 1, column = 3 }, end = { row = 1, column = 10 } }
                                         ( Node { start = { row = 1, column = 3 }, end = { row = 1, column = 6 } } "foo"
                                         , Node { start = { row = 1, column = 9 }, end = { row = 1, column = 10 } } (IntegerLiteral 1)
@@ -641,7 +641,7 @@ all =
                                         (Node { start = { row = 1, column = 6 }, end = { row = 1, column = 16 } }
                                             (RecordAccess
                                                 (Node { start = { row = 1, column = 6 }, end = { row = 1, column = 14 } }
-                                                    (RecordExpr
+                                                    (Record
                                                         [ Node { start = { row = 1, column = 7 }, end = { row = 1, column = 13 } }
                                                             ( Node { start = { row = 1, column = 7 }, end = { row = 1, column = 8 } } "x"
                                                             , Node { start = { row = 1, column = 11 }, end = { row = 1, column = 13 } } (IntegerLiteral 10)
