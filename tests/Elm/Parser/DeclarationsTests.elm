@@ -8,7 +8,6 @@ import Elm.Syntax.DestructurePattern exposing (DestructurePattern(..))
 import Elm.Syntax.Expression as Expression exposing (..)
 import Elm.Syntax.Node as Node exposing (Node(..))
 import Elm.Syntax.Pattern exposing (..)
-import Elm.Syntax.Range exposing (empty)
 import Elm.Syntax.TypeAnnotation exposing (..)
 import Expect
 import Test exposing (Test, describe, test)
@@ -138,25 +137,6 @@ all =
                                         }
                                 }
                             )
-                        )
-        , test "some signature" <|
-            \() ->
-                parseFullStringWithNullState "bar : List ( Int , Maybe m )" Parser.functionSignature
-                    |> Maybe.map Node.value
-                    |> Maybe.map noRangeSignature
-                    |> Expect.equal
-                        (Just
-                            { name = Node empty "bar"
-                            , typeAnnotation =
-                                Node empty <|
-                                    Type (Node empty ( [], "List" ))
-                                        [ Node empty <|
-                                            Tuple
-                                                [ Node empty <| Type (Node empty ( [], "Int" )) []
-                                                , Node empty <| Type (Node empty ( [], "Maybe" )) [ Node empty <| Var "m" ]
-                                                ]
-                                        ]
-                            }
                         )
         , test "function declaration with let" <|
             \() ->

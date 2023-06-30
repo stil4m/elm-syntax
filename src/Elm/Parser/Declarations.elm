@@ -1,4 +1,4 @@
-module Elm.Parser.Declarations exposing (caseBlock, caseStatement, caseStatements, declaration, expression, function, functionArgument, functionSignature, letBlock, letBody, letExpression, signature)
+module Elm.Parser.Declarations exposing (caseBlock, caseStatement, caseStatements, declaration, expression, function, functionArgument, letBlock, letBody, letExpression, signature)
 
 import Combine exposing (Parser, choice, lazy, many, maybe, modifyState, or, sepBy1, string, succeed, withLocation)
 import Elm.Parser.DestructurePatterns as DestructurePatterns
@@ -8,6 +8,7 @@ import Elm.Parser.Node as Node
 import Elm.Parser.Numbers
 import Elm.Parser.Patterns exposing (pattern)
 import Elm.Parser.Ranges as Ranges
+import Elm.Parser.Signature
 import Elm.Parser.State as State exposing (State, popIndent, pushColumn)
 import Elm.Parser.Tokens as Tokens exposing (caseToken, characterLiteral, elseToken, functionName, ifToken, infixOperatorToken, multiLineStringLiteral, ofToken, portToken, prefixOperatorToken, stringLiteral, thenToken)
 import Elm.Parser.TypeAnnotation exposing (typeAnnotation)
@@ -43,21 +44,6 @@ declaration =
         ]
 
 
-functionSignatureFromVarPointer : Node String -> Parser State (Node Signature)
-functionSignatureFromVarPointer varPointer =
-    succeed (\ta -> Node.combine Signature varPointer ta)
-        |> Combine.ignore (string ":")
-        |> Combine.ignore (maybe Layout.layout)
-        |> Combine.andMap typeAnnotation
-
-
-functionSignature : Parser State (Node Signature)
-functionSignature =
-    Node.parser functionName
-        |> Combine.ignore (maybe Layout.layout)
-        |> Combine.andThen functionSignatureFromVarPointer
-
-
 functionWithNameNode : Node String -> Parser State Function
 functionWithNameNode pointer =
     let
@@ -78,7 +64,7 @@ functionWithNameNode pointer =
 
         functionWithSignature : Node String -> Parser State Function
         functionWithSignature varPointer =
-            functionSignatureFromVarPointer varPointer
+            Elm.Parser.Signature.functionSignatureFromVarPointer varPointer
                 |> Combine.andThen
                     (\sig ->
                         maybe Layout.layoutStrict

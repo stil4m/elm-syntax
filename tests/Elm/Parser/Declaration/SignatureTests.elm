@@ -2,6 +2,7 @@ module Elm.Parser.Declaration.SignatureTests exposing (all)
 
 import Elm.Parser.CombineTestUtil exposing (..)
 import Elm.Parser.Declarations as Parser
+import Elm.Parser.Signature
 import Elm.Syntax.Node as Node exposing (Node(..))
 import Elm.Syntax.Range exposing (empty)
 import Elm.Syntax.TypeAnnotation exposing (..)
@@ -99,4 +100,23 @@ all =
                 parseFullStringWithNullState "foo\n:\n Int" Parser.signature
                     |> Maybe.map noRangeSignature
                     |> Expect.equal Nothing
+        , test "some signature" <|
+            \() ->
+                parseFullStringWithNullState "bar : List ( Int , Maybe m )" Elm.Parser.Signature.functionSignature
+                    |> Maybe.map Node.value
+                    |> Maybe.map noRangeSignature
+                    |> Expect.equal
+                        (Just
+                            { name = Node empty "bar"
+                            , typeAnnotation =
+                                Node empty <|
+                                    Type (Node empty ( [], "List" ))
+                                        [ Node empty <|
+                                            Tuple
+                                                [ Node empty <| Type (Node empty ( [], "Int" )) []
+                                                , Node empty <| Type (Node empty ( [], "Maybe" )) [ Node empty <| Var "m" ]
+                                                ]
+                                        ]
+                            }
+                        )
         ]
