@@ -2,7 +2,7 @@ module Elm.Parser.LetExpressionTests exposing (all)
 
 import Combine exposing (string)
 import Elm.Parser.CombineTestUtil exposing (..)
-import Elm.Parser.Declarations as Parser
+import Elm.Parser.Expression as Parser
 import Elm.Parser.Layout as Layout
 import Elm.Parser.State exposing (emptyState)
 import Elm.Parser.Tokens exposing (functionName)

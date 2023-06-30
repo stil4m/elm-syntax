@@ -3,7 +3,6 @@
   "automatically created by": "elm-review suppress",
   "learn more": "elm-review suppress --help",
   "suppressions": [
-    { "count": 7, "filePath": "src/Elm/Parser/Declarations.elm" },
     { "count": 7, "filePath": "tests/Elm/WriterTests.elm" },
     { "count": 3, "filePath": "src/Elm/Parser/Imports.elm" },
     { "count": 2, "filePath": "tests/Elm/Parser/PatternTests.elm" },

@@ -1,7 +1,7 @@
 module Elm.Parser.ExpressionTests exposing (all)
 
 import Elm.Parser.CombineTestUtil exposing (..)
-import Elm.Parser.Declarations exposing (..)
+import Elm.Parser.Expression exposing (..)
 import Elm.Syntax.DestructurePattern exposing (DestructurePattern(..))
 import Elm.Syntax.Expression exposing (..)
 import Elm.Syntax.Node as Node exposing (Node(..))
