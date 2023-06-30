@@ -560,7 +560,7 @@ writeExpression (Node range inner) =
                 , Writer.string "}"
                 ]
 
-        Expression.GLSLExpression s ->
+        Expression.GLSL s ->
             Writer.join
                 [ Writer.string "[glsl|"
                 , Writer.string s
