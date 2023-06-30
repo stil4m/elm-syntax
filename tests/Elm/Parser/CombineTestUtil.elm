@@ -385,8 +385,8 @@ noRangeInnerExpression inner =
                 , expression = noRangeExpression expression
                 }
 
-        Expression.LetExpression { declarations, expression } ->
-            Expression.LetExpression
+        Expression.Let { declarations, expression } ->
+            Expression.Let
                 { declarations = List.map noRangeLetDeclaration declarations
                 , expression = noRangeExpression expression
                 }

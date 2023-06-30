@@ -69,7 +69,7 @@ all =
                                             , arguments = [ Node { start = { row = 1, column = 5 }, end = { row = 1, column = 6 } } (VarPattern_ "x") ]
                                             , expression =
                                                 Node { start = { row = 2, column = 3 }, end = { row = 7, column = 7 } }
-                                                    (LetExpression
+                                                    (Let
                                                         { declarations =
                                                             [ Node { start = { row = 3, column = 5 }, end = { row = 5, column = 18 } }
                                                                 (LetFunction
@@ -170,7 +170,7 @@ all =
                                         { arguments = []
                                         , expression =
                                             Node { start = { row = 2, column = 2 }, end = { row = 5, column = 4 } }
-                                                (LetExpression
+                                                (Let
                                                     { declarations =
                                                         [ Node { start = { row = 3, column = 3 }, end = { row = 3, column = 8 } }
                                                             (LetFunction
@@ -207,7 +207,7 @@ all =
                                         { arguments = []
                                         , expression =
                                             Node { start = { row = 2, column = 2 }, end = { row = 5, column = 4 } }
-                                                (LetExpression
+                                                (Let
                                                     { declarations =
                                                         [ Node { start = { row = 3, column = 3 }, end = { row = 3, column = 16 } }
                                                             (LetDestructuring

@@ -387,8 +387,8 @@ visitExpressionInner (Node range expression) =
                     |> List.map visitExpression
                     |> Expression.TupleExpression
 
-            Expression.LetExpression letBlock ->
-                Expression.LetExpression
+            Expression.Let letBlock ->
+                Expression.Let
                     { declarations = visitLetDeclarations letBlock.declarations
                     , expression = visitExpression letBlock.expression
                     }

@@ -82,7 +82,7 @@ all =
                     |> Maybe.map Node.value
                     |> Expect.equal
                         (Just
-                            (LetExpression
+                            (Let
                                 { declarations =
                                     [ Node { start = { row = 2, column = 3 }, end = { row = 2, column = 10 } } <|
                                         LetFunction
@@ -107,7 +107,7 @@ all =
                     |> Maybe.map Node.value
                     |> Expect.equal
                         (Just
-                            (LetExpression
+                            (Let
                                 { declarations =
                                     [ Node empty <|
                                         LetFunction
@@ -134,7 +134,7 @@ all =
                         (Just
                             (ListLiteral
                                 [ Node empty <|
-                                    LetExpression
+                                    Let
                                         { declarations =
                                             [ Node empty <|
                                                 LetFunction
@@ -159,7 +159,7 @@ all =
                     |> Maybe.map Node.value
                     |> Expect.equal
                         (Just
-                            (LetExpression
+                            (Let
                                 { declarations =
                                     [ Node { start = { row = 2, column = 5 }, end = { row = 2, column = 10 } } <|
                                         LetDestructuring
@@ -177,7 +177,7 @@ all =
                     |> Maybe.map Node.value
                     |> Expect.equal
                         (Just
-                            (LetExpression
+                            (Let
                                 { declarations =
                                     [ Node empty <|
                                         LetFunction
@@ -206,7 +206,7 @@ all =
                     |> Maybe.map Node.value
                     |> Expect.equal
                         (Just
-                            (LetExpression
+                            (Let
                                 { declarations =
                                     [ Node empty <|
                                         LetFunction
@@ -232,7 +232,7 @@ all =
                     |> Maybe.map Node.value
                     |> Expect.equal
                         (Just
-                            (LetExpression
+                            (Let
                                 { declarations =
                                     [ Node empty <|
                                         LetFunction
