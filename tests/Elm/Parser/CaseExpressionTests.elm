@@ -43,7 +43,7 @@ True -> 1"""
   False -> 2"""
                     |> expectAst
                         (Node { start = { row = 1, column = 1 }, end = { row = 3, column = 13 } }
-                            (CaseExpression
+                            (Case
                                 { expression =
                                     Node { start = { row = 1, column = 6 }, end = { row = 1, column = 7 } } <|
                                         FunctionOrValue [] "f"
@@ -69,7 +69,7 @@ True -> 1"""
   Foo.Bar -> 1"""
                     |> expectAst
                         (Node { start = { row = 1, column = 1 }, end = { row = 2, column = 15 } }
-                            (CaseExpression
+                            (Case
                                 { expression =
                                     Node { start = { row = 1, column = 6 }, end = { row = 1, column = 7 } } <|
                                         FunctionOrValue [] "f"
@@ -89,7 +89,7 @@ True -> 1"""
   x->1"""
                     |> expectAst
                         (Node { start = { row = 1, column = 1 }, end = { row = 2, column = 7 } }
-                            (CaseExpression
+                            (Case
                                 { expression =
                                     Node { start = { row = 1, column = 6 }, end = { row = 1, column = 7 } } <|
                                         FunctionOrValue [] "f"
@@ -109,7 +109,7 @@ True -> 1"""
           False -> 2"""
                     |> expectAst
                         (Node { start = { row = 1, column = 1 }, end = { row = 2, column = 21 } }
-                            (CaseExpression
+                            (Case
                                 { expression = Node { start = { row = 1, column = 6 }, end = { row = 1, column = 7 } } (FunctionOrValue [] "x")
                                 , firstCase =
                                     ( Node { start = { row = 1, column = 11 }, end = { row = 1, column = 15 } } (NamedPattern { moduleName = [], name = "True" } [])
@@ -134,7 +134,7 @@ True -> 1"""
         _ -> 3"""
                     |> expectAst
                         (Node { start = { row = 1, column = 1 }, end = { row = 7, column = 15 } }
-                            (CaseExpression
+                            (Case
                                 { expression =
                                     Node
                                         { start = { row = 1, column = 6 }
@@ -178,7 +178,7 @@ True -> 1"""
     2"""
                     |> expectAst
                         (Node { start = { row = 1, column = 1 }, end = { row = 6, column = 6 } }
-                            (CaseExpression
+                            (Case
                                 { expression = Node { start = { row = 1, column = 6 }, end = { row = 1, column = 9 } } (FunctionOrValue [] "msg")
                                 , firstCase =
                                     ( Node { start = { row = 2, column = 3 }, end = { row = 2, column = 12 } } (NamedPattern { moduleName = [], name = "Increment" } [])

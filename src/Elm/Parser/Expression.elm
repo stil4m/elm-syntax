@@ -555,7 +555,7 @@ caseExpression =
                                     in
                                     firstCaseExpressionRange.end
                         }
-                        (CaseExpression
+                        (Case
                             { expression = casedExpressionResult.syntax
                             , firstCase = firstCase
                             , restOfCases = List.reverse lastToSecondCase

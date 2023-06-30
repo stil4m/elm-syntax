@@ -91,7 +91,7 @@ type alias FunctionImplementation =
   - `CharLiteral`: `'a'`
   - `TupleExpression`: Something wrapped in parentheses like unit `()`, parentheses `(a)`, or a tuple `( a, b )`
   - `LetExpression`: `let a = 4 in a`
-  - `CaseExpression`: `case a of` followed by pattern matches
+  - `Case`: `case a of` followed by pattern matches
   - `LambdaExpression`: `(\a -> a)`
   - `Record`: `{ name = "text" }`
   - `ListLiteral`: `[ x, y ]`
@@ -116,7 +116,7 @@ type Expression
     | CharLiteral Char
     | TupleExpression (List (Node Expression))
     | LetExpression LetBlock
-    | CaseExpression CaseBlock
+    | Case CaseBlock
     | LambdaExpression Lambda
     | Record (List (Node RecordSetter))
     | ListLiteral (List (Node Expression))
@@ -212,7 +212,7 @@ isIfElse e =
 isCase : Expression -> Bool
 isCase e =
     case e of
-        CaseExpression _ ->
+        Case _ ->
             True
 
         _ ->
