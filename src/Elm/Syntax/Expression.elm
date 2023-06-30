@@ -77,53 +77,53 @@ type alias FunctionImplementation =
 
 {-| Custom type for all expressions such as:
 
-  - `Application`: `add a b`
-  - `Operation`: `a + b`
-  - `FunctionOrValue`: `add` or `True`
-  - `If`: `if a then b else c`
-  - `PrefixOperator`: `(+)`
-  - `Operator`: `+` (not possible to get in practice)
+  - `StringLiteral`: `"text"` or `"""text"""`
+  - `CharLiteral`: `'a'`
   - `IntegerLiteral`: `42`
   - `HexLiteral`: `0x1F`
   - `FloatLiteral`: `42.0`
   - `Negation`: `-a`
-  - `StringLiteral`: `"text"` or `"""text"""`
-  - `CharLiteral`: `'a'`
+  - `ListLiteral`: `[ x, y ]`
+  - `FunctionOrValue`: `add` or `True`
+  - `Application`: `add a b`
+  - `Operation`: `a + b`
+  - `PrefixOperator`: `(+)`
+  - `If`: `if a then b else c`
   - `TupleExpression`: Something wrapped in parentheses like unit `()`, parentheses `(a)`, or a tuple `( a, b )`
   - `Let`: `let a = 4 in a`
   - `Case`: `case a of` followed by pattern matches
   - `LambdaExpression`: `(\a -> a)`
   - `Record`: `{ name = "text" }`
-  - `ListLiteral`: `[ x, y ]`
   - `RecordAccess`: `a.name`
   - `RecordAccessFunction`: `.name`
   - `RecordUpdate`: `{ a | name = "text" }`
   - `GLSL`: `[glsl| ... |]`
+  - `Operator`: `+` (not possible to get in practice)
 
 -}
 type Expression
-    = Application (Node Expression) (List (Node Expression))
-    | Operation String InfixDirection (Node Expression) (Node Expression)
-    | FunctionOrValue ModuleName String
-    | If (Node Expression) (Node Expression) (Node Expression)
-    | PrefixOperator String
-    | Operator String
+    = StringLiteral StringLiteralType String
+    | CharLiteral Char
     | IntegerLiteral Int
     | HexLiteral Int
     | FloatLiteral Float
     | Negation (Node Expression)
-    | StringLiteral StringLiteralType String
-    | CharLiteral Char
+    | ListLiteral (List (Node Expression))
+    | FunctionOrValue ModuleName String
+    | PrefixOperator String
+    | Application (Node Expression) (List (Node Expression))
+    | Operation String InfixDirection (Node Expression) (Node Expression)
+    | If (Node Expression) (Node Expression) (Node Expression)
     | TupleExpression (List (Node Expression))
     | Let LetBlock
     | Case CaseBlock
     | LambdaExpression Lambda
     | Record (List (Node RecordSetter))
-    | ListLiteral (List (Node Expression))
     | RecordAccess (Node Expression) (Node String)
     | RecordAccessFunction String
     | RecordUpdate (Node String) (Node RecordSetter) (List (Node RecordSetter))
     | GLSL String
+    | Operator String
 
 
 {-| Expression for setting a record field
