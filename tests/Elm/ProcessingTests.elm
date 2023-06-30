@@ -9,7 +9,7 @@ import Elm.Syntax.File exposing (..)
 import Elm.Syntax.Infix exposing (..)
 import Elm.Syntax.Module exposing (..)
 import Elm.Syntax.Node exposing (Node(..))
-import Elm.Syntax.TypeAnnotation exposing (..)
+import Elm.Syntax.TypeAnnotation as TypeAnnotation exposing (..)
 import Expect
 import Test exposing (..)
 
@@ -271,7 +271,7 @@ type alias Foo
                     , generics = []
                     , typeAnnotation =
                         Node { start = { row = 5, column = 6 }, end = { row = 5, column = 23 } } <|
-                            Record
+                            TypeAnnotation.Record
                                 [ Node { start = { row = 5, column = 8 }, end = { row = 5, column = 21 } }
                                     ( Node { start = { row = 5, column = 8 }, end = { row = 5, column = 12 } } "name"
                                     , Node { start = { row = 5, column = 15 }, end = { row = 5, column = 21 } } <|

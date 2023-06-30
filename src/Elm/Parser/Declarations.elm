@@ -339,11 +339,11 @@ recordExpression =
                                 |> Combine.andThen
                                     (\fieldUpdate ->
                                         Combine.choice
-                                            [ string "}" |> Combine.map (always (RecordExpr [ fieldUpdate ]))
+                                            [ string "}" |> Combine.map (always (Record [ fieldUpdate ]))
                                             , string ","
                                                 |> Combine.ignore (maybe Layout.layout)
                                                 |> Combine.continueWith recordFields
-                                                |> Combine.map (\fieldUpdates -> RecordExpr (fieldUpdate :: fieldUpdates))
+                                                |> Combine.map (\fieldUpdates -> Record (fieldUpdate :: fieldUpdates))
                                                 |> Combine.ignore (string "}")
                                             ]
                                     )
@@ -354,7 +354,7 @@ recordExpression =
         |> Combine.ignore (maybe Layout.layout)
         |> Combine.continueWith
             (Combine.choice
-                [ string "}" |> Combine.map (always (RecordExpr []))
+                [ string "}" |> Combine.map (always (Record []))
                 , recordContents
                 ]
             )

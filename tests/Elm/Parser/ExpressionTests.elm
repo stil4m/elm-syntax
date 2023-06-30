@@ -183,7 +183,7 @@ all =
                     |> Expect.equal
                         (Just
                             (Application
-                                (Node empty <| RecordExpr [ Node empty ( Node empty "key", Node empty <| FunctionOrValue [] "value" ) ])
+                                (Node empty <| Record [ Node empty ( Node empty "key", Node empty <| FunctionOrValue [] "value" ) ])
                                 [ Node empty <| Operator "!"
                                 , Node empty <| ListLiteral []
                                 ]
@@ -227,7 +227,7 @@ all =
                     |> Maybe.map Node.value
                     |> Expect.equal
                         (Just
-                            (RecordExpr
+                            (Record
                                 [ Node empty ( Node empty "model", Node empty <| IntegerLiteral 0 )
                                 , Node empty ( Node empty "view", Node empty <| FunctionOrValue [] "view" )
                                 , Node empty ( Node empty "update", Node empty <| FunctionOrValue [] "update" )
@@ -241,7 +241,7 @@ all =
                     |> Maybe.map Node.value
                     |> Expect.equal
                         (Just
-                            (RecordExpr
+                            (Record
                                 [ Node empty ( Node empty "foo", Node empty <| IntegerLiteral 1 )
                                 , Node empty ( Node empty "baz", Node empty <| IntegerLiteral 2 )
                                 ]

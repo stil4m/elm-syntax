@@ -403,10 +403,10 @@ visitExpressionInner (Node range expression) =
             Expression.LambdaExpression lambda ->
                 Expression.LambdaExpression <| { lambda | expression = visitExpression lambda.expression }
 
-            Expression.RecordExpr expressionStringList ->
+            Expression.Record expressionStringList ->
                 expressionStringList
                     |> List.map (Node.map (Tuple.mapSecond visitExpression))
-                    |> Expression.RecordExpr
+                    |> Expression.Record
 
             Expression.ListLiteral expressionList ->
                 Expression.ListLiteral (List.map visitExpression expressionList)

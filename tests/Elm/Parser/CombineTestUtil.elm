@@ -361,8 +361,8 @@ noRangeInnerExpression inner =
                 (noRangeExpression b)
                 (noRangeExpression c)
 
-        Expression.RecordExpr fields ->
-            Expression.RecordExpr <| List.map (unRanged noRangeRecordSetter) fields
+        Expression.Record fields ->
+            Expression.Record <| List.map (unRanged noRangeRecordSetter) fields
 
         Expression.LambdaExpression lambda ->
             Expression.LambdaExpression
