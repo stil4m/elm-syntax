@@ -92,7 +92,7 @@ type alias FunctionImplementation =
   - `LetExpression`: `let a = 4 in a`
   - `CaseExpression`: `case a of` followed by pattern matches
   - `LambdaExpression`: `(\a -> a)`
-  - `RecordExpr`: `{ name = "text" }`
+  - `Record`: `{ name = "text" }`
   - `ListLiteral`: `[ x, y ]`
   - `RecordAccess`: `a.name`
   - `RecordAccessFunction`: `.name`
@@ -117,7 +117,7 @@ type Expression
     | LetExpression LetBlock
     | CaseExpression CaseBlock
     | LambdaExpression Lambda
-    | RecordExpr (List (Node RecordSetter))
+    | Record (List (Node RecordSetter))
     | ListLiteral (List (Node Expression))
     | RecordAccess (Node Expression) (Node String)
     | RecordAccessFunction String
