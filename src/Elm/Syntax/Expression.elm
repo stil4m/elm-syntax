@@ -98,7 +98,7 @@ type alias FunctionImplementation =
   - `RecordAccess`: `a.name`
   - `RecordAccessFunction`: `.name`
   - `RecordUpdate`: `{ a | name = "text" }`
-  - `GLSLExpression`: `[glsl| ... |]`
+  - `GLSL`: `[glsl| ... |]`
 
 -}
 type Expression
@@ -123,7 +123,7 @@ type Expression
     | RecordAccess (Node Expression) (Node String)
     | RecordAccessFunction String
     | RecordUpdate (Node String) (Node RecordSetter) (List (Node RecordSetter))
-    | GLSLExpression String
+    | GLSL String
 
 
 {-| Expression for setting a record field

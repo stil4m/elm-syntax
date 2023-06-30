@@ -246,7 +246,7 @@ glslExpressionAfterOpeningSquareBracket =
                         { start = { row = range.start.row, column = range.start.column - 6 }
                         , end = { row = range.end.row, column = range.end.column + 2 }
                         }
-                        (GLSLExpression s)
+                        (GLSL s)
                 }
             )
             (ParserFast.loopUntil
