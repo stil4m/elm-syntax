@@ -309,7 +309,7 @@ caseExpression =
             \caseBlock_ ->
                 \( end, firstCase, cases ) ->
                     Node { start = start, end = end }
-                        (CaseExpression (CaseBlock caseBlock_ firstCase cases))
+                        (Case (CaseBlock caseBlock_ firstCase cases))
         )
         |> Combine.keepFromCore Parser.Extra.location
         |> Combine.ignoreEntirely Tokens.caseToken
