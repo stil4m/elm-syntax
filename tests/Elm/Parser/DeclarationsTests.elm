@@ -4,11 +4,11 @@ import Elm.Parser.Declarations exposing (..)
 import Elm.Parser.ParserWithCommentsTestUtil as ParserWithCommentsUtil exposing (parse)
 import Elm.Syntax.Declaration as Declaration exposing (..)
 import Elm.Syntax.DestructurePattern exposing (DestructurePattern(..))
-import Elm.Syntax.Expression exposing (..)
+import Elm.Syntax.Expression as Expression exposing (..)
 import Elm.Syntax.Infix as Infix exposing (InfixDirection(..))
 import Elm.Syntax.Node exposing (Node(..))
 import Elm.Syntax.Pattern exposing (..)
-import Elm.Syntax.TypeAnnotation exposing (..)
+import Elm.Syntax.TypeAnnotation as TypeAnnotation exposing (..)
 import Expect
 import Test exposing (..)
 
@@ -63,7 +63,7 @@ foo = bar"""
                                     Node { start = { row = 1, column = 1 }, end = { row = 1, column = 9 } }
                                         { name = Node { start = { row = 1, column = 1 }, end = { row = 1, column = 4 } } "foo"
                                         , arguments = []
-                                        , expression = Node { start = { row = 1, column = 7 }, end = { row = 1, column = 9 } } (RecordExpr [])
+                                        , expression = Node { start = { row = 1, column = 7 }, end = { row = 1, column = 9 } } (Expression.Record [])
                                         }
                                 }
                             )
@@ -266,7 +266,7 @@ foo = bar"""
                                                 (Application
                                                     (Node { start = { row = 2, column = 3 }, end = { row = 2, column = 18 } } (FunctionOrValue [] "beginnerProgram"))
                                                     [ Node { start = { row = 2, column = 19 }, end = { row = 2, column = 62 } }
-                                                        (RecordExpr
+                                                        (Expression.Record
                                                             [ Node { start = { row = 2, column = 21 }, end = { row = 2, column = 30 } }
                                                                 ( Node { start = { row = 2, column = 21 }, end = { row = 2, column = 26 } } "model"
                                                                 , Node { start = { row = 2, column = 29 }, end = { row = 2, column = 30 } } (IntegerLiteral 0)
@@ -611,7 +611,7 @@ update msg model =
                                 , generics = []
                                 , typeAnnotation =
                                     Node { start = { row = 1, column = 18 }, end = { row = 1, column = 34 } }
-                                        (Record
+                                        (TypeAnnotation.Record
                                             [ Node { start = { row = 1, column = 19 }, end = { row = 1, column = 32 } }
                                                 ( Node { start = { row = 1, column = 19 }, end = { row = 1, column = 24 } } "color"
                                                 , Node { start = { row = 1, column = 26 }, end = { row = 1, column = 32 } }
@@ -634,7 +634,7 @@ type alias Foo = {color: String }"""
                                 , generics = []
                                 , typeAnnotation =
                                     Node { start = { row = 2, column = 18 }, end = { row = 2, column = 34 } }
-                                        (Record
+                                        (TypeAnnotation.Record
                                             [ Node { start = { row = 2, column = 19 }, end = { row = 2, column = 32 } }
                                                 ( Node { start = { row = 2, column = 19 }, end = { row = 2, column = 24 } } "color"
                                                 , Node { start = { row = 2, column = 26 }, end = { row = 2, column = 32 } }
@@ -656,7 +656,7 @@ type alias Foo = {color: String }"""
                                 , generics = []
                                 , typeAnnotation =
                                     Node { start = { row = 1, column = 16 }, end = { row = 1, column = 32 } }
-                                        (Record
+                                        (TypeAnnotation.Record
                                             [ Node { start = { row = 1, column = 17 }, end = { row = 1, column = 30 } }
                                                 ( Node { start = { row = 1, column = 17 }, end = { row = 1, column = 22 } } "color"
                                                 , Node { start = { row = 1, column = 24 }, end = { row = 1, column = 30 } }
@@ -678,7 +678,7 @@ type alias Foo = {color: String }"""
                                 , generics = [ Node { start = { row = 1, column = 16 }, end = { row = 1, column = 17 } } "a" ]
                                 , typeAnnotation =
                                     Node { start = { row = 1, column = 20 }, end = { row = 1, column = 31 } }
-                                        (Record
+                                        (TypeAnnotation.Record
                                             [ Node { start = { row = 1, column = 21 }, end = { row = 1, column = 29 } }
                                                 ( Node { start = { row = 1, column = 21 }, end = { row = 1, column = 25 } } "some"
                                                 , Node { start = { row = 1, column = 28 }, end = { row = 1, column = 29 } } (Var "a")
