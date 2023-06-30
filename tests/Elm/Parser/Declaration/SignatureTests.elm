@@ -1,7 +1,7 @@
 module Elm.Parser.Declaration.SignatureTests exposing (all)
 
 import Elm.Parser.CombineTestUtil as CombineTestUtil
-import Elm.Parser.Declarations as Declarations
+import Elm.Parser.Signature as Signature
 import Elm.Syntax.Node exposing (Node(..))
 import Elm.Syntax.Signature exposing (Signature)
 import Elm.Syntax.TypeAnnotation exposing (..)
@@ -110,14 +110,37 @@ all =
             \() ->
                 "foo\n:\n Int"
                     |> expectInvalid
+        , test "some signature" <|
+            \() ->
+                "bar : List ( Int , Maybe m )"
+                    |> expectAst
+                        (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 29 } }
+                            { name = Node { start = { row = 1, column = 1 }, end = { row = 1, column = 4 } } "bar"
+                            , typeAnnotation =
+                                Node { start = { row = 1, column = 7 }, end = { row = 1, column = 29 } }
+                                    (Type (Node { start = { row = 1, column = 7 }, end = { row = 1, column = 11 } } ( [], "List" ))
+                                        [ Node { start = { row = 1, column = 12 }, end = { row = 1, column = 29 } }
+                                            (Tuple
+                                                [ Node { start = { row = 1, column = 14 }, end = { row = 1, column = 17 } }
+                                                    (Type (Node { start = { row = 1, column = 14 }, end = { row = 1, column = 17 } } ( [], "Int" )) [])
+                                                , Node { start = { row = 1, column = 20 }, end = { row = 1, column = 27 } }
+                                                    (Type (Node { start = { row = 1, column = 20 }, end = { row = 1, column = 25 } } ( [], "Maybe" ))
+                                                        [ Node { start = { row = 1, column = 26 }, end = { row = 1, column = 27 } } (Var "m") ]
+                                                    )
+                                                ]
+                                            )
+                                        ]
+                                    )
+                            }
+                        )
         ]
 
 
 expectAst : Node Signature -> String -> Expect.Expectation
 expectAst =
-    CombineTestUtil.expectAst Declarations.signature
+    CombineTestUtil.expectAst Signature.signature
 
 
 expectInvalid : String -> Expect.Expectation
 expectInvalid =
-    CombineTestUtil.expectInvalid Declarations.signature
+    CombineTestUtil.expectInvalid Signature.signature

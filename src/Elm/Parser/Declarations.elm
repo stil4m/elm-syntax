@@ -1,4 +1,4 @@
-module Elm.Parser.Declarations exposing (declaration, signature)
+module Elm.Parser.Declarations exposing (declaration)
 
 import Combine exposing (Parser)
 import Elm.Parser.Comments as Comments
@@ -6,9 +6,9 @@ import Elm.Parser.DestructurePatterns as DestructurePatterns
 import Elm.Parser.Expression exposing (expression, failIfDifferentFrom, functionSignatureFromVarPointer)
 import Elm.Parser.Layout as Layout
 import Elm.Parser.Node as Node
+import Elm.Parser.Signature as Signature
 import Elm.Parser.State exposing (State)
 import Elm.Parser.Tokens as Tokens
-import Elm.Parser.TypeAnnotation exposing (typeAnnotation)
 import Elm.Parser.Typings exposing (typeDefinition)
 import Elm.Syntax.Declaration as Declaration exposing (Declaration)
 import Elm.Syntax.Documentation exposing (Documentation)
@@ -106,19 +106,6 @@ functionWithNameNode pointer =
         ]
 
 
-signature : Parser State (Node Signature)
-signature =
-    Combine.succeed
-        (\((Node { start } _) as name) ->
-            \((Node { end } _) as typeAnnotation) ->
-                Node { start = start, end = end } { name = name, typeAnnotation = typeAnnotation }
-        )
-        |> Combine.keepFromCore (Node.parserCore Tokens.functionName)
-        |> Combine.ignore (Layout.maybeAroundBothSides (Combine.symbol ":"))
-        |> Combine.ignore (Combine.maybeIgnore Layout.layout)
-        |> Combine.keep typeAnnotation
-
-
 infixDeclaration : Parser State (Node Declaration)
 infixDeclaration =
     Combine.succeed (\direction -> \precedence -> \operator -> \fn -> { direction = direction, precedence = precedence, operator = operator, function = fn })
@@ -181,4 +168,4 @@ portDeclaration maybeDoc =
         |> Combine.keepFromCore startParser
         |> Combine.ignoreEntirely Tokens.portToken
         |> Combine.ignore Layout.layout
-        |> Combine.keep signature
+        |> Combine.keep Signature.signature
