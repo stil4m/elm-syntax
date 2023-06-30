@@ -162,7 +162,7 @@ glslEnd =
 glslExpression : Parser State Expression
 glslExpression =
     Core.mapChompedString
-        (\s () -> s |> String.dropLeft glslStartLength |> GLSLExpression)
+        (\s () -> s |> String.dropLeft glslStartLength |> GLSL)
         (Core.multiComment glslStart glslEnd NotNestable)
         |. Core.symbol glslEnd
         |> Combine.fromCore
