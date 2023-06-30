@@ -40,6 +40,7 @@
   - Renamed `RecordExpr` to `Record`
   - Renamed `CaseExpression` to `Case`
   - Renamed `LetExpression` to `Let`
+  - Renamed `GLSLExpression` to `GLSL`
   - `UnitExpr` -> `TupleExpression []`
   - `ParenthesizedExpression x` -> `TupleExpression [ x ]`
   - Removed `Elm.Syntax.Expression.Cases` type alias (it was `type alias Cases = List Case`)
