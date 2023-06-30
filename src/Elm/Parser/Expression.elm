@@ -262,7 +262,7 @@ recordExpression =
 
 expressionRecordEmpty : Expression
 expressionRecordEmpty =
-    RecordExpr []
+    Record []
 
 
 recordContents : Parser (Maybe (WithComments Expression))
@@ -291,7 +291,7 @@ recordContents =
                                                 RecordUpdate nameNode firstField tailFields.syntax
 
                                             FieldsFirstValue firstFieldValue ->
-                                                RecordExpr (Node.combine Tuple.pair nameNode firstFieldValue :: tailFields.syntax)
+                                                Record (Node.combine Tuple.pair nameNode firstFieldValue :: tailFields.syntax)
                                     }
             )
             Parser.getPosition
