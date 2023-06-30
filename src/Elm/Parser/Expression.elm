@@ -138,7 +138,7 @@ glslExpressionAfterOpeningSquareBracket =
                         { start = { row = start.row, column = start.column - 6 }
                         , end = { row = end.row, column = end.column + 2 }
                         }
-                        (GLSLExpression s)
+                        (GLSL s)
                 }
             )
             (ParserFast.Advanced.loop "" untilGlslEnd)

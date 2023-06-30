@@ -16,7 +16,7 @@ all =
                 "[glsl| precision mediump float; |]"
                     |> expectAst
                         (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 37 } }
-                            (GLSLExpression " precision mediump float; ")
+                            (GLSL " precision mediump float; ")
                         )
         ]
 
