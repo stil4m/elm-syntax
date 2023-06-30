@@ -581,10 +581,6 @@ tupleExpression =
                 |> Combine.andMap expression
                 |> Combine.ignore (maybe Layout.layout)
                 |> Combine.andMap commaSep
-
-        closingParen : Parser state ()
-        closingParen =
-            Combine.fromCore (Core.symbol ")")
     in
     Node.parser
         (Combine.fromCore (Core.symbol "(")
@@ -601,6 +597,11 @@ tupleExpression =
                     ]
                 )
         )
+
+
+closingParen : Parser state ()
+closingParen =
+    Combine.fromCore (Core.symbol ")")
 
 
 withIndentedState : Parser State a -> Parser State a
