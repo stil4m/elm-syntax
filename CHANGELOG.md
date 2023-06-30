@@ -38,6 +38,7 @@
   - Renamed `ListExpr` to `ListLiteral`
   - Renamed `OperatorApplication` to `Operation`
   - Renamed `RecordExpr` to `Record`
+  - Renamed `CaseExpression` to `Case`
   - `UnitExpr` -> `TupleExpression []`
   - `ParenthesizedExpression x` -> `TupleExpression [ x ]`
   - Removed `Elm.Syntax.Expression.Cases` type alias (it was `type alias Cases = List Case`)
