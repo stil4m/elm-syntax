@@ -318,7 +318,7 @@ caseExpression =
                                 ( _, Node lastCaseExpressionRange _ ) :: _ ->
                                     lastCaseExpressionRange.end
                         }
-                        (CaseExpression
+                        (Case
                             { expression = caseBlock_
                             , firstCase = firstCase
                             , restOfCases = List.reverse lastToSecondCase

@@ -132,7 +132,7 @@ caseWhitespace f = case f   of
                                                 , arguments = [ Node { start = { row = 4, column = 16 }, end = { row = 4, column = 17 } } (VarPattern_ "f") ]
                                                 , expression =
                                                     Node { start = { row = 4, column = 20 }, end = { row = 11, column = 11 } }
-                                                        (CaseExpression
+                                                        (Case
                                                             { expression = Node { start = { row = 4, column = 25 }, end = { row = 4, column = 26 } } (FunctionOrValue [] "f")
                                                             , firstCase =
                                                                 ( Node { start = { row = 5, column = 3 }, end = { row = 5, column = 7 } } (NamedPattern { moduleName = [], name = "True" } [])
