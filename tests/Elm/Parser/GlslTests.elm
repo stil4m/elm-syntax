@@ -16,5 +16,5 @@ all =
             \() ->
                 parseFullStringState emptyState "[glsl| precision mediump float; |]" Parser.expression
                     |> Maybe.map noRangeExpression
-                    |> Expect.equal (Just (Node.empty <| GLSLExpression " precision mediump float; "))
+                    |> Expect.equal (Just (Node.empty <| GLSL " precision mediump float; "))
         ]

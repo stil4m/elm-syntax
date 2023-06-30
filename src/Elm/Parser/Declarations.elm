@@ -250,7 +250,7 @@ glslExpression =
     in
     Core.getChompedString (Core.multiComment start end NotNestable)
         |> Combine.fromCore
-        |> Combine.map (String.dropLeft (String.length start) >> GLSLExpression)
+        |> Combine.map (String.dropLeft (String.length start) >> GLSL)
         |> Combine.ignore (Combine.string end)
         |> Node.parser
 

@@ -100,7 +100,7 @@ type alias FunctionImplementation =
   - `RecordAccess`: `a.name`
   - `RecordAccessFunction`: `.name`
   - `RecordUpdate`: `{ a | name = "text" }`
-  - `GLSLExpression`: `[glsl| ... |]`
+  - `GLSL`: `[glsl| ... |]`
 
 -}
 type Expression
@@ -125,7 +125,7 @@ type Expression
     | RecordAccess (Node Expression) (Node String)
     | RecordAccessFunction String
     | RecordUpdate (Node String) (Node RecordSetter) (List (Node RecordSetter))
-    | GLSLExpression String
+    | GLSL String
 
 
 {-| Indicates whether a string literal is single (`"abc"`) or triple-quoted (`"""abc"""`).
@@ -331,7 +331,7 @@ encode expr =
         RecordUpdate name firstUpdate updates ->
             encodeTyped "recordUpdate" (encodeRecordUpdate name firstUpdate updates)
 
-        GLSLExpression x ->
+        GLSL x ->
             encodeTyped "glsl" (JE.string x)
 
 
@@ -489,7 +489,7 @@ decoder =
                         (JD.field "firstUpdate" (Node.decoder decodeRecordSetter))
                         (JD.field "updates" (JD.list <| Node.decoder decodeRecordSetter))
                   )
-                , ( "glsl", JD.string |> JD.map GLSLExpression )
+                , ( "glsl", JD.string |> JD.map GLSL )
                 ]
         )
 
