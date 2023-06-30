@@ -250,7 +250,7 @@ letWhitespace = let
                                                 , arguments = []
                                                 , expression =
                                                     Node { start = { row = 4, column = 17 }, end = { row = 8, column = 3 } }
-                                                        (LetExpression
+                                                        (Let
                                                             { declarations =
                                                                 [ Node { start = { row = 5, column = 19 }, end = { row = 5, column = 26 } }
                                                                     (LetFunction

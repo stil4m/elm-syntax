@@ -371,7 +371,7 @@ letExpression =
                 \declarations ->
                     \((Node { end } _) as expr) ->
                         Node { start = { row = startRow, column = startColumn }, end = end }
-                            (LetExpression { declarations = declarations, expression = expr })
+                            (Let { declarations = declarations, expression = expr })
             )
             Core.getPosition
             |. Tokens.letToken
