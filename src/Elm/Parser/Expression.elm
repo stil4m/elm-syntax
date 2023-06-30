@@ -636,7 +636,7 @@ letExpression =
                         { start = { row = start.row, column = start.column - 3 }
                         , end = expressionRange.end
                         }
-                        (LetExpression
+                        (Let
                             { declarations = declarations.declarations
                             , expression = expressionResult.syntax
                             }
