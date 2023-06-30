@@ -159,7 +159,7 @@ glslExpressionAfterOpeningSquareBracket =
                     \( endRow, endColumn ) ->
                         { comments = Rope.empty
                         , end = { row = endRow, column = endColumn }
-                        , expression = GLSLExpression s
+                        , expression = GLSL s
                         }
                 )
                 (Parser.chompUntil glslEnd)
