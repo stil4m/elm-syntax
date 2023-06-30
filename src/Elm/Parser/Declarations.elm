@@ -460,7 +460,7 @@ caseExpression =
                                 (Range.combine
                                     (start :: List.map (Tuple.second >> Node.range) (cb.firstCase :: cb.restOfCases))
                                 )
-                                (CaseExpression cb)
+                                (Case cb)
                         )
             )
 

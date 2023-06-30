@@ -251,7 +251,7 @@ suite =
                     let
                         body : Expression
                         body =
-                            CaseExpression
+                            Case
                                 (CaseBlock (Node empty <| FunctionOrValue [] "someCase")
                                     ( Node empty <| IntPattern 1, Node empty <| FunctionOrValue [] "doSomething" )
                                     [ ( Node empty <| IntPattern 2, Node empty <| FunctionOrValue [] "doSomethingElse" )
@@ -294,7 +294,7 @@ suite =
                                 , restOfArgs = []
                                 , expression =
                                     Node empty <|
-                                        CaseExpression
+                                        Case
                                             (CaseBlock (Node empty <| FunctionOrValue [] "someCase")
                                                 ( Node empty <| IntPattern 1, Node empty <| FunctionOrValue [] "doSomething" )
                                                 [ ( Node empty <| IntPattern 2, Node empty <| FunctionOrValue [] "doSomethingElse" )
@@ -340,7 +340,7 @@ suite =
                                         , restOfArgs = []
                                         , expression =
                                             Node empty <|
-                                                CaseExpression
+                                                Case
                                                     (CaseBlock (Node empty <| FunctionOrValue [] "someCase")
                                                         ( Node empty <| IntPattern 1, Node empty <| FunctionOrValue [] "doSomething" )
                                                         [ ( Node empty <| IntPattern 2, Node empty <| FunctionOrValue [] "doSomethingElse" )
@@ -408,7 +408,7 @@ suite =
                     let
                         body nested =
                             Node empty <|
-                                CaseExpression
+                                Case
                                     (CaseBlock (Node empty <| FunctionOrValue [] "someCase")
                                         ( Node empty <| IntPattern 1, nested )
                                         [ ( Node empty <| IntPattern 2, Node empty <| FunctionOrValue [] "doSomethingElse" )

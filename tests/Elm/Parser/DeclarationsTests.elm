@@ -81,7 +81,7 @@ all =
                                                                             , arguments = []
                                                                             , expression =
                                                                                 Node { start = { row = 4, column = 7 }, end = { row = 5, column = 18 } }
-                                                                                    (CaseExpression
+                                                                                    (Case
                                                                                         { expression = Node { start = { row = 4, column = 12 }, end = { row = 4, column = 13 } } (FunctionOrValue [] "x")
                                                                                         , firstCase =
                                                                                             ( Node { start = { row = 5, column = 9 }, end = { row = 5, column = 13 } } (NamedPattern { moduleName = [], name = "True" } [])
@@ -291,7 +291,7 @@ all =
                                             ]
                                         , expression =
                                             Node { start = { row = 2, column = 3 }, end = { row = 7, column = 16 } }
-                                                (CaseExpression
+                                                (Case
                                                     { firstCase =
                                                         ( Node { start = { row = 3, column = 5 }, end = { row = 3, column = 14 } } (NamedPattern { moduleName = [], name = "Increment" } [])
                                                         , Node { start = { row = 4, column = 7 }, end = { row = 4, column = 16 } }
@@ -510,7 +510,7 @@ all =
                                             ]
                                         , expression =
                                             Node { start = { row = 2, column = 3 }, end = { row = 7, column = 16 } }
-                                                (CaseExpression
+                                                (Case
                                                     { firstCase =
                                                         ( Node { start = { row = 3, column = 5 }, end = { row = 3, column = 14 } }
                                                             (NamedPattern { moduleName = [], name = "Increment" } [])

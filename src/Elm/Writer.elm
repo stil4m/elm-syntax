@@ -505,7 +505,7 @@ writeExpression (Node range inner) =
                 , indent 2 (writeExpression letBlock.expression)
                 ]
 
-        Expression.CaseExpression caseBlock ->
+        Expression.Case caseBlock ->
             let
                 writeCaseBranch : ( Node Pattern, Node Expression ) -> Writer
                 writeCaseBranch ( pattern, expression ) =

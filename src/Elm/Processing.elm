@@ -393,8 +393,8 @@ visitExpressionInner (Node range expression) =
                     , expression = visitExpression letBlock.expression
                     }
 
-            Expression.CaseExpression caseBlock ->
-                Expression.CaseExpression
+            Expression.Case caseBlock ->
+                Expression.Case
                     { expression = visitExpression caseBlock.expression
                     , firstCase = Tuple.mapSecond visitExpression caseBlock.firstCase
                     , restOfCases = List.map (Tuple.mapSecond visitExpression) caseBlock.restOfCases

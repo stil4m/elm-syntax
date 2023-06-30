@@ -378,8 +378,8 @@ noRangeInnerExpression inner =
                 (unRanged noRangeRecordSetter firstUpdate)
                 (List.map (unRanged noRangeRecordSetter) updates)
 
-        Expression.CaseExpression { firstCase, restOfCases, expression } ->
-            Expression.CaseExpression
+        Expression.Case { firstCase, restOfCases, expression } ->
+            Expression.Case
                 { firstCase = Tuple.mapBoth noRangePattern noRangeExpression firstCase
                 , restOfCases = List.map (Tuple.mapBoth noRangePattern noRangeExpression) restOfCases
                 , expression = noRangeExpression expression

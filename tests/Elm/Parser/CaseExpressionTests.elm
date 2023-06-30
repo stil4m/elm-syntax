@@ -112,7 +112,7 @@ all =
                     |> Maybe.map (Node.value >> noRangeInnerExpression)
                     |> Expect.equal
                         (Just
-                            (CaseExpression
+                            (Case
                                 { expression = Node.empty <| FunctionOrValue [] "f"
                                 , firstCase =
                                     ( Node.empty <| NamedPattern (QualifiedNameRef [] "True") []
@@ -132,7 +132,7 @@ all =
                     |> Expect.equal
                         (Just
                             (Node { start = { row = 1, column = 1 }, end = { row = 3, column = 13 } }
-                                (CaseExpression
+                                (Case
                                     { expression =
                                         Node { start = { row = 1, column = 6 }, end = { row = 1, column = 7 } } <|
                                             FunctionOrValue [] "f"
@@ -159,7 +159,7 @@ all =
                     |> Expect.equal
                         (Just
                             (Node { start = { row = 1, column = 1 }, end = { row = 3, column = 13 } }
-                                (CaseExpression
+                                (Case
                                     { expression =
                                         Node { start = { row = 1, column = 6 }, end = { row = 1, column = 7 } } <|
                                             FunctionOrValue [] "f"
@@ -191,7 +191,7 @@ all =
                     |> Maybe.map (Node.value >> noRangeInnerExpression)
                     |> Expect.equal
                         (Just
-                            (CaseExpression
+                            (Case
                                 { expression = Node empty <| FunctionOrValue [] "msg"
                                 , firstCase =
                                     ( Node empty <| NamedPattern (QualifiedNameRef [] "Increment") []
