@@ -187,7 +187,7 @@ recordExpression =
         |> Combine.fromCoreIgnore Layout.maybeLayout
         |> Combine.continueWith
             (Combine.maybeMap identity
-                (RecordExpr [])
+                (Record [])
                 recordContents
             )
         |> Combine.ignoreEntirely Tokens.curlyEnd
@@ -204,7 +204,7 @@ recordContents =
                             RecordUpdate nameNode firstField tailFields
 
                         FieldsFirstValue firstFieldValue ->
-                            RecordExpr (Node.combine Tuple.pair nameNode firstFieldValue :: tailFields)
+                            Record (Node.combine Tuple.pair nameNode firstFieldValue :: tailFields)
         )
         Tokens.functionName
         |> Combine.fromCoreIgnore Layout.maybeLayout
