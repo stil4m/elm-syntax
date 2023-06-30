@@ -519,7 +519,7 @@ letExpression =
             { comments = letBlock.comments
             , syntax =
                 Node { start = start, end = expressionRange.end }
-                    (LetExpression
+                    (Let
                         { declarations = letBlock.declarations
                         , expression = letBlock.expression
                         }

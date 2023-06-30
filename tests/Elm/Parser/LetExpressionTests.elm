@@ -12,7 +12,7 @@ import Test exposing (..)
 
 all : Test
 all =
-    describe "LetExpressionTests"
+    describe "LetTests"
         [ test "let expression with multiple declarations" <|
             \() ->
                 """let
@@ -21,7 +21,7 @@ all =
   john n = n in 1"""
                     |> expectAst
                         (Node { start = { row = 1, column = 1 }, end = { row = 4, column = 18 } }
-                            (LetExpression
+                            (Let
                                 { declarations =
                                     [ Node { start = { row = 2, column = 3 }, end = { row = 2, column = 12 } }
                                         (LetFunction
@@ -60,7 +60,7 @@ all =
   bar"""
                     |> expectAst
                         (Node { start = { row = 1, column = 1 }, end = { row = 4, column = 6 } }
-                            (LetExpression
+                            (Let
                                 { declarations =
                                     [ Node { start = { row = 2, column = 3 }, end = { row = 2, column = 10 } }
                                         (LetFunction
@@ -102,7 +102,7 @@ all =
    bar"""
                     |> expectAst
                         (Node { start = { row = 1, column = 1 }, end = { row = 4, column = 7 } }
-                            (LetExpression
+                            (Let
                                 { declarations =
                                     [ Node { start = { row = 2, column = 3 }, end = { row = 2, column = 10 } }
                                         (LetFunction
@@ -130,7 +130,7 @@ all =
   bar"""
                     |> expectAst
                         (Node { start = { row = 1, column = 1 }, end = { row = 5, column = 6 } }
-                            (LetExpression
+                            (Let
                                 { declarations =
                                     [ Node { start = { row = 2, column = 5 }, end = { row = 3, column = 12 } }
                                         (LetFunction
@@ -168,7 +168,7 @@ all =
   bar"""
                     |> expectAst
                         (Node { start = { row = 1, column = 1 }, end = { row = 7, column = 6 } }
-                            (LetExpression
+                            (Let
                                 { declarations =
                                     [ Node { start = { row = 2, column = 5 }, end = { row = 5, column = 12 } }
                                         (LetFunction
@@ -224,7 +224,7 @@ all =
         bar"""
                     |> expectAst
                         (Node { start = { row = 1, column = 1 }, end = { row = 4, column = 12 } }
-                            (LetExpression
+                            (Let
                                 { declarations =
                                     [ Node { start = { row = 2, column = 11 }, end = { row = 2, column = 24 } }
                                         (LetFunction
@@ -302,7 +302,7 @@ all =
     1"""
                     |> expectAst
                         (Node { start = { row = 1, column = 1 }, end = { row = 7, column = 6 } }
-                            (LetExpression
+                            (Let
                                 { declarations =
                                     [ Node { start = { row = 2, column = 5 }, end = { row = 2, column = 10 } }
                                         (LetDestructuring (Node { start = { row = 2, column = 5 }, end = { row = 2, column = 6 } } AllPattern_) (Node { start = { row = 2, column = 9 }, end = { row = 2, column = 10 } } (FunctionOrValue [] "b")))
@@ -349,7 +349,7 @@ all =
                 "let indent = String.length s in indent"
                     |> expectAst
                         (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 39 } }
-                            (LetExpression
+                            (Let
                                 { declarations =
                                     [ Node { start = { row = 1, column = 5 }, end = { row = 1, column = 29 } }
                                         (LetFunction
@@ -381,7 +381,7 @@ all =
     in[]"""
                     |> expectAst
                         (Node { start = { row = 1, column = 1 }, end = { row = 3, column = 9 } }
-                            (LetExpression
+                            (Let
                                 { declarations =
                                     [ Node { start = { row = 2, column = 9 }, end = { row = 2, column = 14 } }
                                         (LetFunction
@@ -407,7 +407,7 @@ all =
     in{}"""
                     |> expectAst
                         (Node { start = { row = 1, column = 1 }, end = { row = 3, column = 9 } }
-                            (LetExpression
+                            (Let
                                 { declarations =
                                     [ Node { start = { row = 2, column = 9 }, end = { row = 2, column = 14 } }
                                         (LetFunction
@@ -433,7 +433,7 @@ all =
     in\\_ -> 1"""
                     |> expectAst
                         (Node { start = { row = 1, column = 1 }, end = { row = 3, column = 14 } }
-                            (LetExpression
+                            (Let
                                 { declarations =
                                     [ Node { start = { row = 2, column = 9 }, end = { row = 2, column = 14 } }
                                         (LetFunction
