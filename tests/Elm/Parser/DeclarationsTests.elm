@@ -10,7 +10,7 @@ import Elm.Syntax.Node exposing (Node(..))
 import Elm.Syntax.Pattern exposing (..)
 import Elm.Syntax.TypeAnnotation exposing (..)
 import Expect
-import Test exposing (..)
+import Test exposing (Test, describe, test)
 
 
 all : Test

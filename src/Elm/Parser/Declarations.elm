@@ -1,4 +1,4 @@
-module Elm.Parser.Declarations exposing (declaration)
+module Elm.Parser.Declarations exposing (declaration, signature)
 
 import Combine exposing (Parser)
 import Elm.Parser.Comments as Comments
