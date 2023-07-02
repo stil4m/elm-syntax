@@ -20,64 +20,60 @@ all =
         , test "Integer literal" <|
             \() ->
                 parseFullStringWithNullState "101" expression
-                    |> Maybe.map Node.value
-                    |> Expect.equal (Just (IntegerLiteral 101))
+                    |> Expect.equal (Just (Node { end = { column = 4, row = 1 }, start = { column = 1, row = 1 } } (IntegerLiteral 101)))
         , test "String literal" <|
             \() ->
                 parseFullStringWithNullState "\"Bar\"" expression
-                    |> Maybe.map Node.value
-                    |> Expect.equal (Just (StringLiteral SingleQuote "Bar"))
+                    |> Expect.equal (Just (Node { end = { column = 6, row = 1 }, start = { column = 1, row = 1 } } (StringLiteral SingleQuote "Bar")))
         , test "character literal" <|
             \() ->
                 parseFullStringWithNullState "'c'" expression
-                    |> Maybe.map Node.value
-                    |> Expect.equal (Just (CharLiteral 'c'))
+                    |> Expect.equal (Just (Node { end = { column = 4, row = 1 }, start = { column = 1, row = 1 } } (CharLiteral 'c')))
         , test "tuple expression" <|
             \() ->
                 parseFullStringWithNullState "(1,2)" expression
-                    |> Maybe.map noRangeExpression
-                    |> Maybe.map Node.value
-                    |> Expect.equal (Just (TupleExpression [ Node.empty <| IntegerLiteral 1, Node.empty <| IntegerLiteral 2 ]))
+                    |> Expect.equal
+                        (Just
+                            (Node { end = { column = 6, row = 1 }, start = { column = 1, row = 1 } }
+                                (TupleExpression
+                                    [ Node { end = { column = 3, row = 1 }, start = { column = 2, row = 1 } } (IntegerLiteral 1)
+                                    , Node { end = { column = 5, row = 1 }, start = { column = 4, row = 1 } } (IntegerLiteral 2)
+                                    ]
+                                )
+                            )
+                        )
         , test "prefix expression" <|
             \() ->
                 parseFullStringWithNullState "(,)" expression
-                    |> Maybe.map Node.value
-                    |> Expect.equal (Just (PrefixOperator ","))
+                    |> Expect.equal (Just (Node { end = { column = 4, row = 1 }, start = { column = 1, row = 1 } } (PrefixOperator ",")))
         , test "String literal multiline" <|
             \() ->
                 parseFullStringWithNullState "\"\"\"Bar foo \n a\"\"\"" expression
-                    |> Maybe.map Node.value
-                    |> Expect.equal (Just (StringLiteral TripleQuote "Bar foo \n a"))
+                    |> Expect.equal (Just (Node { end = { column = 6, row = 2 }, start = { column = 1, row = 1 } } (StringLiteral TripleQuote "Bar foo \n a")))
         , test "Regression test for multiline strings with backslashes" <|
             \() ->
                 parseFullStringWithNullState "\"\"\"\\{\\}\"\"\"" expression
-                    |> Maybe.map Node.value
                     |> Expect.equal Nothing
         , test "Regression test 2 for multiline strings with backslashes" <|
             \() ->
                 parseFullStringWithNullState "\"\"\"\\\\{\\\\}\"\"\"" expression
-                    |> Maybe.map Node.value
-                    |> Expect.equal (Just (StringLiteral TripleQuote "\\{\\}"))
+                    |> Expect.equal (Just (Node { end = { column = 13, row = 1 }, start = { column = 1, row = 1 } } (StringLiteral TripleQuote "\\{\\}")))
         , test "Regression test 3 for multiline strings with backslashes" <|
             \() ->
                 parseFullStringWithNullState "\"\"\"\\\\a-blablabla-\\\\b\"\"\"" expression
-                    |> Maybe.map Node.value
-                    |> Expect.equal (Just (StringLiteral TripleQuote "\\a-blablabla-\\b"))
+                    |> Expect.equal (Just (Node { end = { column = 24, row = 1 }, start = { column = 1, row = 1 } } (StringLiteral TripleQuote "\\a-blablabla-\\b")))
         , test "Type expression for upper case" <|
             \() ->
                 parseFullStringWithNullState "Bar" expression
-                    |> Maybe.map Node.value
-                    |> Expect.equal (Just (FunctionOrValue [] "Bar"))
+                    |> Expect.equal (Just (Node { end = { column = 4, row = 1 }, start = { column = 1, row = 1 } } (FunctionOrValue [] "Bar")))
         , test "Type expression for lower case" <|
             \() ->
                 parseFullStringWithNullState "bar" expression
-                    |> Maybe.map Node.value
-                    |> Expect.equal (Just (FunctionOrValue [] "bar"))
+                    |> Expect.equal (Just (Node { end = { column = 4, row = 1 }, start = { column = 1, row = 1 } } (FunctionOrValue [] "bar")))
         , test "Type expression for lower case but qualified" <|
             \() ->
                 parseFullStringWithNullState "Bar.foo" expression
-                    |> Maybe.map Node.value
-                    |> Expect.equal (Just (FunctionOrValue [ "Bar" ] "foo"))
+                    |> Expect.equal (Just (Node { end = { column = 8, row = 1 }, start = { column = 1, row = 1 } } (FunctionOrValue [ "Bar" ] "foo")))
         , test "parenthesizedExpression" <|
             \() ->
                 parseFullStringWithNullState "(bar)" expression
@@ -151,9 +147,7 @@ all =
         , test "expressionNotApplication simple" <|
             \() ->
                 parseFullStringWithNullState "foo" expression
-                    |> Maybe.map noRangeExpression
-                    |> Maybe.map Node.value
-                    |> Expect.equal (Just (FunctionOrValue [] "foo"))
+                    |> Expect.equal (Just (Node { end = { column = 4, row = 1 }, start = { column = 1, row = 1 } } (FunctionOrValue [] "foo")))
         , test "unit application" <|
             \() ->
                 parseFullStringWithNullState "Task.succeed ()" expression
@@ -395,13 +389,11 @@ all =
             \() ->
                 parseFullStringWithNullState "+1" expression
                     |> Maybe.map noRangeExpression
-                    |> Maybe.map Node.value
                     |> Expect.equal Nothing
         , test "expression ending with an operator should not be valid" <|
             \() ->
                 parseFullStringWithNullState "1++" expression
                     |> Maybe.map noRangeExpression
-                    |> Maybe.map Node.value
                     |> Expect.equal Nothing
         , test "prefix notation" <|
             \() ->
@@ -419,7 +411,7 @@ all =
                 parseFullStringWithNullState "-x" expression
                     |> Maybe.map noRangeExpression
                     |> Maybe.map Node.value
-                    |> Expect.equal (Just (Negation (Node empty <| FunctionOrValue [] "x")))
+                    |> Expect.equal (Just (Negation (Node { end = { column = 0, row = 0 }, start = { column = 0, row = 0 } } (FunctionOrValue [] "x"))))
         , test "negated expression in application" <|
             \() ->
                 parseFullStringWithNullState "toFloat -5" expression
@@ -455,34 +447,33 @@ all =
         , test "function with higher order" <|
             \() ->
                 parseFullStringWithNullState "chompWhile (\\c -> c == ' ' || c == '\\n' || c == '\\r')" expression
-                    |> Maybe.map noRangeExpression
                     |> Maybe.map Node.value
                     |> Expect.equal
                         (Just
                             (FunctionCall
-                                (Node empty (FunctionOrValue [] "chompWhile"))
-                                [ Node empty
+                                (Node { end = { column = 11, row = 1 }, start = { column = 1, row = 1 } } (FunctionOrValue [] "chompWhile"))
+                                [ Node { end = { column = 54, row = 1 }, start = { column = 12, row = 1 } }
                                     (TupleExpression
-                                        [ Node empty
+                                        [ Node { end = { column = 53, row = 1 }, start = { column = 13, row = 1 } }
                                             (LambdaExpression
-                                                { firstArg = Node empty (VarPattern_ "c")
-                                                , restOfArgs = []
-                                                , expression =
-                                                    Node empty
+                                                { expression =
+                                                    Node { end = { column = 53, row = 1 }, start = { column = 19, row = 1 } }
                                                         (FunctionCall
-                                                            (Node empty (FunctionOrValue [] "c"))
-                                                            [ Node empty (Operator "==")
-                                                            , Node empty (CharLiteral ' ')
-                                                            , Node empty (Operator "||")
-                                                            , Node empty (FunctionOrValue [] "c")
-                                                            , Node empty (Operator "==")
-                                                            , Node empty (CharLiteral '\n')
-                                                            , Node empty (Operator "||")
-                                                            , Node empty (FunctionOrValue [] "c")
-                                                            , Node empty (Operator "==")
-                                                            , Node empty (CharLiteral '\u{000D}')
+                                                            (Node { end = { column = 20, row = 1 }, start = { column = 19, row = 1 } } (FunctionOrValue [] "c"))
+                                                            [ Node { end = { column = 23, row = 1 }, start = { column = 21, row = 1 } } (Operator "==")
+                                                            , Node { end = { column = 27, row = 1 }, start = { column = 24, row = 1 } } (CharLiteral ' ')
+                                                            , Node { end = { column = 30, row = 1 }, start = { column = 28, row = 1 } } (Operator "||")
+                                                            , Node { end = { column = 32, row = 1 }, start = { column = 31, row = 1 } } (FunctionOrValue [] "c")
+                                                            , Node { end = { column = 35, row = 1 }, start = { column = 33, row = 1 } } (Operator "==")
+                                                            , Node { end = { column = 40, row = 1 }, start = { column = 36, row = 1 } } (CharLiteral '\n')
+                                                            , Node { end = { column = 43, row = 1 }, start = { column = 41, row = 1 } } (Operator "||")
+                                                            , Node { end = { column = 45, row = 1 }, start = { column = 44, row = 1 } } (FunctionOrValue [] "c")
+                                                            , Node { end = { column = 48, row = 1 }, start = { column = 46, row = 1 } } (Operator "==")
+                                                            , Node { end = { column = 53, row = 1 }, start = { column = 49, row = 1 } } (CharLiteral '\u{000D}')
                                                             ]
                                                         )
+                                                , firstArg = Node { end = { column = 15, row = 1 }, start = { column = 14, row = 1 } } (VarPattern_ "c")
+                                                , restOfArgs = []
                                                 }
                                             )
                                         ]
