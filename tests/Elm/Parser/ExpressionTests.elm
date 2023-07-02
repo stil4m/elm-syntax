@@ -17,6 +17,11 @@ all =
             \() ->
                 parseFullStringWithNullState "" expression
                     |> Expect.equal Nothing
+        , test "Integer literal" <|
+            \() ->
+                parseFullStringWithNullState "101" expression
+                    |> Maybe.map Node.value
+                    |> Expect.equal (Just (IntegerLiteral 101))
         , test "String literal" <|
             \() ->
                 parseFullStringWithNullState "\"Bar\"" expression
