@@ -76,8 +76,8 @@ context : Result (List DeadEnd) Processing.ProcessContext
 context =
     """
 module Basics exposing ((+), (-), (*), (/), (//), (^), (==), (/=), (<), (>), (<=), (>=), (&&), (||), (++), (<|), (|>), (<<), (>>))
-         
-         
+
+
 infix right 0 (<|) = apL
 infix left  0 (|>) = apR
 infix right 2 (||) = or
