@@ -1,13 +1,12 @@
 module Elm.Parser.ExpressionTests exposing (all)
 
-import Elm.Parser.CombineTestUtil exposing (..)
-import Elm.Parser.Expression exposing (..)
+import Elm.Parser.CombineTestUtil exposing (parseFullStringWithNullState)
+import Elm.Parser.Expression exposing (expression)
 import Elm.Syntax.DestructurePattern exposing (DestructurePattern(..))
-import Elm.Syntax.Expression exposing (..)
-import Elm.Syntax.Node as Node exposing (Node(..))
-import Elm.Syntax.Range exposing (..)
+import Elm.Syntax.Expression exposing (Expression(..), StringLiteralType(..))
+import Elm.Syntax.Node exposing (Node(..))
 import Expect
-import Test exposing (..)
+import Test exposing (Test, describe, test)
 
 
 all : Test
