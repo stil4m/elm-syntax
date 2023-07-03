@@ -20,15 +20,15 @@ all =
         , test "Integer literal" <|
             \() ->
                 parseFullStringWithNullState "101" expression
-                    |> Expect.equal (Just (Node { end = { column = 4, row = 1 }, start = { column = 1, row = 1 } } (IntegerLiteral 101)))
+                    |> expectAst (Node { end = { column = 4, row = 1 }, start = { column = 1, row = 1 } } (IntegerLiteral 101))
         , test "String literal" <|
             \() ->
                 parseFullStringWithNullState "\"Bar\"" expression
-                    |> Expect.equal (Just (Node { end = { column = 6, row = 1 }, start = { column = 1, row = 1 } } (StringLiteral SingleQuote "Bar")))
+                    |> expectAst (Node { end = { column = 6, row = 1 }, start = { column = 1, row = 1 } } (StringLiteral SingleQuote "Bar"))
         , test "character literal" <|
             \() ->
                 parseFullStringWithNullState "'c'" expression
-                    |> Expect.equal (Just (Node { end = { column = 4, row = 1 }, start = { column = 1, row = 1 } } (CharLiteral 'c')))
+                    |> expectAst (Node { end = { column = 4, row = 1 }, start = { column = 1, row = 1 } } (CharLiteral 'c'))
         , test "tuple expression" <|
             \() ->
                 parseFullStringWithNullState "(1,2)" expression
@@ -45,11 +45,11 @@ all =
         , test "prefix expression" <|
             \() ->
                 parseFullStringWithNullState "(,)" expression
-                    |> Expect.equal (Just (Node { end = { column = 4, row = 1 }, start = { column = 1, row = 1 } } (PrefixOperator ",")))
+                    |> expectAst (Node { end = { column = 4, row = 1 }, start = { column = 1, row = 1 } } (PrefixOperator ","))
         , test "String literal multiline" <|
             \() ->
                 parseFullStringWithNullState "\"\"\"Bar foo \n a\"\"\"" expression
-                    |> Expect.equal (Just (Node { end = { column = 6, row = 2 }, start = { column = 1, row = 1 } } (StringLiteral TripleQuote "Bar foo \n a")))
+                    |> expectAst (Node { end = { column = 6, row = 2 }, start = { column = 1, row = 1 } } (StringLiteral TripleQuote "Bar foo \n a"))
         , test "Regression test for multiline strings with backslashes" <|
             \() ->
                 parseFullStringWithNullState "\"\"\"\\{\\}\"\"\"" expression
@@ -57,23 +57,23 @@ all =
         , test "Regression test 2 for multiline strings with backslashes" <|
             \() ->
                 parseFullStringWithNullState "\"\"\"\\\\{\\\\}\"\"\"" expression
-                    |> Expect.equal (Just (Node { end = { column = 13, row = 1 }, start = { column = 1, row = 1 } } (StringLiteral TripleQuote "\\{\\}")))
+                    |> expectAst (Node { end = { column = 13, row = 1 }, start = { column = 1, row = 1 } } (StringLiteral TripleQuote "\\{\\}"))
         , test "Regression test 3 for multiline strings with backslashes" <|
             \() ->
                 parseFullStringWithNullState "\"\"\"\\\\a-blablabla-\\\\b\"\"\"" expression
-                    |> Expect.equal (Just (Node { end = { column = 24, row = 1 }, start = { column = 1, row = 1 } } (StringLiteral TripleQuote "\\a-blablabla-\\b")))
+                    |> expectAst (Node { end = { column = 24, row = 1 }, start = { column = 1, row = 1 } } (StringLiteral TripleQuote "\\a-blablabla-\\b"))
         , test "Type expression for upper case" <|
             \() ->
                 parseFullStringWithNullState "Bar" expression
-                    |> Expect.equal (Just (Node { end = { column = 4, row = 1 }, start = { column = 1, row = 1 } } (FunctionOrValue [] "Bar")))
+                    |> expectAst (Node { end = { column = 4, row = 1 }, start = { column = 1, row = 1 } } (FunctionOrValue [] "Bar"))
         , test "Type expression for lower case" <|
             \() ->
                 parseFullStringWithNullState "bar" expression
-                    |> Expect.equal (Just (Node { end = { column = 4, row = 1 }, start = { column = 1, row = 1 } } (FunctionOrValue [] "bar")))
+                    |> expectAst (Node { end = { column = 4, row = 1 }, start = { column = 1, row = 1 } } (FunctionOrValue [] "bar"))
         , test "Type expression for lower case but qualified" <|
             \() ->
                 parseFullStringWithNullState "Bar.foo" expression
-                    |> Expect.equal (Just (Node { end = { column = 8, row = 1 }, start = { column = 1, row = 1 } } (FunctionOrValue [ "Bar" ] "foo")))
+                    |> expectAst (Node { end = { column = 8, row = 1 }, start = { column = 1, row = 1 } } (FunctionOrValue [ "Bar" ] "foo"))
         , test "parenthesizedExpression" <|
             \() ->
                 parseFullStringWithNullState "(bar)" expression
@@ -147,7 +147,7 @@ all =
         , test "expressionNotApplication simple" <|
             \() ->
                 parseFullStringWithNullState "foo" expression
-                    |> Expect.equal (Just (Node { end = { column = 4, row = 1 }, start = { column = 1, row = 1 } } (FunctionOrValue [] "foo")))
+                    |> expectAst (Node { end = { column = 4, row = 1 }, start = { column = 1, row = 1 } } (FunctionOrValue [] "foo"))
         , test "unit application" <|
             \() ->
                 parseFullStringWithNullState "Task.succeed ()" expression
@@ -275,8 +275,7 @@ all =
             \() ->
                 parseFullStringWithNullState "[{-| Foo -}]" expression
                     |> Maybe.map noRangeExpression
-                    |> Maybe.map Node.value
-                    |> Expect.equal (Just (ListLiteral []))
+                    |> expectAst (Node.empty (ListLiteral []))
         , test "qualified expression" <|
             \() ->
                 parseFullStringWithNullState "Html.text" expression
@@ -410,8 +409,7 @@ all =
             \() ->
                 parseFullStringWithNullState "-x" expression
                     |> Maybe.map noRangeExpression
-                    |> Maybe.map Node.value
-                    |> Expect.equal (Just (Negation (Node { end = { column = 0, row = 0 }, start = { column = 0, row = 0 } } (FunctionOrValue [] "x"))))
+                    |> expectAst (Node.empty (Negation (Node { end = { column = 0, row = 0 }, start = { column = 0, row = 0 } } (FunctionOrValue [] "x"))))
         , test "negated expression in application" <|
             \() ->
                 parseFullStringWithNullState "toFloat -5" expression
@@ -482,3 +480,14 @@ all =
                             )
                         )
         ]
+
+
+expectAst : Node Expression -> Maybe (Node Expression) -> Expect.Expectation
+expectAst expected result =
+    case result of
+        Nothing ->
+            Expect.fail "Expected the source to be parsed correctly"
+
+        Just actual ->
+            actual
+                |> Expect.equal expected
