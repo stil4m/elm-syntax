@@ -22,11 +22,10 @@ all =
             \() ->
                 parseExpression "101"
                     |> expectAst (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 4 } } (IntegerLiteral 101))
-        , Test.skip <|
-            test "String literal" <|
-                \() ->
-                    parseExpression "\"Bar\""
-                        |> expectAst (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 6 } } (StringLiteral SingleQuote "Bar"))
+        , test "String literal" <|
+            \() ->
+                parseExpression "\"Bar\""
+                    |> expectAst (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 6 } } (StringLiteral SingleQuote "Bar"))
         , Test.skip <|
             test "character literal" <|
                 \() ->
