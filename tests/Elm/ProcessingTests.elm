@@ -614,21 +614,21 @@ portWithDocumentation =
 port foo : String -> Cmd msg"""
     , { comments = []
       , declarations =
-            [ Node { end = { column = 1, row = 5 }, start = { column = 1, row = 3 } }
+            [ Node { start = { row = 3, column = 1 }, end = { row = 5, column = 1 } }
                 (PortDeclaration
-                    { documentation = Just (Node { end = { column = 31, row = 3 }, start = { column = 1, row = 3 } } "{-| Some port documentation -}")
+                    { documentation = Just (Node { start = { row = 3, column = 1 }, end = { row = 3, column = 31 } } "{-| Some port documentation -}")
                     , signature =
-                        Node { end = { column = 1, row = 5 }, start = { column = 6, row = 4 } }
-                            { name = Node { end = { column = 9, row = 4 }, start = { column = 6, row = 4 } } "foo"
+                        Node { start = { row = 4, column = 6 }, end = { row = 5, column = 1 } }
+                            { name = Node { start = { row = 4, column = 6 }, end = { row = 4, column = 9 } } "foo"
                             , typeAnnotation =
-                                Node { end = { column = 29, row = 4 }, start = { column = 12, row = 4 } }
+                                Node { start = { row = 4, column = 12 }, end = { row = 4, column = 29 } }
                                     (FunctionTypeAnnotation
-                                        (Node { end = { column = 18, row = 4 }, start = { column = 12, row = 4 } }
-                                            (Type (Node { end = { column = 18, row = 4 }, start = { column = 12, row = 4 } } ( [], "String" )) [])
+                                        (Node { start = { row = 4, column = 12 }, end = { row = 4, column = 18 } }
+                                            (Type (Node { start = { row = 4, column = 12 }, end = { row = 4, column = 18 } } ( [], "String" )) [])
                                         )
-                                        (Node { end = { column = 29, row = 4 }, start = { column = 22, row = 4 } }
-                                            (Type (Node { end = { column = 25, row = 4 }, start = { column = 22, row = 4 } } ( [], "Cmd" ))
-                                                [ Node { end = { column = 29, row = 4 }, start = { column = 26, row = 4 } } (Var "msg") ]
+                                        (Node { start = { row = 4, column = 22 }, end = { row = 4, column = 29 } }
+                                            (Type (Node { start = { row = 4, column = 22 }, end = { row = 4, column = 25 } } ( [], "Cmd" ))
+                                                [ Node { start = { row = 4, column = 26 }, end = { row = 4, column = 29 } } (Var "msg") ]
                                             )
                                         )
                                     )
@@ -638,12 +638,12 @@ port foo : String -> Cmd msg"""
             ]
       , imports = []
       , moduleDefinition =
-            Node { end = { column = 23, row = 1 }, start = { column = 1, row = 1 } }
+            Node { start = { row = 1, column = 1 }, end = { row = 1, column = 23 } }
                 (NormalModule
                     { exposingList =
-                        Node { end = { column = 23, row = 1 }, start = { column = 10, row = 1 } }
-                            (All { end = { column = 22, row = 1 }, start = { column = 20, row = 1 } })
-                    , moduleName = Node { end = { column = 9, row = 1 }, start = { column = 8, row = 1 } } [ "A" ]
+                        Node { start = { row = 1, column = 10 }, end = { row = 1, column = 23 } }
+                            (All { start = { row = 1, column = 20 }, end = { row = 1, column = 22 } })
+                    , moduleName = Node { start = { row = 1, column = 8 }, end = { row = 1, column = 9 } } [ "A" ]
                     }
                 )
       }
