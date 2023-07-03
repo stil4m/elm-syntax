@@ -226,7 +226,7 @@ recordExpression =
 literalExpression : Parser State (Node Expression)
 literalExpression =
     or (Combine.map (\str -> StringLiteral TripleQuote str) multiLineStringLiteral)
-        (Combine.map (\str -> StringLiteral SingleQuote str) stringLiteral)
+        (Combine.map (\str -> StringLiteral SingleQuote str) (Combine.fromCore stringLiteral))
         |> Node.parser
 
 

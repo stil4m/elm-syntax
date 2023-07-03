@@ -1,5 +1,6 @@
 module Elm.Parser.TokenTests exposing (all)
 
+import Combine
 import Elm.Parser.CombineTestUtil exposing (..)
 import Elm.Parser.Tokens as Parser
 import Expect
@@ -165,11 +166,11 @@ all =
                     |> Expect.equal (Just '\u{000D}')
         , test "string escaped 3" <|
             \() ->
-                parseFullString "\"\\\"\"" Parser.stringLiteral
+                parseFullString "\"\\\"\"" (Combine.fromCore Parser.stringLiteral)
                     |> Expect.equal (Just "\"")
         , test "string escaped" <|
             \() ->
-                parseFullString "\"foo\\\\\"" Parser.stringLiteral
+                parseFullString "\"foo\\\\\"" (Combine.fromCore Parser.stringLiteral)
                     |> Expect.equal (Just "foo\\")
         , test "character escaped 3" <|
             \() ->
@@ -181,7 +182,7 @@ all =
                     |> Expect.equal Nothing
         , test "long string" <|
             \() ->
-                parseFullString longString Parser.stringLiteral
+                parseFullString longString (Combine.fromCore Parser.stringLiteral)
                     |> Expect.notEqual Nothing
         , test "long multi line string" <|
             \() ->

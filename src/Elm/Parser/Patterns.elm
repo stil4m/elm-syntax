@@ -83,7 +83,7 @@ composablePattern =
     Combine.choice
         [ variablePart
         , qualifiedPattern True
-        , Node.parser (stringLiteral |> Combine.map StringPattern)
+        , Node.parser (Combine.fromCore stringLiteral |> Combine.map StringPattern)
         , Node.parser (characterLiteral |> Combine.map CharPattern)
         , Node.parser numberPart
         , Node.parser (Core.symbol "()" |> Combine.fromCore |> Combine.map (always UnitPattern))
@@ -99,7 +99,7 @@ qualifiedPatternArg =
     Combine.choice
         [ variablePart
         , qualifiedPattern False
-        , Node.parser (stringLiteral |> Combine.map StringPattern)
+        , Node.parser (Combine.fromCore stringLiteral |> Combine.map StringPattern)
         , Node.parser (characterLiteral |> Combine.map CharPattern)
         , Node.parser numberPart
         , Node.parser (Core.symbol "()" |> Combine.fromCore |> Combine.map (always UnitPattern))
