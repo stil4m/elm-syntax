@@ -39,20 +39,20 @@ stringLiteral : Parser String
 stringLiteral =
     let
         helper : StringLiteralLoopState -> Parser.Parser (Parser.Step StringLiteralLoopState String)
-        helper s =
-            if s.escaped then
+        helper { escaped, parts } =
+            if escaped then
                 escapedCharValue
                     |> Parser.map
                         (\v ->
-                            Parser.Loop { escaped = False, parts = String.fromChar v :: s.parts }
+                            Parser.Loop { escaped = False, parts = String.fromChar v :: parts }
                         )
 
             else
                 Parser.oneOf
                     [ Parser.symbol "\""
-                        |> Parser.map (\_ -> Parser.Done (String.concat <| List.reverse s.parts))
+                        |> Parser.map (\_ -> Parser.Done (String.concat <| List.reverse parts))
                     , Parser.getChompedString (Parser.symbol "\\")
-                        |> Parser.map (\_ -> Parser.Loop { escaped = True, parts = s.parts })
+                        |> Parser.map (\_ -> Parser.Loop { escaped = True, parts = parts })
                     , Parser.succeed (\start value end -> ( start, value, end ))
                         |= Parser.getOffset
                         |= Parser.getChompedString (Parser.chompWhile (\c -> c /= '"' && c /= '\\'))
@@ -63,7 +63,7 @@ stringLiteral =
                                     Parser.problem "Expected a string character or a double quote"
 
                                 else
-                                    Parser.succeed (Parser.Loop { escaped = s.escaped, parts = value :: s.parts })
+                                    Parser.succeed (Parser.Loop { escaped = escaped, parts = value :: parts })
                             )
                     ]
     in
