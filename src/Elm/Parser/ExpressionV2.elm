@@ -16,6 +16,9 @@ expression =
             , stringLiteral
                 |> Parser.map (\s -> StringLiteral SingleQuote s)
                 |> Pratt.literal
+            , quotedSingleQuote
+                |> Parser.map CharLiteral
+                |> Pratt.literal
             ]
         , andThenOneOf = []
         , spaces = Parser.succeed ()
@@ -70,6 +73,17 @@ stringLiteral =
     Parser.succeed identity
         |. Parser.symbol "\""
         |= Parser.loop { escaped = False, parts = [] } helper
+
+
+quotedSingleQuote : Parser Char
+quotedSingleQuote =
+    Parser.succeed (String.toList >> List.head >> Maybe.withDefault ' ')
+        |. Parser.symbol "'"
+        |= Parser.oneOf
+            [ Parser.succeed (List.singleton >> String.fromList) |. Parser.symbol "\\" |= escapedCharValue
+            , Parser.getChompedString (Parser.chompIf (always True))
+            ]
+        |. Parser.symbol "'"
 
 
 escapedCharValue : Parser Char
