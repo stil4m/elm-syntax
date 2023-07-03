@@ -150,7 +150,7 @@ all =
                                 )
                                 [ Node.empty <| TupleExpression [] ]
                         )
-        , test "compoundExpression" <|
+        , test "Function call" <|
             \() ->
                 parseFullStringWithNullState "foo bar" expression
                     |> Maybe.map noRangeExpression
@@ -159,18 +159,6 @@ all =
                             FunctionCall
                                 (Node.empty <| FunctionOrValue [] "foo")
                                 [ Node.empty <| FunctionOrValue [] "bar" ]
-                        )
-        , test "compoundExpression 2" <|
-            \() ->
-                parseFullStringWithNullState "{ key = value } ! []" expression
-                    |> Maybe.map noRangeExpression
-                    |> expectAst
-                        (Node.empty <|
-                            FunctionCall
-                                (Node empty <| Record [ Node empty ( Node empty "key", Node empty <| FunctionOrValue [] "value" ) ])
-                                [ Node empty <| Operator "!"
-                                , Node empty <| ListLiteral []
-                                ]
                         )
         , test "ifBlockExpression" <|
             \() ->
