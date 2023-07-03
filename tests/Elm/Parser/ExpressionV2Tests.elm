@@ -26,11 +26,10 @@ all =
             \() ->
                 parseExpression "\"Bar\""
                     |> expectAst (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 6 } } (StringLiteral SingleQuote "Bar"))
-        , Test.skip <|
-            test "character literal" <|
-                \() ->
-                    parseExpression "'c'"
-                        |> expectAst (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 4 } } (CharLiteral 'c'))
+        , test "character literal" <|
+            \() ->
+                parseExpression "'c'"
+                    |> expectAst (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 4 } } (CharLiteral 'c'))
         , Test.skip <|
             test "tuple expression" <|
                 \() ->
