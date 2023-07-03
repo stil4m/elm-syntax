@@ -75,11 +75,12 @@ all =
         , test "parenthesizedExpression" <|
             \() ->
                 parseFullStringWithNullState "(bar)" expression
-                    |> Maybe.map noRangeExpression
                     |> expectAst
-                        (Node.empty <|
-                            TupleExpression
-                                [ Node.empty <| FunctionOrValue [] "bar" ]
+                        (Node { end = { column = 6, row = 1 }, start = { column = 1, row = 1 } }
+                            (TupleExpression
+                                [ Node { end = { column = 5, row = 1 }, start = { column = 2, row = 1 } } (FunctionOrValue [] "bar")
+                                ]
+                            )
                         )
         , test "application expression" <|
             \() ->
@@ -141,190 +142,226 @@ all =
         , test "unit application" <|
             \() ->
                 parseFullStringWithNullState "Task.succeed ()" expression
-                    |> Maybe.map noRangeExpression
                     |> expectAst
-                        (Node.empty <|
-                            FunctionCall
-                                (Node.empty <|
-                                    FunctionOrValue [ "Task" ] "succeed"
-                                )
-                                [ Node.empty <| TupleExpression [] ]
+                        (Node { end = { column = 16, row = 1 }, start = { column = 1, row = 1 } }
+                            (FunctionCall
+                                (Node { end = { column = 13, row = 1 }, start = { column = 1, row = 1 } } (FunctionOrValue [ "Task" ] "succeed"))
+                                [ Node { end = { column = 16, row = 1 }, start = { column = 14, row = 1 } } (TupleExpression []) ]
+                            )
                         )
         , test "Function call" <|
             \() ->
                 parseFullStringWithNullState "foo bar" expression
-                    |> Maybe.map noRangeExpression
                     |> expectAst
-                        (Node.empty <|
-                            FunctionCall
-                                (Node.empty <| FunctionOrValue [] "foo")
-                                [ Node.empty <| FunctionOrValue [] "bar" ]
+                        (Node { end = { column = 8, row = 1 }, start = { column = 1, row = 1 } }
+                            (FunctionCall
+                                (Node { end = { column = 4, row = 1 }, start = { column = 1, row = 1 } } (FunctionOrValue [] "foo"))
+                                [ Node { end = { column = 8, row = 1 }, start = { column = 5, row = 1 } } (FunctionOrValue [] "bar") ]
+                            )
                         )
         , test "ifBlockExpression" <|
             \() ->
                 parseFullStringWithNullState "if True then foo else bar" expression
-                    |> Maybe.map noRangeExpression
                     |> expectAst
-                        (Node.empty <|
-                            If
-                                (Node empty <| FunctionOrValue [] "True")
-                                (Node empty <| FunctionOrValue [] "foo")
-                                (Node empty <| FunctionOrValue [] "bar")
+                        (Node { end = { column = 26, row = 1 }, start = { column = 1, row = 1 } }
+                            (If
+                                (Node { end = { column = 8, row = 1 }, start = { column = 4, row = 1 } } (FunctionOrValue [] "True"))
+                                (Node { end = { column = 17, row = 1 }, start = { column = 14, row = 1 } } (FunctionOrValue [] "foo"))
+                                (Node { end = { column = 26, row = 1 }, start = { column = 23, row = 1 } } (FunctionOrValue [] "bar"))
+                            )
                         )
         , test "nestedIfExpression" <|
             \() ->
                 parseFullStringWithNullState "if True then if False then foo else baz else bar" expression
-                    |> Maybe.map noRangeExpression
                     |> expectAst
-                        (Node.empty <|
-                            If
-                                (Node empty <| FunctionOrValue [] "True")
-                                (Node empty <|
-                                    If
-                                        (Node empty <| FunctionOrValue [] "False")
-                                        (Node empty <| FunctionOrValue [] "foo")
-                                        (Node empty <| FunctionOrValue [] "baz")
+                        (Node { end = { column = 49, row = 1 }, start = { column = 1, row = 1 } }
+                            (If
+                                (Node { end = { column = 8, row = 1 }, start = { column = 4, row = 1 } } (FunctionOrValue [] "True"))
+                                (Node { end = { column = 40, row = 1 }, start = { column = 14, row = 1 } }
+                                    (If
+                                        (Node { end = { column = 22, row = 1 }, start = { column = 17, row = 1 } } (FunctionOrValue [] "False"))
+                                        (Node { end = { column = 31, row = 1 }, start = { column = 28, row = 1 } } (FunctionOrValue [] "foo"))
+                                        (Node { end = { column = 40, row = 1 }, start = { column = 37, row = 1 } } (FunctionOrValue [] "baz"))
+                                    )
                                 )
-                                (Node empty <| FunctionOrValue [] "bar")
+                                (Node { end = { column = 49, row = 1 }, start = { column = 46, row = 1 } } (FunctionOrValue [] "bar"))
+                            )
                         )
         , test "recordExpression" <|
             \() ->
                 parseFullStringWithNullState "{ model = 0, view = view, update = update }" expression
-                    |> Maybe.map noRangeExpression
                     |> expectAst
-                        (Node.empty <|
-                            Record
-                                [ Node empty ( Node empty "model", Node empty <| IntegerLiteral 0 )
-                                , Node empty ( Node empty "view", Node empty <| FunctionOrValue [] "view" )
-                                , Node empty ( Node empty "update", Node empty <| FunctionOrValue [] "update" )
+                        (Node { end = { column = 44, row = 1 }, start = { column = 1, row = 1 } }
+                            (Record
+                                [ Node { end = { column = 12, row = 1 }, start = { column = 3, row = 1 } }
+                                    ( Node { end = { column = 8, row = 1 }, start = { column = 3, row = 1 } } "model"
+                                    , Node { end = { column = 12, row = 1 }, start = { column = 11, row = 1 } } (IntegerLiteral 0)
+                                    )
+                                , Node { end = { column = 25, row = 1 }, start = { column = 14, row = 1 } }
+                                    ( Node { end = { column = 18, row = 1 }, start = { column = 14, row = 1 } } "view"
+                                    , Node { end = { column = 25, row = 1 }, start = { column = 21, row = 1 } } (FunctionOrValue [] "view")
+                                    )
+                                , Node { end = { column = 43, row = 1 }, start = { column = 27, row = 1 } }
+                                    ( Node { end = { column = 33, row = 1 }, start = { column = 27, row = 1 } } "update"
+                                    , Node { end = { column = 42, row = 1 }, start = { column = 36, row = 1 } } (FunctionOrValue [] "update")
+                                    )
                                 ]
+                            )
                         )
         , test "recordExpression with comment" <|
             \() ->
                 parseFullStringWithNullState "{ foo = 1 -- bar\n , baz = 2 }" expression
-                    |> Maybe.map noRangeExpression
                     |> expectAst
-                        (Node.empty <|
-                            Record
-                                [ Node empty ( Node empty "foo", Node empty <| IntegerLiteral 1 )
-                                , Node empty ( Node empty "baz", Node empty <| IntegerLiteral 2 )
+                        (Node { end = { column = 13, row = 2 }, start = { column = 1, row = 1 } }
+                            (Record
+                                [ Node { end = { column = 10, row = 1 }, start = { column = 3, row = 1 } }
+                                    ( Node { end = { column = 6, row = 1 }, start = { column = 3, row = 1 } } "foo"
+                                    , Node { end = { column = 10, row = 1 }, start = { column = 9, row = 1 } } (IntegerLiteral 1)
+                                    )
+                                , Node { end = { column = 12, row = 2 }, start = { column = 4, row = 2 } }
+                                    ( Node { end = { column = 7, row = 2 }, start = { column = 4, row = 2 } } "baz"
+                                    , Node { end = { column = 11, row = 2 }, start = { column = 10, row = 2 } } (IntegerLiteral 2)
+                                    )
                                 ]
+                            )
                         )
         , test "listExpression" <|
             \() ->
                 parseFullStringWithNullState "[ class \"a\", text \"Foo\"]" expression
-                    |> Maybe.map noRangeExpression
                     |> expectAst
-                        (Node.empty <|
-                            ListLiteral
-                                [ Node empty <| FunctionCall (Node empty <| FunctionOrValue [] "class") [ Node empty <| StringLiteral SingleQuote "a" ]
-                                , Node empty <| FunctionCall (Node empty <| FunctionOrValue [] "text") [ Node empty <| StringLiteral SingleQuote "Foo" ]
+                        (Node { end = { column = 25, row = 1 }, start = { column = 1, row = 1 } }
+                            (ListLiteral
+                                [ Node { end = { column = 12, row = 1 }, start = { column = 3, row = 1 } }
+                                    (FunctionCall
+                                        (Node { end = { column = 8, row = 1 }, start = { column = 3, row = 1 } } (FunctionOrValue [] "class"))
+                                        [ Node { end = { column = 12, row = 1 }, start = { column = 9, row = 1 } } (StringLiteral SingleQuote "a") ]
+                                    )
+                                , Node { end = { column = 24, row = 1 }, start = { column = 14, row = 1 } }
+                                    (FunctionCall
+                                        (Node { end = { column = 18, row = 1 }, start = { column = 14, row = 1 } } (FunctionOrValue [] "text"))
+                                        [ Node { end = { column = 24, row = 1 }, start = { column = 19, row = 1 } } (StringLiteral SingleQuote "Foo") ]
+                                    )
                                 ]
+                            )
                         )
         , test "listExpression singleton with comment" <|
             \() ->
                 parseFullStringWithNullState "[ 1 {- Foo-} ]" expression
-                    |> Maybe.map noRangeExpression
                     |> expectAst
-                        (Node.empty <|
-                            ListLiteral
-                                [ Node empty <| IntegerLiteral 1
+                        (Node { end = { column = 15, row = 1 }, start = { column = 1, row = 1 } }
+                            (ListLiteral
+                                [ Node { end = { column = 4, row = 1 }, start = { column = 3, row = 1 } } (IntegerLiteral 1)
                                 ]
+                            )
                         )
         , test "listExpression empty with comment" <|
             \() ->
                 parseFullStringWithNullState "[{-| Foo -}]" expression
-                    |> Maybe.map noRangeExpression
-                    |> expectAst (Node.empty (ListLiteral []))
+                    |> expectAst (Node { end = { column = 13, row = 1 }, start = { column = 1, row = 1 } } (ListLiteral []))
         , test "qualified expression" <|
             \() ->
                 parseFullStringWithNullState "Html.text" expression
-                    |> Maybe.map noRangeExpression
-                    |> expectAst (Node.empty (FunctionOrValue [ "Html" ] "text"))
+                    |> expectAst (Node { end = { column = 10, row = 1 }, start = { column = 1, row = 1 } } (FunctionOrValue [ "Html" ] "text"))
         , test "record access" <|
             \() ->
                 parseFullStringWithNullState "foo.bar" expression
                     |> expectAst
-                        (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 8 } } <|
-                            RecordAccess
-                                (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 4 } } <|
-                                    FunctionOrValue [] "foo"
-                                )
-                                (Node { start = { row = 1, column = 5 }, end = { row = 1, column = 8 } } "bar")
+                        (Node { end = { column = 8, row = 1 }, start = { column = 1, row = 1 } }
+                            (RecordAccess
+                                (Node { end = { column = 4, row = 1 }, start = { column = 1, row = 1 } } (FunctionOrValue [] "foo"))
+                                (Node { end = { column = 8, row = 1 }, start = { column = 5, row = 1 } } "bar")
+                            )
                         )
         , test "multiple record access operations" <|
             \() ->
                 parseFullStringWithNullState "foo.bar.baz" expression
-                    |> Maybe.map noRangeExpression
                     |> expectAst
-                        (Node.empty <|
-                            RecordAccess
-                                (Node empty <|
-                                    RecordAccess
-                                        (Node empty <| FunctionOrValue [] "foo")
-                                        (Node empty "bar")
+                        (Node { end = { column = 12, row = 1 }, start = { column = 1, row = 1 } }
+                            (RecordAccess
+                                (Node { end = { column = 8, row = 1 }, start = { column = 1, row = 1 } }
+                                    (RecordAccess
+                                        (Node { end = { column = 4, row = 1 }, start = { column = 1, row = 1 } } (FunctionOrValue [] "foo"))
+                                        (Node { end = { column = 8, row = 1 }, start = { column = 5, row = 1 } } "bar")
+                                    )
                                 )
-                                (Node empty "baz")
+                                (Node { end = { column = 12, row = 1 }, start = { column = 9, row = 1 } } "baz")
+                            )
                         )
         , test "multiple record access operations with module name" <|
             \() ->
                 parseFullStringWithNullState "A.B.foo.bar.baz" expression
-                    |> Maybe.map noRangeExpression
                     |> expectAst
-                        (Node.empty <|
-                            RecordAccess
-                                (Node empty <|
-                                    RecordAccess
-                                        (Node empty <| FunctionOrValue [ "A", "B" ] "foo")
-                                        (Node empty "bar")
+                        (Node { end = { column = 16, row = 1 }, start = { column = 1, row = 1 } }
+                            (RecordAccess
+                                (Node { end = { column = 12, row = 1 }, start = { column = 1, row = 1 } }
+                                    (RecordAccess
+                                        (Node { end = { column = 8, row = 1 }, start = { column = 1, row = 1 } } (FunctionOrValue [ "A", "B" ] "foo"))
+                                        (Node { end = { column = 12, row = 1 }, start = { column = 9, row = 1 } } "bar")
+                                    )
                                 )
-                                (Node empty "baz")
+                                (Node { end = { column = 16, row = 1 }, start = { column = 13, row = 1 } } "baz")
+                            )
                         )
         , test "record update" <|
             \() ->
                 parseFullStringWithNullState "{ model | count = 1, loading = True }" expression
-                    |> Maybe.map noRangeExpression
                     |> expectAst
-                        (Node.empty <|
-                            RecordUpdate
-                                (Node empty "model")
-                                (Node empty ( Node empty "count", Node empty <| IntegerLiteral 1 ))
-                                [ Node empty ( Node empty "loading", Node empty <| FunctionOrValue [] "True" ) ]
+                        (Node { end = { column = 38, row = 1 }, start = { column = 1, row = 1 } }
+                            (RecordUpdate
+                                (Node { end = { column = 8, row = 1 }, start = { column = 3, row = 1 } } "model")
+                                (Node { end = { column = 20, row = 1 }, start = { column = 11, row = 1 } }
+                                    ( Node { end = { column = 16, row = 1 }, start = { column = 11, row = 1 } } "count"
+                                    , Node { end = { column = 20, row = 1 }, start = { column = 19, row = 1 } } (IntegerLiteral 1)
+                                    )
+                                )
+                                [ Node { end = { column = 37, row = 1 }, start = { column = 22, row = 1 } }
+                                    ( Node { end = { column = 29, row = 1 }, start = { column = 22, row = 1 } } "loading"
+                                    , Node { end = { column = 36, row = 1 }, start = { column = 32, row = 1 } } (FunctionOrValue [] "True")
+                                    )
+                                ]
+                            )
                         )
         , test "record update no spacing" <|
             \() ->
                 parseFullStringWithNullState "{model| count = 1, loading = True }" expression
-                    |> Maybe.map noRangeExpression
                     |> expectAst
-                        (Node.empty <|
-                            RecordUpdate
-                                (Node empty "model")
-                                (Node empty ( Node empty "count", Node empty <| IntegerLiteral 1 ))
-                                [ Node empty ( Node empty "loading", Node empty <| FunctionOrValue [] "True" ) ]
+                        (Node { end = { column = 36, row = 1 }, start = { column = 1, row = 1 } }
+                            (RecordUpdate
+                                (Node { end = { column = 7, row = 1 }, start = { column = 2, row = 1 } } "model")
+                                (Node { end = { column = 18, row = 1 }, start = { column = 9, row = 1 } }
+                                    ( Node { end = { column = 14, row = 1 }, start = { column = 9, row = 1 } } "count"
+                                    , Node { end = { column = 18, row = 1 }, start = { column = 17, row = 1 } } (IntegerLiteral 1)
+                                    )
+                                )
+                                [ Node { end = { column = 35, row = 1 }, start = { column = 20, row = 1 } }
+                                    ( Node { end = { column = 27, row = 1 }, start = { column = 20, row = 1 } } "loading"
+                                    , Node { end = { column = 34, row = 1 }, start = { column = 30, row = 1 } } (FunctionOrValue [] "True")
+                                    )
+                                ]
+                            )
                         )
         , test "record access as function" <|
             \() ->
                 parseFullStringWithNullState "List.map .name people" expression
-                    |> Maybe.map noRangeExpression
                     |> expectAst
-                        (Node.empty <|
-                            FunctionCall
-                                (Node empty <| FunctionOrValue [ "List" ] "map")
-                                [ Node empty <| RecordAccessFunction "name"
-                                , Node empty <| FunctionOrValue [] "people"
+                        (Node { end = { column = 22, row = 1 }, start = { column = 1, row = 1 } }
+                            (FunctionCall (Node { end = { column = 9, row = 1 }, start = { column = 1, row = 1 } } (FunctionOrValue [ "List" ] "map"))
+                                [ Node { end = { column = 15, row = 1 }, start = { column = 10, row = 1 } } (RecordAccessFunction "name")
+                                , Node { end = { column = 22, row = 1 }, start = { column = 16, row = 1 } } (FunctionOrValue [] "people")
                                 ]
+                            )
                         )
         , test "record access direct" <|
             \() ->
                 parseFullStringWithNullState "(.spaceEvenly Internal.Style.classes)" expression
-                    |> Maybe.map noRangeExpression
                     |> expectAst
-                        (Node.empty
+                        (Node { end = { column = 38, row = 1 }, start = { column = 1, row = 1 } }
                             (TupleExpression
-                                [ Node empty <|
-                                    FunctionCall
-                                        (Node empty <| RecordAccessFunction "spaceEvenly")
-                                        [ Node empty <| FunctionOrValue [ "Internal", "Style" ] "classes" ]
+                                [ Node { end = { column = 37, row = 1 }, start = { column = 2, row = 1 } }
+                                    (FunctionCall (Node { end = { column = 14, row = 1 }, start = { column = 2, row = 1 } } (RecordAccessFunction "spaceEvenly"))
+                                        [ Node { end = { column = 37, row = 1 }, start = { column = 15, row = 1 } } (FunctionOrValue [ "Internal", "Style" ] "classes")
+                                        ]
+                                    )
                                 ]
                             )
                         )
@@ -339,47 +376,51 @@ all =
         , test "prefix notation" <|
             \() ->
                 parseFullStringWithNullState "(::) x" expression
-                    |> Maybe.map noRangeExpression
                     |> expectAst
-                        (Node.empty
+                        (Node { end = { column = 7, row = 1 }, start = { column = 1, row = 1 } }
                             (FunctionCall
-                                (Node empty <| PrefixOperator "::")
-                                [ Node empty <| FunctionOrValue [] "x" ]
+                                (Node { end = { column = 5, row = 1 }, start = { column = 1, row = 1 } } (PrefixOperator "::"))
+                                [ Node { end = { column = 7, row = 1 }, start = { column = 6, row = 1 } } (FunctionOrValue [] "x") ]
                             )
                         )
         , test "negated expression for value" <|
             \() ->
                 parseFullStringWithNullState "-x" expression
-                    |> Maybe.map noRangeExpression
-                    |> expectAst (Node.empty (Negation (Node { end = { column = 0, row = 0 }, start = { column = 0, row = 0 } } (FunctionOrValue [] "x"))))
+                    |> expectAst
+                        (Node { end = { column = 3, row = 1 }, start = { column = 1, row = 1 } }
+                            (Negation (Node { end = { column = 3, row = 1 }, start = { column = 2, row = 1 } } (FunctionOrValue [] "x")))
+                        )
         , test "negated expression in application" <|
             \() ->
                 parseFullStringWithNullState "toFloat -5" expression
-                    |> Maybe.map noRangeExpression
                     |> expectAst
-                        (Node.empty
+                        (Node { end = { column = 11, row = 1 }, start = { column = 1, row = 1 } }
                             (FunctionCall
-                                (Node empty <| FunctionOrValue [] "toFloat")
-                                [ Node empty <| Negation (Node empty <| IntegerLiteral 5) ]
+                                (Node { end = { column = 8, row = 1 }, start = { column = 1, row = 1 } } (FunctionOrValue [] "toFloat"))
+                                [ Node { end = { column = 11, row = 1 }, start = { column = 9, row = 1 } }
+                                    (Negation (Node { end = { column = 11, row = 1 }, start = { column = 10, row = 1 } } (IntegerLiteral 5)))
+                                ]
                             )
                         )
         , test "negated expression for parenthesized" <|
             \() ->
                 parseFullStringWithNullState "-(x - y)" expression
-                    |> Maybe.map noRangeExpression
                     |> expectAst
-                        (Node.empty <|
-                            Negation
-                                (Node empty <|
-                                    TupleExpression
-                                        [ Node empty <|
-                                            FunctionCall
-                                                (Node empty <| FunctionOrValue [] "x")
-                                                [ Node empty <| Operator "-"
-                                                , Node empty <| FunctionOrValue [] "y"
+                        (Node { end = { column = 9, row = 1 }, start = { column = 1, row = 1 } }
+                            (Negation
+                                (Node { end = { column = 9, row = 1 }, start = { column = 2, row = 1 } }
+                                    (TupleExpression
+                                        [ Node { end = { column = 8, row = 1 }, start = { column = 3, row = 1 } }
+                                            (FunctionCall
+                                                (Node { end = { column = 4, row = 1 }, start = { column = 3, row = 1 } } (FunctionOrValue [] "x"))
+                                                [ Node { end = { column = 7, row = 1 }, start = { column = 5, row = 1 } } (Operator "-")
+                                                , Node { end = { column = 8, row = 1 }, start = { column = 7, row = 1 } } (FunctionOrValue [] "y")
                                                 ]
+                                            )
                                         ]
+                                    )
                                 )
+                            )
                         )
         , test "function with higher order" <|
             \() ->
