@@ -14,6 +14,7 @@ module Elm.Parser.Tokens exposing
     , ofToken
     , portToken
     , prefixOperatorToken
+    , quotedSingleQuote
     , stringLiteral
     , thenToken
     , typeName
@@ -126,7 +127,7 @@ escapedCharValue =
         ]
 
 
-quotedSingleQuote : Parser s Char
+quotedSingleQuote : Core.Parser Char
 quotedSingleQuote =
     Core.succeed (String.toList >> List.head >> Maybe.withDefault ' ')
         |. Core.symbol "'"
@@ -135,12 +136,11 @@ quotedSingleQuote =
             , Core.getChompedString (Core.chompIf (always True))
             ]
         |. Core.symbol "'"
-        |> Combine.fromCore
 
 
 characterLiteral : Parser s Char
 characterLiteral =
-    or quotedSingleQuote
+    or (Combine.fromCore quotedSingleQuote)
         (char '\''
             |> Combine.continueWith anyChar
             |> Combine.ignore (char '\'')

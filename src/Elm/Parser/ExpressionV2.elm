@@ -1,5 +1,6 @@
 module Elm.Parser.ExpressionV2 exposing (expression)
 
+import Elm.Parser.Tokens as Tokens
 import Elm.Syntax.Expression as Expression exposing (Expression(..), StringLiteralType(..))
 import Elm.Syntax.Node exposing (Node(..))
 import Elm.Syntax.Range exposing (Location)
@@ -16,7 +17,7 @@ expression =
             , stringLiteral
                 |> Parser.map (\s -> StringLiteral SingleQuote s)
                 |> Pratt.literal
-            , quotedSingleQuote
+            , Tokens.quotedSingleQuote
                 |> Parser.map CharLiteral
                 |> Pratt.literal
             ]
@@ -73,17 +74,6 @@ stringLiteral =
     Parser.succeed identity
         |. Parser.symbol "\""
         |= Parser.loop { escaped = False, parts = [] } helper
-
-
-quotedSingleQuote : Parser Char
-quotedSingleQuote =
-    Parser.succeed (String.toList >> List.head >> Maybe.withDefault ' ')
-        |. Parser.symbol "'"
-        |= Parser.oneOf
-            [ Parser.succeed (List.singleton >> String.fromList) |. Parser.symbol "\\" |= escapedCharValue
-            , Parser.getChompedString (Parser.chompIf (always True))
-            ]
-        |. Parser.symbol "'"
 
 
 escapedCharValue : Parser Char
