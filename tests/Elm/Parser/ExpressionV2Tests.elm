@@ -66,11 +66,10 @@ all =
             \() ->
                 parseExpression "Bar"
                     |> expectAst (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 4 } } (FunctionOrValue [] "Bar"))
-        , Test.skip <|
-            test "Type expression for lower case" <|
-                \() ->
-                    parseExpression "bar"
-                        |> expectAst (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 4 } } (FunctionOrValue [] "bar"))
+        , test "Type expression for lower case" <|
+            \() ->
+                parseExpression "bar"
+                    |> expectAst (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 4 } } (FunctionOrValue [] "bar"))
         , test "Type expression for lower case but qualified" <|
             \() ->
                 parseExpression "Bar.foo"
