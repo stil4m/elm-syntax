@@ -3,6 +3,7 @@ module Elm.Parser.ExpressionV2Tests exposing (all)
 import Elm.Parser.ExpressionV2 exposing (..)
 import Elm.Syntax.DestructurePattern exposing (DestructurePattern(..))
 import Elm.Syntax.Expression exposing (..)
+import Elm.Syntax.Infix exposing (InfixDirection(..))
 import Elm.Syntax.Node exposing (Node(..))
 import Elm.Syntax.Range exposing (..)
 import Expect
@@ -99,12 +100,12 @@ all =
             \() ->
                 parseExpression "model + 1"
                     |> expectAst
-                        (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 10 } } <|
-                            FunctionCall
-                                (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 6 } } <| FunctionOrValue [] "model")
-                                [ Node { start = { row = 1, column = 7 }, end = { row = 1, column = 8 } } <| Operator "+"
-                                , Node { start = { row = 1, column = 9 }, end = { row = 1, column = 10 } } <| IntegerLiteral 1
-                                ]
+                        (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 10 } }
+                            (Operation "+"
+                                Left
+                                (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 6 } } (FunctionOrValue [] "model"))
+                                (Node { start = { row = 1, column = 9 }, end = { row = 1, column = 10 } } (IntegerLiteral 1))
+                            )
                         )
         , Test.skip <|
             test "application expression 2" <|
