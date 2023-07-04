@@ -18,6 +18,9 @@ expression =
     Pratt.expression
         { oneOf =
             [ Pratt.literal digits
+            , multiLineStringLiteral
+                |> Parser.map (\s -> StringLiteral TripleQuote s)
+                |> Pratt.literal
             , stringLiteral
                 |> Parser.map (\s -> StringLiteral SingleQuote s)
                 |> Pratt.literal
@@ -29,6 +32,51 @@ expression =
         , spaces = Parser.succeed ()
         }
         |> node
+
+
+type alias MultilineStringLiteralLoopState =
+    { escaped : Bool
+    , parts : List String
+    , counter : Int
+    }
+
+
+multiLineStringLiteral : Parser c Problem String
+multiLineStringLiteral =
+    let
+        helper : MultilineStringLiteralLoopState -> Parser c Problem (Parser.Step MultilineStringLiteralLoopState String)
+        helper s =
+            if s.escaped then
+                escapedCharValue
+                    |> Parser.map (\v -> Parser.Loop { counter = s.counter, escaped = False, parts = String.fromChar v :: s.parts })
+
+            else
+                Parser.oneOf
+                    [ Parser.symbol (Parser.Token "\"\"\"" P)
+                        |> Parser.map (\_ -> Parser.Done (String.concat (List.reverse s.parts)))
+                    , Parser.symbol (Parser.Token "\"" P)
+                        |> Parser.getChompedString
+                        |> Parser.map (\v -> Parser.Loop { counter = s.counter + 1, escaped = s.escaped, parts = v :: s.parts })
+                    , Parser.symbol (Parser.Token "\\" P)
+                        |> Parser.getChompedString
+                        |> Parser.map (\_ -> Parser.Loop { counter = s.counter + 1, escaped = True, parts = s.parts })
+                    , Parser.succeed (\start value end -> ( start, value, end ))
+                        |= Parser.getOffset
+                        |= Parser.getChompedString (Parser.chompWhile (\c -> c /= '"' && c /= '\\'))
+                        |= Parser.getOffset
+                        |> Parser.andThen
+                            (\( start, value, end ) ->
+                                if start == end then
+                                    Parser.problem (Explanation "Expected a string character or a triple double quote")
+
+                                else
+                                    Parser.succeed (Parser.Loop { counter = s.counter + 1, escaped = s.escaped, parts = value :: s.parts })
+                            )
+                    ]
+    in
+    Parser.succeed identity
+        |. Parser.symbol (Parser.Token "\"\"\"" P)
+        |= Parser.loop { escaped = False, parts = [], counter = 0 } helper
 
 
 stringLiteral : Parser c Problem String
