@@ -48,9 +48,10 @@ reference : Parser c Problem Expression
 reference =
     Parser.oneOf
         [ constructorOrModuleName
+            |> Parser.map (\name -> FunctionOrValue [] name)
         , functionName
+            |> Parser.map (\name -> FunctionOrValue [] name)
         ]
-        |> Parser.map (\name -> FunctionOrValue [] name)
 
 
 constructorOrModuleName : Parser c Problem String
