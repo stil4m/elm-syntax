@@ -95,18 +95,17 @@ all =
                                     [ Node { start = { row = 1, column = 13 }, end = { row = 1, column = 15 } } <| ListLiteral []
                                     ]
                             )
-        , Test.skip <|
-            test "application expression with operator" <|
-                \() ->
-                    parseExpression "model + 1"
-                        |> expectAst
-                            (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 10 } } <|
-                                FunctionCall
-                                    (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 6 } } <| FunctionOrValue [] "model")
-                                    [ Node { start = { row = 1, column = 7 }, end = { row = 1, column = 8 } } <| Operator "+"
-                                    , Node { start = { row = 1, column = 9 }, end = { row = 1, column = 10 } } <| IntegerLiteral 1
-                                    ]
-                            )
+        , test "application expression with operator" <|
+            \() ->
+                parseExpression "model + 1"
+                    |> expectAst
+                        (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 10 } } <|
+                            FunctionCall
+                                (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 6 } } <| FunctionOrValue [] "model")
+                                [ Node { start = { row = 1, column = 7 }, end = { row = 1, column = 8 } } <| Operator "+"
+                                , Node { start = { row = 1, column = 9 }, end = { row = 1, column = 10 } } <| IntegerLiteral 1
+                                ]
+                        )
         , Test.skip <|
             test "application expression 2" <|
                 \() ->
