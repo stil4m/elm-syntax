@@ -1,6 +1,6 @@
 module Elm.Parser.Declarations exposing (declaration, function, signature)
 
-import Combine exposing (Parser, choice, maybe, string, succeed)
+import Combine exposing (Parser, maybe, oneOf, string, succeed)
 import Elm.Parser.Expression
 import Elm.Parser.Infix as Infix
 import Elm.Parser.Layout as Layout
@@ -20,7 +20,7 @@ import Elm.Syntax.Signature exposing (Signature)
 
 declaration : Parser State (Node Declaration)
 declaration =
-    choice
+    oneOf
         [ infixDeclaration
         , function
         , typeDefinition

@@ -17,7 +17,7 @@ tryToCompose : Node DestructurePattern -> Parser State (Node DestructurePattern)
 tryToCompose x =
     maybe Layout.layout
         |> Combine.continueWith
-            (Combine.choice
+            (Combine.oneOf
                 [ Combine.fromCore (Core.keyword "as")
                     |> Combine.ignore Layout.layout
                     |> Combine.continueWith (Node.parser functionName)
@@ -62,7 +62,7 @@ type alias ConsumeArgs =
 
 composablePattern : Parser State (Node DestructurePattern)
 composablePattern =
-    Combine.choice
+    Combine.oneOf
         [ variablePart
         , qualifiedPattern True
         , Node.parser (Core.symbol "()" |> Combine.fromCore |> Combine.map (always UnitPattern_))
@@ -74,7 +74,7 @@ composablePattern =
 
 qualifiedPatternArg : Parser State (Node DestructurePattern)
 qualifiedPatternArg =
-    Combine.choice
+    Combine.oneOf
         [ variablePart
         , qualifiedPattern False
         , Node.parser (Core.symbol "()" |> Combine.fromCore |> Combine.map (always UnitPattern_))

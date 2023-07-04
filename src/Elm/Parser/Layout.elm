@@ -1,6 +1,6 @@
 module Elm.Parser.Layout exposing (LayoutStatus(..), layout, layoutStrict, maybeAroundBothSides, optimisticLayout, optimisticLayoutWith)
 
-import Combine exposing (Parser, choice, fail, many, many1, maybe, or, succeed, withLocation, withState)
+import Combine exposing (Parser, fail, many, many1, maybe, oneOf, or, succeed, withLocation, withState)
 import Elm.Parser.Comments as Comments
 import Elm.Parser.State as State exposing (State)
 import Elm.Parser.Whitespace exposing (many1Spaces, realNewLine)
@@ -16,11 +16,11 @@ anyComment =
 layout : Parser State ()
 layout =
     many1
-        (choice
+        (oneOf
             [ anyComment
             , many1 realNewLine
                 |> Combine.continueWith
-                    (choice
+                    (oneOf
                         [ many1Spaces
                         , anyComment
                         ]
@@ -53,11 +53,11 @@ optimisticLayoutWith onStrict onIndented =
 optimisticLayout : Parser State LayoutStatus
 optimisticLayout =
     many
-        (choice
+        (oneOf
             [ anyComment
             , many1 realNewLine
                 |> Combine.continueWith
-                    (choice
+                    (oneOf
                         [ many1Spaces
                         , anyComment
                         , succeed ()
@@ -91,7 +91,7 @@ compute =
 layoutStrict : Parser State ()
 layoutStrict =
     many1
-        (choice
+        (oneOf
             [ anyComment
             , many1 realNewLine |> Combine.continueWith (succeed ())
             , many1Spaces

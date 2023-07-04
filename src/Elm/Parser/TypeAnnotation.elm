@@ -38,7 +38,7 @@ typeAnnotation =
 
 typeAnnotationNonGreedy : Combine.Parser State (Node TypeAnnotation)
 typeAnnotationNonGreedy =
-    Combine.choice
+    Combine.oneOf
         [ parensTypeAnnotation
         , typedTypeAnnotation Lazy
         , genericTypeAnnotation
@@ -50,7 +50,7 @@ typeAnnotationNoFn : Mode -> Combine.Parser State (Node TypeAnnotation)
 typeAnnotationNoFn mode =
     Combine.lazy
         (\() ->
-            Combine.choice
+            Combine.oneOf
                 [ parensTypeAnnotation
                 , typedTypeAnnotation mode
                 , genericTypeAnnotation
@@ -82,7 +82,7 @@ parensTypeAnnotation =
     Node.parser
         (Combine.string "("
             |> Combine.continueWith
-                (Combine.choice
+                (Combine.oneOf
                     [ Combine.string ")" |> Combine.map (always (TypeAnnotation.Tuple []))
                     , nested |> Combine.ignore (Combine.string ")")
                     ]
@@ -117,13 +117,13 @@ recordTypeAnnotation =
         (Combine.string "{"
             |> Combine.ignore (Combine.maybe Layout.layout)
             |> Combine.continueWith
-                (Combine.choice
+                (Combine.oneOf
                     [ Combine.string "}" |> Combine.continueWith (Combine.succeed (TypeAnnotation.Record []))
                     , Node.parser functionName
                         |> Combine.ignore (Combine.maybe Layout.layout)
                         |> Combine.andThen
                             (\fname ->
-                                Combine.choice
+                                Combine.oneOf
                                     [ Combine.succeed (TypeAnnotation.GenericRecord fname)
                                         |> Combine.ignore (Combine.string "|")
                                         |> Combine.andMap (Node.parser recordFieldsTypeAnnotation)
@@ -134,7 +134,7 @@ recordTypeAnnotation =
                                         |> Combine.ignore (Combine.maybe Layout.layout)
                                         |> Combine.andThen
                                             (\ta ->
-                                                Combine.choice
+                                                Combine.oneOf
                                                     [ -- Skip a comma and then look for at least 1 more field
                                                       Combine.string ","
                                                         |> Combine.continueWith recordFieldsTypeAnnotation

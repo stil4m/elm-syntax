@@ -1,4 +1,4 @@
-module Combine exposing (ParseError, ParseFn, ParseLocation, ParseOk, Parser(..), Step(..), andMap, andThen, backtrackable, between, choice, continueWith, end, fail, fromCore, ignore, lazy, loop, many, many1, map, maybe, modifyState, or, parens, parse, runParser, sepBy, sepBy1, string, succeed, while, withLocation, withState)
+module Combine exposing (ParseError, ParseFn, ParseLocation, ParseOk, Parser(..), Step(..), andMap, andThen, backtrackable, between, continueWith, end, fail, fromCore, ignore, lazy, loop, many, many1, map, maybe, modifyState, oneOf, or, parens, parse, runParser, sepBy, sepBy1, string, succeed, while, withLocation, withState)
 
 import Parser as Core exposing ((|=))
 
@@ -149,8 +149,8 @@ backtrackable (Parser p) =
     Parser <| \state -> Core.backtrackable (p state)
 
 
-choice : List (Parser s a) -> Parser s a
-choice xs =
+oneOf : List (Parser s a) -> Parser s a
+oneOf xs =
     Parser <| \state -> Core.oneOf (List.map (\(Parser x) -> x state) xs)
 
 

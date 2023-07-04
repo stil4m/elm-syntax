@@ -17,7 +17,7 @@ tryToCompose : Node Pattern -> Parser State (Node Pattern)
 tryToCompose x =
     maybe Layout.layout
         |> Combine.continueWith
-            (Combine.choice
+            (Combine.oneOf
                 [ Combine.fromCore (Core.keyword "as")
                     |> Combine.ignore Layout.layout
                     |> Combine.continueWith (Node.parser functionName)
@@ -80,7 +80,7 @@ type alias ConsumeArgs =
 
 composablePattern : Parser State (Node Pattern)
 composablePattern =
-    Combine.choice
+    Combine.oneOf
         [ variablePart
         , qualifiedPattern True
         , Node.parser (Combine.fromCore stringLiteral |> Combine.map StringPattern)
@@ -96,7 +96,7 @@ composablePattern =
 
 qualifiedPatternArg : Parser State (Node Pattern)
 qualifiedPatternArg =
-    Combine.choice
+    Combine.oneOf
         [ variablePart
         , qualifiedPattern False
         , Node.parser (Combine.fromCore stringLiteral |> Combine.map StringPattern)
