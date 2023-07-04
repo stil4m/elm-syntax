@@ -45,21 +45,21 @@ multiLineStringLiteral : Parser c Problem String
 multiLineStringLiteral =
     let
         helper : MultilineStringLiteralLoopState -> Parser c Problem (Parser.Step MultilineStringLiteralLoopState String)
-        helper s =
-            if s.escaped then
+        helper { counter, escaped, parts } =
+            if escaped then
                 escapedCharValue
-                    |> Parser.map (\v -> Parser.Loop { counter = s.counter, escaped = False, parts = String.fromChar v :: s.parts })
+                    |> Parser.map (\v -> Parser.Loop { counter = counter, escaped = False, parts = String.fromChar v :: parts })
 
             else
                 Parser.oneOf
                     [ Parser.symbol (Parser.Token "\"\"\"" P)
-                        |> Parser.map (\_ -> Parser.Done (String.concat (List.reverse s.parts)))
+                        |> Parser.map (\_ -> Parser.Done (String.concat (List.reverse parts)))
                     , Parser.symbol (Parser.Token "\"" P)
                         |> Parser.getChompedString
-                        |> Parser.map (\v -> Parser.Loop { counter = s.counter + 1, escaped = s.escaped, parts = v :: s.parts })
+                        |> Parser.map (\v -> Parser.Loop { counter = counter + 1, escaped = escaped, parts = v :: parts })
                     , Parser.symbol (Parser.Token "\\" P)
                         |> Parser.getChompedString
-                        |> Parser.map (\_ -> Parser.Loop { counter = s.counter + 1, escaped = True, parts = s.parts })
+                        |> Parser.map (\_ -> Parser.Loop { counter = counter + 1, escaped = True, parts = parts })
                     , Parser.succeed (\start value end -> ( start, value, end ))
                         |= Parser.getOffset
                         |= Parser.getChompedString (Parser.chompWhile (\c -> c /= '"' && c /= '\\'))
@@ -70,7 +70,7 @@ multiLineStringLiteral =
                                     Parser.problem (Explanation "Expected a string character or a triple double quote")
 
                                 else
-                                    Parser.succeed (Parser.Loop { counter = s.counter + 1, escaped = s.escaped, parts = value :: s.parts })
+                                    Parser.succeed (Parser.Loop { counter = counter + 1, escaped = escaped, parts = value :: parts })
                             )
                     ]
     in
@@ -82,20 +82,21 @@ multiLineStringLiteral =
 stringLiteral : Parser c Problem String
 stringLiteral =
     let
-        helper s =
-            if s.escaped then
+        helper : { escaped : Bool, parts : List String } -> Parser c Problem (Parser.Step { escaped : Bool, parts : List String } String)
+        helper { escaped, parts } =
+            if escaped then
                 escapedCharValue
                     |> Parser.map
                         (\v ->
-                            Parser.Loop { escaped = False, parts = String.fromChar v :: s.parts }
+                            Parser.Loop { escaped = False, parts = String.fromChar v :: parts }
                         )
 
             else
                 Parser.oneOf
                     [ Parser.symbol (Parser.Token "\"" P)
-                        |> Parser.map (\_ -> Parser.Done (String.concat <| List.reverse s.parts))
+                        |> Parser.map (\_ -> Parser.Done (String.concat <| List.reverse parts))
                     , Parser.getChompedString (Parser.symbol (Parser.Token "\\" P))
-                        |> Parser.map (\_ -> Parser.Loop { escaped = True, parts = s.parts })
+                        |> Parser.map (\_ -> Parser.Loop { escaped = True, parts = parts })
                     , Parser.succeed (\start value end -> ( start, value, end ))
                         |= Parser.getOffset
                         |= Parser.getChompedString (Parser.chompWhile (\c -> c /= '"' && c /= '\\'))
@@ -106,7 +107,7 @@ stringLiteral =
                                     Parser.problem (Explanation "Expected a string character or a double quote")
 
                                 else
-                                    Parser.succeed (Parser.Loop { escaped = s.escaped, parts = value :: s.parts })
+                                    Parser.succeed (Parser.Loop { escaped = escaped, parts = value :: parts })
                             )
                     ]
     in
