@@ -74,17 +74,16 @@ all =
             \() ->
                 parseExpression "Bar.foo"
                     |> expectAst (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 8 } } (FunctionOrValue [ "Bar" ] "foo"))
-        , Test.skip <|
-            test "parenthesizedExpression" <|
-                \() ->
-                    parseExpression "(bar)"
-                        |> expectAst
-                            (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 6 } }
-                                (TupleExpression
-                                    [ Node { start = { row = 1, column = 2 }, end = { row = 1, column = 5 } } (FunctionOrValue [] "bar")
-                                    ]
-                                )
+        , test "parenthesizedExpression" <|
+            \() ->
+                parseExpression "(bar)"
+                    |> expectAst
+                        (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 6 } }
+                            (TupleExpression
+                                [ Node { start = { row = 1, column = 2 }, end = { row = 1, column = 5 } } (FunctionOrValue [] "bar")
+                                ]
                             )
+                        )
         , Test.skip <|
             test "application expression" <|
                 \() ->
