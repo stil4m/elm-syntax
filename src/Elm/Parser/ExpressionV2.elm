@@ -19,23 +19,31 @@ expression : Parser c Problem (Node Expression)
 expression =
     Pratt.expression
         { oneOf =
-            [ Pratt.literal digits
-            , Pratt.literal reference
+            [ digits
+                |> node
+                |> Pratt.literal
+            , reference
+                |> node
+                |> Pratt.literal
             , multiLineStringLiteral
                 |> Parser.map (\s -> StringLiteral TripleQuote s)
+                |> node
                 |> Pratt.literal
             , stringLiteral
                 |> Parser.map (\s -> StringLiteral SingleQuote s)
+                |> node
                 |> Pratt.literal
             , quotedSingleQuote
                 |> Parser.map CharLiteral
+                |> node
                 |> Pratt.literal
-            , Pratt.literal parenthesizedLiteral
+            , parenthesizedLiteral
+                |> node
+                |> Pratt.literal
             ]
         , andThenOneOf = []
         , spaces = Parser.succeed ()
         }
-        |> node
 
 
 type alias MultilineStringLiteralLoopState =
