@@ -46,11 +46,10 @@ all =
                 \() ->
                     parseExpression "(,)"
                         |> expectAst (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 4 } } (PrefixOperator ","))
-        , Test.skip <|
-            test "String literal multiline" <|
-                \() ->
-                    parseExpression "\"\"\"Bar foo \n a\"\"\""
-                        |> expectAst (Node { start = { row = 1, column = 1 }, end = { row = 2, column = 6 } } (StringLiteral TripleQuote "Bar foo \n a"))
+        , test "String literal multiline" <|
+            \() ->
+                parseExpression "\"\"\"Bar foo \n a\"\"\""
+                    |> expectAst (Node { start = { row = 1, column = 1 }, end = { row = 2, column = 6 } } (StringLiteral TripleQuote "Bar foo \n a"))
         , Test.skip <|
             test "Regression test for multiline strings with backslashes" <|
                 \() ->
