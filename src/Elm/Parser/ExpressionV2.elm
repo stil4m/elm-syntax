@@ -48,13 +48,12 @@ reference : Parser c Problem Expression
 reference =
     Parser.oneOf
         [ constructorOrModuleName
-            |> Parser.map (\name -> FunctionOrValue [] name)
         , functionName
             |> Parser.map (\name -> FunctionOrValue [] name)
         ]
 
 
-constructorOrModuleName : Parser c Problem String
+constructorOrModuleName : Parser c Problem Expression
 constructorOrModuleName =
     Parser.variable
         { start = Unicode.isUpper
@@ -62,6 +61,10 @@ constructorOrModuleName =
         , reserved = Tokens.reservedKeywords
         , expecting = P
         }
+        |> Parser.andThen
+            (\name ->
+                Parser.succeed (FunctionOrValue [] name)
+            )
 
 
 functionName : Parser c Problem String
