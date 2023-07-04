@@ -51,7 +51,7 @@ expression =
                         (Operation "+" Infix.Left left right)
                 )
             ]
-        , spaces = Parser.succeed ()
+        , spaces = Parser.spaces
         }
 
 
