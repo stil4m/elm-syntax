@@ -46,14 +46,33 @@ type alias MultilineStringLiteralLoopState =
 
 reference : Parser c Problem Expression
 reference =
+    let
+        helper : ( String, List String ) -> Parser c Problem ( String, List String )
+        helper ( n, xs ) =
+            Parser.oneOf
+                [ Parser.symbol (Parser.Token "." P)
+                    |> Parser.andThen
+                        (\() ->
+                            Parser.oneOf
+                                [ constructorOrModuleName
+                                    |> Parser.andThen (\t -> helper ( t, n :: xs ))
+                                , functionName
+                                    |> Parser.map (\t -> ( t, n :: xs ))
+                                ]
+                        )
+                , Parser.succeed ( n, xs )
+                ]
+    in
     Parser.oneOf
         [ constructorOrModuleName
+            |> Parser.andThen (\t -> helper ( t, [] ))
+            |> Parser.map (\( name, moduleName ) -> FunctionOrValue moduleName name)
         , functionName
             |> Parser.map (\name -> FunctionOrValue [] name)
         ]
 
 
-constructorOrModuleName : Parser c Problem Expression
+constructorOrModuleName : Parser c Problem String
 constructorOrModuleName =
     Parser.variable
         { start = Unicode.isUpper
@@ -61,10 +80,6 @@ constructorOrModuleName =
         , reserved = Tokens.reservedKeywords
         , expecting = P
         }
-        |> Parser.andThen
-            (\name ->
-                Parser.succeed (FunctionOrValue [] name)
-            )
 
 
 functionName : Parser c Problem String
