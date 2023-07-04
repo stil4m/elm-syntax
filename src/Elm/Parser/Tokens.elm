@@ -15,6 +15,7 @@ module Elm.Parser.Tokens exposing
     , portToken
     , prefixOperatorToken
     , quotedSingleQuote
+    , reservedList
     , stringLiteral
     , thenToken
     , typeName

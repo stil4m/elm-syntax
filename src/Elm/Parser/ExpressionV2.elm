@@ -1,11 +1,14 @@
 module Elm.Parser.ExpressionV2 exposing (expression)
 
+import Elm.Parser.Tokens as Tokens
 import Elm.Syntax.Expression as Expression exposing (Expression(..), StringLiteralType(..))
 import Elm.Syntax.Node exposing (Node(..))
 import Elm.Syntax.Range exposing (Location)
 import Hex
 import Parser.Advanced as Parser exposing ((|.), (|=), Parser)
 import Pratt.Advanced as Pratt
+import Set
+import Unicode
 
 
 type Problem
@@ -18,6 +21,9 @@ expression =
     Pratt.expression
         { oneOf =
             [ Pratt.literal digits
+            , functionName
+                |> Parser.map (\name -> FunctionOrValue [] name)
+                |> Pratt.literal
             , multiLineStringLiteral
                 |> Parser.map (\s -> StringLiteral TripleQuote s)
                 |> Pratt.literal
@@ -39,6 +45,16 @@ type alias MultilineStringLiteralLoopState =
     , parts : List String
     , counter : Int
     }
+
+
+functionName : Parser c Problem String
+functionName =
+    Parser.variable
+        { start = Unicode.isAlpha
+        , inner = \c -> Unicode.isAlphaNum c || c == '_'
+        , reserved = Set.fromList Tokens.reservedList
+        , expecting = P
+        }
 
 
 multiLineStringLiteral : Parser c Problem String
