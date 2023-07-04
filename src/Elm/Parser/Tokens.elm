@@ -258,11 +258,6 @@ typeName =
         |> Combine.fromCore
 
 
-excludedOperators : List String
-excludedOperators =
-    [ ":", "->", "--", "=" ]
-
-
 allowedOperatorTokens : List Char
 allowedOperatorTokens =
     -- TODO: A few of these should not be allowed anymore
@@ -291,7 +286,7 @@ operatorTokenFromList allowedChars =
         |> Combine.map String.fromList
         |> Combine.andThen
             (\m ->
-                if List.member m excludedOperators then
+                if m == ":" || m == "->" || m == "--" || m == "=" then
                     fail "operator is not allowed"
 
                 else
