@@ -15,7 +15,7 @@ module Elm.Parser.Tokens exposing
     , portToken
     , prefixOperatorToken
     , quotedSingleQuote
-    , reservedList
+    , reservedKeywords
     , stringLiteral
     , thenToken
     , typeName
@@ -26,33 +26,34 @@ import Combine exposing (Parser, fail, many1, or, string, succeed)
 import Combine.Char exposing (anyChar, char, oneOf)
 import Hex
 import Parser as Core exposing ((|.), (|=), Step(..))
-import Set
+import Set exposing (Set)
 import Unicode
 
 
-reservedList : List String
-reservedList =
-    [ "module"
-    , "exposing"
-    , "import"
-    , "as"
-    , "if"
-    , "then"
-    , "else"
-    , "let"
-    , "in"
-    , "case"
-    , "of"
-    , "port"
+reservedKeywords : Set String
+reservedKeywords =
+    Set.fromList
+        [ "module"
+        , "exposing"
+        , "import"
+        , "as"
+        , "if"
+        , "then"
+        , "else"
+        , "let"
+        , "in"
+        , "case"
+        , "of"
+        , "port"
 
-    --, "infixr"
-    --, "infixl"
-    , "type"
+        --, "infixr"
+        --, "infixl"
+        , "type"
 
-    --, "infix" Apparently this is not a reserved keyword
-    --, "alias" Apparently this is not a reserved keyword
-    , "where"
-    ]
+        --, "infix" Apparently this is not a reserved keyword
+        --, "alias" Apparently this is not a reserved keyword
+        , "where"
+        ]
 
 
 portToken : Parser s String
@@ -242,7 +243,7 @@ functionName =
     Core.variable
         { start = Unicode.isLower
         , inner = \c -> Unicode.isAlphaNum c || c == '_'
-        , reserved = Set.fromList reservedList
+        , reserved = reservedKeywords
         }
         |> Combine.fromCore
 
@@ -252,7 +253,7 @@ typeName =
     Core.variable
         { start = Unicode.isUpper
         , inner = \c -> Unicode.isAlphaNum c || c == '_'
-        , reserved = Set.fromList reservedList
+        , reserved = reservedKeywords
         }
         |> Combine.fromCore
 

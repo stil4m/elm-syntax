@@ -7,7 +7,6 @@ import Elm.Syntax.Range exposing (Location)
 import Hex
 import Parser.Advanced as Parser exposing ((|.), (|=), Parser)
 import Pratt.Advanced as Pratt
-import Set
 import Unicode
 
 
@@ -52,7 +51,7 @@ functionName =
     Parser.variable
         { start = Unicode.isAlpha
         , inner = \c -> Unicode.isAlphaNum c || c == '_'
-        , reserved = Set.fromList Tokens.reservedList
+        , reserved = Tokens.reservedKeywords
         , expecting = P
         }
 
