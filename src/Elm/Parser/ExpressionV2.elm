@@ -30,6 +30,7 @@ expression =
             , quotedSingleQuote
                 |> Parser.map CharLiteral
                 |> Pratt.literal
+            , Pratt.literal parenthesizedLiteral
             ]
         , andThenOneOf = []
         , spaces = Parser.succeed ()
@@ -198,16 +199,15 @@ escapedCharValue =
         ]
 
 
-
---string =
---    Parser.succeed identity
---        |. Parser.symbol (Parser.Token "\"" ())
---        --|= Parser.oneOf
---        --    [ Parser.map (\str -> StringLiteral TripleQuote str) multiLineStringLiteral
---        --    , Parser.map (\str -> StringLiteral SingleQuote str) stringLiteral
---        --    ]
---        |= Parser.map (\str -> StringLiteral SingleQuote str) stringLiteral
---        |> node
+parenthesizedLiteral : Parser c Problem Expression
+parenthesizedLiteral =
+    Parser.lazy
+        (\() ->
+            Parser.succeed (\expr -> TupleExpression [ expr ])
+                |. Parser.symbol (Parser.Token "(" P)
+                |= expression
+                |. Parser.symbol (Parser.Token ")" P)
+        )
 
 
 type alias StringLiteralLoopState =
