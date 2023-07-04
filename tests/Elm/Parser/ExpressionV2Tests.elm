@@ -33,6 +33,18 @@ all =
             \() ->
                 parseExpression "\"\"\"Bar foo \n a\"\"\""
                     |> expectAst (Node { start = { row = 1, column = 1 }, end = { row = 2, column = 6 } } (StringLiteral TripleQuote "Bar foo \n a"))
+        , test "Regression test for multiline strings with backslashes" <|
+            \() ->
+                parseExpression "\"\"\"\\{\\}\"\"\""
+                    |> Expect.equal Nothing
+        , test "Regression test 2 for multiline strings with backslashes" <|
+            \() ->
+                parseExpression "\"\"\"\\\\{\\\\}\"\"\""
+                    |> expectAst (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 13 } } (StringLiteral TripleQuote "\\{\\}"))
+        , test "Regression test 3 for multiline strings with backslashes" <|
+            \() ->
+                parseExpression "\"\"\"\\\\a-blablabla-\\\\b\"\"\""
+                    |> expectAst (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 24 } } (StringLiteral TripleQuote "\\a-blablabla-\\b"))
         , Test.skip <|
             test "tuple expression" <|
                 \() ->
@@ -50,18 +62,6 @@ all =
                 \() ->
                     parseExpression "(,)"
                         |> expectAst (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 4 } } (PrefixOperator ","))
-        , test "Regression test for multiline strings with backslashes" <|
-            \() ->
-                parseExpression "\"\"\"\\{\\}\"\"\""
-                    |> Expect.equal Nothing
-        , test "Regression test 2 for multiline strings with backslashes" <|
-            \() ->
-                parseExpression "\"\"\"\\\\{\\\\}\"\"\""
-                    |> expectAst (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 13 } } (StringLiteral TripleQuote "\\{\\}"))
-        , test "Regression test 3 for multiline strings with backslashes" <|
-            \() ->
-                parseExpression "\"\"\"\\\\a-blablabla-\\\\b\"\"\""
-                    |> expectAst (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 24 } } (StringLiteral TripleQuote "\\a-blablabla-\\b"))
         , Test.skip <|
             test "Type expression for upper case" <|
                 \() ->
