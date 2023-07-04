@@ -43,16 +43,21 @@ expression =
                 |> Pratt.literal
             ]
         , andThenOneOf =
-            [ Pratt.infixLeft 6
-                (Parser.symbol (Parser.Token "+" P))
-                (\left right ->
-                    Node
-                        { start = (Node.range left).start, end = (Node.range right).end }
-                        (Operation "+" Infix.Left left right)
-                )
+            [ infixLeft 6 "+"
             ]
         , spaces = Parser.spaces
         }
+
+
+infixLeft : Int -> String -> Pratt.Config c Problem (Node Expression) -> ( Int, Node Expression -> Parser c Problem (Node Expression) )
+infixLeft precedence symbol =
+    Pratt.infixLeft precedence
+        (Parser.symbol (Parser.Token symbol P))
+        (\left right ->
+            Node
+                { start = (Node.range left).start, end = (Node.range right).end }
+                (Operation symbol Infix.Left left right)
+        )
 
 
 type alias MultilineStringLiteralLoopState =
