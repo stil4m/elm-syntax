@@ -62,11 +62,10 @@ all =
                 \() ->
                     parseExpression "(,)"
                         |> expectAst (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 4 } } (PrefixOperator ","))
-        , Test.skip <|
-            test "Type expression for upper case" <|
-                \() ->
-                    parseExpression "Bar"
-                        |> expectAst (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 4 } } (FunctionOrValue [] "Bar"))
+        , test "Type expression for upper case" <|
+            \() ->
+                parseExpression "Bar"
+                    |> expectAst (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 4 } } (FunctionOrValue [] "Bar"))
         , Test.skip <|
             test "Type expression for lower case" <|
                 \() ->
