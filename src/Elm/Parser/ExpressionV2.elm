@@ -2,7 +2,8 @@ module Elm.Parser.ExpressionV2 exposing (expression)
 
 import Elm.Parser.Tokens as Tokens
 import Elm.Syntax.Expression as Expression exposing (Expression(..), StringLiteralType(..))
-import Elm.Syntax.Node exposing (Node(..))
+import Elm.Syntax.Infix as Infix
+import Elm.Syntax.Node as Node exposing (Node(..))
 import Elm.Syntax.Range exposing (Location)
 import Hex
 import Parser.Advanced as Parser exposing ((|.), (|=), Parser)
@@ -41,7 +42,15 @@ expression =
                 |> node
                 |> Pratt.literal
             ]
-        , andThenOneOf = []
+        , andThenOneOf =
+            [ Pratt.infixLeft 6
+                (Parser.symbol (Parser.Token "+" P))
+                (\left right ->
+                    Node
+                        { start = (Node.range left).start, end = (Node.range right).end }
+                        (Operation "+" Infix.Left left right)
+                )
+            ]
         , spaces = Parser.succeed ()
         }
 
