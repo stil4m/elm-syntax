@@ -43,7 +43,55 @@ expression =
                 |> Pratt.literal
             ]
         , andThenOneOf =
-            [ infixLeft 6 "+"
+            [ infixRight 0 "<|"
+            , infixLeft 0 "|>"
+            , infixRight 2 "||"
+            , infixRight 3 "&&"
+
+            --, -- infix non   4 (==) = eq
+            --  { direction = Non
+            --  , precedence = 4
+            --  , operator = "=="
+            --  }
+            --, -- infix non   4 (/=) = neq
+            --  { direction = Non
+            --  , precedence = 4
+            --  , operator = "/="
+            --  }
+            --, -- infix non   4 (<)  = lt
+            --  { direction = Non
+            --  , precedence = 4
+            --  , operator = "<"
+            --  }
+            --, -- infix non   4 (>)  = gt
+            --  { direction = Non
+            --  , precedence = 4
+            --  , operator = ">"
+            --  }
+            --, -- infix non   4 (<=) = le
+            --  { direction = Non
+            --  , precedence = 4
+            --  , operator = "<="
+            --  }
+            --, -- infix non   4 (>=) = ge
+            --  { direction = Non
+            --  , precedence = 4
+            --  , operator = ">="
+            --  }
+            , infixRight 5 "++"
+            , infixLeft 6 "+"
+            , infixLeft 6 "-"
+            , infixLeft 7 "*"
+            , infixLeft 7 "/"
+            , infixLeft 7 "//"
+            , infixRight 8 "^"
+            , infixLeft 9 "<<"
+            , infixRight 9 ">>"
+            , infixRight 5 "::"
+            , infixRight 7 "</>"
+            , infixLeft 8 "<?>"
+            , infixLeft 5 "|="
+            , infixLeft 6 "|."
             ]
         , spaces = Parser.spaces
         }
@@ -57,6 +105,17 @@ infixLeft precedence symbol =
             Node
                 { start = (Node.range left).start, end = (Node.range right).end }
                 (Operation symbol Infix.Left left right)
+        )
+
+
+infixRight : Int -> String -> Pratt.Config c Problem (Node Expression) -> ( Int, Node Expression -> Parser c Problem (Node Expression) )
+infixRight precedence symbol =
+    Pratt.infixRight precedence
+        (Parser.symbol (Parser.Token symbol P))
+        (\left right ->
+            Node
+                { start = (Node.range left).start, end = (Node.range right).end }
+                (Operation symbol Infix.Right left right)
         )
 
 
