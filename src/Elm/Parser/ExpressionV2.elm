@@ -20,9 +20,7 @@ expression =
     Pratt.expression
         { oneOf =
             [ Pratt.literal digits
-            , functionName
-                |> Parser.map (\name -> FunctionOrValue [] name)
-                |> Pratt.literal
+            , Pratt.literal reference
             , multiLineStringLiteral
                 |> Parser.map (\s -> StringLiteral TripleQuote s)
                 |> Pratt.literal
@@ -46,10 +44,29 @@ type alias MultilineStringLiteralLoopState =
     }
 
 
+reference : Parser c Problem Expression
+reference =
+    Parser.oneOf
+        [ constructorOrModuleName
+        , functionName
+        ]
+        |> Parser.map (\name -> FunctionOrValue [] name)
+
+
+constructorOrModuleName : Parser c Problem String
+constructorOrModuleName =
+    Parser.variable
+        { start = Unicode.isUpper
+        , inner = \c -> Unicode.isAlphaNum c || c == '_'
+        , reserved = Tokens.reservedKeywords
+        , expecting = P
+        }
+
+
 functionName : Parser c Problem String
 functionName =
     Parser.variable
-        { start = Unicode.isAlpha
+        { start = Unicode.isLower
         , inner = \c -> Unicode.isAlphaNum c || c == '_'
         , reserved = Tokens.reservedKeywords
         , expecting = P
