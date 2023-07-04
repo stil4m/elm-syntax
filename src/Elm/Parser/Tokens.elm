@@ -265,11 +265,13 @@ excludedOperators =
 
 allowedOperatorTokens : List Char
 allowedOperatorTokens =
+    -- TODO: A few of these should not be allowed anymore
     [ '+', '-', ':', '/', '*', '>', '<', '=', '/', '&', '^', '%', '|', '!', '.', '#', '$', '≡', '~', '?', '@' ]
 
 
 allowedPrefixOperatorTokens : List Char
 allowedPrefixOperatorTokens =
+    -- TODO: , should not be allowed anymore
     ',' :: allowedOperatorTokens
 
 
