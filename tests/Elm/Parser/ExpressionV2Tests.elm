@@ -50,21 +50,18 @@ all =
                 \() ->
                     parseExpression "(,)"
                         |> expectAst (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 4 } } (PrefixOperator ","))
-        , Test.skip <|
-            test "Regression test for multiline strings with backslashes" <|
-                \() ->
-                    parseExpression "\"\"\"\\{\\}\"\"\""
-                        |> Expect.equal Nothing
-        , Test.skip <|
-            test "Regression test 2 for multiline strings with backslashes" <|
-                \() ->
-                    parseExpression "\"\"\"\\\\{\\\\}\"\"\""
-                        |> expectAst (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 13 } } (StringLiteral TripleQuote "\\{\\}"))
-        , Test.skip <|
-            test "Regression test 3 for multiline strings with backslashes" <|
-                \() ->
-                    parseExpression "\"\"\"\\\\a-blablabla-\\\\b\"\"\""
-                        |> expectAst (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 24 } } (StringLiteral TripleQuote "\\a-blablabla-\\b"))
+        , test "Regression test for multiline strings with backslashes" <|
+            \() ->
+                parseExpression "\"\"\"\\{\\}\"\"\""
+                    |> Expect.equal Nothing
+        , test "Regression test 2 for multiline strings with backslashes" <|
+            \() ->
+                parseExpression "\"\"\"\\\\{\\\\}\"\"\""
+                    |> expectAst (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 13 } } (StringLiteral TripleQuote "\\{\\}"))
+        , test "Regression test 3 for multiline strings with backslashes" <|
+            \() ->
+                parseExpression "\"\"\"\\\\a-blablabla-\\\\b\"\"\""
+                    |> expectAst (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 24 } } (StringLiteral TripleQuote "\\a-blablabla-\\b"))
         , Test.skip <|
             test "Type expression for upper case" <|
                 \() ->
