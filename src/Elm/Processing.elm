@@ -409,12 +409,24 @@ visitFunctionDeclaration functionDeclaration =
 
 
 visitExpression : Node Expression -> Node Expression
-visitExpression (Node range expression) =
+visitExpression expression =
+    visitExpressionInner <|
+        case expression of
+            Node r (Application args) ->
+                Node r (fixApplication args)
+
+            _ ->
+                expression
+
+
+visitExpressionInner : Node Expression -> Node Expression
+visitExpressionInner (Node range expression) =
     Node range <|
         case expression of
             Application args ->
-                visitExpression (Node range (fixApplication args))
-                    |> Node.value
+                args
+                    |> List.map visitExpression
+                    |> Application
 
             OperatorApplication op dir left right ->
                 OperatorApplication op
