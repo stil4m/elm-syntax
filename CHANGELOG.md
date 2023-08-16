@@ -1,5 +1,13 @@
 # CHANGELOG
 
+## Unreleased
+
+## Version 7.3.0
+
+- Added [`Elm.Processing.parseToFile`] to parse a file without the need to post-process the file, and deprecated [`Elm.Processing.parse`]
+- Added [`Elm.Syntax.Range.empty`] as an alias to [`Elm.Syntax.Range.emptyRange`] which is now deprecated
+- Added [`Elm.Syntax.Node.empty`]
+
 ## Version 7.2.9
 
 * Fix necessary parenthesis missing from some type annotations (i.e. `Typed Int -> String` vs `Typed (Int -> String)`) in Writer module
@@ -90,3 +98,9 @@ With this change some additional big changes were made to the projects and the d
 * The type `Ranged` is eliminated and replaced with `Node`. A node is just a wrapper for an AST element with a specific range (the area in the input that the AST node covers).
 * Range information is added to a significant bigger set of AST elements.
 * The decoders and encoders for the specific AST elements are moved to their modules (`Elm.Syntax.*`).
+
+[`Elm.Processing.parseToFile`]: https://package.elm-lang.org/packages/stil4m/elm-syntax/7.3.0/Elm-Processing#parseToFile
+[`Elm.Processing.parse`]: https://package.elm-lang.org/packages/stil4m/elm-syntax/latest/Elm-Processing#parse
+[`Elm.Syntax.Range.empty`]: https://package.elm-lang.org/packages/stil4m/elm-syntax/latest/Elm-Syntax-Range#empty
+[`Elm.Syntax.Range.emptyRange`]: https://package.elm-lang.org/packages/stil4m/elm-syntax/7.3.0/Elm-Syntax-Range#emptyRange
+[`Elm.Syntax.Node.empty`]: https://package.elm-lang.org/packages/stil4m/elm-syntax/latest/Elm-Syntax-Node#empty
