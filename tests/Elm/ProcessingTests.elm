@@ -13,6 +13,39 @@ import Expect
 import Test exposing (..)
 
 
+suite : Test
+suite =
+    describe "Elm.Processing"
+        (List.map
+            (\( name, input, output ) ->
+                test name <|
+                    \() ->
+                        Parser.parseToFile (String.trim input)
+                            |> Expect.equal (Ok output)
+            )
+            testCases
+        )
+
+
+testCases : List ( String, String, File )
+testCases =
+    [ functionWithDocs
+    , functionWithDocsAndSignature
+    , functionWithSingleLineCommentAsDoc
+    , fileWithMultipleComments
+    , functionWithMultiLineCommentAsDoc
+    , postProcessInfixOperators
+    , postProcessInfixOperators2
+    , postProcessInfixOperators3
+    , postProcessInfixOperatorsInNegation
+    , postProcessInfixOperatorsInRecordAccess
+    , postProcessInfixOperatorsRegressionTest
+    , postProcessInfixOperatorsAssociativityTest
+    , typeAliasWithDocumentation
+    , typeWithDocumentation
+    ]
+
+
 functionWithDocs : ( String, String, File )
 functionWithDocs =
     ( "functionWithDocs"
@@ -748,31 +781,3 @@ pipeline1 = 1 |> 2 |> 3
                 )
       }
     )
-
-
-suite : Test
-suite =
-    describe "Elm.Processing"
-        (List.map
-            (\( name, input, output ) ->
-                test name <|
-                    \() ->
-                        Parser.parseToFile (String.trim input)
-                            |> Expect.equal (Ok output)
-            )
-            [ functionWithDocs
-            , functionWithDocsAndSignature
-            , functionWithSingleLineCommentAsDoc
-            , fileWithMultipleComments
-            , functionWithMultiLineCommentAsDoc
-            , postProcessInfixOperators
-            , postProcessInfixOperators2
-            , postProcessInfixOperators3
-            , postProcessInfixOperatorsInNegation
-            , postProcessInfixOperatorsInRecordAccess
-            , postProcessInfixOperatorsRegressionTest
-            , postProcessInfixOperatorsAssociativityTest
-            , typeAliasWithDocumentation
-            , typeWithDocumentation
-            ]
-        )
