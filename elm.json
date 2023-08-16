@@ -3,7 +3,7 @@
     "name": "stil4m/elm-syntax",
     "summary": "Elm Syntax in Elm: for parsing and writing Elm in Elm",
     "license": "MIT",
-    "version": "7.3.0",
+    "version": "7.3.1",
     "exposed-modules": [
         "Elm.Dependency",
         "Elm.Interface",

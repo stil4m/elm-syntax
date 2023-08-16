@@ -2,6 +2,10 @@
 
 ## [Unreleased]
 
+## [7.3.1] - 2022-08-16
+
+- Fixed an infinite recursion during parsing of a file.
+
 ## [7.3.0] - 2023-08-16
 
 - Added [`Elm.Processing.parseToFile`] to parse a file without the need to post-process the file, and deprecated [`Elm.Processing.parse`]
@@ -103,7 +107,8 @@ With this change some additional big changes were made to the projects and the d
 - Range information is added to a significant bigger set of AST elements.
 - The decoders and encoders for the specific AST elements are moved to their modules (`Elm.Syntax.*`).
 
-[Unreleased]: https://github.com/stil4m/elm-syntax/compare/v7.3.0...HEAD
+[Unreleased]: https://github.com/stil4m/elm-syntax/compare/v7.3.1...HEAD
+[7.3.1]: https://github.com/stil4m/elm-syntax/releases/tag/7.3.1
 [7.3.0]: https://github.com/stil4m/elm-syntax/releases/tag/7.3.0
 [7.2.9]: https://github.com/stil4m/elm-syntax/releases/tag/7.2.9
 [7.2.8]: https://github.com/stil4m/elm-syntax/releases/tag/7.2.8
