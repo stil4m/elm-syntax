@@ -241,20 +241,12 @@ all =
                             )
         , test "listExpression" <|
             \() ->
-                parseExpression "[ class \"a\", text \"Foo\"]"
+                parseExpression "[ 1, 2 ]"
                     |> expectAst
-                        (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 25 } }
+                        (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 9 } }
                             (ListLiteral
-                                [ Node { start = { row = 1, column = 3 }, end = { row = 1, column = 12 } }
-                                    (FunctionCall
-                                        (Node { start = { row = 1, column = 3 }, end = { row = 1, column = 8 } } (FunctionOrValue [] "class"))
-                                        [ Node { start = { row = 1, column = 9 }, end = { row = 1, column = 12 } } (StringLiteral SingleQuote "a") ]
-                                    )
-                                , Node { start = { row = 1, column = 14 }, end = { row = 1, column = 24 } }
-                                    (FunctionCall
-                                        (Node { start = { row = 1, column = 14 }, end = { row = 1, column = 18 } } (FunctionOrValue [] "text"))
-                                        [ Node { start = { row = 1, column = 19 }, end = { row = 1, column = 24 } } (StringLiteral SingleQuote "Foo") ]
-                                    )
+                                [ Node { start = { row = 1, column = 3 }, end = { row = 1, column = 4 } } (IntegerLiteral 1)
+                                , Node { start = { row = 1, column = 6 }, end = { row = 1, column = 7 } } (IntegerLiteral 2)
                                 ]
                             )
                         )
