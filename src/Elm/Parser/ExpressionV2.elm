@@ -284,10 +284,15 @@ parenthesizedLiteral : Parser c Problem Expression
 parenthesizedLiteral =
     Parser.lazy
         (\() ->
-            Parser.succeed (\expr -> TupleExpression [ expr ])
-                |. Parser.symbol (Parser.Token "(" P)
-                |= expression
-                |. Parser.symbol (Parser.Token ")" P)
+            Parser.sequence
+                { start = Parser.Token "(" P
+                , separator = Parser.Token "," P
+                , end = Parser.Token ")" P
+                , spaces = Parser.spaces
+                , item = expression
+                , trailing = Parser.Forbidden
+                }
+                |> Parser.map TupleExpression
         )
 
 
