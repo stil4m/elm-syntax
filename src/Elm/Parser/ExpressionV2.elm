@@ -4,7 +4,7 @@ import Elm.Parser.Tokens as Tokens
 import Elm.Syntax.Expression as Expression exposing (Expression(..), StringLiteralType(..))
 import Elm.Syntax.Infix as Infix
 import Elm.Syntax.Node as Node exposing (Node(..))
-import Elm.Syntax.Range exposing (Location)
+import Elm.Syntax.Range as Range exposing (Location)
 import Hex
 import Parser.Advanced as Parser exposing ((|.), (|=), Parser(..))
 import Pratt.Advanced as Pratt
@@ -19,6 +19,36 @@ type Problem
 expression : Parser c Problem (Node Expression)
 expression =
     expressionNotApplication
+        |> Parser.andThen
+            (\maybeFunction ->
+                let
+                    promoter : List (Node Expression) -> Parser c Problem (Node Expression)
+                    promoter rest =
+                        Parser.oneOf
+                            [ expressionNotApplication
+                                |> Parser.andThen (\next -> promoter (next :: rest))
+                            , complete rest
+                            ]
+
+                    complete : List (Node Expression) -> Parser c x (Node Expression)
+                    complete rest =
+                        case rest of
+                            [] ->
+                                Parser.succeed maybeFunction
+
+                            _ ->
+                                let
+                                    (Node { end } _) =
+                                        List.head rest |> Maybe.withDefault maybeFunction
+                                in
+                                Parser.succeed
+                                    (Node
+                                        { start = (Node.range maybeFunction).start, end = end }
+                                        (FunctionCall maybeFunction (List.reverse rest))
+                                    )
+                in
+                promoter []
+            )
 
 
 expressionNotApplication : Parser c Problem (Node Expression)
