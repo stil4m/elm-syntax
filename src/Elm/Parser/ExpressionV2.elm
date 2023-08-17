@@ -437,10 +437,15 @@ ifExpression =
         (\() ->
             Parser.succeed Expression.If
                 |. Parser.symbol (Parser.Token "if" P)
+                |. Parser.spaces
                 |= expression
+                |. Parser.spaces
                 |. Parser.symbol (Parser.Token "then" P)
+                |. Parser.spaces
                 |= expression
+                |. Parser.spaces
                 |. Parser.symbol (Parser.Token "else" P)
+                |. Parser.spaces
                 |= expression
         )
 
