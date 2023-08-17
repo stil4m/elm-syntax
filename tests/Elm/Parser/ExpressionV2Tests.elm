@@ -57,11 +57,10 @@ all =
                                 ]
                             )
                         )
-        , Test.skip <|
-            test "prefix expression" <|
-                \() ->
-                    parseExpression "(,)"
-                        |> expectAst (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 4 } } (PrefixOperator ","))
+        , test "prefix expression" <|
+            \() ->
+                parseExpression "(,)"
+                    |> expectAst (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 4 } } (PrefixOperator ","))
         , test "Type expression for upper case" <|
             \() ->
                 parseExpression "Bar"
