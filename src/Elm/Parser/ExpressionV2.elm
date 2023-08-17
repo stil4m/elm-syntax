@@ -284,29 +284,28 @@ parenthesizedLiteral : Parser c Problem Expression
 parenthesizedLiteral =
     Parser.lazy
         (\() ->
-            sequence
-                { start = Parser.Token "(" P
-                , separator = Parser.Token "," P
-                , end = Parser.Token ")" P
-                , spaces = Parser.spaces
-                , item = expression
-                }
+            Parser.succeed identity
+                |. Parser.symbol (Parser.Token "(" P)
+                |= sequence
+                    { separator = Parser.Token "," P
+                    , end = Parser.Token ")" P
+                    , spaces = Parser.spaces
+                    , item = expression
+                    }
                 |> Parser.map TupleExpression
         )
 
 
 sequence :
-    { start : Parser.Token x
-    , separator : Parser.Token x
+    { separator : Parser.Token x
     , end : Parser.Token x
     , spaces : Parser c x ()
     , item : Parser c x a
     }
     -> Parser c x (List a)
 sequence i =
-    skip (Parser.token i.start) <|
-        skip i.spaces <|
-            sequenceEnd (Parser.token i.end) i.spaces i.item (Parser.token i.separator)
+    skip i.spaces <|
+        sequenceEnd (Parser.token i.end) i.spaces i.item (Parser.token i.separator)
 
 
 skip : Parser c x ignore -> Parser c x keep -> Parser c x keep
