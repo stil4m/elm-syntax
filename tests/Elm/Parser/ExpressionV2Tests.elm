@@ -160,18 +160,17 @@ all =
                                 [ Node { start = { row = 1, column = 5 }, end = { row = 1, column = 8 } } (FunctionOrValue [] "bar") ]
                             )
                         )
-        , Test.skip <|
-            test "ifBlockExpression" <|
-                \() ->
-                    parseExpression "if True then foo else bar"
-                        |> expectAst
-                            (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 26 } }
-                                (If
-                                    (Node { start = { row = 1, column = 4 }, end = { row = 1, column = 8 } } (FunctionOrValue [] "True"))
-                                    (Node { start = { row = 1, column = 14 }, end = { row = 1, column = 17 } } (FunctionOrValue [] "foo"))
-                                    (Node { start = { row = 1, column = 23 }, end = { row = 1, column = 26 } } (FunctionOrValue [] "bar"))
-                                )
+        , test "ifBlockExpression" <|
+            \() ->
+                parseExpression "if True then foo else bar"
+                    |> expectAst
+                        (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 26 } }
+                            (If
+                                (Node { start = { row = 1, column = 4 }, end = { row = 1, column = 8 } } (FunctionOrValue [] "True"))
+                                (Node { start = { row = 1, column = 14 }, end = { row = 1, column = 17 } } (FunctionOrValue [] "foo"))
+                                (Node { start = { row = 1, column = 23 }, end = { row = 1, column = 26 } } (FunctionOrValue [] "bar"))
                             )
+                        )
         , Test.skip <|
             test "nestedIfExpression" <|
                 \() ->
