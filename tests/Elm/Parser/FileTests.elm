@@ -13,7 +13,6 @@ import Elm.Syntax.Infix exposing (InfixDirection(..))
 import Elm.Syntax.Module exposing (Module(..))
 import Elm.Syntax.Node exposing (Node(..))
 import Elm.Syntax.Pattern exposing (Pattern(..))
-import Elm.Syntax.Range as Range
 import Elm.Syntax.TypeAnnotation exposing (TypeAnnotation(..))
 import Expect
 import Json.Decode

@@ -72,6 +72,7 @@ testCases =
     , postProcessInfixOperatorsAssociativityTest
     , typeAliasWithDocumentation
     , typeWithDocumentation
+    , portWithDocumentation
     , maxCallStackSizeFailure
     ]
 
@@ -701,6 +702,59 @@ bar = (1 * 2).x
                 )
             ]
       , comments = []
+      }
+    )
+
+
+portWithDocumentation : ( String, String, File )
+portWithDocumentation =
+    ( "portWithDocumentation"
+    , """module A exposing (..)
+
+import String
+
+{-| Some port documentation -}
+port foo : String -> Cmd msg"""
+    , { comments = []
+      , declarations =
+            [ Node { start = { row = 5, column = 1 }, end = { row = 6, column = 29 } }
+                (PortDeclaration
+                    { documentation = Just (Node { start = { row = 5, column = 1 }, end = { row = 5, column = 31 } } "{-| Some port documentation -}")
+                    , signature =
+                        Node { start = { row = 6, column = 6 }, end = { row = 6, column = 29 } }
+                            { name = Node { start = { row = 6, column = 6 }, end = { row = 6, column = 9 } } "foo"
+                            , typeAnnotation =
+                                Node { start = { row = 6, column = 12 }, end = { row = 6, column = 29 } }
+                                    (FunctionTypeAnnotation
+                                        (Node { start = { row = 6, column = 12 }, end = { row = 6, column = 18 } }
+                                            (Type (Node { start = { row = 6, column = 12 }, end = { row = 6, column = 18 } } ( [], "String" )) [])
+                                        )
+                                        (Node { start = { row = 6, column = 22 }, end = { row = 6, column = 29 } }
+                                            (Type (Node { start = { row = 6, column = 22 }, end = { row = 6, column = 25 } } ( [], "Cmd" ))
+                                                [ Node { start = { row = 6, column = 26 }, end = { row = 6, column = 29 } } (Var "msg") ]
+                                            )
+                                        )
+                                    )
+                            }
+                    }
+                )
+            ]
+      , imports =
+            [ Node { start = { row = 3, column = 1 }, end = { row = 3, column = 14 } }
+                { exposingList = Nothing
+                , moduleAlias = Nothing
+                , moduleName = Node { start = { row = 3, column = 8 }, end = { row = 3, column = 14 } } [ "String" ]
+                }
+            ]
+      , moduleDefinition =
+            Node { start = { row = 1, column = 1 }, end = { row = 1, column = 23 } }
+                (NormalModule
+                    { exposingList =
+                        Node { start = { row = 1, column = 10 }, end = { row = 1, column = 23 } }
+                            (All { start = { row = 1, column = 20 }, end = { row = 1, column = 22 } })
+                    , moduleName = Node { start = { row = 1, column = 8 }, end = { row = 1, column = 9 } } [ "A" ]
+                    }
+                )
       }
     )
 

@@ -14,7 +14,7 @@ import Elm.Syntax.Declaration as Declaration exposing (Declaration)
 import Elm.Syntax.Documentation exposing (Documentation)
 import Elm.Syntax.Expression as Expression exposing (Function, FunctionImplementation)
 import Elm.Syntax.Infix as Infix
-import Elm.Syntax.Node as Node exposing (Node(..))
+import Elm.Syntax.Node exposing (Node(..))
 import Elm.Syntax.Port exposing (Port)
 import Elm.Syntax.Range exposing (Location)
 import Elm.Syntax.Signature exposing (Signature)

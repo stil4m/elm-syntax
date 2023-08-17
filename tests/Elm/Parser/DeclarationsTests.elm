@@ -312,8 +312,8 @@ foo = bar"""
                                                         , Node { start = { row = 4, column = 7 }, end = { row = 4, column = 16 } }
                                                             (OperatorApplication "+"
                                                                 Left
-                                                                (Node { end = { column = 12, row = 4 }, start = { column = 7, row = 4 } } (FunctionOrValue [] "model"))
-                                                                (Node { end = { column = 16, row = 4 }, start = { column = 15, row = 4 } } (Integer 1))
+                                                                (Node { start = { row = 4, column = 7 }, end = { row = 4, column = 12 } } (FunctionOrValue [] "model"))
+                                                                (Node { start = { row = 4, column = 15 }, end = { row = 4, column = 16 } } (Integer 1))
                                                             )
                                                         )
                                                     , restOfCases =
@@ -546,8 +546,8 @@ foo = bar"""
                                                         , Node { start = { row = 4, column = 7 }, end = { row = 4, column = 16 } }
                                                             (OperatorApplication "+"
                                                                 Left
-                                                                (Node { end = { column = 12, row = 4 }, start = { column = 7, row = 4 } } (FunctionOrValue [] "model"))
-                                                                (Node { end = { column = 16, row = 4 }, start = { column = 15, row = 4 } } (Integer 1))
+                                                                (Node { start = { row = 4, column = 7 }, end = { row = 4, column = 12 } } (FunctionOrValue [] "model"))
+                                                                (Node { start = { row = 4, column = 15 }, end = { row = 4, column = 16 } } (Integer 1))
                                                             )
                                                         )
                                                     , restOfCases =
