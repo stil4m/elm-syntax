@@ -3,7 +3,6 @@ module Elm.Syntax.Range exposing
     , empty, combine
     , compare, compareLocations
     , encode, decoder
-    , emptyRange
     )
 
 {-|
@@ -29,11 +28,6 @@ See also [Basics.compare](https://package.elm-lang.org/packages/elm/core/latest/
 ## Serialization
 
 @docs encode, decoder
-
-
-## Deprecated
-
-@docs emptyRange
 
 -}
 
@@ -64,16 +58,6 @@ empty =
     { start = { row = 0, column = 0 }
     , end = { row = 0, column = 0 }
     }
-
-
-{-| **@deprecated** Use [`empty`](#empty) instead. It does the same thing but the name is more Elm-y.
-
-Construct an empty range
-
--}
-emptyRange : Range
-emptyRange =
-    empty
 
 
 {-| Encode a range

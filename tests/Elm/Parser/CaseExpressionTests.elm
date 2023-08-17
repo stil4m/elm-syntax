@@ -1,7 +1,7 @@
 module Elm.Parser.CaseExpressionTests exposing (all)
 
 import Elm.Parser.CombineTestUtil exposing (..)
-import Elm.Parser.Declarations as Parser
+import Elm.Parser.Expression as Parser
 import Elm.Parser.State exposing (emptyState)
 import Elm.Syntax.Expression exposing (..)
 import Elm.Syntax.Node as Node exposing (Node(..))
@@ -29,7 +29,7 @@ all =
                     |> Expect.equal
                         (Just
                             ( Node { start = { row = 1, column = 1 }, end = { row = 1, column = 5 } } <| NamedPattern (QualifiedNameRef [] "True") []
-                            , Node { start = { row = 1, column = 9 }, end = { row = 1, column = 10 } } <| Integer 1
+                            , Node { start = { row = 1, column = 9 }, end = { row = 1, column = 10 } } <| IntegerLiteral 1
                             )
                         )
         , test "caseStatement qualified" <|
@@ -38,7 +38,7 @@ all =
                     |> Expect.equal
                         (Just
                             ( Node { start = { row = 1, column = 1 }, end = { row = 1, column = 8 } } <| NamedPattern (QualifiedNameRef [ "Foo" ] "Bar") []
-                            , Node { start = { row = 1, column = 12 }, end = { row = 1, column = 13 } } <| Integer 1
+                            , Node { start = { row = 1, column = 12 }, end = { row = 1, column = 13 } } <| IntegerLiteral 1
                             )
                         )
         , test "caseStatement no spacing" <|
@@ -60,22 +60,51 @@ all =
                     |> Expect.equal
                         (Just
                             ( Node { start = { row = 1, column = 1 }, end = { row = 1, column = 5 } } <| NamedPattern (QualifiedNameRef [] "True") []
-                            , Node { start = { row = 2, column = 3 }, end = { row = 2, column = 4 } } <| Integer 1
+                            , Node { start = { row = 2, column = 3 }, end = { row = 2, column = 4 } } <| IntegerLiteral 1
                             )
                         )
         , test "caseStatements" <|
             \() ->
                 parseFullStringState emptyState "True -> 1\nFalse -> 2" Parser.caseStatements
-                    |> Maybe.map (List.map (Tuple.mapSecond noRangeExpression >> Tuple.mapFirst noRangePattern))
+                    |> Maybe.map
+                        (\( head, rest ) ->
+                            ( Tuple.mapBoth noRangePattern noRangeExpression head
+                            , List.map (Tuple.mapBoth noRangePattern noRangeExpression) rest
+                            )
+                        )
                     |> Expect.equal
                         (Just
-                            [ ( Node.empty <| NamedPattern (QualifiedNameRef [] "True") []
-                              , Node.empty <| Integer 1
+                            ( ( Node.empty <| NamedPattern (QualifiedNameRef [] "True") []
+                              , Node.empty <| IntegerLiteral 1
                               )
-                            , ( Node.empty <| NamedPattern (QualifiedNameRef [] "False") []
-                              , Node.empty <| Integer 2
+                            , [ ( Node.empty <| NamedPattern (QualifiedNameRef [] "False") []
+                                , Node.empty <| IntegerLiteral 2
+                                )
+                              ]
+                            )
+                        )
+        , test "many caseStatements" <|
+            \() ->
+                parseFullStringState emptyState "True -> 1\nFalse -> 2\nFalse -> 3" Parser.caseStatements
+                    |> Maybe.map
+                        (\( head, rest ) ->
+                            ( Tuple.mapBoth noRangePattern noRangeExpression head
+                            , List.map (Tuple.mapBoth noRangePattern noRangeExpression) rest
+                            )
+                        )
+                    |> Expect.equal
+                        (Just
+                            ( ( Node.empty <| NamedPattern (QualifiedNameRef [] "True") []
+                              , Node.empty <| IntegerLiteral 1
                               )
-                            ]
+                            , [ ( Node.empty <| NamedPattern (QualifiedNameRef [] "False") []
+                                , Node.empty <| IntegerLiteral 2
+                                )
+                              , ( Node.empty <| NamedPattern (QualifiedNameRef [] "False") []
+                                , Node.empty <| IntegerLiteral 3
+                                )
+                              ]
+                            )
                         )
         , test "case expression" <|
             \() ->
@@ -83,14 +112,15 @@ all =
                     |> Maybe.map (Node.value >> noRangeInnerExpression)
                     |> Expect.equal
                         (Just
-                            (CaseExpression
+                            (Case
                                 { expression = Node.empty <| FunctionOrValue [] "f"
-                                , cases =
-                                    [ ( Node.empty <| NamedPattern (QualifiedNameRef [] "True") []
-                                      , Node.empty <| Integer 1
-                                      )
-                                    , ( Node empty <| NamedPattern (QualifiedNameRef [] "False") []
-                                      , Node empty <| Integer 2
+                                , firstCase =
+                                    ( Node.empty <| NamedPattern (QualifiedNameRef [] "True") []
+                                    , Node.empty <| IntegerLiteral 1
+                                    )
+                                , restOfCases =
+                                    [ ( Node empty <| NamedPattern (QualifiedNameRef [] "False") []
+                                      , Node empty <| IntegerLiteral 2
                                       )
                                     ]
                                 }
@@ -102,20 +132,21 @@ all =
                     |> Expect.equal
                         (Just
                             (Node { start = { row = 1, column = 1 }, end = { row = 3, column = 13 } }
-                                (CaseExpression
+                                (Case
                                     { expression =
                                         Node { start = { row = 1, column = 6 }, end = { row = 1, column = 7 } } <|
                                             FunctionOrValue [] "f"
-                                    , cases =
-                                        [ ( Node { start = { row = 2, column = 3 }, end = { row = 2, column = 7 } } <|
-                                                NamedPattern (QualifiedNameRef [] "True") []
-                                          , Node { start = { row = 2, column = 11 }, end = { row = 2, column = 12 } } <|
-                                                Integer 1
-                                          )
-                                        , ( Node { start = { row = 3, column = 3 }, end = { row = 3, column = 8 } } <|
+                                    , firstCase =
+                                        ( Node { start = { row = 2, column = 3 }, end = { row = 2, column = 7 } } <|
+                                            NamedPattern (QualifiedNameRef [] "True") []
+                                        , Node { start = { row = 2, column = 11 }, end = { row = 2, column = 12 } } <|
+                                            IntegerLiteral 1
+                                        )
+                                    , restOfCases =
+                                        [ ( Node { start = { row = 3, column = 3 }, end = { row = 3, column = 8 } } <|
                                                 NamedPattern (QualifiedNameRef [] "False") []
                                           , Node { start = { row = 3, column = 12 }, end = { row = 3, column = 13 } } <|
-                                                Integer 2
+                                                IntegerLiteral 2
                                           )
                                         ]
                                     }
@@ -128,20 +159,21 @@ all =
                     |> Expect.equal
                         (Just
                             (Node { start = { row = 1, column = 1 }, end = { row = 3, column = 13 } }
-                                (CaseExpression
+                                (Case
                                     { expression =
                                         Node { start = { row = 1, column = 6 }, end = { row = 1, column = 7 } } <|
                                             FunctionOrValue [] "f"
-                                    , cases =
-                                        [ ( Node { start = { row = 2, column = 3 }, end = { row = 2, column = 7 } } <|
-                                                NamedPattern (QualifiedNameRef [] "True") []
-                                          , Node { start = { row = 2, column = 11 }, end = { row = 2, column = 12 } } <|
-                                                Integer 1
-                                          )
-                                        , ( Node { start = { row = 3, column = 3 }, end = { row = 3, column = 8 } } <|
+                                    , firstCase =
+                                        ( Node { start = { row = 2, column = 3 }, end = { row = 2, column = 7 } } <|
+                                            NamedPattern (QualifiedNameRef [] "True") []
+                                        , Node { start = { row = 2, column = 11 }, end = { row = 2, column = 12 } } <|
+                                            IntegerLiteral 1
+                                        )
+                                    , restOfCases =
+                                        [ ( Node { start = { row = 3, column = 3 }, end = { row = 3, column = 8 } } <|
                                                 NamedPattern (QualifiedNameRef [] "False") []
                                           , Node { start = { row = 3, column = 12 }, end = { row = 3, column = 13 } } <|
-                                                Integer 2
+                                                IntegerLiteral 2
                                           )
                                         ]
                                     }
@@ -159,23 +191,24 @@ all =
                     |> Maybe.map (Node.value >> noRangeInnerExpression)
                     |> Expect.equal
                         (Just
-                            (CaseExpression
+                            (Case
                                 { expression = Node empty <| FunctionOrValue [] "msg"
-                                , cases =
-                                    [ ( Node empty <| NamedPattern (QualifiedNameRef [] "Increment") []
+                                , firstCase =
+                                    ( Node empty <| NamedPattern (QualifiedNameRef [] "Increment") []
+                                    , Node empty <|
+                                        FunctionCall
+                                            (Node empty <| FunctionOrValue [] "model")
+                                            [ Node empty <| Operator "+"
+                                            , Node empty <| IntegerLiteral 1
+                                            ]
+                                    )
+                                , restOfCases =
+                                    [ ( Node empty <| NamedPattern (QualifiedNameRef [] "Decrement") []
                                       , Node empty <|
-                                            Application
-                                                [ Node empty <| FunctionOrValue [] "model"
-                                                , Node empty <| Operator "+"
-                                                , Node empty <| Integer 1
-                                                ]
-                                      )
-                                    , ( Node empty <| NamedPattern (QualifiedNameRef [] "Decrement") []
-                                      , Node empty <|
-                                            Application
-                                                [ Node empty <| FunctionOrValue [] "model"
-                                                , Node empty <| Operator "-"
-                                                , Node empty <| Integer 1
+                                            FunctionCall
+                                                (Node empty <| FunctionOrValue [] "model")
+                                                [ Node empty <| Operator "-"
+                                                , Node empty <| IntegerLiteral 1
                                                 ]
                                       )
                                     ]

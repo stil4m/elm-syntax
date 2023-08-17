@@ -2,13 +2,13 @@ module Elm.Parser.LetExpressionTests exposing (all)
 
 import Combine exposing (string)
 import Elm.Parser.CombineTestUtil exposing (..)
-import Elm.Parser.Declarations as Parser
+import Elm.Parser.Expression as Parser
 import Elm.Parser.Layout as Layout
 import Elm.Parser.State exposing (emptyState)
 import Elm.Parser.Tokens exposing (functionName)
+import Elm.Syntax.DestructurePattern exposing (DestructurePattern(..))
 import Elm.Syntax.Expression exposing (..)
 import Elm.Syntax.Node as Node exposing (Node(..))
-import Elm.Syntax.Pattern exposing (..)
 import Elm.Syntax.Range exposing (empty)
 import Expect
 import Test exposing (..)
@@ -82,7 +82,7 @@ all =
                     |> Maybe.map Node.value
                     |> Expect.equal
                         (Just
-                            (LetExpression
+                            (Let
                                 { declarations =
                                     [ Node { start = { row = 2, column = 3 }, end = { row = 2, column = 10 } } <|
                                         LetFunction
@@ -92,7 +92,7 @@ all =
                                                 Node { start = { row = 2, column = 3 }, end = { row = 2, column = 10 } } <|
                                                     { name = Node { start = { row = 2, column = 3 }, end = { row = 2, column = 6 } } "bar"
                                                     , arguments = []
-                                                    , expression = Node { start = { row = 2, column = 9 }, end = { row = 2, column = 10 } } <| Integer 1
+                                                    , expression = Node { start = { row = 2, column = 9 }, end = { row = 2, column = 10 } } <| IntegerLiteral 1
                                                     }
                                             }
                                     ]
@@ -107,7 +107,7 @@ all =
                     |> Maybe.map Node.value
                     |> Expect.equal
                         (Just
-                            (LetExpression
+                            (Let
                                 { declarations =
                                     [ Node empty <|
                                         LetFunction
@@ -117,7 +117,7 @@ all =
                                                 Node empty <|
                                                     { name = Node empty "bar"
                                                     , arguments = []
-                                                    , expression = Node empty <| Integer 1
+                                                    , expression = Node empty <| IntegerLiteral 1
                                                     }
                                             }
                                     ]
@@ -132,9 +132,9 @@ all =
                     |> Maybe.map Node.value
                     |> Expect.equal
                         (Just
-                            (ListExpr
+                            (ListLiteral
                                 [ Node empty <|
-                                    LetExpression
+                                    Let
                                         { declarations =
                                             [ Node empty <|
                                                 LetFunction
@@ -144,7 +144,7 @@ all =
                                                         Node empty
                                                             { name = Node empty "bar"
                                                             , arguments = []
-                                                            , expression = Node empty <| Integer 1
+                                                            , expression = Node empty <| IntegerLiteral 1
                                                             }
                                                     }
                                             ]
@@ -159,11 +159,11 @@ all =
                     |> Maybe.map Node.value
                     |> Expect.equal
                         (Just
-                            (LetExpression
+                            (Let
                                 { declarations =
                                     [ Node { start = { row = 2, column = 5 }, end = { row = 2, column = 10 } } <|
                                         LetDestructuring
-                                            (Node { start = { row = 2, column = 5 }, end = { row = 2, column = 6 } } AllPattern)
+                                            (Node { start = { row = 2, column = 5 }, end = { row = 2, column = 6 } } AllPattern_)
                                             (Node { start = { row = 2, column = 9 }, end = { row = 2, column = 10 } } <| FunctionOrValue [] "b")
                                     ]
                                 , expression = Node { start = { row = 4, column = 5 }, end = { row = 4, column = 6 } } <| FunctionOrValue [] "z"
@@ -177,7 +177,7 @@ all =
                     |> Maybe.map Node.value
                     |> Expect.equal
                         (Just
-                            (LetExpression
+                            (Let
                                 { declarations =
                                     [ Node empty <|
                                         LetFunction
@@ -189,10 +189,9 @@ all =
                                                     , arguments = []
                                                     , expression =
                                                         Node empty <|
-                                                            Application
-                                                                [ Node empty <| FunctionOrValue [ "String" ] "length"
-                                                                , Node empty <| FunctionOrValue [] "s"
-                                                                ]
+                                                            FunctionCall
+                                                                (Node empty <| FunctionOrValue [ "String" ] "length")
+                                                                [ Node empty <| FunctionOrValue [] "s" ]
                                                     }
                                             }
                                     ]
@@ -207,7 +206,7 @@ all =
                     |> Maybe.map Node.value
                     |> Expect.equal
                         (Just
-                            (LetExpression
+                            (Let
                                 { declarations =
                                     [ Node empty <|
                                         LetFunction
@@ -218,7 +217,7 @@ all =
                                                 Node empty <|
                                                     { name = Node empty "indent"
                                                     , arguments = []
-                                                    , expression = Node empty <| Integer 1
+                                                    , expression = Node empty <| IntegerLiteral 1
                                                     }
                                             }
                                     ]
@@ -233,7 +232,7 @@ all =
                     |> Maybe.map Node.value
                     |> Expect.equal
                         (Just
-                            (LetExpression
+                            (Let
                                 { declarations =
                                     [ Node empty <|
                                         LetFunction
@@ -244,7 +243,7 @@ all =
                                                 Node empty <|
                                                     { name = Node empty "b"
                                                     , arguments = []
-                                                    , expression = Node empty <| Integer 1
+                                                    , expression = Node empty <| IntegerLiteral 1
                                                     }
                                             }
                                     ]

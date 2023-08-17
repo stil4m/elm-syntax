@@ -121,8 +121,8 @@ build (InternalRawFile.Raw file) =
             fileToDefinitions file
     in
     case Module.exposingList (Node.value file.moduleDefinition) of
-        Explicit x ->
-            buildInterfaceFromExplicit x (Dict.fromList fileDefinitionList)
+        Explicit head rest ->
+            buildInterfaceFromExplicit (head :: rest) (Dict.fromList fileDefinitionList)
 
         All _ ->
             List.map Tuple.second fileDefinitionList
@@ -169,17 +169,30 @@ fileToDefinitions file =
     let
         allDeclarations : List ( String, Exposed )
         allDeclarations =
-            List.filterMap
+            List.map
                 (\(Node _ decl) ->
                     case decl of
                         CustomTypeDeclaration t ->
-                            Just ( Node.value t.name, CustomType ( Node.value t.name, t.constructors |> List.map (Node.value >> .name >> Node.value) ) )
+                            ( Node.value t.name
+                            , CustomType
+                                ( Node.value t.name
+                                , t.firstConstructor :: t.restOfConstructors |> List.map (Node.value >> .name >> Node.value)
+                                )
+                            )
 
                         AliasDeclaration a ->
-                            Just ( Node.value a.name, Alias <| Node.value a.name )
+                            ( Node.value a.name, Alias <| Node.value a.name )
 
                         PortDeclaration p ->
-                            Just ( Node.value p.name, Function (Node.value p.name) )
+                            let
+                                portName : String
+                                portName =
+                                    p.signature
+                                        |> Node.value
+                                        |> .name
+                                        |> Node.value
+                            in
+                            ( portName, Function portName )
 
                         FunctionDeclaration f ->
                             let
@@ -191,13 +204,10 @@ fileToDefinitions file =
                                 name =
                                     Node.value declaration.name
                             in
-                            Just ( name, Function <| name )
+                            ( name, Function <| name )
 
                         InfixDeclaration i ->
-                            Just ( Node.value i.operator, Operator i )
-
-                        Destructuring _ _ ->
-                            Nothing
+                            ( Node.value i.operator, Operator i )
                 )
                 file.declarations
     in

@@ -24,7 +24,7 @@ all =
                         (Just
                             (NormalModule
                                 { moduleName = Node.empty [ "Foo" ]
-                                , exposingList = Node.empty <| Explicit [ Node.empty <| TypeOrAliasExpose "Bar" ]
+                                , exposingList = Node.empty <| Explicit (Node.empty <| TypeOrAliasExpose "Bar") []
                                 }
                             )
                         )
@@ -32,12 +32,12 @@ all =
             \() ->
                 parseFullStringWithNullState "port module Foo exposing (Bar)" Parser.moduleDefinition
                     |> Maybe.map noRangeModule
-                    |> Expect.equal (Just (PortModule { moduleName = Node.empty <| [ "Foo" ], exposingList = Node.empty <| Explicit [ Node.empty <| TypeOrAliasExpose "Bar" ] }))
+                    |> Expect.equal (Just (PortModule { moduleName = Node.empty <| [ "Foo" ], exposingList = Node.empty <| Explicit (Node.empty <| TypeOrAliasExpose "Bar") [] }))
         , test "port moduleDefinition with spacing" <|
             \() ->
                 parseFullStringWithNullState "port module Foo exposing ( Bar )" Parser.moduleDefinition
                     |> Maybe.map noRangeModule
-                    |> Expect.equal (Just (PortModule { moduleName = Node.empty <| [ "Foo" ], exposingList = Node empty <| Explicit [ Node empty <| TypeOrAliasExpose "Bar" ] }))
+                    |> Expect.equal (Just (PortModule { moduleName = Node.empty <| [ "Foo" ], exposingList = Node empty <| Explicit (Node empty <| TypeOrAliasExpose "Bar") [] }))
         , test "effect moduleDefinition" <|
             \() ->
                 parseFullStringWithNullState "effect module Foo where {command = MyCmd, subscription = MySub } exposing (Bar)" Parser.moduleDefinition
@@ -46,7 +46,7 @@ all =
                         (Just
                             (EffectModule
                                 { moduleName = Node empty <| [ "Foo" ]
-                                , exposingList = Node empty <| Explicit [ Node empty <| TypeOrAliasExpose "Bar" ]
+                                , exposingList = Node empty <| Explicit (Node empty <| TypeOrAliasExpose "Bar") []
                                 , command = Just <| Node empty <| "MyCmd"
                                 , subscription = Just <| Node empty <| "MySub"
                                 }
@@ -100,11 +100,11 @@ b = 3
                                                 { arguments = []
                                                 , expression =
                                                     Node { start = { row = 4, column = 5 }, end = { row = 7, column = 10 } }
-                                                        (IfBlock
+                                                        (If
                                                             (Node { start = { row = 4, column = 8 }, end = { row = 4, column = 12 } }
                                                                 (FunctionOrValue [] "cond")
                                                             )
-                                                            (Node { start = { row = 5, column = 9 }, end = { row = 5, column = 10 } } (Integer 1))
+                                                            (Node { start = { row = 5, column = 9 }, end = { row = 5, column = 10 } } (IntegerLiteral 1))
                                                             (Node
                                                                 { end = { column = 10, row = 7 }
                                                                 , start =
@@ -112,7 +112,7 @@ b = 3
                                                                     , row = 7
                                                                     }
                                                                 }
-                                                                (Integer 2)
+                                                                (IntegerLiteral 2)
                                                             )
                                                         )
                                                 , name = Node { start = { row = 3, column = 1 }, end = { row = 3, column = 2 } } "a"
@@ -132,7 +132,7 @@ b = 3
                                                     }
                                                 , start = { column = 1, row = 13 }
                                                 }
-                                                { arguments = [], expression = Node { start = { row = 13, column = 5 }, end = { row = 13, column = 6 } } (Integer 3), name = Node { start = { row = 13, column = 1 }, end = { row = 13, column = 2 } } "b" }
+                                                { arguments = [], expression = Node { start = { row = 13, column = 5 }, end = { row = 13, column = 6 } } (IntegerLiteral 3), name = Node { start = { row = 13, column = 1 }, end = { row = 13, column = 2 } } "b" }
                                         , documentation = Nothing
                                         , signature = Nothing
                                         }
@@ -196,7 +196,7 @@ b = 3
                                                             { column = 6, row = 4 }
                                                         , start = { column = 5, row = 4 }
                                                         }
-                                                        (Integer 2)
+                                                        (IntegerLiteral 2)
                                                 , name = Node { start = { row = 3, column = 1 }, end = { row = 3, column = 2 } } "a"
                                                 }
                                         , documentation = Nothing
@@ -218,7 +218,7 @@ b = 3
                                                             { column = 6, row = 10 }
                                                         , start = { column = 5, row = 10 }
                                                         }
-                                                        (Integer 3)
+                                                        (IntegerLiteral 3)
                                                 , name = Node { start = { row = 10, column = 1 }, end = { row = 10, column = 2 } } "b"
                                                 }
                                         , documentation = Nothing

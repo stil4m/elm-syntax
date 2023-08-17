@@ -549,7 +549,7 @@ foo = 1
 
 sample4 : String
 sample4 =
-    """module Operators exposing ()
+    """module Operators exposing (..)
 
 infix left 5 (|=) = keeper
 infix left 6 (|.) = ignorer
@@ -629,7 +629,7 @@ sample10 : String
 sample10 =
     """module X exposing (..)
 
-{k,v} = r"""
+emptyExample = True"""
 
 
 sample11 : String

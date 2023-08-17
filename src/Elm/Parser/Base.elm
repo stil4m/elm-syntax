@@ -7,7 +7,7 @@ import Elm.Syntax.ModuleName exposing (ModuleName)
 
 moduleName : Parser s ModuleName
 moduleName =
-    sepBy1 (string ".") Tokens.typeName
+    sepBy1 (string ".") Tokens.typeName |> Combine.map (\( head, rest ) -> head :: rest)
 
 
 typeIndicator : Parser s ( ModuleName, String )

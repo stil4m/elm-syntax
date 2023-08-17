@@ -17,7 +17,7 @@ all =
             \() ->
                 parseFullStringWithNullState "()" Parser.typeAnnotation
                     |> Maybe.map noRangeTypeReference
-                    |> Expect.equal (Just <| Node.empty Unit)
+                    |> Expect.equal (Just <| Node.empty (Tuple []))
         , test "unitTypeReference with spaces" <|
             \() ->
                 parseFullStringWithNullState "( )" Parser.typeAnnotation
@@ -27,12 +27,12 @@ all =
             \() ->
                 parseFullStringWithNullState "( (), ())" Parser.typeAnnotation
                     |> Maybe.map noRangeTypeReference
-                    |> Expect.equal (Just <| Node.empty <| Tupled [ Node.empty Unit, Node.empty Unit ])
+                    |> Expect.equal (Just <| Node.empty <| Tuple [ Node.empty (Tuple []), Node.empty (Tuple []) ])
         , test "tupledTypeReference 2" <|
             \() ->
                 parseFullStringWithNullState "( () )" Parser.typeAnnotation
                     |> Maybe.map noRangeTypeReference
-                    |> Expect.equal (Just <| Node.empty Unit)
+                    |> Expect.equal (Just <| Node.empty (Tuple []))
         , test "tupledTypeReference 3" <|
             \() ->
                 parseFullStringWithNullState "( () , Maybe m )" Parser.typeAnnotation
@@ -40,9 +40,9 @@ all =
                     |> Expect.equal
                         (Just
                             (Node.empty <|
-                                Tupled
-                                    [ Node.empty Unit
-                                    , Node empty <| Typed (Node empty <| ( [], "Maybe" )) [ Node empty <| GenericType "m" ]
+                                Tuple
+                                    [ Node.empty (Tuple [])
+                                    , Node empty <| Type (Node empty <| ( [], "Maybe" )) [ Node empty <| Var "m" ]
                                     ]
                             )
                         )
@@ -50,12 +50,12 @@ all =
             \() ->
                 parseFullStringWithNullState "Foo.Bar" Parser.typeAnnotation
                     |> Maybe.map noRangeTypeReference
-                    |> Expect.equal (Just (Node empty <| Typed (Node empty ( [ "Foo" ], "Bar" )) []))
+                    |> Expect.equal (Just (Node empty <| Type (Node empty ( [ "Foo" ], "Bar" )) []))
         , test "typeAnnotationNoFn" <|
             \() ->
                 parseFullStringWithNullState "Bar" Parser.typeAnnotation
                     |> Maybe.map noRangeTypeReference
-                    |> Expect.equal (Just (Node empty <| Typed (Node empty ( [], "Bar" )) []))
+                    |> Expect.equal (Just (Node empty <| Type (Node empty ( [], "Bar" )) []))
         , test "types with and without spacing should parse to the same" <|
             \() ->
                 let
@@ -74,10 +74,10 @@ all =
                     |> Expect.equal
                         (Just <|
                             (Node empty <|
-                                Typed (Node empty ( [], "Foo" ))
-                                    [ Node empty Unit
-                                    , Node empty <| GenericType "a"
-                                    , Node empty <| Typed (Node empty ( [], "Bar" )) []
+                                Type (Node empty ( [], "Foo" ))
+                                    [ Node empty (Tuple [])
+                                    , Node empty <| Var "a"
+                                    , Node empty <| Type (Node empty ( [], "Bar" )) []
                                     ]
                             )
                         )
@@ -88,10 +88,10 @@ all =
                     |> Expect.equal
                         (Just <|
                             (Node empty <|
-                                Typed (Node empty ( [], "Foo" ))
-                                    [ Node empty Unit
-                                    , Node empty <| GenericType "a"
-                                    , Node empty <| Typed (Node empty ( [], "Bar" )) []
+                                Type (Node empty ( [], "Foo" ))
+                                    [ Node empty (Tuple [])
+                                    , Node empty <| Var "a"
+                                    , Node empty <| Type (Node empty ( [], "Bar" )) []
                                     ]
                             )
                         )
@@ -111,21 +111,30 @@ all =
                     |> Expect.equal
                         (Just <|
                             Node empty <|
-                                Record [ Node empty ( Node empty "color", Node empty <| Typed (Node empty ( [], "String" )) [] ) ]
+                                Record [ Node empty ( Node empty "color", Node empty <| Type (Node empty ( [], "String" )) [] ) ]
                         )
         , test "record with generic" <|
             \() ->
                 parseFullStringWithNullState "{ attr | position : Vec2, texture : Vec2 }" Parser.typeAnnotation
-                    |> Maybe.map noRangeTypeReference
                     |> Expect.equal
                         (Just
-                            (Node empty <|
-                                GenericRecord (Node empty "attr")
-                                    (Node empty
-                                        [ Node empty ( Node empty "position", Node empty <| Typed (Node empty <| ( [], "Vec2" )) [] )
-                                        , Node empty ( Node empty "texture", Node empty <| Typed (Node empty ( [], "Vec2" )) [] )
+                            (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 43 } }
+                                (GenericRecord
+                                    (Node { start = { row = 1, column = 3 }, end = { row = 1, column = 7 } } "attr")
+                                    (Node { start = { row = 1, column = 9 }, end = { row = 1, column = 42 } }
+                                        [ Node { start = { row = 1, column = 10 }, end = { row = 1, column = 25 } }
+                                            ( Node { start = { row = 1, column = 10 }, end = { row = 1, column = 18 } } "position"
+                                            , Node { start = { row = 1, column = 21 }, end = { row = 1, column = 25 } }
+                                                (Type (Node { start = { row = 1, column = 21 }, end = { row = 1, column = 25 } } ( [], "Vec2" )) [])
+                                            )
+                                        , Node { start = { row = 1, column = 27 }, end = { row = 1, column = 42 } }
+                                            ( Node { start = { row = 1, column = 27 }, end = { row = 1, column = 34 } } "texture"
+                                            , Node { start = { row = 1, column = 37 }, end = { row = 1, column = 41 } }
+                                                (Type (Node { start = { row = 1, column = 37 }, end = { row = 1, column = 41 } } ( [], "Vec2" )) [])
+                                            )
                                         ]
                                     )
+                                )
                             )
                         )
         , test "generic record with no fields" <|
@@ -145,9 +154,9 @@ all =
                                         ( Node empty "color"
                                         , Node empty <|
                                             Record
-                                                [ Node empty ( Node empty "r", Node empty <| Typed (Node empty ( [], "Int" )) [] )
-                                                , Node empty ( Node empty "g", Node empty <| Typed (Node empty ( [], "Int" )) [] )
-                                                , Node empty ( Node empty "b", Node empty <| Typed (Node empty ( [], "Int" )) [] )
+                                                [ Node empty ( Node empty "r", Node empty <| Type (Node empty ( [], "Int" )) [] )
+                                                , Node empty ( Node empty "g", Node empty <| Type (Node empty ( [], "Int" )) [] )
+                                                , Node empty ( Node empty "b", Node empty <| Type (Node empty ( [], "Int" )) [] )
                                                 ]
                                         )
                                     ]
@@ -163,17 +172,17 @@ all =
                                     [ Node { start = { column = 3, row = 1 }, end = { column = 12, row = 1 } }
                                         ( Node { start = { column = 3, row = 1 }, end = { column = 6, row = 1 } } "foo"
                                         , Node { start = { column = 9, row = 1 }, end = { column = 12, row = 1 } } <|
-                                            Typed (Node { start = { column = 9, row = 1 }, end = { column = 12, row = 1 } } ( [], "Int" )) []
+                                            Type (Node { start = { column = 9, row = 1 }, end = { column = 12, row = 1 } } ( [], "Int" )) []
                                         )
                                     , Node { start = { column = 14, row = 1 }, end = { column = 23, row = 1 } }
                                         ( Node { start = { column = 14, row = 1 }, end = { column = 17, row = 1 } } "bar"
                                         , Node { start = { column = 20, row = 1 }, end = { column = 23, row = 1 } } <|
-                                            Typed (Node { start = { column = 20, row = 1 }, end = { column = 23, row = 1 } } ( [], "Int" )) []
+                                            Type (Node { start = { column = 20, row = 1 }, end = { column = 23, row = 1 } } ( [], "Int" )) []
                                         )
                                     , Node { start = { column = 25, row = 1 }, end = { column = 35, row = 1 } }
                                         ( Node { start = { column = 25, row = 1 }, end = { column = 28, row = 1 } } "baz"
                                         , Node { start = { column = 31, row = 1 }, end = { column = 34, row = 1 } } <|
-                                            Typed (Node { start = { column = 31, row = 1 }, end = { column = 34, row = 1 } } ( [], "Int" )) []
+                                            Type (Node { start = { column = 31, row = 1 }, end = { column = 34, row = 1 } } ( [], "Int" )) []
                                         )
                                     ]
                             )
@@ -188,7 +197,7 @@ all =
                                 Record
                                     [ Node empty
                                         ( Node empty "color"
-                                        , Node empty <| GenericType "s"
+                                        , Node empty <| Var "s"
                                         )
                                     ]
                             )
@@ -201,8 +210,8 @@ all =
                         (Just <|
                             (Node empty <|
                                 FunctionTypeAnnotation
-                                    (Node empty <| Typed (Node empty ( [], "Foo" )) [])
-                                    (Node empty <| Typed (Node empty ( [], "Bar" )) [])
+                                    (Node empty <| Type (Node empty ( [], "Foo" )) [])
+                                    (Node empty <| Type (Node empty ( [], "Bar" )) [])
                             )
                         )
         , test "function type reference multiple" <|
@@ -213,11 +222,11 @@ all =
                         (Just <|
                             (Node empty <|
                                 FunctionTypeAnnotation
-                                    (Node empty <| Typed (Node empty ( [], "Foo" )) [])
+                                    (Node empty <| Type (Node empty ( [], "Foo" )) [])
                                     (Node empty <|
                                         FunctionTypeAnnotation
-                                            (Node empty <| Typed (Node empty ( [], "Bar" )) [])
-                                            (Node empty <| GenericType "baz")
+                                            (Node empty <| Type (Node empty ( [], "Bar" )) [])
+                                            (Node empty <| Var "baz")
                                     )
                             )
                         )
@@ -229,11 +238,11 @@ all =
                         (Just <|
                             (Node empty <|
                                 FunctionTypeAnnotation
-                                    (Node empty <| GenericType "cMsg")
+                                    (Node empty <| Var "cMsg")
                                     (Node empty <|
                                         FunctionTypeAnnotation
-                                            (Node empty <| GenericType "cModel")
-                                            (Node empty <| GenericType "a")
+                                            (Node empty <| Var "cModel")
+                                            (Node empty <| Var "a")
                                     )
                             )
                         )
@@ -242,7 +251,7 @@ all =
                 parseAsFarAsPossibleWithState emptyState "Model\n\nsomeFunction" Parser.typeAnnotation
                     |> Maybe.map noRangeTypeReference
                     |> Expect.equal
-                        (Just (Node empty <| Typed (Node empty ( [], "Model" )) []))
+                        (Just (Node empty <| Type (Node empty ( [], "Model" )) []))
         , test "annotation with parens" <|
             \() ->
                 parseAsFarAsPossibleWithState emptyState "Msg -> Model -> (Model, Cmd Msg)\n\n" Parser.typeAnnotation
@@ -250,13 +259,13 @@ all =
                     |> Expect.equal
                         (Just
                             (Node empty <|
-                                FunctionTypeAnnotation (Node empty <| Typed (Node empty ( [], "Msg" )) [])
+                                FunctionTypeAnnotation (Node empty <| Type (Node empty ( [], "Msg" )) [])
                                     (Node empty <|
-                                        FunctionTypeAnnotation (Node empty <| Typed (Node empty ( [], "Model" )) [])
+                                        FunctionTypeAnnotation (Node empty <| Type (Node empty ( [], "Model" )) [])
                                             (Node empty <|
-                                                Tupled
-                                                    [ Node empty <| Typed (Node empty ( [], "Model" )) []
-                                                    , Node empty <| Typed (Node empty ( [], "Cmd" )) [ Node empty <| Typed (Node empty ( [], "Msg" )) [] ]
+                                                Tuple
+                                                    [ Node empty <| Type (Node empty ( [], "Model" )) []
+                                                    , Node empty <| Type (Node empty ( [], "Cmd" )) [ Node empty <| Type (Node empty ( [], "Msg" )) [] ]
                                                     ]
                                             )
                                     )
@@ -269,8 +278,8 @@ all =
                     |> Expect.equal
                         (Just
                             (Node empty <|
-                                FunctionTypeAnnotation (Node empty <| GenericType "msg")
-                                    (Node empty <| Typed (Node empty ( [], "Cmd" )) [ Node empty <| GenericType "model" ])
+                                FunctionTypeAnnotation (Node empty <| Var "msg")
+                                    (Node empty <| Type (Node empty ( [], "Cmd" )) [ Node empty <| Var "model" ])
                             )
                         )
         , test "function as argument" <|
@@ -283,14 +292,14 @@ all =
                                 FunctionTypeAnnotation
                                     (Node empty <|
                                         FunctionTypeAnnotation
-                                            (Node empty <| GenericType "cMsg")
+                                            (Node empty <| Var "cMsg")
                                             (Node empty <|
                                                 FunctionTypeAnnotation
-                                                    (Node empty <| GenericType "cModel")
-                                                    (Node empty <| GenericType "a")
+                                                    (Node empty <| Var "cModel")
+                                                    (Node empty <| Var "a")
                                             )
                                     )
-                                    (Node empty <| GenericType "b")
+                                    (Node empty <| Var "b")
                             )
                         )
         , test "type with params" <|
@@ -301,8 +310,8 @@ all =
                         (Just <|
                             (Node empty <|
                                 FunctionTypeAnnotation
-                                    (Node empty <| Typed (Node empty ( [], "Foo" )) [])
-                                    (Node empty <| Typed (Node empty ( [], "Bar" )) [])
+                                    (Node empty <| Type (Node empty ( [], "Foo" )) [])
+                                    (Node empty <| Type (Node empty ( [], "Bar" )) [])
                             )
                         )
         , test "function type reference multiple and parens" <|
@@ -315,10 +324,10 @@ all =
                                 FunctionTypeAnnotation
                                     (Node empty <|
                                         FunctionTypeAnnotation
-                                            (Node empty <| Typed (Node empty ( [], "Foo" )) [])
-                                            (Node empty <| Typed (Node empty ( [], "Bar" )) [])
+                                            (Node empty <| Type (Node empty ( [], "Foo" )) [])
+                                            (Node empty <| Type (Node empty ( [], "Bar" )) [])
                                     )
-                                    (Node empty <| GenericType "baz")
+                                    (Node empty <| Var "baz")
                             )
                         )
         , test "parseTypeWith wrong indent" <|
@@ -333,8 +342,8 @@ all =
                     |> Expect.equal
                         (Just
                             (Node empty <|
-                                Typed (Node empty ( [], "Maybe" ))
-                                    [ Node empty <| GenericType "a" ]
+                                Type (Node empty ( [], "Maybe" ))
+                                    [ Node empty <| Var "a" ]
                             )
                         )
         , test "issue #5 - no spaces between type and generic with parens" <|
@@ -344,8 +353,8 @@ all =
                     |> Expect.equal
                         (Just
                             (Node empty <|
-                                Typed (Node empty ( [], "List" ))
-                                    [ Node empty <| Typed (Node empty ( [], "String" )) [] ]
+                                Type (Node empty ( [], "List" ))
+                                    [ Node empty <| Type (Node empty ( [], "String" )) [] ]
                             )
                         )
         , test "parse type with multiple params" <|
@@ -355,9 +364,9 @@ all =
                     |> Expect.equal
                         (Just
                             (Node empty <|
-                                Typed (Node empty ( [], "Dict" ))
-                                    [ Node empty <| Typed (Node empty ( [], "String" )) []
-                                    , Node empty <| Typed (Node empty ( [], "Int" )) []
+                                Type (Node empty ( [], "Dict" ))
+                                    [ Node empty <| Type (Node empty ( [], "String" )) []
+                                    , Node empty <| Type (Node empty ( [], "Int" )) []
                                     ]
                             )
                         )

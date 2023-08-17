@@ -1,5 +1,5 @@
 module Elm.Syntax.Expression exposing
-    ( Expression(..), Lambda, LetBlock, LetDeclaration(..), RecordSetter, CaseBlock, Cases, Case, Function, FunctionImplementation
+    ( Expression(..), StringLiteralType(..), Lambda, LetBlock, LetDeclaration(..), RecordSetter, CaseBlock, Case, Function, FunctionImplementation
     , functionRange, isLambda, isLet, isIfElse, isCase, isOperatorApplication
     , encode, encodeFunction, decoder, functionDecoder
     )
@@ -10,7 +10,7 @@ Although it is a easy and simple language, you can express a lot! See the `Expre
 
 ## Types
 
-@docs Expression, Lambda, LetBlock, LetDeclaration, RecordSetter, CaseBlock, Cases, Case, Function, FunctionImplementation
+@docs Expression, StringLiteralType, Lambda, LetBlock, LetDeclaration, RecordSetter, CaseBlock, Case, Function, FunctionImplementation
 
 
 ## Functions
@@ -25,6 +25,7 @@ Although it is a easy and simple language, you can express a lot! See the `Expre
 -}
 
 import Elm.Json.Util exposing (decodeTyped, encodeTyped)
+import Elm.Syntax.DestructurePattern as DestructurePattern exposing (DestructurePattern)
 import Elm.Syntax.Documentation as Documentation exposing (Documentation)
 import Elm.Syntax.Infix as Infix exposing (InfixDirection)
 import Elm.Syntax.ModuleName as ModuleName exposing (ModuleName)
@@ -71,64 +72,67 @@ functionRange function =
 -}
 type alias FunctionImplementation =
     { name : Node String
-    , arguments : List (Node Pattern)
+    , arguments : List (Node DestructurePattern)
     , expression : Node Expression
     }
 
 
 {-| Custom type for all expressions such as:
 
-  - `Unit`: `()`
-  - `Application`: `add a b`
-  - `OperatorApplication`: `a + b`
-  - `FunctionOrValue`: `add` or `True`
-  - `IfBlock`: `if a then b else c`
-  - `PrefixOperator`: `(+)`
-  - `Operator`: `+` (not possible to get in practice)
-  - `Integer`: `42`
-  - `Hex`: `0x1F`
-  - `Floatable`: `42.0`
-  - `Negation`: `-a`
-  - `Literal`: `"text"`
+  - `StringLiteral`: `"text"` or `"""text"""`
   - `CharLiteral`: `'a'`
-  - `TupledExpression`: `(a, b)` or `(a, b, c)`
-  - `ParenthesizedExpression`: `(a)`
-  - `LetExpression`: `let a = 4 in a`
-  - `CaseExpression`: `case a of` followed by pattern matches
+  - `IntegerLiteral`: `42`
+  - `HexLiteral`: `0x1F`
+  - `FloatLiteral`: `42.0`
+  - `Negation`: `-a`
+  - `ListLiteral`: `[ x, y ]`
+  - `FunctionOrValue`: `add` or `True`
+  - `FunctionCall`: `add a b`
+  - `Operation`: `a + b`
+  - `PrefixOperator`: `(+)`
+  - `If`: `if a then b else c`
+  - `TupleExpression`: Something wrapped in parentheses like unit `()`, parentheses `(a)`, or a tuple `( a, b )`
+  - `Let`: `let a = 4 in a`
+  - `Case`: `case a of` followed by pattern matches
   - `LambdaExpression`: `(\a -> a)`
-  - `RecordExpr`: `{ name = "text" }`
-  - `ListExpr`: `[ x, y ]`
+  - `Record`: `{ name = "text" }`
   - `RecordAccess`: `a.name`
   - `RecordAccessFunction`: `.name`
-  - `RecordUpdateExpression`: `{ a | name = "text" }`
-  - `GLSLExpression`: `[glsl| ... |]`
+  - `RecordUpdate`: `{ a | name = "text" }`
+  - `GLSL`: `[glsl| ... |]`
+  - `Operator`: `+` (not possible to get in practice)
 
 -}
 type Expression
-    = UnitExpr
-    | Application (List (Node Expression))
-    | OperatorApplication String InfixDirection (Node Expression) (Node Expression)
-    | FunctionOrValue ModuleName String
-    | IfBlock (Node Expression) (Node Expression) (Node Expression)
-    | PrefixOperator String
-    | Operator String
-    | Integer Int
-    | Hex Int
-    | Floatable Float
-    | Negation (Node Expression)
-    | Literal String
+    = StringLiteral StringLiteralType String
     | CharLiteral Char
-    | TupledExpression (List (Node Expression))
-    | ParenthesizedExpression (Node Expression)
-    | LetExpression LetBlock
-    | CaseExpression CaseBlock
+    | IntegerLiteral Int
+    | HexLiteral Int
+    | FloatLiteral Float
+    | Negation (Node Expression)
+    | ListLiteral (List (Node Expression))
+    | FunctionOrValue ModuleName String
+    | PrefixOperator String
+    | FunctionCall (Node Expression) (List (Node Expression))
+    | Operation String InfixDirection (Node Expression) (Node Expression)
+    | If (Node Expression) (Node Expression) (Node Expression)
+    | TupleExpression (List (Node Expression))
+    | Let LetBlock
+    | Case CaseBlock
     | LambdaExpression Lambda
-    | RecordExpr (List (Node RecordSetter))
-    | ListExpr (List (Node Expression))
+    | Record (List (Node RecordSetter))
     | RecordAccess (Node Expression) (Node String)
     | RecordAccessFunction String
-    | RecordUpdateExpression (Node String) (List (Node RecordSetter))
-    | GLSLExpression String
+    | RecordUpdate (Node String) (Node RecordSetter) (List (Node RecordSetter))
+    | GLSL String
+    | Operator String
+
+
+{-| Indicates whether a string literal is single (`"abc"`) or triple-quoted (`"""abc"""`).
+-}
+type StringLiteralType
+    = SingleQuote
+    | TripleQuote
 
 
 {-| Expression for setting a record field
@@ -149,13 +153,14 @@ type alias LetBlock =
 -}
 type LetDeclaration
     = LetFunction Function
-    | LetDestructuring (Node Pattern) (Node Expression)
+    | LetDestructuring (Node DestructurePattern) (Node Expression)
 
 
 {-| Expression for a lambda
 -}
 type alias Lambda =
-    { args : List (Node Pattern)
+    { firstArg : Node DestructurePattern
+    , restOfArgs : List (Node DestructurePattern)
     , expression : Node Expression
     }
 
@@ -164,7 +169,8 @@ type alias Lambda =
 -}
 type alias CaseBlock =
     { expression : Node Expression
-    , cases : Cases
+    , firstCase : Case
+    , restOfCases : List Case
     }
 
 
@@ -172,12 +178,6 @@ type alias CaseBlock =
 -}
 type alias Case =
     ( Node Pattern, Node Expression )
-
-
-{-| Type alias for a list of cases
--}
-type alias Cases =
-    List Case
 
 
 {-| Check whether an expression is a lambda-expression
@@ -197,7 +197,7 @@ isLambda e =
 isLet : Expression -> Bool
 isLet e =
     case e of
-        LetExpression _ ->
+        Let _ ->
             True
 
         _ ->
@@ -209,7 +209,7 @@ isLet e =
 isIfElse : Expression -> Bool
 isIfElse e =
     case e of
-        IfBlock _ _ _ ->
+        If _ _ _ ->
             True
 
         _ ->
@@ -221,7 +221,7 @@ isIfElse e =
 isCase : Expression -> Bool
 isCase e =
     case e of
-        CaseExpression _ ->
+        Case _ ->
             True
 
         _ ->
@@ -233,7 +233,7 @@ isCase e =
 isOperatorApplication : Expression -> Bool
 isOperatorApplication e =
     case e of
-        OperatorApplication _ _ _ _ ->
+        Operation _ _ _ _ ->
             True
 
         _ ->
@@ -249,13 +249,10 @@ isOperatorApplication e =
 encode : Expression -> Value
 encode expr =
     case expr of
-        UnitExpr ->
-            encodeTyped "unit" JE.null
+        FunctionCall head l ->
+            encodeTyped "application" (JE.list (Node.encode encode) (head :: l))
 
-        Application l ->
-            encodeTyped "application" (JE.list (Node.encode encode) l)
-
-        OperatorApplication op dir left right ->
+        Operation op dir left right ->
             encodeTyped "operatorapplication" (encodeOperatorApplication op dir left right)
 
         FunctionOrValue moduleName name ->
@@ -266,7 +263,7 @@ encode expr =
                     ]
                 )
 
-        IfBlock c t e ->
+        If c t e ->
             encodeTyped "ifBlock" <|
                 JE.object
                     [ ( "clause", Node.encode encode c )
@@ -280,37 +277,39 @@ encode expr =
         Operator x ->
             encodeTyped "operator" (JE.string x)
 
-        Hex h ->
+        HexLiteral h ->
             encodeTyped "hex" (JE.int h)
 
-        Integer x ->
+        IntegerLiteral x ->
             encodeTyped "integer" (JE.int x)
 
-        Floatable x ->
+        FloatLiteral x ->
             encodeTyped "float" (JE.float x)
 
         Negation x ->
             encodeTyped "negation" (Node.encode encode x)
 
-        Literal x ->
-            encodeTyped "literal" (JE.string x)
+        StringLiteral quotes x ->
+            case quotes of
+                SingleQuote ->
+                    encodeTyped "literal" (JE.string x)
+
+                TripleQuote ->
+                    encodeTyped "multilineLiteral" (JE.string x)
 
         CharLiteral c ->
             encodeTyped "charLiteral" (JE.string <| String.fromChar c)
 
-        TupledExpression xs ->
-            encodeTyped "tupled" (JE.list (Node.encode encode) xs)
+        TupleExpression xs ->
+            encodeTyped "tuple" (JE.list (Node.encode encode) xs)
 
-        ListExpr xs ->
+        ListLiteral xs ->
             encodeTyped "list" (JE.list (Node.encode encode) xs)
 
-        ParenthesizedExpression x ->
-            encodeTyped "parenthesized" (Node.encode encode x)
-
-        LetExpression x ->
+        Let x ->
             encodeTyped "let" <| encodeLetBlock x
 
-        CaseExpression x ->
+        Case x ->
             encodeTyped "case" <| encodeCaseBlock x
 
         LambdaExpression x ->
@@ -326,13 +325,13 @@ encode expr =
         RecordAccessFunction x ->
             encodeTyped "recordAccessFunction" (JE.string x)
 
-        RecordExpr xs ->
+        Record xs ->
             encodeTyped "record" (JE.list (Node.encode encodeRecordSetter) xs)
 
-        RecordUpdateExpression name updates ->
-            encodeTyped "recordUpdate" (encodeRecordUpdate name updates)
+        RecordUpdate name firstUpdate updates ->
+            encodeTyped "recordUpdate" (encodeRecordUpdate name firstUpdate updates)
 
-        GLSLExpression x ->
+        GLSL x ->
             encodeTyped "glsl" (JE.string x)
 
 
@@ -354,10 +353,11 @@ encodeLetBlock { declarations, expression } =
         ]
 
 
-encodeRecordUpdate : Node String -> List (Node RecordSetter) -> Value
-encodeRecordUpdate name updates =
+encodeRecordUpdate : Node String -> Node RecordSetter -> List (Node RecordSetter) -> Value
+encodeRecordUpdate name firstUpdate updates =
     JE.object
         [ ( "name", Node.encode JE.string name )
+        , ( "firstUpdate", Node.encode encodeRecordSetter firstUpdate )
         , ( "updates", JE.list (Node.encode encodeRecordSetter) updates )
         ]
 
@@ -395,23 +395,24 @@ encodeFunctionDeclaration : FunctionImplementation -> Value
 encodeFunctionDeclaration { name, arguments, expression } =
     JE.object
         [ ( "name", Node.encode JE.string name )
-        , ( "arguments", JE.list (Node.encode Pattern.encode) arguments )
+        , ( "arguments", JE.list (Node.encode DestructurePattern.encode) arguments )
         , ( "expression", Node.encode encode expression )
         ]
 
 
-encodeDestructuring : Node Pattern -> Node Expression -> Value
+encodeDestructuring : Node DestructurePattern -> Node Expression -> Value
 encodeDestructuring pattern expression =
     JE.object
-        [ ( "pattern", Node.encode Pattern.encode pattern )
+        [ ( "pattern", Node.encode DestructurePattern.encode pattern )
         , ( "expression", Node.encode encode expression )
         ]
 
 
 encodeCaseBlock : CaseBlock -> Value
-encodeCaseBlock { cases, expression } =
+encodeCaseBlock { firstCase, restOfCases, expression } =
     JE.object
-        [ ( "cases", JE.list encodeCase cases )
+        [ ( "restOfCases", JE.list encodeCase restOfCases )
+        , ( "firstCase", encodeCase firstCase )
         , ( "expression", Node.encode encode expression )
         ]
 
@@ -425,9 +426,10 @@ encodeCase ( pattern, expression ) =
 
 
 encodeLambda : Lambda -> Value
-encodeLambda { args, expression } =
+encodeLambda { firstArg, restOfArgs, expression } =
     JE.object
-        [ ( "patterns", JE.list (Node.encode Pattern.encode) args )
+        [ ( "firstArg", Node.encode DestructurePattern.encode firstArg )
+        , ( "restOfArgs", JE.list (Node.encode DestructurePattern.encode) restOfArgs )
         , ( "expression", Node.encode encode expression )
         ]
 
@@ -437,6 +439,20 @@ decodeNested =
     JD.lazy (\() -> Node.decoder decoder)
 
 
+decodeNonemptyList : Decoder a -> Decoder ( a, List a )
+decodeNonemptyList decodeA =
+    JD.list decodeA
+        |> JD.andThen
+            (\list ->
+                case list of
+                    head :: rest ->
+                        JD.succeed ( head, rest )
+
+                    [] ->
+                        JD.fail "List must have at least one element."
+            )
+
+
 {-| JSON decoder for an `Expression` syntax element.
 -}
 decoder : Decoder Expression
@@ -444,34 +460,36 @@ decoder =
     JD.lazy
         (\() ->
             decodeTyped
-                [ ( "unit", JD.succeed UnitExpr )
-                , ( "application", JD.list decodeNested |> JD.map Application )
+                [ ( "application"
+                  , decodeNonemptyList decodeNested |> JD.map (\( head, rest ) -> FunctionCall head rest)
+                  )
                 , ( "operatorapplication", decodeOperatorApplication )
                 , ( "functionOrValue", JD.map2 FunctionOrValue (JD.field "moduleName" ModuleName.decoder) (JD.field "name" JD.string) )
-                , ( "ifBlock", JD.map3 IfBlock (JD.field "clause" decodeNested) (JD.field "then" decodeNested) (JD.field "else" decodeNested) )
+                , ( "ifBlock", JD.map3 If (JD.field "clause" decodeNested) (JD.field "then" decodeNested) (JD.field "else" decodeNested) )
                 , ( "prefixoperator", JD.string |> JD.map PrefixOperator )
                 , ( "operator", JD.string |> JD.map Operator )
-                , ( "hex", JD.int |> JD.map Hex )
-                , ( "integer", JD.int |> JD.map Integer )
-                , ( "float", JD.float |> JD.map Floatable )
+                , ( "hex", JD.int |> JD.map HexLiteral )
+                , ( "integer", JD.int |> JD.map IntegerLiteral )
+                , ( "float", JD.float |> JD.map FloatLiteral )
                 , ( "negation", decodeNested |> JD.map Negation )
-                , ( "literal", JD.string |> JD.map Literal )
+                , ( "literal", JD.string |> JD.map (\str -> StringLiteral SingleQuote str) )
+                , ( "multilineLiteral", JD.string |> JD.map (\str -> StringLiteral TripleQuote str) )
                 , ( "charLiteral", decodeChar |> JD.map CharLiteral )
-                , ( "tupled", JD.list decodeNested |> JD.map TupledExpression )
-                , ( "list", JD.list decodeNested |> JD.map ListExpr )
-                , ( "parenthesized", decodeNested |> JD.map ParenthesizedExpression )
-                , ( "let", decodeLetBlock |> JD.map LetExpression )
-                , ( "case", decodeCaseBlock |> JD.map CaseExpression )
+                , ( "tuple", JD.list decodeNested |> JD.map TupleExpression )
+                , ( "list", JD.list decodeNested |> JD.map ListLiteral )
+                , ( "let", decodeLetBlock |> JD.map Let )
+                , ( "case", decodeCaseBlock |> JD.map Case )
                 , ( "lambda", decodeLambda |> JD.map LambdaExpression )
                 , ( "recordAccess", JD.map2 RecordAccess (JD.field "expression" decodeNested) (JD.field "name" (Node.decoder JD.string)) )
                 , ( "recordAccessFunction", JD.string |> JD.map RecordAccessFunction )
-                , ( "record", JD.list (Node.decoder decodeRecordSetter) |> JD.map RecordExpr )
+                , ( "record", JD.list (Node.decoder decodeRecordSetter) |> JD.map Record )
                 , ( "recordUpdate"
-                  , JD.map2 RecordUpdateExpression
+                  , JD.map3 RecordUpdate
                         (JD.field "name" <| Node.decoder JD.string)
+                        (JD.field "firstUpdate" (Node.decoder decodeRecordSetter))
                         (JD.field "updates" (JD.list <| Node.decoder decodeRecordSetter))
                   )
-                , ( "glsl", JD.string |> JD.map GLSLExpression )
+                , ( "glsl", JD.string |> JD.map GLSL )
                 ]
         )
 
@@ -490,8 +508,9 @@ decodeLambda : Decoder Lambda
 decodeLambda =
     JD.lazy
         (\() ->
-            JD.map2 Lambda
-                (JD.field "patterns" (JD.list (Node.decoder Pattern.decoder)))
+            JD.map3 Lambda
+                (JD.field "firstArg" (Node.decoder DestructurePattern.decoder))
+                (JD.field "restOfArgs" (JD.list (Node.decoder DestructurePattern.decoder)))
                 (JD.field "expression" decodeNested)
         )
 
@@ -500,9 +519,10 @@ decodeCaseBlock : Decoder CaseBlock
 decodeCaseBlock =
     JD.lazy
         (\() ->
-            JD.map2 CaseBlock
+            JD.map3 CaseBlock
                 (JD.field "expression" decodeNested)
-                (JD.field "cases" (JD.list decodeCase))
+                (JD.field "firstCase" decodeCase)
+                (JD.field "restOfCases" (JD.list decodeCase))
         )
 
 
@@ -533,7 +553,7 @@ decodeLetDeclaration =
             Node.decoder
                 (decodeTyped
                     [ ( "function", JD.map LetFunction functionDecoder )
-                    , ( "destructuring", JD.map2 LetDestructuring (JD.field "pattern" (Node.decoder Pattern.decoder)) (JD.field "expression" decodeNested) )
+                    , ( "destructuring", JD.map2 LetDestructuring (JD.field "pattern" (Node.decoder DestructurePattern.decoder)) (JD.field "expression" decodeNested) )
                     ]
                 )
         )
@@ -543,7 +563,7 @@ decodeOperatorApplication : Decoder Expression
 decodeOperatorApplication =
     JD.lazy
         (\() ->
-            JD.map4 OperatorApplication
+            JD.map4 Operation
                 (JD.field "operator" JD.string)
                 (JD.field "direction" Infix.decodeDirection)
                 (JD.field "left" decodeNested)
@@ -584,6 +604,6 @@ decodeFunctionDeclaration =
         (\() ->
             JD.map3 FunctionImplementation
                 (JD.field "name" (Node.decoder JD.string))
-                (JD.field "arguments" (JD.list (Node.decoder Pattern.decoder)))
+                (JD.field "arguments" (JD.list (Node.decoder DestructurePattern.decoder)))
                 (JD.field "expression" decodeNested)
         )

@@ -50,7 +50,7 @@ all =
                                     Record
                                         [ Node.empty <|
                                             ( Node.empty <| "color"
-                                            , Node.empty <| Typed (Node.empty <| ( [], "String" )) []
+                                            , Node.empty <| Elm.Syntax.TypeAnnotation.Type (Node.empty <| ( [], "String" )) []
                                             )
                                         ]
                             }
@@ -70,12 +70,12 @@ all =
                                     Record
                                         [ Node.empty <|
                                             ( Node.empty <| "color"
-                                            , Node.empty <| Typed (Node.empty <| ( [], "String" )) []
+                                            , Node.empty <| Elm.Syntax.TypeAnnotation.Type (Node.empty <| ( [], "String" )) []
                                             )
                                         ]
                             }
                         )
-        , test "type alias with GenericType " <|
+        , test "type alias with Var " <|
             \() ->
                 parseFullStringWithNullState "type alias Foo a = {some : a }" Parser.typeDefinition
                     |> Maybe.andThen asTypeAlias
@@ -90,7 +90,7 @@ all =
                                     Record
                                         [ Node empty <|
                                             ( Node empty <| "some"
-                                            , Node empty <| GenericType "a"
+                                            , Node empty <| Var "a"
                                             )
                                         ]
                             }
@@ -105,12 +105,13 @@ all =
                             { documentation = Nothing
                             , name = Node empty <| "Color"
                             , generics = []
-                            , constructors =
-                                [ Node empty
+                            , firstConstructor =
+                                Node empty
                                     { name = Node empty <| "Blue"
-                                    , arguments = [ Node empty <| Typed (Node empty <| ( [], "String" )) [] ]
+                                    , arguments = [ Node empty <| Elm.Syntax.TypeAnnotation.Type (Node empty <| ( [], "String" )) [] ]
                                     }
-                                , Node empty
+                            , restOfConstructors =
+                                [ Node empty
                                     { name = Node empty <| "Red"
                                     , arguments = []
                                     }
@@ -129,15 +130,15 @@ all =
                     |> Expect.equal
                         (Just
                             { documentation = Nothing
-                            , constructors =
-                                [ Node empty
+                            , firstConstructor =
+                                Node empty
                                     { arguments =
-                                        [ Node empty <| GenericType "a"
-                                        , Node empty <| Typed (Node empty <| ( [], "B" )) []
+                                        [ Node empty <| Var "a"
+                                        , Node empty <| Elm.Syntax.TypeAnnotation.Type (Node empty <| ( [], "B" )) []
                                         ]
                                     , name = Node empty <| "C"
                                     }
-                                ]
+                            , restOfConstructors = []
                             , generics = []
                             , name = Node empty <| "D"
                             }
@@ -150,15 +151,15 @@ all =
                     |> Expect.equal
                         (Just
                             { documentation = Nothing
-                            , constructors =
-                                [ Node empty
+                            , firstConstructor =
+                                Node empty
                                     { arguments =
-                                        [ Node empty <| Typed (Node empty <| ( [], "B" )) []
-                                        , Node empty <| GenericType "a"
+                                        [ Node empty <| Elm.Syntax.TypeAnnotation.Type (Node empty <| ( [], "B" )) []
+                                        , Node empty <| Var "a"
                                         ]
                                     , name = Node empty <| "C"
                                     }
-                                ]
+                            , restOfConstructors = []
                             , generics = []
                             , name = Node empty <| "D"
                             }
@@ -171,14 +172,14 @@ all =
                     |> Expect.equal
                         (Just
                             { documentation = Nothing
-                            , constructors =
-                                [ Node empty
+                            , firstConstructor =
+                                Node empty
                                     { arguments =
-                                        [ Node empty <| Typed (Node empty <| ( [], "B" )) []
+                                        [ Node empty <| Elm.Syntax.TypeAnnotation.Type (Node empty <| ( [], "B" )) []
                                         ]
                                     , name = Node empty <| "C"
                                     }
-                                ]
+                            , restOfConstructors = []
                             , generics = []
                             , name = Node empty <| "D"
                             }
@@ -191,17 +192,17 @@ all =
                     |> Expect.equal
                         (Just
                             { documentation = Nothing
-                            , constructors =
-                                [ Node empty
+                            , firstConstructor =
+                                Node empty
                                     { arguments = []
                                     , name = Node empty <| "Blue"
                                     }
-                                ]
+                            , restOfConstructors = []
                             , generics = []
                             , name = Node empty <| "Color"
                             }
                         )
-        , test "type with GenericType" <|
+        , test "type with Var" <|
             \() ->
                 parseFullStringWithNullState "type Maybe a = Just a | Nothing" Parser.typeDefinition
                     |> Maybe.andThen asType
@@ -211,12 +212,13 @@ all =
                             { documentation = Nothing
                             , name = Node empty <| "Maybe"
                             , generics = [ Node empty <| "a" ]
-                            , constructors =
-                                [ Node empty
+                            , firstConstructor =
+                                Node empty
                                     { name = Node empty <| "Just"
-                                    , arguments = [ Node empty <| GenericType "a" ]
+                                    , arguments = [ Node empty <| Var "a" ]
                                     }
-                                , Node empty
+                            , restOfConstructors =
+                                [ Node empty
                                     { name = Node empty <| "Nothing"
                                     , arguments = []
                                     }
@@ -234,10 +236,10 @@ all =
                     |> Expect.equal
                         (Just
                             (DefinedType { start = { row = 1, column = 1 }, end = { row = 1, column = 11 } }
-                                { constructors =
-                                    [ Node { start = { row = 1, column = 10 }, end = { row = 1, column = 11 } }
+                                { firstConstructor =
+                                    Node { start = { row = 1, column = 10 }, end = { row = 1, column = 11 } }
                                         { arguments = [], name = Node { start = { row = 1, column = 10 }, end = { row = 1, column = 11 } } "B" }
-                                    ]
+                                , restOfConstructors = []
                                 , documentation = Nothing
                                 , generics = []
                                 , name = Node { start = { row = 1, column = 6 }, end = { row = 1, column = 7 } } "A"

@@ -1,8 +1,9 @@
 module Elm.WriterTests exposing (suite)
 
 import Elm.Parser.CombineTestUtil exposing (parseFullStringWithNullState)
-import Elm.Parser.Declarations exposing (expression)
+import Elm.Parser.Expression exposing (expression)
 import Elm.Syntax.Declaration exposing (..)
+import Elm.Syntax.DestructurePattern exposing (DestructurePattern(..))
 import Elm.Syntax.Exposing exposing (..)
 import Elm.Syntax.Expression exposing (..)
 import Elm.Syntax.Module exposing (..)
@@ -53,7 +54,10 @@ suite =
         , describe "Expression"
             [ test "write simple expression" <|
                 \() ->
-                    (Node empty <| Application [ Node empty <| FunctionOrValue [] "abc", Node empty <| UnitExpr ])
+                    (Node empty <|
+                        FunctionCall (Node empty <| FunctionOrValue [] "abc")
+                            [ Node empty <| TupleExpression [] ]
+                    )
                         |> Writer.writeExpression
                         |> Writer.write
                         |> Expect.equal "abc ()"
@@ -77,15 +81,26 @@ suite =
             , test "regression test for Expression.RecordAccessFunction being written without leading period" <|
                 \() ->
                     (Node empty <|
-                        Application
-                            [ Node empty <| FunctionOrValue [ "List" ] "map"
-                            , Node empty <| RecordAccessFunction "name"
+                        FunctionCall
+                            (Node empty <| FunctionOrValue [ "List" ] "map")
+                            [ Node empty <| RecordAccessFunction "name"
                             , Node empty <| FunctionOrValue [] "people"
                             ]
                     )
                         |> Writer.writeExpression
                         |> Writer.write
                         |> Expect.equal "List.map .name people"
+            , test "should be able to write strings while keeping their quotes" <|
+                \() ->
+                    let
+                        input : String
+                        input =
+                            """("a" ++ \"\"\"b\"\"\")"""
+                    in
+                    parseFullStringWithNullState input expression
+                        |> Maybe.map Writer.writeExpression
+                        |> Maybe.map Writer.write
+                        |> Expect.equal (Just input)
             ]
         , describe "Pattern"
             [ test "write string pattern" <|
@@ -106,7 +121,7 @@ suite =
         , describe "TypeAnnotation"
             [ test "write simple type" <|
                 \() ->
-                    Elm.Syntax.TypeAnnotation.Typed (Node empty <| ( [], "String" )) []
+                    Elm.Syntax.TypeAnnotation.Type (Node empty <| ( [], "String" )) []
                         |> Node empty
                         |> Writer.writeTypeAnnotation
                         |> Writer.write
@@ -114,9 +129,9 @@ suite =
             , test "write qualified type" <|
                 \() ->
                     (Node empty <|
-                        Elm.Syntax.TypeAnnotation.Typed
+                        Elm.Syntax.TypeAnnotation.Type
                             (Node empty <| ( [ "Json", "Decode" ], "Decoder" ))
-                            [ Node empty <| Elm.Syntax.TypeAnnotation.GenericType "a" ]
+                            [ Node empty <| Elm.Syntax.TypeAnnotation.Var "a" ]
                     )
                         |> Writer.writeTypeAnnotation
                         |> Writer.write
@@ -124,11 +139,11 @@ suite =
             , test "write type arguments that require parentheses" <|
                 \() ->
                     (Node empty <|
-                        Elm.Syntax.TypeAnnotation.Typed (Node empty ( [], "List" ))
+                        Elm.Syntax.TypeAnnotation.Type (Node empty ( [], "List" ))
                             [ Node empty <|
-                                Elm.Syntax.TypeAnnotation.Typed (Node empty ( [], "Dict" ))
-                                    [ Node empty <| Elm.Syntax.TypeAnnotation.Typed (Node empty ( [], "String" )) []
-                                    , Node empty <| Elm.Syntax.TypeAnnotation.Typed (Node empty ( [], "Int" )) []
+                                Elm.Syntax.TypeAnnotation.Type (Node empty ( [], "Dict" ))
+                                    [ Node empty <| Elm.Syntax.TypeAnnotation.Type (Node empty ( [], "String" )) []
+                                    , Node empty <| Elm.Syntax.TypeAnnotation.Type (Node empty ( [], "Int" )) []
                                     ]
                             ]
                     )
@@ -141,10 +156,10 @@ suite =
                         Elm.Syntax.TypeAnnotation.FunctionTypeAnnotation
                             (Node empty <|
                                 Elm.Syntax.TypeAnnotation.FunctionTypeAnnotation
-                                    (Node empty <| Elm.Syntax.TypeAnnotation.GenericType "a")
-                                    (Node empty <| Elm.Syntax.TypeAnnotation.GenericType "b")
+                                    (Node empty <| Elm.Syntax.TypeAnnotation.Var "a")
+                                    (Node empty <| Elm.Syntax.TypeAnnotation.Var "b")
                             )
-                            (Node empty <| Elm.Syntax.TypeAnnotation.Typed (Node empty ( [], "Int" )) [])
+                            (Node empty <| Elm.Syntax.TypeAnnotation.Type (Node empty ( [], "Int" )) [])
                     )
                         |> Writer.writeTypeAnnotation
                         |> Writer.write
@@ -159,9 +174,8 @@ suite =
                                 Nothing
                                 (Node empty "Sample")
                                 []
-                                [ Node empty <| ValueConstructor (Node empty "Foo") []
-                                , Node empty <| ValueConstructor (Node empty "Bar") []
-                                ]
+                                (Node empty <| ValueConstructor (Node empty "Foo") [])
+                                [ Node empty <| ValueConstructor (Node empty "Bar") [] ]
                             )
                     )
                         |> Writer.writeDeclaration
@@ -174,13 +188,13 @@ suite =
                 \() ->
                     let
                         listT =
-                            Elm.Syntax.TypeAnnotation.Typed (Node empty ( [], "List" ))
+                            Elm.Syntax.TypeAnnotation.Type (Node empty ( [], "List" ))
                                 [ Node empty <|
-                                    Elm.Syntax.TypeAnnotation.Typed (Node empty ( [], "String" )) []
+                                    Elm.Syntax.TypeAnnotation.Type (Node empty ( [], "String" )) []
                                 ]
 
                         stringT =
-                            Elm.Syntax.TypeAnnotation.Typed (Node empty ( [], "String" )) []
+                            Elm.Syntax.TypeAnnotation.Type (Node empty ( [], "String" )) []
                     in
                     (Node empty <|
                         CustomTypeDeclaration
@@ -188,8 +202,8 @@ suite =
                                 Nothing
                                 (Node empty "Sample")
                                 []
-                                [ Node empty <| ValueConstructor (Node empty "Foo") [ Node empty listT, Node empty stringT ]
-                                , Node empty <| ValueConstructor (Node empty "Bar") []
+                                (Node empty <| ValueConstructor (Node empty "Foo") [ Node empty listT, Node empty stringT ])
+                                [ Node empty <| ValueConstructor (Node empty "Bar") []
                                 ]
                             )
                     )
@@ -204,11 +218,11 @@ suite =
                     let
                         funcT =
                             Elm.Syntax.TypeAnnotation.FunctionTypeAnnotation
-                                (Node empty <| Elm.Syntax.TypeAnnotation.Typed (Node empty ( [], "String" )) [])
-                                (Node empty <| Elm.Syntax.TypeAnnotation.Typed (Node empty ( [], "Int" )) [])
+                                (Node empty <| Elm.Syntax.TypeAnnotation.Type (Node empty ( [], "String" )) [])
+                                (Node empty <| Elm.Syntax.TypeAnnotation.Type (Node empty ( [], "Int" )) [])
 
                         stringT =
-                            Elm.Syntax.TypeAnnotation.Typed (Node empty ( [], "String" )) []
+                            Elm.Syntax.TypeAnnotation.Type (Node empty ( [], "String" )) []
                     in
                     (Node empty <|
                         CustomTypeDeclaration
@@ -216,12 +230,13 @@ suite =
                                 Nothing
                                 (Node empty "Sample")
                                 []
-                                [ Node empty <|
+                                (Node empty <|
                                     ValueConstructor (Node empty "Foo")
                                         [ Node empty funcT
                                         , Node empty stringT
                                         ]
-                                , Node empty <| ValueConstructor (Node empty "Bar") []
+                                )
+                                [ Node empty <| ValueConstructor (Node empty "Bar") []
                                 ]
                             )
                     )
@@ -234,14 +249,16 @@ suite =
             , test "write function with case expression using the right indentations" <|
                 \() ->
                     let
+                        body : Expression
                         body =
-                            CaseExpression
+                            Case
                                 (CaseBlock (Node empty <| FunctionOrValue [] "someCase")
-                                    [ ( Node empty <| IntPattern 1, Node empty <| FunctionOrValue [] "doSomething" )
-                                    , ( Node empty <| IntPattern 2, Node empty <| FunctionOrValue [] "doSomethingElse" )
+                                    ( Node empty <| IntPattern 1, Node empty <| FunctionOrValue [] "doSomething" )
+                                    [ ( Node empty <| IntPattern 2, Node empty <| FunctionOrValue [] "doSomethingElse" )
                                     ]
                                 )
 
+                        function : Declaration
                         function =
                             FunctionDeclaration
                                 (Function Nothing
@@ -270,19 +287,22 @@ suite =
             , test "regression test for incorrect indentation in case expression" <|
                 \() ->
                     let
+                        body : Expression
                         body =
                             LambdaExpression
-                                { args = [ Node empty (VarPattern "myArgument") ]
+                                { firstArg = Node empty (VarPattern_ "myArgument")
+                                , restOfArgs = []
                                 , expression =
                                     Node empty <|
-                                        CaseExpression
+                                        Case
                                             (CaseBlock (Node empty <| FunctionOrValue [] "someCase")
-                                                [ ( Node empty <| IntPattern 1, Node empty <| FunctionOrValue [] "doSomething" )
-                                                , ( Node empty <| IntPattern 2, Node empty <| FunctionOrValue [] "doSomethingElse" )
+                                                ( Node empty <| IntPattern 1, Node empty <| FunctionOrValue [] "doSomething" )
+                                                [ ( Node empty <| IntPattern 2, Node empty <| FunctionOrValue [] "doSomethingElse" )
                                                 ]
                                             )
                                 }
 
+                        function : Declaration
                         function =
                             FunctionDeclaration
                                 (Function Nothing
@@ -311,22 +331,25 @@ suite =
             , test "regression test for incorrect parenthesis placement in case expression" <|
                 \() ->
                     let
+                        body : Expression
                         body =
-                            ParenthesizedExpression
-                                (Node empty <|
+                            TupleExpression
+                                [ Node empty <|
                                     LambdaExpression
-                                        { args = [ Node empty (VarPattern "myArgument") ]
+                                        { firstArg = Node empty (VarPattern_ "myArgument")
+                                        , restOfArgs = []
                                         , expression =
                                             Node empty <|
-                                                CaseExpression
+                                                Case
                                                     (CaseBlock (Node empty <| FunctionOrValue [] "someCase")
-                                                        [ ( Node empty <| IntPattern 1, Node empty <| FunctionOrValue [] "doSomething" )
-                                                        , ( Node empty <| IntPattern 2, Node empty <| FunctionOrValue [] "doSomethingElse" )
+                                                        ( Node empty <| IntPattern 1, Node empty <| FunctionOrValue [] "doSomething" )
+                                                        [ ( Node empty <| IntPattern 2, Node empty <| FunctionOrValue [] "doSomethingElse" )
                                                         ]
                                                     )
                                         }
-                                )
+                                ]
 
+                        function : Declaration
                         function =
                             FunctionDeclaration
                                 (Function Nothing
@@ -354,7 +377,7 @@ suite =
                             )
             , test "regression test for char literals not being escaped" <|
                 \() ->
-                    ListExpr
+                    ListLiteral
                         [ Node empty (CharLiteral '\\')
                         , Node empty (CharLiteral '"')
                         , Node empty (CharLiteral '\'')
@@ -385,10 +408,10 @@ suite =
                     let
                         body nested =
                             Node empty <|
-                                CaseExpression
+                                Case
                                     (CaseBlock (Node empty <| FunctionOrValue [] "someCase")
-                                        [ ( Node empty <| IntPattern 1, nested )
-                                        , ( Node empty <| IntPattern 2, Node empty <| FunctionOrValue [] "doSomethingElse" )
+                                        ( Node empty <| IntPattern 1, nested )
+                                        [ ( Node empty <| IntPattern 2, Node empty <| FunctionOrValue [] "doSomethingElse" )
                                         ]
                                     )
 
@@ -401,14 +424,15 @@ suite =
                                             (Node empty <| "functionName")
                                             []
                                             (Node empty
-                                                (ParenthesizedExpression
-                                                    (Node empty <|
+                                                (TupleExpression
+                                                    [ Node empty <|
                                                         LambdaExpression
-                                                            { args = [ Node empty (VarPattern "myArgument") ]
+                                                            { firstArg = Node empty (VarPattern_ "myArgument")
+                                                            , restOfArgs = []
                                                             , expression =
-                                                                body (body (Node empty UnitExpr))
+                                                                body (body (Node empty (TupleExpression [])))
                                                             }
-                                                    )
+                                                    ]
                                                 )
                                             )
                                     )
@@ -438,9 +462,9 @@ suite =
             [ test "write tuple" <|
                 \() ->
                     (Node empty <|
-                        TupledExpression
-                            [ Node empty <| Integer 1
-                            , Node empty <| Integer 2
+                        TupleExpression
+                            [ Node empty <| IntegerLiteral 1
+                            , Node empty <| IntegerLiteral 2
                             ]
                     )
                         |> Writer.writeExpression

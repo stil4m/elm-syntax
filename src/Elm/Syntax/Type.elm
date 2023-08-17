@@ -38,7 +38,8 @@ type alias Type =
     { documentation : Maybe (Node Documentation)
     , name : Node String
     , generics : List (Node String)
-    , constructors : List (Node ValueConstructor)
+    , firstConstructor : Node ValueConstructor
+    , restOfConstructors : List (Node ValueConstructor)
     }
 
 
@@ -57,12 +58,13 @@ type alias ValueConstructor =
 {-| Encode a `Type` syntax element to JSON.
 -}
 encode : Type -> Value
-encode { documentation, name, generics, constructors } =
+encode { documentation, name, generics, firstConstructor, restOfConstructors } =
     JE.object
         [ ( "documentation", Maybe.map (Node.encode Documentation.encode) documentation |> Maybe.withDefault JE.null )
         , ( "name", Node.encode JE.string name )
         , ( "generics", JE.list (Node.encode JE.string) generics )
-        , ( "constructors", JE.list (Node.encode encodeValueConstructor) constructors )
+        , ( "firstConstructor", Node.encode encodeValueConstructor firstConstructor )
+        , ( "restOfConstructors", JE.list (Node.encode encodeValueConstructor) restOfConstructors )
         ]
 
 
@@ -78,11 +80,12 @@ encodeValueConstructor { name, arguments } =
 -}
 decoder : Decoder Type
 decoder =
-    JD.map4 Type
+    JD.map5 Type
         (JD.field "documentation" <| JD.nullable <| Node.decoder JD.string)
         (JD.field "name" <| Node.decoder JD.string)
         (JD.field "generics" (JD.list (Node.decoder JD.string)))
-        (JD.field "constructors" (JD.list (Node.decoder valueConstructorDecoder)))
+        (JD.field "firstConstructor" (Node.decoder valueConstructorDecoder))
+        (JD.field "restOfConstructors" (JD.list (Node.decoder valueConstructorDecoder)))
 
 
 valueConstructorDecoder : Decoder ValueConstructor

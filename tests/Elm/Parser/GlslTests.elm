@@ -1,7 +1,7 @@
 module Elm.Parser.GlslTests exposing (all)
 
 import Elm.Parser.CombineTestUtil exposing (..)
-import Elm.Parser.Declarations as Parser
+import Elm.Parser.Expression as Parser
 import Elm.Parser.State exposing (emptyState)
 import Elm.Syntax.Expression exposing (..)
 import Elm.Syntax.Node as Node
@@ -16,5 +16,5 @@ all =
             \() ->
                 parseFullStringState emptyState "[glsl| precision mediump float; |]" Parser.expression
                     |> Maybe.map noRangeExpression
-                    |> Expect.equal (Just (Node.empty <| GLSLExpression " precision mediump float; "))
+                    |> Expect.equal (Just (Node.empty <| GLSL " precision mediump float; "))
         ]

@@ -29,20 +29,18 @@ import Json.Encode as JE exposing (Value)
 
 {-| Custom type for different type annotations. For example:
 
-  - `GenericType`: `a`
-  - `Typed`: `Maybe (Int -> String)`
-  - `Unit`: `()`
-  - `Tuples`: `(a, b, c)`
+  - `Var`: `a`
+  - `Type`: `Maybe (Int -> String)`
+  - `Tuples`: `(a, b, c)` or Unit `()`
   - `Record`: `{ name : String}`
   - `GenericRecord`: `{ a | name : String}`
   - `FunctionTypeAnnotation`: `Int -> String`
 
 -}
 type TypeAnnotation
-    = GenericType String
-    | Typed (Node ( ModuleName, String )) (List (Node TypeAnnotation))
-    | Unit
-    | Tupled (List (Node TypeAnnotation))
+    = Var String
+    | Type (Node ( ModuleName, String )) (List (Node TypeAnnotation))
+    | Tuple (List (Node TypeAnnotation))
     | Record RecordDefinition
     | GenericRecord (Node String) (Node RecordDefinition)
     | FunctionTypeAnnotation (Node TypeAnnotation) (Node TypeAnnotation)
@@ -69,13 +67,13 @@ type alias RecordField =
 encode : TypeAnnotation -> Value
 encode typeAnnotation =
     case typeAnnotation of
-        GenericType name ->
-            encodeTyped "generic" <|
+        Var name ->
+            encodeTyped "var" <|
                 JE.object
                     [ ( "value", JE.string name )
                     ]
 
-        Typed moduleNameAndName args ->
+        Type moduleNameAndName args ->
             let
                 inner : ( ModuleName, String ) -> Value
                 inner ( mod, n ) =
@@ -84,17 +82,14 @@ encode typeAnnotation =
                         , ( "name", JE.string n )
                         ]
             in
-            encodeTyped "typed" <|
+            encodeTyped "type" <|
                 JE.object
                     [ ( "moduleNameAndName", Node.encode inner moduleNameAndName )
                     , ( "args", JE.list (Node.encode encode) args )
                     ]
 
-        Unit ->
-            encodeTyped "unit" (JE.object [])
-
-        Tupled t ->
-            encodeTyped "tupled" <|
+        Tuple t ->
+            encodeTyped "tuple" <|
                 JE.object
                     [ ( "values", JE.list (Node.encode encode) t )
                     ]
@@ -147,14 +142,13 @@ decoder =
     JD.lazy
         (\() ->
             decodeTyped
-                [ ( "generic", JD.map GenericType (JD.field "value" JD.string) )
-                , ( "typed"
-                  , JD.map2 Typed
+                [ ( "var", JD.map Var (JD.field "value" JD.string) )
+                , ( "type"
+                  , JD.map2 Type
                         (JD.field "moduleNameAndName" <| Node.decoder decodeModuleNameAndName)
                         (JD.field "args" (JD.list nestedDecoder))
                   )
-                , ( "unit", JD.succeed Unit )
-                , ( "tupled", JD.map Tupled (JD.field "values" (JD.list nestedDecoder)) )
+                , ( "tuple", JD.map Tuple (JD.field "values" (JD.list nestedDecoder)) )
                 , ( "function"
                   , JD.map2 FunctionTypeAnnotation
                         (JD.field "left" nestedDecoder)

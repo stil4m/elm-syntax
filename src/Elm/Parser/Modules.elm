@@ -34,6 +34,7 @@ whereBlock =
         (string "}")
         (sepBy1 (string ",")
             (Layout.maybeAroundBothSides effectWhereClause)
+            |> Combine.map (\( head, rest ) -> head :: rest)
         )
         |> Combine.map
             (\pairs ->
