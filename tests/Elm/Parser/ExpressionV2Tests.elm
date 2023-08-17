@@ -108,39 +108,38 @@ all =
                                 (Node { start = { row = 1, column = 9 }, end = { row = 1, column = 10 } } (IntegerLiteral 1))
                             )
                         )
-        , Test.skip <|
-            test "application expression 2" <|
-                \() ->
-                    parseExpression "(\"\", always (List.concat [ [ fileName ], [] ]))"
-                        |> expectAst
-                            (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 48 } } <|
-                                TupleExpression
-                                    [ Node { start = { row = 1, column = 2 }, end = { row = 1, column = 4 } } <| StringLiteral SingleQuote ""
-                                    , Node { start = { row = 1, column = 6 }, end = { row = 1, column = 47 } } <|
-                                        FunctionCall
-                                            (Node { start = { row = 1, column = 6 }, end = { row = 1, column = 12 } } <| FunctionOrValue [] "always")
-                                            [ Node { start = { row = 1, column = 13 }, end = { row = 1, column = 47 } } <|
-                                                TupleExpression
-                                                    [ Node { start = { row = 1, column = 14 }, end = { row = 1, column = 46 } } <|
-                                                        FunctionCall
-                                                            (Node { start = { row = 1, column = 14 }, end = { row = 1, column = 25 } } <|
-                                                                FunctionOrValue [ "List" ] "concat"
-                                                            )
-                                                            [ Node { start = { row = 1, column = 26 }, end = { row = 1, column = 46 } } <|
-                                                                ListLiteral
-                                                                    [ Node { start = { row = 1, column = 28 }, end = { row = 1, column = 40 } } <|
-                                                                        ListLiteral
-                                                                            [ Node { start = { row = 1, column = 30 }, end = { row = 1, column = 38 } } <|
-                                                                                FunctionOrValue [] "fileName"
-                                                                            ]
-                                                                    , Node { start = { row = 1, column = 42 }, end = { row = 1, column = 44 } } <|
-                                                                        ListLiteral []
-                                                                    ]
-                                                            ]
-                                                    ]
-                                            ]
-                                    ]
-                            )
+        , test "application expression 2" <|
+            \() ->
+                parseExpression "(\"\", always (List.concat [ [ fileName ], [] ]))"
+                    |> expectAst
+                        (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 48 } } <|
+                            TupleExpression
+                                [ Node { start = { row = 1, column = 2 }, end = { row = 1, column = 4 } } <| StringLiteral SingleQuote ""
+                                , Node { start = { row = 1, column = 6 }, end = { row = 1, column = 47 } } <|
+                                    FunctionCall
+                                        (Node { start = { row = 1, column = 6 }, end = { row = 1, column = 12 } } <| FunctionOrValue [] "always")
+                                        [ Node { start = { row = 1, column = 13 }, end = { row = 1, column = 47 } } <|
+                                            TupleExpression
+                                                [ Node { start = { row = 1, column = 14 }, end = { row = 1, column = 46 } } <|
+                                                    FunctionCall
+                                                        (Node { start = { row = 1, column = 14 }, end = { row = 1, column = 25 } } <|
+                                                            FunctionOrValue [ "List" ] "concat"
+                                                        )
+                                                        [ Node { start = { row = 1, column = 26 }, end = { row = 1, column = 46 } } <|
+                                                            ListLiteral
+                                                                [ Node { start = { row = 1, column = 28 }, end = { row = 1, column = 40 } } <|
+                                                                    ListLiteral
+                                                                        [ Node { start = { row = 1, column = 30 }, end = { row = 1, column = 38 } } <|
+                                                                            FunctionOrValue [] "fileName"
+                                                                        ]
+                                                                , Node { start = { row = 1, column = 42 }, end = { row = 1, column = 44 } } <|
+                                                                    ListLiteral []
+                                                                ]
+                                                        ]
+                                                ]
+                                        ]
+                                ]
+                        )
         , Test.skip <|
             test "expressionNotApplication simple" <|
                 \() ->
