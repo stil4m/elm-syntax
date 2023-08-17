@@ -6,7 +6,7 @@ import Elm.Syntax.Infix as Infix
 import Elm.Syntax.Node as Node exposing (Node(..))
 import Elm.Syntax.Range exposing (Location)
 import Hex
-import Parser.Advanced as Parser exposing ((|.), (|=), Parser)
+import Parser.Advanced as Parser exposing ((|.), (|=), Parser(..))
 import Pratt.Advanced as Pratt
 import Unicode
 
@@ -284,7 +284,7 @@ parenthesizedLiteral : Parser c Problem Expression
 parenthesizedLiteral =
     Parser.lazy
         (\() ->
-            Parser.sequence
+            sequence
                 { start = Parser.Token "(" P
                 , separator = Parser.Token "," P
                 , end = Parser.Token ")" P
@@ -294,6 +294,57 @@ parenthesizedLiteral =
                 }
                 |> Parser.map TupleExpression
         )
+
+
+sequence :
+    { start : Parser.Token x
+    , separator : Parser.Token x
+    , end : Parser.Token x
+    , spaces : Parser c x ()
+    , item : Parser c x a
+    , trailing : Parser.Trailing
+    }
+    -> Parser c x (List a)
+sequence i =
+    skip (Parser.token i.start) <|
+        skip i.spaces <|
+            sequenceEnd (Parser.token i.end) i.spaces i.item (Parser.token i.separator) i.trailing
+
+
+skip : Parser c x ignore -> Parser c x keep -> Parser c x keep
+skip ignoreParser keepParser =
+    Parser.succeed identity
+        |. ignoreParser
+        |= keepParser
+
+
+sequenceEnd : Parser c x () -> Parser c x () -> Parser c x a -> Parser c x () -> Parser.Trailing -> Parser c x (List a)
+sequenceEnd ender ws parseItem sep trailing =
+    let
+        chompRest item =
+            case trailing of
+                Parser.Forbidden ->
+                    Parser.loop [ item ] (sequenceEndForbidden ender ws parseItem sep)
+
+                Parser.Optional ->
+                    Parser.succeed []
+
+                Parser.Mandatory ->
+                    Parser.succeed []
+    in
+    Parser.oneOf
+        [ parseItem |> Parser.andThen chompRest
+        , ender |> Parser.map (\_ -> [])
+        ]
+
+
+sequenceEndForbidden : Parser c x () -> Parser c x () -> Parser c x a -> Parser c x () -> List a -> Parser c x (Parser.Step (List a) (List a))
+sequenceEndForbidden ender ws parseItem sep revItems =
+    skip ws <|
+        Parser.oneOf
+            [ skip sep <| skip ws <| Parser.map (\item -> Parser.Loop (item :: revItems)) parseItem
+            , ender |> Parser.map (\_ -> Parser.Done (List.reverse revItems))
+            ]
 
 
 type alias StringLiteralLoopState =
