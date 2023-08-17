@@ -239,26 +239,25 @@ all =
                                     ]
                                 )
                             )
-        , Test.skip <|
-            test "listExpression" <|
-                \() ->
-                    parseExpression "[ class \"a\", text \"Foo\"]"
-                        |> expectAst
-                            (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 25 } }
-                                (ListLiteral
-                                    [ Node { start = { row = 1, column = 3 }, end = { row = 1, column = 12 } }
-                                        (FunctionCall
-                                            (Node { start = { row = 1, column = 3 }, end = { row = 1, column = 8 } } (FunctionOrValue [] "class"))
-                                            [ Node { start = { row = 1, column = 9 }, end = { row = 1, column = 12 } } (StringLiteral SingleQuote "a") ]
-                                        )
-                                    , Node { start = { row = 1, column = 14 }, end = { row = 1, column = 24 } }
-                                        (FunctionCall
-                                            (Node { start = { row = 1, column = 14 }, end = { row = 1, column = 18 } } (FunctionOrValue [] "text"))
-                                            [ Node { start = { row = 1, column = 19 }, end = { row = 1, column = 24 } } (StringLiteral SingleQuote "Foo") ]
-                                        )
-                                    ]
-                                )
+        , test "listExpression" <|
+            \() ->
+                parseExpression "[ class \"a\", text \"Foo\"]"
+                    |> expectAst
+                        (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 25 } }
+                            (ListLiteral
+                                [ Node { start = { row = 1, column = 3 }, end = { row = 1, column = 12 } }
+                                    (FunctionCall
+                                        (Node { start = { row = 1, column = 3 }, end = { row = 1, column = 8 } } (FunctionOrValue [] "class"))
+                                        [ Node { start = { row = 1, column = 9 }, end = { row = 1, column = 12 } } (StringLiteral SingleQuote "a") ]
+                                    )
+                                , Node { start = { row = 1, column = 14 }, end = { row = 1, column = 24 } }
+                                    (FunctionCall
+                                        (Node { start = { row = 1, column = 14 }, end = { row = 1, column = 18 } } (FunctionOrValue [] "text"))
+                                        [ Node { start = { row = 1, column = 19 }, end = { row = 1, column = 24 } } (StringLiteral SingleQuote "Foo") ]
+                                    )
+                                ]
                             )
+                        )
         , Test.skip <|
             test "listExpression singleton with comment" <|
                 \() ->
