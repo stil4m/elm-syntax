@@ -151,17 +151,16 @@ all =
                                     [ Node { start = { row = 1, column = 14 }, end = { row = 1, column = 16 } } (TupleExpression []) ]
                                 )
                             )
-        , Test.skip <|
-            test "Function call" <|
-                \() ->
-                    parseExpression "foo bar"
-                        |> expectAst
-                            (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 8 } }
-                                (FunctionCall
-                                    (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 4 } } (FunctionOrValue [] "foo"))
-                                    [ Node { start = { row = 1, column = 5 }, end = { row = 1, column = 8 } } (FunctionOrValue [] "bar") ]
-                                )
+        , test "Function call" <|
+            \() ->
+                parseExpression "foo bar"
+                    |> expectAst
+                        (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 8 } }
+                            (FunctionCall
+                                (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 4 } } (FunctionOrValue [] "foo"))
+                                [ Node { start = { row = 1, column = 5 }, end = { row = 1, column = 8 } } (FunctionOrValue [] "bar") ]
                             )
+                        )
         , Test.skip <|
             test "ifBlockExpression" <|
                 \() ->
