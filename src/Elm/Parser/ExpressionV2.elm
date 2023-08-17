@@ -290,7 +290,6 @@ parenthesizedLiteral =
                 , end = Parser.Token ")" P
                 , spaces = Parser.spaces
                 , item = expression
-                , trailing = Parser.Forbidden
                 }
                 |> Parser.map TupleExpression
         )
@@ -302,13 +301,12 @@ sequence :
     , end : Parser.Token x
     , spaces : Parser c x ()
     , item : Parser c x a
-    , trailing : Parser.Trailing
     }
     -> Parser c x (List a)
 sequence i =
     skip (Parser.token i.start) <|
         skip i.spaces <|
-            sequenceEnd (Parser.token i.end) i.spaces i.item (Parser.token i.separator) i.trailing
+            sequenceEnd (Parser.token i.end) i.spaces i.item (Parser.token i.separator)
 
 
 skip : Parser c x ignore -> Parser c x keep -> Parser c x keep
@@ -318,19 +316,12 @@ skip ignoreParser keepParser =
         |= keepParser
 
 
-sequenceEnd : Parser c x () -> Parser c x () -> Parser c x a -> Parser c x () -> Parser.Trailing -> Parser c x (List a)
-sequenceEnd ender ws parseItem sep trailing =
+sequenceEnd : Parser c x () -> Parser c x () -> Parser c x a -> Parser c x () -> Parser c x (List a)
+sequenceEnd ender ws parseItem sep =
     let
+        chompRest : a -> Parser c x (List a)
         chompRest item =
-            case trailing of
-                Parser.Forbidden ->
-                    Parser.loop [ item ] (sequenceEndForbidden ender ws parseItem sep)
-
-                Parser.Optional ->
-                    Parser.succeed []
-
-                Parser.Mandatory ->
-                    Parser.succeed []
+            Parser.loop [ item ] (sequenceEndForbidden ender ws parseItem sep)
     in
     Parser.oneOf
         [ parseItem |> Parser.andThen chompRest
