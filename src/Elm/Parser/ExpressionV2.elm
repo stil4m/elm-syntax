@@ -79,6 +79,9 @@ expressionNotApplication =
             , listLiteral
                 |> node
                 |> Pratt.literal
+            , ifExpression
+                |> node
+                |> Pratt.literal
             ]
         , andThenOneOf =
             [ infixRight 0 "<|"
@@ -426,6 +429,20 @@ listLiteral =
                 }
         )
         |> Parser.map ListLiteral
+
+
+ifExpression : Parser c Problem Expression
+ifExpression =
+    Parser.lazy
+        (\() ->
+            Parser.succeed Expression.If
+                |. Parser.symbol (Parser.Token "if" P)
+                |= expression
+                |. Parser.symbol (Parser.Token "then" P)
+                |= expression
+                |. Parser.symbol (Parser.Token "else" P)
+                |= expression
+        )
 
 
 type alias StringLiteralLoopState =
