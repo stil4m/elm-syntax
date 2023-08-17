@@ -286,13 +286,15 @@ parenthesizedLiteral =
         (\() ->
             Parser.succeed identity
                 |. Parser.symbol (Parser.Token "(" P)
-                |= sequence
-                    { separator = Parser.Token "," P
-                    , end = Parser.Token ")" P
-                    , spaces = Parser.spaces
-                    , item = expression
-                    }
-                |> Parser.map TupleExpression
+                |= Parser.oneOf
+                    [ sequence
+                        { separator = Parser.Token "," P
+                        , end = Parser.Token ")" P
+                        , spaces = Parser.spaces
+                        , item = expression
+                        }
+                        |> Parser.map TupleExpression
+                    ]
         )
 
 
