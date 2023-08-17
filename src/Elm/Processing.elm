@@ -126,11 +126,11 @@ attachDocumentationAndFixOperators declaration context =
                 declaration
                 context
 
-        PortDeclaration _ ->
-            { previousComments = context.previousComments
-            , remainingComments = context.remainingComments
-            , declarations = declaration :: context.declarations
-            }
+        PortDeclaration portDecl ->
+            addDocumentation
+                (\doc -> PortDeclaration { portDecl | documentation = Just doc })
+                declaration
+                context
 
         InfixDeclaration _ ->
             { previousComments = context.previousComments
