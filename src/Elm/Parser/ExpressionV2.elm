@@ -41,6 +41,9 @@ expression =
             , parenthesizedLiteral
                 |> node
                 |> Pratt.literal
+            , listLiteral
+                |> node
+                |> Pratt.literal
             ]
         , andThenOneOf =
             [ infixRight 0 "<|"
@@ -372,6 +375,22 @@ prefixOperatorParser =
                 |> Parser.getChompedString
            )
         |. Parser.symbol (Parser.Token ")" P)
+
+
+listLiteral : Parser c Problem Expression
+listLiteral =
+    Parser.lazy
+        (\() ->
+            Parser.sequence
+                { start = Parser.Token "[" P
+                , separator = Parser.Token "," P
+                , end = Parser.Token "]" P
+                , spaces = Parser.spaces
+                , item = expression
+                , trailing = Parser.Forbidden
+                }
+        )
+        |> Parser.map ListLiteral
 
 
 type alias StringLiteralLoopState =

@@ -239,6 +239,13 @@ all =
                                     ]
                                 )
                             )
+        , test "Empty list expression" <|
+            \() ->
+                parseExpression "[]"
+                    |> expectAst
+                        (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 3 } }
+                            (ListLiteral [])
+                        )
         , test "listExpression" <|
             \() ->
                 parseExpression "[ 1, 2 ]"
