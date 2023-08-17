@@ -87,17 +87,16 @@ all =
                                 ]
                             )
                         )
-        , Test.skip <|
-            test "application expression" <|
-                \() ->
-                    parseExpression "List.concat []"
-                        |> expectAst
-                            (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 15 } } <|
-                                FunctionCall
-                                    (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 12 } } <| FunctionOrValue [ "List" ] "concat")
-                                    [ Node { start = { row = 1, column = 13 }, end = { row = 1, column = 15 } } <| ListLiteral []
-                                    ]
-                            )
+        , test "application expression" <|
+            \() ->
+                parseExpression "List.concat []"
+                    |> expectAst
+                        (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 15 } } <|
+                            FunctionCall
+                                (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 12 } } <| FunctionOrValue [ "List" ] "concat")
+                                [ Node { start = { row = 1, column = 13 }, end = { row = 1, column = 15 } } <| ListLiteral []
+                                ]
+                        )
         , test "application expression with operator" <|
             \() ->
                 parseExpression "model + 1"
