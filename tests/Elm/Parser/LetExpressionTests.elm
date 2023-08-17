@@ -189,7 +189,7 @@ all =
                                                     , arguments = []
                                                     , expression =
                                                         Node empty <|
-                                                            Application
+                                                            FunctionCall
                                                                 (Node empty <| FunctionOrValue [ "String" ] "length")
                                                                 [ Node empty <| FunctionOrValue [] "s" ]
                                                     }

@@ -55,7 +55,7 @@ suite =
             [ test "write simple expression" <|
                 \() ->
                     (Node empty <|
-                        Application (Node empty <| FunctionOrValue [] "abc")
+                        FunctionCall (Node empty <| FunctionOrValue [] "abc")
                             [ Node empty <| TupleExpression [] ]
                     )
                         |> Writer.writeExpression
@@ -81,7 +81,7 @@ suite =
             , test "regression test for Expression.RecordAccessFunction being written without leading period" <|
                 \() ->
                     (Node empty <|
-                        Application
+                        FunctionCall
                             (Node empty <| FunctionOrValue [ "List" ] "map")
                             [ Node empty <| RecordAccessFunction "name"
                             , Node empty <| FunctionOrValue [] "people"

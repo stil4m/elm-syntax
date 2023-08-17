@@ -346,8 +346,8 @@ noRangeRecordSetter ( a, b ) =
 noRangeInnerExpression : Expression -> Expression
 noRangeInnerExpression inner =
     case inner of
-        Expression.Application head xs ->
-            Expression.Application (noRangeExpression head) (List.map noRangeExpression xs)
+        Expression.FunctionCall head xs ->
+            Expression.FunctionCall (noRangeExpression head) (List.map noRangeExpression xs)
 
         Expression.Operation op dir left right ->
             Expression.Operation op dir (noRangeExpression left) (noRangeExpression right)

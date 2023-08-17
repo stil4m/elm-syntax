@@ -128,7 +128,7 @@ all =
                                         , arguments = [ Node { start = { row = 1, column = 5 }, end = { row = 1, column = 6 } } (VarPattern_ "x") ]
                                         , expression =
                                             Node { start = { row = 1, column = 9 }, end = { row = 1, column = 14 } }
-                                                (Application
+                                                (FunctionCall
                                                     (Node { start = { row = 1, column = 9 }, end = { row = 1, column = 10 } } (FunctionOrValue [] "x"))
                                                     [ Node { start = { row = 1, column = 11 }, end = { row = 1, column = 12 } } (Operator "+")
                                                     , Node { start = { row = 1, column = 13 }, end = { row = 1, column = 14 } } (IntegerLiteral 1)
@@ -229,7 +229,7 @@ all =
                                         { arguments = []
                                         , expression =
                                             Node { start = { row = 2, column = 3 }, end = { row = 2, column = 62 } }
-                                                (Application
+                                                (FunctionCall
                                                     (Node { start = { row = 2, column = 3 }, end = { row = 2, column = 18 } } (FunctionOrValue [] "beginnerProgram"))
                                                     [ Node { start = { row = 2, column = 19 }, end = { row = 2, column = 62 } }
                                                         (Expression.Record
@@ -275,7 +275,7 @@ all =
                                                     { firstCase =
                                                         ( Node { start = { row = 3, column = 5 }, end = { row = 3, column = 14 } } (NamedPattern { moduleName = [], name = "Increment" } [])
                                                         , Node { start = { row = 4, column = 7 }, end = { row = 4, column = 16 } }
-                                                            (Application
+                                                            (FunctionCall
                                                                 (Node { start = { row = 4, column = 7 }, end = { row = 4, column = 12 } } (FunctionOrValue [] "model"))
                                                                 [ Node { start = { row = 4, column = 13 }, end = { row = 4, column = 14 } } (Operator "+")
                                                                 , Node { start = { row = 4, column = 15 }, end = { row = 4, column = 16 } } (IntegerLiteral 1)
@@ -285,7 +285,7 @@ all =
                                                     , restOfCases =
                                                         [ ( Node { start = { row = 6, column = 5 }, end = { row = 6, column = 14 } } (NamedPattern { moduleName = [], name = "Decrement" } [])
                                                           , Node { start = { row = 7, column = 7 }, end = { row = 7, column = 16 } }
-                                                                (Application
+                                                                (FunctionCall
                                                                     (Node { start = { row = 7, column = 7 }, end = { row = 7, column = 12 } } (FunctionOrValue [] "model"))
                                                                     [ Node { start = { row = 7, column = 13 }, end = { row = 7, column = 15 } } (Operator "-")
                                                                     , Node { start = { row = 7, column = 15 }, end = { row = 7, column = 16 } } (IntegerLiteral 1)
@@ -384,7 +384,7 @@ all =
                                         { arguments = []
                                         , expression =
                                             Node { start = { row = 2, column = 3 }, end = { row = 2, column = 23 } }
-                                                (Application
+                                                (FunctionCall
                                                     (Node { start = { row = 2, column = 3 }, end = { row = 2, column = 7 } } (FunctionOrValue [] "text"))
                                                     [ Node { start = { row = 2, column = 8 }, end = { row = 2, column = 23 } } (StringLiteral SingleQuote "Hello, World!")
                                                     ]
@@ -408,7 +408,7 @@ all =
                                         { arguments = []
                                         , expression =
                                             Node { start = { row = 2, column = 3 }, end = { row = 2, column = 23 } }
-                                                (Application
+                                                (FunctionCall
                                                     (Node { start = { row = 2, column = 3 }, end = { row = 2, column = 7 } } (FunctionOrValue [] "text"))
                                                     [ Node { start = { row = 2, column = 8 }, end = { row = 2, column = 23 } } (StringLiteral SingleQuote "Hello, World!")
                                                     ]
@@ -450,13 +450,13 @@ all =
                                         { arguments = [ Node { start = { row = 1, column = 13 }, end = { row = 1, column = 19 } } (VarPattern_ "update"), Node { start = { row = 1, column = 20 }, end = { row = 1, column = 28 } } (VarPattern_ "sendPort") ]
                                         , expression =
                                             Node { start = { row = 1, column = 31 }, end = { row = 1, column = 83 } }
-                                                (Application
+                                                (FunctionCall
                                                     (Node { start = { row = 1, column = 31 }, end = { row = 1, column = 36 } } (FunctionOrValue [] "curry"))
                                                     [ Node { start = { row = 1, column = 37 }, end = { row = 1, column = 39 } } (Operator "<|")
                                                     , Node { start = { row = 1, column = 40 }, end = { row = 1, column = 56 } }
                                                         (TupleExpression
                                                             [ Node { start = { row = 1, column = 41 }, end = { row = 1, column = 55 } }
-                                                                (Application
+                                                                (FunctionCall
                                                                     (Node { start = { row = 1, column = 41 }, end = { row = 1, column = 48 } } (FunctionOrValue [] "uncurry"))
                                                                     [ Node { start = { row = 1, column = 49 }, end = { row = 1, column = 55 } } (FunctionOrValue [] "update")
                                                                     ]
@@ -495,7 +495,7 @@ all =
                                                         ( Node { start = { row = 3, column = 5 }, end = { row = 3, column = 14 } }
                                                             (NamedPattern { moduleName = [], name = "Increment" } [])
                                                         , Node { start = { row = 4, column = 7 }, end = { row = 4, column = 16 } }
-                                                            (Application
+                                                            (FunctionCall
                                                                 (Node { start = { row = 4, column = 7 }, end = { row = 4, column = 12 } } (FunctionOrValue [] "model"))
                                                                 [ Node { start = { row = 4, column = 13 }, end = { row = 4, column = 14 } } (Operator "+")
                                                                 , Node { start = { row = 4, column = 15 }, end = { row = 4, column = 16 } } (IntegerLiteral 1)
@@ -506,7 +506,7 @@ all =
                                                         [ ( Node { start = { row = 6, column = 5 }, end = { row = 6, column = 14 } }
                                                                 (NamedPattern { moduleName = [], name = "Decrement" } [])
                                                           , Node { start = { row = 7, column = 7 }, end = { row = 7, column = 16 } }
-                                                                (Application
+                                                                (FunctionCall
                                                                     (Node { start = { row = 7, column = 7 }, end = { row = 7, column = 12 } } (FunctionOrValue [] "model"))
                                                                     [ Node { start = { row = 7, column = 13 }, end = { row = 7, column = 15 } } (Operator "-")
                                                                     , Node { start = { row = 7, column = 15 }, end = { row = 7, column = 16 } } (IntegerLiteral 1)

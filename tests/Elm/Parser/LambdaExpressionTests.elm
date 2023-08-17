@@ -72,7 +72,7 @@ all =
                                 , restOfArgs = [ Node.empty <| VarPattern_ "b" ]
                                 , expression =
                                     Node.empty <|
-                                        Application
+                                        FunctionCall
                                             (Node.empty <| FunctionOrValue [] "a")
                                             [ Node.empty <| Operator "+"
                                             , Node.empty <| FunctionOrValue [] "b"
@@ -96,7 +96,7 @@ all =
                                 , restOfArgs = []
                                 , expression =
                                     Node.empty <|
-                                        Application
+                                        FunctionCall
                                             (Node.empty <| FunctionOrValue [] "a")
                                             [ Node.empty <| Operator "+"
                                             , Node.empty <| FunctionOrValue [] "b"

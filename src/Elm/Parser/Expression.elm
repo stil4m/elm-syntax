@@ -49,7 +49,7 @@ expression =
                                 succeed
                                     (Node
                                         (Range.combine (Node.range first :: List.map Node.range rest))
-                                        (Application first (List.reverse rest))
+                                        (FunctionCall first (List.reverse rest))
                                     )
 
                     promoter : List (Node Expression) -> Parser State (Node Expression)
