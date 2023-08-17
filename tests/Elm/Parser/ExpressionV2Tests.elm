@@ -46,18 +46,17 @@ all =
             \() ->
                 parseExpression "\"\"\"\\\\a-blablabla-\\\\b\"\"\""
                     |> expectAst (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 24 } } (StringLiteral TripleQuote "\\a-blablabla-\\b"))
-        , Test.skip <|
-            test "tuple expression" <|
-                \() ->
-                    parseExpression "(1,2)"
-                        |> expectAst
-                            (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 6 } }
-                                (TupleExpression
-                                    [ Node { start = { row = 1, column = 2 }, end = { row = 1, column = 3 } } (IntegerLiteral 1)
-                                    , Node { start = { row = 1, column = 4 }, end = { row = 1, column = 5 } } (IntegerLiteral 2)
-                                    ]
-                                )
+        , test "tuple expression" <|
+            \() ->
+                parseExpression "(1,2)"
+                    |> expectAst
+                        (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 6 } }
+                            (TupleExpression
+                                [ Node { start = { row = 1, column = 2 }, end = { row = 1, column = 3 } } (IntegerLiteral 1)
+                                , Node { start = { row = 1, column = 4 }, end = { row = 1, column = 5 } } (IntegerLiteral 2)
+                                ]
                             )
+                        )
         , Test.skip <|
             test "prefix expression" <|
                 \() ->
