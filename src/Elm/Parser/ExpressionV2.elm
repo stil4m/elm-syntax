@@ -18,6 +18,11 @@ type Problem
 
 expression : Parser c Problem (Node Expression)
 expression =
+    expressionNotApplication
+
+
+expressionNotApplication : Parser c Problem (Node Expression)
+expressionNotApplication =
     Pratt.expression
         { oneOf =
             [ digits
