@@ -1385,7 +1385,7 @@ subExpressionMaybeAppliedOptimisticLayout =
                                 leftExpressionResult.syntax
                         in
                         Node { start = leftRange.start, end = lastArgRange.end }
-                            (Expression.Application leftNode (List.reverse argsReverse))
+                            (Expression.FunctionCall leftNode (List.reverse argsReverse))
             }
         )
         (ParserFast.lazy (\() -> subExpression))
