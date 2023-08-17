@@ -141,11 +141,6 @@ all =
                                 ]
                         )
         , Test.skip <|
-            test "expressionNotApplication simple" <|
-                \() ->
-                    parseExpression "foo"
-                        |> expectAst (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 4 } } (FunctionOrValue [] "foo"))
-        , Test.skip <|
             test "unit application" <|
                 \() ->
                     parseExpression "Task.succeed ()"
