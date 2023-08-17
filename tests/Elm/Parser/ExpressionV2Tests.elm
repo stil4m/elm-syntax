@@ -140,17 +140,16 @@ all =
                                         ]
                                 ]
                         )
-        , Test.skip <|
-            test "unit application" <|
-                \() ->
-                    parseExpression "Task.succeed ()"
-                        |> expectAst
-                            (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 16 } }
-                                (FunctionCall
-                                    (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 13 } } (FunctionOrValue [ "Task" ] "succeed"))
-                                    [ Node { start = { row = 1, column = 14 }, end = { row = 1, column = 16 } } (TupleExpression []) ]
-                                )
+        , test "unit application" <|
+            \() ->
+                parseExpression "Task.succeed ()"
+                    |> expectAst
+                        (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 16 } }
+                            (FunctionCall
+                                (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 13 } } (FunctionOrValue [ "Task" ] "succeed"))
+                                [ Node { start = { row = 1, column = 14 }, end = { row = 1, column = 16 } } (TupleExpression []) ]
                             )
+                        )
         , test "Function call" <|
             \() ->
                 parseExpression "foo bar"
