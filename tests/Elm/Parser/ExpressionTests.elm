@@ -90,7 +90,7 @@ all =
                     |> Expect.equal
                         (Just
                             (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 15 } } <|
-                                Application
+                                FunctionCall
                                     (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 12 } } <| FunctionOrValue [ "List" ] "concat")
                                     [ Node { start = { row = 1, column = 13 }, end = { row = 1, column = 15 } } <| ListLiteral []
                                     ]
@@ -102,7 +102,7 @@ all =
                     |> Expect.equal
                         (Just
                             (Node (Range { column = 1, row = 1 } { column = 10, row = 1 }) <|
-                                Application
+                                FunctionCall
                                     (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 6 } } <| FunctionOrValue [] "model")
                                     [ Node { start = { row = 1, column = 7 }, end = { row = 1, column = 8 } } <| Operator "+"
                                     , Node { start = { row = 1, column = 9 }, end = { row = 1, column = 10 } } <| IntegerLiteral 1
@@ -118,12 +118,12 @@ all =
                                 TupleExpression
                                     [ Node { start = { row = 1, column = 2 }, end = { row = 1, column = 4 } } <| StringLiteral SingleQuote ""
                                     , Node { start = { row = 1, column = 6 }, end = { row = 1, column = 47 } } <|
-                                        Application
+                                        FunctionCall
                                             (Node { start = { row = 1, column = 6 }, end = { row = 1, column = 12 } } <| FunctionOrValue [] "always")
                                             [ Node { start = { row = 1, column = 13 }, end = { row = 1, column = 47 } } <|
                                                 TupleExpression
                                                     [ Node { start = { row = 1, column = 14 }, end = { row = 1, column = 46 } } <|
-                                                        Application
+                                                        FunctionCall
                                                             (Node { start = { row = 1, column = 14 }, end = { row = 1, column = 25 } } <|
                                                                 FunctionOrValue [ "List" ] "concat"
                                                             )
@@ -156,7 +156,7 @@ all =
                     |> Maybe.map Node.value
                     |> Expect.equal
                         (Just
-                            (Application
+                            (FunctionCall
                                 (Node.empty <|
                                     FunctionOrValue [ "Task" ] "succeed"
                                 )
@@ -170,7 +170,7 @@ all =
                     |> Maybe.map Node.value
                     |> Expect.equal
                         (Just
-                            (Application
+                            (FunctionCall
                                 (Node.empty <| FunctionOrValue [] "foo")
                                 [ Node.empty <| FunctionOrValue [] "bar" ]
                             )
@@ -182,7 +182,7 @@ all =
                     |> Maybe.map Node.value
                     |> Expect.equal
                         (Just
-                            (Application
+                            (FunctionCall
                                 (Node empty <| Record [ Node empty ( Node empty "key", Node empty <| FunctionOrValue [] "value" ) ])
                                 [ Node empty <| Operator "!"
                                 , Node empty <| ListLiteral []
@@ -255,8 +255,8 @@ all =
                     |> Expect.equal
                         (Just
                             (ListLiteral
-                                [ Node empty <| Application (Node empty <| FunctionOrValue [] "class") [ Node empty <| StringLiteral SingleQuote "a" ]
-                                , Node empty <| Application (Node empty <| FunctionOrValue [] "text") [ Node empty <| StringLiteral SingleQuote "Foo" ]
+                                [ Node empty <| FunctionCall (Node empty <| FunctionOrValue [] "class") [ Node empty <| StringLiteral SingleQuote "a" ]
+                                , Node empty <| FunctionCall (Node empty <| FunctionOrValue [] "text") [ Node empty <| StringLiteral SingleQuote "Foo" ]
                                 ]
                             )
                         )
@@ -364,7 +364,7 @@ all =
                     |> Maybe.map Node.value
                     |> Expect.equal
                         (Just
-                            (Application
+                            (FunctionCall
                                 (Node empty <| FunctionOrValue [ "List" ] "map")
                                 [ Node empty <| RecordAccessFunction "name"
                                 , Node empty <| FunctionOrValue [] "people"
@@ -380,7 +380,7 @@ all =
                         (Just
                             (TupleExpression
                                 [ Node empty <|
-                                    Application
+                                    FunctionCall
                                         (Node empty <| RecordAccessFunction "spaceEvenly")
                                         [ Node empty <| FunctionOrValue [ "Internal", "Style" ] "classes" ]
                                 ]
@@ -405,7 +405,7 @@ all =
                     |> Maybe.map Node.value
                     |> Expect.equal
                         (Just <|
-                            Application
+                            FunctionCall
                                 (Node empty <| PrefixOperator "::")
                                 [ Node empty <| FunctionOrValue [] "x" ]
                         )
@@ -422,7 +422,7 @@ all =
                     |> Maybe.map Node.value
                     |> Expect.equal
                         (Just
-                            (Application
+                            (FunctionCall
                                 (Node empty <| FunctionOrValue [] "toFloat")
                                 [ Node empty <| Negation (Node empty <| IntegerLiteral 5) ]
                             )
@@ -438,7 +438,7 @@ all =
                                 (Node empty <|
                                     TupleExpression
                                         [ Node empty <|
-                                            Application
+                                            FunctionCall
                                                 (Node empty <| FunctionOrValue [] "x")
                                                 [ Node empty <| Operator "-"
                                                 , Node empty <| FunctionOrValue [] "y"
@@ -454,7 +454,7 @@ all =
                     |> Maybe.map Node.value
                     |> Expect.equal
                         (Just
-                            (Application
+                            (FunctionCall
                                 (Node empty (FunctionOrValue [] "chompWhile"))
                                 [ Node empty
                                     (TupleExpression
@@ -464,7 +464,7 @@ all =
                                                 , restOfArgs = []
                                                 , expression =
                                                     Node empty
-                                                        (Application
+                                                        (FunctionCall
                                                             (Node empty (FunctionOrValue [] "c"))
                                                             [ Node empty (Operator "==")
                                                             , Node empty (CharLiteral ' ')

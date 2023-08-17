@@ -196,7 +196,7 @@ all =
                                 , firstCase =
                                     ( Node empty <| NamedPattern (QualifiedNameRef [] "Increment") []
                                     , Node empty <|
-                                        Application
+                                        FunctionCall
                                             (Node empty <| FunctionOrValue [] "model")
                                             [ Node empty <| Operator "+"
                                             , Node empty <| IntegerLiteral 1
@@ -205,7 +205,7 @@ all =
                                 , restOfCases =
                                     [ ( Node empty <| NamedPattern (QualifiedNameRef [] "Decrement") []
                                       , Node empty <|
-                                            Application
+                                            FunctionCall
                                                 (Node empty <| FunctionOrValue [] "model")
                                                 [ Node empty <| Operator "-"
                                                 , Node empty <| IntegerLiteral 1

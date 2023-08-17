@@ -416,7 +416,7 @@ writeExpression (Node range inner) =
             f diffLines (List.map Tuple.second l)
     in
     case inner of
-        Expression.Application head xs ->
+        Expression.FunctionCall head xs ->
             case xs of
                 [] ->
                     writeExpression head

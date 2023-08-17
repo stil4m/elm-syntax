@@ -167,7 +167,7 @@ fixExprs exps =
             x
 
         head_ :: rest ->
-            Expression.Application head_ rest
+            Expression.FunctionCall head_ rest
 
         [] ->
             -- This case should never happen
@@ -359,7 +359,7 @@ visitExpression : Node Expression -> Node Expression
 visitExpression expression =
     visitExpressionInner <|
         case expression of
-            Node r (Expression.Application function args) ->
+            Node r (Expression.FunctionCall function args) ->
                 Node r (fixApplication (function :: args))
 
             _ ->
@@ -370,8 +370,8 @@ visitExpressionInner : Node Expression -> Node Expression
 visitExpressionInner (Node range expression) =
     Node range <|
         case expression of
-            Expression.Application function args ->
-                Expression.Application (visitExpression function) (List.map visitExpression args)
+            Expression.FunctionCall function args ->
+                Expression.FunctionCall (visitExpression function) (List.map visitExpression args)
 
             Expression.Operation op dir left right ->
                 Expression.Operation op
