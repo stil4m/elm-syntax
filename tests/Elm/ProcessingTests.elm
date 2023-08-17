@@ -21,7 +21,7 @@ suite =
             (\( name, input, output ) ->
                 test name <|
                     \() ->
-                        Parser.parseToFile (String.trim input)
+                        Parser.parse (String.trim input)
                             |> Expect.equal (Ok output)
             )
             testCases

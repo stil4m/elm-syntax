@@ -1,8 +1,8 @@
-module Elm.Parser exposing (parseToFile)
+module Elm.Parser exposing (parse)
 
 {-|
 
-@docs parseToFile
+@docs parse
 
 -}
 
@@ -18,8 +18,8 @@ import Parser exposing (DeadEnd)
 {-| Parse some text as if it is an Elm source file.
 When parsing fails, the result will contain a list of errors indicating what went wrong (and/or where).
 -}
-parseToFile : String -> Result (List DeadEnd) File
-parseToFile input =
+parse : String -> Result (List DeadEnd) File
+parse input =
     -- A single line is added for unfinished ranges produced by `parser-combinators` on the last line.
     case Combine.runParser (withEnd file) emptyState (input ++ "\n") of
         Ok ( _, r ) ->

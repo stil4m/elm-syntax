@@ -89,7 +89,7 @@ f =
 {- 6 -}
 """
                 in
-                Elm.Parser.parseToFile input
+                Elm.Parser.parse input
                     |> Result.map .comments
                     |> Expect.equal
                         (Ok
