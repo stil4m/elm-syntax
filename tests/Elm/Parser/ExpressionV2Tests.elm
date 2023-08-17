@@ -61,6 +61,10 @@ all =
             \() ->
                 parseExpression "(+)"
                     |> expectAst (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 4 } } (PrefixOperator "+"))
+        , test "Prefix operator (multi-characters)" <|
+            \() ->
+                parseExpression "(++)"
+                    |> expectAst (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 5 } } (PrefixOperator "++"))
         , test "Type expression for upper case" <|
             \() ->
                 parseExpression "Bar"

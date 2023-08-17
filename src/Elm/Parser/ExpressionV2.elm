@@ -287,7 +287,8 @@ parenthesizedLiteral =
             Parser.succeed identity
                 |. Parser.symbol (Parser.Token "(" P)
                 |= Parser.oneOf
-                    [ sequence
+                    [ prefixOperatorParser
+                    , sequence
                         { separator = Parser.Token "," P
                         , end = Parser.Token ")" P
                         , spaces = Parser.spaces
@@ -337,6 +338,40 @@ sequenceEndForbidden ender ws parseItem sep revItems =
             [ skip sep <| skip ws <| Parser.map (\item -> Parser.Loop (item :: revItems)) parseItem
             , ender |> Parser.map (\_ -> Parser.Done (List.reverse revItems))
             ]
+
+
+prefixOperatorParser : Parser c Problem Expression
+prefixOperatorParser =
+    Parser.succeed PrefixOperator
+        |= (Parser.oneOf
+                [ Parser.symbol (Parser.Token "<|" P)
+                , Parser.symbol (Parser.Token "|>" P)
+                , Parser.symbol (Parser.Token "||" P)
+                , Parser.symbol (Parser.Token "&&" P)
+                , Parser.symbol (Parser.Token "==" P)
+                , Parser.symbol (Parser.Token "/=" P)
+                , Parser.symbol (Parser.Token "<" P)
+                , Parser.symbol (Parser.Token ">" P)
+                , Parser.symbol (Parser.Token "<=" P)
+                , Parser.symbol (Parser.Token ">=" P)
+                , Parser.symbol (Parser.Token "++" P)
+                , Parser.symbol (Parser.Token "+" P)
+                , Parser.symbol (Parser.Token "-" P)
+                , Parser.symbol (Parser.Token "*" P)
+                , Parser.symbol (Parser.Token "/" P)
+                , Parser.symbol (Parser.Token "//" P)
+                , Parser.symbol (Parser.Token "^" P)
+                , Parser.symbol (Parser.Token "<<" P)
+                , Parser.symbol (Parser.Token ">>" P)
+                , Parser.symbol (Parser.Token "::" P)
+                , Parser.symbol (Parser.Token "</>" P)
+                , Parser.symbol (Parser.Token "<?>" P)
+                , Parser.symbol (Parser.Token "|=" P)
+                , Parser.symbol (Parser.Token "|." P)
+                ]
+                |> Parser.getChompedString
+           )
+        |. Parser.symbol (Parser.Token ")" P)
 
 
 type alias StringLiteralLoopState =
