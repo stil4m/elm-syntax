@@ -92,7 +92,7 @@ type alias FunctionImplementation =
   - `Negation`: `-a`
   - `ListLiteral`: `[ x, y ]`
   - `FunctionOrValue`: `add` or `True`
-  - `Application`: `add a b`
+  - `FunctionCall`: `add a b`
   - `Operation`: `a + b`
   - `PrefixOperator`: `(+)`
   - `If`: `if a then b else c`
@@ -118,7 +118,7 @@ type Expression
     | ListLiteral (List (Node Expression))
     | FunctionOrValue ModuleName String
     | PrefixOperator String
-    | Application (Node Expression) (List (Node Expression))
+    | FunctionCall (Node Expression) (List (Node Expression))
     | Operation String InfixDirection (Node Expression) (Node Expression)
     | If (Node Expression) (Node Expression) (Node Expression)
     | TupleExpression (List (Node Expression))
@@ -254,7 +254,7 @@ isOperatorApplication e =
 encode : Expression -> Value
 encode expr =
     case expr of
-        Application head l ->
+        FunctionCall head l ->
             encodeTyped "application" (JE.list (Node.encode encode) (head :: l))
 
         Operation op dir left right ->
@@ -466,7 +466,7 @@ decoder =
         (\() ->
             decodeTyped
                 [ ( "application"
-                  , decodeNonemptyList decodeNested |> JD.map (\( head, rest ) -> Application head rest)
+                  , decodeNonemptyList decodeNested |> JD.map (\( head, rest ) -> FunctionCall head rest)
                   )
                 , ( "operatorapplication", decodeOperatorApplication )
                 , ( "functionOrValue", JD.map2 FunctionOrValue (JD.field "moduleName" ModuleName.decoder) (JD.field "name" JD.string) )

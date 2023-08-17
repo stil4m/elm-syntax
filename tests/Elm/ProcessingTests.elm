@@ -332,7 +332,7 @@ log a =
                             { arguments = [ Node { start = { row = 5, column = 5 }, end = { row = 5, column = 6 } } (VarPattern_ "a") ]
                             , expression =
                                 Node { start = { row = 6, column = 5 }, end = { row = 6, column = 21 } }
-                                    (Application
+                                    (FunctionCall
                                         (Node { start = { row = 6, column = 5 }, end = { row = 6, column = 14 } } (FunctionOrValue [ "Debug" ] "log"))
                                         [ Node { start = { row = 6, column = 15 }, end = { row = 6, column = 19 } } (StringLiteral SingleQuote "ok")
                                         , Node { start = { row = 6, column = 20 }, end = { row = 6, column = 21 } } (FunctionOrValue [] "a")

@@ -125,11 +125,11 @@ functionCall =
             Node
                 { start = start, end = end }
                 (case leftValue of
-                    Application first args ->
-                        Application first (args ++ [ right ])
+                    FunctionCall first args ->
+                        FunctionCall first (args ++ [ right ])
 
                     _ ->
-                        Application left [ right ]
+                        FunctionCall left [ right ]
                 )
         )
 
