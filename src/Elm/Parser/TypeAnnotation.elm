@@ -18,7 +18,7 @@ type Mode
     | Lazy
 
 
-typeAnnotation : Parser State (Node TypeAnnotation)
+typeAnnotation : Combine.Parser State (Node TypeAnnotation)
 typeAnnotation =
     typeAnnotationNoFn Eager
         |> Combine.andThen
@@ -37,7 +37,7 @@ typeAnnotation =
             )
 
 
-typeAnnotationNonGreedy : Parser State (Node TypeAnnotation)
+typeAnnotationNonGreedy : Combine.Parser State (Node TypeAnnotation)
 typeAnnotationNonGreedy =
     Combine.oneOf
         [ parensTypeAnnotation
@@ -47,7 +47,7 @@ typeAnnotationNonGreedy =
         ]
 
 
-typeAnnotationNoFn : Mode -> Parser State (Node TypeAnnotation)
+typeAnnotationNoFn : Mode -> Combine.Parser State (Node TypeAnnotation)
 typeAnnotationNoFn mode =
     Combine.lazy
         (\() ->
@@ -60,10 +60,10 @@ typeAnnotationNoFn mode =
         )
 
 
-parensTypeAnnotation : Parser State (Node TypeAnnotation)
+parensTypeAnnotation : Combine.Parser State (Node TypeAnnotation)
 parensTypeAnnotation =
     let
-        commaSep : Parser State (List (Node TypeAnnotation))
+        commaSep : Combine.Parser State (List (Node TypeAnnotation))
         commaSep =
             Combine.many
                 (Tokens.comma
@@ -72,7 +72,7 @@ parensTypeAnnotation =
                     |> Combine.ignore (Combine.maybeIgnore Layout.layout)
                 )
 
-        nested : Parser State TypeAnnotation
+        nested : Combine.Parser State TypeAnnotation
         nested =
             Combine.succeed (\x -> \xs -> asTypeAnnotation x xs)
                 |> Combine.ignore (Combine.maybeIgnore Layout.layout)
@@ -109,12 +109,12 @@ genericTypeAnnotation =
         |> Node.parserFromCore
 
 
-recordFieldsTypeAnnotation : Parser State TypeAnnotation.RecordDefinition
+recordFieldsTypeAnnotation : Combine.Parser State TypeAnnotation.RecordDefinition
 recordFieldsTypeAnnotation =
     Combine.sepBy1 "," (Layout.maybeAroundBothSides <| Node.parser recordFieldDefinition)
 
 
-recordTypeAnnotation : Parser State (Node TypeAnnotation)
+recordTypeAnnotation : Combine.Parser State (Node TypeAnnotation)
 recordTypeAnnotation =
     Tokens.curlyStart
         |> Combine.continueFromCore (Combine.maybeIgnore Layout.layout)
@@ -153,7 +153,7 @@ recordTypeAnnotation =
         |> Node.parser
 
 
-recordFieldDefinition : Parser State TypeAnnotation.RecordField
+recordFieldDefinition : Combine.Parser State TypeAnnotation.RecordField
 recordFieldDefinition =
     Combine.succeed (\functionName -> \value -> ( functionName, value ))
         |> Combine.ignore (Combine.maybeIgnore Layout.layout)
@@ -164,7 +164,7 @@ recordFieldDefinition =
         |> Combine.keep typeAnnotation
 
 
-typedTypeAnnotation : Mode -> Parser State (Node TypeAnnotation)
+typedTypeAnnotation : Mode -> Combine.Parser State (Node TypeAnnotation)
 typedTypeAnnotation mode =
     typeIndicator
         |> Combine.fromCore
