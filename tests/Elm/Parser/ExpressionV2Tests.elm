@@ -171,6 +171,21 @@ all =
                                 (Node { start = { row = 1, column = 23 }, end = { row = 1, column = 26 } } (FunctionOrValue [] "bar"))
                             )
                         )
+        , test "Multi-line if expression" <|
+            \() ->
+                parseExpression """
+    if x then
+        1
+    else
+        2"""
+                    |> expectAst
+                        (Node { start = { row = 2, column = 5 }, end = { row = 5, column = 10 } }
+                            (If
+                                (Node { start = { row = 2, column = 8 }, end = { row = 2, column = 9 } } (FunctionOrValue [] "x"))
+                                (Node { start = { row = 3, column = 9 }, end = { row = 3, column = 10 } } (IntegerLiteral 1))
+                                (Node { start = { row = 5, column = 9 }, end = { row = 5, column = 10 } } (IntegerLiteral 2))
+                            )
+                        )
         , Test.skip <|
             test "nestedIfExpression" <|
                 \() ->
