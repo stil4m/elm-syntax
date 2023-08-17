@@ -12,7 +12,7 @@ import Parser as Core
 import Parser.Extra
 
 
-typeAnnotation : Parser State (Node TypeAnnotation)
+typeAnnotation : Combine.Parser State (Node TypeAnnotation)
 typeAnnotation =
     Combine.map
         (\ta ->
@@ -36,7 +36,7 @@ typeAnnotation =
             )
 
 
-typeAnnotationNoFnExcludingTypedWithArguments : Parser State (Node TypeAnnotation)
+typeAnnotationNoFnExcludingTypedWithArguments : Combine.Parser State (Node TypeAnnotation)
 typeAnnotationNoFnExcludingTypedWithArguments =
     Combine.oneOf
         [ parensTypeAnnotation
@@ -58,7 +58,7 @@ typeAnnotationNoFnIncludingTypedWithArguments =
         |> Node.parser
 
 
-parensTypeAnnotation : Parser State TypeAnnotation
+parensTypeAnnotation : Combine.Parser State TypeAnnotation
 parensTypeAnnotation =
     Tokens.parensStart
         |> Combine.fromCoreContinue
@@ -103,7 +103,7 @@ genericTypeAnnotation =
         |> Combine.fromCoreMap TypeAnnotation.Var
 
 
-recordTypeAnnotation : Parser State TypeAnnotation
+recordTypeAnnotation : Combine.Parser State TypeAnnotation
 recordTypeAnnotation =
     Tokens.curlyStart
         |> Combine.fromCoreContinue Layout.maybeLayout
@@ -168,7 +168,7 @@ recordFieldsTypeAnnotation =
         )
 
 
-recordFieldDefinition : Parser State TypeAnnotation.RecordField
+recordFieldDefinition : Combine.Parser State TypeAnnotation.RecordField
 recordFieldDefinition =
     Layout.maybeLayout
         |> Combine.continueWithCore
