@@ -85,7 +85,7 @@ type alias FunctionImplementation =
   - `Negation`: `-a`
   - `ListLiteral`: `[ x, y ]`
   - `FunctionOrValue`: `add` or `True`
-  - `Application`: `add a b`
+  - `FunctionCall`: `add a b`
   - `Operation`: `a + b`
   - `PrefixOperator`: `(+)`
   - `If`: `if a then b else c`
@@ -111,7 +111,7 @@ type Expression
     | ListLiteral (List (Node Expression))
     | FunctionOrValue ModuleName String
     | PrefixOperator String
-    | Application (Node Expression) (List (Node Expression))
+    | FunctionCall (Node Expression) (List (Node Expression))
     | Operation String InfixDirection (Node Expression) (Node Expression)
     | If (Node Expression) (Node Expression) (Node Expression)
     | TupleExpression (List (Node Expression))
