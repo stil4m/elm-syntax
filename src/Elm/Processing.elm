@@ -11,10 +11,10 @@ import Elm.Internal.RawFile as InternalRawFile
 import Elm.Operators exposing (SimpleInfix)
 import Elm.RawFile as RawFile
 import Elm.Syntax.Comments exposing (Comment)
-import Elm.Syntax.Declaration exposing (Declaration(..))
-import Elm.Syntax.Expression exposing (..)
+import Elm.Syntax.Declaration as Declaration exposing (Declaration)
+import Elm.Syntax.Expression as Expression exposing (Expression)
 import Elm.Syntax.File exposing (File)
-import Elm.Syntax.Infix exposing (InfixDirection(..))
+import Elm.Syntax.Infix as Infix
 import Elm.Syntax.Node as Node exposing (Node(..))
 import Elm.Syntax.Range as Range exposing (Range)
 import List.Extra
@@ -53,36 +53,36 @@ type alias DeclarationsAndComments =
 attachDocumentationAndFixOperators : Node Declaration -> DeclarationsAndComments -> DeclarationsAndComments
 attachDocumentationAndFixOperators declaration context =
     case Node.value declaration of
-        FunctionDeclaration functionBeforeOperatorFix ->
+        Declaration.FunctionDeclaration functionBeforeOperatorFix ->
             let
-                function : Function
+                function : Expression.Function
                 function =
                     visitFunctionDecl functionBeforeOperatorFix
             in
             addDocumentation
-                (\doc -> FunctionDeclaration { function | documentation = Just doc })
-                (Node (Node.range declaration) (FunctionDeclaration function))
+                (\doc -> Declaration.FunctionDeclaration { function | documentation = Just doc })
+                (Node (Node.range declaration) (Declaration.FunctionDeclaration function))
                 context
 
-        AliasDeclaration typeAlias ->
+        Declaration.AliasDeclaration typeAlias ->
             addDocumentation
-                (\doc -> AliasDeclaration { typeAlias | documentation = Just doc })
+                (\doc -> Declaration.AliasDeclaration { typeAlias | documentation = Just doc })
                 declaration
                 context
 
-        CustomTypeDeclaration typeDecl ->
+        Declaration.CustomTypeDeclaration typeDecl ->
             addDocumentation
-                (\doc -> CustomTypeDeclaration { typeDecl | documentation = Just doc })
+                (\doc -> Declaration.CustomTypeDeclaration { typeDecl | documentation = Just doc })
                 declaration
                 context
 
-        PortDeclaration portDecl ->
+        Declaration.PortDeclaration portDecl ->
             addDocumentation
-                (\doc -> PortDeclaration { portDecl | documentation = Just doc })
+                (\doc -> Declaration.PortDeclaration { portDecl | documentation = Just doc })
                 declaration
                 context
 
-        InfixDeclaration _ ->
+        Declaration.InfixDeclaration _ ->
             { previousComments = context.previousComments
             , remainingComments = context.remainingComments
             , declarations = declaration :: context.declarations
@@ -150,7 +150,7 @@ divideAndConquer ops exps =
         op :: restOfOps ->
             case findNextSplit op restOfOps exps of
                 Just ( p, infix_, s ) ->
-                    Operation
+                    Expression.Operation
                         infix_.operator
                         infix_.direction
                         (Node (Range.combine <| List.map Node.range p) (divideAndConquer ops p))
@@ -167,17 +167,17 @@ fixExprs exps =
             x
 
         head_ :: rest ->
-            Application head_ rest
+            Expression.Application head_ rest
 
         [] ->
             -- This case should never happen
-            TupleExpression []
+            Expression.TupleExpression []
 
 
 findNextSplit : ( String, SimpleInfix ) -> List ( String, SimpleInfix ) -> List (Node Expression) -> Maybe ( List (Node Expression), SimpleInfix, List (Node Expression) )
 findNextSplit op restOfOperators exps =
     let
-        assocDirection : InfixDirection
+        assocDirection : Infix.InfixDirection
         assocDirection =
             -- At this point we should ideally check if all operators have the same associativity
             -- and report an error if that's not the case.
@@ -190,7 +190,7 @@ findNextSplit op restOfOperators exps =
         prefix : List (Node Expression)
         prefix =
             case assocDirection of
-                Left ->
+                Infix.Left ->
                     exps
                         |> List.reverse
                         |> List.Extra.dropWhile
@@ -256,7 +256,7 @@ lowestPrecedence expressions =
             List.filterMap
                 (\(Node _ expression) ->
                     case expression of
-                        Operator symbol ->
+                        Expression.Operator symbol ->
                             Dict.get symbol Elm.Operators.bySymbol
 
                         _ ->
@@ -312,40 +312,40 @@ findMinimumPrecedenceHelp minPrecedence ops =
 expressionOperators : Node Expression -> Maybe String
 expressionOperators (Node _ expression) =
     case expression of
-        Operator s ->
+        Expression.Operator s ->
             Just s
 
         _ ->
             Nothing
 
 
-visitLetDeclarations : List (Node LetDeclaration) -> List (Node LetDeclaration)
+visitLetDeclarations : List (Node Expression.LetDeclaration) -> List (Node Expression.LetDeclaration)
 visitLetDeclarations declarations =
     List.map visitLetDeclaration declarations
 
 
-visitLetDeclaration : Node LetDeclaration -> Node LetDeclaration
+visitLetDeclaration : Node Expression.LetDeclaration -> Node Expression.LetDeclaration
 visitLetDeclaration (Node range declaration) =
     Node range <|
         case declaration of
-            LetFunction function ->
-                LetFunction (visitFunctionDecl function)
+            Expression.LetFunction function ->
+                Expression.LetFunction (visitFunctionDecl function)
 
-            LetDestructuring pattern expression ->
-                LetDestructuring pattern (visitExpression expression)
+            Expression.LetDestructuring pattern expression ->
+                Expression.LetDestructuring pattern (visitExpression expression)
 
 
-visitFunctionDecl : Function -> Function
+visitFunctionDecl : Expression.Function -> Expression.Function
 visitFunctionDecl function =
     let
-        newFunctionDeclaration : Node FunctionImplementation
+        newFunctionDeclaration : Node Expression.FunctionImplementation
         newFunctionDeclaration =
             Node.map visitFunctionDeclaration function.declaration
     in
     { function | declaration = newFunctionDeclaration }
 
 
-visitFunctionDeclaration : FunctionImplementation -> FunctionImplementation
+visitFunctionDeclaration : Expression.FunctionImplementation -> Expression.FunctionImplementation
 visitFunctionDeclaration functionDeclaration =
     let
         newExpression : Node Expression
@@ -359,7 +359,7 @@ visitExpression : Node Expression -> Node Expression
 visitExpression expression =
     visitExpressionInner <|
         case expression of
-            Node r (Application function args) ->
+            Node r (Expression.Application function args) ->
                 Node r (fixApplication (function :: args))
 
             _ ->
@@ -370,58 +370,58 @@ visitExpressionInner : Node Expression -> Node Expression
 visitExpressionInner (Node range expression) =
     Node range <|
         case expression of
-            Application function args ->
-                Application (visitExpression function) (List.map visitExpression args)
+            Expression.Application function args ->
+                Expression.Application (visitExpression function) (List.map visitExpression args)
 
-            Operation op dir left right ->
-                Operation op
+            Expression.Operation op dir left right ->
+                Expression.Operation op
                     dir
                     (visitExpression left)
                     (visitExpression right)
 
-            If e1 e2 e3 ->
-                If (visitExpression e1) (visitExpression e2) (visitExpression e3)
+            Expression.If e1 e2 e3 ->
+                Expression.If (visitExpression e1) (visitExpression e2) (visitExpression e3)
 
-            TupleExpression expressionList ->
+            Expression.TupleExpression expressionList ->
                 expressionList
                     |> List.map visitExpression
-                    |> TupleExpression
+                    |> Expression.TupleExpression
 
-            LetExpression letBlock ->
-                LetExpression
+            Expression.LetExpression letBlock ->
+                Expression.LetExpression
                     { declarations = visitLetDeclarations letBlock.declarations
                     , expression = visitExpression letBlock.expression
                     }
 
-            CaseExpression caseBlock ->
-                CaseExpression
+            Expression.CaseExpression caseBlock ->
+                Expression.CaseExpression
                     { expression = visitExpression caseBlock.expression
                     , firstCase = Tuple.mapSecond visitExpression caseBlock.firstCase
                     , restOfCases = List.map (Tuple.mapSecond visitExpression) caseBlock.restOfCases
                     }
 
-            LambdaExpression lambda ->
-                LambdaExpression <| { lambda | expression = visitExpression lambda.expression }
+            Expression.LambdaExpression lambda ->
+                Expression.LambdaExpression <| { lambda | expression = visitExpression lambda.expression }
 
-            RecordExpr expressionStringList ->
+            Expression.RecordExpr expressionStringList ->
                 expressionStringList
                     |> List.map (Node.map (Tuple.mapSecond visitExpression))
-                    |> RecordExpr
+                    |> Expression.RecordExpr
 
-            ListLiteral expressionList ->
-                ListLiteral (List.map visitExpression expressionList)
+            Expression.ListLiteral expressionList ->
+                Expression.ListLiteral (List.map visitExpression expressionList)
 
-            RecordUpdate name firstUpdate updates ->
-                RecordUpdate
+            Expression.RecordUpdate name firstUpdate updates ->
+                Expression.RecordUpdate
                     name
                     (Node.map (Tuple.mapSecond visitExpression) firstUpdate)
                     (List.map (Node.map (Tuple.mapSecond visitExpression)) updates)
 
-            Negation expr ->
-                Negation (visitExpression expr)
+            Expression.Negation expr ->
+                Expression.Negation (visitExpression expr)
 
-            RecordAccess expr name ->
-                RecordAccess (visitExpression expr) name
+            Expression.RecordAccess expr name ->
+                Expression.RecordAccess (visitExpression expr) name
 
             _ ->
                 expression
