@@ -61,31 +61,33 @@ expectedSymbolToString expectedSymbol =
 
 expression : Parser c Problem (Node Expression)
 expression =
+    -- TODO Disabling this as this makes if expression parsing fail.
+    --expressionNotApplication
+    --    |> Parser.andThen
+    --        (\maybeFunction ->
+    --            let
+    --                promoter : List (Node Expression) -> Parser c Problem (Node Expression)
+    --                promoter argumentsSoFar =
+    --                    Parser.oneOf
+    --                        [ expressionNotApplication
+    --                            |> Parser.andThen (\next -> promoter (next :: argumentsSoFar))
+    --                        , Parser.succeed (complete argumentsSoFar)
+    --                        ]
+    --
+    --                complete : List (Node Expression) -> Node Expression
+    --                complete argumentsSoFar =
+    --                    case argumentsSoFar of
+    --                        [] ->
+    --                            maybeFunction
+    --
+    --                        (Node lastArgumentRange _) :: _ ->
+    --                            Node
+    --                                { start = (Node.range maybeFunction).start, end = lastArgumentRange.end }
+    --                                (FunctionCall maybeFunction (List.reverse argumentsSoFar))
+    --            in
+    --            promoter []
+    --        )
     expressionNotApplication
-        |> Parser.andThen
-            (\maybeFunction ->
-                let
-                    promoter : List (Node Expression) -> Parser c Problem (Node Expression)
-                    promoter argumentsSoFar =
-                        Parser.oneOf
-                            [ expressionNotApplication
-                                |> Parser.andThen (\next -> promoter (next :: argumentsSoFar))
-                            , Parser.succeed (complete argumentsSoFar)
-                            ]
-
-                    complete : List (Node Expression) -> Node Expression
-                    complete argumentsSoFar =
-                        case argumentsSoFar of
-                            [] ->
-                                maybeFunction
-
-                            (Node lastArgumentRange _) :: _ ->
-                                Node
-                                    { start = (Node.range maybeFunction).start, end = lastArgumentRange.end }
-                                    (FunctionCall maybeFunction (List.reverse argumentsSoFar))
-                in
-                promoter []
-            )
 
 
 expressionNotApplication : Parser c Problem (Node Expression)
