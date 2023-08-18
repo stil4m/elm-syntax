@@ -508,6 +508,39 @@ digits =
         }
 
 
+log : a -> Parser c x b -> Parser c x b
+log message parser =
+    Parser.succeed ()
+        |> Parser.andThen
+            (\() ->
+                let
+                    _ =
+                        Debug.log "starting" message
+                in
+                Parser.succeed
+                    (\source offsetBefore parseResult offsetAfter ->
+                        let
+                            _ =
+                                Debug.log "-----------------------------------------------" message
+
+                            _ =
+                                Debug.log "source         " source
+
+                            _ =
+                                Debug.log "chomped string " (String.slice offsetBefore offsetAfter source)
+
+                            _ =
+                                Debug.log "parsed result  " parseResult
+                        in
+                        parseResult
+                    )
+                    |= Parser.getSource
+                    |= Parser.getOffset
+                    |= parser
+                    |= Parser.getOffset
+            )
+
+
 node : Parser c x a -> Parser c x (Node a)
 node parser =
     Parser.succeed (\start a end -> Node { start = toLocation start, end = toLocation end } a)
