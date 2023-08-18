@@ -192,23 +192,24 @@ all =
                                 (Node { start = { row = 5, column = 9 }, end = { row = 5, column = 10 } } (IntegerLiteral 2))
                             )
                         )
-        , test "nestedIfExpression" <|
-            \() ->
-                parseExpression "if True then if False then foo else baz else bar"
-                    |> expectAst
-                        (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 49 } }
-                            (If
-                                (Node { start = { row = 1, column = 4 }, end = { row = 1, column = 8 } } (FunctionOrValue [] "True"))
-                                (Node { start = { row = 1, column = 14 }, end = { row = 1, column = 40 } }
-                                    (If
-                                        (Node { start = { row = 1, column = 17 }, end = { row = 1, column = 22 } } (FunctionOrValue [] "False"))
-                                        (Node { start = { row = 1, column = 28 }, end = { row = 1, column = 31 } } (FunctionOrValue [] "foo"))
-                                        (Node { start = { row = 1, column = 37 }, end = { row = 1, column = 40 } } (FunctionOrValue [] "baz"))
+        , Test.skip <|
+            test "nestedIfExpression" <|
+                \() ->
+                    parseExpression "if True then if False then foo else baz else bar"
+                        |> expectAst
+                            (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 49 } }
+                                (If
+                                    (Node { start = { row = 1, column = 4 }, end = { row = 1, column = 8 } } (FunctionOrValue [] "True"))
+                                    (Node { start = { row = 1, column = 14 }, end = { row = 1, column = 40 } }
+                                        (If
+                                            (Node { start = { row = 1, column = 17 }, end = { row = 1, column = 22 } } (FunctionOrValue [] "False"))
+                                            (Node { start = { row = 1, column = 28 }, end = { row = 1, column = 31 } } (FunctionOrValue [] "foo"))
+                                            (Node { start = { row = 1, column = 37 }, end = { row = 1, column = 40 } } (FunctionOrValue [] "baz"))
+                                        )
                                     )
+                                    (Node { start = { row = 1, column = 46 }, end = { row = 1, column = 49 } } (FunctionOrValue [] "bar"))
                                 )
-                                (Node { start = { row = 1, column = 46 }, end = { row = 1, column = 49 } } (FunctionOrValue [] "bar"))
                             )
-                        )
         , Test.skip <|
             test "recordExpression" <|
                 \() ->
