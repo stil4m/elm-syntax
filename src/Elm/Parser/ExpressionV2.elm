@@ -367,22 +367,19 @@ escapedCharValue =
 
 parenthesizedExpression : Pratt.Config c Problem (Node Expression) -> Parser c Problem (Node Expression)
 parenthesizedExpression config =
-    Parser.lazy
-        (\() ->
-            Parser.succeed identity
-                |. Parser.symbol (Parser.Token "(" P)
-                |= Parser.oneOf
-                    [ prefixOperatorParser
-                    , sequence
-                        { separator = Parser.Token "," P
-                        , end = Parser.Token ")" P
-                        , spaces = Parser.spaces
-                        , item = Pratt.subExpression 0 config
-                        }
-                        |> Parser.map TupleExpression
-                    ]
-                |> node
-        )
+    Parser.succeed identity
+        |. Parser.symbol (Parser.Token "(" P)
+        |= Parser.oneOf
+            [ prefixOperatorParser
+            , sequence
+                { separator = Parser.Token "," P
+                , end = Parser.Token ")" P
+                , spaces = Parser.spaces
+                , item = Pratt.subExpression 0 config
+                }
+                |> Parser.map TupleExpression
+            ]
+        |> node
 
 
 sequence :
@@ -462,34 +459,28 @@ prefixOperatorParser =
 
 listLiteral : Pratt.Config c Problem (Node Expression) -> Parser c Problem (Node Expression)
 listLiteral config =
-    Parser.lazy
-        (\() ->
-            Parser.sequence
-                { start = Parser.Token "[" P
-                , separator = Parser.Token "," P
-                , end = Parser.Token "]" P
-                , spaces = Parser.spaces
-                , item = Pratt.subExpression 1 config
-                , trailing = Parser.Forbidden
-                }
-        )
+    Parser.sequence
+        { start = Parser.Token "[" P
+        , separator = Parser.Token "," P
+        , end = Parser.Token "]" P
+        , spaces = Parser.spaces
+        , item = Pratt.subExpression 1 config
+        , trailing = Parser.Forbidden
+        }
         |> Parser.map ListLiteral
         |> node
 
 
 recordExpression : Pratt.Config c Problem (Node Expression) -> Parser c Problem (Node Expression)
 recordExpression config =
-    Parser.lazy
-        (\() ->
-            Parser.sequence
-                { start = Parser.Token "{" P
-                , separator = Parser.Token "," P
-                , end = Parser.Token "}" P
-                , spaces = Parser.spaces
-                , item = recordAssignment config
-                , trailing = Parser.Forbidden
-                }
-        )
+    Parser.sequence
+        { start = Parser.Token "{" P
+        , separator = Parser.Token "," P
+        , end = Parser.Token "}" P
+        , spaces = Parser.spaces
+        , item = recordAssignment config
+        , trailing = Parser.Forbidden
+        }
         |> Parser.map Record
         |> node
 
@@ -507,21 +498,18 @@ recordAssignment config =
 
 ifExpression : Pratt.Config c Problem (Node Expression) -> Parser c Problem (Node Expression)
 ifExpression config =
-    Parser.lazy
-        (\() ->
-            Parser.succeed Expression.If
-                |. Parser.symbol (Parser.Token "if" (Expected IfSymbol))
-                |. Parser.spaces
-                |= Pratt.subExpression 2 config
-                |. Parser.spaces
-                |. Parser.symbol (Parser.Token "then" (Expected ThenSymbol))
-                |. Parser.spaces
-                |= Pratt.subExpression 2 config
-                |. Parser.spaces
-                |. Parser.symbol (Parser.Token "else" (Expected ElseSymbol))
-                |. Parser.spaces
-                |= Pratt.subExpression 2 config
-        )
+    Parser.succeed Expression.If
+        |. Parser.symbol (Parser.Token "if" (Expected IfSymbol))
+        |. Parser.spaces
+        |= Pratt.subExpression 2 config
+        |. Parser.spaces
+        |. Parser.symbol (Parser.Token "then" (Expected ThenSymbol))
+        |. Parser.spaces
+        |= Pratt.subExpression 2 config
+        |. Parser.spaces
+        |. Parser.symbol (Parser.Token "else" (Expected ElseSymbol))
+        |. Parser.spaces
+        |= Pratt.subExpression 2 config
         |> node
 
 
