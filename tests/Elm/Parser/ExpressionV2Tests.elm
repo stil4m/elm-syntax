@@ -210,28 +210,27 @@ all =
                                     (Node { start = { row = 1, column = 46 }, end = { row = 1, column = 49 } } (FunctionOrValue [] "bar"))
                                 )
                             )
-        , Test.skip <|
-            test "recordExpression" <|
-                \() ->
-                    parseExpression "{ model = 0, view = view, update = update }"
-                        |> expectAst
-                            (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 44 } }
-                                (Record
-                                    [ Node { start = { row = 1, column = 3 }, end = { row = 1, column = 12 } }
-                                        ( Node { start = { row = 1, column = 3 }, end = { row = 1, column = 8 } } "model"
-                                        , Node { start = { row = 1, column = 11 }, end = { row = 1, column = 12 } } (IntegerLiteral 0)
-                                        )
-                                    , Node { start = { row = 1, column = 14 }, end = { row = 1, column = 25 } }
-                                        ( Node { start = { row = 1, column = 14 }, end = { row = 1, column = 18 } } "view"
-                                        , Node { start = { row = 1, column = 21 }, end = { row = 1, column = 25 } } (FunctionOrValue [] "view")
-                                        )
-                                    , Node { start = { row = 1, column = 27 }, end = { row = 1, column = 43 } }
-                                        ( Node { start = { row = 1, column = 27 }, end = { row = 1, column = 33 } } "update"
-                                        , Node { start = { row = 1, column = 36 }, end = { row = 1, column = 42 } } (FunctionOrValue [] "update")
-                                        )
-                                    ]
-                                )
+        , test "recordExpression" <|
+            \() ->
+                parseExpression "{ model = 0, view = view, update = update }"
+                    |> expectAst
+                        (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 44 } }
+                            (Record
+                                [ Node { start = { row = 1, column = 3 }, end = { row = 1, column = 12 } }
+                                    ( Node { start = { row = 1, column = 3 }, end = { row = 1, column = 8 } } "model"
+                                    , Node { start = { row = 1, column = 11 }, end = { row = 1, column = 12 } } (IntegerLiteral 0)
+                                    )
+                                , Node { start = { row = 1, column = 14 }, end = { row = 1, column = 25 } }
+                                    ( Node { start = { row = 1, column = 14 }, end = { row = 1, column = 18 } } "view"
+                                    , Node { start = { row = 1, column = 21 }, end = { row = 1, column = 25 } } (FunctionOrValue [] "view")
+                                    )
+                                , Node { start = { row = 1, column = 27 }, end = { row = 1, column = 43 } }
+                                    ( Node { start = { row = 1, column = 27 }, end = { row = 1, column = 33 } } "update"
+                                    , Node { start = { row = 1, column = 36 }, end = { row = 1, column = 42 } } (FunctionOrValue [] "update")
+                                    )
+                                ]
                             )
+                        )
         , Test.skip <|
             test "recordExpression with comment" <|
                 \() ->
