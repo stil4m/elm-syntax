@@ -66,27 +66,27 @@ expression =
             (\maybeFunction ->
                 let
                     promoter : List (Node Expression) -> Parser c Problem (Node Expression)
-                    promoter rest =
+                    promoter argumentsSoFar =
                         Parser.oneOf
                             [ expressionNotApplication
-                                |> Parser.andThen (\next -> promoter (next :: rest))
-                            , Parser.succeed (complete rest)
+                                |> Parser.andThen (\next -> promoter (next :: argumentsSoFar))
+                            , Parser.succeed (complete argumentsSoFar)
                             ]
 
                     complete : List (Node Expression) -> Node Expression
-                    complete rest =
-                        case rest of
+                    complete argumentsSoFar =
+                        case argumentsSoFar of
                             [] ->
                                 maybeFunction
 
                             _ ->
                                 let
                                     (Node { end } _) =
-                                        List.head rest |> Maybe.withDefault maybeFunction
+                                        List.head argumentsSoFar |> Maybe.withDefault maybeFunction
                                 in
                                 Node
                                     { start = (Node.range maybeFunction).start, end = end }
-                                    (FunctionCall maybeFunction (List.reverse rest))
+                                    (FunctionCall maybeFunction (List.reverse argumentsSoFar))
                 in
                 promoter []
             )
