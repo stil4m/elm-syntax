@@ -79,13 +79,9 @@ expression =
                             [] ->
                                 maybeFunction
 
-                            _ ->
-                                let
-                                    (Node { end } _) =
-                                        List.head argumentsSoFar |> Maybe.withDefault maybeFunction
-                                in
+                            (Node lastArgumentRange _) :: _ ->
                                 Node
-                                    { start = (Node.range maybeFunction).start, end = end }
+                                    { start = (Node.range maybeFunction).start, end = lastArgumentRange.end }
                                     (FunctionCall maybeFunction (List.reverse argumentsSoFar))
                 in
                 promoter []
