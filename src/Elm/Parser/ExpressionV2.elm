@@ -473,15 +473,17 @@ listLiteral config =
 
 recordExpression : Pratt.Config c Problem (Node Expression) -> Parser c Problem (Node Expression)
 recordExpression config =
-    Parser.sequence
-        { start = Parser.Token "{" P
-        , separator = Parser.Token "," P
-        , end = Parser.Token "}" P
-        , spaces = Parser.spaces
-        , item = recordAssignment config
-        , trailing = Parser.Forbidden
-        }
-        |> Parser.map Record
+    Parser.succeed identity
+        |. Parser.symbol (Parser.Token "{" P)
+        |= Parser.oneOf
+            [ sequence
+                { separator = Parser.Token "," P
+                , end = Parser.Token "}" P
+                , spaces = Parser.spaces
+                , item = recordAssignment config
+                }
+                |> Parser.map Record
+            ]
         |> node
 
 
