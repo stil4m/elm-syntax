@@ -21,6 +21,7 @@ type ExpectedSymbol
     = IfSymbol
     | ThenSymbol
     | ElseSymbol
+    | EqualsSymbol
 
 
 deadEndToString : Parser.DeadEnd c Problem -> String
@@ -57,6 +58,9 @@ expectedSymbolToString expectedSymbol =
 
         ElseSymbol ->
             "else"
+
+        EqualsSymbol ->
+            "="
 
 
 expression : Parser c Problem (Node Expression)
@@ -114,6 +118,7 @@ expressionNotApplication =
                 |> Pratt.literal
             , parenthesizedExpression
             , listLiteral
+            , recordExpression
             , ifExpression
             ]
         , andThenOneOf =
@@ -246,6 +251,12 @@ functionName =
         , reserved = Tokens.reservedKeywords
         , expecting = P
         }
+
+
+fieldName : Parser c Problem String
+fieldName =
+    -- Same rules as for functionName?
+    functionName
 
 
 multiLineStringLiteral : Parser c Problem String
@@ -463,6 +474,34 @@ listLiteral config =
                 }
         )
         |> Parser.map ListLiteral
+        |> node
+
+
+recordExpression : Pratt.Config c Problem (Node Expression) -> Parser c Problem (Node Expression)
+recordExpression config =
+    Parser.lazy
+        (\() ->
+            Parser.sequence
+                { start = Parser.Token "{" P
+                , separator = Parser.Token "," P
+                , end = Parser.Token "}" P
+                , spaces = Parser.spaces
+                , item = recordAssignment config
+                , trailing = Parser.Forbidden
+                }
+        )
+        |> Parser.map Record
+        |> node
+
+
+recordAssignment : Pratt.Config c Problem (Node Expression) -> Parser c Problem (Node ( Node String, Node Expression ))
+recordAssignment config =
+    Parser.succeed Tuple.pair
+        |= node functionName
+        |. Parser.spaces
+        |. Parser.symbol (Parser.Token "=" (Expected EqualsSymbol))
+        |. Parser.spaces
+        |= Pratt.subExpression 1 config
         |> node
 
 
