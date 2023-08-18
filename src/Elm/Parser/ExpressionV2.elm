@@ -112,9 +112,7 @@ expressionNotApplication =
                 |> Parser.map CharLiteral
                 |> node
                 |> Pratt.literal
-            , parenthesizedLiteral
-                |> node
-                |> Pratt.literal
+            , parenthesizedExpression
             , listLiteral
                 |> node
                 |> Pratt.literal
@@ -360,8 +358,8 @@ escapedCharValue =
         ]
 
 
-parenthesizedLiteral : Parser c Problem Expression
-parenthesizedLiteral =
+parenthesizedExpression : Pratt.Config c Problem (Node Expression) -> Parser c Problem (Node Expression)
+parenthesizedExpression config =
     Parser.lazy
         (\() ->
             Parser.succeed identity
@@ -372,10 +370,11 @@ parenthesizedLiteral =
                         { separator = Parser.Token "," P
                         , end = Parser.Token ")" P
                         , spaces = Parser.spaces
-                        , item = expression
+                        , item = Pratt.subExpression 0 config
                         }
                         |> Parser.map TupleExpression
                     ]
+                |> node
         )
 
 
