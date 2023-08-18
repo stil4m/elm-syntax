@@ -17,6 +17,7 @@ all =
         [ test "empty" <|
             \() ->
                 parseExpression ""
+                    |> Result.toMaybe
                     |> Expect.equal Nothing
         , test "Integer literal" <|
             \() ->
@@ -37,6 +38,7 @@ all =
         , test "Regression test for multiline strings with backslashes" <|
             \() ->
                 parseExpression "\"\"\"\\{\\}\"\"\""
+                    |> Result.toMaybe
                     |> Expect.equal Nothing
         , test "Regression test 2 for multiline strings with backslashes" <|
             \() ->
@@ -397,11 +399,13 @@ all =
             test "positive integer should be invalid" <|
                 \() ->
                     parseExpression "+1"
+                        |> Result.toMaybe
                         |> Expect.equal Nothing
         , Test.skip <|
             test "expression ending with an operator should not be valid" <|
                 \() ->
                     parseExpression "1++"
+                        |> Result.toMaybe
                         |> Expect.equal Nothing
         , Test.skip <|
             test "prefix notation" <|
@@ -496,18 +500,19 @@ all =
         ]
 
 
-parseExpression : String -> Maybe (Node Expression)
+parseExpression : String -> Result (List (Parser.DeadEnd c Elm.Parser.ExpressionV2.Problem)) (Node Expression)
 parseExpression source =
     Parser.run expression source
-        |> Result.toMaybe
 
 
-expectAst : Node Expression -> Maybe (Node Expression) -> Expect.Expectation
+expectAst : Node Expression -> Result (List (Parser.DeadEnd c Elm.Parser.ExpressionV2.Problem)) (Node Expression) -> Expect.Expectation
 expectAst expected result =
     case result of
-        Nothing ->
-            Expect.fail "Expected the source to be parsed correctly"
+        Err problems ->
+            ("Expected the source to be parsed correctly" :: List.map deadEndToString problems)
+                |> String.join "\n"
+                |> Expect.fail
 
-        Just actual ->
+        Ok actual ->
             actual
                 |> Expect.equal expected

@@ -1,4 +1,4 @@
-module Elm.Parser.ExpressionV2 exposing (expression)
+module Elm.Parser.ExpressionV2 exposing (Problem, deadEndToString, expression)
 
 import Elm.Parser.Tokens as Tokens
 import Elm.Syntax.Expression as Expression exposing (Expression(..), StringLiteralType(..))
@@ -14,6 +14,26 @@ import Unicode
 type Problem
     = P
     | Explanation String
+
+
+deadEndToString : Parser.DeadEnd c Problem -> String
+deadEndToString deadEnd =
+    "("
+        ++ String.fromInt deadEnd.row
+        ++ ","
+        ++ String.fromInt deadEnd.col
+        ++ ") "
+        ++ problemToString deadEnd.problem
+
+
+problemToString : Problem -> String
+problemToString problem =
+    case problem of
+        P ->
+            "No explanation"
+
+        Explanation explanation ->
+            explanation
 
 
 expression : Parser c Problem (Node Expression)
