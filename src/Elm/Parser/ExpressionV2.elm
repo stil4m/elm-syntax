@@ -114,8 +114,6 @@ expressionNotApplication =
                 |> Pratt.literal
             , parenthesizedExpression
             , listLiteral
-                |> node
-                |> Pratt.literal
             , ifExpression
             ]
         , andThenOneOf =
@@ -451,8 +449,8 @@ prefixOperatorParser =
         |. Parser.symbol (Parser.Token ")" P)
 
 
-listLiteral : Parser c Problem Expression
-listLiteral =
+listLiteral : Pratt.Config c Problem (Node Expression) -> Parser c Problem (Node Expression)
+listLiteral config =
     Parser.lazy
         (\() ->
             Parser.sequence
@@ -460,11 +458,12 @@ listLiteral =
                 , separator = Parser.Token "," P
                 , end = Parser.Token "]" P
                 , spaces = Parser.spaces
-                , item = expression
+                , item = Pratt.subExpression 1 config
                 , trailing = Parser.Forbidden
                 }
         )
         |> Parser.map ListLiteral
+        |> node
 
 
 ifExpression : Pratt.Config c Problem (Node Expression) -> Parser c Problem (Node Expression)
@@ -474,15 +473,15 @@ ifExpression config =
             Parser.succeed Expression.If
                 |. Parser.symbol (Parser.Token "if" (Expected IfSymbol))
                 |. Parser.spaces
-                |= Pratt.subExpression 1 config
+                |= Pratt.subExpression 2 config
                 |. Parser.spaces
                 |. Parser.symbol (Parser.Token "then" (Expected ThenSymbol))
                 |. Parser.spaces
-                |= Pratt.subExpression 1 config
+                |= Pratt.subExpression 2 config
                 |. Parser.spaces
                 |. Parser.symbol (Parser.Token "else" (Expected ElseSymbol))
                 |. Parser.spaces
-                |= Pratt.subExpression 1 config
+                |= Pratt.subExpression 2 config
         )
         |> node
 
