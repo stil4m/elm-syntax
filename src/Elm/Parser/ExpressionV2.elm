@@ -13,7 +13,14 @@ import Unicode
 
 type Problem
     = P
+    | Expected ExpectedSymbol
     | Explanation String
+
+
+type ExpectedSymbol
+    = IfSymbol
+    | ThenSymbol
+    | ElseSymbol
 
 
 deadEndToString : Parser.DeadEnd c Problem -> String
@@ -32,8 +39,24 @@ problemToString problem =
         P ->
             "No explanation"
 
+        Expected expectedSymbol ->
+            "Expected to see a " ++ expectedSymbolToString expectedSymbol
+
         Explanation explanation ->
             explanation
+
+
+expectedSymbolToString : ExpectedSymbol -> String
+expectedSymbolToString expectedSymbol =
+    case expectedSymbol of
+        IfSymbol ->
+            "if"
+
+        ThenSymbol ->
+            "then"
+
+        ElseSymbol ->
+            "else"
 
 
 expression : Parser c Problem (Node Expression)
@@ -456,15 +479,15 @@ ifExpression =
     Parser.lazy
         (\() ->
             Parser.succeed Expression.If
-                |. Parser.symbol (Parser.Token "if" P)
+                |. Parser.symbol (Parser.Token "if" (Expected IfSymbol))
                 |. Parser.spaces
                 |= expression
                 |. Parser.spaces
-                |. Parser.symbol (Parser.Token "then" P)
+                |. Parser.symbol (Parser.Token "then" (Expected ThenSymbol))
                 |. Parser.spaces
                 |= expression
                 |. Parser.spaces
-                |. Parser.symbol (Parser.Token "else" P)
+                |. Parser.symbol (Parser.Token "else" (Expected ElseSymbol))
                 |. Parser.spaces
                 |= expression
         )
