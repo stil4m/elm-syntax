@@ -70,25 +70,23 @@ expression =
                         Parser.oneOf
                             [ expressionNotApplication
                                 |> Parser.andThen (\next -> promoter (next :: rest))
-                            , complete rest
+                            , Parser.succeed (complete rest)
                             ]
 
-                    complete : List (Node Expression) -> Parser c x (Node Expression)
+                    complete : List (Node Expression) -> Node Expression
                     complete rest =
                         case rest of
                             [] ->
-                                Parser.succeed maybeFunction
+                                maybeFunction
 
                             _ ->
                                 let
                                     (Node { end } _) =
                                         List.head rest |> Maybe.withDefault maybeFunction
                                 in
-                                Parser.succeed
-                                    (Node
-                                        { start = (Node.range maybeFunction).start, end = end }
-                                        (FunctionCall maybeFunction (List.reverse rest))
-                                    )
+                                Node
+                                    { start = (Node.range maybeFunction).start, end = end }
+                                    (FunctionCall maybeFunction (List.reverse rest))
                 in
                 promoter []
             )
