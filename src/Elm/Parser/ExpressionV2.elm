@@ -373,7 +373,7 @@ quotedSingleQuote =
     Parser.succeed (String.toList >> List.head >> Maybe.withDefault ' ')
         |. Parser.symbol (Parser.Token "'" P)
         |= Parser.oneOf
-            [ Parser.succeed (List.singleton >> String.fromList)
+            [ Parser.succeed String.fromChar
                 |. Parser.symbol (Parser.Token "\\" P)
                 |= escapedCharValue
             , Parser.getChompedString (Parser.chompIf (always True) P)
