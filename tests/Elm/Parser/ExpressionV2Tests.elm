@@ -31,6 +31,11 @@ all =
             \() ->
                 parseExpression "'c'"
                     |> expectAst (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 4 } } (CharLiteral 'c'))
+        , test "should not parse character literal with multiple characters" <|
+            \() ->
+                parseExpression "'abc'"
+                    |> Result.toMaybe
+                    |> Expect.equal Nothing
         , test "String literal multiline" <|
             \() ->
                 parseExpression "\"\"\"Bar foo \n a\"\"\""
