@@ -493,7 +493,7 @@ recordExpressionAfterFieldOrVarName config fieldOrVarName =
         |= Parser.oneOf
             -- TODO Support {}
             [ Parser.succeed
-                (\firstAssigmentValue restOfAssignements ->
+                (\firstAssigmentValue restOfAssignments ->
                     let
                         firstAssigment : Node ( Node String, Node Expression )
                         firstAssigment =
@@ -501,7 +501,7 @@ recordExpressionAfterFieldOrVarName config fieldOrVarName =
                                 { start = (Node.range fieldOrVarName).start, end = (Node.range firstAssigmentValue).end }
                                 ( fieldOrVarName, firstAssigmentValue )
                     in
-                    Record (firstAssigment :: restOfAssignements)
+                    Record (firstAssigment :: restOfAssignments)
                 )
                 |. Parser.symbol (Parser.Token "=" (Expected EqualsSymbol))
                 |. Parser.spaces
@@ -514,6 +514,17 @@ recordExpressionAfterFieldOrVarName config fieldOrVarName =
                     , Parser.symbol (Parser.Token "," P)
                         |> Parser.andThen (\() -> recordAssignments config)
                     ]
+            , Parser.succeed
+                (\firstAssigment restOfAssignments ->
+                    RecordUpdate fieldOrVarName firstAssigment restOfAssignments
+                )
+                |. Parser.symbol (Parser.Token "|" (Expected PipeSymbol))
+                |. Parser.spaces
+                |= recordAssignment config
+                |. Parser.spaces
+                |. Parser.symbol (Parser.Token "," P)
+                |. Parser.spaces
+                |= recordAssignments config
             ]
 
 
