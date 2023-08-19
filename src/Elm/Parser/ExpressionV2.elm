@@ -21,6 +21,7 @@ type ExpectedSymbol
     = IfSymbol
     | ThenSymbol
     | ElseSymbol
+    | DotSymbol
     | EqualsSymbol
     | PipeSymbol
 
@@ -59,6 +60,9 @@ expectedSymbolToString expectedSymbol =
 
         ElseSymbol ->
             "else"
+
+        DotSymbol ->
+            "."
 
         EqualsSymbol ->
             "="
@@ -581,7 +585,7 @@ recordAssignment config =
 recordAccessFunction : Parser c Problem (Node Expression)
 recordAccessFunction =
     Parser.succeed RecordAccessFunction
-        |. Parser.symbol (Parser.Token "." P)
+        |. Parser.symbol (Parser.Token "." (Expected DotSymbol))
         |= fieldName
         |> node
 
