@@ -480,9 +480,12 @@ recordExpression config =
     Parser.succeed identity
         |. Parser.symbol (Parser.Token "{" P)
         |. Parser.spaces
-        |= (node functionName
+        |= Parser.oneOf
+            [ Parser.symbol (Parser.Token "}" P)
+                |> Parser.map (\() -> Record [])
+            , node functionName
                 |> Parser.andThen (recordExpressionAfterFieldOrVarName config)
-           )
+            ]
         |> node
 
 
@@ -491,7 +494,6 @@ recordExpressionAfterFieldOrVarName config fieldOrVarName =
     Parser.succeed identity
         |. Parser.spaces
         |= Parser.oneOf
-            -- TODO Support {}
             [ Parser.succeed
                 (\firstAssigmentValue restOfAssignments ->
                     let
@@ -507,7 +509,6 @@ recordExpressionAfterFieldOrVarName config fieldOrVarName =
                 |. Parser.spaces
                 |= Pratt.subExpression 1 config
                 |. Parser.spaces
-                -- TODO Add test for record with a single field
                 |= Parser.oneOf
                     [ Parser.symbol (Parser.Token "}" P)
                         |> Parser.map (\() -> [])

@@ -231,6 +231,45 @@ all =
                                 ]
                             )
                         )
+        , test "Nested recordExpression" <|
+            \() ->
+                parseExpression "{ noFields = {}, oneField = { a = 1 }, twoFields = { b = 2, c = 3 } }"
+                    |> expectAst
+                        (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 70 } }
+                            (Record
+                                [ Node { start = { row = 1, column = 3 }, end = { row = 1, column = 16 } }
+                                    ( Node { start = { row = 1, column = 3 }, end = { row = 1, column = 11 } } "noFields"
+                                    , Node { start = { row = 1, column = 14 }, end = { row = 1, column = 16 } } (Record [])
+                                    )
+                                , Node { start = { row = 1, column = 18 }, end = { row = 1, column = 38 } }
+                                    ( Node { start = { row = 1, column = 18 }, end = { row = 1, column = 26 } } "oneField"
+                                    , Node { start = { row = 1, column = 29 }, end = { row = 1, column = 38 } }
+                                        (Record
+                                            [ Node { start = { row = 1, column = 31 }, end = { row = 1, column = 36 } }
+                                                ( Node { start = { row = 1, column = 31 }, end = { row = 1, column = 32 } } "a"
+                                                , Node { start = { row = 1, column = 35 }, end = { row = 1, column = 36 } } (IntegerLiteral 1)
+                                                )
+                                            ]
+                                        )
+                                    )
+                                , Node { start = { row = 1, column = 40 }, end = { row = 1, column = 69 } }
+                                    ( Node { start = { row = 1, column = 40 }, end = { row = 1, column = 49 } } "twoFields"
+                                    , Node { start = { row = 1, column = 52 }, end = { row = 1, column = 68 } }
+                                        (Record
+                                            [ Node { start = { row = 1, column = 54 }, end = { row = 1, column = 59 } }
+                                                ( Node { start = { row = 1, column = 54 }, end = { row = 1, column = 55 } } "b"
+                                                , Node { start = { row = 1, column = 58 }, end = { row = 1, column = 59 } } (IntegerLiteral 2)
+                                                )
+                                            , Node { start = { row = 1, column = 61 }, end = { row = 1, column = 67 } }
+                                                ( Node { start = { row = 1, column = 61 }, end = { row = 1, column = 62 } } "c"
+                                                , Node { start = { row = 1, column = 65 }, end = { row = 1, column = 66 } } (IntegerLiteral 3)
+                                                )
+                                            ]
+                                        )
+                                    )
+                                ]
+                            )
+                        )
         , Test.skip <|
             test "recordExpression with comment" <|
                 \() ->
