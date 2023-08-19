@@ -36,6 +36,10 @@ all =
                 parseExpression "'abc'"
                     |> Result.toMaybe
                     |> Expect.equal Nothing
+        , test "should parse character literal with multiple characters if the first one is escaping a character" <|
+            \() ->
+                parseExpression "'\\''"
+                    |> expectAst (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 5 } } (CharLiteral '\''))
         , test "String literal multiline" <|
             \() ->
                 parseExpression "\"\"\"Bar foo \n a\"\"\""
