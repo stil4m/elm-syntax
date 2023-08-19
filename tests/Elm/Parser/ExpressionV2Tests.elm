@@ -409,26 +409,25 @@ all =
                 parseExpression "{ model | }"
                     |> Result.toMaybe
                     |> Expect.equal Nothing
-        , Test.skip <|
-            test "record update no spacing" <|
-                \() ->
-                    parseExpression "{model| count = 1, loading = True }"
-                        |> expectAst
-                            (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 36 } }
-                                (RecordUpdate
-                                    (Node { start = { row = 1, column = 2 }, end = { row = 1, column = 7 } } "model")
-                                    (Node { start = { row = 1, column = 9 }, end = { row = 1, column = 18 } }
-                                        ( Node { start = { row = 1, column = 9 }, end = { row = 1, column = 14 } } "count"
-                                        , Node { start = { row = 1, column = 17 }, end = { row = 1, column = 18 } } (IntegerLiteral 1)
-                                        )
+        , test "record update no spacing" <|
+            \() ->
+                parseExpression "{model| count = 1, loading = True }"
+                    |> expectAst
+                        (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 36 } }
+                            (RecordUpdate
+                                (Node { start = { row = 1, column = 2 }, end = { row = 1, column = 7 } } "model")
+                                (Node { start = { row = 1, column = 9 }, end = { row = 1, column = 18 } }
+                                    ( Node { start = { row = 1, column = 9 }, end = { row = 1, column = 14 } } "count"
+                                    , Node { start = { row = 1, column = 17 }, end = { row = 1, column = 18 } } (IntegerLiteral 1)
                                     )
-                                    [ Node { start = { row = 1, column = 20 }, end = { row = 1, column = 35 } }
-                                        ( Node { start = { row = 1, column = 20 }, end = { row = 1, column = 27 } } "loading"
-                                        , Node { start = { row = 1, column = 30 }, end = { row = 1, column = 34 } } (FunctionOrValue [] "True")
-                                        )
-                                    ]
                                 )
+                                [ Node { start = { row = 1, column = 20 }, end = { row = 1, column = 35 } }
+                                    ( Node { start = { row = 1, column = 20 }, end = { row = 1, column = 27 } } "loading"
+                                    , Node { start = { row = 1, column = 30 }, end = { row = 1, column = 34 } } (FunctionOrValue [] "True")
+                                    )
+                                ]
                             )
+                        )
         , Test.skip <|
             test "record access as function" <|
                 \() ->
