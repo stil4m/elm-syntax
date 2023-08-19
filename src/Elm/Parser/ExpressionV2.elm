@@ -128,6 +128,7 @@ expressionNotApplication =
         , andThenOneOf =
             [ infixRight 0 "<|"
             , infixLeft 0 "|>"
+            , functionCall
             , infixRight 2 "||"
             , infixRight 3 "&&"
 
@@ -199,6 +200,25 @@ infixRight precedence symbol =
             Node
                 { start = (Node.range left).start, end = (Node.range right).end }
                 (Operation symbol Infix.Right left right)
+        )
+
+
+functionCall : Pratt.Config c Problem (Node Expression) -> ( Int, Node Expression -> Parser c Problem (Node Expression) )
+functionCall =
+    -- TODO Does not work yet, seems to discard the right part
+    Pratt.infixRight 1
+        (Parser.symbol (Parser.Token " " P))
+        (\((Node leftRange leftValue) as left) right ->
+            case leftValue of
+                Expression.FunctionCall fn args ->
+                    Node
+                        { start = leftRange.start, end = (Node.range right).end }
+                        (Expression.FunctionCall fn (args ++ [ right ]))
+
+                _ ->
+                    Node
+                        { start = leftRange.start, end = (Node.range right).end }
+                        (Expression.FunctionCall left [ right ])
         )
 
 
