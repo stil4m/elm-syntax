@@ -322,11 +322,10 @@ all =
                 \() ->
                     parseExpression "[{-| Foo -}]"
                         |> expectAst (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 13 } } (ListLiteral []))
-        , Test.skip <|
-            test "qualified expression" <|
-                \() ->
-                    parseExpression "Html.text"
-                        |> expectAst (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 10 } } (FunctionOrValue [ "Html" ] "text"))
+        , test "qualified expression" <|
+            \() ->
+                parseExpression "Html.text"
+                    |> expectAst (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 10 } } (FunctionOrValue [ "Html" ] "text"))
         , Test.skip <|
             test "record access" <|
                 \() ->
