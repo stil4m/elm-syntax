@@ -22,6 +22,7 @@ type ExpectedSymbol
     | ThenSymbol
     | ElseSymbol
     | EqualsSymbol
+    | PipeSymbol
 
 
 deadEndToString : Parser.DeadEnd c Problem -> String
@@ -61,6 +62,9 @@ expectedSymbolToString expectedSymbol =
 
         EqualsSymbol ->
             "="
+
+        PipeSymbol ->
+            "|"
 
 
 expression : Parser c Problem (Node Expression)
@@ -475,16 +479,52 @@ recordExpression : Pratt.Config c Problem (Node Expression) -> Parser c Problem 
 recordExpression config =
     Parser.succeed identity
         |. Parser.symbol (Parser.Token "{" P)
-        |= Parser.oneOf
-            [ sequence
-                { separator = Parser.Token "," P
-                , end = Parser.Token "}" P
-                , spaces = Parser.spaces
-                , item = recordAssignment config
-                }
-                |> Parser.map Record
-            ]
+        |. Parser.spaces
+        |= (node functionName
+                |> Parser.andThen (recordExpressionAfterFieldOrVarName config)
+           )
         |> node
+
+
+recordExpressionAfterFieldOrVarName : Pratt.Config c Problem (Node Expression) -> Node String -> Parser c Problem Expression
+recordExpressionAfterFieldOrVarName config fieldOrVarName =
+    Parser.succeed identity
+        |. Parser.spaces
+        |= Parser.oneOf
+            -- TODO Support {}
+            [ Parser.succeed
+                (\firstAssigmentValue restOfAssignements ->
+                    let
+                        firstAssigment : Node ( Node String, Node Expression )
+                        firstAssigment =
+                            Node
+                                { start = (Node.range fieldOrVarName).start, end = (Node.range firstAssigmentValue).end }
+                                ( fieldOrVarName, firstAssigmentValue )
+                    in
+                    Record (firstAssigment :: restOfAssignements)
+                )
+                |. Parser.symbol (Parser.Token "=" (Expected EqualsSymbol))
+                |. Parser.spaces
+                |= Pratt.subExpression 1 config
+                |. Parser.spaces
+                -- TODO Add test for record with a single field
+                |= Parser.oneOf
+                    [ Parser.symbol (Parser.Token "}" P)
+                        |> Parser.map (\_ -> [])
+                    , Parser.symbol (Parser.Token "," P)
+                        |> Parser.andThen (\() -> recordAssignments config)
+                    ]
+            ]
+
+
+recordAssignments : Pratt.Config c Problem (Node Expression) -> Parser c Problem (List (Node ( Node String, Node Expression )))
+recordAssignments config =
+    sequence
+        { separator = Parser.Token "," P
+        , end = Parser.Token "}" P
+        , spaces = Parser.spaces
+        , item = recordAssignment config
+        }
 
 
 recordAssignment : Pratt.Config c Problem (Node Expression) -> Parser c Problem (Node ( Node String, Node Expression ))
