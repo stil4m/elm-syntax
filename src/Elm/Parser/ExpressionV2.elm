@@ -366,13 +366,14 @@ stringLiteral =
 
 quotedSingleQuote : Parser c Problem (Node Expression)
 quotedSingleQuote =
-    Parser.succeed (\c -> c |> String.toList |> List.head |> Maybe.withDefault ' ' |> CharLiteral)
+    Parser.succeed CharLiteral
         |. Parser.symbol (Parser.Token "'" P)
         |= Parser.oneOf
-            [ Parser.succeed String.fromChar
+            [ Parser.succeed identity
                 |. Parser.symbol (Parser.Token "\\" P)
                 |= escapedCharValue
             , Parser.getChompedString (Parser.chompIf (always True) P)
+                |> Parser.map (\c -> c |> String.toList |> List.head |> Maybe.withDefault ' ')
             ]
         |. Parser.symbol (Parser.Token "'" P)
         |> node
