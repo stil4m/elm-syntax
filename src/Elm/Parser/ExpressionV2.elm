@@ -102,7 +102,9 @@ expressionNotApplication : Parser c Problem (Node Expression)
 expressionNotApplication =
     Pratt.expression
         { oneOf =
-            [ digits
+            [ recordAccessFunction
+                |> Pratt.literal
+            , digits
                 |> node
                 |> Pratt.literal
             , reference
@@ -569,6 +571,14 @@ recordAssignment config =
         |. Parser.symbol (Parser.Token "=" (Expected EqualsSymbol))
         |. Parser.spaces
         |= Pratt.subExpression 1 config
+        |> node
+
+
+recordAccessFunction : Parser c Problem (Node Expression)
+recordAccessFunction =
+    Parser.succeed RecordAccessFunction
+        |. Parser.symbol (Parser.Token "." P)
+        |= fieldName
         |> node
 
 
