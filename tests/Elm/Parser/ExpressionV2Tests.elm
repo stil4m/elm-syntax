@@ -430,8 +430,16 @@ all =
                                 ]
                             )
                         )
+        , test "Record access function" <|
+            \() ->
+                parseExpression ".name"
+                    |> expectAst
+                        (Node
+                            { start = { row = 1, column = 1 }, end = { row = 1, column = 6 } }
+                            (RecordAccessFunction "name")
+                        )
         , Test.skip <|
-            test "record access as function" <|
+            test "Record access function (in application)" <|
                 \() ->
                     parseExpression "List.map .name people"
                         |> expectAst
