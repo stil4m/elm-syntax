@@ -115,16 +115,10 @@ expressionNotApplication =
                 |> node
                 |> Pratt.literal
             , multiLineStringLiteral
-                |> Parser.map (\s -> StringLiteral TripleQuote s)
-                |> node
                 |> Pratt.literal
             , stringLiteral
-                |> Parser.map (\s -> StringLiteral SingleQuote s)
-                |> node
                 |> Pratt.literal
             , quotedSingleQuote
-                |> Parser.map CharLiteral
-                |> node
                 |> Pratt.literal
             , parenthesizedExpression
             , listLiteral
@@ -293,7 +287,7 @@ fieldName =
         }
 
 
-multiLineStringLiteral : Parser c Problem String
+multiLineStringLiteral : Parser c Problem (Node Expression)
 multiLineStringLiteral =
     let
         helper : MultilineStringLiteralLoopState -> Parser c Problem (Parser.Step MultilineStringLiteralLoopState String)
@@ -326,12 +320,13 @@ multiLineStringLiteral =
                             )
                     ]
     in
-    Parser.succeed identity
+    Parser.succeed (\s -> StringLiteral TripleQuote s)
         |. Parser.symbol (Parser.Token "\"\"\"" P)
         |= Parser.loop { escaped = False, parts = [], counter = 0 } helper
+        |> node
 
 
-stringLiteral : Parser c Problem String
+stringLiteral : Parser c Problem (Node Expression)
 stringLiteral =
     let
         helper : { escaped : Bool, parts : List String } -> Parser c Problem (Parser.Step { escaped : Bool, parts : List String } String)
@@ -363,14 +358,15 @@ stringLiteral =
                             )
                     ]
     in
-    Parser.succeed identity
+    Parser.succeed (\s -> StringLiteral SingleQuote s)
         |. Parser.symbol (Parser.Token "\"" P)
         |= Parser.loop { escaped = False, parts = [] } helper
+        |> node
 
 
-quotedSingleQuote : Parser c Problem Char
+quotedSingleQuote : Parser c Problem (Node Expression)
 quotedSingleQuote =
-    Parser.succeed (String.toList >> List.head >> Maybe.withDefault ' ')
+    Parser.succeed (\c -> c |> String.toList |> List.head |> Maybe.withDefault ' ' |> CharLiteral)
         |. Parser.symbol (Parser.Token "'" P)
         |= Parser.oneOf
             [ Parser.succeed String.fromChar
@@ -379,6 +375,7 @@ quotedSingleQuote =
             , Parser.getChompedString (Parser.chompIf (always True) P)
             ]
         |. Parser.symbol (Parser.Token "'" P)
+        |> node
 
 
 escapedCharValue : Parser c Problem Char
