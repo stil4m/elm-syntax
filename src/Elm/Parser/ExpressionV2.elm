@@ -275,7 +275,7 @@ multiLineStringLiteral =
             else
                 Parser.oneOf
                     [ Parser.symbol (Parser.Token "\"\"\"" P)
-                        |> Parser.map (\_ -> Parser.Done (String.concat (List.reverse parts)))
+                        |> Parser.map (\() -> Parser.Done (String.concat (List.reverse parts)))
                     , Parser.symbol (Parser.Token "\"" P)
                         |> Parser.getChompedString
                         |> Parser.map (\v -> Parser.Loop { counter = counter + 1, escaped = escaped, parts = v :: parts })
@@ -316,7 +316,7 @@ stringLiteral =
             else
                 Parser.oneOf
                     [ Parser.symbol (Parser.Token "\"" P)
-                        |> Parser.map (\_ -> Parser.Done (String.concat <| List.reverse parts))
+                        |> Parser.map (\() -> Parser.Done (String.concat <| List.reverse parts))
                     , Parser.getChompedString (Parser.symbol (Parser.Token "\\" P))
                         |> Parser.map (\_ -> Parser.Loop { escaped = True, parts = parts })
                     , Parser.succeed (\start value end -> ( start, value, end ))
@@ -414,7 +414,7 @@ sequenceEnd ender ws parseItem sep =
     in
     Parser.oneOf
         [ parseItem |> Parser.andThen chompRest
-        , ender |> Parser.map (\_ -> [])
+        , ender |> Parser.map (\() -> [])
         ]
 
 
@@ -423,7 +423,7 @@ sequenceEndForbidden ender ws parseItem sep revItems =
     skip ws <|
         Parser.oneOf
             [ skip sep <| skip ws <| Parser.map (\item -> Parser.Loop (item :: revItems)) parseItem
-            , ender |> Parser.map (\_ -> Parser.Done (List.reverse revItems))
+            , ender |> Parser.map (\() -> Parser.Done (List.reverse revItems))
             ]
 
 
@@ -510,7 +510,7 @@ recordExpressionAfterFieldOrVarName config fieldOrVarName =
                 -- TODO Add test for record with a single field
                 |= Parser.oneOf
                     [ Parser.symbol (Parser.Token "}" P)
-                        |> Parser.map (\_ -> [])
+                        |> Parser.map (\() -> [])
                     , Parser.symbol (Parser.Token "," P)
                         |> Parser.andThen (\() -> recordAssignments config)
                     ]
