@@ -281,8 +281,12 @@ functionName =
 
 fieldName : Parser c Problem String
 fieldName =
-    -- Same rules as for functionName?
-    functionName
+    Parser.variable
+        { start = Unicode.isLower
+        , inner = \c -> Unicode.isAlphaNum c || c == '_'
+        , reserved = Tokens.reservedKeywords
+        , expecting = Explanation "Expected a field name"
+        }
 
 
 multiLineStringLiteral : Parser c Problem String
