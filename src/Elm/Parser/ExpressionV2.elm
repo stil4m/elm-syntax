@@ -535,17 +535,19 @@ recordExpressionAfterFieldOrVarName config fieldOrVarName =
                     , Parser.symbol (Parser.Token "," P)
                         |> Parser.andThen (\() -> recordAssignments config)
                     ]
-            , Parser.succeed
-                (\firstAssigment restOfAssignments ->
-                    RecordUpdate fieldOrVarName firstAssigment restOfAssignments
-                )
+            , Parser.succeed identity
                 |. Parser.symbol (Parser.Token "|" (Expected PipeSymbol))
                 |. Parser.spaces
-                |= recordAssignment config
-                |. Parser.spaces
-                |. Parser.symbol (Parser.Token "," P)
-                |. Parser.spaces
                 |= recordAssignments config
+                |> Parser.andThen
+                    (\assignments ->
+                        case assignments of
+                            [] ->
+                                Parser.problem (Explanation "Expected to see at least one assignment in a record update.")
+
+                            firstAssigment :: restOfAssignments ->
+                                Parser.succeed (RecordUpdate fieldOrVarName firstAssigment restOfAssignments)
+                    )
             ]
 
 

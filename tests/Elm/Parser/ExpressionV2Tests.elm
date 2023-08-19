@@ -389,6 +389,26 @@ all =
                                 ]
                             )
                         )
+        , test "record update with one field" <|
+            \() ->
+                parseExpression "{ model | count = 1 }"
+                    |> expectAst
+                        (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 22 } }
+                            (RecordUpdate
+                                (Node { start = { row = 1, column = 3 }, end = { row = 1, column = 8 } } "model")
+                                (Node { start = { row = 1, column = 11 }, end = { row = 1, column = 20 } }
+                                    ( Node { start = { row = 1, column = 11 }, end = { row = 1, column = 16 } } "count"
+                                    , Node { start = { row = 1, column = 19 }, end = { row = 1, column = 20 } } (IntegerLiteral 1)
+                                    )
+                                )
+                                []
+                            )
+                        )
+        , test "Should not parse record update without assignments" <|
+            \() ->
+                parseExpression "{ model | }"
+                    |> Result.toMaybe
+                    |> Expect.equal Nothing
         , Test.skip <|
             test "record update no spacing" <|
                 \() ->
