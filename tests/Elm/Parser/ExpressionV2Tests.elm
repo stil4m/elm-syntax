@@ -36,6 +36,11 @@ all =
                 parseExpression "'abc'"
                     |> Result.toMaybe
                     |> Expect.equal Nothing
+        , test "should not parse empty character literal" <|
+            \() ->
+                parseExpression "''"
+                    |> Result.toMaybe
+                    |> Expect.equal Nothing
         , test "should parse character literal with multiple characters if the first one is escaping a character" <|
             \() ->
                 parseExpression "'\\''"
