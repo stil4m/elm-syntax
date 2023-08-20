@@ -618,7 +618,7 @@ digits =
         , hex = Err P
         , octal = Err P
         , binary = Err P
-        , float = Err P
+        , float = Ok Expression.FloatLiteral
         , invalid = P
         , expecting = P
         }
