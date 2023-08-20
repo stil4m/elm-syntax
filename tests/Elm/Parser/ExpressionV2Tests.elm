@@ -23,6 +23,16 @@ all =
             \() ->
                 parseExpression "101"
                     |> expectAst (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 4 } } (IntegerLiteral 101))
+        , Test.skip <|
+            test "Float literal" <|
+                \() ->
+                    parseExpression "0.1001"
+                        |> expectAst (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 4 } } (FloatLiteral 0.1001))
+        , test "should not parse float literal that starts with ." <|
+            \() ->
+                parseExpression ".1001"
+                    |> Result.toMaybe
+                    |> Expect.equal Nothing
         , test "String literal" <|
             \() ->
                 parseExpression "\"Bar\""
