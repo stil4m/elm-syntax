@@ -592,15 +592,10 @@ ifExpression : Pratt.Config c Problem (Node Expression) -> Parser c Problem (Nod
 ifExpression config =
     Parser.succeed Expression.If
         |. Parser.symbol (Parser.Token "if" (Expected IfSymbol))
-        |. Parser.spaces
         |= Pratt.subExpression 2 config
-        |. Parser.spaces
         |. Parser.symbol (Parser.Token "then" (Expected ThenSymbol))
-        |. Parser.spaces
         |= Pratt.subExpression 2 config
-        |. Parser.spaces
         |. Parser.symbol (Parser.Token "else" (Expected ElseSymbol))
-        |. Parser.spaces
         |= Pratt.subExpression 2 config
         |> node
 
