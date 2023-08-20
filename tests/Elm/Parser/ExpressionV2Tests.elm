@@ -488,18 +488,16 @@ all =
                                     ]
                                 )
                             )
-        , Test.skip <|
-            test "positive integer should be invalid" <|
-                \() ->
-                    parseExpression "+1"
-                        |> Result.toMaybe
-                        |> Expect.equal Nothing
-        , Test.skip <|
-            test "expression ending with an operator should not be valid" <|
-                \() ->
-                    parseExpression "1++"
-                        |> Result.toMaybe
-                        |> Expect.equal Nothing
+        , test "positive integer should be invalid" <|
+            \() ->
+                parseExpression "+1"
+                    |> Result.toMaybe
+                    |> Expect.equal Nothing
+        , test "expression ending with an operator should not be valid" <|
+            \() ->
+                parseExpression "1++"
+                    |> Result.toMaybe
+                    |> Expect.equal Nothing
         , Test.skip <|
             test "prefix notation" <|
                 \() ->
