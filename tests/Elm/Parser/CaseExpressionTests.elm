@@ -173,36 +173,26 @@ case x of True -> 1
    False -> 2
 """
                     |> expectInvalid
-        , test "update case expression" <|
+        , test "should parse case expression when " <|
             \() ->
-                parseFullStringWithNullState """case msg of
+                """case msg of
   Increment ->
-    model + 1
+    1
+
   Decrement ->
-    model - 1""" Parser.expression
-                    |> Maybe.map (Node.value >> noRangeInnerExpression)
-                    |> Expect.equal
-                        (Just
+    2"""
+                    |> expectAst
+                        (Node { start = { row = 1, column = 1 }, end = { row = 6, column = 6 } }
                             (CaseExpression
-                                { expression = Node empty <| FunctionOrValue [] "msg"
-                                , cases =
-                                    [ ( Node empty <| NamedPattern (QualifiedNameRef [] "Increment") []
-                                      , Node empty <|
-                                            Application
-                                                [ Node empty <| FunctionOrValue [] "model"
-                                                , Node empty <| Operator "+"
-                                                , Node empty <| Integer 1
-                                                ]
+                                { cases =
+                                    [ ( Node { start = { row = 2, column = 3 }, end = { row = 2, column = 12 } } (NamedPattern { moduleName = [], name = "Increment" } [])
+                                      , Node { start = { row = 3, column = 5 }, end = { row = 3, column = 6 } } (Integer 1)
                                       )
-                                    , ( Node empty <| NamedPattern (QualifiedNameRef [] "Decrement") []
-                                      , Node empty <|
-                                            Application
-                                                [ Node empty <| FunctionOrValue [] "model"
-                                                , Node empty <| Operator "-"
-                                                , Node empty <| Integer 1
-                                                ]
+                                    , ( Node { start = { row = 5, column = 3 }, end = { row = 5, column = 12 } } (NamedPattern { moduleName = [], name = "Decrement" } [])
+                                      , Node { start = { row = 6, column = 5 }, end = { row = 6, column = 6 } } (Integer 2)
                                       )
                                     ]
+                                , expression = Node { start = { row = 1, column = 6 }, end = { row = 1, column = 9 } } (FunctionOrValue [] "msg")
                                 }
                             )
                         )
