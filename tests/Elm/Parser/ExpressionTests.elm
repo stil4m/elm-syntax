@@ -14,23 +14,23 @@ all =
     describe "ExpressionTests"
         [ test "empty" <|
             \() ->
-                parseFullStringWithNullState "" expression
-                    |> Expect.equal Nothing
+                ""
+                    |> expectInvalid
         , test "Integer literal" <|
             \() ->
-                parseFullStringWithNullState "101" expression
+                "101"
                     |> expectAst (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 4 } } (Integer 101))
         , test "String literal" <|
             \() ->
-                parseFullStringWithNullState "\"Bar\"" expression
+                "\"Bar\""
                     |> expectAst (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 6 } } (Literal "Bar"))
         , test "character literal" <|
             \() ->
-                parseFullStringWithNullState "'c'" expression
+                "'c'"
                     |> expectAst (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 4 } } (CharLiteral 'c'))
         , test "tuple expression" <|
             \() ->
-                parseFullStringWithNullState "(1,2)" expression
+                "(1,2)"
                     |> expectAst
                         (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 6 } }
                             (TupledExpression
@@ -41,39 +41,39 @@ all =
                         )
         , test "prefix expression" <|
             \() ->
-                parseFullStringWithNullState "(,)" expression
+                "(,)"
                     |> expectAst (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 4 } } (PrefixOperator ","))
         , test "String literal multiline" <|
             \() ->
-                parseFullStringWithNullState "\"\"\"Bar foo \n a\"\"\"" expression
+                "\"\"\"Bar foo \n a\"\"\""
                     |> expectAst (Node { start = { row = 1, column = 1 }, end = { row = 2, column = 6 } } (Literal "Bar foo \n a"))
         , test "Regression test for multiline strings with backslashes" <|
             \() ->
-                parseFullStringWithNullState "\"\"\"\\{\\}\"\"\"" expression
-                    |> Expect.equal Nothing
+                "\"\"\"\\{\\}\"\"\""
+                    |> expectInvalid
         , test "Regression test 2 for multiline strings with backslashes" <|
             \() ->
-                parseFullStringWithNullState "\"\"\"\\\\{\\\\}\"\"\"" expression
+                "\"\"\"\\\\{\\\\}\"\"\""
                     |> expectAst (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 13 } } (Literal "\\{\\}"))
         , test "Regression test 3 for multiline strings with backslashes" <|
             \() ->
-                parseFullStringWithNullState "\"\"\"\\\\a-blablabla-\\\\b\"\"\"" expression
+                "\"\"\"\\\\a-blablabla-\\\\b\"\"\""
                     |> expectAst (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 24 } } (Literal "\\a-blablabla-\\b"))
         , test "Type expression for upper case" <|
             \() ->
-                parseFullStringWithNullState "Bar" expression
+                "Bar"
                     |> expectAst (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 4 } } (FunctionOrValue [] "Bar"))
         , test "Type expression for lower case" <|
             \() ->
-                parseFullStringWithNullState "bar" expression
+                "bar"
                     |> expectAst (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 4 } } (FunctionOrValue [] "bar"))
         , test "Type expression for lower case but qualified" <|
             \() ->
-                parseFullStringWithNullState "Bar.foo" expression
+                "Bar.foo"
                     |> expectAst (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 8 } } (FunctionOrValue [ "Bar" ] "foo"))
         , test "parenthesizedExpression" <|
             \() ->
-                parseFullStringWithNullState "(bar)" expression
+                "(bar)"
                     |> expectAst
                         (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 6 } }
                             (ParenthesizedExpression
@@ -82,7 +82,7 @@ all =
                         )
         , test "application expression" <|
             \() ->
-                parseFullStringWithNullState "List.concat []" expression
+                "List.concat []"
                     |> expectAst
                         (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 15 } } <|
                             Application
@@ -92,7 +92,7 @@ all =
                         )
         , test "application expression with operator" <|
             \() ->
-                parseFullStringWithNullState "model + 1" expression
+                "model + 1"
                     |> expectAst
                         (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 10 } } <|
                             Application
@@ -103,7 +103,7 @@ all =
                         )
         , test "application expression 2" <|
             \() ->
-                parseFullStringWithNullState "(\"\", always (List.concat [ [ fileName ], [] ]))" expression
+                "(\"\", always (List.concat [ [ fileName ], [] ]))"
                     |> expectAst
                         (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 48 } } <|
                             TupledExpression
@@ -134,11 +134,11 @@ all =
                         )
         , test "expressionNotApplication simple" <|
             \() ->
-                parseFullStringWithNullState "foo" expression
+                "foo"
                     |> expectAst (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 4 } } (FunctionOrValue [] "foo"))
         , test "unit application" <|
             \() ->
-                parseFullStringWithNullState "Task.succeed ()" expression
+                "Task.succeed ()"
                     |> expectAst
                         (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 16 } }
                             (Application
@@ -149,7 +149,7 @@ all =
                         )
         , test "Function call" <|
             \() ->
-                parseFullStringWithNullState "foo bar" expression
+                "foo bar"
                     |> expectAst
                         (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 8 } }
                             (Application
@@ -160,7 +160,7 @@ all =
                         )
         , test "ifBlockExpression" <|
             \() ->
-                parseFullStringWithNullState "if True then foo else bar" expression
+                "if True then foo else bar"
                     |> expectAst
                         (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 26 } }
                             (IfBlock
@@ -171,7 +171,7 @@ all =
                         )
         , test "nestedIfExpression" <|
             \() ->
-                parseFullStringWithNullState "if True then if False then foo else baz else bar" expression
+                "if True then if False then foo else baz else bar"
                     |> expectAst
                         (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 49 } }
                             (IfBlock
@@ -188,7 +188,7 @@ all =
                         )
         , test "recordExpression" <|
             \() ->
-                parseFullStringWithNullState "{ model = 0, view = view, update = update }" expression
+                "{ model = 0, view = view, update = update }"
                     |> expectAst
                         (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 44 } }
                             (RecordExpr
@@ -209,7 +209,7 @@ all =
                         )
         , test "recordExpression with comment" <|
             \() ->
-                parseFullStringWithNullState "{ foo = 1 -- bar\n , baz = 2 }" expression
+                "{ foo = 1 -- bar\n , baz = 2 }"
                     |> expectAst
                         (Node { start = { row = 1, column = 1 }, end = { row = 2, column = 13 } }
                             (RecordExpr
@@ -226,7 +226,7 @@ all =
                         )
         , test "listExpression" <|
             \() ->
-                parseFullStringWithNullState "[ class \"a\", text \"Foo\"]" expression
+                "[ class \"a\", text \"Foo\"]"
                     |> expectAst
                         (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 25 } }
                             (ListExpr
@@ -247,7 +247,7 @@ all =
                         )
         , test "listExpression singleton with comment" <|
             \() ->
-                parseFullStringWithNullState "[ 1 {- Foo-} ]" expression
+                "[ 1 {- Foo-} ]"
                     |> expectAst
                         (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 15 } }
                             (ListExpr
@@ -257,15 +257,15 @@ all =
                         )
         , test "listExpression empty with comment" <|
             \() ->
-                parseFullStringWithNullState "[{-| Foo -}]" expression
+                "[{-| Foo -}]"
                     |> expectAst (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 13 } } (ListExpr []))
         , test "qualified expression" <|
             \() ->
-                parseFullStringWithNullState "Html.text" expression
+                "Html.text"
                     |> expectAst (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 10 } } (FunctionOrValue [ "Html" ] "text"))
         , test "record access" <|
             \() ->
-                parseFullStringWithNullState "foo.bar" expression
+                "foo.bar"
                     |> expectAst
                         (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 8 } }
                             (RecordAccess
@@ -275,7 +275,7 @@ all =
                         )
         , test "multiple record access operations" <|
             \() ->
-                parseFullStringWithNullState "foo.bar.baz" expression
+                "foo.bar.baz"
                     |> expectAst
                         (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 12 } }
                             (RecordAccess
@@ -290,7 +290,7 @@ all =
                         )
         , test "multiple record access operations with module name" <|
             \() ->
-                parseFullStringWithNullState "A.B.foo.bar.baz" expression
+                "A.B.foo.bar.baz"
                     |> expectAst
                         (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 16 } }
                             (RecordAccess
@@ -305,7 +305,7 @@ all =
                         )
         , test "record update" <|
             \() ->
-                parseFullStringWithNullState "{ model | count = 1, loading = True }" expression
+                "{ model | count = 1, loading = True }"
                     |> expectAst
                         (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 38 } }
                             (RecordUpdateExpression
@@ -323,7 +323,7 @@ all =
                         )
         , test "record update no spacing" <|
             \() ->
-                parseFullStringWithNullState "{model| count = 1, loading = True }" expression
+                "{model| count = 1, loading = True }"
                     |> expectAst
                         (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 36 } }
                             (RecordUpdateExpression
@@ -341,7 +341,7 @@ all =
                         )
         , test "record access as function" <|
             \() ->
-                parseFullStringWithNullState "List.map .name people" expression
+                "List.map .name people"
                     |> expectAst
                         (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 22 } }
                             (Application
@@ -353,7 +353,7 @@ all =
                         )
         , test "record access direct" <|
             \() ->
-                parseFullStringWithNullState "(.spaceEvenly Internal.Style.classes)" expression
+                "(.spaceEvenly Internal.Style.classes)"
                     |> expectAst
                         (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 38 } }
                             (ParenthesizedExpression
@@ -368,15 +368,15 @@ all =
                         )
         , test "positive integer should be invalid" <|
             \() ->
-                parseFullStringWithNullState "+1" expression
-                    |> Expect.equal Nothing
+                "+1"
+                    |> expectInvalid
         , test "expression ending with an operator should not be valid" <|
             \() ->
-                parseFullStringWithNullState "1++" expression
-                    |> Expect.equal Nothing
+                "1++"
+                    |> expectInvalid
         , test "prefix notation" <|
             \() ->
-                parseFullStringWithNullState "(::) x" expression
+                "(::) x"
                     |> expectAst
                         (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 7 } }
                             (Application
@@ -387,14 +387,14 @@ all =
                         )
         , test "negated expression for value" <|
             \() ->
-                parseFullStringWithNullState "-x" expression
+                "-x"
                     |> expectAst
                         (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 3 } }
                             (Negation (Node { start = { row = 1, column = 2 }, end = { row = 1, column = 3 } } (FunctionOrValue [] "x")))
                         )
         , test "negated expression in application" <|
             \() ->
-                parseFullStringWithNullState "toFloat -5" expression
+                "toFloat -5"
                     |> expectAst
                         (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 11 } }
                             (Application
@@ -406,7 +406,7 @@ all =
                         )
         , test "negated expression for parenthesized" <|
             \() ->
-                parseFullStringWithNullState "-(x - y)" expression
+                "-(x - y)"
                     |> expectAst
                         (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 9 } }
                             (Negation
@@ -426,7 +426,7 @@ all =
                         )
         , test "function with higher order" <|
             \() ->
-                parseFullStringWithNullState "chompWhile (\\c -> c == ' ' || c == '\\n' || c == '\\r')" expression
+                "chompWhile (\\c -> c == ' ' || c == '\\n' || c == '\\r')"
                     |> expectAst
                         (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 54 } }
                             (Application
@@ -462,12 +462,22 @@ all =
         ]
 
 
-expectAst : Node Expression -> Maybe (Node Expression) -> Expect.Expectation
-expectAst expected result =
-    case result of
+expectAst : Node Expression -> String -> Expect.Expectation
+expectAst expected source =
+    case parseFullStringWithNullState source expression of
         Nothing ->
             Expect.fail "Expected the source to be parsed correctly"
 
         Just actual ->
             actual
                 |> Expect.equal expected
+
+
+expectInvalid : String -> Expect.Expectation
+expectInvalid source =
+    case parseFullStringWithNullState source expression of
+        Nothing ->
+            Expect.pass
+
+        Just actual ->
+            Expect.fail ("This source code is successfully parsed but it shouldn't:\n" ++ Debug.toString actual)
