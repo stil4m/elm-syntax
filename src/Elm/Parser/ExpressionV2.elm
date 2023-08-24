@@ -575,7 +575,6 @@ recordAssignment config =
         |= node functionName
         |. Parser.spaces
         |. Parser.symbol (Parser.Token "=" (Expected EqualsSymbol))
-        |. Parser.spaces
         |= Pratt.subExpression 1 config
         |> node
 
