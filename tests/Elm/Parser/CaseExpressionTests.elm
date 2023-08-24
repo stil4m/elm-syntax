@@ -41,15 +41,16 @@ of
                             , Node { start = { row = 1, column = 5 }, end = { row = 1, column = 14 } } <| FunctionOrValue [] "Backspace"
                             )
                         )
-        , test "caseStatement wrong indent" <|
-            \() ->
-                parseFullStringWithNullState """True ->
-1""" Parser.caseStatement
-                    |> Expect.equal Nothing
         , test "should fail to parse a branch at the start of a line" <|
             \() ->
                 """case True of
 True -> 1"""
+                    |> expectInvalid
+        , test "should fail to parse when branch body starts at the start of a line" <|
+            \() ->
+                """case f of
+  True ->
+1"""
                     |> expectInvalid
         , test "case expression" <|
             \() ->
