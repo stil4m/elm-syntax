@@ -20,19 +20,11 @@ all =
                     |> Expect.equal (Just (FunctionOrValue [] "True"))
         , test "case block with wrong indent" <|
             \() ->
-                parseFullStringWithNullState """case
+                """case
 True
-of""" Parser.caseBlock
-                    |> Expect.equal Nothing
-        , test "caseStatement qualified" <|
-            \() ->
-                parseFullStringWithNullState """Foo.Bar -> 1""" Parser.caseStatement
-                    |> Expect.equal
-                        (Just
-                            ( Node { start = { row = 1, column = 1 }, end = { row = 1, column = 8 } } <| NamedPattern (QualifiedNameRef [ "Foo" ] "Bar") []
-                            , Node { start = { row = 1, column = 12 }, end = { row = 1, column = 13 } } <| Integer 1
-                            )
-                        )
+of
+    A -> 1"""
+                    |> expectInvalid
         , test "caseStatement no spacing" <|
             \() ->
                 parseFullStringWithNullState """32->Backspace""" Parser.caseStatement
@@ -124,6 +116,28 @@ False -> 2""" Parser.caseStatements
                                                 NamedPattern (QualifiedNameRef [] "False") []
                                           , Node { start = { row = 3, column = 12 }, end = { row = 3, column = 13 } } <|
                                                 Integer 2
+                                          )
+                                        ]
+                                    }
+                                )
+                            )
+                        )
+        , test "case expression with qualified imports" <|
+            \() ->
+                parseFullStringWithNullState """case f of
+  Foo.Bar -> 1""" Parser.expression
+                    |> Expect.equal
+                        (Just
+                            (Node { start = { row = 1, column = 1 }, end = { row = 2, column = 15 } }
+                                (CaseExpression
+                                    { expression =
+                                        Node { start = { row = 1, column = 6 }, end = { row = 1, column = 7 } } <|
+                                            FunctionOrValue [] "f"
+                                    , cases =
+                                        [ ( Node { start = { row = 2, column = 3 }, end = { row = 2, column = 10 } } <|
+                                                NamedPattern (QualifiedNameRef [ "Foo" ] "Bar") []
+                                          , Node { start = { row = 2, column = 14 }, end = { row = 2, column = 15 } } <|
+                                                Integer 1
                                           )
                                         ]
                                     }
