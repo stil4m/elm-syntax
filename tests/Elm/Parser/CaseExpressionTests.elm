@@ -15,16 +15,18 @@ all =
     describe "Case expression tests"
         [ test "case block" <|
             \() ->
-                parseFullStringWithNullState "case True of" Parser.caseBlock
+                parseFullStringWithNullState """case True of""" Parser.caseBlock
                     |> Maybe.map Node.value
                     |> Expect.equal (Just (FunctionOrValue [] "True"))
         , test "case block with wrong indent" <|
             \() ->
-                parseFullStringWithNullState "case\nTrue\nof" Parser.caseBlock
+                parseFullStringWithNullState """case
+True
+of""" Parser.caseBlock
                     |> Expect.equal Nothing
         , test "caseStatement" <|
             \() ->
-                parseFullStringWithNullState "True -> 1" Parser.caseStatement
+                parseFullStringWithNullState """True -> 1""" Parser.caseStatement
                     |> Expect.equal
                         (Just
                             ( Node { start = { row = 1, column = 1 }, end = { row = 1, column = 5 } } <| NamedPattern (QualifiedNameRef [] "True") []
@@ -33,7 +35,7 @@ all =
                         )
         , test "caseStatement qualified" <|
             \() ->
-                parseFullStringWithNullState "Foo.Bar -> 1" Parser.caseStatement
+                parseFullStringWithNullState """Foo.Bar -> 1""" Parser.caseStatement
                     |> Expect.equal
                         (Just
                             ( Node { start = { row = 1, column = 1 }, end = { row = 1, column = 8 } } <| NamedPattern (QualifiedNameRef [ "Foo" ] "Bar") []
@@ -42,7 +44,7 @@ all =
                         )
         , test "caseStatement no spacing" <|
             \() ->
-                parseFullStringWithNullState "32->Backspace" Parser.caseStatement
+                parseFullStringWithNullState """32->Backspace""" Parser.caseStatement
                     |> Expect.equal
                         (Just
                             ( Node { start = { row = 1, column = 1 }, end = { row = 1, column = 3 } } <| IntPattern 32
@@ -51,11 +53,13 @@ all =
                         )
         , test "caseStatement wrong indent" <|
             \() ->
-                parseFullStringWithNullState "True -> \n1" Parser.caseStatement
+                parseFullStringWithNullState """True -> 
+1""" Parser.caseStatement
                     |> Expect.equal Nothing
         , test "caseStatement correct on new line" <|
             \() ->
-                parseFullStringWithNullState "True ->\n  1" Parser.caseStatement
+                parseFullStringWithNullState """True ->
+  1""" Parser.caseStatement
                     |> Expect.equal
                         (Just
                             ( Node { start = { row = 1, column = 1 }, end = { row = 1, column = 5 } } <| NamedPattern (QualifiedNameRef [] "True") []
@@ -64,7 +68,8 @@ all =
                         )
         , test "caseStatements" <|
             \() ->
-                parseFullStringWithNullState "True -> 1\nFalse -> 2" Parser.caseStatements
+                parseFullStringWithNullState """True -> 1
+False -> 2""" Parser.caseStatements
                     |> Maybe.map (List.map (Tuple.mapSecond noRangeExpression >> Tuple.mapFirst noRangePattern))
                     |> Expect.equal
                         (Just
@@ -78,7 +83,9 @@ all =
                         )
         , test "case expression" <|
             \() ->
-                parseFullStringWithNullState "case f of\n  True -> 1\n  False -> 2" Parser.expression
+                parseFullStringWithNullState """case f of
+  True -> 1
+  False -> 2""" Parser.expression
                     |> Maybe.map (Node.value >> noRangeInnerExpression)
                     |> Expect.equal
                         (Just
@@ -97,7 +104,9 @@ all =
                         )
         , test "case expression (range)" <|
             \() ->
-                parseFullStringWithNullState "case f of\n  True -> 1\n  False -> 2" Parser.expression
+                parseFullStringWithNullState """case f of
+  True -> 1
+  False -> 2""" Parser.expression
                     |> Expect.equal
                         (Just
                             (Node { start = { row = 1, column = 1 }, end = { row = 3, column = 13 } }
@@ -123,7 +132,11 @@ all =
                         )
         , test "case expression (range) - with trailing whitespace" <|
             \() ->
-                parseFullStringWithNullState "case f of\n  True -> 1\n  False -> 2\n\n" Parser.expression
+                parseFullStringWithNullState """case f of
+  True -> 1
+  False -> 2
+
+""" Parser.expression
                     |> Expect.equal
                         (Just
                             (Node { start = { row = 1, column = 1 }, end = { row = 3, column = 13 } }
@@ -149,12 +162,18 @@ all =
                         )
         , test "case expression wrong - indent second case" <|
             \() ->
-                parseFullStringWithNullState "case f of\n  True -> 1\n False -> 2" Parser.expression
+                parseFullStringWithNullState """case f of
+  True -> 1
+ False -> 2""" Parser.expression
                     |> Maybe.map (Node.value >> noRangeInnerExpression)
                     |> Expect.equal Nothing
         , test "update case expression" <|
             \() ->
-                parseFullStringWithNullState "case msg of\n  Increment ->\n    model + 1\n  Decrement ->\n    model - 1" Parser.expression
+                parseFullStringWithNullState """case msg of
+  Increment ->
+    model + 1
+  Decrement ->
+    model - 1""" Parser.expression
                     |> Maybe.map (Node.value >> noRangeInnerExpression)
                     |> Expect.equal
                         (Just
