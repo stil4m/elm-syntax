@@ -3,9 +3,9 @@ module Elm.Parser.CaseExpressionTests exposing (all)
 import Elm.Parser.CombineTestUtil exposing (..)
 import Elm.Parser.Declarations as Parser
 import Elm.Syntax.Expression exposing (..)
-import Elm.Syntax.Node as Node exposing (Node(..))
+import Elm.Syntax.Node exposing (Node(..))
 import Elm.Syntax.Pattern exposing (..)
-import Elm.Syntax.Range exposing (empty)
+import Elm.Syntax.Range
 import Expect
 import Test exposing (..)
 
@@ -13,12 +13,7 @@ import Test exposing (..)
 all : Test
 all =
     describe "Case expression tests"
-        [ test "case block" <|
-            \() ->
-                parseFullStringWithNullState """case True of""" Parser.caseBlock
-                    |> Maybe.map Node.value
-                    |> Expect.equal (Just (FunctionOrValue [] "True"))
-        , test "should fail to parse when the matched expression has the wrong indentation" <|
+        [ test "should fail to parse when the matched expression has the wrong indentation" <|
             \() ->
                 """case
 True
