@@ -183,3 +183,24 @@ all =
                             )
                         )
         ]
+
+
+expectAst : Node Expression -> String -> Expect.Expectation
+expectAst expected source =
+    case parseFullStringWithNullState source Parser.expression of
+        Nothing ->
+            Expect.fail "Expected the source to be parsed correctly"
+
+        Just actual ->
+            actual
+                |> Expect.equal expected
+
+
+expectInvalid : String -> Expect.Expectation
+expectInvalid source =
+    case parseFullStringWithNullState source Parser.expression of
+        Nothing ->
+            Expect.pass
+
+        Just actual ->
+            Expect.fail ("This source code is successfully parsed but it shouldn't:\n" ++ Debug.toString actual)
