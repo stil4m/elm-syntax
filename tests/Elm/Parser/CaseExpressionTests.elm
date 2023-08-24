@@ -132,11 +132,9 @@ False -> 2""" Parser.caseStatements
                         )
         , test "case expression wrong - indent second case" <|
             \() ->
-                parseFullStringWithNullState """case f of
+                expectInvalid """case f of
   True -> 1
- False -> 2""" Parser.expression
-                    |> Maybe.map (Node.value >> noRangeInnerExpression)
-                    |> Expect.equal Nothing
+ False -> 2"""
         , test "update case expression" <|
             \() ->
                 parseFullStringWithNullState """case msg of
