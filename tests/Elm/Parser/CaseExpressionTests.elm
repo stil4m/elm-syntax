@@ -5,7 +5,6 @@ import Elm.Parser.Declarations as Parser
 import Elm.Syntax.Expression exposing (..)
 import Elm.Syntax.Node exposing (Node(..))
 import Elm.Syntax.Pattern exposing (..)
-import Elm.Syntax.Range
 import Expect
 import Test exposing (..)
 
