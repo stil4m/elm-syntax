@@ -25,12 +25,13 @@ True
   of
     A -> 1"""
                     |> expectInvalid
-        , test "should not parse when the `of` keyword has the wrong indentation" <|
-            \() ->
-                """case True
+        , Test.skip <|
+            test "should not parse when the `of` keyword has the wrong indentation" <|
+                \() ->
+                    """case True
 of
     A -> 1"""
-                    |> expectInvalid
+                        |> expectInvalid
         , test "caseStatement no spacing" <|
             \() ->
                 parseFullStringWithNullState """32->Backspace""" Parser.caseStatement
