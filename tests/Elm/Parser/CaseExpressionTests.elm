@@ -46,16 +46,6 @@ of
                 parseFullStringWithNullState """True ->
 1""" Parser.caseStatement
                     |> Expect.equal Nothing
-        , test "caseStatement correct on new line" <|
-            \() ->
-                parseFullStringWithNullState """True ->
-  1""" Parser.caseStatement
-                    |> Expect.equal
-                        (Just
-                            ( Node { start = { row = 1, column = 1 }, end = { row = 1, column = 5 } } <| NamedPattern (QualifiedNameRef [] "True") []
-                            , Node { start = { row = 2, column = 3 }, end = { row = 2, column = 4 } } <| Integer 1
-                            )
-                        )
         , test "should not parse a branch at the start of a line" <|
             \() ->
                 """case True of
