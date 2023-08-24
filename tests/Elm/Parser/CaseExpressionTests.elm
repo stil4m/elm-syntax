@@ -151,6 +151,16 @@ False -> 2""" Parser.caseStatements
                                 )
                             )
                         )
+        , Test.skip <|
+            test "should parse case expression with first branch on the same line as case of" <|
+                \() ->
+                    """
+case x of True -> 1
+          False -> 2
+"""
+                        |> expectAst
+                            -- AST is incorrect, but this should parse to something correct
+                            (Node { start = { row = 1, column = 1 }, end = { row = 2, column = 15 } } UnitExpr)
         , test "should fail to parse case expression with second branch indented differently than the first line (before)" <|
             \() ->
                 expectInvalid """case f of
