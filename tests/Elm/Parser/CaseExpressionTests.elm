@@ -56,21 +56,11 @@ of
                             , Node { start = { row = 2, column = 3 }, end = { row = 2, column = 4 } } <| Integer 1
                             )
                         )
-        , test "caseStatements" <|
+        , test "should not parse a branch at the start of a line" <|
             \() ->
-                parseFullStringWithNullState """True -> 1
-False -> 2""" Parser.caseStatements
-                    |> Maybe.map (List.map (Tuple.mapSecond noRangeExpression >> Tuple.mapFirst noRangePattern))
-                    |> Expect.equal
-                        (Just
-                            [ ( Node.empty <| NamedPattern (QualifiedNameRef [] "True") []
-                              , Node.empty <| Integer 1
-                              )
-                            , ( Node.empty <| NamedPattern (QualifiedNameRef [] "False") []
-                              , Node.empty <| Integer 2
-                              )
-                            ]
-                        )
+                """case True of
+True -> 1"""
+                    |> expectInvalid
         , test "case expression" <|
             \() ->
                 """case f of
