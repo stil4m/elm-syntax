@@ -32,15 +32,6 @@ True
 of
     A -> 1"""
                         |> expectInvalid
-        , test "caseStatement no spacing" <|
-            \() ->
-                parseFullStringWithNullState """32->Backspace""" Parser.caseStatement
-                    |> Expect.equal
-                        (Just
-                            ( Node { start = { row = 1, column = 1 }, end = { row = 1, column = 3 } } <| IntPattern 32
-                            , Node { start = { row = 1, column = 5 }, end = { row = 1, column = 14 } } <| FunctionOrValue [] "Backspace"
-                            )
-                        )
         , test "should fail to parse a branch at the start of a line" <|
             \() ->
                 """case True of
@@ -120,6 +111,26 @@ True -> 1"""
                                     [ ( Node { start = { row = 2, column = 3 }, end = { row = 2, column = 10 } } <|
                                             NamedPattern (QualifiedNameRef [ "Foo" ] "Bar") []
                                       , Node { start = { row = 2, column = 14 }, end = { row = 2, column = 15 } } <|
+                                            Integer 1
+                                      )
+                                    ]
+                                }
+                            )
+                        )
+        , test "case expression with no space between pattern and value" <|
+            \() ->
+                """case f of
+  x->1"""
+                    |> expectAst
+                        (Node { start = { row = 1, column = 1 }, end = { row = 2, column = 7 } }
+                            (CaseExpression
+                                { expression =
+                                    Node { start = { row = 1, column = 6 }, end = { row = 1, column = 7 } } <|
+                                        FunctionOrValue [] "f"
+                                , cases =
+                                    [ ( Node { start = { row = 2, column = 3 }, end = { row = 2, column = 4 } } <|
+                                            VarPattern "x"
+                                      , Node { start = { row = 2, column = 6 }, end = { row = 2, column = 7 } } <|
                                             Integer 1
                                       )
                                     ]
