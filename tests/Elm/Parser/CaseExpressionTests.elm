@@ -18,7 +18,7 @@ all =
                 parseFullStringWithNullState """case True of""" Parser.caseBlock
                     |> Maybe.map Node.value
                     |> Expect.equal (Just (FunctionOrValue [] "True"))
-        , test "should not parse when the matched expression has the wrong indentation" <|
+        , test "should fail to parse when the matched expression has the wrong indentation" <|
             \() ->
                 """case
 True
@@ -26,7 +26,7 @@ True
     A -> 1"""
                     |> expectInvalid
         , Test.skip <|
-            test "should not parse when the `of` keyword has the wrong indentation" <|
+            test "should fail to parse when the `of` keyword has the wrong indentation" <|
                 \() ->
                     """case True
 of
@@ -46,7 +46,7 @@ of
                 parseFullStringWithNullState """True ->
 1""" Parser.caseStatement
                     |> Expect.equal Nothing
-        , test "should not parse a branch at the start of a line" <|
+        , test "should fail to parse a branch at the start of a line" <|
             \() ->
                 """case True of
 True -> 1"""
