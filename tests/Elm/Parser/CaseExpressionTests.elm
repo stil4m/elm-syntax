@@ -151,11 +151,18 @@ False -> 2""" Parser.caseStatements
                                 )
                             )
                         )
-        , test "case expression wrong - indent second case" <|
+        , test "should fail to parse case expression with second branch indented differently than the first line (before)" <|
             \() ->
                 expectInvalid """case f of
   True -> 1
  False -> 2"""
+        , test "should fail to parse case expression with second branch indented differently than the first line (after)" <|
+            \() ->
+                """case f of
+  True -> 1
+   False -> 2
+"""
+                    |> expectInvalid
         , test "update case expression" <|
             \() ->
                 parseFullStringWithNullState """case msg of
