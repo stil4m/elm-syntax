@@ -39,6 +39,10 @@ all =
             \() ->
                 "exposing (. .)"
                     |> expectInvalid
+        , test "should fail to parse empty exposing list" <|
+            \() ->
+                "exposing ()"
+                    |> expectInvalid
         , test "Explicit exposing list" <|
             \() ->
                 "exposing (Model,Msg(..),Info(..),init,(::))"
