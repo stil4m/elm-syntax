@@ -3,6 +3,7 @@
 ## [Unreleased]
 
 - Stop parsing `FloatPattern` (this is an invalid pattern in Elm 0.19)
+- Stop parsing `Destructuring` declaration (this is an invalid declaration in Elm 0.19)
 
 ## [7.3.1] - 2022-08-16
 

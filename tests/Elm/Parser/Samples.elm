@@ -12,7 +12,6 @@ allSamples =
     , sample7
     , sample8
     , sample9
-    , sample10
     , sample11
     , sample12
     , sample13
@@ -623,13 +622,6 @@ update msg model =
 
 
       """
-
-
-sample10 : String
-sample10 =
-    """module X exposing (..)
-
-{k,v} = r"""
 
 
 sample11 : String

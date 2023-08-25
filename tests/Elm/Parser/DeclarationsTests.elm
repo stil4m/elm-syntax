@@ -469,16 +469,10 @@ all =
                                 }
                             )
                         )
-        , test "Destructuring declaration" <|
+        , test "should fail to parse destructuring declaration at the top-level" <|
             \() ->
-                parseFullStringWithNullState "_ = b" declaration
-                    |> Maybe.map Node.value
-                    |> Expect.equal
-                        (Just
-                            (Destructuring (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 2 } } AllPattern)
-                                (Node { start = { row = 1, column = 5 }, end = { row = 1, column = 6 } } (FunctionOrValue [] "b"))
-                            )
-                        )
+                "_ = b"
+                    |> expectInvalid
         , test "declaration" <|
             \() ->
                 parseFullStringState emptyState "main =\n  text \"Hello, World!\"" Parser.function
@@ -666,3 +660,13 @@ all =
                 parseFullStringState emptyState "a = (+ )" Parser.function
                     |> Expect.equal Nothing
         ]
+
+
+expectInvalid : String -> Expect.Expectation
+expectInvalid source =
+    case parseFullStringWithNullState source declaration of
+        Nothing ->
+            Expect.pass
+
+        Just actual ->
+            Expect.fail ("This source code is successfully parsed but it shouldn't:\n" ++ Debug.toString actual)
