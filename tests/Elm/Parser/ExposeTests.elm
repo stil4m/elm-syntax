@@ -33,87 +33,79 @@ all =
                     |> Expect.equal Nothing
         , test "Explicit exposing list" <|
             \() ->
-                parseFullStringWithNullState "exposing (Model,Msg(..),Info(..),init,(::))" exposeDefinition
-                    |> Expect.equal
-                        (Just
-                            (Explicit
-                                [ Node { start = { row = 1, column = 11 }, end = { row = 1, column = 16 } } (TypeOrAliasExpose "Model")
-                                , Node { start = { row = 1, column = 17 }, end = { row = 1, column = 24 } }
-                                    (TypeExpose
-                                        { name = "Msg"
-                                        , open = Just { start = { row = 1, column = 20 }, end = { row = 1, column = 24 } }
-                                        }
-                                    )
-                                , Node { start = { row = 1, column = 25 }, end = { row = 1, column = 33 } }
-                                    (TypeExpose
-                                        { name = "Info"
-                                        , open = Just { start = { row = 1, column = 29 }, end = { row = 1, column = 33 } }
-                                        }
-                                    )
-                                , Node { start = { row = 1, column = 34 }, end = { row = 1, column = 38 } } (FunctionExpose "init")
-                                , Node { start = { row = 1, column = 39 }, end = { row = 1, column = 43 } } (InfixExpose "::")
-                                ]
-                            )
+                "exposing (Model,Msg(..),Info(..),init,(::))"
+                    |> expectAst
+                        (Explicit
+                            [ Node { start = { row = 1, column = 11 }, end = { row = 1, column = 16 } } (TypeOrAliasExpose "Model")
+                            , Node { start = { row = 1, column = 17 }, end = { row = 1, column = 24 } }
+                                (TypeExpose
+                                    { name = "Msg"
+                                    , open = Just { start = { row = 1, column = 20 }, end = { row = 1, column = 24 } }
+                                    }
+                                )
+                            , Node { start = { row = 1, column = 25 }, end = { row = 1, column = 33 } }
+                                (TypeExpose
+                                    { name = "Info"
+                                    , open = Just { start = { row = 1, column = 29 }, end = { row = 1, column = 33 } }
+                                    }
+                                )
+                            , Node { start = { row = 1, column = 34 }, end = { row = 1, column = 38 } } (FunctionExpose "init")
+                            , Node { start = { row = 1, column = 39 }, end = { row = 1, column = 43 } } (InfixExpose "::")
+                            ]
                         )
         , test "exposingList with spacing on one line" <|
             \() ->
-                parseFullStringWithNullState "exposing (Model, Msg, Info   (..)   ,init,(::) )" exposeDefinition
-                    |> Expect.equal
-                        (Just
-                            (Explicit
-                                [ Node { start = { row = 1, column = 11 }, end = { row = 1, column = 16 } } (TypeOrAliasExpose "Model")
-                                , Node { start = { row = 1, column = 18 }, end = { row = 1, column = 21 } } (TypeOrAliasExpose "Msg")
-                                , Node { start = { row = 1, column = 23 }, end = { row = 1, column = 34 } }
-                                    (TypeExpose
-                                        { name = "Info"
-                                        , open = Just { start = { row = 1, column = 30 }, end = { row = 1, column = 34 } }
-                                        }
-                                    )
-                                , Node { start = { row = 1, column = 38 }, end = { row = 1, column = 42 } } (FunctionExpose "init")
-                                , Node { start = { row = 1, column = 43 }, end = { row = 1, column = 47 } } (InfixExpose "::")
-                                ]
-                            )
+                "exposing (Model, Msg, Info   (..)   ,init,(::) )"
+                    |> expectAst
+                        (Explicit
+                            [ Node { start = { row = 1, column = 11 }, end = { row = 1, column = 16 } } (TypeOrAliasExpose "Model")
+                            , Node { start = { row = 1, column = 18 }, end = { row = 1, column = 21 } } (TypeOrAliasExpose "Msg")
+                            , Node { start = { row = 1, column = 23 }, end = { row = 1, column = 34 } }
+                                (TypeExpose
+                                    { name = "Info"
+                                    , open = Just { start = { row = 1, column = 30 }, end = { row = 1, column = 34 } }
+                                    }
+                                )
+                            , Node { start = { row = 1, column = 38 }, end = { row = 1, column = 42 } } (FunctionExpose "init")
+                            , Node { start = { row = 1, column = 43 }, end = { row = 1, column = 47 } } (InfixExpose "::")
+                            ]
                         )
         , test "Explicit exposing list with spaces and newlines" <|
             \() ->
-                parseFullStringWithNullState """exposing
+                """exposing
     ( A
     , B(..)
     , Info (..)
          , init    ,
  (::)
-    )""" exposeDefinition
-                    |> Expect.equal
-                        (Just
-                            (Explicit
-                                [ Node { start = { row = 2, column = 7 }, end = { row = 2, column = 8 } } (TypeOrAliasExpose "A")
-                                , Node { start = { row = 3, column = 7 }, end = { row = 3, column = 12 } }
-                                    (TypeExpose
-                                        { name = "B"
-                                        , open = Just { start = { row = 3, column = 8 }, end = { row = 3, column = 12 } }
-                                        }
-                                    )
-                                , Node { start = { row = 4, column = 7 }, end = { row = 4, column = 16 } }
-                                    (TypeExpose
-                                        { name = "Info"
-                                        , open = Just { start = { row = 4, column = 12 }, end = { row = 4, column = 16 } }
-                                        }
-                                    )
-                                , Node { start = { row = 5, column = 12 }, end = { row = 5, column = 16 } } (FunctionExpose "init")
-                                , Node { start = { row = 6, column = 2 }, end = { row = 6, column = 6 } } (InfixExpose "::")
-                                ]
-                            )
+    )"""
+                    |> expectAst
+                        (Explicit
+                            [ Node { start = { row = 2, column = 7 }, end = { row = 2, column = 8 } } (TypeOrAliasExpose "A")
+                            , Node { start = { row = 3, column = 7 }, end = { row = 3, column = 12 } }
+                                (TypeExpose
+                                    { name = "B"
+                                    , open = Just { start = { row = 3, column = 8 }, end = { row = 3, column = 12 } }
+                                    }
+                                )
+                            , Node { start = { row = 4, column = 7 }, end = { row = 4, column = 16 } }
+                                (TypeExpose
+                                    { name = "Info"
+                                    , open = Just { start = { row = 4, column = 12 }, end = { row = 4, column = 16 } }
+                                    }
+                                )
+                            , Node { start = { row = 5, column = 12 }, end = { row = 5, column = 16 } } (FunctionExpose "init")
+                            , Node { start = { row = 6, column = 2 }, end = { row = 6, column = 6 } } (InfixExpose "::")
+                            ]
                         )
         , test "Comments inside the exposing clause" <|
             \() ->
-                parseFullStringWithNullState "exposing (foo\n --bar\n )" exposeDefinition
-                    |> Expect.equal
-                        (Just
-                            (Explicit
-                                [ Node { start = { row = 1, column = 11 }, end = { row = 1, column = 14 } }
-                                    (FunctionExpose "foo")
-                                ]
-                            )
+                "exposing (foo\n --bar\n )"
+                    |> expectAst
+                        (Explicit
+                            [ Node { start = { row = 1, column = 11 }, end = { row = 1, column = 14 } }
+                                (FunctionExpose "foo")
+                            ]
                         )
         , describe "ranges"
             [ test "exposed item should not include trailing whitespace in range" <|
@@ -138,6 +130,17 @@ all =
                             )
             ]
         ]
+
+
+expectAst : Exposing -> String -> Expect.Expectation
+expectAst expected source =
+    case parseFullStringWithNullState source exposeDefinition of
+        Nothing ->
+            Expect.fail "Expected the source to be parsed correctly"
+
+        Just actual ->
+            actual
+                |> Expect.equal expected
 
 
 expectInvalid : String -> Expect.Expectation
