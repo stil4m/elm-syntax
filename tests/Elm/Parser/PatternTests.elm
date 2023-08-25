@@ -24,19 +24,6 @@ all =
             \() ->
                 "'f'"
                     |> expectAst (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 4 } } (CharPattern 'f'))
-        , test "Qualified" <|
-            \() ->
-                "X x"
-                    |> expectAst
-                        (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 4 } }
-                            (NamedPattern (QualifiedNameRef [] "X")
-                                [ Node { start = { row = 1, column = 3 }, end = { row = 1, column = 4 } } (VarPattern "x") ]
-                            )
-                        )
-        , test "Qualified pattern without and with spacing should parse to the same" <|
-            \() ->
-                parseFullStringWithNullState "Bar " Parser.pattern
-                    |> Expect.equal (parseFullStringWithNullState "Bar" Parser.pattern)
         , test "Wildcard" <|
             \() ->
                 "_"
@@ -110,6 +97,15 @@ all =
                         (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 5 } } <|
                             ListPattern [ Node { start = { row = 1, column = 3 }, end = { row = 1, column = 4 } } <| IntPattern 1 ]
                         )
+        , test "Empty record" <|
+            \() ->
+                "{}"
+                    |> expectAst
+                        (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 3 } } (RecordPattern []))
+        , test "Empty record with whitespace" <|
+            \() ->
+                "{ }"
+                    |> expectAst (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 4 } } (RecordPattern []))
         , test "Record" <|
             \() ->
                 "{a,b}"
@@ -150,15 +146,6 @@ all =
                                 [ Node { start = { row = 1, column = 3 }, end = { row = 1, column = 4 } } "a" ]
                             )
                         )
-        , test "Empty record" <|
-            \() ->
-                "{}"
-                    |> expectAst
-                        (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 3 } } (RecordPattern []))
-        , test "Empty record pattern with whitespace" <|
-            \() ->
-                "{ }"
-                    |> expectAst (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 4 } } (RecordPattern []))
         , test "Named" <|
             \() ->
                 "True"
@@ -166,6 +153,10 @@ all =
                         (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 5 } }
                             (NamedPattern { moduleName = [], name = "True" } [])
                         )
+        , test "Named pattern without and with spacing should parse to the same" <|
+            \() ->
+                parseFullStringWithNullState "Bar " Parser.pattern
+                    |> Expect.equal (parseFullStringWithNullState "Bar" Parser.pattern)
         , test "Qualified named" <|
             \() ->
                 "Basics.True"
@@ -216,6 +207,28 @@ all =
                                 ]
                             )
                         )
+        , test "As pattern" <|
+            \() ->
+                "x as y"
+                    |> expectAst
+                        (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 7 } }
+                            (AsPattern
+                                (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 2 } } (VarPattern "x"))
+                                (Node { start = { row = 1, column = 6 }, end = { row = 1, column = 7 } } "y")
+                            )
+                        )
+        , test "should fail to parse when right side is not a direct variable name" <|
+            \() ->
+                "x as (y)"
+                    |> expectInvalid
+        , test "should fail to parse when right side is an invalid variable name" <|
+            \() ->
+                "x as _y"
+                    |> expectInvalid
+        , test "should fail to parse when right side is not a variable name" <|
+            \() ->
+                "x as 1"
+                    |> expectInvalid
         , test "Record as" <|
             \() ->
                 "{model,context} as appState"
