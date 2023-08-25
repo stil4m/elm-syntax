@@ -103,3 +103,14 @@ all =
                     |> Maybe.map Node.range
                     |> Expect.equal (Just { start = { row = 1, column = 2 }, end = { row = 1, column = 15 } })
         ]
+
+
+expectAst : Node Expression -> String -> Expect.Expectation
+expectAst expected source =
+    case parseFullStringWithNullState source Parser.expression of
+        Nothing ->
+            Expect.fail "Expected the source to be parsed correctly"
+
+        Just actual ->
+            actual
+                |> Expect.equal expected
