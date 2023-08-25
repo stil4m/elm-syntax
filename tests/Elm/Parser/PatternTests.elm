@@ -190,26 +190,21 @@ all =
             \() ->
                 "{ }"
                     |> expectAst (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 4 } } (RecordPattern []))
-        , test "named pattern" <|
+        , test "Named pattern" <|
             \() ->
                 "True"
                     |> expectAst
                         (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 5 } }
                             (NamedPattern { moduleName = [], name = "True" } [])
                         )
-        , test "tuple pattern" <|
+        , test "Qualified named pattern" <|
             \() ->
-                "(a,{b,c},())"
+                "Basics.True"
                     |> expectAst
-                        (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 13 } }
-                            (TuplePattern
-                                [ Node { start = { row = 1, column = 2 }, end = { row = 1, column = 3 } } (VarPattern "a")
-                                , Node { start = { row = 1, column = 4 }, end = { row = 1, column = 9 } } (RecordPattern [ Node { start = { row = 1, column = 5 }, end = { row = 1, column = 6 } } "b", Node { start = { row = 1, column = 7 }, end = { row = 1, column = 8 } } "c" ])
-                                , Node { start = { row = 1, column = 10 }, end = { row = 1, column = 12 } } UnitPattern
-                                ]
-                            )
+                        (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 12 } }
+                            (NamedPattern { moduleName = [ "Basics" ], name = "True" } [])
                         )
-        , test "destructure pattern" <|
+        , test "Named pattern with data" <|
             \() ->
                 "Set x"
                     |> expectAst
@@ -219,7 +214,17 @@ all =
                                 [ Node { start = { row = 1, column = 5 }, end = { row = 1, column = 6 } } (VarPattern "x") ]
                             )
                         )
-        , test "tuple pattern 2" <|
+        , test "Qualified named pattern with data" <|
+            \() ->
+                "Set.Set x"
+                    |> expectAst
+                        (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 10 } }
+                            (NamedPattern
+                                { moduleName = [ "Set" ], name = "Set" }
+                                [ Node { start = { row = 1, column = 9 }, end = { row = 1, column = 10 } } (VarPattern "x") ]
+                            )
+                        )
+        , test "Tuple pattern" <|
             \() ->
                 "(model, cmd)"
                     |> expectAst
@@ -227,6 +232,18 @@ all =
                             (TuplePattern
                                 [ Node { start = { row = 1, column = 2 }, end = { row = 1, column = 7 } } (VarPattern "model")
                                 , Node { start = { row = 1, column = 9 }, end = { row = 1, column = 12 } } (VarPattern "cmd")
+                                ]
+                            )
+                        )
+        , test "Nested tuple pattern" <|
+            \() ->
+                "(a,{b,c},())"
+                    |> expectAst
+                        (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 13 } }
+                            (TuplePattern
+                                [ Node { start = { row = 1, column = 2 }, end = { row = 1, column = 3 } } (VarPattern "a")
+                                , Node { start = { row = 1, column = 4 }, end = { row = 1, column = 9 } } (RecordPattern [ Node { start = { row = 1, column = 5 }, end = { row = 1, column = 6 } } "b", Node { start = { row = 1, column = 7 }, end = { row = 1, column = 8 } } "c" ])
+                                , Node { start = { row = 1, column = 10 }, end = { row = 1, column = 12 } } UnitPattern
                                 ]
                             )
                         )
