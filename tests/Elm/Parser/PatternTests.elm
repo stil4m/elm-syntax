@@ -5,7 +5,7 @@ import Elm.Parser.Patterns as Parser
 import Elm.Parser.State exposing (emptyState)
 import Elm.Syntax.Node as Node exposing (Node(..))
 import Elm.Syntax.Pattern exposing (..)
-import Elm.Syntax.Range exposing (Location, Range, empty)
+import Elm.Syntax.Range exposing (empty)
 import Expect
 import Test exposing (..)
 
@@ -16,11 +16,11 @@ all =
         [ test "unit pattern" <|
             \() ->
                 "()"
-                    |> expectAst (Node (Range (Location 1 1) (Location 1 3)) UnitPattern)
+                    |> expectAst (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 3 } } UnitPattern)
         , test "string pattern" <|
             \() ->
                 "\"Foo\""
-                    |> expectAst (Node (Range (Location 1 1) (Location 1 6)) (StringPattern "Foo"))
+                    |> expectAst (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 6 } } (StringPattern "Foo"))
         , test "multiple patterns" <|
             \() ->
                 parseAsFarAsPossibleWithState emptyState "a b" Parser.pattern
@@ -30,15 +30,15 @@ all =
         , test "char pattern" <|
             \() ->
                 "'f'"
-                    |> expectAst (Node (Range (Location 1 1) (Location 1 4)) (CharPattern 'f'))
+                    |> expectAst (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 4 } } (CharPattern 'f'))
         , test "qualified pattern" <|
             \() ->
                 parseFullStringState emptyState "X x" Parser.pattern
                     |> Expect.equal
                         (Just
-                            (Node (Range (Location 1 1) (Location 1 4))
+                            (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 4 } }
                                 (NamedPattern (QualifiedNameRef [] "X")
-                                    [ Node (Range (Location 1 3) (Location 1 4)) (VarPattern "x") ]
+                                    [ Node { start = { row = 1, column = 3 }, end = { row = 1, column = 4 } } (VarPattern "x") ]
                                 )
                             )
                         )
@@ -56,17 +56,17 @@ all =
         , test "all pattern" <|
             \() ->
                 "_"
-                    |> expectAst (Node (Range (Location 1 1) (Location 1 2)) AllPattern)
+                    |> expectAst (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 2 } } AllPattern)
         , test "non cons pattern " <|
             \() ->
                 parseFullStringState emptyState "(X x)" Parser.pattern
                     |> Expect.equal
                         (Just
-                            (Node (Range (Location 1 1) (Location 1 6))
+                            (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 6 } }
                                 (ParenthesizedPattern
-                                    (Node (Range (Location 1 2) (Location 1 5))
+                                    (Node { start = { row = 1, column = 2 }, end = { row = 1, column = 5 } }
                                         (NamedPattern (QualifiedNameRef [] "X")
-                                            [ Node (Range (Location 1 4) (Location 1 5)) (VarPattern "x") ]
+                                            [ Node { start = { row = 1, column = 4 }, end = { row = 1, column = 5 } } (VarPattern "x") ]
                                         )
                                     )
                                 )
@@ -77,30 +77,30 @@ all =
                 parseFullStringState emptyState "(X x) :: xs" Parser.pattern
                     |> Expect.equal
                         (Just
-                            (Node (Range (Location 1 1) (Location 1 12)) <|
+                            (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 12 } } <|
                                 UnConsPattern
-                                    (Node (Range (Location 1 1) (Location 1 6)) <|
+                                    (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 6 } } <|
                                         ParenthesizedPattern
-                                            (Node (Range (Location 1 2) (Location 1 5)) <|
+                                            (Node { start = { row = 1, column = 2 }, end = { row = 1, column = 5 } } <|
                                                 NamedPattern (QualifiedNameRef [] "X")
-                                                    [ Node (Range (Location 1 4) (Location 1 5)) <| VarPattern "x" ]
+                                                    [ Node { start = { row = 1, column = 4 }, end = { row = 1, column = 5 } } <| VarPattern "x" ]
                                             )
                                     )
-                                    (Node (Range (Location 1 10) (Location 1 12)) <| VarPattern "xs")
+                                    (Node { start = { row = 1, column = 10 }, end = { row = 1, column = 12 } } <| VarPattern "xs")
                             )
                         )
         , test "int pattern" <|
             \() ->
                 "1"
-                    |> expectAst (Node (Range (Location 1 1) (Location 1 2)) <| IntPattern 1)
+                    |> expectAst (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 2 } } <| IntPattern 1)
         , test "uncons pattern" <|
             \() ->
                 parseFullStringState emptyState "n :: tail" Parser.pattern
                     |> Expect.equal
                         (Just
-                            (Node (Range (Location 1 1) (Location 1 10)) <|
-                                UnConsPattern (Node (Range (Location 1 1) (Location 1 2)) <| VarPattern "n")
-                                    (Node (Range (Location 1 6) (Location 1 10)) <| VarPattern "tail")
+                            (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 10 } } <|
+                                UnConsPattern (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 2 } } <| VarPattern "n")
+                                    (Node { start = { row = 1, column = 6 }, end = { row = 1, column = 10 } } <| VarPattern "tail")
                             )
                         )
         , test "list pattern" <|
@@ -108,25 +108,25 @@ all =
                 parseFullStringState emptyState "[1]" Parser.pattern
                     |> Expect.equal
                         (Just
-                            (Node (Range (Location 1 1) (Location 1 4)) <|
-                                ListPattern [ Node (Range (Location 1 2) (Location 1 3)) <| IntPattern 1 ]
+                            (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 4 } } <|
+                                ListPattern [ Node { start = { row = 1, column = 2 }, end = { row = 1, column = 3 } } <| IntPattern 1 ]
                             )
                         )
         , test "empty list pattern" <|
             \() ->
                 "[]"
-                    |> expectAst (Node (Range (Location 1 1) (Location 1 3)) (ListPattern []))
+                    |> expectAst (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 3 } } (ListPattern []))
         , test "empty list pattern with whitespace" <|
             \() ->
                 "[ ]"
-                    |> expectAst (Node (Range (Location 1 1) (Location 1 4)) (ListPattern []))
+                    |> expectAst (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 4 } } (ListPattern []))
         , test "single element list pattern with trailing whitespace" <|
             \() ->
                 parseFullStringState emptyState "[1 ]" Parser.pattern
                     |> Expect.equal
                         (Just
-                            (Node (Range (Location 1 1) (Location 1 5)) <|
-                                ListPattern [ Node (Range (Location 1 2) (Location 1 3)) <| IntPattern 1 ]
+                            (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 5 } } <|
+                                ListPattern [ Node { start = { row = 1, column = 2 }, end = { row = 1, column = 3 } } <| IntPattern 1 ]
                             )
                         )
         , test "single element list pattern with leading whitespace" <|
@@ -134,14 +134,14 @@ all =
                 parseFullStringState emptyState "[ 1]" Parser.pattern
                     |> Expect.equal
                         (Just
-                            (Node (Range (Location 1 1) (Location 1 5)) <|
-                                ListPattern [ Node (Range (Location 1 3) (Location 1 4)) <| IntPattern 1 ]
+                            (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 5 } } <|
+                                ListPattern [ Node { start = { row = 1, column = 3 }, end = { row = 1, column = 4 } } <| IntPattern 1 ]
                             )
                         )
         , test "float pattern" <|
             \() ->
                 "1.2"
-                    |> expectAst (Node (Range (Location 1 1) (Location 1 4)) (FloatPattern 1.2))
+                    |> expectAst (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 4 } } (FloatPattern 1.2))
         , test "record pattern" <|
             \() ->
                 parseFullStringState emptyState "{a,b}" Parser.pattern
@@ -254,15 +254,15 @@ all =
                 parseFullStringState emptyState "{model,context} as appState" Parser.pattern
                     |> Expect.equal
                         (Just
-                            (Node (Range (Location 1 1) (Location 1 28)) <|
+                            (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 28 } } <|
                                 AsPattern
-                                    (Node (Range (Location 1 1) (Location 1 16)) <|
+                                    (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 16 } } <|
                                         RecordPattern
-                                            [ Node (Range (Location 1 2) (Location 1 7)) "model"
-                                            , Node (Range (Location 1 8) (Location 1 15)) "context"
+                                            [ Node { start = { row = 1, column = 2 }, end = { row = 1, column = 7 } } "model"
+                                            , Node { start = { row = 1, column = 8 }, end = { row = 1, column = 15 } } "context"
                                             ]
                                     )
-                                    (Node (Range (Location 1 20) (Location 1 28)) "appState")
+                                    (Node { start = { row = 1, column = 20 }, end = { row = 1, column = 28 } } "appState")
                             )
                         )
         , test "complex pattern" <|
