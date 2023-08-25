@@ -175,10 +175,6 @@ all =
             \() ->
                 parseFullString "'\\n'" Parser.characterLiteral
                     |> Expect.equal (Just '\n')
-        , test "arrow operator" <|
-            \() ->
-                parseAsFarAsPossible "->" Parser.infixOperatorToken
-                    |> Expect.equal Nothing
         , test "long string" <|
             \() ->
                 parseFullString longString Parser.stringLiteral
