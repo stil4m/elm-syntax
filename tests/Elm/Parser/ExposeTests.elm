@@ -51,6 +51,36 @@ all =
                                 ]
                             )
                         )
+        , test "Explicit exposing list with spaces and newlines" <|
+            \() ->
+                parseFullStringWithNullState """exposing
+    ( A
+    , B(..)
+    , Info (..)
+         , init    ,
+ (::)
+    )""" exposeDefinition
+                    |> Expect.equal
+                        (Just
+                            (Explicit
+                                [ Node { start = { row = 2, column = 7 }, end = { row = 2, column = 8 } } (TypeOrAliasExpose "A")
+                                , Node { start = { row = 3, column = 7 }, end = { row = 3, column = 12 } }
+                                    (TypeExpose
+                                        { name = "B"
+                                        , open = Just { start = { row = 3, column = 8 }, end = { row = 3, column = 12 } }
+                                        }
+                                    )
+                                , Node { start = { row = 4, column = 7 }, end = { row = 4, column = 16 } }
+                                    (TypeExpose
+                                        { name = "Info"
+                                        , open = Just { start = { row = 4, column = 12 }, end = { row = 4, column = 16 } }
+                                        }
+                                    )
+                                , Node { start = { row = 5, column = 12 }, end = { row = 5, column = 16 } } (FunctionExpose "init")
+                                , Node { start = { row = 6, column = 2 }, end = { row = 6, column = 6 } } (InfixExpose "::")
+                                ]
+                            )
+                        )
         , test "exposingListInner with comment" <|
             \() ->
                 parseFullStringWithNullState "foo\n --bar\n " exposingListInner
