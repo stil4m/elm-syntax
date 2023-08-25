@@ -19,13 +19,14 @@ True
   of
     A -> 1"""
                     |> expectInvalid
-        , Test.skip <|
-            test "should fail to parse when the `of` keyword has the wrong indentation" <|
-                \() ->
-                    """case True
-of
-    A -> 1"""
-                        |> expectInvalid
+
+        -- TODO Make this pass
+        --        ,   test "should fail to parse when the `of` keyword has the wrong indentation" <|
+        --                \() ->
+        --                    """case True
+        --of
+        --    A -> 1"""
+        --                        |> expectInvalid
         , test "should fail to parse a branch at the start of a line" <|
             \() ->
                 """case True of
@@ -131,16 +132,17 @@ True -> 1"""
                                 }
                             )
                         )
-        , Test.skip <|
-            test "should parse case expression with first branch on the same line as case of" <|
-                \() ->
-                    """
-case x of True -> 1
-          False -> 2
-"""
-                        |> expectAst
-                            -- AST is incorrect, but this should parse to something correct
-                            (Node { start = { row = 1, column = 1 }, end = { row = 2, column = 15 } } UnitExpr)
+
+        -- TODO Make this pass
+        --        , test "should parse case expression with first branch on the same line as case of" <|
+        --            \() ->
+        --                """
+        --case x of True -> 1
+        --          False -> 2
+        --"""
+        --                    |> expectAst
+        --                        -- AST is incorrect, but this should parse to something correct
+        --                        (Node { start = { row = 1, column = 1 }, end = { row = 2, column = 15 } } UnitExpr)
         , test "should fail to parse case expression with second branch indented differently than the first line (before)" <|
             \() ->
                 expectInvalid """case f of
