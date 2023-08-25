@@ -1,4 +1,4 @@
-module Elm.Parser.Declarations exposing (declaration, expression, function, functionArgument, functionSignature, letBlock, letBody, letExpression, signature)
+module Elm.Parser.Declarations exposing (declaration, expression, function, functionSignature, letBlock, letBody, letExpression, signature)
 
 import Combine exposing (Parser, choice, lazy, many, maybe, modifyState, or, sepBy1, string, succeed, withLocation)
 import Elm.Parser.Infix as Infix
