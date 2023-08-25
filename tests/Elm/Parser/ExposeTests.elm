@@ -51,6 +51,25 @@ all =
                                 ]
                             )
                         )
+        , test "exposingList with spacing on one line" <|
+            \() ->
+                parseFullStringWithNullState "exposing (Model, Msg, Info   (..)   ,init,(::) )" exposeDefinition
+                    |> Expect.equal
+                        (Just
+                            (Explicit
+                                [ Node { start = { row = 1, column = 11 }, end = { row = 1, column = 16 } } (TypeOrAliasExpose "Model")
+                                , Node { start = { row = 1, column = 18 }, end = { row = 1, column = 21 } } (TypeOrAliasExpose "Msg")
+                                , Node { start = { row = 1, column = 23 }, end = { row = 1, column = 34 } }
+                                    (TypeExpose
+                                        { name = "Info"
+                                        , open = Just { start = { row = 1, column = 30 }, end = { row = 1, column = 34 } }
+                                        }
+                                    )
+                                , Node { start = { row = 1, column = 38 }, end = { row = 1, column = 42 } } (FunctionExpose "init")
+                                , Node { start = { row = 1, column = 43 }, end = { row = 1, column = 47 } } (InfixExpose "::")
+                                ]
+                            )
+                        )
         , test "Explicit exposing list with spaces and newlines" <|
             \() ->
                 parseFullStringWithNullState """exposing
@@ -81,40 +100,14 @@ all =
                                 ]
                             )
                         )
-        , test "exposingListInner with comment" <|
-            \() ->
-                parseFullStringWithNullState "foo\n --bar\n " exposingListInner
-                    |> Maybe.map noRangeExposingList
-                    |> Expect.equal
-                        (Just
-                            (Explicit
-                                [ Node empty <| FunctionExpose "foo"
-                                ]
-                            )
-                        )
-        , test "exposingList with comment 2" <|
+        , test "Comments inside the exposing clause" <|
             \() ->
                 parseFullStringWithNullState "exposing (foo\n --bar\n )" exposeDefinition
-                    |> Maybe.map noRangeExposingList
                     |> Expect.equal
                         (Just
                             (Explicit
-                                [ Node empty <| FunctionExpose "foo"
-                                ]
-                            )
-                        )
-        , test "exposingList with spacing" <|
-            \() ->
-                parseFullStringWithNullState "exposing (Model, Msg, Info   (..)   ,init,(::) )" exposeDefinition
-                    |> Maybe.map noRangeExposingList
-                    |> Expect.equal
-                        (Just
-                            (Explicit
-                                [ Node empty <| TypeOrAliasExpose "Model"
-                                , Node empty <| TypeOrAliasExpose "Msg"
-                                , Node empty <| TypeExpose (ExposedType "Info" (Just empty))
-                                , Node empty <| FunctionExpose "init"
-                                , Node empty <| InfixExpose "::"
+                                [ Node { start = { row = 1, column = 11 }, end = { row = 1, column = 14 } }
+                                    (FunctionExpose "foo")
                                 ]
                             )
                         )
