@@ -8,6 +8,7 @@ import Elm.Parser.State exposing (emptyState)
 import Elm.Syntax.Expression exposing (..)
 import Elm.Syntax.Node as Node exposing (Node(..))
 import Elm.Syntax.Pattern exposing (..)
+import Elm.Syntax.TypeAnnotation exposing (TypeAnnotation(..))
 import Expect
 import Test exposing (..)
 
@@ -123,6 +124,109 @@ all =
                                 }
                             )
                         )
+        , test "Let function with type annotation" <|
+            \() ->
+                """let
+    bar : Int
+    bar = 1
+  in
+  bar"""
+                    |> expectAst
+                        (Node { start = { row = 1, column = 1 }, end = { row = 5, column = 6 } }
+                            (LetExpression
+                                { declarations =
+                                    [ Node { start = { row = 2, column = 5 }, end = { row = 3, column = 12 } }
+                                        (LetFunction
+                                            { documentation = Nothing
+                                            , signature =
+                                                Just
+                                                    (Node { start = { row = 2, column = 5 }, end = { row = 2, column = 14 } }
+                                                        { name = Node { start = { row = 2, column = 5 }, end = { row = 2, column = 8 } } "bar"
+                                                        , typeAnnotation =
+                                                            Node { start = { row = 2, column = 11 }, end = { row = 2, column = 14 } }
+                                                                (Typed (Node { start = { row = 2, column = 11 }, end = { row = 2, column = 14 } } ( [], "Int" )) [])
+                                                        }
+                                                    )
+                                            , declaration =
+                                                Node { start = { row = 3, column = 5 }, end = { row = 3, column = 12 } }
+                                                    { arguments = []
+                                                    , expression = Node { start = { row = 3, column = 11 }, end = { row = 3, column = 12 } } (Integer 1)
+                                                    , name = Node { start = { row = 3, column = 5 }, end = { row = 3, column = 8 } } "bar"
+                                                    }
+                                            }
+                                        )
+                                    ]
+                                , expression = Node { start = { row = 5, column = 3 }, end = { row = 5, column = 6 } } (FunctionOrValue [] "bar")
+                                }
+                            )
+                        )
+        , test "Let function with type annotation (separated by a few lines)" <|
+            \() ->
+                """let
+    bar : Int
+
+
+    bar = 1
+  in
+  bar"""
+                    |> expectAst
+                        (Node { start = { row = 1, column = 1 }, end = { row = 7, column = 6 } }
+                            (LetExpression
+                                { declarations =
+                                    [ Node { start = { row = 2, column = 5 }, end = { row = 5, column = 12 } }
+                                        (LetFunction
+                                            { documentation = Nothing
+                                            , signature =
+                                                Just
+                                                    (Node { start = { row = 2, column = 5 }, end = { row = 2, column = 14 } }
+                                                        { name = Node { start = { row = 2, column = 5 }, end = { row = 2, column = 8 } } "bar"
+                                                        , typeAnnotation = Node { start = { row = 2, column = 11 }, end = { row = 2, column = 14 } } (Typed (Node { start = { row = 2, column = 11 }, end = { row = 2, column = 14 } } ( [], "Int" )) [])
+                                                        }
+                                                    )
+                                            , declaration =
+                                                Node { start = { row = 5, column = 5 }, end = { row = 5, column = 12 } }
+                                                    { arguments = []
+                                                    , expression = Node { start = { row = 5, column = 11 }, end = { row = 5, column = 12 } } (Integer 1)
+                                                    , name = Node { start = { row = 5, column = 5 }, end = { row = 5, column = 8 } } "bar"
+                                                    }
+                                            }
+                                        )
+                                    ]
+                                , expression = Node { start = { row = 7, column = 3 }, end = { row = 7, column = 6 } } (FunctionOrValue [] "bar")
+                                }
+                            )
+                        )
+        , test "should fail to parse when type annotation and declaration are not aligned (annotation earlier)" <|
+            \() ->
+                """let
+    bar : Int
+      bar = 1
+  in
+  bar"""
+                    |> expectInvalid
+        , test "should fail to parse when type annotation and declaration are not aligned (annotation later)" <|
+            \() ->
+                """let
+       bar : Int
+    bar = 1
+  in
+  bar"""
+                    |> expectInvalid
+        , test "should not parse let destructuring with a type annotation" <|
+            \() ->
+                """let
+    bar : Int
+    (bar) = 1
+  in
+  bar"""
+                    |> expectInvalid
+        , test "should not parse let type annotation without a declaration" <|
+            \() ->
+                """let
+    bar : Int
+  in
+  bar"""
+                    |> expectInvalid
         , test "Using destructuring" <|
             \() ->
                 """let
