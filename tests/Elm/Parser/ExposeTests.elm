@@ -27,6 +27,10 @@ all =
                 parseFullStringWithNullState "Msg(..)" typeExpose
                     |> Maybe.map noRangeExpose
                     |> Expect.equal (Just (Node.empty <| TypeExpose (ExposedType "Msg" (Just empty))))
+        , test "should fail to parse empty exposing list" <|
+            \() ->
+                parseFullStringWithNullState "exposing ()" exposeDefinition
+                    |> Expect.equal Nothing
         , test "Explicit exposing list" <|
             \() ->
                 parseFullStringWithNullState "exposing (Model,Msg(..),Info(..),init,(::))" exposeDefinition
@@ -134,3 +138,13 @@ all =
                             )
             ]
         ]
+
+
+expectInvalid : String -> Expect.Expectation
+expectInvalid source =
+    case parseFullStringWithNullState source exposeDefinition of
+        Nothing ->
+            Expect.pass
+
+        Just actual ->
+            Expect.fail ("This source code is successfully parsed but it shouldn't:\n" ++ Debug.toString actual)
