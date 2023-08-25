@@ -97,92 +97,75 @@ all =
                         )
         , test "type" <|
             \() ->
-                parseFullStringWithNullState "type Color = Blue String | Red | Green" Parser.typeDefinition
-                    |> Maybe.andThen asType
-                    |> Maybe.map noRangeTypeDeclaration
-                    |> Expect.equal
-                        (Just <|
-                            { documentation = Nothing
-                            , name = Node empty <| "Color"
-                            , generics = []
-                            , constructors =
-                                [ Node empty
-                                    { name = Node empty <| "Blue"
-                                    , arguments = [ Node empty <| Typed (Node empty <| ( [], "String" )) [] ]
+                "type Color = Blue String | Red | Green"
+                    |> expectAst
+                        (DefinedType { start = { row = 1, column = 1 }, end = { row = 1, column = 39 } }
+                            { constructors =
+                                [ Node { start = { row = 1, column = 14 }, end = { row = 1, column = 25 } }
+                                    { name = Node { start = { row = 1, column = 14 }, end = { row = 1, column = 18 } } "Blue"
+                                    , arguments =
+                                        [ Node { start = { row = 1, column = 19 }, end = { row = 1, column = 25 } }
+                                            (Typed (Node { start = { row = 1, column = 19 }, end = { row = 1, column = 25 } } ( [], "String" )) [])
+                                        ]
                                     }
-                                , Node empty
-                                    { name = Node empty <| "Red"
+                                , Node { start = { row = 1, column = 28 }, end = { row = 1, column = 31 } }
+                                    { name = Node { start = { row = 1, column = 28 }, end = { row = 1, column = 31 } } "Red"
                                     , arguments = []
                                     }
-                                , Node empty
-                                    { name = Node empty <| "Green"
+                                , Node { start = { row = 1, column = 34 }, end = { row = 1, column = 39 } }
+                                    { name = Node { start = { row = 1, column = 34 }, end = { row = 1, column = 39 } } "Green"
                                     , arguments = []
                                     }
                                 ]
+                            , documentation = Nothing
+                            , generics = []
+                            , name = Node { start = { row = 1, column = 6 }, end = { row = 1, column = 11 } } "Color"
                             }
                         )
         , test "type with multiple args" <|
             \() ->
-                parseFullStringWithNullState "type D = C a B" Parser.typeDefinition
-                    |> Maybe.andThen asType
-                    |> Maybe.map noRangeTypeDeclaration
-                    |> Expect.equal
-                        (Just
-                            { documentation = Nothing
-                            , constructors =
-                                [ Node empty
+                "type D = C a B"
+                    |> expectAst
+                        (DefinedType { start = { row = 1, column = 1 }, end = { row = 1, column = 15 } }
+                            { constructors =
+                                [ Node { start = { row = 1, column = 10 }, end = { row = 1, column = 15 } }
                                     { arguments =
-                                        [ Node empty <| GenericType "a"
-                                        , Node empty <| Typed (Node empty <| ( [], "B" )) []
+                                        [ Node { start = { row = 1, column = 12 }, end = { row = 1, column = 13 } } (GenericType "a")
+                                        , Node { start = { row = 1, column = 14 }, end = { row = 1, column = 15 } }
+                                            (Typed (Node { start = { row = 1, column = 14 }, end = { row = 1, column = 15 } } ( [], "B" )) [])
                                         ]
-                                    , name = Node empty <| "C"
+                                    , name = Node { start = { row = 1, column = 10 }, end = { row = 1, column = 11 } } "C"
                                     }
                                 ]
+                            , documentation = Nothing
                             , generics = []
-                            , name = Node empty <| "D"
+                            , name = Node { start = { row = 1, column = 6 }, end = { row = 1, column = 7 } } "D"
                             }
                         )
         , test "type with multiple args and correct distribution of args" <|
             \() ->
-                parseFullStringWithNullState "type D = C B a" Parser.typeDefinition
-                    |> Maybe.andThen asType
-                    |> Maybe.map noRangeTypeDeclaration
-                    |> Expect.equal
-                        (Just
-                            { documentation = Nothing
-                            , constructors =
-                                [ Node empty
+                "type D = C B a"
+                    |> expectAst
+                        (DefinedType { start = { row = 1, column = 1 }, end = { row = 1, column = 15 } }
+                            { constructors =
+                                [ Node { start = { row = 1, column = 10 }, end = { row = 1, column = 15 } }
                                     { arguments =
-                                        [ Node empty <| Typed (Node empty <| ( [], "B" )) []
-                                        , Node empty <| GenericType "a"
+                                        [ Node { start = { row = 1, column = 12 }, end = { row = 1, column = 13 } }
+                                            (Typed (Node { start = { row = 1, column = 12 }, end = { row = 1, column = 13 } } ( [], "B" )) [])
+                                        , Node { start = { row = 1, column = 14 }, end = { row = 1, column = 15 } } (GenericType "a")
                                         ]
-                                    , name = Node empty <| "C"
+                                    , name = Node { start = { row = 1, column = 10 }, end = { row = 1, column = 11 } } "C"
                                     }
                                 ]
+                            , documentation = Nothing
                             , generics = []
-                            , name = Node empty <| "D"
+                            , name = Node { start = { row = 1, column = 6 }, end = { row = 1, column = 7 } } "D"
                             }
                         )
         , test "type args should not continue on next line" <|
             \() ->
-                parseAsFarAsPossibleWithState emptyState "type D = C B\na" Parser.typeDefinition
-                    |> Maybe.andThen asType
-                    |> Maybe.map noRangeTypeDeclaration
-                    |> Expect.equal
-                        (Just
-                            { documentation = Nothing
-                            , constructors =
-                                [ Node empty
-                                    { arguments =
-                                        [ Node empty <| Typed (Node empty <| ( [], "B" )) []
-                                        ]
-                                    , name = Node empty <| "C"
-                                    }
-                                ]
-                            , generics = []
-                            , name = Node empty <| "D"
-                            }
-                        )
+                "type D = C B\na"
+                    |> expectInvalid
         , test "type and more" <|
             \() ->
                 parseAsFarAsPossibleWithState emptyState "type Color = Blue \nsomethingElse = 1" Parser.typeDefinition
@@ -203,24 +186,22 @@ all =
                         )
         , test "type with GenericType" <|
             \() ->
-                parseFullStringWithNullState "type Maybe a = Just a | Nothing" Parser.typeDefinition
-                    |> Maybe.andThen asType
-                    |> Maybe.map noRangeTypeDeclaration
-                    |> Expect.equal
-                        (Just <|
-                            { documentation = Nothing
-                            , name = Node empty <| "Maybe"
-                            , generics = [ Node empty <| "a" ]
-                            , constructors =
-                                [ Node empty
-                                    { name = Node empty <| "Just"
-                                    , arguments = [ Node empty <| GenericType "a" ]
+                "type Maybe a = Just a | Nothing"
+                    |> expectAst
+                        (DefinedType { start = { row = 1, column = 1 }, end = { row = 1, column = 32 } }
+                            { constructors =
+                                [ Node { start = { row = 1, column = 16 }, end = { row = 1, column = 22 } }
+                                    { arguments = [ Node { start = { row = 1, column = 21 }, end = { row = 1, column = 22 } } (GenericType "a") ]
+                                    , name = Node { start = { row = 1, column = 16 }, end = { row = 1, column = 20 } } "Just"
                                     }
-                                , Node empty
-                                    { name = Node empty <| "Nothing"
-                                    , arguments = []
+                                , Node { start = { row = 1, column = 25 }, end = { row = 1, column = 32 } }
+                                    { arguments = []
+                                    , name = Node { start = { row = 1, column = 25 }, end = { row = 1, column = 32 } } "Nothing"
                                     }
                                 ]
+                            , documentation = Nothing
+                            , generics = [ Node { start = { row = 1, column = 12 }, end = { row = 1, column = 13 } } "a" ]
+                            , name = Node { start = { row = 1, column = 6 }, end = { row = 1, column = 11 } } "Maybe"
                             }
                         )
         , test "type with value on next line " <|
@@ -253,3 +234,13 @@ expectAst expected source =
         Just actual ->
             actual
                 |> Expect.equal expected
+
+
+expectInvalid : String -> Expect.Expectation
+expectInvalid source =
+    case parseFullStringWithNullState source Parser.typeDefinition of
+        Nothing ->
+            Expect.pass
+
+        Just actual ->
+            Expect.fail ("This source code is successfully parsed but it shouldn't:\n" ++ Debug.toString actual)
