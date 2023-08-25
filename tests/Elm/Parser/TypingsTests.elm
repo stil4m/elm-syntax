@@ -229,18 +229,27 @@ all =
                     |> Expect.equal Nothing
         , test "type with spacing after " <|
             \() ->
-                parseAsFarAsPossibleWithState emptyState "type A = B\n\n" Parser.typeDefinition
-                    |> Expect.equal
-                        (Just
-                            (DefinedType { start = { row = 1, column = 1 }, end = { row = 1, column = 11 } }
-                                { constructors =
-                                    [ Node { start = { row = 1, column = 10 }, end = { row = 1, column = 11 } }
-                                        { arguments = [], name = Node { start = { row = 1, column = 10 }, end = { row = 1, column = 11 } } "B" }
-                                    ]
-                                , documentation = Nothing
-                                , generics = []
-                                , name = Node { start = { row = 1, column = 6 }, end = { row = 1, column = 7 } } "A"
-                                }
-                            )
+                "type A = B\n\n"
+                    |> expectAst
+                        (DefinedType { start = { row = 1, column = 1 }, end = { row = 1, column = 11 } }
+                            { constructors =
+                                [ Node { start = { row = 1, column = 10 }, end = { row = 1, column = 11 } }
+                                    { arguments = [], name = Node { start = { row = 1, column = 10 }, end = { row = 1, column = 11 } } "B" }
+                                ]
+                            , documentation = Nothing
+                            , generics = []
+                            , name = Node { start = { row = 1, column = 6 }, end = { row = 1, column = 7 } } "A"
+                            }
                         )
         ]
+
+
+expectAst : TypeDefinition -> String -> Expect.Expectation
+expectAst expected source =
+    case parseFullStringWithNullState source Parser.typeDefinition of
+        Nothing ->
+            Expect.fail "Expected the source to be parsed correctly"
+
+        Just actual ->
+            actual
+                |> Expect.equal expected
