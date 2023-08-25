@@ -3,7 +3,6 @@ module Elm.Parser.CombineTestUtil exposing (noRangeExpose, noRangeExposingList, 
 import Combine exposing (..)
 import Elm.Parser.State exposing (State, emptyState)
 import Elm.Syntax.Exposing exposing (..)
-import Elm.Syntax.Expression exposing (..)
 import Elm.Syntax.Import exposing (Import)
 import Elm.Syntax.Infix exposing (..)
 import Elm.Syntax.Module exposing (..)
@@ -79,11 +78,6 @@ parseAsFarAsPossible s p =
 
         _ ->
             Nothing
-
-
-noRangeExpression : Node Expression -> Node Expression
-noRangeExpression (Node _ inner) =
-    Node.empty <| noRangeInnerExpression inner
 
 
 noRangeModule : Module -> Module
@@ -220,17 +214,6 @@ noRangeInfix { direction, precedence, operator, function } =
         (unRange function)
 
 
-noRangeLetDeclaration : Node LetDeclaration -> Node LetDeclaration
-noRangeLetDeclaration (Node _ decl) =
-    Node.empty <|
-        case decl of
-            LetFunction function ->
-                LetFunction (noRangeFunction function)
-
-            LetDestructuring pattern expression ->
-                LetDestructuring (noRangePattern pattern) (noRangeExpression expression)
-
-
 noRangeTypeAlias : TypeAlias -> TypeAlias
 noRangeTypeAlias typeAlias =
     { typeAlias
@@ -293,90 +276,6 @@ noRangeValueConstructor valueConstructor =
     { valueConstructor | arguments = List.map noRangeTypeReference valueConstructor.arguments, name = unRange valueConstructor.name }
 
 
-noRangeFunction : Function -> Function
-noRangeFunction f =
-    { f
-        | declaration = unRanged noRangeFunctionImplementation f.declaration
-        , signature = Maybe.map (unRanged noRangeSignature) f.signature
-    }
-
-
 noRangeSignature : Signature -> Signature
 noRangeSignature signature =
     { signature | typeAnnotation = noRangeTypeReference signature.typeAnnotation, name = unRange signature.name }
-
-
-noRangeFunctionImplementation : FunctionImplementation -> FunctionImplementation
-noRangeFunctionImplementation d =
-    { d
-        | expression = noRangeExpression d.expression
-        , arguments = List.map noRangePattern d.arguments
-        , name = unRange d.name
-    }
-
-
-noRangeRecordSetter : RecordSetter -> RecordSetter
-noRangeRecordSetter ( a, b ) =
-    ( unRange a, unRanged noRangeInnerExpression b )
-
-
-noRangeInnerExpression : Expression -> Expression
-noRangeInnerExpression inner =
-    case inner of
-        Application xs ->
-            Application <| List.map noRangeExpression xs
-
-        OperatorApplication op dir left right ->
-            OperatorApplication op dir (noRangeExpression left) (noRangeExpression right)
-
-        ListExpr xs ->
-            ListExpr <| List.map noRangeExpression xs
-
-        IfBlock a b c ->
-            IfBlock
-                (noRangeExpression a)
-                (noRangeExpression b)
-                (noRangeExpression c)
-
-        RecordExpr fields ->
-            RecordExpr <| List.map (unRanged noRangeRecordSetter) fields
-
-        LambdaExpression lambda ->
-            LambdaExpression
-                { lambda
-                    | expression = noRangeExpression lambda.expression
-                    , args = List.map noRangePattern lambda.args
-                }
-
-        RecordUpdateExpression name updates ->
-            RecordUpdateExpression (unRanged identity name) (List.map (unRanged noRangeRecordSetter) updates)
-
-        CaseExpression { cases, expression } ->
-            CaseExpression
-                { cases =
-                    cases
-                        |> List.map (Tuple.mapFirst noRangePattern)
-                        |> List.map (Tuple.mapSecond noRangeExpression)
-                , expression = noRangeExpression expression
-                }
-
-        LetExpression { declarations, expression } ->
-            LetExpression
-                { declarations = List.map noRangeLetDeclaration declarations
-                , expression = noRangeExpression expression
-                }
-
-        TupledExpression x ->
-            TupledExpression <| List.map noRangeExpression x
-
-        ParenthesizedExpression x ->
-            ParenthesizedExpression <| noRangeExpression x
-
-        RecordAccess e n ->
-            RecordAccess (noRangeExpression e) (unRange n)
-
-        Negation expr ->
-            Negation (noRangeExpression expr)
-
-        _ ->
-            inner
