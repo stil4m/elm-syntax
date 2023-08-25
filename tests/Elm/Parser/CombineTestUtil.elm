@@ -1,10 +1,9 @@
-module Elm.Parser.CombineTestUtil exposing (noRangeSignature, noRangeTypeAlias, noRangeTypeDeclaration, noRangeTypeReference, parseAsFarAsPossible, parseAsFarAsPossibleWithState, parseFullString, parseFullStringState, parseFullStringWithNullState, parseStateToMaybe, pushIndent)
+module Elm.Parser.CombineTestUtil exposing (noRangeSignature, noRangeTypeAlias, noRangeTypeReference, parseAsFarAsPossible, parseAsFarAsPossibleWithState, parseFullString, parseFullStringState, parseFullStringWithNullState, parseStateToMaybe, pushIndent)
 
 import Combine exposing (..)
 import Elm.Parser.State exposing (State, emptyState)
 import Elm.Syntax.Node as Node exposing (Node(..))
 import Elm.Syntax.Signature exposing (Signature)
-import Elm.Syntax.Type exposing (..)
 import Elm.Syntax.TypeAlias exposing (..)
 import Elm.Syntax.TypeAnnotation exposing (..)
 
@@ -130,20 +129,6 @@ noRangeTypeReference (Node _ typeAnnotation) =
                 FunctionTypeAnnotation
                     (noRangeTypeReference a)
                     (noRangeTypeReference b)
-
-
-noRangeTypeDeclaration : Type -> Type
-noRangeTypeDeclaration x =
-    { x
-        | constructors = List.map (unRanged noRangeValueConstructor) x.constructors
-        , generics = List.map unRange x.generics
-        , name = unRange x.name
-    }
-
-
-noRangeValueConstructor : ValueConstructor -> ValueConstructor
-noRangeValueConstructor valueConstructor =
-    { valueConstructor | arguments = List.map noRangeTypeReference valueConstructor.arguments, name = unRange valueConstructor.name }
 
 
 noRangeSignature : Signature -> Signature

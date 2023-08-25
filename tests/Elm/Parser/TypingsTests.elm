@@ -1,25 +1,13 @@
 module Elm.Parser.TypingsTests exposing (all)
 
 import Elm.Parser.CombineTestUtil exposing (..)
-import Elm.Parser.State exposing (emptyState)
 import Elm.Parser.Typings as Parser exposing (TypeDefinition(..))
 import Elm.Syntax.Node as Node exposing (Node(..))
 import Elm.Syntax.Range exposing (empty)
-import Elm.Syntax.Type exposing (Type)
 import Elm.Syntax.TypeAlias exposing (TypeAlias)
 import Elm.Syntax.TypeAnnotation exposing (..)
 import Expect
 import Test exposing (..)
-
-
-asType : TypeDefinition -> Maybe Type
-asType td =
-    case td of
-        DefinedType _ t ->
-            Just t
-
-        _ ->
-            Nothing
 
 
 asTypeAlias : TypeDefinition -> Maybe TypeAlias
@@ -166,24 +154,6 @@ all =
             \() ->
                 "type D = C B\na"
                     |> expectInvalid
-        , test "type and more" <|
-            \() ->
-                parseAsFarAsPossibleWithState emptyState "type Color = Blue \nsomethingElse = 1" Parser.typeDefinition
-                    |> Maybe.andThen asType
-                    |> Maybe.map noRangeTypeDeclaration
-                    |> Expect.equal
-                        (Just
-                            { documentation = Nothing
-                            , constructors =
-                                [ Node empty
-                                    { arguments = []
-                                    , name = Node empty <| "Blue"
-                                    }
-                                ]
-                            , generics = []
-                            , name = Node empty <| "Color"
-                            }
-                        )
         , test "type with GenericType" <|
             \() ->
                 "type Maybe a = Just a | Nothing"
