@@ -17,12 +17,12 @@ import Test exposing (..)
 all : Test
 all =
     describe "LetExpressionTests"
-        [ test "let body" <|
+        [ test "let expression with multiple declarations" <|
             \() ->
                 """let
   foo = bar
 
-  john = doe in 1"""
+  john n = n in 1"""
                     |> expectAst
                         (Node { start = { row = 1, column = 1 }, end = { row = 4, column = 18 } }
                             (LetExpression
@@ -43,8 +43,8 @@ all =
                                         (LetFunction
                                             { declaration =
                                                 Node { start = { row = 4, column = 3 }, end = { row = 4, column = 13 } }
-                                                    { arguments = []
-                                                    , expression = Node { start = { row = 4, column = 10 }, end = { row = 4, column = 13 } } (FunctionOrValue [] "doe")
+                                                    { arguments = [ Node { end = { column = 9, row = 4 }, start = { column = 8, row = 4 } } (VarPattern "n") ]
+                                                    , expression = Node { start = { row = 4, column = 12 }, end = { row = 4, column = 13 } } (FunctionOrValue [] "n")
                                                     , name = Node { start = { row = 4, column = 3 }, end = { row = 4, column = 7 } } "john"
                                                     }
                                             , documentation = Nothing
