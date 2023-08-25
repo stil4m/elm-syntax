@@ -27,18 +27,27 @@ all =
                 parseFullStringWithNullState "Msg(..)" typeExpose
                     |> Maybe.map noRangeExpose
                     |> Expect.equal (Just (Node.empty <| TypeExpose (ExposedType "Msg" (Just empty))))
-        , test "exposingList" <|
+        , test "Explicit exposing list" <|
             \() ->
                 parseFullStringWithNullState "exposing (Model,Msg(..),Info(..),init,(::))" exposeDefinition
-                    |> Maybe.map noRangeExposingList
                     |> Expect.equal
                         (Just
                             (Explicit
-                                [ Node.empty <| TypeOrAliasExpose "Model"
-                                , Node empty <| TypeExpose (ExposedType "Msg" (Just empty))
-                                , Node empty <| TypeExpose (ExposedType "Info" (Just empty))
-                                , Node empty <| FunctionExpose "init"
-                                , Node empty <| InfixExpose "::"
+                                [ Node { start = { row = 1, column = 11 }, end = { row = 1, column = 16 } } (TypeOrAliasExpose "Model")
+                                , Node { start = { row = 1, column = 17 }, end = { row = 1, column = 24 } }
+                                    (TypeExpose
+                                        { name = "Msg"
+                                        , open = Just { start = { row = 1, column = 20 }, end = { row = 1, column = 24 } }
+                                        }
+                                    )
+                                , Node { start = { row = 1, column = 25 }, end = { row = 1, column = 33 } }
+                                    (TypeExpose
+                                        { name = "Info"
+                                        , open = Just { start = { row = 1, column = 29 }, end = { row = 1, column = 33 } }
+                                        }
+                                    )
+                                , Node { start = { row = 1, column = 34 }, end = { row = 1, column = 38 } } (FunctionExpose "init")
+                                , Node { start = { row = 1, column = 39 }, end = { row = 1, column = 43 } } (InfixExpose "::")
                                 ]
                             )
                         )
