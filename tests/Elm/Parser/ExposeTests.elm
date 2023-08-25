@@ -1,11 +1,11 @@
 module Elm.Parser.ExposeTests exposing (all)
 
-import Elm.Parser.CombineTestUtil exposing (..)
-import Elm.Parser.Expose exposing (..)
-import Elm.Syntax.Exposing exposing (..)
+import Elm.Parser.CombineTestUtil exposing (parseFullStringWithNullState)
+import Elm.Parser.Expose exposing (exposeDefinition)
+import Elm.Syntax.Exposing exposing (Exposing(..), TopLevelExpose(..))
 import Elm.Syntax.Node exposing (Node(..))
 import Expect
-import Test exposing (..)
+import Test exposing (Test, describe, test)
 
 
 all : Test
