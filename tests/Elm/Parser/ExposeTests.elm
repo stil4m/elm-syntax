@@ -11,10 +11,34 @@ import Test exposing (..)
 all : Test
 all =
     describe "ExposeTests"
-        [ test "should fail to parse empty exposing list" <|
+        [ test "Exposing all" <|
             \() ->
-                parseFullStringWithNullState "exposing ()" exposeDefinition
-                    |> Expect.equal Nothing
+                "exposing (..)"
+                    |> expectAst (All { start = { row = 1, column = 11 }, end = { row = 1, column = 13 } })
+        , test "Exposing all with spacing and comment" <|
+            \() ->
+                """exposing (
+  .. -- foo
+  )"""
+                    |> expectAst (All { start = { row = 2, column = 3 }, end = { row = 3, column = 3 } })
+        , test "should fail to parse multi-line exposing all when closing parens is at the end of a line" <|
+            \() ->
+                """exposing (
+  ..
+)"""
+                    |> expectInvalid
+        , test "should fail to parse empty with just 1 `.`" <|
+            \() ->
+                "exposing ( . )"
+                    |> expectInvalid
+        , test "should fail to parse empty with just 3 `...`" <|
+            \() ->
+                "exposing ( ... )"
+                    |> expectInvalid
+        , test "should fail to parse empty with 2 spaced `.`" <|
+            \() ->
+                "exposing (. .)"
+                    |> expectInvalid
         , test "Explicit exposing list" <|
             \() ->
                 "exposing (Model,Msg(..),Info(..),init,(::))"
