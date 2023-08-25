@@ -107,26 +107,56 @@ all =
                                 }
                             )
                         )
-        , test "some let" <|
+        , test "Using destructuring" <|
             \() ->
-                parseFullStringState emptyState "let\n    _ = b\n in\n    z" Parser.expression
-                    |> Maybe.map Node.value
-                    |> Expect.equal
-                        (Just
+                """let
+    _ = b
+    {a} = b
+    (c, d) = e
+    (Node _ f) = g
+ in
+    1"""
+                    |> expectAst
+                        (Node { start = { row = 1, column = 1 }, end = { row = 7, column = 6 } }
                             (LetExpression
                                 { declarations =
-                                    [ Node { start = { row = 2, column = 5 }, end = { row = 2, column = 10 } } <|
-                                        LetDestructuring
-                                            (Node { start = { row = 2, column = 5 }, end = { row = 2, column = 6 } } AllPattern)
-                                            (Node { start = { row = 2, column = 9 }, end = { row = 2, column = 10 } } <| FunctionOrValue [] "b")
+                                    [ Node { start = { row = 2, column = 5 }, end = { row = 2, column = 10 } }
+                                        (LetDestructuring (Node { start = { row = 2, column = 5 }, end = { row = 2, column = 6 } } AllPattern) (Node { start = { row = 2, column = 9 }, end = { row = 2, column = 10 } } (FunctionOrValue [] "b")))
+                                    , Node { start = { row = 3, column = 5 }, end = { row = 3, column = 12 } }
+                                        (LetDestructuring
+                                            (Node { start = { row = 3, column = 5 }, end = { row = 3, column = 8 } }
+                                                (RecordPattern [ Node { start = { row = 3, column = 6 }, end = { row = 3, column = 7 } } "a" ])
+                                            )
+                                            (Node { start = { row = 3, column = 11 }, end = { row = 3, column = 12 } } (FunctionOrValue [] "b"))
+                                        )
+                                    , Node { start = { row = 4, column = 5 }, end = { row = 4, column = 15 } }
+                                        (LetDestructuring
+                                            (Node { start = { row = 4, column = 5 }, end = { row = 4, column = 11 } }
+                                                (TuplePattern
+                                                    [ Node { start = { row = 4, column = 6 }, end = { row = 4, column = 7 } } (VarPattern "c")
+                                                    , Node { start = { row = 4, column = 9 }, end = { row = 4, column = 10 } } (VarPattern "d")
+                                                    ]
+                                                )
+                                            )
+                                            (Node { start = { row = 4, column = 14 }, end = { row = 4, column = 15 } } (FunctionOrValue [] "e"))
+                                        )
+                                    , Node { start = { row = 5, column = 5 }, end = { row = 5, column = 19 } }
+                                        (LetDestructuring
+                                            (Node { start = { row = 5, column = 5 }, end = { row = 5, column = 15 } }
+                                                (ParenthesizedPattern
+                                                    (Node { start = { row = 5, column = 6 }, end = { row = 5, column = 14 } } (NamedPattern { moduleName = [], name = "Node" } [ Node { start = { row = 5, column = 11 }, end = { row = 5, column = 12 } } AllPattern, Node { start = { row = 5, column = 13 }, end = { row = 5, column = 14 } } (VarPattern "f") ]))
+                                                )
+                                            )
+                                            (Node { start = { row = 5, column = 18 }, end = { row = 5, column = 19 } } (FunctionOrValue [] "g"))
+                                        )
                                     ]
-                                , expression = Node { start = { row = 4, column = 5 }, end = { row = 4, column = 6 } } <| FunctionOrValue [] "z"
+                                , expression = Node { start = { row = 7, column = 5 }, end = { row = 7, column = 6 } } (Integer 1)
                                 }
                             )
                         )
-        , test "let inlined" <|
+        , test "On one line" <|
             \() ->
-                """let indent = String.length s in indent"""
+                "let indent = String.length s in indent"
                     |> expectAst
                         (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 39 } }
                             (LetExpression
@@ -156,7 +186,10 @@ all =
                         )
         , test "let without indentation" <|
             \() ->
-                parseFullStringState emptyState " let\n b = 1\n in\n b" (Layout.layout |> Combine.continueWith Parser.letExpression)
+                parseFullStringState emptyState """ let
+ b = 1
+ in
+ b""" (Layout.layout |> Combine.continueWith Parser.letExpression)
                     |> Maybe.map noRangeExpression
                     |> Maybe.map Node.value
                     |> Expect.equal
