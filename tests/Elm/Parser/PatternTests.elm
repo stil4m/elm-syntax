@@ -32,61 +32,48 @@ all =
                     |> expectAst (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 4 } } (CharPattern 'f'))
         , test "qualified pattern" <|
             \() ->
-                parseFullStringState emptyState "X x" Parser.pattern
-                    |> Expect.equal
-                        (Just
-                            (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 4 } }
-                                (NamedPattern (QualifiedNameRef [] "X")
-                                    [ Node { start = { row = 1, column = 3 }, end = { row = 1, column = 4 } } (VarPattern "x") ]
-                                )
+                "X x"
+                    |> expectAst
+                        (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 4 } }
+                            (NamedPattern (QualifiedNameRef [] "X")
+                                [ Node { start = { row = 1, column = 3 }, end = { row = 1, column = 4 } } (VarPattern "x") ]
                             )
                         )
         , test "qualified pattern without and with spacing should parse to the same" <|
             \() ->
-                let
-                    a =
-                        parseFullStringWithNullState "Bar " Parser.pattern
-
-                    b =
-                        parseFullStringWithNullState "Bar" Parser.pattern
-                in
-                a
-                    |> Expect.equal b
+                parseFullStringWithNullState "Bar " Parser.pattern
+                    |> Expect.equal (parseFullStringWithNullState "Bar" Parser.pattern)
         , test "all pattern" <|
             \() ->
                 "_"
                     |> expectAst (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 2 } } AllPattern)
         , test "non cons pattern " <|
             \() ->
-                parseFullStringState emptyState "(X x)" Parser.pattern
-                    |> Expect.equal
-                        (Just
-                            (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 6 } }
-                                (ParenthesizedPattern
-                                    (Node { start = { row = 1, column = 2 }, end = { row = 1, column = 5 } }
-                                        (NamedPattern (QualifiedNameRef [] "X")
-                                            [ Node { start = { row = 1, column = 4 }, end = { row = 1, column = 5 } } (VarPattern "x") ]
-                                        )
+                "(X x)"
+                    |> expectAst
+                        (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 6 } }
+                            (ParenthesizedPattern
+                                (Node { start = { row = 1, column = 2 }, end = { row = 1, column = 5 } }
+                                    (NamedPattern (QualifiedNameRef [] "X")
+                                        [ Node { start = { row = 1, column = 4 }, end = { row = 1, column = 5 } } (VarPattern "x") ]
                                     )
                                 )
                             )
                         )
         , test "uncons with parens pattern" <|
             \() ->
-                parseFullStringState emptyState "(X x) :: xs" Parser.pattern
-                    |> Expect.equal
-                        (Just
-                            (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 12 } } <|
-                                UnConsPattern
-                                    (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 6 } } <|
-                                        ParenthesizedPattern
-                                            (Node { start = { row = 1, column = 2 }, end = { row = 1, column = 5 } } <|
-                                                NamedPattern (QualifiedNameRef [] "X")
-                                                    [ Node { start = { row = 1, column = 4 }, end = { row = 1, column = 5 } } <| VarPattern "x" ]
-                                            )
-                                    )
-                                    (Node { start = { row = 1, column = 10 }, end = { row = 1, column = 12 } } <| VarPattern "xs")
-                            )
+                "(X x) :: xs"
+                    |> expectAst
+                        (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 12 } } <|
+                            UnConsPattern
+                                (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 6 } } <|
+                                    ParenthesizedPattern
+                                        (Node { start = { row = 1, column = 2 }, end = { row = 1, column = 5 } } <|
+                                            NamedPattern (QualifiedNameRef [] "X")
+                                                [ Node { start = { row = 1, column = 4 }, end = { row = 1, column = 5 } } <| VarPattern "x" ]
+                                        )
+                                )
+                                (Node { start = { row = 1, column = 10 }, end = { row = 1, column = 12 } } <| VarPattern "xs")
                         )
         , test "int pattern" <|
             \() ->
@@ -94,22 +81,18 @@ all =
                     |> expectAst (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 2 } } <| IntPattern 1)
         , test "uncons pattern" <|
             \() ->
-                parseFullStringState emptyState "n :: tail" Parser.pattern
-                    |> Expect.equal
-                        (Just
-                            (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 10 } } <|
-                                UnConsPattern (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 2 } } <| VarPattern "n")
-                                    (Node { start = { row = 1, column = 6 }, end = { row = 1, column = 10 } } <| VarPattern "tail")
-                            )
+                "n :: tail"
+                    |> expectAst
+                        (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 10 } } <|
+                            UnConsPattern (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 2 } } <| VarPattern "n")
+                                (Node { start = { row = 1, column = 6 }, end = { row = 1, column = 10 } } <| VarPattern "tail")
                         )
         , test "list pattern" <|
             \() ->
-                parseFullStringState emptyState "[1]" Parser.pattern
-                    |> Expect.equal
-                        (Just
-                            (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 4 } } <|
-                                ListPattern [ Node { start = { row = 1, column = 2 }, end = { row = 1, column = 3 } } <| IntPattern 1 ]
-                            )
+                "[1]"
+                    |> expectAst
+                        (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 4 } } <|
+                            ListPattern [ Node { start = { row = 1, column = 2 }, end = { row = 1, column = 3 } } <| IntPattern 1 ]
                         )
         , test "empty list pattern" <|
             \() ->
@@ -121,21 +104,17 @@ all =
                     |> expectAst (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 4 } } (ListPattern []))
         , test "single element list pattern with trailing whitespace" <|
             \() ->
-                parseFullStringState emptyState "[1 ]" Parser.pattern
-                    |> Expect.equal
-                        (Just
-                            (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 5 } } <|
-                                ListPattern [ Node { start = { row = 1, column = 2 }, end = { row = 1, column = 3 } } <| IntPattern 1 ]
-                            )
+                "[1 ]"
+                    |> expectAst
+                        (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 5 } } <|
+                            ListPattern [ Node { start = { row = 1, column = 2 }, end = { row = 1, column = 3 } } <| IntPattern 1 ]
                         )
         , test "single element list pattern with leading whitespace" <|
             \() ->
-                parseFullStringState emptyState "[ 1]" Parser.pattern
-                    |> Expect.equal
-                        (Just
-                            (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 5 } } <|
-                                ListPattern [ Node { start = { row = 1, column = 3 }, end = { row = 1, column = 4 } } <| IntPattern 1 ]
-                            )
+                "[ 1]"
+                    |> expectAst
+                        (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 5 } } <|
+                            ListPattern [ Node { start = { row = 1, column = 3 }, end = { row = 1, column = 4 } } <| IntPattern 1 ]
                         )
         , test "float pattern" <|
             \() ->
@@ -249,19 +228,17 @@ all =
                         )
         , test "record as pattern" <|
             \() ->
-                parseFullStringState emptyState "{model,context} as appState" Parser.pattern
-                    |> Expect.equal
-                        (Just
-                            (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 28 } } <|
-                                AsPattern
-                                    (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 16 } } <|
-                                        RecordPattern
-                                            [ Node { start = { row = 1, column = 2 }, end = { row = 1, column = 7 } } "model"
-                                            , Node { start = { row = 1, column = 8 }, end = { row = 1, column = 15 } } "context"
-                                            ]
-                                    )
-                                    (Node { start = { row = 1, column = 20 }, end = { row = 1, column = 28 } } "appState")
-                            )
+                "{model,context} as appState"
+                    |> expectAst
+                        (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 28 } } <|
+                            AsPattern
+                                (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 16 } } <|
+                                    RecordPattern
+                                        [ Node { start = { row = 1, column = 2 }, end = { row = 1, column = 7 } } "model"
+                                        , Node { start = { row = 1, column = 8 }, end = { row = 1, column = 15 } } "context"
+                                        ]
+                                )
+                                (Node { start = { row = 1, column = 20 }, end = { row = 1, column = 28 } } "appState")
                         )
         , test "complex pattern" <|
             \() ->
