@@ -82,6 +82,21 @@ all =
                                 }
                             )
                         )
+        , test "should fail to parse if declaration is indented as much as `let`" <|
+            \() ->
+                """  let
+  bar = 1
+  in
+  bar"""
+                    |> expectInvalid
+        , test "should fail to parse if declarations are not indented the same way" <|
+            \() ->
+                """  let
+    bar = 1
+      foo = 2
+  in
+  bar"""
+                    |> expectInvalid
         , test "let with deindented expression in in" <|
             \() ->
                 """let
@@ -232,3 +247,13 @@ expectAst expected source =
         Just actual ->
             actual
                 |> Expect.equal expected
+
+
+expectInvalid : String -> Expect.Expectation
+expectInvalid source =
+    case parseFullStringWithNullState source Parser.expression of
+        Nothing ->
+            Expect.pass
+
+        Just actual ->
+            Expect.fail ("This source code is successfully parsed but it shouldn't:\n" ++ Debug.toString actual)
