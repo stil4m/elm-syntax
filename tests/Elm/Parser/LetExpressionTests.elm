@@ -19,33 +19,42 @@ all =
     describe "LetExpressionTests"
         [ test "let body" <|
             \() ->
-                parseFullStringState emptyState "foo = bar\n  \n  john = doe" (pushIndent 2 Parser.letBody)
-                    |> Maybe.map (List.map noRangeLetDeclaration)
-                    |> Expect.equal
-                        (Just
-                            [ Node empty <|
-                                LetFunction
-                                    { documentation = Nothing
-                                    , signature = Nothing
-                                    , declaration =
-                                        Node empty <|
-                                            { name = Node empty "foo"
-                                            , arguments = []
-                                            , expression = Node empty <| FunctionOrValue [] "bar"
+                """let
+  foo = bar
+
+  john = doe in 1"""
+                    |> expectAst
+                        (Node { start = { row = 1, column = 1 }, end = { row = 4, column = 18 } }
+                            (LetExpression
+                                { declarations =
+                                    [ Node { start = { row = 2, column = 3 }, end = { row = 2, column = 12 } }
+                                        (LetFunction
+                                            { declaration =
+                                                Node { start = { row = 2, column = 3 }, end = { row = 2, column = 12 } }
+                                                    { arguments = []
+                                                    , expression = Node { start = { row = 2, column = 9 }, end = { row = 2, column = 12 } } (FunctionOrValue [] "bar")
+                                                    , name = Node { start = { row = 2, column = 3 }, end = { row = 2, column = 6 } } "foo"
+                                                    }
+                                            , documentation = Nothing
+                                            , signature = Nothing
                                             }
-                                    }
-                            , Node empty <|
-                                LetFunction
-                                    { documentation = Nothing
-                                    , signature = Nothing
-                                    , declaration =
-                                        Node empty <|
-                                            { name = Node empty "john"
-                                            , arguments = []
-                                            , expression = Node empty <| FunctionOrValue [] "doe"
+                                        )
+                                    , Node { start = { row = 4, column = 3 }, end = { row = 4, column = 13 } }
+                                        (LetFunction
+                                            { declaration =
+                                                Node { start = { row = 4, column = 3 }, end = { row = 4, column = 13 } }
+                                                    { arguments = []
+                                                    , expression = Node { start = { row = 4, column = 10 }, end = { row = 4, column = 13 } } (FunctionOrValue [] "doe")
+                                                    , name = Node { start = { row = 4, column = 3 }, end = { row = 4, column = 7 } } "john"
+                                                    }
+                                            , documentation = Nothing
+                                            , signature = Nothing
                                             }
-                                    }
-                            ]
+                                        )
+                                    ]
+                                , expression = Node { start = { row = 4, column = 17 }, end = { row = 4, column = 18 } } (Integer 1)
+                                }
+                            )
                         )
         , test "let block" <|
             \() ->
@@ -102,26 +111,28 @@ all =
                         )
         , test "let with deindented expression in in" <|
             \() ->
-                parseFullStringState emptyState "let\n  bar = 1\n in\n   bar" Parser.expression
-                    |> Maybe.map noRangeExpression
-                    |> Maybe.map Node.value
-                    |> Expect.equal
-                        (Just
+                """let
+  bar = 1
+ in
+   bar"""
+                    |> expectAst
+                        (Node { start = { row = 1, column = 1 }, end = { row = 4, column = 7 } }
                             (LetExpression
                                 { declarations =
-                                    [ Node empty <|
-                                        LetFunction
-                                            { documentation = Nothing
-                                            , signature = Nothing
-                                            , declaration =
-                                                Node empty <|
-                                                    { name = Node empty "bar"
-                                                    , arguments = []
-                                                    , expression = Node empty <| Integer 1
+                                    [ Node { start = { row = 2, column = 3 }, end = { row = 2, column = 10 } }
+                                        (LetFunction
+                                            { declaration =
+                                                Node { start = { row = 2, column = 3 }, end = { row = 2, column = 10 } }
+                                                    { arguments = []
+                                                    , expression = Node { start = { row = 2, column = 9 }, end = { row = 2, column = 10 } } (Integer 1)
+                                                    , name = Node { start = { row = 2, column = 3 }, end = { row = 2, column = 6 } } "bar"
                                                     }
+                                            , documentation = Nothing
+                                            , signature = Nothing
                                             }
+                                        )
                                     ]
-                                , expression = Node empty <| FunctionOrValue [] "bar"
+                                , expression = Node { start = { row = 4, column = 4 }, end = { row = 4, column = 7 } } (FunctionOrValue [] "bar")
                                 }
                             )
                         )
@@ -172,31 +183,31 @@ all =
                         )
         , test "let inlined" <|
             \() ->
-                parseFullStringState emptyState "let indent = String.length s in indent" Parser.expression
-                    |> Maybe.map noRangeExpression
-                    |> Maybe.map Node.value
-                    |> Expect.equal
-                        (Just
+                """let indent = String.length s in indent"""
+                    |> expectAst
+                        (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 39 } }
                             (LetExpression
                                 { declarations =
-                                    [ Node empty <|
-                                        LetFunction
-                                            { documentation = Nothing
-                                            , signature = Nothing
-                                            , declaration =
-                                                Node empty <|
-                                                    { name = Node empty "indent"
-                                                    , arguments = []
+                                    [ Node { start = { row = 1, column = 5 }, end = { row = 1, column = 29 } }
+                                        (LetFunction
+                                            { declaration =
+                                                Node { start = { row = 1, column = 5 }, end = { row = 1, column = 29 } }
+                                                    { arguments = []
                                                     , expression =
-                                                        Node empty <|
-                                                            Application
-                                                                [ Node empty <| FunctionOrValue [ "String" ] "length"
-                                                                , Node empty <| FunctionOrValue [] "s"
+                                                        Node { start = { row = 1, column = 14 }, end = { row = 1, column = 29 } }
+                                                            (Application
+                                                                [ Node { start = { row = 1, column = 14 }, end = { row = 1, column = 27 } } (FunctionOrValue [ "String" ] "length")
+                                                                , Node { start = { row = 1, column = 28 }, end = { row = 1, column = 29 } } (FunctionOrValue [] "s")
                                                                 ]
+                                                            )
+                                                    , name = Node { start = { row = 1, column = 5 }, end = { row = 1, column = 11 } } "indent"
                                                     }
+                                            , documentation = Nothing
+                                            , signature = Nothing
                                             }
+                                        )
                                     ]
-                                , expression = Node empty <| FunctionOrValue [] "indent"
+                                , expression = Node { start = { row = 1, column = 33 }, end = { row = 1, column = 39 } } (FunctionOrValue [] "indent")
                                 }
                             )
                         )
