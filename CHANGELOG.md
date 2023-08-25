@@ -2,6 +2,8 @@
 
 ## [Unreleased]
 
+- Stop parsing `FloatPattern` (this is an invalid pattern in Elm 0.19)
+
 ## [7.3.1] - 2022-08-16
 
 - Fixed an infinite recursion during parsing of a file.

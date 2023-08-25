@@ -45,6 +45,8 @@ all =
             \() ->
                 "0x1"
                     |> expectAst (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 4 } } <| HexPattern 1)
+        , test "Float should not be valid" <|
+            \() -> expectInvalid "1.0"
         , test "Uncons" <|
             \() ->
                 "n :: tail"

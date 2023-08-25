@@ -5,14 +5,14 @@ import Elm.Parser.State exposing (State)
 import Parser as Core
 
 
-raw : (Float -> a) -> (Int -> a) -> (Int -> a) -> Core.Parser a
+raw : Maybe (Float -> a) -> (Int -> a) -> (Int -> a) -> Core.Parser a
 raw floatf intf hexf =
     Core.number
         { int = Just intf
         , hex = Just hexf
         , octal = Nothing
         , binary = Nothing
-        , float = Just floatf
+        , float = floatf
         }
 
 
@@ -20,11 +20,11 @@ raw floatf intf hexf =
 -}
 forgivingNumber : (Float -> a) -> (Int -> a) -> (Int -> a) -> Parser State a
 forgivingNumber floatf intf hexf =
-    Core.backtrackable (raw floatf intf hexf)
+    Core.backtrackable (raw (Just floatf) intf hexf)
         |> Combine.fromCore
 
 
-number : (Float -> a) -> (Int -> a) -> (Int -> a) -> Parser State a
-number floatf intf hexf =
-    raw floatf intf hexf
+number : (Int -> a) -> (Int -> a) -> Parser State a
+number intf hexf =
+    raw Nothing intf hexf
         |> Combine.fromCore
