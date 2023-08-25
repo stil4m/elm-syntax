@@ -15,12 +15,12 @@ all =
     describe "PatternTests"
         [ test "unit pattern" <|
             \() ->
-                parseFullStringState emptyState "()" Parser.pattern
-                    |> Expect.equal (Just (Node (Range (Location 1 1) (Location 1 3)) UnitPattern))
+                "()"
+                    |> expectAst (Node (Range (Location 1 1) (Location 1 3)) UnitPattern)
         , test "string pattern" <|
             \() ->
-                parseFullStringState emptyState "\"Foo\"" Parser.pattern
-                    |> Expect.equal (Just <| Node (Range (Location 1 1) (Location 1 6)) (StringPattern "Foo"))
+                "\"Foo\""
+                    |> expectAst (Node (Range (Location 1 1) (Location 1 6)) (StringPattern "Foo"))
         , test "multiple patterns" <|
             \() ->
                 parseAsFarAsPossibleWithState emptyState "a b" Parser.pattern
@@ -29,8 +29,8 @@ all =
                         (Just (VarPattern "a"))
         , test "char pattern" <|
             \() ->
-                parseFullStringState emptyState "'f'" Parser.pattern
-                    |> Expect.equal (Just (Node (Range (Location 1 1) (Location 1 4)) (CharPattern 'f')))
+                "'f'"
+                    |> expectAst (Node (Range (Location 1 1) (Location 1 4)) (CharPattern 'f'))
         , test "qualified pattern" <|
             \() ->
                 parseFullStringState emptyState "X x" Parser.pattern
@@ -55,8 +55,8 @@ all =
                     |> Expect.equal b
         , test "all pattern" <|
             \() ->
-                parseFullStringState emptyState "_" Parser.pattern
-                    |> Expect.equal (Just (Node (Range (Location 1 1) (Location 1 2)) AllPattern))
+                "_"
+                    |> expectAst (Node (Range (Location 1 1) (Location 1 2)) AllPattern)
         , test "non cons pattern " <|
             \() ->
                 parseFullStringState emptyState "(X x)" Parser.pattern
@@ -91,8 +91,8 @@ all =
                         )
         , test "int pattern" <|
             \() ->
-                parseFullStringState emptyState "1" Parser.pattern
-                    |> Expect.equal (Just (Node (Range (Location 1 1) (Location 1 2)) <| IntPattern 1))
+                "1"
+                    |> expectAst (Node (Range (Location 1 1) (Location 1 2)) <| IntPattern 1)
         , test "uncons pattern" <|
             \() ->
                 parseFullStringState emptyState "n :: tail" Parser.pattern
@@ -114,12 +114,12 @@ all =
                         )
         , test "empty list pattern" <|
             \() ->
-                parseFullStringState emptyState "[]" Parser.pattern
-                    |> Expect.equal (Just (Node (Range (Location 1 1) (Location 1 3)) (ListPattern [])))
+                "[]"
+                    |> expectAst (Node (Range (Location 1 1) (Location 1 3)) (ListPattern []))
         , test "empty list pattern with whitespace" <|
             \() ->
-                parseFullStringState emptyState "[ ]" Parser.pattern
-                    |> Expect.equal (Just (Node (Range (Location 1 1) (Location 1 4)) (ListPattern [])))
+                "[ ]"
+                    |> expectAst (Node (Range (Location 1 1) (Location 1 4)) (ListPattern []))
         , test "single element list pattern with trailing whitespace" <|
             \() ->
                 parseFullStringState emptyState "[1 ]" Parser.pattern
@@ -140,8 +140,8 @@ all =
                         )
         , test "float pattern" <|
             \() ->
-                parseFullStringState emptyState "1.2" Parser.pattern
-                    |> Expect.equal (Just (Node (Range (Location 1 1) (Location 1 4)) (FloatPattern 1.2)))
+                "1.2"
+                    |> expectAst (Node (Range (Location 1 1) (Location 1 4)) (FloatPattern 1.2))
         , test "record pattern" <|
             \() ->
                 parseFullStringState emptyState "{a,b}" Parser.pattern
@@ -194,19 +194,19 @@ all =
                         )
         , test "empty record pattern" <|
             \() ->
-                parseFullStringState emptyState "{}" Parser.pattern
-                    |> Maybe.map noRangePattern
-                    |> Expect.equal (Just (Node empty <| RecordPattern []))
+                "{}"
+                    |> expectAst (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 3 } } (RecordPattern []))
         , test "empty record pattern with whitespace" <|
             \() ->
-                parseFullStringState emptyState "{ }" Parser.pattern
-                    |> Maybe.map noRangePattern
-                    |> Expect.equal (Just (Node empty <| RecordPattern []))
+                "{ }"
+                    |> expectAst (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 4 } } (RecordPattern []))
         , test "named pattern" <|
             \() ->
-                parseFullStringState emptyState "True" Parser.pattern
-                    |> Maybe.map noRangePattern
-                    |> Expect.equal (Just (Node empty <| NamedPattern (QualifiedNameRef [] "True") []))
+                "True"
+                    |> expectAst
+                        (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 5 } }
+                            (NamedPattern { moduleName = [], name = "True" } [])
+                        )
         , test "tuple pattern" <|
             \() ->
                 parseFullStringState emptyState "(a,{b,c},())" Parser.pattern
@@ -312,3 +312,14 @@ all =
                             )
                         )
         ]
+
+
+expectAst : Node Pattern -> String -> Expect.Expectation
+expectAst expected source =
+    case parseFullStringWithNullState source Parser.pattern of
+        Nothing ->
+            Expect.fail "Expected the source to be parsed correctly"
+
+        Just actual ->
+            actual
+                |> Expect.equal expected
