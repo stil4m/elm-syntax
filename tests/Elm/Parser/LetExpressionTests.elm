@@ -211,6 +211,15 @@ all =
   in
   bar"""
                     |> expectInvalid
+
+        -- TODO Make this pass
+        --      , test "should fail to parse `as` pattern not surrounded by parentheses" <|
+        --          \() ->
+        --              """let
+        --  bar n as m = 1
+        --in
+        --bar"""
+        --                  |> expectInvalid
         , test "should not parse let destructuring with a type annotation" <|
             \() ->
                 """let
