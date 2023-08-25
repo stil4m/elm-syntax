@@ -2,10 +2,9 @@ module Elm.Parser.ImportsTests exposing (all)
 
 import Elm.Parser.CombineTestUtil exposing (..)
 import Elm.Parser.Imports as Parser
-import Elm.Parser.State exposing (emptyState)
 import Elm.Syntax.Exposing exposing (..)
+import Elm.Syntax.Import exposing (Import)
 import Elm.Syntax.Node exposing (Node(..))
-import Elm.Syntax.Range exposing (..)
 import Expect
 import Test exposing (..)
 
@@ -15,56 +14,65 @@ all =
     describe "ImportTest"
         [ test "import with explicits" <|
             \() ->
-                parseFullStringWithNullState "import Foo exposing (Model, Msg(..))" Parser.importDefinition
-                    |> Maybe.map (unRanged noRangeImport)
-                    |> Expect.equal
-                        (Just <|
-                            Node empty <|
-                                { moduleName = Node empty <| [ "Foo" ]
-                                , moduleAlias = Nothing
-                                , exposingList =
-                                    Just <|
-                                        Node empty <|
-                                            Explicit
-                                                [ Node empty <| TypeOrAliasExpose "Model"
-                                                , Node empty <| TypeExpose (ExposedType "Msg" (Just empty))
-                                                ]
-                                }
+                "import Foo exposing (Model, Msg(..))"
+                    |> expectAst
+                        (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 37 } }
+                            { exposingList =
+                                Just
+                                    (Node { start = { row = 1, column = 12 }, end = { row = 1, column = 37 } }
+                                        (Explicit
+                                            [ Node { start = { row = 1, column = 22 }, end = { row = 1, column = 27 } } (TypeOrAliasExpose "Model"), Node { start = { row = 1, column = 29 }, end = { row = 1, column = 36 } } (TypeExpose { name = "Msg", open = Just { start = { row = 1, column = 32 }, end = { row = 1, column = 36 } } }) ]
+                                        )
+                                    )
+                            , moduleAlias = Nothing
+                            , moduleName = Node { start = { row = 1, column = 8 }, end = { row = 1, column = 11 } } [ "Foo" ]
+                            }
                         )
         , test "import with explicits 2" <|
             \() ->
-                parseFullStringWithNullState "import Html exposing (text)" Parser.importDefinition
-                    |> Maybe.map (unRanged noRangeImport)
-                    |> Expect.equal
-                        (Just <|
-                            Node empty <|
-                                { moduleName = Node empty <| [ "Html" ]
-                                , moduleAlias = Nothing
-                                , exposingList = Just <| Node empty <| Explicit [ Node empty <| FunctionExpose "text" ]
-                                }
+                "import Html exposing (text)"
+                    |> expectAst
+                        (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 28 } }
+                            { exposingList =
+                                Just
+                                    (Node { start = { row = 1, column = 13 }, end = { row = 1, column = 28 } }
+                                        (Explicit
+                                            [ Node { start = { row = 1, column = 23 }, end = { row = 1, column = 27 } } (FunctionExpose "text") ]
+                                        )
+                                    )
+                            , moduleAlias = Nothing
+                            , moduleName = Node { start = { row = 1, column = 8 }, end = { row = 1, column = 12 } } [ "Html" ]
+                            }
                         )
         , test "import minimal" <|
             \() ->
-                parseFullStringWithNullState "import Foo" Parser.importDefinition
-                    |> Maybe.map (unRanged noRangeImport)
-                    |> Expect.equal
-                        (Just <|
-                            Node empty <|
-                                { moduleName = Node empty <| [ "Foo" ]
-                                , moduleAlias = Nothing
-                                , exposingList = Nothing
-                                }
+                "import Foo"
+                    |> expectAst
+                        (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 11 } }
+                            { exposingList = Nothing
+                            , moduleAlias = Nothing
+                            , moduleName = Node { start = { row = 1, column = 8 }, end = { row = 1, column = 11 } } [ "Foo" ]
+                            }
                         )
         , test "import with alias" <|
             \() ->
-                parseFullStringWithNullState "import Foo as Bar" Parser.importDefinition
-                    |> Maybe.map (unRanged noRangeImport)
-                    |> Expect.equal
-                        (Just <|
-                            Node empty <|
-                                { moduleName = Node empty <| [ "Foo" ]
-                                , moduleAlias = Just <| Node empty <| [ "Bar" ]
-                                , exposingList = Nothing
-                                }
+                "import Foo as Bar"
+                    |> expectAst
+                        (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 18 } }
+                            { exposingList = Nothing
+                            , moduleAlias = Just (Node { start = { row = 1, column = 15 }, end = { row = 1, column = 18 } } [ "Bar" ])
+                            , moduleName = Node { start = { row = 1, column = 8 }, end = { row = 1, column = 11 } } [ "Foo" ]
+                            }
                         )
         ]
+
+
+expectAst : Node Import -> String -> Expect.Expectation
+expectAst expected source =
+    case parseFullStringWithNullState source Parser.importDefinition of
+        Nothing ->
+            Expect.fail "Expected the source to be parsed correctly"
+
+        Just actual ->
+            actual
+                |> Expect.equal expected

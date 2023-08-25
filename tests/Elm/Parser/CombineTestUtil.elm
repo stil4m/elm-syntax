@@ -1,12 +1,9 @@
-module Elm.Parser.CombineTestUtil exposing (noRangeImport, noRangeInfix, noRangeSignature, noRangeTypeAlias, noRangeTypeDeclaration, noRangeTypeReference, parseAsFarAsPossible, parseAsFarAsPossibleWithState, parseFullString, parseFullStringState, parseFullStringWithNullState, parseStateToMaybe, pushIndent, unRanged)
+module Elm.Parser.CombineTestUtil exposing (noRangeInfix, noRangeSignature, noRangeTypeAlias, noRangeTypeDeclaration, noRangeTypeReference, parseAsFarAsPossible, parseAsFarAsPossibleWithState, parseFullString, parseFullStringState, parseFullStringWithNullState, parseStateToMaybe, pushIndent)
 
 import Combine exposing (..)
 import Elm.Parser.State exposing (State, emptyState)
-import Elm.Syntax.Exposing exposing (..)
-import Elm.Syntax.Import exposing (Import)
 import Elm.Syntax.Infix exposing (..)
 import Elm.Syntax.Node as Node exposing (Node(..))
-import Elm.Syntax.Range exposing (empty)
 import Elm.Syntax.Signature exposing (Signature)
 import Elm.Syntax.Type exposing (..)
 import Elm.Syntax.TypeAlias exposing (..)
@@ -78,27 +75,6 @@ parseAsFarAsPossible s p =
             Nothing
 
 
-noRangeImport : Import -> Import
-noRangeImport imp =
-    { imp
-        | exposingList = Maybe.map (unRanged noRangeExposingList) imp.exposingList
-        , moduleName = unRange imp.moduleName
-        , moduleAlias = Maybe.map unRange imp.moduleAlias
-    }
-
-
-noRangeExposingList : Exposing -> Exposing
-noRangeExposingList x =
-    case x of
-        All _ ->
-            All empty
-
-        Explicit list ->
-            list
-                |> List.map noRangeExpose
-                |> Explicit
-
-
 unRange : Node a -> Node a
 unRange n =
     unRanged identity n
@@ -107,23 +83,6 @@ unRange n =
 unRanged : (a -> a) -> Node a -> Node a
 unRanged f (Node _ a) =
     Node.empty <| f a
-
-
-noRangeExpose : Node TopLevelExpose -> Node TopLevelExpose
-noRangeExpose (Node _ l) =
-    Node.empty <|
-        case l of
-            InfixExpose s ->
-                InfixExpose s
-
-            FunctionExpose s ->
-                FunctionExpose s
-
-            TypeOrAliasExpose s ->
-                TypeOrAliasExpose s
-
-            TypeExpose { name, open } ->
-                TypeExpose (ExposedType name (Maybe.map (always empty) open))
 
 
 noRangeInfix : Infix -> Infix
