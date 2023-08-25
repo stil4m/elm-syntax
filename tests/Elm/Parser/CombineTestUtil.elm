@@ -1,11 +1,10 @@
-module Elm.Parser.CombineTestUtil exposing (noRangeImport, noRangeInfix, noRangeModule, noRangeSignature, noRangeTypeAlias, noRangeTypeDeclaration, noRangeTypeReference, parseAsFarAsPossible, parseAsFarAsPossibleWithState, parseFullString, parseFullStringState, parseFullStringWithNullState, parseStateToMaybe, pushIndent, unRanged)
+module Elm.Parser.CombineTestUtil exposing (noRangeImport, noRangeInfix, noRangeSignature, noRangeTypeAlias, noRangeTypeDeclaration, noRangeTypeReference, parseAsFarAsPossible, parseAsFarAsPossibleWithState, parseFullString, parseFullStringState, parseFullStringWithNullState, parseStateToMaybe, pushIndent, unRanged)
 
 import Combine exposing (..)
 import Elm.Parser.State exposing (State, emptyState)
 import Elm.Syntax.Exposing exposing (..)
 import Elm.Syntax.Import exposing (Import)
 import Elm.Syntax.Infix exposing (..)
-import Elm.Syntax.Module exposing (..)
 import Elm.Syntax.Node as Node exposing (Node(..))
 import Elm.Syntax.Range exposing (empty)
 import Elm.Syntax.Signature exposing (Signature)
@@ -77,33 +76,6 @@ parseAsFarAsPossible s p =
 
         _ ->
             Nothing
-
-
-noRangeModule : Module -> Module
-noRangeModule m =
-    case m of
-        NormalModule n ->
-            NormalModule
-                { n
-                    | moduleName = unRange n.moduleName
-                    , exposingList = unRanged noRangeExposingList n.exposingList
-                }
-
-        PortModule n ->
-            PortModule
-                { n
-                    | moduleName = unRange n.moduleName
-                    , exposingList = unRanged noRangeExposingList n.exposingList
-                }
-
-        EffectModule n ->
-            EffectModule
-                { n
-                    | moduleName = unRange n.moduleName
-                    , exposingList = unRanged noRangeExposingList n.exposingList
-                    , command = Maybe.map unRange n.command
-                    , subscription = Maybe.map unRange n.subscription
-                }
 
 
 noRangeImport : Import -> Import

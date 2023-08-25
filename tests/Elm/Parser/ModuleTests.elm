@@ -7,8 +7,7 @@ import Elm.Syntax.Declaration exposing (Declaration(..))
 import Elm.Syntax.Exposing exposing (..)
 import Elm.Syntax.Expression exposing (Expression(..))
 import Elm.Syntax.Module exposing (..)
-import Elm.Syntax.Node as Node exposing (Node(..))
-import Elm.Syntax.Range exposing (empty)
+import Elm.Syntax.Node exposing (Node(..))
 import Expect
 import Test exposing (..)
 
@@ -18,59 +17,92 @@ all =
     describe "ModuleTests"
         [ test "formatted moduleDefinition" <|
             \() ->
-                parseFullStringWithNullState "module Foo exposing (Bar)" Parser.moduleDefinition
-                    |> Maybe.map noRangeModule
-                    |> Expect.equal
-                        (Just
-                            (NormalModule
-                                { moduleName = Node.empty [ "Foo" ]
-                                , exposingList = Node.empty <| Explicit [ Node.empty <| TypeOrAliasExpose "Bar" ]
-                                }
-                            )
+                "module Foo exposing (Bar)"
+                    |> expectAst
+                        (NormalModule
+                            { exposingList =
+                                Node { start = { row = 1, column = 12 }, end = { row = 1, column = 26 } }
+                                    (Explicit
+                                        [ Node { start = { row = 1, column = 22 }, end = { row = 1, column = 25 } } (TypeOrAliasExpose "Bar")
+                                        ]
+                                    )
+                            , moduleName = Node { start = { row = 1, column = 8 }, end = { row = 1, column = 11 } } [ "Foo" ]
+                            }
                         )
         , test "port moduleDefinition" <|
             \() ->
-                parseFullStringWithNullState "port module Foo exposing (Bar)" Parser.moduleDefinition
-                    |> Maybe.map noRangeModule
-                    |> Expect.equal (Just (PortModule { moduleName = Node.empty <| [ "Foo" ], exposingList = Node.empty <| Explicit [ Node.empty <| TypeOrAliasExpose "Bar" ] }))
+                "port module Foo exposing (Bar)"
+                    |> expectAst
+                        (PortModule
+                            { exposingList =
+                                Node { start = { row = 1, column = 17 }, end = { row = 1, column = 31 } }
+                                    (Explicit
+                                        [ Node { start = { row = 1, column = 27 }, end = { row = 1, column = 30 } } (TypeOrAliasExpose "Bar") ]
+                                    )
+                            , moduleName = Node { start = { row = 1, column = 13 }, end = { row = 1, column = 16 } } [ "Foo" ]
+                            }
+                        )
         , test "port moduleDefinition with spacing" <|
             \() ->
-                parseFullStringWithNullState "port module Foo exposing ( Bar )" Parser.moduleDefinition
-                    |> Maybe.map noRangeModule
-                    |> Expect.equal (Just (PortModule { moduleName = Node.empty <| [ "Foo" ], exposingList = Node empty <| Explicit [ Node empty <| TypeOrAliasExpose "Bar" ] }))
+                "port module Foo exposing ( Bar )"
+                    |> expectAst
+                        (PortModule
+                            { exposingList =
+                                Node { start = { row = 1, column = 17 }, end = { row = 1, column = 33 } }
+                                    (Explicit
+                                        [ Node { start = { row = 1, column = 28 }, end = { row = 1, column = 31 } } (TypeOrAliasExpose "Bar") ]
+                                    )
+                            , moduleName = Node { start = { row = 1, column = 13 }, end = { row = 1, column = 16 } } [ "Foo" ]
+                            }
+                        )
         , test "effect moduleDefinition" <|
             \() ->
-                parseFullStringWithNullState "effect module Foo where {command = MyCmd, subscription = MySub } exposing (Bar)" Parser.moduleDefinition
-                    |> Maybe.map noRangeModule
-                    |> Expect.equal
-                        (Just
-                            (EffectModule
-                                { moduleName = Node empty <| [ "Foo" ]
-                                , exposingList = Node empty <| Explicit [ Node empty <| TypeOrAliasExpose "Bar" ]
-                                , command = Just <| Node empty <| "MyCmd"
-                                , subscription = Just <| Node empty <| "MySub"
-                                }
-                            )
+                "effect module Foo where {command = MyCmd, subscription = MySub } exposing (Bar)"
+                    |> expectAst
+                        (EffectModule
+                            { moduleName = Node { start = { row = 1, column = 15 }, end = { row = 1, column = 18 } } [ "Foo" ]
+                            , command = Just (Node { start = { row = 1, column = 36 }, end = { row = 1, column = 41 } } "MyCmd")
+                            , subscription = Just (Node { start = { row = 1, column = 58 }, end = { row = 1, column = 63 } } "MySub")
+                            , exposingList = Node { start = { row = 1, column = 66 }, end = { row = 1, column = 80 } } (Explicit [ Node { start = { row = 1, column = 76 }, end = { row = 1, column = 79 } } (TypeOrAliasExpose "Bar") ])
+                            }
                         )
         , test "unformatted" <|
             \() ->
-                parseFullStringWithNullState "module \n Foo \n exposing  (..)" Parser.moduleDefinition
-                    |> Maybe.map noRangeModule
-                    |> Expect.equal (Just (NormalModule { moduleName = Node empty <| [ "Foo" ], exposingList = Node empty <| All empty }))
+                "module \n Foo \n exposing  (..)"
+                    |> expectAst
+                        (NormalModule
+                            { exposingList =
+                                Node { start = { row = 3, column = 2 }, end = { row = 3, column = 16 } }
+                                    (All { start = { row = 3, column = 13 }, end = { row = 3, column = 15 } })
+                            , moduleName = Node { start = { row = 2, column = 2 }, end = { row = 2, column = 5 } } [ "Foo" ]
+                            }
+                        )
         , test "unformatted wrong" <|
             \() ->
                 parseFullStringWithNullState "module \nFoo \n exposing  (..)" Parser.moduleDefinition
                     |> Expect.equal Nothing
         , test "exposing all" <|
             \() ->
-                parseFullStringWithNullState "module Foo exposing (..)" Parser.moduleDefinition
-                    |> Maybe.map noRangeModule
-                    |> Expect.equal (Just (NormalModule { moduleName = Node empty <| [ "Foo" ], exposingList = Node empty <| All empty }))
+                "module Foo exposing (..)"
+                    |> expectAst
+                        (NormalModule
+                            { exposingList =
+                                Node { start = { row = 1, column = 12 }, end = { row = 1, column = 25 } }
+                                    (All { start = { row = 1, column = 22 }, end = { row = 1, column = 24 } })
+                            , moduleName = Node { start = { row = 1, column = 8 }, end = { row = 1, column = 11 } } [ "Foo" ]
+                            }
+                        )
         , test "module name with _" <|
             \() ->
-                parseFullStringWithNullState "module I_en_gb exposing (..)" Parser.moduleDefinition
-                    |> Maybe.map noRangeModule
-                    |> Expect.equal (Just (NormalModule { moduleName = Node empty <| [ "I_en_gb" ], exposingList = Node empty <| All empty }))
+                "module I_en_gb exposing (..)"
+                    |> expectAst
+                        (NormalModule
+                            { exposingList =
+                                Node { start = { row = 1, column = 16 }, end = { row = 1, column = 29 } }
+                                    (All { start = { row = 1, column = 26 }, end = { row = 1, column = 28 } })
+                            , moduleName = Node { start = { row = 1, column = 8 }, end = { row = 1, column = 15 } } [ "I_en_gb" ]
+                            }
+                        )
         , test "Regression test for Incorrect range in if expression" <|
             \() ->
                 parseFullStringWithNullState
@@ -244,3 +276,14 @@ b = 3
                             }
                         )
         ]
+
+
+expectAst : Module -> String -> Expect.Expectation
+expectAst expected source =
+    case parseFullStringWithNullState source Parser.moduleDefinition of
+        Nothing ->
+            Expect.fail "Expected the source to be parsed correctly"
+
+        Just actual ->
+            actual
+                |> Expect.equal expected
