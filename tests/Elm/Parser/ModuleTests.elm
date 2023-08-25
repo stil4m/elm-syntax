@@ -275,6 +275,56 @@ b = 3
                                     )
                             }
                         )
+        , test "File with multiple imports" <|
+            \() ->
+                parseFullStringWithNullState
+                    """module TestModule exposing (..)
+import A
+import B
+
+a = 1
+"""
+                    File.file
+                    |> Expect.equal
+                        (Just
+                            { comments = []
+                            , moduleDefinition =
+                                Node { start = { row = 1, column = 1 }, end = { row = 1, column = 32 } }
+                                    (NormalModule
+                                        { exposingList =
+                                            Node { start = { row = 1, column = 19 }, end = { row = 1, column = 32 } }
+                                                (All { start = { row = 1, column = 29 }, end = { row = 1, column = 31 } })
+                                        , moduleName = Node { start = { row = 1, column = 8 }, end = { row = 1, column = 18 } } [ "TestModule" ]
+                                        }
+                                    )
+                            , imports =
+                                [ Node { start = { row = 2, column = 1 }, end = { row = 2, column = 9 } }
+                                    { exposingList = Nothing
+                                    , moduleAlias = Nothing
+                                    , moduleName = Node { start = { row = 2, column = 8 }, end = { row = 2, column = 9 } } [ "A" ]
+                                    }
+                                , Node { start = { row = 3, column = 1 }, end = { row = 3, column = 9 } }
+                                    { exposingList = Nothing
+                                    , moduleAlias = Nothing
+                                    , moduleName = Node { start = { row = 3, column = 8 }, end = { row = 3, column = 9 } } [ "B" ]
+                                    }
+                                ]
+                            , declarations =
+                                [ Node { start = { row = 5, column = 1 }, end = { row = 5, column = 6 } }
+                                    (FunctionDeclaration
+                                        { declaration =
+                                            Node { start = { row = 5, column = 1 }, end = { row = 5, column = 6 } }
+                                                { arguments = []
+                                                , expression = Node { start = { row = 5, column = 5 }, end = { row = 5, column = 6 } } (Integer 1)
+                                                , name = Node { start = { row = 5, column = 1 }, end = { row = 5, column = 2 } } "a"
+                                                }
+                                        , documentation = Nothing
+                                        , signature = Nothing
+                                        }
+                                    )
+                                ]
+                            }
+                        )
         ]
 
 

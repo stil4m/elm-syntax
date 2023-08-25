@@ -67,16 +67,4 @@ all =
                                 , exposingList = Nothing
                                 }
                         )
-        , test "import should be non greedy with spacing" <|
-            \() ->
-                parseAsFarAsPossibleWithState emptyState "import Foo\nimport X" Parser.importDefinition
-                    |> Expect.equal
-                        (Just
-                            (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 11 } }
-                                { moduleName = Node { start = { row = 1, column = 8 }, end = { row = 1, column = 11 } } <| [ "Foo" ]
-                                , moduleAlias = Nothing
-                                , exposingList = Nothing
-                                }
-                            )
-                        )
         ]
