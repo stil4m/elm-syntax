@@ -93,7 +93,12 @@ all =
                         )
         , test "lambda with trailing whitespace" <|
             \() ->
-                parseFullStringState emptyState " \\a b -> a + b\n\n\n\n--some comment\n" (Layout.layout |> Combine.continueWith Parser.expression)
+                parseFullStringState emptyState """ \\a b -> a + b
+
+
+
+--some comment
+""" (Layout.layout |> Combine.continueWith Parser.expression)
                     |> Maybe.map Node.range
                     |> Expect.equal (Just { start = { row = 1, column = 2 }, end = { row = 1, column = 15 } })
         ]
