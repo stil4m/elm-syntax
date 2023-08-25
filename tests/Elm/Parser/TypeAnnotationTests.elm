@@ -20,9 +20,8 @@ all =
                     |> Expect.equal (Just <| Node.empty Unit)
         , test "unitTypeReference with spaces" <|
             \() ->
-                parseFullStringWithNullState "( )" Parser.typeAnnotation
-                    |> Maybe.map noRangeTypeReference
-                    |> Expect.equal Nothing
+                "( )"
+                    |> expectInvalid
         , test "tupledTypeReference" <|
             \() ->
                 parseFullStringWithNullState "( (), ())" Parser.typeAnnotation
@@ -130,9 +129,8 @@ all =
                         )
         , test "generic record with no fields" <|
             \() ->
-                parseFullStringWithNullState "{ attr |}" Parser.typeAnnotation
-                    |> Maybe.map noRangeTypeReference
-                    |> Expect.equal Nothing
+                "{ attr |}"
+                    |> expectInvalid
         , test "recordTypeReference nested record" <|
             \() ->
                 parseFullStringWithNullState "{color: {r : Int, g :Int, b: Int } }" Parser.typeAnnotation
@@ -323,9 +321,8 @@ all =
                         )
         , test "parseTypeWith wrong indent" <|
             \() ->
-                parseFullStringWithNullState "Maybe\na" Parser.typeAnnotation
-                    |> Maybe.map noRangeTypeReference
-                    |> Expect.equal Nothing
+                "Maybe\na"
+                    |> expectInvalid
         , test "parseTypeWith good indent" <|
             \() ->
                 parseFullStringWithNullState "Maybe\n a" Parser.typeAnnotation
@@ -362,3 +359,13 @@ all =
                             )
                         )
         ]
+
+
+expectInvalid : String -> Expect.Expectation
+expectInvalid source =
+    case parseFullStringWithNullState source Parser.typeAnnotation of
+        Nothing ->
+            Expect.pass
+
+        Just actual ->
+            Expect.fail ("This source code is successfully parsed but it shouldn't:\n" ++ Debug.toString actual)
