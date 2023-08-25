@@ -350,25 +350,25 @@ log a =
 """
     , { comments = []
       , declarations =
-            [ Node { end = { column = 21, row = 6 }, start = { column = 1, row = 4 } }
+            [ Node { start = { row = 4, column = 1 }, end = { row = 6, column = 21 } }
                 (FunctionDeclaration
-                    { declaration = Node { end = { column = 21, row = 6 }, start = { column = 1, row = 5 } } { arguments = [ Node { end = { column = 6, row = 5 }, start = { column = 5, row = 5 } } (VarPattern "a") ], expression = Node { end = { column = 21, row = 6 }, start = { column = 5, row = 6 } } (Application [ Node { end = { column = 14, row = 6 }, start = { column = 5, row = 6 } } (FunctionOrValue [ "Debug" ] "log"), Node { end = { column = 19, row = 6 }, start = { column = 15, row = 6 } } (Literal "ok"), Node { end = { column = 21, row = 6 }, start = { column = 20, row = 6 } } (FunctionOrValue [] "a") ]), name = Node { end = { column = 4, row = 5 }, start = { column = 1, row = 5 } } "log" }
+                    { declaration = Node { start = { row = 5, column = 1 }, end = { row = 6, column = 21 } } { arguments = [ Node { start = { row = 5, column = 5 }, end = { row = 5, column = 6 } } (VarPattern "a") ], expression = Node { start = { row = 6, column = 5 }, end = { row = 6, column = 21 } } (Application [ Node { start = { row = 6, column = 5 }, end = { row = 6, column = 14 } } (FunctionOrValue [ "Debug" ] "log"), Node { start = { row = 6, column = 15 }, end = { row = 6, column = 19 } } (Literal "ok"), Node { start = { row = 6, column = 20 }, end = { row = 6, column = 21 } } (FunctionOrValue [] "a") ]), name = Node { start = { row = 5, column = 1 }, end = { row = 5, column = 4 } } "log" }
                     , documentation = Nothing
-                    , signature = Just (Node { end = { column = 17, row = 4 }, start = { column = 1, row = 4 } } { name = Node { end = { column = 4, row = 4 }, start = { column = 1, row = 4 } } "log", typeAnnotation = Node { end = { column = 17, row = 4 }, start = { column = 7, row = 4 } } (FunctionTypeAnnotation (Node { end = { column = 10, row = 4 }, start = { column = 7, row = 4 } } (Typed (Node { end = { column = 10, row = 4 }, start = { column = 7, row = 4 } } ( [], "Int" )) [])) (Node { end = { column = 17, row = 4 }, start = { column = 14, row = 4 } } (Typed (Node { end = { column = 17, row = 4 }, start = { column = 14, row = 4 } } ( [], "Int" )) []))) })
+                    , signature = Just (Node { start = { row = 4, column = 1 }, end = { row = 4, column = 17 } } { name = Node { start = { row = 4, column = 1 }, end = { row = 4, column = 4 } } "log", typeAnnotation = Node { start = { row = 4, column = 7 }, end = { row = 4, column = 17 } } (FunctionTypeAnnotation (Node { start = { row = 4, column = 7 }, end = { row = 4, column = 10 } } (Typed (Node { start = { row = 4, column = 7 }, end = { row = 4, column = 10 } } ( [], "Int" )) [])) (Node { start = { row = 4, column = 14 }, end = { row = 4, column = 17 } } (Typed (Node { start = { row = 4, column = 14 }, end = { row = 4, column = 17 } } ( [], "Int" )) []))) })
                     }
                 )
             ]
       , imports = []
       , moduleDefinition =
-            Node { end = { column = 42, row = 1 }, start = { column = 1, row = 1 } }
+            Node { start = { row = 1, column = 1 }, end = { row = 1, column = 42 } }
                 (NormalModule
                     { exposingList =
-                        Node { end = { column = 42, row = 1 }, start = { column = 28, row = 1 } }
+                        Node { start = { row = 1, column = 28 }, end = { row = 1, column = 42 } }
                             (Explicit
-                                [ Node { end = { column = 41, row = 1 }, start = { column = 38, row = 1 } } (FunctionExpose "log")
+                                [ Node { start = { row = 1, column = 38 }, end = { row = 1, column = 41 } } (FunctionExpose "log")
                                 ]
                             )
-                    , moduleName = Node { end = { column = 27, row = 1 }, start = { column = 8, row = 1 } } [ "Simplify", "AstHelpers" ]
+                    , moduleName = Node { start = { row = 1, column = 8 }, end = { row = 1, column = 27 } } [ "Simplify", "AstHelpers" ]
                     }
                 )
       }
