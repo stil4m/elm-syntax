@@ -1,24 +1,12 @@
 module Elm.Parser.TypingsTests exposing (all)
 
 import Elm.Parser.CombineTestUtil exposing (..)
-import Elm.Parser.Typings as Parser exposing (TypeDefinition(..))
+import Elm.Parser.Typings as Parser
 import Elm.Syntax.Declaration as Declaration exposing (Declaration(..))
-import Elm.Syntax.Node as Node exposing (Node(..))
-import Elm.Syntax.Range exposing (empty)
-import Elm.Syntax.TypeAlias exposing (TypeAlias)
+import Elm.Syntax.Node exposing (Node(..))
 import Elm.Syntax.TypeAnnotation exposing (..)
 import Expect
 import Test exposing (..)
-
-
-asTypeAlias : TypeDefinition -> Maybe TypeAlias
-asTypeAlias td =
-    case td of
-        DefinedAlias _ t ->
-            Just t
-
-        _ ->
-            Nothing
 
 
 all : Test

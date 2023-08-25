@@ -1,4 +1,4 @@
-module Elm.Parser.Typings exposing (TypeDefinition(..), typeDefinition)
+module Elm.Parser.Typings exposing (typeDefinition)
 
 import Combine exposing (Parser, many, maybe, string, succeed)
 import Elm.Parser.Layout as Layout
@@ -13,11 +13,6 @@ import Elm.Syntax.Range as Range exposing (Range)
 import Elm.Syntax.Type exposing (Type, ValueConstructor)
 import Elm.Syntax.TypeAlias exposing (TypeAlias)
 import Elm.Syntax.TypeAnnotation exposing (TypeAnnotation)
-
-
-type TypeDefinition
-    = DefinedType Range Type
-    | DefinedAlias Range TypeAlias
 
 
 typeDefinition : Parser State (Node Declaration.Declaration)

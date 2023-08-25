@@ -10,7 +10,7 @@ import Elm.Parser.Ranges as Ranges
 import Elm.Parser.State as State exposing (State, popIndent, pushColumn)
 import Elm.Parser.Tokens as Tokens exposing (caseToken, characterLiteral, elseToken, functionName, ifToken, infixOperatorToken, multiLineStringLiteral, ofToken, portToken, prefixOperatorToken, stringLiteral, thenToken)
 import Elm.Parser.TypeAnnotation exposing (typeAnnotation)
-import Elm.Parser.Typings as Typings exposing (typeDefinition)
+import Elm.Parser.Typings exposing (typeDefinition)
 import Elm.Parser.Whitespace exposing (manySpaces)
 import Elm.Syntax.Declaration as Declaration exposing (Declaration)
 import Elm.Syntax.Expression as Expression exposing (Case, CaseBlock, Cases, Expression(..), Function, FunctionImplementation, Lambda, LetBlock, LetDeclaration(..), RecordSetter)
