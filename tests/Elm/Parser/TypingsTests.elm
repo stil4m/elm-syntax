@@ -226,7 +226,6 @@ all =
         , test "type with value on next line " <|
             \() ->
                 parseFullStringWithNullState "type Maybe a = Just a |\nNothing" Parser.typeDefinition
-                    |> Maybe.andThen asType
                     |> Expect.equal Nothing
         , test "type with spacing after " <|
             \() ->
