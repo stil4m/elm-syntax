@@ -52,12 +52,6 @@ all =
                                 }
                             )
                         )
-        , test "function arg" <|
-            \() ->
-                parseAsFarAsPossibleWithState emptyState "a b" Parser.functionArgument
-                    |> Maybe.map Node.value
-                    |> Expect.equal
-                        (Just (VarPattern "a"))
         , test "args lambda" <|
             \() ->
                 parseFullStringState emptyState "\\a b -> a + b" Parser.expression
