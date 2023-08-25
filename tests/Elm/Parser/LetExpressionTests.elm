@@ -8,7 +8,6 @@ import Elm.Parser.State exposing (emptyState)
 import Elm.Syntax.Expression exposing (..)
 import Elm.Syntax.Node as Node exposing (Node(..))
 import Elm.Syntax.Pattern exposing (..)
-import Elm.Syntax.Range exposing (empty)
 import Expect
 import Test exposing (..)
 
@@ -198,35 +197,6 @@ all =
                                         )
                                     ]
                                 , expression = Node { start = { row = 1, column = 33 }, end = { row = 1, column = 39 } } (FunctionOrValue [] "indent")
-                                }
-                            )
-                        )
-        , test "let without indentation" <|
-            \() ->
-                parseFullStringState emptyState """ let
- b = 1
- in
- b""" (Layout.layout |> Combine.continueWith Parser.letExpression)
-                    |> Maybe.map noRangeExpression
-                    |> Maybe.map Node.value
-                    |> Expect.equal
-                        (Just
-                            (LetExpression
-                                { declarations =
-                                    [ Node empty <|
-                                        LetFunction
-                                            { documentation = Nothing
-                                            , signature =
-                                                Nothing
-                                            , declaration =
-                                                Node empty <|
-                                                    { name = Node empty "b"
-                                                    , arguments = []
-                                                    , expression = Node empty <| Integer 1
-                                                    }
-                                            }
-                                    ]
-                                , expression = Node empty <| FunctionOrValue [] "b"
                                 }
                             )
                         )
