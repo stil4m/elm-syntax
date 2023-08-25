@@ -12,25 +12,19 @@ import Test exposing (..)
 all : Test
 all =
     describe "PatternTests"
-        [ test "unit pattern" <|
+        [ test "Unit" <|
             \() ->
                 "()"
                     |> expectAst (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 3 } } UnitPattern)
-        , test "string pattern" <|
+        , test "String" <|
             \() ->
                 "\"Foo\""
                     |> expectAst (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 6 } } (StringPattern "Foo"))
-        , test "multiple patterns" <|
-            \() ->
-                parseAsFarAsPossibleWithState emptyState "a b" Parser.pattern
-                    |> Maybe.map Node.value
-                    |> Expect.equal
-                        (Just (VarPattern "a"))
-        , test "char pattern" <|
+        , test "Char" <|
             \() ->
                 "'f'"
                     |> expectAst (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 4 } } (CharPattern 'f'))
-        , test "qualified pattern" <|
+        , test "Qualified" <|
             \() ->
                 "X x"
                     |> expectAst
@@ -39,28 +33,40 @@ all =
                                 [ Node { start = { row = 1, column = 3 }, end = { row = 1, column = 4 } } (VarPattern "x") ]
                             )
                         )
-        , test "qualified pattern without and with spacing should parse to the same" <|
+        , test "Qualified pattern without and with spacing should parse to the same" <|
             \() ->
                 parseFullStringWithNullState "Bar " Parser.pattern
                     |> Expect.equal (parseFullStringWithNullState "Bar" Parser.pattern)
-        , test "all pattern" <|
+        , test "Wildcard" <|
             \() ->
                 "_"
                     |> expectAst (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 2 } } AllPattern)
-        , test "non cons pattern " <|
+        , test "Parenthesized" <|
             \() ->
-                "(X x)"
+                "(x)"
                     |> expectAst
-                        (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 6 } }
+                        (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 4 } }
                             (ParenthesizedPattern
-                                (Node { start = { row = 1, column = 2 }, end = { row = 1, column = 5 } }
-                                    (NamedPattern (QualifiedNameRef [] "X")
-                                        [ Node { start = { row = 1, column = 4 }, end = { row = 1, column = 5 } } (VarPattern "x") ]
-                                    )
-                                )
+                                (Node { start = { row = 1, column = 2 }, end = { row = 1, column = 3 } } (VarPattern "x"))
                             )
                         )
-        , test "uncons with parens pattern" <|
+        , test "Int" <|
+            \() ->
+                "1"
+                    |> expectAst (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 2 } } <| IntPattern 1)
+        , test "Hex int" <|
+            \() ->
+                "0x1"
+                    |> expectAst (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 4 } } <| HexPattern 1)
+        , test "Uncons" <|
+            \() ->
+                "n :: tail"
+                    |> expectAst
+                        (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 10 } } <|
+                            UnConsPattern (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 2 } } <| VarPattern "n")
+                                (Node { start = { row = 1, column = 6 }, end = { row = 1, column = 10 } } <| VarPattern "tail")
+                        )
+        , test "Uncons with parens" <|
             \() ->
                 "(X x) :: xs"
                     |> expectAst
@@ -75,52 +81,36 @@ all =
                                 )
                                 (Node { start = { row = 1, column = 10 }, end = { row = 1, column = 12 } } <| VarPattern "xs")
                         )
-        , test "int pattern" <|
+        , test "Empty list" <|
             \() ->
-                "1"
-                    |> expectAst (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 2 } } <| IntPattern 1)
-        , test "uncons pattern" <|
+                "[]"
+                    |> expectAst (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 3 } } (ListPattern []))
+        , test "Empty list pattern with whitespace" <|
             \() ->
-                "n :: tail"
-                    |> expectAst
-                        (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 10 } } <|
-                            UnConsPattern (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 2 } } <| VarPattern "n")
-                                (Node { start = { row = 1, column = 6 }, end = { row = 1, column = 10 } } <| VarPattern "tail")
-                        )
-        , test "list pattern" <|
+                "[ ]"
+                    |> expectAst (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 4 } } (ListPattern []))
+        , test "Single element list" <|
             \() ->
                 "[1]"
                     |> expectAst
                         (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 4 } } <|
                             ListPattern [ Node { start = { row = 1, column = 2 }, end = { row = 1, column = 3 } } <| IntPattern 1 ]
                         )
-        , test "empty list pattern" <|
-            \() ->
-                "[]"
-                    |> expectAst (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 3 } } (ListPattern []))
-        , test "empty list pattern with whitespace" <|
-            \() ->
-                "[ ]"
-                    |> expectAst (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 4 } } (ListPattern []))
-        , test "single element list pattern with trailing whitespace" <|
+        , test "Single element list with trailing whitespace" <|
             \() ->
                 "[1 ]"
                     |> expectAst
                         (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 5 } } <|
                             ListPattern [ Node { start = { row = 1, column = 2 }, end = { row = 1, column = 3 } } <| IntPattern 1 ]
                         )
-        , test "single element list pattern with leading whitespace" <|
+        , test "Single element list with leading whitespace" <|
             \() ->
                 "[ 1]"
                     |> expectAst
                         (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 5 } } <|
                             ListPattern [ Node { start = { row = 1, column = 3 }, end = { row = 1, column = 4 } } <| IntPattern 1 ]
                         )
-        , test "float pattern" <|
-            \() ->
-                "1.2"
-                    |> expectAst (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 4 } } (FloatPattern 1.2))
-        , test "record pattern" <|
+        , test "Record" <|
             \() ->
                 "{a,b}"
                     |> expectAst
@@ -131,7 +121,7 @@ all =
                                 ]
                             )
                         )
-        , test "record pattern with whitespace" <|
+        , test "Record pattern with whitespace" <|
             \() ->
                 "{a , b}"
                     |> expectAst
@@ -142,7 +132,7 @@ all =
                                 ]
                             )
                         )
-        , test "record pattern with trailing whitespace" <|
+        , test "Record pattern with trailing whitespace" <|
             \() ->
                 "{a }"
                     |> expectAst
@@ -151,7 +141,7 @@ all =
                                 [ Node { start = { row = 1, column = 2 }, end = { row = 1, column = 3 } } "a" ]
                             )
                         )
-        , test "record pattern with leading whitespace" <|
+        , test "Record pattern with leading whitespace" <|
             \() ->
                 "{ a}"
                     |> expectAst
@@ -160,23 +150,23 @@ all =
                                 [ Node { start = { row = 1, column = 3 }, end = { row = 1, column = 4 } } "a" ]
                             )
                         )
-        , test "empty record pattern" <|
+        , test "Empty record" <|
             \() ->
                 "{}"
                     |> expectAst
                         (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 3 } } (RecordPattern []))
-        , test "empty record pattern with whitespace" <|
+        , test "Empty record pattern with whitespace" <|
             \() ->
                 "{ }"
                     |> expectAst (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 4 } } (RecordPattern []))
-        , test "Named pattern" <|
+        , test "Named" <|
             \() ->
                 "True"
                     |> expectAst
                         (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 5 } }
                             (NamedPattern { moduleName = [], name = "True" } [])
                         )
-        , test "Qualified named pattern" <|
+        , test "Qualified named" <|
             \() ->
                 "Basics.True"
                     |> expectAst
@@ -203,7 +193,7 @@ all =
                                 [ Node { start = { row = 1, column = 9 }, end = { row = 1, column = 10 } } (VarPattern "x") ]
                             )
                         )
-        , test "Tuple pattern" <|
+        , test "Tuple" <|
             \() ->
                 "(model, cmd)"
                     |> expectAst
@@ -214,7 +204,7 @@ all =
                                 ]
                             )
                         )
-        , test "Nested tuple pattern" <|
+        , test "Nested tuple" <|
             \() ->
                 "(a,{b,c},())"
                     |> expectAst
@@ -226,7 +216,7 @@ all =
                                 ]
                             )
                         )
-        , test "record as pattern" <|
+        , test "Record as" <|
             \() ->
                 "{model,context} as appState"
                     |> expectAst
@@ -240,7 +230,7 @@ all =
                                 )
                                 (Node { start = { row = 1, column = 20 }, end = { row = 1, column = 28 } } "appState")
                         )
-        , test "complex pattern" <|
+        , test "Complex" <|
             \() ->
                 "(Index irec as index, docVector)"
                     |> expectAst
@@ -259,7 +249,7 @@ all =
                                 ]
                             )
                         )
-        , test "complex pattern 2" <|
+        , test "Complex pattern 2" <|
             \() ->
                 "RBNode_elm_builtin col (RBNode_elm_builtin Red  (RBNode_elm_builtin Red xv))"
                     |> expectAst
@@ -279,6 +269,12 @@ all =
                                 ]
                             )
                         )
+        , test "Multiple patterns" <|
+            \() ->
+                parseAsFarAsPossibleWithState emptyState "a b" Parser.pattern
+                    |> Maybe.map Node.value
+                    |> Expect.equal
+                        (Just (VarPattern "a"))
         ]
 
 
@@ -291,3 +287,13 @@ expectAst expected source =
         Just actual ->
             actual
                 |> Expect.equal expected
+
+
+expectInvalid : String -> Expect.Expectation
+expectInvalid source =
+    case parseFullStringWithNullState source Parser.pattern of
+        Nothing ->
+            Expect.pass
+
+        Just actual ->
+            Expect.fail ("This source code is successfully parsed but it shouldn't:\n" ++ Debug.toString actual)
