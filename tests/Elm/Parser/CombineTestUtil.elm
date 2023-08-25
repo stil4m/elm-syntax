@@ -1,8 +1,7 @@
-module Elm.Parser.CombineTestUtil exposing (noRangeInfix, noRangeSignature, noRangeTypeAlias, noRangeTypeDeclaration, noRangeTypeReference, parseAsFarAsPossible, parseAsFarAsPossibleWithState, parseFullString, parseFullStringState, parseFullStringWithNullState, parseStateToMaybe, pushIndent)
+module Elm.Parser.CombineTestUtil exposing (noRangeSignature, noRangeTypeAlias, noRangeTypeDeclaration, noRangeTypeReference, parseAsFarAsPossible, parseAsFarAsPossibleWithState, parseFullString, parseFullStringState, parseFullStringWithNullState, parseStateToMaybe, pushIndent)
 
 import Combine exposing (..)
 import Elm.Parser.State exposing (State, emptyState)
-import Elm.Syntax.Infix exposing (..)
 import Elm.Syntax.Node as Node exposing (Node(..))
 import Elm.Syntax.Signature exposing (Signature)
 import Elm.Syntax.Type exposing (..)
@@ -83,15 +82,6 @@ unRange n =
 unRanged : (a -> a) -> Node a -> Node a
 unRanged f (Node _ a) =
     Node.empty <| f a
-
-
-noRangeInfix : Infix -> Infix
-noRangeInfix { direction, precedence, operator, function } =
-    Infix
-        (unRange direction)
-        (unRange precedence)
-        (unRange operator)
-        (unRange function)
 
 
 noRangeTypeAlias : TypeAlias -> TypeAlias
