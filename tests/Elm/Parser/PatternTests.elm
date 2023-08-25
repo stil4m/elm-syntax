@@ -5,7 +5,6 @@ import Elm.Parser.Patterns as Parser
 import Elm.Parser.State exposing (emptyState)
 import Elm.Syntax.Node as Node exposing (Node(..))
 import Elm.Syntax.Pattern exposing (..)
-import Elm.Syntax.Range exposing (empty)
 import Expect
 import Test exposing (..)
 
@@ -144,58 +143,49 @@ all =
                     |> expectAst (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 4 } } (FloatPattern 1.2))
         , test "record pattern" <|
             \() ->
-                parseFullStringState emptyState "{a,b}" Parser.pattern
-                    |> Maybe.map noRangePattern
-                    |> Expect.equal
-                        (Just
-                            (Node empty <|
-                                RecordPattern
-                                    [ Node empty "a"
-                                    , Node empty "b"
-                                    ]
+                "{a,b}"
+                    |> expectAst
+                        (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 6 } }
+                            (RecordPattern
+                                [ Node { start = { row = 1, column = 2 }, end = { row = 1, column = 3 } } "a"
+                                , Node { start = { row = 1, column = 4 }, end = { row = 1, column = 5 } } "b"
+                                ]
                             )
                         )
         , test "record pattern with whitespace" <|
             \() ->
-                parseFullStringState emptyState "{a , b}" Parser.pattern
-                    |> Maybe.map noRangePattern
-                    |> Expect.equal
-                        (Just
-                            (Node empty <|
-                                RecordPattern
-                                    [ Node empty "a"
-                                    , Node empty "b"
-                                    ]
+                "{a , b}"
+                    |> expectAst
+                        (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 8 } }
+                            (RecordPattern
+                                [ Node { start = { row = 1, column = 2 }, end = { row = 1, column = 3 } } "a"
+                                , Node { start = { row = 1, column = 6 }, end = { row = 1, column = 7 } } "b"
+                                ]
                             )
                         )
         , test "record pattern with trailing whitespace" <|
             \() ->
-                parseFullStringState emptyState "{a }" Parser.pattern
-                    |> Maybe.map noRangePattern
-                    |> Expect.equal
-                        (Just
-                            (Node empty <|
-                                RecordPattern
-                                    [ Node empty "a"
-                                    ]
+                "{a }"
+                    |> expectAst
+                        (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 5 } }
+                            (RecordPattern
+                                [ Node { start = { row = 1, column = 2 }, end = { row = 1, column = 3 } } "a" ]
                             )
                         )
         , test "record pattern with leading whitespace" <|
             \() ->
-                parseFullStringState emptyState "{ a}" Parser.pattern
-                    |> Maybe.map noRangePattern
-                    |> Expect.equal
-                        (Just
-                            (Node empty <|
-                                RecordPattern
-                                    [ Node empty "a"
-                                    ]
+                "{ a}"
+                    |> expectAst
+                        (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 5 } }
+                            (RecordPattern
+                                [ Node { start = { row = 1, column = 3 }, end = { row = 1, column = 4 } } "a" ]
                             )
                         )
         , test "empty record pattern" <|
             \() ->
                 "{}"
-                    |> expectAst (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 3 } } (RecordPattern []))
+                    |> expectAst
+                        (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 3 } } (RecordPattern []))
         , test "empty record pattern with whitespace" <|
             \() ->
                 "{ }"
@@ -209,44 +199,35 @@ all =
                         )
         , test "tuple pattern" <|
             \() ->
-                parseFullStringState emptyState "(a,{b,c},())" Parser.pattern
-                    |> Maybe.map noRangePattern
-                    |> Expect.equal
-                        (Just
-                            (Node empty <|
-                                TuplePattern
-                                    [ Node empty <| VarPattern "a"
-                                    , Node empty <|
-                                        RecordPattern
-                                            [ Node empty "b"
-                                            , Node empty "c"
-                                            ]
-                                    , Node empty UnitPattern
-                                    ]
+                "(a,{b,c},())"
+                    |> expectAst
+                        (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 13 } }
+                            (TuplePattern
+                                [ Node { start = { row = 1, column = 2 }, end = { row = 1, column = 3 } } (VarPattern "a")
+                                , Node { start = { row = 1, column = 4 }, end = { row = 1, column = 9 } } (RecordPattern [ Node { start = { row = 1, column = 5 }, end = { row = 1, column = 6 } } "b", Node { start = { row = 1, column = 7 }, end = { row = 1, column = 8 } } "c" ])
+                                , Node { start = { row = 1, column = 10 }, end = { row = 1, column = 12 } } UnitPattern
+                                ]
                             )
                         )
         , test "destructure pattern" <|
             \() ->
-                parseFullStringState emptyState "Set x" Parser.pattern
-                    |> Maybe.map noRangePattern
-                    |> Expect.equal
-                        (Just
-                            (Node empty <|
-                                NamedPattern (QualifiedNameRef [] "Set")
-                                    [ Node empty <| VarPattern "x" ]
+                "Set x"
+                    |> expectAst
+                        (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 6 } }
+                            (NamedPattern
+                                { moduleName = [], name = "Set" }
+                                [ Node { start = { row = 1, column = 5 }, end = { row = 1, column = 6 } } (VarPattern "x") ]
                             )
                         )
         , test "tuple pattern 2" <|
             \() ->
-                parseFullStringState emptyState "(model, cmd)" Parser.pattern
-                    |> Maybe.map noRangePattern
-                    |> Expect.equal
-                        (Just
-                            (Node empty <|
-                                TuplePattern
-                                    [ Node empty <| VarPattern "model"
-                                    , Node empty <| VarPattern "cmd"
-                                    ]
+                "(model, cmd)"
+                    |> expectAst
+                        (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 13 } }
+                            (TuplePattern
+                                [ Node { start = { row = 1, column = 2 }, end = { row = 1, column = 7 } } (VarPattern "model")
+                                , Node { start = { row = 1, column = 9 }, end = { row = 1, column = 12 } } (VarPattern "cmd")
+                                ]
                             )
                         )
         , test "record as pattern" <|
@@ -267,48 +248,41 @@ all =
                         )
         , test "complex pattern" <|
             \() ->
-                parseFullStringState emptyState "(Index irec as index, docVector)" Parser.pattern
-                    |> Maybe.map noRangePattern
-                    |> Expect.equal
-                        (Just
-                            (Node empty <|
-                                TuplePattern
-                                    [ Node empty <|
-                                        AsPattern
-                                            (Node empty <|
-                                                NamedPattern (QualifiedNameRef [] "Index")
-                                                    [ Node empty <| VarPattern "irec" ]
+                "(Index irec as index, docVector)"
+                    |> expectAst
+                        (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 33 } }
+                            (TuplePattern
+                                [ Node { start = { row = 1, column = 2 }, end = { row = 1, column = 21 } }
+                                    (AsPattern
+                                        (Node { start = { row = 1, column = 2 }, end = { row = 1, column = 12 } }
+                                            (NamedPattern { moduleName = [], name = "Index" }
+                                                [ Node { start = { row = 1, column = 8 }, end = { row = 1, column = 12 } } (VarPattern "irec") ]
                                             )
-                                            (Node empty "index")
-                                    , Node empty <| VarPattern "docVector"
-                                    ]
+                                        )
+                                        (Node { start = { row = 1, column = 16 }, end = { row = 1, column = 21 } } "index")
+                                    )
+                                , Node { start = { row = 1, column = 23 }, end = { row = 1, column = 32 } } (VarPattern "docVector")
+                                ]
                             )
                         )
         , test "complex pattern 2" <|
             \() ->
-                parseFullStringState emptyState "RBNode_elm_builtin col (RBNode_elm_builtin Red  (RBNode_elm_builtin Red xv))" Parser.pattern
-                    |> Maybe.map noRangePattern
-                    |> Expect.equal
-                        (Just
-                            (Node empty <|
-                                NamedPattern (QualifiedNameRef [] "RBNode_elm_builtin")
-                                    [ Node empty <| VarPattern "col"
-                                    , Node empty <|
-                                        ParenthesizedPattern
-                                            (Node empty <|
-                                                NamedPattern (QualifiedNameRef [] "RBNode_elm_builtin")
-                                                    [ Node empty <| NamedPattern (QualifiedNameRef [] "Red") []
-                                                    , Node empty <|
-                                                        ParenthesizedPattern
-                                                            (Node empty <|
-                                                                NamedPattern (QualifiedNameRef [] "RBNode_elm_builtin")
-                                                                    [ Node empty <| NamedPattern (QualifiedNameRef [] "Red") []
-                                                                    , Node empty <| VarPattern "xv"
-                                                                    ]
-                                                            )
-                                                    ]
+                "RBNode_elm_builtin col (RBNode_elm_builtin Red  (RBNode_elm_builtin Red xv))"
+                    |> expectAst
+                        (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 77 } }
+                            (NamedPattern { moduleName = [], name = "RBNode_elm_builtin" }
+                                [ Node { start = { row = 1, column = 20 }, end = { row = 1, column = 23 } } (VarPattern "col")
+                                , Node { start = { row = 1, column = 24 }, end = { row = 1, column = 77 } }
+                                    (ParenthesizedPattern
+                                        (Node { start = { row = 1, column = 25 }, end = { row = 1, column = 76 } }
+                                            (NamedPattern { moduleName = [], name = "RBNode_elm_builtin" }
+                                                [ Node { start = { row = 1, column = 44 }, end = { row = 1, column = 47 } } (NamedPattern { moduleName = [], name = "Red" } [])
+                                                , Node { start = { row = 1, column = 49 }, end = { row = 1, column = 76 } } (ParenthesizedPattern (Node { start = { row = 1, column = 50 }, end = { row = 1, column = 75 } } (NamedPattern { moduleName = [], name = "RBNode_elm_builtin" } [ Node { start = { row = 1, column = 69 }, end = { row = 1, column = 72 } } (NamedPattern { moduleName = [], name = "Red" } []), Node { start = { row = 1, column = 73 }, end = { row = 1, column = 75 } } (VarPattern "xv") ])))
+                                                ]
                                             )
-                                    ]
+                                        )
+                                    )
+                                ]
                             )
                         )
         ]

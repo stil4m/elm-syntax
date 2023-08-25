@@ -1,4 +1,4 @@
-module Elm.Parser.CombineTestUtil exposing (noRangeExpose, noRangeExposingList, noRangeImport, noRangeInfix, noRangeModule, noRangePattern, noRangeSignature, noRangeTypeAlias, noRangeTypeDeclaration, noRangeTypeReference, parseAsFarAsPossible, parseAsFarAsPossibleWithState, parseFullString, parseFullStringState, parseFullStringWithNullState, parseStateToMaybe, pushIndent, unRanged)
+module Elm.Parser.CombineTestUtil exposing (noRangeExpose, noRangeExposingList, noRangeImport, noRangeInfix, noRangeModule, noRangeSignature, noRangeTypeAlias, noRangeTypeDeclaration, noRangeTypeReference, parseAsFarAsPossible, parseAsFarAsPossibleWithState, parseFullString, parseFullStringState, parseFullStringWithNullState, parseStateToMaybe, pushIndent, unRanged)
 
 import Combine exposing (..)
 import Elm.Parser.State exposing (State, emptyState)
@@ -7,7 +7,6 @@ import Elm.Syntax.Import exposing (Import)
 import Elm.Syntax.Infix exposing (..)
 import Elm.Syntax.Module exposing (..)
 import Elm.Syntax.Node as Node exposing (Node(..))
-import Elm.Syntax.Pattern exposing (..)
 import Elm.Syntax.Range exposing (empty)
 import Elm.Syntax.Signature exposing (Signature)
 import Elm.Syntax.Type exposing (..)
@@ -126,56 +125,6 @@ noRangeExposingList x =
             list
                 |> List.map noRangeExpose
                 |> Explicit
-
-
-noRangePattern : Node Pattern -> Node Pattern
-noRangePattern (Node _ p) =
-    Node.empty <|
-        case p of
-            RecordPattern ls ->
-                RecordPattern (List.map unRange ls)
-
-            VarPattern x ->
-                VarPattern x
-
-            NamedPattern x y ->
-                NamedPattern x (List.map noRangePattern y)
-
-            ParenthesizedPattern x ->
-                ParenthesizedPattern (noRangePattern x)
-
-            AsPattern x y ->
-                AsPattern (noRangePattern x) (unRange y)
-
-            UnConsPattern x y ->
-                UnConsPattern (noRangePattern x) (noRangePattern y)
-
-            CharPattern c ->
-                CharPattern c
-
-            StringPattern s ->
-                StringPattern s
-
-            HexPattern h ->
-                HexPattern h
-
-            FloatPattern f ->
-                FloatPattern f
-
-            IntPattern i ->
-                IntPattern i
-
-            AllPattern ->
-                AllPattern
-
-            UnitPattern ->
-                UnitPattern
-
-            ListPattern x ->
-                ListPattern (List.map noRangePattern x)
-
-            TuplePattern x ->
-                TuplePattern (List.map noRangePattern x)
 
 
 unRange : Node a -> Node a
