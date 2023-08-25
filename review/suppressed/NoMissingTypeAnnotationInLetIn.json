@@ -13,7 +13,6 @@
     { "count": 1, "filePath": "src/Elm/Parser/Modules.elm" },
     { "count": 1, "filePath": "src/Elm/Parser/Ranges.elm" },
     { "count": 1, "filePath": "src/Elm/Parser/TypeAnnotation.elm" },
-    { "count": 1, "filePath": "src/Elm/Syntax/Pattern.elm" },
-    { "count": 1, "filePath": "tests/Elm/Parser/ExposeTests.elm" }
+    { "count": 1, "filePath": "src/Elm/Syntax/Pattern.elm" }
   ]
 }
