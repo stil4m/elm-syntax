@@ -7,6 +7,7 @@ import Elm.Parser.Ranges exposing (withCurrentPoint)
 import Elm.Parser.State exposing (State)
 import Elm.Parser.Tokens exposing (functionName, typeName)
 import Elm.Parser.TypeAnnotation exposing (typeAnnotation, typeAnnotationNonGreedy)
+import Elm.Syntax.Declaration as Declaration
 import Elm.Syntax.Node as Node exposing (Node(..))
 import Elm.Syntax.Range as Range exposing (Range)
 import Elm.Syntax.Type exposing (Type, ValueConstructor)
@@ -19,7 +20,7 @@ type TypeDefinition
     | DefinedAlias Range TypeAlias
 
 
-typeDefinition : Parser State TypeDefinition
+typeDefinition : Parser State (Node Declaration.Declaration)
 typeDefinition =
     withCurrentPoint
         (\start ->
@@ -36,7 +37,9 @@ typeDefinition =
                             |> Combine.andMap typeAnnotation
                             |> Combine.map
                                 (\typeAlias ->
-                                    DefinedAlias (Range.combine [ start, Node.range typeAlias.typeAnnotation ]) typeAlias
+                                    Node
+                                        (Range.combine [ start, Node.range typeAlias.typeAnnotation ])
+                                        (Declaration.AliasDeclaration typeAlias)
                                 )
                         , succeed (Type Nothing)
                             |> Combine.andMap (Node.parser typeName)
@@ -47,9 +50,9 @@ typeDefinition =
                             |> Combine.andMap valueConstructors
                             |> Combine.map
                                 (\tipe ->
-                                    DefinedType
+                                    Node
                                         (Range.combine (start :: List.map (\(Node r _) -> r) tipe.constructors))
-                                        tipe
+                                        (Declaration.CustomTypeDeclaration tipe)
                                 )
                         ]
                     )

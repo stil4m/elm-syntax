@@ -28,15 +28,6 @@ declaration =
         [ infixDeclaration
         , function
         , typeDefinition
-            |> Combine.map
-                (\v ->
-                    case v of
-                        Typings.DefinedType r t ->
-                            Node r (Declaration.CustomTypeDeclaration t)
-
-                        Typings.DefinedAlias r a ->
-                            Node r (Declaration.AliasDeclaration a)
-                )
         , portDeclaration
         ]
 
