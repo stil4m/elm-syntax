@@ -1,11 +1,10 @@
 module Elm.Parser.LetExpressionTests exposing (all)
 
-import Combine exposing (string)
+import Combine
 import Elm.Parser.CombineTestUtil exposing (..)
 import Elm.Parser.Declarations as Parser
 import Elm.Parser.Layout as Layout
 import Elm.Parser.State exposing (emptyState)
-import Elm.Parser.Tokens exposing (functionName)
 import Elm.Syntax.Expression exposing (..)
 import Elm.Syntax.Node as Node exposing (Node(..))
 import Elm.Syntax.Pattern exposing (..)
@@ -43,7 +42,7 @@ all =
                                         (LetFunction
                                             { declaration =
                                                 Node { start = { row = 4, column = 3 }, end = { row = 4, column = 13 } }
-                                                    { arguments = [ Node { end = { column = 9, row = 4 }, start = { column = 8, row = 4 } } (VarPattern "n") ]
+                                                    { arguments = [ Node { start = { row = 4, column = 8 }, end = { row = 4, column = 9 } } (VarPattern "n") ]
                                                     , expression = Node { start = { row = 4, column = 12 }, end = { row = 4, column = 13 } } (FunctionOrValue [] "n")
                                                     , name = Node { start = { row = 4, column = 3 }, end = { row = 4, column = 7 } } "john"
                                                     }
@@ -56,27 +55,30 @@ all =
                                 }
                             )
                         )
-        , test "correct let with indent" <|
+        , test "Let with `in` indented more than the body and let declarations" <|
             \() ->
-                parseFullStringState emptyState "let\n  bar = 1\n in\n  bar" Parser.expression
-                    |> Maybe.map Node.value
-                    |> Expect.equal
-                        (Just
+                """let
+  bar = 1
+            in
+  bar"""
+                    |> expectAst
+                        (Node { start = { row = 1, column = 1 }, end = { row = 4, column = 6 } }
                             (LetExpression
                                 { declarations =
-                                    [ Node { start = { row = 2, column = 3 }, end = { row = 2, column = 10 } } <|
-                                        LetFunction
-                                            { documentation = Nothing
-                                            , signature = Nothing
-                                            , declaration =
-                                                Node { start = { row = 2, column = 3 }, end = { row = 2, column = 10 } } <|
-                                                    { name = Node { start = { row = 2, column = 3 }, end = { row = 2, column = 6 } } "bar"
-                                                    , arguments = []
-                                                    , expression = Node { start = { row = 2, column = 9 }, end = { row = 2, column = 10 } } <| Integer 1
+                                    [ Node { start = { row = 2, column = 3 }, end = { row = 2, column = 10 } }
+                                        (LetFunction
+                                            { declaration =
+                                                Node { start = { row = 2, column = 3 }, end = { row = 2, column = 10 } }
+                                                    { arguments = []
+                                                    , expression = Node { start = { row = 2, column = 9 }, end = { row = 2, column = 10 } } (Integer 1)
+                                                    , name = Node { start = { row = 2, column = 3 }, end = { row = 2, column = 6 } } "bar"
                                                     }
+                                            , documentation = Nothing
+                                            , signature = Nothing
                                             }
+                                        )
                                     ]
-                                , expression = Node { start = { row = 4, column = 3 }, end = { row = 4, column = 6 } } <| FunctionOrValue [] "bar"
+                                , expression = Node { start = { row = 4, column = 3 }, end = { row = 4, column = 6 } } (FunctionOrValue [] "bar")
                                 }
                             )
                         )
