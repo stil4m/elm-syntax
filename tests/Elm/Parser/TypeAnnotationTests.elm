@@ -3,7 +3,7 @@ module Elm.Parser.TypeAnnotationTests exposing (all)
 import Elm.Parser.CombineTestUtil exposing (..)
 import Elm.Parser.State exposing (emptyState)
 import Elm.Parser.TypeAnnotation as Parser
-import Elm.Syntax.Node as Node exposing (Node(..))
+import Elm.Syntax.Node exposing (Node(..))
 import Elm.Syntax.Range exposing (empty)
 import Elm.Syntax.TypeAnnotation exposing (..)
 import Expect
@@ -15,46 +15,58 @@ all =
     describe "TypeReferenceTests"
         [ test "unitTypeReference" <|
             \() ->
-                parseFullStringWithNullState "()" Parser.typeAnnotation
-                    |> Maybe.map noRangeTypeReference
-                    |> Expect.equal (Just <| Node.empty Unit)
+                "()"
+                    |> expectAst
+                        (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 3 } } Unit)
         , test "unitTypeReference with spaces" <|
             \() ->
                 "( )"
                     |> expectInvalid
         , test "tupledTypeReference" <|
             \() ->
-                parseFullStringWithNullState "( (), ())" Parser.typeAnnotation
-                    |> Maybe.map noRangeTypeReference
-                    |> Expect.equal (Just <| Node.empty <| Tupled [ Node.empty Unit, Node.empty Unit ])
+                "( (), ())"
+                    |> expectAst
+                        (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 10 } }
+                            (Tupled
+                                [ Node { start = { row = 1, column = 3 }, end = { row = 1, column = 5 } } Unit
+                                , Node { start = { row = 1, column = 7 }, end = { row = 1, column = 9 } } Unit
+                                ]
+                            )
+                        )
         , test "tupledTypeReference 2" <|
             \() ->
-                parseFullStringWithNullState "( () )" Parser.typeAnnotation
-                    |> Maybe.map noRangeTypeReference
-                    |> Expect.equal (Just <| Node.empty Unit)
+                "( () )"
+                    |> expectAst
+                        (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 7 } } Unit)
         , test "tupledTypeReference 3" <|
             \() ->
-                parseFullStringWithNullState "( () , Maybe m )" Parser.typeAnnotation
-                    |> Maybe.map noRangeTypeReference
-                    |> Expect.equal
-                        (Just
-                            (Node.empty <|
-                                Tupled
-                                    [ Node.empty Unit
-                                    , Node empty <| Typed (Node empty <| ( [], "Maybe" )) [ Node empty <| GenericType "m" ]
-                                    ]
+                "( () , Maybe m )"
+                    |> expectAst
+                        (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 17 } }
+                            (Tupled
+                                [ Node { start = { row = 1, column = 3 }, end = { row = 1, column = 5 } } Unit
+                                , Node { start = { row = 1, column = 8 }, end = { row = 1, column = 15 } }
+                                    (Typed
+                                        (Node { start = { row = 1, column = 8 }, end = { row = 1, column = 13 } } ( [], "Maybe" ))
+                                        [ Node { start = { row = 1, column = 14 }, end = { row = 1, column = 15 } } (GenericType "m") ]
+                                    )
+                                ]
                             )
                         )
         , test "qualified type reference" <|
             \() ->
-                parseFullStringWithNullState "Foo.Bar" Parser.typeAnnotation
-                    |> Maybe.map noRangeTypeReference
-                    |> Expect.equal (Just (Node empty <| Typed (Node empty ( [ "Foo" ], "Bar" )) []))
+                "Foo.Bar"
+                    |> expectAst
+                        (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 8 } }
+                            (Typed (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 8 } } ( [ "Foo" ], "Bar" )) [])
+                        )
         , test "typeAnnotationNoFn" <|
             \() ->
-                parseFullStringWithNullState "Bar" Parser.typeAnnotation
-                    |> Maybe.map noRangeTypeReference
-                    |> Expect.equal (Just (Node empty <| Typed (Node empty ( [], "Bar" )) []))
+                "Bar"
+                    |> expectAst
+                        (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 4 } }
+                            (Typed (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 4 } } ( [], "Bar" )) [])
+                        )
         , test "types with and without spacing should parse to the same" <|
             \() ->
                 let
@@ -68,63 +80,68 @@ all =
                     |> Expect.equal b
         , test "typedTypeReference 1" <|
             \() ->
-                parseFullStringWithNullState "Foo () a Bar" Parser.typeAnnotation
-                    |> Maybe.map noRangeTypeReference
-                    |> Expect.equal
-                        (Just <|
-                            (Node empty <|
-                                Typed (Node empty ( [], "Foo" ))
-                                    [ Node empty Unit
-                                    , Node empty <| GenericType "a"
-                                    , Node empty <| Typed (Node empty ( [], "Bar" )) []
-                                    ]
+                "Foo () a Bar"
+                    |> expectAst
+                        (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 13 } }
+                            (Typed (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 4 } } ( [], "Foo" ))
+                                [ Node { start = { row = 1, column = 5 }, end = { row = 1, column = 7 } } Unit
+                                , Node { start = { row = 1, column = 8 }, end = { row = 1, column = 9 } } (GenericType "a")
+                                , Node { start = { row = 1, column = 10 }, end = { row = 1, column = 13 } }
+                                    (Typed (Node { start = { row = 1, column = 10 }, end = { row = 1, column = 13 } } ( [], "Bar" )) [])
+                                ]
                             )
                         )
         , test "typedTypeReference 2" <|
             \() ->
-                parseFullStringWithNullState "Foo () a Bar" Parser.typeAnnotation
-                    |> Maybe.map noRangeTypeReference
-                    |> Expect.equal
-                        (Just <|
-                            (Node empty <|
-                                Typed (Node empty ( [], "Foo" ))
-                                    [ Node empty Unit
-                                    , Node empty <| GenericType "a"
-                                    , Node empty <| Typed (Node empty ( [], "Bar" )) []
-                                    ]
+                "Foo () a Bar"
+                    |> expectAst
+                        (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 13 } }
+                            (Typed (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 4 } } ( [], "Foo" ))
+                                [ Node { start = { row = 1, column = 5 }, end = { row = 1, column = 7 } } Unit
+                                , Node { start = { row = 1, column = 8 }, end = { row = 1, column = 9 } } (GenericType "a")
+                                , Node { start = { row = 1, column = 10 }, end = { row = 1, column = 13 } }
+                                    (Typed (Node { start = { row = 1, column = 10 }, end = { row = 1, column = 13 } } ( [], "Bar" )) [])
+                                ]
                             )
                         )
         , test "recordTypeReference empty" <|
             \() ->
-                parseFullStringWithNullState "{}" Parser.typeAnnotation
-                    |> Maybe.map noRangeTypeReference
-                    |> Expect.equal
-                        (Just <|
-                            Node empty <|
-                                Record []
-                        )
+                "{}"
+                    |> expectAst
+                        (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 3 } } (Record []))
         , test "recordTypeReference one field" <|
             \() ->
-                parseFullStringWithNullState "{color: String }" Parser.typeAnnotation
-                    |> Maybe.map noRangeTypeReference
-                    |> Expect.equal
-                        (Just <|
-                            Node empty <|
-                                Record [ Node empty ( Node empty "color", Node empty <| Typed (Node empty ( [], "String" )) [] ) ]
+                "{color: String }"
+                    |> expectAst
+                        (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 17 } }
+                            (Record
+                                [ Node { start = { row = 1, column = 2 }, end = { row = 1, column = 15 } }
+                                    ( Node { start = { row = 1, column = 2 }, end = { row = 1, column = 7 } } "color"
+                                    , Node { start = { row = 1, column = 9 }, end = { row = 1, column = 15 } }
+                                        (Typed (Node { start = { row = 1, column = 9 }, end = { row = 1, column = 15 } } ( [], "String" )) [])
+                                    )
+                                ]
+                            )
                         )
         , test "record with generic" <|
             \() ->
-                parseFullStringWithNullState "{ attr | position : Vec2, texture : Vec2 }" Parser.typeAnnotation
-                    |> Maybe.map noRangeTypeReference
-                    |> Expect.equal
-                        (Just
-                            (Node empty <|
-                                GenericRecord (Node empty "attr")
-                                    (Node empty
-                                        [ Node empty ( Node empty "position", Node empty <| Typed (Node empty <| ( [], "Vec2" )) [] )
-                                        , Node empty ( Node empty "texture", Node empty <| Typed (Node empty ( [], "Vec2" )) [] )
-                                        ]
-                                    )
+                "{ attr | position : Vec2, texture : Vec2 }"
+                    |> expectAst
+                        (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 43 } }
+                            (GenericRecord (Node { start = { row = 1, column = 3 }, end = { row = 1, column = 7 } } "attr")
+                                (Node { start = { row = 1, column = 9 }, end = { row = 1, column = 42 } }
+                                    [ Node { start = { row = 1, column = 10 }, end = { row = 1, column = 25 } }
+                                        ( Node { start = { row = 1, column = 10 }, end = { row = 1, column = 18 } } "position"
+                                        , Node { start = { row = 1, column = 21 }, end = { row = 1, column = 25 } }
+                                            (Typed (Node { start = { row = 1, column = 21 }, end = { row = 1, column = 25 } } ( [], "Vec2" )) [])
+                                        )
+                                    , Node { start = { row = 1, column = 27 }, end = { row = 1, column = 42 } }
+                                        ( Node { start = { row = 1, column = 27 }, end = { row = 1, column = 34 } } "texture"
+                                        , Node { start = { row = 1, column = 37 }, end = { row = 1, column = 41 } }
+                                            (Typed (Node { start = { row = 1, column = 37 }, end = { row = 1, column = 41 } } ( [], "Vec2" )) [])
+                                        )
+                                    ]
+                                )
                             )
                         )
         , test "generic record with no fields" <|
@@ -133,106 +150,117 @@ all =
                     |> expectInvalid
         , test "recordTypeReference nested record" <|
             \() ->
-                parseFullStringWithNullState "{color: {r : Int, g :Int, b: Int } }" Parser.typeAnnotation
-                    |> Maybe.map noRangeTypeReference
-                    |> Expect.equal
-                        (Just <|
-                            (Node empty <|
-                                Record
-                                    [ Node empty
-                                        ( Node empty "color"
-                                        , Node empty <|
-                                            Record
-                                                [ Node empty ( Node empty "r", Node empty <| Typed (Node empty ( [], "Int" )) [] )
-                                                , Node empty ( Node empty "g", Node empty <| Typed (Node empty ( [], "Int" )) [] )
-                                                , Node empty ( Node empty "b", Node empty <| Typed (Node empty ( [], "Int" )) [] )
-                                                ]
+                "{color: {r : Int, g :Int, b: Int } }"
+                    |> expectAst
+                        (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 37 } }
+                            (Record
+                                [ Node { start = { row = 1, column = 2 }, end = { row = 1, column = 35 } }
+                                    ( Node { start = { row = 1, column = 2 }, end = { row = 1, column = 7 } } "color"
+                                    , Node { start = { row = 1, column = 9 }, end = { row = 1, column = 35 } }
+                                        (Record
+                                            [ Node { start = { row = 1, column = 10 }, end = { row = 1, column = 17 } }
+                                                ( Node { start = { row = 1, column = 10 }, end = { row = 1, column = 11 } } "r"
+                                                , Node { start = { row = 1, column = 14 }, end = { row = 1, column = 17 } }
+                                                    (Typed (Node { start = { row = 1, column = 14 }, end = { row = 1, column = 17 } } ( [], "Int" )) [])
+                                                )
+                                            , Node { start = { row = 1, column = 19 }, end = { row = 1, column = 25 } }
+                                                ( Node { start = { row = 1, column = 19 }, end = { row = 1, column = 20 } } "g"
+                                                , Node { start = { row = 1, column = 22 }, end = { row = 1, column = 25 } }
+                                                    (Typed (Node { start = { row = 1, column = 22 }, end = { row = 1, column = 25 } } ( [], "Int" )) [])
+                                                )
+                                            , Node { start = { row = 1, column = 27 }, end = { row = 1, column = 34 } }
+                                                ( Node { start = { row = 1, column = 27 }, end = { row = 1, column = 28 } } "b"
+                                                , Node { start = { row = 1, column = 30 }, end = { row = 1, column = 33 } }
+                                                    (Typed (Node { start = { row = 1, column = 30 }, end = { row = 1, column = 33 } } ( [], "Int" )) [])
+                                                )
+                                            ]
                                         )
-                                    ]
+                                    )
+                                ]
                             )
                         )
         , test "record field ranges" <|
             \() ->
-                parseFullStringWithNullState "{ foo : Int, bar : Int, baz : Int }" Parser.typeAnnotation
-                    |> Expect.equal
-                        (Just <|
-                            (Node { start = { column = 1, row = 1 }, end = { column = 36, row = 1 } } <|
-                                Record
-                                    [ Node { start = { column = 3, row = 1 }, end = { column = 12, row = 1 } }
-                                        ( Node { start = { column = 3, row = 1 }, end = { column = 6, row = 1 } } "foo"
-                                        , Node { start = { column = 9, row = 1 }, end = { column = 12, row = 1 } } <|
-                                            Typed (Node { start = { column = 9, row = 1 }, end = { column = 12, row = 1 } } ( [], "Int" )) []
-                                        )
-                                    , Node { start = { column = 14, row = 1 }, end = { column = 23, row = 1 } }
-                                        ( Node { start = { column = 14, row = 1 }, end = { column = 17, row = 1 } } "bar"
-                                        , Node { start = { column = 20, row = 1 }, end = { column = 23, row = 1 } } <|
-                                            Typed (Node { start = { column = 20, row = 1 }, end = { column = 23, row = 1 } } ( [], "Int" )) []
-                                        )
-                                    , Node { start = { column = 25, row = 1 }, end = { column = 35, row = 1 } }
-                                        ( Node { start = { column = 25, row = 1 }, end = { column = 28, row = 1 } } "baz"
-                                        , Node { start = { column = 31, row = 1 }, end = { column = 34, row = 1 } } <|
-                                            Typed (Node { start = { column = 31, row = 1 }, end = { column = 34, row = 1 } } ( [], "Int" )) []
-                                        )
-                                    ]
-                            )
+                "{ foo : Int, bar : Int, baz : Int }"
+                    |> expectAst
+                        (Node { start = { column = 1, row = 1 }, end = { column = 36, row = 1 } } <|
+                            Record
+                                [ Node { start = { column = 3, row = 1 }, end = { column = 12, row = 1 } }
+                                    ( Node { start = { column = 3, row = 1 }, end = { column = 6, row = 1 } } "foo"
+                                    , Node { start = { column = 9, row = 1 }, end = { column = 12, row = 1 } } <|
+                                        Typed (Node { start = { column = 9, row = 1 }, end = { column = 12, row = 1 } } ( [], "Int" )) []
+                                    )
+                                , Node { start = { column = 14, row = 1 }, end = { column = 23, row = 1 } }
+                                    ( Node { start = { column = 14, row = 1 }, end = { column = 17, row = 1 } } "bar"
+                                    , Node { start = { column = 20, row = 1 }, end = { column = 23, row = 1 } } <|
+                                        Typed (Node { start = { column = 20, row = 1 }, end = { column = 23, row = 1 } } ( [], "Int" )) []
+                                    )
+                                , Node { start = { column = 25, row = 1 }, end = { column = 35, row = 1 } }
+                                    ( Node { start = { column = 25, row = 1 }, end = { column = 28, row = 1 } } "baz"
+                                    , Node { start = { column = 31, row = 1 }, end = { column = 34, row = 1 } } <|
+                                        Typed (Node { start = { column = 31, row = 1 }, end = { column = 34, row = 1 } } ( [], "Int" )) []
+                                    )
+                                ]
                         )
         , test "recordTypeReference with generic" <|
             \() ->
-                parseFullStringWithNullState "{color: s }" Parser.typeAnnotation
-                    |> Maybe.map noRangeTypeReference
-                    |> Expect.equal
-                        (Just <|
-                            (Node empty <|
-                                Record
-                                    [ Node empty
-                                        ( Node empty "color"
-                                        , Node empty <| GenericType "s"
-                                        )
-                                    ]
+                "{color: s }"
+                    |> expectAst
+                        (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 12 } }
+                            (Record
+                                [ Node { start = { row = 1, column = 2 }, end = { row = 1, column = 10 } }
+                                    ( Node { start = { row = 1, column = 2 }, end = { row = 1, column = 7 } } "color"
+                                    , Node { start = { row = 1, column = 9 }, end = { row = 1, column = 10 } } (GenericType "s")
+                                    )
+                                ]
                             )
                         )
         , test "function type reference" <|
             \() ->
-                parseFullStringWithNullState "Foo -> Bar" Parser.typeAnnotation
-                    |> Maybe.map noRangeTypeReference
-                    |> Expect.equal
-                        (Just <|
-                            (Node empty <|
-                                FunctionTypeAnnotation
-                                    (Node empty <| Typed (Node empty ( [], "Foo" )) [])
-                                    (Node empty <| Typed (Node empty ( [], "Bar" )) [])
+                "Foo -> Bar"
+                    |> expectAst
+                        (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 11 } }
+                            (FunctionTypeAnnotation
+                                (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 4 } }
+                                    (Typed (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 4 } } ( [], "Foo" )) [])
+                                )
+                                (Node { start = { row = 1, column = 8 }, end = { row = 1, column = 11 } }
+                                    (Typed (Node { start = { row = 1, column = 8 }, end = { row = 1, column = 11 } } ( [], "Bar" )) [])
+                                )
                             )
                         )
         , test "function type reference multiple" <|
             \() ->
-                parseFullStringWithNullState "Foo -> Bar -> baz" Parser.typeAnnotation
-                    |> Maybe.map noRangeTypeReference
-                    |> Expect.equal
-                        (Just <|
-                            (Node empty <|
-                                FunctionTypeAnnotation
-                                    (Node empty <| Typed (Node empty ( [], "Foo" )) [])
-                                    (Node empty <|
-                                        FunctionTypeAnnotation
-                                            (Node empty <| Typed (Node empty ( [], "Bar" )) [])
-                                            (Node empty <| GenericType "baz")
+                "Foo -> Bar -> baz"
+                    |> expectAst
+                        (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 18 } }
+                            (FunctionTypeAnnotation
+                                (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 4 } }
+                                    (Typed (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 4 } } ( [], "Foo" )) [])
+                                )
+                                (Node { start = { row = 1, column = 8 }, end = { row = 1, column = 18 } }
+                                    (FunctionTypeAnnotation
+                                        (Node { start = { row = 1, column = 8 }, end = { row = 1, column = 11 } }
+                                            (Typed (Node { start = { row = 1, column = 8 }, end = { row = 1, column = 11 } } ( [], "Bar" )) [])
+                                        )
+                                        (Node { start = { row = 1, column = 15 }, end = { row = 1, column = 18 } } (GenericType "baz"))
                                     )
+                                )
                             )
                         )
         , test "function type reference generics" <|
             \() ->
-                parseFullStringWithNullState "cMsg -> cModel -> a" Parser.typeAnnotation
-                    |> Maybe.map noRangeTypeReference
-                    |> Expect.equal
-                        (Just <|
-                            (Node empty <|
-                                FunctionTypeAnnotation
-                                    (Node empty <| GenericType "cMsg")
-                                    (Node empty <|
-                                        FunctionTypeAnnotation
-                                            (Node empty <| GenericType "cModel")
-                                            (Node empty <| GenericType "a")
+                "cMsg -> cModel -> a"
+                    |> expectAst
+                        (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 20 } }
+                            (FunctionTypeAnnotation
+                                (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 5 } } (GenericType "cMsg"))
+                                (Node { start = { row = 1, column = 9 }, end = { row = 1, column = 20 } }
+                                    (FunctionTypeAnnotation
+                                        (Node { start = { row = 1, column = 9 }, end = { row = 1, column = 15 } } (GenericType "cModel"))
+                                        (Node { start = { row = 1, column = 19 }, end = { row = 1, column = 20 } } (GenericType "a"))
                                     )
+                                )
                             )
                         )
         , test "function with spacing on indent 0" <|
@@ -243,21 +271,33 @@ all =
                         (Just (Node empty <| Typed (Node empty ( [], "Model" )) []))
         , test "annotation with parens" <|
             \() ->
-                parseAsFarAsPossibleWithState emptyState "Msg -> Model -> (Model, Cmd Msg)\n\n" Parser.typeAnnotation
-                    |> Maybe.map noRangeTypeReference
-                    |> Expect.equal
-                        (Just
-                            (Node empty <|
-                                FunctionTypeAnnotation (Node empty <| Typed (Node empty ( [], "Msg" )) [])
-                                    (Node empty <|
-                                        FunctionTypeAnnotation (Node empty <| Typed (Node empty ( [], "Model" )) [])
-                                            (Node empty <|
-                                                Tupled
-                                                    [ Node empty <| Typed (Node empty ( [], "Model" )) []
-                                                    , Node empty <| Typed (Node empty ( [], "Cmd" )) [ Node empty <| Typed (Node empty ( [], "Msg" )) [] ]
-                                                    ]
+                "Msg -> Model -> (Model, Cmd Msg)\n\n"
+                    |> expectAst
+                        (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 33 } }
+                            (FunctionTypeAnnotation
+                                (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 4 } }
+                                    (Typed (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 4 } } ( [], "Msg" )) [])
+                                )
+                                (Node { start = { row = 1, column = 8 }, end = { row = 1, column = 33 } }
+                                    (FunctionTypeAnnotation
+                                        (Node { start = { row = 1, column = 8 }, end = { row = 1, column = 13 } }
+                                            (Typed (Node { start = { row = 1, column = 8 }, end = { row = 1, column = 13 } } ( [], "Model" )) [])
+                                        )
+                                        (Node { start = { row = 1, column = 17 }, end = { row = 1, column = 33 } }
+                                            (Tupled
+                                                [ Node { start = { row = 1, column = 18 }, end = { row = 1, column = 23 } }
+                                                    (Typed (Node { start = { row = 1, column = 18 }, end = { row = 1, column = 23 } } ( [], "Model" )) [])
+                                                , Node { start = { row = 1, column = 25 }, end = { row = 1, column = 32 } }
+                                                    (Typed (Node { start = { row = 1, column = 25 }, end = { row = 1, column = 28 } } ( [], "Cmd" ))
+                                                        [ Node { start = { row = 1, column = 29 }, end = { row = 1, column = 32 } }
+                                                            (Typed (Node { start = { row = 1, column = 29 }, end = { row = 1, column = 32 } } ( [], "Msg" )) [])
+                                                        ]
+                                                    )
+                                                ]
                                             )
+                                        )
                                     )
+                                )
                             )
                         )
         , test "function with arrow with spacing on indent 0" <|
@@ -273,50 +313,66 @@ all =
                         )
         , test "function as argument" <|
             \() ->
-                parseFullStringWithNullState "( cMsg -> cModel -> a ) -> b" Parser.typeAnnotation
-                    |> Maybe.map noRangeTypeReference
-                    |> Expect.equal
-                        (Just <|
-                            (Node empty <|
-                                FunctionTypeAnnotation
-                                    (Node empty <|
-                                        FunctionTypeAnnotation
-                                            (Node empty <| GenericType "cMsg")
-                                            (Node empty <|
-                                                FunctionTypeAnnotation
-                                                    (Node empty <| GenericType "cModel")
-                                                    (Node empty <| GenericType "a")
+                "( cMsg -> cModel -> a ) -> b"
+                    |> expectAst
+                        (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 29 } }
+                            (FunctionTypeAnnotation
+                                (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 24 } }
+                                    (FunctionTypeAnnotation
+                                        (Node { start = { row = 1, column = 3 }, end = { row = 1, column = 7 } } (GenericType "cMsg"))
+                                        (Node { start = { row = 1, column = 11 }, end = { row = 1, column = 22 } }
+                                            (FunctionTypeAnnotation (Node { start = { row = 1, column = 11 }, end = { row = 1, column = 17 } } (GenericType "cModel"))
+                                                (Node { start = { row = 1, column = 21 }, end = { row = 1, column = 22 } } (GenericType "a"))
                                             )
+                                        )
                                     )
-                                    (Node empty <| GenericType "b")
+                                )
+                                (Node { start = { row = 1, column = 28 }, end = { row = 1, column = 29 } } (GenericType "b"))
                             )
                         )
         , test "type with params" <|
             \() ->
-                parseFullStringWithNullState "(Foo -> Bar)" Parser.typeAnnotation
-                    |> Maybe.map noRangeTypeReference
-                    |> Expect.equal
-                        (Just <|
-                            (Node empty <|
-                                FunctionTypeAnnotation
-                                    (Node empty <| Typed (Node empty ( [], "Foo" )) [])
-                                    (Node empty <| Typed (Node empty ( [], "Bar" )) [])
+                "(Foo -> Bar)"
+                    |> expectAst
+                        (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 13 } }
+                            (FunctionTypeAnnotation
+                                (Node { start = { row = 1, column = 2 }, end = { row = 1, column = 5 } }
+                                    (Typed
+                                        (Node { start = { row = 1, column = 2 }, end = { row = 1, column = 5 } } ( [], "Foo" ))
+                                        []
+                                    )
+                                )
+                                (Node { start = { row = 1, column = 9 }, end = { row = 1, column = 12 } }
+                                    (Typed
+                                        (Node { start = { row = 1, column = 9 }, end = { row = 1, column = 12 } } ( [], "Bar" ))
+                                        []
+                                    )
+                                )
                             )
                         )
         , test "function type reference multiple and parens" <|
             \() ->
-                parseFullStringWithNullState "(Foo -> Bar) -> baz" Parser.typeAnnotation
-                    |> Maybe.map noRangeTypeReference
-                    |> Expect.equal
-                        (Just <|
-                            (Node empty <|
-                                FunctionTypeAnnotation
-                                    (Node empty <|
-                                        FunctionTypeAnnotation
-                                            (Node empty <| Typed (Node empty ( [], "Foo" )) [])
-                                            (Node empty <| Typed (Node empty ( [], "Bar" )) [])
+                "(Foo -> Bar) -> baz"
+                    |> expectAst
+                        (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 20 } }
+                            (FunctionTypeAnnotation
+                                (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 13 } }
+                                    (FunctionTypeAnnotation
+                                        (Node { start = { row = 1, column = 2 }, end = { row = 1, column = 5 } }
+                                            (Typed
+                                                (Node { start = { row = 1, column = 2 }, end = { row = 1, column = 5 } } ( [], "Foo" ))
+                                                []
+                                            )
+                                        )
+                                        (Node { start = { row = 1, column = 9 }, end = { row = 1, column = 12 } }
+                                            (Typed
+                                                (Node { start = { row = 1, column = 9 }, end = { row = 1, column = 12 } } ( [], "Bar" ))
+                                                []
+                                            )
+                                        )
                                     )
-                                    (Node empty <| GenericType "baz")
+                                )
+                                (Node { start = { row = 1, column = 17 }, end = { row = 1, column = 20 } } (GenericType "baz"))
                             )
                         )
         , test "parseTypeWith wrong indent" <|
@@ -325,37 +381,44 @@ all =
                     |> expectInvalid
         , test "parseTypeWith good indent" <|
             \() ->
-                parseFullStringWithNullState "Maybe\n a" Parser.typeAnnotation
-                    |> Maybe.map noRangeTypeReference
-                    |> Expect.equal
-                        (Just
-                            (Node empty <|
-                                Typed (Node empty ( [], "Maybe" ))
-                                    [ Node empty <| GenericType "a" ]
+                "Maybe\n a"
+                    |> expectAst
+                        (Node { start = { row = 1, column = 1 }, end = { row = 2, column = 3 } }
+                            (Typed
+                                (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 6 } } ( [], "Maybe" ))
+                                [ Node { start = { row = 2, column = 2 }, end = { row = 2, column = 3 } } (GenericType "a") ]
                             )
                         )
         , test "issue #5 - no spaces between type and generic with parens" <|
             \() ->
-                parseFullStringWithNullState "List(String)" Parser.typeAnnotation
-                    |> Maybe.map noRangeTypeReference
-                    |> Expect.equal
-                        (Just
-                            (Node empty <|
-                                Typed (Node empty ( [], "List" ))
-                                    [ Node empty <| Typed (Node empty ( [], "String" )) [] ]
+                "List(String)"
+                    |> expectAst
+                        (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 13 } }
+                            (Typed
+                                (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 5 } } ( [], "List" ))
+                                [ Node { start = { row = 1, column = 5 }, end = { row = 1, column = 13 } }
+                                    (Typed
+                                        (Node { start = { row = 1, column = 6 }, end = { row = 1, column = 12 } } ( [], "String" ))
+                                        []
+                                    )
+                                ]
                             )
                         )
         , test "parse type with multiple params" <|
             \() ->
-                parseFullStringWithNullState "Dict String Int" Parser.typeAnnotation
-                    |> Maybe.map noRangeTypeReference
-                    |> Expect.equal
-                        (Just
-                            (Node empty <|
-                                Typed (Node empty ( [], "Dict" ))
-                                    [ Node empty <| Typed (Node empty ( [], "String" )) []
-                                    , Node empty <| Typed (Node empty ( [], "Int" )) []
-                                    ]
+                "Dict String Int"
+                    |> expectAst
+                        (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 16 } }
+                            (Typed
+                                (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 5 } } ( [], "Dict" ))
+                                [ Node { start = { row = 1, column = 6 }, end = { row = 1, column = 12 } }
+                                    (Typed
+                                        (Node { start = { row = 1, column = 6 }, end = { row = 1, column = 12 } } ( [], "String" ))
+                                        []
+                                    )
+                                , Node { start = { row = 1, column = 13 }, end = { row = 1, column = 16 } }
+                                    (Typed (Node { start = { row = 1, column = 13 }, end = { row = 1, column = 16 } } ( [], "Int" )) [])
+                                ]
                             )
                         )
         ]
@@ -369,3 +432,14 @@ expectInvalid source =
 
         Just actual ->
             Expect.fail ("This source code is successfully parsed but it shouldn't:\n" ++ Debug.toString actual)
+
+
+expectAst : Node TypeAnnotation -> String -> Expect.Expectation
+expectAst expected source =
+    case parseFullStringWithNullState source Parser.typeAnnotation of
+        Nothing ->
+            Expect.fail "Expected the source to be parsed correctly"
+
+        Just actual ->
+            actual
+                |> Expect.equal expected
