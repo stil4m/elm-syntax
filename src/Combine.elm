@@ -50,7 +50,7 @@ type alias ParseFn state res =
 
 
 type Parser state res
-    = Parser (ParseFn state res)
+    = Parser (state -> Core.Parser ( state, res ))
 
 
 fromCore : Core.Parser res -> Parser state res
