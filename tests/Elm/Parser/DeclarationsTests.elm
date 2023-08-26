@@ -18,99 +18,94 @@ all =
     describe "DeclarationTests"
         [ test "function declaration" <|
             \() ->
-                parseFullStringWithNullState "foo = bar" Parser.function
-                    |> Expect.equal
-                        (Just <|
-                            Node { start = { row = 1, column = 1 }, end = { row = 1, column = 10 } }
-                                (FunctionDeclaration
-                                    { declaration =
-                                        Node { start = { row = 1, column = 1 }, end = { row = 1, column = 10 } }
-                                            { name = Node { start = { row = 1, column = 1 }, end = { row = 1, column = 4 } } "foo"
-                                            , arguments = []
-                                            , expression = Node { start = { row = 1, column = 7 }, end = { row = 1, column = 10 } } (FunctionOrValue [] "bar")
-                                            }
-                                    , documentation = Nothing
-                                    , signature = Nothing
-                                    }
-                                )
+                "foo = bar"
+                    |> expectAst
+                        (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 10 } }
+                            (FunctionDeclaration
+                                { declaration =
+                                    Node { start = { row = 1, column = 1 }, end = { row = 1, column = 10 } }
+                                        { name = Node { start = { row = 1, column = 1 }, end = { row = 1, column = 4 } } "foo"
+                                        , arguments = []
+                                        , expression = Node { start = { row = 1, column = 7 }, end = { row = 1, column = 10 } } (FunctionOrValue [] "bar")
+                                        }
+                                , documentation = Nothing
+                                , signature = Nothing
+                                }
+                            )
                         )
         , test "function declaration with empty record" <|
             \() ->
-                parseFullStringWithNullState "foo = {}" Parser.function
-                    |> Expect.equal
-                        (Just
-                            (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 9 } }
-                                (FunctionDeclaration
-                                    { documentation = Nothing
-                                    , signature = Nothing
-                                    , declaration =
-                                        Node { start = { row = 1, column = 1 }, end = { row = 1, column = 9 } }
-                                            { arguments = []
-                                            , name = Node { start = { row = 1, column = 1 }, end = { row = 1, column = 4 } } "foo"
-                                            , expression = Node { start = { row = 1, column = 7 }, end = { row = 1, column = 9 } } (RecordExpr [])
-                                            }
-                                    }
-                                )
+                "foo = {}"
+                    |> expectAst
+                        (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 9 } }
+                            (FunctionDeclaration
+                                { documentation = Nothing
+                                , signature = Nothing
+                                , declaration =
+                                    Node { start = { row = 1, column = 1 }, end = { row = 1, column = 9 } }
+                                        { arguments = []
+                                        , name = Node { start = { row = 1, column = 1 }, end = { row = 1, column = 4 } } "foo"
+                                        , expression = Node { start = { row = 1, column = 7 }, end = { row = 1, column = 9 } } (RecordExpr [])
+                                        }
+                                }
                             )
                         )
         , test "function with case in let" <|
             \() ->
-                parseFullStringWithNullState "inc x =\n  let\n    y =\n      case x of\n        True -> z\n    a = b\n  in a" Parser.function
-                    |> Expect.equal
-                        (Just
-                            (Node { start = { row = 1, column = 1 }, end = { row = 7, column = 7 } }
-                                (FunctionDeclaration
-                                    { documentation = Nothing
-                                    , signature = Nothing
-                                    , declaration =
-                                        Node { start = { row = 1, column = 1 }, end = { row = 7, column = 7 } }
-                                            { name = Node { start = { row = 1, column = 1 }, end = { row = 1, column = 4 } } "inc"
-                                            , arguments = [ Node { start = { row = 1, column = 5 }, end = { row = 1, column = 6 } } (VarPattern "x") ]
-                                            , expression =
-                                                Node { start = { row = 2, column = 3 }, end = { row = 7, column = 7 } }
-                                                    (LetExpression
-                                                        { declarations =
-                                                            [ Node { start = { row = 3, column = 5 }, end = { row = 5, column = 18 } }
-                                                                (LetFunction
-                                                                    { documentation = Nothing
-                                                                    , signature = Nothing
-                                                                    , declaration =
-                                                                        Node { start = { row = 3, column = 5 }, end = { row = 5, column = 18 } }
-                                                                            { name = Node { start = { row = 3, column = 5 }, end = { row = 3, column = 6 } } "y"
-                                                                            , arguments = []
-                                                                            , expression =
-                                                                                Node { start = { row = 4, column = 7 }, end = { row = 5, column = 18 } }
-                                                                                    (CaseExpression
-                                                                                        { expression = Node { start = { row = 4, column = 12 }, end = { row = 4, column = 13 } } (FunctionOrValue [] "x")
-                                                                                        , cases =
-                                                                                            [ ( Node { start = { row = 5, column = 9 }, end = { row = 5, column = 13 } } (NamedPattern { moduleName = [], name = "True" } [])
-                                                                                              , Node { start = { row = 5, column = 17 }, end = { row = 5, column = 18 } } (FunctionOrValue [] "z")
-                                                                                              )
-                                                                                            ]
-                                                                                        }
-                                                                                    )
-                                                                            }
-                                                                    }
-                                                                )
-                                                            , Node { start = { row = 6, column = 5 }, end = { row = 6, column = 10 } }
-                                                                (LetFunction
-                                                                    { documentation = Nothing
-                                                                    , signature = Nothing
-                                                                    , declaration =
-                                                                        Node { start = { row = 6, column = 5 }, end = { row = 6, column = 10 } }
-                                                                            { name = Node { start = { row = 6, column = 5 }, end = { row = 6, column = 6 } } "a"
-                                                                            , arguments = []
-                                                                            , expression = Node { start = { row = 6, column = 9 }, end = { row = 6, column = 10 } } (FunctionOrValue [] "b")
-                                                                            }
-                                                                    }
-                                                                )
-                                                            ]
-                                                        , expression = Node { start = { row = 7, column = 6 }, end = { row = 7, column = 7 } } (FunctionOrValue [] "a")
-                                                        }
-                                                    )
-                                            }
-                                    }
-                                )
+                "inc x =\n  let\n    y =\n      case x of\n        True -> z\n    a = b\n  in a"
+                    |> expectAst
+                        (Node { start = { row = 1, column = 1 }, end = { row = 7, column = 7 } }
+                            (FunctionDeclaration
+                                { documentation = Nothing
+                                , signature = Nothing
+                                , declaration =
+                                    Node { start = { row = 1, column = 1 }, end = { row = 7, column = 7 } }
+                                        { name = Node { start = { row = 1, column = 1 }, end = { row = 1, column = 4 } } "inc"
+                                        , arguments = [ Node { start = { row = 1, column = 5 }, end = { row = 1, column = 6 } } (VarPattern "x") ]
+                                        , expression =
+                                            Node { start = { row = 2, column = 3 }, end = { row = 7, column = 7 } }
+                                                (LetExpression
+                                                    { declarations =
+                                                        [ Node { start = { row = 3, column = 5 }, end = { row = 5, column = 18 } }
+                                                            (LetFunction
+                                                                { documentation = Nothing
+                                                                , signature = Nothing
+                                                                , declaration =
+                                                                    Node { start = { row = 3, column = 5 }, end = { row = 5, column = 18 } }
+                                                                        { name = Node { start = { row = 3, column = 5 }, end = { row = 3, column = 6 } } "y"
+                                                                        , arguments = []
+                                                                        , expression =
+                                                                            Node { start = { row = 4, column = 7 }, end = { row = 5, column = 18 } }
+                                                                                (CaseExpression
+                                                                                    { expression = Node { start = { row = 4, column = 12 }, end = { row = 4, column = 13 } } (FunctionOrValue [] "x")
+                                                                                    , cases =
+                                                                                        [ ( Node { start = { row = 5, column = 9 }, end = { row = 5, column = 13 } } (NamedPattern { moduleName = [], name = "True" } [])
+                                                                                          , Node { start = { row = 5, column = 17 }, end = { row = 5, column = 18 } } (FunctionOrValue [] "z")
+                                                                                          )
+                                                                                        ]
+                                                                                    }
+                                                                                )
+                                                                        }
+                                                                }
+                                                            )
+                                                        , Node { start = { row = 6, column = 5 }, end = { row = 6, column = 10 } }
+                                                            (LetFunction
+                                                                { documentation = Nothing
+                                                                , signature = Nothing
+                                                                , declaration =
+                                                                    Node { start = { row = 6, column = 5 }, end = { row = 6, column = 10 } }
+                                                                        { name = Node { start = { row = 6, column = 5 }, end = { row = 6, column = 6 } } "a"
+                                                                        , arguments = []
+                                                                        , expression = Node { start = { row = 6, column = 9 }, end = { row = 6, column = 10 } } (FunctionOrValue [] "b")
+                                                                        }
+                                                                }
+                                                            )
+                                                        ]
+                                                    , expression = Node { start = { row = 7, column = 6 }, end = { row = 7, column = 7 } } (FunctionOrValue [] "a")
+                                                    }
+                                                )
+                                        }
+                                }
                             )
                         )
         , test "function declaration with args" <|
@@ -573,6 +568,17 @@ all =
                 parseFullStringState emptyState "a = (+ )" Parser.function
                     |> Expect.equal Nothing
         ]
+
+
+expectAst : Node Declaration -> String -> Expect.Expectation
+expectAst expected source =
+    case parseFullStringWithNullState source declaration of
+        Nothing ->
+            Expect.fail "Expected the source to be parsed correctly"
+
+        Just actual ->
+            actual
+                |> Expect.equal expected
 
 
 expectInvalid : String -> Expect.Expectation
