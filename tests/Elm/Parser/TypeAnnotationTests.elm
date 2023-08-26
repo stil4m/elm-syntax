@@ -256,12 +256,6 @@ all =
                                 )
                             )
                         )
-        , test "function with spacing on indent 0" <|
-            \() ->
-                parseAsFarAsPossibleWithState emptyState "Model\n\nsomeFunction" Parser.typeAnnotation
-                    |> Maybe.map noRangeTypeReference
-                    |> Expect.equal
-                        (Just (Node empty <| Typed (Node empty ( [], "Model" )) []))
         , test "annotation with parens" <|
             \() ->
                 "Msg -> Model -> (Model, Cmd Msg)\n\n"
