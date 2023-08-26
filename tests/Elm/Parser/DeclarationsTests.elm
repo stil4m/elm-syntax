@@ -2,7 +2,6 @@ module Elm.Parser.DeclarationsTests exposing (all)
 
 import Elm.Parser.CombineTestUtil exposing (..)
 import Elm.Parser.Declarations as Parser exposing (..)
-import Elm.Parser.State exposing (emptyState)
 import Elm.Syntax.Declaration exposing (..)
 import Elm.Syntax.Expression exposing (..)
 import Elm.Syntax.Node as Node exposing (Node(..))
@@ -199,10 +198,13 @@ all =
                         )
         , test "let destructuring with no spaces around '='" <|
             \() ->
-                parseFullStringWithNullState "foo =\n let\n  (b, c)=(1, 2)\n in\n  b" Parser.function
-                    |> Maybe.map Node.value
-                    |> Expect.equal
-                        (Just
+                """foo =
+ let
+  (b, c)=(1, 2)
+ in
+  b"""
+                    |> expectAst
+                        (Node { start = { row = 1, column = 1 }, end = { row = 5, column = 4 } }
                             (FunctionDeclaration
                                 { declaration =
                                     Node { start = { row = 1, column = 1 }, end = { row = 5, column = 4 } }
@@ -241,10 +243,10 @@ all =
                         )
         , test "declaration with record" <|
             \() ->
-                parseFullStringWithNullState "main =\n  beginnerProgram { model = 0, view = view, update = update }" Parser.function
-                    |> Maybe.map Node.value
-                    |> Expect.equal
-                        (Just
+                """main =
+  beginnerProgram { model = 0, view = view, update = update }"""
+                    |> expectAst
+                        (Node { start = { row = 1, column = 1 }, end = { row = 2, column = 62 } }
                             (FunctionDeclaration
                                 { declaration =
                                     Node { start = { row = 1, column = 1 }, end = { row = 2, column = 62 } }
@@ -280,10 +282,15 @@ all =
                         )
         , test "update function" <|
             \() ->
-                parseFullStringWithNullState "update msg model =\n  case msg of\n    Increment ->\n      model + 1\n\n    Decrement ->\n      model - 1" Parser.function
-                    |> Maybe.map Node.value
-                    |> Expect.equal
-                        (Just
+                """update msg model =
+  case msg of
+    Increment ->
+      model + 1
+
+    Decrement ->
+      model - 1"""
+                    |> expectAst
+                        (Node { start = { row = 1, column = 1 }, end = { row = 7, column = 16 } }
                             (FunctionDeclaration
                                 { declaration =
                                     Node { start = { row = 1, column = 1 }, end = { row = 7, column = 16 } }
@@ -326,10 +333,9 @@ all =
                         )
         , test "port declaration for command" <|
             \() ->
-                parseFullStringWithNullState "port parseResponse : ( String, String ) -> Cmd msg" Parser.declaration
-                    |> Maybe.map Node.value
-                    |> Expect.equal
-                        (Just
+                "port parseResponse : ( String, String ) -> Cmd msg"
+                    |> expectAst
+                        (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 51 } }
                             (PortDeclaration
                                 { name = Node { start = { row = 1, column = 6 }, end = { row = 1, column = 19 } } "parseResponse"
                                 , typeAnnotation =
@@ -358,10 +364,9 @@ all =
                         )
         , test "port declaration for subscription" <|
             \() ->
-                parseFullStringWithNullState "port scroll : (Move -> msg) -> Sub msg" declaration
-                    |> Maybe.map Node.value
-                    |> Expect.equal
-                        (Just
+                "port scroll : (Move -> msg) -> Sub msg"
+                    |> expectAst
+                        (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 39 } }
                             (PortDeclaration
                                 { name = Node { start = { row = 1, column = 6 }, end = { row = 1, column = 12 } } "scroll"
                                 , typeAnnotation =
@@ -391,10 +396,10 @@ all =
                     |> expectInvalid
         , test "declaration" <|
             \() ->
-                parseFullStringState emptyState "main =\n  text \"Hello, World!\"" Parser.function
-                    |> Maybe.map Node.value
-                    |> Expect.equal
-                        (Just
+                """main =
+  text "Hello, World!\""""
+                    |> expectAst
+                        (Node { start = { row = 1, column = 1 }, end = { row = 2, column = 23 } }
                             (FunctionDeclaration
                                 { declaration =
                                     Node { start = { row = 1, column = 1 }, end = { row = 2, column = 23 } }
@@ -415,10 +420,10 @@ all =
                         )
         , test "function" <|
             \() ->
-                parseFullStringState emptyState "main =\n  text \"Hello, World!\"" Parser.function
-                    |> Maybe.map Node.value
-                    |> Expect.equal
-                        (Just
+                """main =
+  text "Hello, World!\""""
+                    |> expectAst
+                        (Node { start = { row = 1, column = 1 }, end = { row = 2, column = 23 } }
                             (FunctionDeclaration
                                 { declaration =
                                     Node { start = { row = 1, column = 1 }, end = { row = 2, column = 23 } }
@@ -439,10 +444,10 @@ all =
                         )
         , test "function starting with multi line comment" <|
             \() ->
-                parseFullStringState emptyState "main =\n  {- y -} x" Parser.function
-                    |> Maybe.map Node.value
-                    |> Expect.equal
-                        (Just
+                """main =
+  {- y -} x"""
+                    |> expectAst
+                        (Node { start = { row = 1, column = 1 }, end = { row = 2, column = 12 } }
                             (FunctionDeclaration
                                 { documentation = Nothing
                                 , signature = Nothing
@@ -457,10 +462,9 @@ all =
                         )
         , test "function with a lot of symbols" <|
             \() ->
-                parseFullStringState emptyState "updateState update sendPort = curry <| (uncurry update) >> batchStateCmds sendPort" Parser.function
-                    |> Maybe.map Node.value
-                    |> Expect.equal
-                        (Just
+                "updateState update sendPort = curry <| (uncurry update) >> batchStateCmds sendPort"
+                    |> expectAst
+                        (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 83 } }
                             (FunctionDeclaration
                                 { declaration =
                                     Node { start = { row = 1, column = 1 }, end = { row = 1, column = 83 } }
@@ -494,10 +498,15 @@ all =
                         )
         , test "Some function" <|
             \() ->
-                parseFullStringState emptyState "update msg model =\n  case msg of\n    Increment ->\n      model + 1\n\n    Decrement ->\n      model - 1" Parser.function
-                    |> Maybe.map Node.value
-                    |> Expect.equal
-                        (Just
+                """update msg model =
+  case msg of
+    Increment ->
+      model + 1
+
+    Decrement ->
+      model - 1"""
+                    |> expectAst
+                        (Node { start = { row = 1, column = 1 }, end = { row = 7, column = 16 } }
                             (FunctionDeclaration
                                 { declaration =
                                     Node { start = { row = 1, column = 1 }, end = { row = 7, column = 16 } }
@@ -542,10 +551,11 @@ all =
                         )
         , test "some other function" <|
             \() ->
-                parseFullStringState emptyState "update : Model\nupdate msg model =\n    msg" Parser.function
-                    |> Maybe.map Node.value
-                    |> Expect.equal
-                        (Just
+                """update : Model
+update msg model =
+    msg"""
+                    |> expectAst
+                        (Node { start = { row = 1, column = 1 }, end = { row = 3, column = 8 } }
                             (FunctionDeclaration
                                 { declaration =
                                     Node { start = { row = 2, column = 1 }, end = { row = 3, column = 8 } }
