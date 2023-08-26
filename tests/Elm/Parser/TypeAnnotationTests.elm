@@ -69,15 +69,8 @@ all =
                         )
         , test "types with and without spacing should parse to the same" <|
             \() ->
-                let
-                    a =
-                        parseFullStringWithNullState "Bar " Parser.typeAnnotation
-
-                    b =
-                        parseFullStringWithNullState "Bar" Parser.typeAnnotation
-                in
-                a
-                    |> Expect.equal b
+                parseFullStringWithNullState "Bar " Parser.typeAnnotation
+                    |> Expect.equal (parseFullStringWithNullState "Bar" Parser.typeAnnotation)
         , test "typedTypeReference 1" <|
             \() ->
                 "Foo () a Bar"
