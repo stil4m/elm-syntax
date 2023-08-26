@@ -1,7 +1,6 @@
 module Combine exposing
     ( ParseError
     , ParseFn
-    , ParseOk
     , Parser(..)
     , Step(..)
     , andMap
@@ -41,10 +40,6 @@ type alias ParseError =
     List Core.DeadEnd
 
 
-type alias ParseOk state res =
-    ( state, res )
-
-
 type alias ParseFn state res =
     state -> Core.Parser ( state, res )
 
@@ -66,7 +61,7 @@ app (Parser inner) =
     inner
 
 
-runParser : Parser state res -> state -> String -> Result ParseError (ParseOk state res)
+runParser : Parser state res -> state -> String -> Result ParseError ( state, res )
 runParser (Parser p) st s =
     Core.run (p st) s
 
