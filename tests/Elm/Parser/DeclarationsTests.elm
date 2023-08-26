@@ -52,7 +52,13 @@ all =
                         )
         , test "function with case in let" <|
             \() ->
-                "inc x =\n  let\n    y =\n      case x of\n        True -> z\n    a = b\n  in a"
+                """inc x =
+  let
+    y =
+      case x of
+        True -> z
+    a = b
+  in a"""
                     |> expectAst
                         (Node { start = { row = 1, column = 1 }, end = { row = 7, column = 7 } }
                             (FunctionDeclaration
