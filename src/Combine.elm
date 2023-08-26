@@ -1,6 +1,5 @@
 module Combine exposing
-    ( ParseError
-    , ParseFn
+    ( ParseFn
     , Parser(..)
     , Step(..)
     , andMap
@@ -36,10 +35,6 @@ import Elm.Syntax.Range exposing (Location)
 import Parser as Core exposing ((|=))
 
 
-type alias ParseError =
-    List Core.DeadEnd
-
-
 type alias ParseFn state res =
     state -> Core.Parser ( state, res )
 
@@ -61,7 +56,7 @@ app (Parser inner) =
     inner
 
 
-runParser : Parser state res -> state -> String -> Result ParseError ( state, res )
+runParser : Parser state res -> state -> String -> Result (List Core.DeadEnd) ( state, res )
 runParser (Parser p) st s =
     Core.run (p st) s
 
