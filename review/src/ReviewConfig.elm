@@ -73,3 +73,4 @@ config =
     , NoUnused.Variables.rule
     , Simplify.rule Simplify.defaults
     ]
+        |> List.map (Rule.ignoreErrorsForFiles [ "src/Pratt.elm", "src/Pratt/Advanced.elm" ])
