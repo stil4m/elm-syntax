@@ -72,8 +72,8 @@ all =
         ]
 
 
-toIndentAndComments : ( (), State ) -> { comments : List (Node String), indents : List Int }
-toIndentAndComments ( (), state ) =
+toIndentAndComments : ( State, () ) -> { comments : List (Node String), indents : List Int }
+toIndentAndComments ( state, () ) =
     { comments = State.getComments state
     , indents = State.storedColumns state
     }
