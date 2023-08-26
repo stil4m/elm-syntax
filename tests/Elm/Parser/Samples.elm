@@ -56,6 +56,7 @@ allSamples =
     ]
 
 
+sample51 : String
 sample51 =
     """module A exposing (..)
 
@@ -65,6 +66,7 @@ f =
 """
 
 
+sample50 : String
 sample50 =
     """module A exposing (..)
 
@@ -75,6 +77,7 @@ f =
 """
 
 
+sample49 : String
 sample49 =
     """module A exposing (..)
 
@@ -85,6 +88,7 @@ f =
 """
 
 
+sample48 : String
 sample48 =
     """module A exposing (..)
 
@@ -94,6 +98,7 @@ f =
 """
 
 
+sample47 : String
 sample47 =
     """module A exposing (..)
 
@@ -104,6 +109,7 @@ f =
 """
 
 
+sample46 : String
 sample46 =
     """module A exposing (..)
 
@@ -114,6 +120,7 @@ f =
 """
 
 
+sample45 : String
 sample45 =
     """module A exposing (..)
 
@@ -125,6 +132,7 @@ a =
 """
 
 
+sample44 : String
 sample44 =
     """module A exposing (..)
 
@@ -133,6 +141,7 @@ type B a= B
 """
 
 
+sample43 : String
 sample43 =
     """module A exposing (..)
 
@@ -143,6 +152,7 @@ a =
 """
 
 
+sample42 : String
 sample42 =
     """module PegTest exposing (..)
 
@@ -157,6 +167,7 @@ c =
 """
 
 
+sample41 : String
 sample41 =
     """module A exposing ( infixl , infixr, infix )
 
@@ -164,6 +175,7 @@ a = 0
 """
 
 
+sample40 : String
 sample40 =
     """module A exposing (..)
 
@@ -173,6 +185,7 @@ type alias A msg=
 """
 
 
+sample39 : String
 sample39 =
     """
 module Test exposing (asSomething)
@@ -186,6 +199,7 @@ asSomething =
 """
 
 
+sample38 : String
 sample38 =
     """
 module B exposing (x)
@@ -202,6 +216,7 @@ c =
 """
 
 
+sample37 : String
 sample37 =
     """
 module Elm.Parser.Imports exposing (importDefinition)
@@ -213,6 +228,7 @@ importX =
 """
 
 
+sample36 : String
 sample36 =
     """module Parser.Advanced exposing( Parser)
 
@@ -229,6 +245,7 @@ spaces =
 """
 
 
+sample35 : String
 sample35 =
     """
 module Validate exposing (isWhitespaceChar)
@@ -239,6 +256,7 @@ isWhitespaceChar char =
 """
 
 
+sample34 : String
 sample34 =
     """
 module Foo exposing (..)
@@ -252,6 +270,7 @@ type_ =
 """
 
 
+sample33 : String
 sample33 =
     """
 module Lazy.List  exposing (..)
