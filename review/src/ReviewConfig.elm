@@ -75,3 +75,4 @@ config =
     , Simplify.rule Simplify.defaults
     , OrderedRanges.rule
     ]
+        |> List.map (Rule.ignoreErrorsForFiles [ "src/Pratt.elm", "src/Pratt/Advanced.elm" ])
