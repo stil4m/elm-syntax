@@ -570,7 +570,7 @@ update msg model =
 
 expectAst : Node Declaration -> String -> Expect.Expectation
 expectAst expected source =
-    case parseFullString source declaration of
+    case parse source declaration of
         Nothing ->
             Expect.fail "Expected the source to be parsed correctly"
 
@@ -581,7 +581,7 @@ expectAst expected source =
 
 expectInvalid : String -> Expect.Expectation
 expectInvalid source =
-    case parseFullString source declaration of
+    case parse source declaration of
         Nothing ->
             Expect.pass
 

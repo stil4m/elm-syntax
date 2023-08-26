@@ -78,7 +78,7 @@ all =
                         )
         , test "lambda with trailing whitespace" <|
             \() ->
-                parseFullString """ \\a b -> a + b
+                parse """ \\a b -> a + b
 
 
 
@@ -91,7 +91,7 @@ all =
 
 expectAst : Node Expression -> String -> Expect.Expectation
 expectAst expected source =
-    case parseFullString source Parser.expression of
+    case parse source Parser.expression of
         Nothing ->
             Expect.fail "Expected the source to be parsed correctly"
 

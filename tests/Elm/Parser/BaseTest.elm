@@ -11,10 +11,10 @@ all =
     describe "BaseTest"
         [ test "moduleName" <|
             \() ->
-                parseFullString "Foo" Parser.moduleName
+                parse "Foo" Parser.moduleName
                     |> Expect.equal (Just <| [ "Foo" ])
         , test "moduleNameDir" <|
             \() ->
-                parseFullString "Foo.Bar" Parser.moduleName
+                parse "Foo.Bar" Parser.moduleName
                     |> Expect.equal (Just <| [ "Foo", "Bar" ])
         ]

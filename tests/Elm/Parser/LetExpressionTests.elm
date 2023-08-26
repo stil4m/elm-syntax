@@ -305,7 +305,7 @@ all =
                         )
         , test "let with trailing whitespace" <|
             \() ->
-                parseFullString " let\n b = 1\n in\n b\n\n\n\n--some comment\n" (Layout.layout |> Combine.continueWith Parser.letExpression)
+                parse " let\n b = 1\n in\n b\n\n\n\n--some comment\n" (Layout.layout |> Combine.continueWith Parser.letExpression)
                     |> Maybe.map Node.range
                     |> Expect.equal (Just { start = { row = 1, column = 2 }, end = { row = 4, column = 3 } })
         ]
@@ -313,7 +313,7 @@ all =
 
 expectAst : Node Expression -> String -> Expect.Expectation
 expectAst expected source =
-    case parseFullString source Parser.expression of
+    case parse source Parser.expression of
         Nothing ->
             Expect.fail "Expected the source to be parsed correctly"
 
@@ -324,7 +324,7 @@ expectAst expected source =
 
 expectInvalid : String -> Expect.Expectation
 expectInvalid source =
-    case parseFullString source Parser.expression of
+    case parse source Parser.expression of
         Nothing ->
             Expect.pass
 

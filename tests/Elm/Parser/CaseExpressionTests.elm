@@ -183,7 +183,7 @@ True -> 1"""
 
 expectAst : Node Expression -> String -> Expect.Expectation
 expectAst expected source =
-    case parseFullString source Parser.expression of
+    case parse source Parser.expression of
         Nothing ->
             Expect.fail "Expected the source to be parsed correctly"
 
@@ -194,7 +194,7 @@ expectAst expected source =
 
 expectInvalid : String -> Expect.Expectation
 expectInvalid source =
-    case parseFullString source Parser.expression of
+    case parse source Parser.expression of
         Nothing ->
             Expect.pass
 

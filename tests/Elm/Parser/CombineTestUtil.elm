@@ -1,4 +1,4 @@
-module Elm.Parser.CombineTestUtil exposing (parseFullString, parseWithState, pushIndent)
+module Elm.Parser.CombineTestUtil exposing (parse, parseWithState, pushIndent)
 
 import Combine exposing (Parser)
 import Elm.Parser.State exposing (State, emptyState)
@@ -16,7 +16,7 @@ parseWithState s p =
         |> Result.toMaybe
 
 
-parseFullString : String -> Parser State a -> Maybe a
-parseFullString s p =
+parse : String -> Parser State a -> Maybe a
+parse s p =
     parseWithState s p
         |> Maybe.map Tuple.second

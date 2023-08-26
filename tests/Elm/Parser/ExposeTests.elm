@@ -1,6 +1,6 @@
 module Elm.Parser.ExposeTests exposing (all)
 
-import Elm.Parser.CombineTestUtil exposing (parseFullString)
+import Elm.Parser.CombineTestUtil exposing (parse)
 import Elm.Parser.Expose exposing (exposeDefinition)
 import Elm.Syntax.Exposing exposing (Exposing(..), TopLevelExpose(..))
 import Elm.Syntax.Node exposing (Node(..))
@@ -120,7 +120,7 @@ all =
 
 expectAst : Exposing -> String -> Expect.Expectation
 expectAst expected source =
-    case parseFullString source exposeDefinition of
+    case parse source exposeDefinition of
         Nothing ->
             Expect.fail "Expected the source to be parsed correctly"
 
@@ -131,7 +131,7 @@ expectAst expected source =
 
 expectInvalid : String -> Expect.Expectation
 expectInvalid source =
-    case parseFullString source exposeDefinition of
+    case parse source exposeDefinition of
         Nothing ->
             Expect.pass
 

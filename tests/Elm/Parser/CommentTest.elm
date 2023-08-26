@@ -33,7 +33,7 @@ all =
                         )
         , test "singleLineComment does not include new line" <|
             \() ->
-                parseFullString "--bar\n" Parser.singleLineComment
+                parse "--bar\n" Parser.singleLineComment
                     |> Expect.equal Nothing
         , test "multilineComment parse result" <|
             \() ->
@@ -57,7 +57,7 @@ all =
                         )
         , test "nested multilineComment only open" <|
             \() ->
-                parseFullString "{- {- -}" Parser.multilineComment
+                parse "{- {- -}" Parser.multilineComment
                     |> Expect.equal Nothing
         , test "nested multilineComment open and close" <|
             \() ->

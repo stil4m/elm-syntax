@@ -43,7 +43,7 @@ all =
 
 expectAst : Infix -> String -> Expect.Expectation
 expectAst expected source =
-    case parseFullString source Infix.infixDefinition of
+    case parse source Infix.infixDefinition of
         Nothing ->
             Expect.fail "Expected the source to be parsed correctly"
 

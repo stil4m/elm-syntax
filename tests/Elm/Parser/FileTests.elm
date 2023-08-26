@@ -21,7 +21,7 @@ all =
                 (\n s ->
                     test ("sample " ++ String.fromInt (n + 1)) <|
                         \() ->
-                            parseFullString s Parser.file |> Expect.notEqual Nothing
+                            parse s Parser.file |> Expect.notEqual Nothing
                 )
                 Samples.allSamples
 
@@ -49,7 +49,7 @@ all =
                                 let
                                     parsed : Maybe RawFile
                                     parsed =
-                                        parseFullString s Parser.file
+                                        parse s Parser.file
                                             |> Maybe.map InternalRawFile.Raw
 
                                     roundTrip : Maybe RawFile

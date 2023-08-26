@@ -11,12 +11,12 @@ all =
     describe "NumbersTests"
         [ test "hex" <|
             \() ->
-                parseFullString "0x03FFFFFF" (Parser.number (always Nothing) Just)
+                parse "0x03FFFFFF" (Parser.number (always Nothing) Just)
                     |> Expect.equal
                         (Just (Just 67108863))
         , test "hex - 2" <|
             \() ->
-                parseFullString "0xFF" (Parser.number (always Nothing) Just)
+                parse "0xFF" (Parser.number (always Nothing) Just)
                     |> Expect.equal
                         (Just (Just 255))
         ]
