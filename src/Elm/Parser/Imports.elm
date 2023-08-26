@@ -53,6 +53,7 @@ importDefinition =
                     |> Combine.andThen parseAsDefinition
                     |> Combine.map (setupNode start)
             )
+        |> Combine.ignore Layout.optimisticLayout
 
 
 setupNode : Range -> Import -> Node Import
