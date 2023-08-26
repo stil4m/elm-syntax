@@ -1,7 +1,9 @@
 module Elm.Parser.LayoutTests exposing (all)
 
+import Combine exposing (Parser)
 import Elm.Parser.CombineTestUtil exposing (..)
 import Elm.Parser.Layout as Layout
+import Elm.Parser.State exposing (State)
 import Expect
 import Test exposing (..)
 
@@ -74,3 +76,9 @@ all =
                 parse "\n{- some note -}    \n" Layout.layoutStrict
                     |> Expect.equal (Just ())
         ]
+
+
+pushIndent : Int -> Parser State b -> Parser State b
+pushIndent x p =
+    Combine.modifyState (Elm.Parser.State.pushColumn (x + 1))
+        |> Combine.continueWith p
