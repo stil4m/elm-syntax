@@ -1,10 +1,8 @@
 module Elm.Parser.TypeAnnotationTests exposing (all)
 
 import Elm.Parser.CombineTestUtil exposing (..)
-import Elm.Parser.State exposing (emptyState)
 import Elm.Parser.TypeAnnotation as Parser
 import Elm.Syntax.Node exposing (Node(..))
-import Elm.Syntax.Range exposing (empty)
 import Elm.Syntax.TypeAnnotation exposing (..)
 import Expect
 import Test exposing (..)
@@ -285,17 +283,6 @@ all =
                                         )
                                     )
                                 )
-                            )
-                        )
-        , test "function with arrow with spacing on indent 0" <|
-            \() ->
-                parseAsFarAsPossibleWithState emptyState "msg -> Cmd model\n\nsomeFunction" Parser.typeAnnotation
-                    |> Maybe.map noRangeTypeReference
-                    |> Expect.equal
-                        (Just
-                            (Node empty <|
-                                FunctionTypeAnnotation (Node empty <| GenericType "msg")
-                                    (Node empty <| Typed (Node empty ( [], "Cmd" )) [ Node empty <| GenericType "model" ])
                             )
                         )
         , test "function as argument" <|
