@@ -19,9 +19,9 @@ parseFullStringState state s p =
             Nothing
 
 
-parseStateToMaybe : State -> String -> Parser State b -> Maybe ( b, State )
-parseStateToMaybe state s p =
-    case Combine.runParser (p |> Combine.ignore Combine.end) state s of
+parseStateToMaybe : String -> Parser State b -> Maybe ( b, State )
+parseStateToMaybe s p =
+    case Combine.runParser (p |> Combine.ignore Combine.end) emptyState s of
         Ok ( x, r ) ->
             Just ( r, x )
 

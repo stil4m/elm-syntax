@@ -2,7 +2,7 @@ module Elm.Parser.CommentTest exposing (all)
 
 import Elm.Parser.CombineTestUtil exposing (..)
 import Elm.Parser.Comments as Parser
-import Elm.Parser.State as State exposing (emptyState)
+import Elm.Parser.State as State
 import Elm.Syntax.Node exposing (Node(..))
 import Expect
 import Test exposing (..)
@@ -13,12 +13,12 @@ all =
     describe "CommentTests"
         [ test "singleLineComment" <|
             \() ->
-                parseStateToMaybe emptyState "--bar" Parser.singleLineComment
+                parseStateToMaybe "--bar" Parser.singleLineComment
                     |> Maybe.map Tuple.first
                     |> Expect.equal (Just ())
         , test "singleLineComment state" <|
             \() ->
-                parseStateToMaybe emptyState "--bar" Parser.singleLineComment
+                parseStateToMaybe "--bar" Parser.singleLineComment
                     |> Maybe.map (Tuple.second >> State.getComments)
                     |> Expect.equal (Just [ Node { start = { row = 1, column = 1 }, end = { row = 1, column = 6 } } "--bar" ])
         , test "singleLineComment does not include new line" <|
@@ -27,12 +27,12 @@ all =
                     |> Expect.equal Nothing
         , test "multilineComment parse result" <|
             \() ->
-                parseStateToMaybe emptyState "{-foo\nbar-}" Parser.multilineComment
+                parseStateToMaybe "{-foo\nbar-}" Parser.multilineComment
                     |> Maybe.map Tuple.first
                     |> Expect.equal (Just ())
         , test "multilineComment range" <|
             \() ->
-                parseStateToMaybe emptyState "{-foo\nbar-}" Parser.multilineComment
+                parseStateToMaybe "{-foo\nbar-}" Parser.multilineComment
                     |> Maybe.map (Tuple.second >> State.getComments)
                     |> Expect.equal (Just [ Node { start = { row = 1, column = 1 }, end = { row = 2, column = 6 } } "{-foo\nbar-}" ])
         , test "nested multilineComment only open" <|
