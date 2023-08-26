@@ -4,7 +4,6 @@ import Combine
 import Elm.Parser.CombineTestUtil exposing (..)
 import Elm.Parser.Declarations as Parser
 import Elm.Parser.Layout as Layout
-import Elm.Parser.State exposing (emptyState)
 import Elm.Syntax.Expression exposing (..)
 import Elm.Syntax.Node as Node exposing (Node(..))
 import Elm.Syntax.Pattern exposing (..)
@@ -79,7 +78,7 @@ all =
                         )
         , test "lambda with trailing whitespace" <|
             \() ->
-                parseFullStringState emptyState """ \\a b -> a + b
+                parseFullStringState """ \\a b -> a + b
 
 
 

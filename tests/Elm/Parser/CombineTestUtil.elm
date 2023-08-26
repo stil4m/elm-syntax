@@ -9,9 +9,9 @@ pushIndent x p =
     modifyState (Elm.Parser.State.pushColumn (x + 1)) |> Combine.continueWith p
 
 
-parseFullStringState : State -> String -> Parser State b -> Maybe b
-parseFullStringState state s p =
-    case Combine.runParser (p |> Combine.ignore Combine.end) state s of
+parseFullStringState : String -> Parser State a -> Maybe a
+parseFullStringState s p =
+    case Combine.runParser (p |> Combine.ignore Combine.end) emptyState s of
         Ok ( _, r ) ->
             Just r
 
@@ -19,7 +19,7 @@ parseFullStringState state s p =
             Nothing
 
 
-parseWithState : String -> Parser State b -> Maybe ( b, State )
+parseWithState : String -> Parser State a -> Maybe ( a, State )
 parseWithState s p =
     case Combine.runParser (p |> Combine.ignore Combine.end) emptyState s of
         Ok ( x, r ) ->
@@ -29,7 +29,7 @@ parseWithState s p =
             Nothing
 
 
-parseFullStringWithNullState : String -> Parser State b -> Maybe b
+parseFullStringWithNullState : String -> Parser State a -> Maybe a
 parseFullStringWithNullState s p =
     case Combine.runParser (p |> Combine.ignore Combine.end) emptyState s of
         Ok ( _, r ) ->
@@ -39,7 +39,7 @@ parseFullStringWithNullState s p =
             Nothing
 
 
-parseFullString : String -> Parser () b -> Maybe b
+parseFullString : String -> Parser () a -> Maybe a
 parseFullString s p =
     case Combine.parse (p |> Combine.ignore Combine.end) s of
         Ok ( _, r ) ->
@@ -49,7 +49,7 @@ parseFullString s p =
             Nothing
 
 
-parseAsFarAsPossibleWithState : State -> String -> Parser State b -> Maybe b
+parseAsFarAsPossibleWithState : State -> String -> Parser State a -> Maybe a
 parseAsFarAsPossibleWithState state s p =
     case Combine.runParser p state s of
         Ok ( _, r ) ->

@@ -5,7 +5,6 @@ import Elm.Parser
 import Elm.Parser.CombineTestUtil exposing (..)
 import Elm.Parser.File as Parser
 import Elm.Parser.Samples as Samples
-import Elm.Parser.State exposing (emptyState)
 import Elm.RawFile as RawFile exposing (RawFile)
 import Elm.Syntax.Node exposing (Node(..))
 import Expect
@@ -22,7 +21,7 @@ all =
                 (\n s ->
                     test ("sample " ++ String.fromInt (n + 1)) <|
                         \() ->
-                            parseFullStringState emptyState s Parser.file |> Expect.notEqual Nothing
+                            parseFullStringState s Parser.file |> Expect.notEqual Nothing
                 )
                 Samples.allSamples
 
@@ -50,7 +49,7 @@ all =
                                 let
                                     parsed : Maybe RawFile
                                     parsed =
-                                        parseFullStringState emptyState s Parser.file
+                                        parseFullStringState s Parser.file
                                             |> Maybe.map InternalRawFile.Raw
 
                                     roundTrip : Maybe RawFile
