@@ -569,12 +569,12 @@ all =
                         )
         , test "regression test for disallowing ( +)" <|
             \() ->
-                parseFullStringState emptyState "a = ( +)" Parser.function
-                    |> Expect.equal Nothing
+                "a = ( +)"
+                    |> expectInvalid
         , test "regression test for disallowing (+ )" <|
             \() ->
-                parseFullStringState emptyState "a = (+ )" Parser.function
-                    |> Expect.equal Nothing
+                "a = (+ )"
+                    |> expectInvalid
         ]
 
 
