@@ -80,7 +80,7 @@ all =
                         )
         , test "unformatted wrong" <|
             \() ->
-                parseFullStringWithNullState "module \nFoo \n exposing  (..)" Parser.moduleDefinition
+                parseFullString "module \nFoo \n exposing  (..)" Parser.moduleDefinition
                     |> Expect.equal Nothing
         , test "exposing all" <|
             \() ->
@@ -106,7 +106,7 @@ all =
                         )
         , test "Regression test for Incorrect range in if expression" <|
             \() ->
-                parseFullStringWithNullState
+                parseFullString
                     (String.filter ((/=) '\u{000D}') """module TestModule exposing (..)
 
 a =
@@ -201,7 +201,7 @@ b = 3
                         )
         , test "Simple module range test" <|
             \() ->
-                parseFullStringWithNullState
+                parseFullString
                     (String.filter ((/=) '\u{000D}') """module TestModule exposing (..)
 
 a =
@@ -281,7 +281,7 @@ b = 3
                         )
         , test "File with multiple imports" <|
             \() ->
-                parseFullStringWithNullState
+                parseFullString
                     """module TestModule exposing (..)
 import A
 import B
@@ -331,7 +331,7 @@ a = 1
                         )
         , test "File with multiple declarations" <|
             \() ->
-                parseFullStringWithNullState
+                parseFullString
                     """module TestModule exposing (..)
 type A = B | C
 a = 1
@@ -417,7 +417,7 @@ b = 2
 
 expectAst : Module -> String -> Expect.Expectation
 expectAst expected source =
-    case parseFullStringWithNullState source Parser.moduleDefinition of
+    case parseFullString source Parser.moduleDefinition of
         Nothing ->
             Expect.fail "Expected the source to be parsed correctly"
 

@@ -69,7 +69,7 @@ all =
 
 expectAst : Node Import -> String -> Expect.Expectation
 expectAst expected source =
-    case parseFullStringWithNullState source Parser.importDefinition of
+    case parseFullString source Parser.importDefinition of
         Nothing ->
             Expect.fail "Expected the source to be parsed correctly"
 

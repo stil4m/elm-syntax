@@ -178,7 +178,7 @@ all =
                         )
         , test "type with value on next line " <|
             \() ->
-                parseFullStringWithNullState "type Maybe a = Just a |\nNothing" Parser.typeDefinition
+                parseFullString "type Maybe a = Just a |\nNothing" Parser.typeDefinition
                     |> Expect.equal Nothing
         , test "type with spacing after " <|
             \() ->
@@ -201,7 +201,7 @@ all =
 
 expectAst : Node Declaration -> String -> Expect.Expectation
 expectAst expected source =
-    case parseFullStringWithNullState source Parser.typeDefinition of
+    case parseFullString source Parser.typeDefinition of
         Nothing ->
             Expect.fail "Expected the source to be parsed correctly"
 
@@ -212,7 +212,7 @@ expectAst expected source =
 
 expectInvalid : String -> Expect.Expectation
 expectInvalid source =
-    case parseFullStringWithNullState source Parser.typeDefinition of
+    case parseFullString source Parser.typeDefinition of
         Nothing ->
             Expect.pass
 

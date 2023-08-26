@@ -1,4 +1,4 @@
-module Elm.Parser.CombineTestUtil exposing (parseAsFarAsPossibleWithState, parseFullString, parseFullStringState, parseFullStringWithNullState, parseWithState, pushIndent)
+module Elm.Parser.CombineTestUtil exposing (parseAsFarAsPossibleWithState, parseFullString, parseFullStringState, parseWithState, pushIndent)
 
 import Combine exposing (..)
 import Elm.Parser.State exposing (State, emptyState)
@@ -25,19 +25,9 @@ parseWithState s p =
         |> Result.toMaybe
 
 
-parseFullStringWithNullState : String -> Parser State a -> Maybe a
-parseFullStringWithNullState s p =
-    case Combine.runParser (p |> Combine.ignore Combine.end) emptyState s of
-        Ok ( _, r ) ->
-            Just r
-
-        _ ->
-            Nothing
-
-
-parseFullString : String -> Parser () a -> Maybe a
+parseFullString : String -> Parser State a -> Maybe a
 parseFullString s p =
-    case Combine.parse (p |> Combine.ignore Combine.end) s of
+    case Combine.runParser (p |> Combine.ignore Combine.end) emptyState s of
         Ok ( _, r ) ->
             Just r
 

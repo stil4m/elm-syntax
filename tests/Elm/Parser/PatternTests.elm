@@ -157,8 +157,8 @@ all =
                         )
         , test "Named pattern without and with spacing should parse to the same" <|
             \() ->
-                parseFullStringWithNullState "Bar " Parser.pattern
-                    |> Expect.equal (parseFullStringWithNullState "Bar" Parser.pattern)
+                parseFullString "Bar " Parser.pattern
+                    |> Expect.equal (parseFullString "Bar" Parser.pattern)
         , test "Qualified named" <|
             \() ->
                 "Basics.True"
@@ -295,7 +295,7 @@ all =
 
 expectAst : Node Pattern -> String -> Expect.Expectation
 expectAst expected source =
-    case parseFullStringWithNullState source Parser.pattern of
+    case parseFullString source Parser.pattern of
         Nothing ->
             Expect.fail "Expected the source to be parsed correctly"
 
@@ -306,7 +306,7 @@ expectAst expected source =
 
 expectInvalid : String -> Expect.Expectation
 expectInvalid source =
-    case parseFullStringWithNullState source Parser.pattern of
+    case parseFullString source Parser.pattern of
         Nothing ->
             Expect.pass
 

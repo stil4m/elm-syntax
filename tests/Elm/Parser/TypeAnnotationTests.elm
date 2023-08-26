@@ -67,8 +67,8 @@ all =
                         )
         , test "types with and without spacing should parse to the same" <|
             \() ->
-                parseFullStringWithNullState "Bar " Parser.typeAnnotation
-                    |> Expect.equal (parseFullStringWithNullState "Bar" Parser.typeAnnotation)
+                parseFullString "Bar " Parser.typeAnnotation
+                    |> Expect.equal (parseFullString "Bar" Parser.typeAnnotation)
         , test "typedTypeReference 1" <|
             \() ->
                 "Foo () a Bar"
@@ -400,7 +400,7 @@ all =
 
 expectInvalid : String -> Expect.Expectation
 expectInvalid source =
-    case parseFullStringWithNullState source Parser.typeAnnotation of
+    case parseFullString source Parser.typeAnnotation of
         Nothing ->
             Expect.pass
 
@@ -410,7 +410,7 @@ expectInvalid source =
 
 expectAst : Node TypeAnnotation -> String -> Expect.Expectation
 expectAst expected source =
-    case parseFullStringWithNullState source Parser.typeAnnotation of
+    case parseFullString source Parser.typeAnnotation of
         Nothing ->
             Expect.fail "Expected the source to be parsed correctly"
 

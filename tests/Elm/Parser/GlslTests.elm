@@ -23,7 +23,7 @@ all =
 
 expectAst : Node Expression -> String -> Expect.Expectation
 expectAst expected source =
-    case parseFullStringWithNullState source Parser.expression of
+    case parseFullString source Parser.expression of
         Nothing ->
             Expect.fail "Expected the source to be parsed correctly"
 

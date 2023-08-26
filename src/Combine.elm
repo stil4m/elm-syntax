@@ -1,4 +1,4 @@
-module Combine exposing (ParseError, ParseFn, ParseLocation, ParseOk, Parser(..), Step(..), andMap, andThen, backtrackable, between, choice, continueWith, end, fail, fromCore, ignore, lazy, loop, many, many1, map, maybe, modifyState, or, parens, parse, runParser, sepBy, sepBy1, string, succeed, while, withLocation, withState)
+module Combine exposing (ParseError, ParseFn, ParseLocation, ParseOk, Parser(..), Step(..), andMap, andThen, backtrackable, between, choice, continueWith, end, fail, fromCore, ignore, lazy, loop, many, many1, map, maybe, modifyState, or, parens, runParser, sepBy, sepBy1, string, succeed, while, withLocation, withState)
 
 import Parser as Core exposing ((|=))
 
@@ -36,11 +36,6 @@ fromCore p =
 app : Parser state res -> ParseFn state res
 app (Parser inner) =
     inner
-
-
-parse : Parser () res -> String -> Result ParseError (ParseOk () res)
-parse p =
-    runParser p ()
 
 
 runParser : Parser state res -> state -> String -> Result ParseError (ParseOk state res)

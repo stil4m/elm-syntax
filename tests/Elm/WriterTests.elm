@@ -1,6 +1,6 @@
 module Elm.WriterTests exposing (suite)
 
-import Elm.Parser.CombineTestUtil exposing (parseFullStringWithNullState)
+import Elm.Parser.CombineTestUtil exposing (parseFullString)
 import Elm.Parser.Declarations exposing (expression)
 import Elm.Syntax.Declaration exposing (..)
 import Elm.Syntax.Exposing exposing (..)
@@ -69,7 +69,7 @@ suite =
                         input =
                             "(.spaceEvenly Internal.Style.classes)"
                     in
-                    parseFullStringWithNullState input expression
+                    parseFullString input expression
                         |> Maybe.map Writer.writeExpression
                         |> Maybe.map Writer.write
                         |> Expect.equal
