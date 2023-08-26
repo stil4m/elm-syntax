@@ -13,7 +13,7 @@ all =
     describe "CommentTests"
         [ test "singleLineComment" <|
             \() ->
-                parseStateToMaybe "--bar" Parser.singleLineComment
+                parseWithState "--bar" Parser.singleLineComment
                     |> Maybe.map toIndentAndComments
                     |> Expect.equal
                         (Just
@@ -23,7 +23,7 @@ all =
                         )
         , test "singleLineComment state" <|
             \() ->
-                parseStateToMaybe "--bar" Parser.singleLineComment
+                parseWithState "--bar" Parser.singleLineComment
                     |> Maybe.map toIndentAndComments
                     |> Expect.equal
                         (Just
@@ -37,7 +37,7 @@ all =
                     |> Expect.equal Nothing
         , test "multilineComment parse result" <|
             \() ->
-                parseStateToMaybe "{-foo\nbar-}" Parser.multilineComment
+                parseWithState "{-foo\nbar-}" Parser.multilineComment
                     |> Maybe.map toIndentAndComments
                     |> Expect.equal
                         (Just
@@ -47,7 +47,7 @@ all =
                         )
         , test "multilineComment range" <|
             \() ->
-                parseStateToMaybe "{-foo\nbar-}" Parser.multilineComment
+                parseWithState "{-foo\nbar-}" Parser.multilineComment
                     |> Maybe.map toIndentAndComments
                     |> Expect.equal
                         (Just
@@ -61,7 +61,7 @@ all =
                     |> Expect.equal Nothing
         , test "nested multilineComment open and close" <|
             \() ->
-                parseStateToMaybe "{- {- -} -}" Parser.multilineComment
+                parseWithState "{- {- -} -}" Parser.multilineComment
                     |> Maybe.map toIndentAndComments
                     |> Expect.equal
                         (Just
