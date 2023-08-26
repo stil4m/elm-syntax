@@ -78,7 +78,7 @@ all =
                         )
         , test "lambda with trailing whitespace" <|
             \() ->
-                parseFullStringState """ \\a b -> a + b
+                parseFullString """ \\a b -> a + b
 
 
 
