@@ -17,12 +17,8 @@ parseWithState s p =
 
 parseFullString : String -> Parser State a -> Maybe a
 parseFullString s p =
-    case Combine.runParser (p |> Combine.ignore Combine.end) emptyState s of
-        Ok ( _, r ) ->
-            Just r
-
-        _ ->
-            Nothing
+    parseWithState s p
+        |> Maybe.map Tuple.second
 
 
 parseAsFarAsPossibleWithState : State -> String -> Parser State a -> Maybe a
