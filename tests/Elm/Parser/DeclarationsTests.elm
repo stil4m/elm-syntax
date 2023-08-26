@@ -116,10 +116,9 @@ all =
                         )
         , test "function declaration with args" <|
             \() ->
-                parseFullStringWithNullState "inc x = x + 1" Parser.function
-                    |> Maybe.map Node.value
-                    |> Expect.equal
-                        (Just
+                "inc x = x + 1"
+                    |> expectAst
+                        (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 14 } }
                             (FunctionDeclaration
                                 { documentation = Nothing
                                 , signature = Nothing
@@ -160,10 +159,13 @@ all =
                         )
         , test "function declaration with let" <|
             \() ->
-                parseFullStringWithNullState "foo =\n let\n  b = 1\n in\n  b" Parser.function
-                    |> Maybe.map Node.value
-                    |> Expect.equal
-                        (Just
+                """foo =
+ let
+  b = 1
+ in
+  b"""
+                    |> expectAst
+                        (Node { start = { row = 1, column = 1 }, end = { row = 5, column = 4 } }
                             (FunctionDeclaration
                                 { declaration =
                                     Node { start = { row = 1, column = 1 }, end = { row = 5, column = 4 } }
