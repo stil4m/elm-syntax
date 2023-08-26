@@ -33,6 +33,7 @@ all =
                         )
         , test "tupledTypeReference 2" <|
             \() ->
+                -- TODO This feels incorrect, there should be a Parenthesized type for this
                 "( () )"
                     |> expectAst
                         (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 7 } } Unit)
