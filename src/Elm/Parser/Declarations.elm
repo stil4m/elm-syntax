@@ -1,4 +1,4 @@
-module Elm.Parser.Declarations exposing (declaration, expression, functionSignature, letExpression)
+module Elm.Parser.Declarations exposing (declaration, expression, letExpression)
 
 import Combine exposing (Parser, choice, lazy, many, maybe, modifyState, or, sepBy1, string, succeed, withLocation)
 import Elm.Parser.Infix as Infix
@@ -38,13 +38,6 @@ functionSignatureFromVarPointer varPointer =
         |> Combine.ignore (string ":")
         |> Combine.ignore (maybe Layout.layout)
         |> Combine.andMap typeAnnotation
-
-
-functionSignature : Parser State (Node Signature)
-functionSignature =
-    Node.parser functionName
-        |> Combine.ignore (maybe Layout.layout)
-        |> Combine.andThen functionSignatureFromVarPointer
 
 
 functionWithNameNode : Node String -> Parser State Function

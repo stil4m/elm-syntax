@@ -1,12 +1,11 @@
 module Elm.Parser.DeclarationsTests exposing (all)
 
 import Elm.Parser.CombineTestUtil exposing (..)
-import Elm.Parser.Declarations as Parser exposing (..)
+import Elm.Parser.Declarations exposing (..)
 import Elm.Syntax.Declaration exposing (..)
 import Elm.Syntax.Expression exposing (..)
-import Elm.Syntax.Node as Node exposing (Node(..))
+import Elm.Syntax.Node exposing (Node(..))
 import Elm.Syntax.Pattern exposing (..)
-import Elm.Syntax.Range exposing (empty)
 import Elm.Syntax.TypeAnnotation exposing (..)
 import Expect
 import Test exposing (..)
@@ -136,25 +135,6 @@ all =
                                         }
                                 }
                             )
-                        )
-        , test "some signature" <|
-            \() ->
-                parseFullStringWithNullState "bar : List ( Int , Maybe m )" Parser.functionSignature
-                    |> Maybe.map Node.value
-                    |> Maybe.map noRangeSignature
-                    |> Expect.equal
-                        (Just
-                            { name = Node empty "bar"
-                            , typeAnnotation =
-                                Node empty <|
-                                    Typed (Node empty ( [], "List" ))
-                                        [ Node empty <|
-                                            Tupled
-                                                [ Node empty <| Typed (Node empty ( [], "Int" )) []
-                                                , Node empty <| Typed (Node empty ( [], "Maybe" )) [ Node empty <| GenericType "m" ]
-                                                ]
-                                        ]
-                            }
                         )
         , test "function declaration with let" <|
             \() ->

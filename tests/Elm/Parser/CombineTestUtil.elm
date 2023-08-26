@@ -1,9 +1,8 @@
-module Elm.Parser.CombineTestUtil exposing (noRangeSignature, parseAsFarAsPossibleWithState, parseFullString, parseFullStringState, parseFullStringWithNullState, parseStateToMaybe, pushIndent)
+module Elm.Parser.CombineTestUtil exposing (parseAsFarAsPossibleWithState, parseFullString, parseFullStringState, parseFullStringWithNullState, parseStateToMaybe, pushIndent)
 
 import Combine exposing (..)
 import Elm.Parser.State exposing (State, emptyState)
 import Elm.Syntax.Node as Node exposing (Node(..))
-import Elm.Syntax.Signature exposing (Signature)
 import Elm.Syntax.TypeAnnotation exposing (..)
 
 
@@ -108,8 +107,3 @@ noRangeTypeReference (Node _ typeAnnotation) =
                 FunctionTypeAnnotation
                     (noRangeTypeReference a)
                     (noRangeTypeReference b)
-
-
-noRangeSignature : Signature -> Signature
-noRangeSignature signature =
-    { signature | typeAnnotation = noRangeTypeReference signature.typeAnnotation, name = unRange signature.name }
