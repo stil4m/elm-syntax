@@ -29,8 +29,8 @@ storedColumns (State { indents }) =
 
 
 expectedColumn : State -> Int
-expectedColumn =
-    currentIndent >> (+) 1
+expectedColumn state =
+    currentIndent state + 1
 
 
 popIndent : State -> State
