@@ -185,7 +185,7 @@ many p =
                 [ Core.succeed (\( newState, item ) -> Core.Loop ( newState, item :: items ))
                     |= app p oldState
                 , Core.succeed ()
-                    |> Core.map (\_ -> Core.Done ( oldState, List.reverse items ))
+                    |> Core.map (\() -> Core.Done ( oldState, List.reverse items ))
                 ]
     in
     Parser <|
