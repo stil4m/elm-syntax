@@ -177,7 +177,9 @@ typedTypeAnnotation mode =
                                 |> Combine.ignore (maybe Layout.layout)
                         )
                 )
-                (Combine.succeed (List.reverse items))
+                (Combine.succeed ()
+                    |> Combine.map (\() -> List.reverse items)
+                )
     in
     Node.parser typeIndicator
         |> Combine.andThen
