@@ -1,7 +1,6 @@
 module Elm.Parser.Infix exposing (infixDefinition)
 
 import Combine exposing (Parser, choice, string, succeed)
-import Combine.Num exposing (int)
 import Elm.Parser.Layout as Layout
 import Elm.Parser.Node as Node
 import Elm.Parser.State exposing (State)
@@ -17,7 +16,7 @@ infixDefinition =
         |> Combine.ignore Layout.layout
         |> Combine.andMap (Node.parser infixDirection)
         |> Combine.ignore Layout.layout
-        |> Combine.andMap (Node.parser int)
+        |> Combine.andMap (Node.parser (Combine.fromCore Core.int))
         |> Combine.ignore Layout.layout
         |> Combine.andMap (Node.parser <| Combine.parens prefixOperatorToken)
         |> Combine.ignore Layout.layout
