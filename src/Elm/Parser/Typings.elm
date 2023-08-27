@@ -21,7 +21,7 @@ typeDefinition =
         (\start ->
             typePrefix
                 |> Combine.continueWith
-                    (Combine.choice
+                    (Combine.oneOf
                         [ succeed (TypeAlias Nothing)
                             |> Combine.ignore (string "alias" |> Combine.continueWith Layout.layout)
                             |> Combine.andMap (Node.parser typeName |> Combine.ignore (maybe Layout.layout))
@@ -74,7 +74,7 @@ valueConstructor =
                     argHelper xs =
                         Combine.succeed ()
                             |> Combine.continueWith
-                                (Combine.choice
+                                (Combine.oneOf
                                     [ typeAnnotationNonGreedy
                                         |> Combine.andThen
                                             (\ta ->

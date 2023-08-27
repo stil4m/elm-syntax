@@ -1,6 +1,6 @@
 module Elm.Parser.Declarations exposing (declaration, expression, letExpression)
 
-import Combine exposing (Parser, choice, lazy, many, maybe, modifyState, or, sepBy1, string, succeed, withLocation)
+import Combine exposing (Parser, lazy, many, maybe, modifyState, oneOf, or, sepBy1, string, succeed, withLocation)
 import Elm.Parser.Infix as Infix
 import Elm.Parser.Layout as Layout
 import Elm.Parser.Node as Node
@@ -24,7 +24,7 @@ import Parser as Core exposing (Nestable(..))
 
 declaration : Parser State (Node Declaration)
 declaration =
-    choice
+    oneOf
         [ infixDeclaration
         , function
         , typeDefinition
@@ -75,7 +75,7 @@ functionWithNameNode pointer =
             functionImplementationFromVarPointer varPointer
                 |> Combine.map (Function Nothing Nothing)
     in
-    Combine.choice
+    Combine.oneOf
         [ functionWithSignature pointer
         , functionWithoutSignature pointer
         ]
@@ -129,7 +129,7 @@ expressionNotApplication : Parser State (Node Expression)
 expressionNotApplication =
     lazy
         (\() ->
-            choice
+            oneOf
                 [ numberExpression
                 , referenceExpression
                 , ifBlockExpression
@@ -243,7 +243,7 @@ listExpression =
     string "["
         |> Combine.ignore (maybe Layout.layout)
         |> Combine.continueWith
-            (Combine.choice
+            (Combine.oneOf
                 [ string "]" |> Combine.map (always (ListExpr []))
                 , innerExpressions |> Combine.ignore (string "]")
                 ]
@@ -297,7 +297,7 @@ recordExpression =
                 |> Combine.ignore (maybe Layout.layout)
                 |> Combine.andThen
                     (\fname ->
-                        Combine.choice
+                        Combine.oneOf
                             [ recordUpdateSyntaxParser fname
                             , string "="
                                 |> Combine.ignore (maybe Layout.layout)
@@ -305,7 +305,7 @@ recordExpression =
                                 |> Combine.ignore (maybe Layout.layout)
                                 |> Combine.andThen
                                     (\fieldUpdate ->
-                                        Combine.choice
+                                        Combine.oneOf
                                             [ string "}" |> Combine.map (always (RecordExpr [ fieldUpdate ]))
                                             , string ","
                                                 |> Combine.ignore (maybe Layout.layout)
@@ -320,7 +320,7 @@ recordExpression =
      string "{"
         |> Combine.ignore (maybe Layout.layout)
         |> Combine.continueWith
-            (Combine.choice
+            (Combine.oneOf
                 [ string "}" |> Combine.map (always (RecordExpr []))
                 , recordContents
                 ]
@@ -394,7 +394,7 @@ caseStatements =
                     Combine.withLocation
                         (\l ->
                             if State.expectedColumn s == l.column then
-                                Combine.choice
+                                Combine.oneOf
                                     [ Combine.map (\c -> Combine.Loop (c :: last)) caseStatement
                                     , Combine.succeed (Combine.Done (List.reverse last))
                                     ]
@@ -478,7 +478,7 @@ letBlock =
     (string "let" |> Combine.continueWith Layout.layout)
         |> Combine.continueWith (withIndentedState letBody)
         |> Combine.ignore
-            (choice
+            (oneOf
                 [ Layout.layout
                 , manySpaces
                 ]
@@ -535,7 +535,7 @@ operatorExpression =
         negationExpression : Parser State Expression
         negationExpression =
             Combine.map Negation
-                (choice
+                (oneOf
                     [ referenceExpression
                     , numberExpression
                     , tupledExpression
@@ -543,9 +543,9 @@ operatorExpression =
                     |> Combine.andThen liftRecordAccess
                 )
     in
-    Combine.choice
+    Combine.oneOf
         [ string "-"
-            |> Combine.continueWith (Combine.choice [ negationExpression, succeed (Operator "-") |> Combine.ignore Layout.layout ])
+            |> Combine.continueWith (Combine.oneOf [ negationExpression, succeed (Operator "-") |> Combine.ignore Layout.layout ])
             |> Node.parser
         , Combine.map Operator infixOperatorToken
             |> Node.parser
@@ -557,10 +557,10 @@ reference =
     let
         helper : ( String, List String ) -> Parser State ( String, List String )
         helper ( n, xs ) =
-            Combine.choice
+            Combine.oneOf
                 [ string "."
                     |> Combine.continueWith
-                        (Combine.choice
+                        (Combine.oneOf
                             [ Tokens.typeName |> Combine.andThen (\t -> helper ( t, n :: xs ))
                             , Tokens.functionName |> Combine.map (\t -> ( t, n :: xs ))
                             ]
@@ -578,7 +578,7 @@ reference =
         justFunction =
             Tokens.functionName |> Combine.map (\v -> ( [], v ))
     in
-    Combine.choice
+    Combine.oneOf
         [ recurring
         , justFunction
         ]
@@ -639,7 +639,7 @@ tupledExpression =
     Node.parser
         (Combine.fromCore (Core.symbol "(")
             |> Combine.continueWith
-                (Combine.choice
+                (Combine.oneOf
                     [ closingParen |> Combine.map (always UnitExpr)
                     , -- Backtracking needed for record access expression
                       Combine.backtrackable

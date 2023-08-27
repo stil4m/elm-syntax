@@ -14,7 +14,7 @@ typeIndicator : Parser s ( ModuleName, String )
 typeIndicator =
     let
         helper ( n, xs ) =
-            Combine.choice
+            Combine.oneOf
                 [ string "."
                     |> Combine.continueWith Tokens.typeName
                     |> Combine.andThen (\t -> helper ( t, n :: xs ))

@@ -1,6 +1,6 @@
 module Elm.Parser.Infix exposing (infixDefinition)
 
-import Combine exposing (Parser, choice, string, succeed)
+import Combine exposing (Parser, oneOf, string, succeed)
 import Elm.Parser.Layout as Layout
 import Elm.Parser.Node as Node
 import Elm.Parser.State exposing (State)
@@ -27,7 +27,7 @@ infixDefinition =
 
 infixDirection : Parser State InfixDirection
 infixDirection =
-    choice
+    oneOf
         [ succeed Right |> Combine.ignore (string "right")
         , succeed Left |> Combine.ignore (string "left")
         , succeed Non |> Combine.ignore (string "non")

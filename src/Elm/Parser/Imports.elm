@@ -30,7 +30,7 @@ importDefinition =
 
         parseExposingDefinition : Node ModuleName -> Maybe (Node ModuleName) -> Parser State Import
         parseExposingDefinition mod asDef =
-            Combine.choice
+            Combine.oneOf
                 [ Node.parser exposeDefinition
                     |> Combine.map (Just >> Import mod asDef)
                 , Combine.succeed (Import mod asDef Nothing)
@@ -38,7 +38,7 @@ importDefinition =
 
         parseAsDefinition : Node ModuleName -> Parser State Import
         parseAsDefinition mod =
-            Combine.choice
+            Combine.oneOf
                 [ asDefinition
                     |> Combine.ignore Layout.optimisticLayout
                     |> Combine.andThen (Just >> parseExposingDefinition mod)

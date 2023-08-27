@@ -6,7 +6,6 @@ module Combine exposing
     , andThen
     , backtrackable
     , between
-    , choice
     , continueWith
     , end
     , fail
@@ -19,6 +18,7 @@ module Combine exposing
     , map
     , maybe
     , modifyState
+    , oneOf
     , or
     , parens
     , runParser
@@ -161,8 +161,8 @@ backtrackable (Parser p) =
     Parser <| \state -> Core.backtrackable (p state)
 
 
-choice : List (Parser s a) -> Parser s a
-choice xs =
+oneOf : List (Parser s a) -> Parser s a
+oneOf xs =
     Parser <| \state -> Core.oneOf (List.map (\(Parser x) -> x state) xs)
 
 

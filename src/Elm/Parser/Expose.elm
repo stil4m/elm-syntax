@@ -1,6 +1,6 @@
 module Elm.Parser.Expose exposing (exposeDefinition)
 
-import Combine exposing (Parser, choice, maybe, or, parens, sepBy1, string, succeed, while)
+import Combine exposing (Parser, maybe, oneOf, or, parens, sepBy1, string, succeed, while)
 import Combine.Char exposing (char)
 import Elm.Parser.Layout as Layout
 import Elm.Parser.Node as Node
@@ -32,7 +32,7 @@ exposingListInner =
 
 exposable : Parser State (Node TopLevelExpose)
 exposable =
-    choice
+    oneOf
         [ typeExpose
         , infixExpose
         , functionExpose
@@ -50,7 +50,7 @@ typeExpose =
         |> Combine.ignore (maybe Layout.layout)
         |> Combine.andThen
             (\tipe ->
-                Combine.choice
+                Combine.oneOf
                     [ Node.parser (parens (Layout.maybeAroundBothSides (string "..")))
                         |> Combine.map Node.range
                         |> Combine.map

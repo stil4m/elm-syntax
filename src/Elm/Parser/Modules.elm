@@ -1,6 +1,6 @@
 module Elm.Parser.Modules exposing (moduleDefinition)
 
-import Combine exposing (Parser, between, choice, sepBy1, string, succeed)
+import Combine exposing (Parser, between, oneOf, sepBy1, string, succeed)
 import Elm.Parser.Base exposing (moduleName)
 import Elm.Parser.Expose exposing (exposeDefinition)
 import Elm.Parser.Layout as Layout
@@ -13,7 +13,7 @@ import Elm.Syntax.Node exposing (Node)
 
 moduleDefinition : Parser State Module
 moduleDefinition =
-    choice
+    oneOf
         [ normalModuleDefinition
         , portModuleDefinition
         , effectModuleDefinition
