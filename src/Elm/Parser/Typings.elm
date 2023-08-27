@@ -46,7 +46,7 @@ typeDefinition =
                             |> Combine.map
                                 (\tipe ->
                                     Node
-                                        (Range.combine (start :: List.map (\(Node r _) -> r) tipe.constructors))
+                                        (Range.combine (start :: List.map Node.range tipe.constructors))
                                         (Declaration.CustomTypeDeclaration tipe)
                                 )
                         ]

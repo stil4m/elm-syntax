@@ -125,7 +125,7 @@ qualifiedPattern consumeArgs =
                     |> Combine.map
                         (\args ->
                             Node
-                                (Range.combine (range :: List.map (\(Node r _) -> r) args))
+                                (Range.combine (range :: List.map Node.range args))
                                 (NamedPattern (QualifiedNameRef mod name) args)
                         )
             )

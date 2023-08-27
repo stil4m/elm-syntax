@@ -56,13 +56,8 @@ functionRange function =
 
             Nothing ->
                 function.signature
-                    |> Maybe.map
-                        (\(Node _ value) ->
-                            case value.name of
-                                Node r _ ->
-                                    r
-                        )
-                    |> Maybe.withDefault (function.declaration |> Node.value |> .name |> (\(Node r _) -> r))
+                    |> Maybe.map (\(Node _ value) -> Node.range value.name)
+                    |> Maybe.withDefault (function.declaration |> Node.value |> .name |> Node.range)
         , Node.range (Node.value function.declaration).expression
         ]
 

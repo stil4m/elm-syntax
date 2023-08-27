@@ -178,10 +178,6 @@ typedTypeAnnotation mode =
                         )
                 )
                 (Combine.succeed (List.reverse items))
-
-        nodeRanges : List (Node a) -> List Range.Range
-        nodeRanges =
-            List.map (\(Node r _) -> r)
     in
     Node.parser typeIndicator
         |> Combine.andThen
@@ -194,7 +190,7 @@ typedTypeAnnotation mode =
                                 Combine.map
                                     (\args ->
                                         Node
-                                            (Range.combine (tir :: nodeRanges args))
+                                            (Range.combine (tir :: List.map Node.range args))
                                             (TypeAnnotation.Typed original args)
                                     )
                                     (genericHelper [])
