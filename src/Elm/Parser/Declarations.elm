@@ -545,7 +545,12 @@ operatorExpression =
     in
     Combine.oneOf
         [ string "-"
-            |> Combine.continueWith (Combine.oneOf [ negationExpression, succeed (Operator "-") |> Combine.ignore Layout.layout ])
+            |> Combine.continueWith
+                (Combine.oneOf
+                    [ negationExpression
+                    , succeed (Operator "-") |> Combine.ignore Layout.layout
+                    ]
+                )
             |> Node.parser
         , Combine.map Operator infixOperatorToken
             |> Node.parser
