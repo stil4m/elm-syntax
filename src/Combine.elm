@@ -1,6 +1,5 @@
 module Combine exposing
-    ( ParseFn
-    , Parser(..)
+    ( Parser(..)
     , Step(..)
     , andMap
     , andThen
@@ -35,10 +34,6 @@ import Elm.Syntax.Range exposing (Location)
 import Parser as Core exposing ((|=))
 
 
-type alias ParseFn state res =
-    state -> Core.Parser ( state, res )
-
-
 type Parser state res
     = Parser (state -> Core.Parser ( state, res ))
 
@@ -49,11 +44,6 @@ fromCore p =
         (\state ->
             Core.succeed (\v -> ( state, v )) |= p
         )
-
-
-app : Parser state res -> ParseFn state res
-app (Parser inner) =
-    inner
 
 
 runParser : Parser state res -> state -> String -> Result (List Core.DeadEnd) ( state, res )
@@ -84,7 +74,14 @@ withLocation f =
     Parser <|
         \state ->
             Core.getPosition
-                |> Core.andThen (\( row, col ) -> app (f { row = row, column = col }) state)
+                |> Core.andThen
+                    (\( row, col ) ->
+                        let
+                            (Parser p) =
+                                f { row = row, column = col }
+                        in
+                        p state
+                    )
 
 
 map : (a -> b) -> Parser s a -> Parser s b
@@ -177,13 +174,13 @@ maybe (Parser p) =
 
 
 many : Parser s a -> Parser s (List a)
-many p =
+many (Parser p) =
     let
         helper : ( s, List a ) -> Core.Parser (Core.Step ( s, List a ) ( s, List a ))
         helper ( oldState, items ) =
             Core.oneOf
-                [ Core.succeed (\( newState, item ) -> Core.Loop ( newState, item :: items ))
-                    |= app p oldState
+                [ p oldState
+                    |> Core.map (\( newState, item ) -> Core.Loop ( newState, item :: items ))
                 , Core.succeed ()
                     |> Core.map (\() -> Core.Done ( oldState, List.reverse items ))
                 ]
