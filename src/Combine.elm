@@ -84,8 +84,7 @@ withLocation f =
     Parser <|
         \state ->
             Core.getPosition
-                |> Core.map (\( row, col ) -> { row = row, column = col })
-                |> Core.andThen (\loc -> app (f loc) state)
+                |> Core.andThen (\( row, col ) -> app (f { row = row, column = col }) state)
 
 
 map : (a -> b) -> Parser s a -> Parser s b
