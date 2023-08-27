@@ -1,7 +1,6 @@
 module Combine exposing
     ( ParseError
     , ParseFn
-    , ParseLocation
     , ParseOk
     , Parser(..)
     , Step(..)
@@ -34,13 +33,8 @@ module Combine exposing
     , withState
     )
 
+import Elm.Syntax.Range exposing (Location)
 import Parser as Core exposing ((|=))
-
-
-type alias ParseLocation =
-    { line : Int
-    , column : Int
-    }
 
 
 type alias ParseError =
@@ -95,12 +89,12 @@ modifyState f =
         \state -> Core.succeed ( f state, () )
 
 
-withLocation : (ParseLocation -> Parser s a) -> Parser s a
+withLocation : (Location -> Parser s a) -> Parser s a
 withLocation f =
     Parser <|
         \state ->
             Core.getPosition
-                |> Core.map (\( row, col ) -> { line = row, column = col })
+                |> Core.map (\( row, col ) -> { row = row, column = col })
                 |> Core.andThen (\loc -> app (f loc) state)
 
 
