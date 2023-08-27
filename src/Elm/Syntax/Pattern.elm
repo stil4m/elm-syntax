@@ -29,7 +29,7 @@ For example:
 
 import Elm.Json.Util exposing (decodeTyped, encodeTyped)
 import Elm.Syntax.ModuleName as ModuleName exposing (ModuleName)
-import Elm.Syntax.Node as Node exposing (Node)
+import Elm.Syntax.Node as Node exposing (Node(..))
 import Json.Decode as JD exposing (Decoder)
 import Json.Encode as JE exposing (Value)
 
@@ -84,32 +84,29 @@ Use this to collect qualified patterns, such as `Maybe.Just x`.
 -}
 moduleNames : Pattern -> List ModuleName
 moduleNames p =
-    let
-        recur : Node Pattern -> List ModuleName
-        recur =
-            Node.value >> moduleNames
-    in
+    -- TODO Remove this function or make it take a `Node Pattern`
+    -- Should it return a `Set`?
     case p of
         TuplePattern xs ->
-            List.concatMap recur xs
+            List.concatMap (\(Node _ x) -> moduleNames x) xs
 
         RecordPattern _ ->
             []
 
-        UnConsPattern left right ->
-            recur left ++ recur right
+        UnConsPattern (Node _ left) (Node _ right) ->
+            moduleNames left ++ moduleNames right
 
         ListPattern xs ->
-            List.concatMap recur xs
+            List.concatMap (\(Node _ x) -> moduleNames x) xs
 
         NamedPattern qualifiedNameRef subPatterns ->
-            qualifiedNameRef.moduleName :: List.concatMap recur subPatterns
+            qualifiedNameRef.moduleName :: List.concatMap (\(Node _ x) -> moduleNames x) subPatterns
 
-        AsPattern inner _ ->
-            recur inner
+        AsPattern (Node _ inner) _ ->
+            moduleNames inner
 
-        ParenthesizedPattern inner ->
-            recur inner
+        ParenthesizedPattern (Node _ inner) ->
+            moduleNames inner
 
         _ ->
             []
