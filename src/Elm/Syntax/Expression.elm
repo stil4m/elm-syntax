@@ -63,7 +63,7 @@ functionRange function =
                                     r
                         )
                     |> Maybe.withDefault (function.declaration |> Node.value |> .name |> (\(Node r _) -> r))
-        , (\(Node r _) -> r) (Node.value function.declaration).expression
+        , Node.range (Node.value function.declaration).expression
         ]
 
 

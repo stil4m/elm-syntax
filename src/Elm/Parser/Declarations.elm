@@ -112,7 +112,7 @@ portDeclaration =
             portToken
                 |> Combine.ignore Layout.layout
                 |> Combine.continueWith signature
-                |> Combine.map (\sig -> Node (Range.combine [ current, (\(Node r _) -> r) sig.typeAnnotation ]) (Declaration.PortDeclaration sig))
+                |> Combine.map (\sig -> Node (Range.combine [ current, Node.range sig.typeAnnotation ]) (Declaration.PortDeclaration sig))
         )
 
 
