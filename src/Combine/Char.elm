@@ -6,7 +6,7 @@ import Parser as Core
 
 char : Char -> Parser s Char
 char c =
-    satisfy ((==) c)
+    satisfy (\c_ -> c_ == c)
         |> Combine.andThen
             (\maybeChar ->
                 case maybeChar of
