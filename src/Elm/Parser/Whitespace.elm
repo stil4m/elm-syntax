@@ -1,23 +1,7 @@
-module Elm.Parser.Whitespace exposing (many1Spaces, manySpaces, nSpaces, realNewLine, untilNewlineToken)
+module Elm.Parser.Whitespace exposing (many1Spaces, manySpaces, realNewLine, untilNewlineToken)
 
 import Combine exposing (Parser)
-import Parser as Core exposing ((|.), (|=), Step(..))
-
-
-nSpaces : Int -> Parser s String
-nSpaces x =
-    let
-        helper : Int -> Core.Parser (Step Int String)
-        helper n =
-            if n == 0 then
-                Core.succeed (Done (String.repeat x " "))
-
-            else
-                Core.succeed (\_ -> Loop (n - 1))
-                    |= Core.token " "
-    in
-    Core.loop x helper
-        |> Combine.fromCore
+import Parser as Core exposing ((|.))
 
 
 manySpaces : Parser s ()

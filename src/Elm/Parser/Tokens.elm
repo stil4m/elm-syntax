@@ -5,7 +5,6 @@ module Elm.Parser.Tokens exposing
     , elseToken
     , exposingToken
     , functionName
-    , functionOrTypeName
     , ifToken
     , importToken
     , infixOperatorToken
@@ -101,11 +100,6 @@ caseToken =
 ofToken : Parser s String
 ofToken =
     string "of"
-
-
-functionOrTypeName : Parser s String
-functionOrTypeName =
-    or functionName typeName
 
 
 escapedCharValue : Core.Parser Char

@@ -29,7 +29,7 @@ import NoSimpleLetBody
 import NoUnused.CustomTypeConstructorArgs
 import NoUnused.CustomTypeConstructors
 import NoUnused.Dependencies
-import NoUnused.Exports
+import NoUnused.Exports exposing (annotatedBy)
 import NoUnused.Parameters
 import NoUnused.Patterns
 import NoUnused.Variables
@@ -62,7 +62,12 @@ config =
     , NoUnused.CustomTypeConstructors.rule []
     , NoUnused.CustomTypeConstructorArgs.rule
     , NoUnused.Dependencies.rule
-    , NoUnused.Exports.rule
+    , NoUnused.Exports.defaults
+        |> NoUnused.Exports.reportUnusedProductionExports
+            { isProductionFile = .isInSourceDirectories
+            , exceptionsAre = []
+            }
+        |> NoUnused.Exports.toRule
     , NoUnused.Parameters.rule
     , NoUnused.Patterns.rule
     , NoUnused.Variables.rule

@@ -63,14 +63,6 @@ all =
             \() ->
                 parse "T1" Parser.typeName
                     |> Expect.equal (Just "T1")
-        , test "functionOrTypeName as function" <|
-            \() ->
-                parse "foo" Parser.functionOrTypeName
-                    |> Expect.equal (Just "foo")
-        , test "functionOrTypeName as type" <|
-            \() ->
-                parse "Foo" Parser.functionOrTypeName
-                    |> Expect.equal (Just "Foo")
         , test "moduleToken" <|
             \() ->
                 parse "module" Parser.moduleToken

@@ -9,19 +9,7 @@ import Test exposing (..)
 all : Test
 all =
     describe "LayoutTests"
-        [ test "nSpaces - full" <|
-            \() ->
-                parse "     " (Whitespace.nSpaces 5)
-                    |> Expect.equal (Just "     ")
-        , test "nSpaces - not enough" <|
-            \() ->
-                parse "  " (Whitespace.nSpaces 5)
-                    |> Expect.equal Nothing
-        , test "nSpaces - too much" <|
-            \() ->
-                parse "        " (Whitespace.nSpaces 5)
-                    |> Expect.equal Nothing
-        , test "manySpaces - empty" <|
+        [ test "manySpaces - empty" <|
             \() ->
                 parse "" Whitespace.manySpaces
                     |> Expect.equal (Just ())
