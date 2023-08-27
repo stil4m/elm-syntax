@@ -10,7 +10,7 @@ import Elm.Syntax.Node exposing (Node(..))
 import Elm.Syntax.Pattern exposing (..)
 import Elm.Syntax.Range exposing (empty)
 import Elm.Syntax.Type exposing (..)
-import Elm.Syntax.TypeAnnotation
+import Elm.Syntax.TypeAnnotation exposing (TypeAnnotation(..))
 import Elm.Writer as Writer
 import Expect
 import Test exposing (..)
@@ -106,7 +106,7 @@ suite =
         , describe "TypeAnnotation"
             [ test "write simple type" <|
                 \() ->
-                    Elm.Syntax.TypeAnnotation.Typed (Node empty <| ( [], "String" )) []
+                    Typed (Node empty <| ( [], "String" )) []
                         |> Node empty
                         |> Writer.writeTypeAnnotation
                         |> Writer.write
@@ -114,9 +114,9 @@ suite =
             , test "write qualified type" <|
                 \() ->
                     (Node empty <|
-                        Elm.Syntax.TypeAnnotation.Typed
+                        Typed
                             (Node empty <| ( [ "Json", "Decode" ], "Decoder" ))
-                            [ Node empty <| Elm.Syntax.TypeAnnotation.GenericType "a" ]
+                            [ Node empty <| GenericType "a" ]
                     )
                         |> Writer.writeTypeAnnotation
                         |> Writer.write
@@ -124,11 +124,11 @@ suite =
             , test "write type arguments that require parentheses" <|
                 \() ->
                     (Node empty <|
-                        Elm.Syntax.TypeAnnotation.Typed (Node empty ( [], "List" ))
+                        Typed (Node empty ( [], "List" ))
                             [ Node empty <|
-                                Elm.Syntax.TypeAnnotation.Typed (Node empty ( [], "Dict" ))
-                                    [ Node empty <| Elm.Syntax.TypeAnnotation.Typed (Node empty ( [], "String" )) []
-                                    , Node empty <| Elm.Syntax.TypeAnnotation.Typed (Node empty ( [], "Int" )) []
+                                Typed (Node empty ( [], "Dict" ))
+                                    [ Node empty <| Typed (Node empty ( [], "String" )) []
+                                    , Node empty <| Typed (Node empty ( [], "Int" )) []
                                     ]
                             ]
                     )
@@ -138,13 +138,13 @@ suite =
             , test "write type arguments that are functions" <|
                 \() ->
                     (Node empty <|
-                        Elm.Syntax.TypeAnnotation.FunctionTypeAnnotation
+                        FunctionTypeAnnotation
                             (Node empty <|
-                                Elm.Syntax.TypeAnnotation.FunctionTypeAnnotation
-                                    (Node empty <| Elm.Syntax.TypeAnnotation.GenericType "a")
-                                    (Node empty <| Elm.Syntax.TypeAnnotation.GenericType "b")
+                                FunctionTypeAnnotation
+                                    (Node empty <| GenericType "a")
+                                    (Node empty <| GenericType "b")
                             )
-                            (Node empty <| Elm.Syntax.TypeAnnotation.Typed (Node empty ( [], "Int" )) [])
+                            (Node empty <| Typed (Node empty ( [], "Int" )) [])
                     )
                         |> Writer.writeTypeAnnotation
                         |> Writer.write
@@ -174,13 +174,13 @@ suite =
                 \() ->
                     let
                         listT =
-                            Elm.Syntax.TypeAnnotation.Typed (Node empty ( [], "List" ))
+                            Typed (Node empty ( [], "List" ))
                                 [ Node empty <|
-                                    Elm.Syntax.TypeAnnotation.Typed (Node empty ( [], "String" )) []
+                                    Typed (Node empty ( [], "String" )) []
                                 ]
 
                         stringT =
-                            Elm.Syntax.TypeAnnotation.Typed (Node empty ( [], "String" )) []
+                            Typed (Node empty ( [], "String" )) []
                     in
                     (Node empty <|
                         CustomTypeDeclaration
@@ -203,12 +203,12 @@ suite =
                 \() ->
                     let
                         funcT =
-                            Elm.Syntax.TypeAnnotation.FunctionTypeAnnotation
-                                (Node empty <| Elm.Syntax.TypeAnnotation.Typed (Node empty ( [], "String" )) [])
-                                (Node empty <| Elm.Syntax.TypeAnnotation.Typed (Node empty ( [], "Int" )) [])
+                            FunctionTypeAnnotation
+                                (Node empty <| Typed (Node empty ( [], "String" )) [])
+                                (Node empty <| Typed (Node empty ( [], "Int" )) [])
 
                         stringT =
-                            Elm.Syntax.TypeAnnotation.Typed (Node empty ( [], "String" )) []
+                            Typed (Node empty ( [], "String" )) []
                     in
                     (Node empty <|
                         CustomTypeDeclaration
