@@ -66,6 +66,7 @@ suite =
             , test "Expression.RecordAccessFunction should be parsed then written idempotently" <|
                 \() ->
                     let
+                        input : String
                         input =
                             "(.spaceEvenly Internal.Style.classes)"
                     in
@@ -173,12 +174,14 @@ suite =
             , test "write type declaration > constructors with arguments" <|
                 \() ->
                     let
+                        listT : TypeAnnotation
                         listT =
                             Typed (Node empty ( [], "List" ))
                                 [ Node empty <|
                                     Typed (Node empty ( [], "String" )) []
                                 ]
 
+                        stringT : TypeAnnotation
                         stringT =
                             Typed (Node empty ( [], "String" )) []
                     in
@@ -202,11 +205,13 @@ suite =
             , test "write type declaration > constructors with functions as arguments" <|
                 \() ->
                     let
+                        funcT : TypeAnnotation
                         funcT =
                             FunctionTypeAnnotation
                                 (Node empty <| Typed (Node empty ( [], "String" )) [])
                                 (Node empty <| Typed (Node empty ( [], "Int" )) [])
 
+                        stringT : TypeAnnotation
                         stringT =
                             Typed (Node empty ( [], "String" )) []
                     in
@@ -234,6 +239,7 @@ suite =
             , test "write function with case expression using the right indentations" <|
                 \() ->
                     let
+                        body : Expression
                         body =
                             CaseExpression
                                 (CaseBlock (Node empty <| FunctionOrValue [] "someCase")
@@ -242,6 +248,7 @@ suite =
                                     ]
                                 )
 
+                        function : Declaration
                         function =
                             FunctionDeclaration
                                 (Function Nothing
@@ -270,6 +277,7 @@ suite =
             , test "regression test for incorrect indentation in case expression" <|
                 \() ->
                     let
+                        body : Expression
                         body =
                             LambdaExpression
                                 { args = [ Node empty (VarPattern "myArgument") ]
@@ -283,6 +291,7 @@ suite =
                                             )
                                 }
 
+                        function : Declaration
                         function =
                             FunctionDeclaration
                                 (Function Nothing
@@ -311,6 +320,7 @@ suite =
             , test "regression test for incorrect parenthesis placement in case expression" <|
                 \() ->
                     let
+                        body : Expression
                         body =
                             ParenthesizedExpression
                                 (Node empty <|
@@ -327,6 +337,7 @@ suite =
                                         }
                                 )
 
+                        function : Declaration
                         function =
                             FunctionDeclaration
                                 (Function Nothing
@@ -383,6 +394,7 @@ suite =
             , test "nested case expressions" <|
                 \() ->
                     let
+                        body : Node Expression -> Node Expression
                         body nested =
                             Node empty <|
                                 CaseExpression
@@ -392,6 +404,7 @@ suite =
                                         ]
                                     )
 
+                        function : Declaration
                         function =
                             FunctionDeclaration
                                 (Function Nothing

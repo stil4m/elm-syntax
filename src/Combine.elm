@@ -201,6 +201,7 @@ type Step a b
 loop : a -> (a -> Parser s (Step a b)) -> Parser s b
 loop init stepper =
     let
+        wrapper : ( s, a ) -> Core.Parser (Core.Step ( s, a ) ( s, b ))
         wrapper ( oldState, v ) =
             let
                 (Parser p) =

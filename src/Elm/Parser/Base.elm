@@ -13,6 +13,7 @@ moduleName =
 typeIndicator : Parser s ( ModuleName, String )
 typeIndicator =
     let
+        helper : ( String, ModuleName ) -> Parser s ( String, ModuleName )
         helper ( n, xs ) =
             Combine.oneOf
                 [ string "."

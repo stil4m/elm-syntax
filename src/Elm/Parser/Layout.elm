@@ -76,6 +76,7 @@ compute =
             withLocation
                 (\l ->
                     let
+                        known : List Int
                         known =
                             1 :: State.storedColumns s
                     in
