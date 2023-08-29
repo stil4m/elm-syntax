@@ -32,9 +32,10 @@ importDefinition =
         parseExposingDefinition mod asDef =
             Combine.oneOf
                 [ Node.parser exposeDefinition
-                    |> Combine.map (Just >> Import mod asDef)
-                , Combine.succeed (Import mod asDef Nothing)
+                    |> Combine.map Just
+                , Combine.succeed Nothing
                 ]
+                |> Combine.map (\exposing_ -> Import mod asDef exposing_)
 
         parseAsDefinition : Node ModuleName -> Parser State Import
         parseAsDefinition mod =
