@@ -9,7 +9,6 @@ import Elm.Parser.State exposing (State)
 import Elm.Parser.Tokens exposing (exposingToken, functionName, typeName)
 import Elm.Syntax.Exposing exposing (ExposedType, Exposing(..), TopLevelExpose(..))
 import Elm.Syntax.Node as Node exposing (Node(..))
-import Elm.Syntax.Range as Range
 
 
 exposeDefinition : Parser State Exposing
@@ -49,14 +48,14 @@ typeExpose =
     Node.parser typeName
         |> Combine.ignore (maybe Layout.layout)
         |> Combine.andThen
-            (\tipe ->
+            (\((Node typeRange typeValue) as tipe) ->
                 Combine.oneOf
                     [ Node.parser (parens (Layout.maybeAroundBothSides (string "..")))
                         |> Combine.map
                             (\(Node openRange _) ->
                                 Node
-                                    (Range.combine [ Node.range tipe, openRange ])
-                                    (TypeExpose (ExposedType (Node.value tipe) (Just openRange)))
+                                    { start = typeRange.start, end = openRange.end }
+                                    (TypeExpose (ExposedType typeValue (Just openRange)))
                             )
                     , Combine.succeed (Node.map TypeOrAliasExpose tipe)
                     ]
