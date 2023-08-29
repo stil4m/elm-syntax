@@ -450,30 +450,19 @@ blockElement =
                 case p of
                     Pattern.VarPattern v ->
                         functionWithNameNode (Node r v)
-                            |> Combine.map LetFunction
+                            |> Combine.map (\fn -> Node (Expression.functionRange fn) (LetFunction fn))
 
                     _ ->
                         letDestructuringDeclarationWithPattern (Node r p)
             )
-        |> Combine.map addRange
 
 
-addRange : LetDeclaration -> Node LetDeclaration
-addRange letDeclaration =
-    Node
-        (case letDeclaration of
-            LetFunction letFunction ->
-                Expression.functionRange letFunction
-
-            LetDestructuring (Node patternRange _) (Node expressionRange _) ->
-                Range.combine [ patternRange, expressionRange ]
+letDestructuringDeclarationWithPattern : Node Pattern -> Parser State (Node LetDeclaration)
+letDestructuringDeclarationWithPattern pattern =
+    succeed
+        (\expr ->
+            Node { start = (Node.range pattern).start, end = (Node.range expr).end } (LetDestructuring pattern expr)
         )
-        letDeclaration
-
-
-letDestructuringDeclarationWithPattern : Node Pattern -> Parser State LetDeclaration
-letDestructuringDeclarationWithPattern p =
-    succeed (LetDestructuring p)
         |> Combine.ignore (maybe Layout.layout)
         |> Combine.ignore (string "=")
         |> Combine.ignore (maybe Layout.layout)
