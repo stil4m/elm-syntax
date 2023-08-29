@@ -14,14 +14,14 @@ typeIndicator : Parser s ( ModuleName, String )
 typeIndicator =
     let
         helper : ( ModuleName, String ) -> Parser s ( ModuleName, String )
-        helper (( xs, n ) as acc) =
+        helper (( moduleNameSoFar, typeOrSegment ) as acc) =
             Combine.oneOf
                 [ string "."
                     |> Combine.continueWith Tokens.typeName
-                    |> Combine.andThen (\t -> helper ( n :: xs, t ))
+                    |> Combine.andThen (\t -> helper ( typeOrSegment :: moduleNameSoFar, t ))
                 , Combine.succeed acc
                 ]
     in
     Tokens.typeName
-        |> Combine.andThen (\t -> helper ( [], t ))
-        |> Combine.map (\( xs, t ) -> ( List.reverse xs, t ))
+        |> Combine.andThen (\typeOrSegment -> helper ( [], typeOrSegment ))
+        |> Combine.map (\( moduleName_, typeName ) -> ( List.reverse moduleName_, typeName ))
