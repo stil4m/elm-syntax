@@ -438,11 +438,11 @@ caseExpression =
 letBody : Parser State (List (Node LetDeclaration))
 letBody =
     Combine.succeed (::)
-        |> Combine.andMap (blockElement |> Combine.map addRange)
-        |> Combine.andMap (many (blockElement |> Combine.map addRange |> Combine.ignore (maybe Layout.layout)))
+        |> Combine.andMap blockElement
+        |> Combine.andMap (many (blockElement |> Combine.ignore (maybe Layout.layout)))
 
 
-blockElement : Parser State LetDeclaration
+blockElement : Parser State (Node LetDeclaration)
 blockElement =
     pattern
         |> Combine.andThen
@@ -455,6 +455,7 @@ blockElement =
                     _ ->
                         letDestructuringDeclarationWithPattern (Node r p)
             )
+        |> Combine.map addRange
 
 
 addRange : LetDeclaration -> Node LetDeclaration
