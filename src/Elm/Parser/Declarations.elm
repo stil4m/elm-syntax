@@ -556,23 +556,30 @@ operatorExpression =
 referenceExpression : Parser State (Node Expression)
 referenceExpression =
     let
-        helper : ( ModuleName, String ) -> Parser State ( ModuleName, String )
-        helper (( moduleNameSoFar, nameOrSegment ) as untouched) =
+        helper : ( ModuleName, String ) -> Parser s Expression
+        helper ( moduleNameSoFar, nameOrSegment ) =
             Combine.oneOf
                 [ string "."
                     |> Combine.continueWith
                         (Combine.oneOf
-                            [ Tokens.typeName |> Combine.andThen (\t -> helper ( nameOrSegment :: moduleNameSoFar, t ))
-                            , Tokens.functionName |> Combine.map (\t -> ( nameOrSegment :: moduleNameSoFar, t ))
+                            [ Tokens.typeName
+                                |> Combine.andThen (\t -> helper ( nameOrSegment :: moduleNameSoFar, t ))
+                            , Tokens.functionName
+                                |> Combine.map
+                                    (\name ->
+                                        FunctionOrValue
+                                            (List.reverse (nameOrSegment :: moduleNameSoFar))
+                                            name
+                                    )
                             ]
                         )
-                , Combine.succeed untouched
+                , Combine.succeed ()
+                    |> Combine.map (\() -> FunctionOrValue (List.reverse moduleNameSoFar) nameOrSegment)
                 ]
     in
     Combine.oneOf
         [ Tokens.typeName
             |> Combine.andThen (\t -> helper ( [], t ))
-            |> Combine.map (\( moduleNameSoFar, t ) -> FunctionOrValue (List.reverse moduleNameSoFar) t)
         , Tokens.functionName
             |> Combine.map (\v -> FunctionOrValue [] v)
         ]
