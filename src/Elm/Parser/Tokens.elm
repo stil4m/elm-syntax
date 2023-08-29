@@ -279,12 +279,16 @@ infixOperatorToken =
 operatorTokenFromList : List Char -> Parser s String
 operatorTokenFromList allowedChars =
     many1 (oneOf allowedChars)
-        |> Combine.map String.fromList
         |> Combine.andThen
-            (\m ->
-                if List.member m excludedOperators then
+            (\chars ->
+                let
+                    charList : String
+                    charList =
+                        String.fromList chars
+                in
+                if List.member charList excludedOperators then
                     fail "operator is not allowed"
 
                 else
-                    succeed m
+                    succeed charList
             )
