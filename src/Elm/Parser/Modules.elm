@@ -25,8 +25,8 @@ moduleDefinition =
 effectWhereClause : Parser State ( String, Node String )
 effectWhereClause =
     succeed Tuple.pair
-        |> Combine.andMap functionName
-        |> Combine.andMap (Layout.maybeAroundBothSides (string "=") |> Combine.continueWith (Node.parser typeName))
+        |> Combine.keep functionName
+        |> Combine.keep (Layout.maybeAroundBothSides (string "=") |> Combine.continueWith (Node.parser typeName))
 
 
 whereBlock : Parser State { command : Maybe (Node String), subscription : Maybe (Node String) }
@@ -69,11 +69,11 @@ effectModuleDefinition =
         |> Combine.ignore Layout.layout
         |> Combine.ignore moduleToken
         |> Combine.ignore Layout.layout
-        |> Combine.andMap (Node.parser moduleName)
+        |> Combine.keep (Node.parser moduleName)
         |> Combine.ignore Layout.layout
-        |> Combine.andMap effectWhereClauses
+        |> Combine.keep effectWhereClauses
         |> Combine.ignore Layout.layout
-        |> Combine.andMap (Node.parser exposeDefinition)
+        |> Combine.keep (Node.parser exposeDefinition)
 
 
 normalModuleDefinition : Parser State Module
@@ -82,9 +82,9 @@ normalModuleDefinition =
         (succeed DefaultModuleData
             |> Combine.ignore moduleToken
             |> Combine.ignore Layout.layout
-            |> Combine.andMap (Node.parser moduleName)
+            |> Combine.keep (Node.parser moduleName)
             |> Combine.ignore Layout.layout
-            |> Combine.andMap (Node.parser exposeDefinition)
+            |> Combine.keep (Node.parser exposeDefinition)
         )
 
 
@@ -96,7 +96,7 @@ portModuleDefinition =
             |> Combine.ignore Layout.layout
             |> Combine.ignore moduleToken
             |> Combine.ignore Layout.layout
-            |> Combine.andMap (Node.parser moduleName)
+            |> Combine.keep (Node.parser moduleName)
             |> Combine.ignore Layout.layout
-            |> Combine.andMap (Node.parser exposeDefinition)
+            |> Combine.keep (Node.parser exposeDefinition)
         )

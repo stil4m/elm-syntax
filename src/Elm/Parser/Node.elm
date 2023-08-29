@@ -10,8 +10,8 @@ parser p =
     withLocation
         (\start ->
             succeed (\v r -> Node r v)
-                |> Combine.andMap p
-                |> Combine.andMap
+                |> Combine.keep p
+                |> Combine.keep
                     (withLocation
                         (\end ->
                             succeed <|

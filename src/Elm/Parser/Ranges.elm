@@ -10,7 +10,7 @@ withRange p =
     withLocation
         (\start ->
             p
-                |> Combine.andMap
+                |> Combine.keep
                     (withLocation
                         (\end ->
                             succeed <|

@@ -1,7 +1,6 @@
 module Combine exposing
     ( Parser(..)
     , Step(..)
-    , andMap
     , andThen
     , backtrackable
     , between
@@ -10,6 +9,7 @@ module Combine exposing
     , fail
     , fromCore
     , ignore
+    , keep
     , lazy
     , loop
     , many
@@ -100,8 +100,8 @@ andThen f (Parser p) =
                 |> Core.andThen (\( s, a ) -> (\(Parser x) -> x s) (f a))
 
 
-andMap : Parser s a -> Parser s (a -> b) -> Parser s b
-andMap (Parser rp) (Parser lp) =
+keep : Parser s a -> Parser s (a -> b) -> Parser s b
+keep (Parser rp) (Parser lp) =
     Parser <|
         \state ->
             lp state
@@ -221,8 +221,8 @@ loop init stepper =
 many1 : Parser s a -> Parser s (List a)
 many1 p =
     succeed (::)
-        |> andMap p
-        |> andMap (many p)
+        |> keep p
+        |> keep (many p)
 
 
 sepBy : Parser s x -> Parser s a -> Parser s (List a)
@@ -233,8 +233,8 @@ sepBy sep p =
 sepBy1 : Parser s x -> Parser s a -> Parser s (List a)
 sepBy1 sep p =
     succeed (::)
-        |> andMap p
-        |> andMap (many (sep |> continueWith p))
+        |> keep p
+        |> keep (many (sep |> continueWith p))
 
 
 between : Parser s l -> Parser s r -> Parser s a -> Parser s a
@@ -253,11 +253,11 @@ ignore : Parser s x -> Parser s a -> Parser s a
 ignore dropped target =
     target
         |> map always
-        |> andMap dropped
+        |> keep dropped
 
 
 continueWith : Parser s a -> Parser s x -> Parser s a
 continueWith target dropped =
     dropped
         |> map (\_ a -> a)
-        |> andMap target
+        |> keep target

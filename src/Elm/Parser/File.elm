@@ -16,11 +16,11 @@ file : Parser State File
 file =
     succeed File
         |> Combine.ignore (maybe Layout.layoutStrict)
-        |> Combine.andMap (Node.parser moduleDefinition)
+        |> Combine.keep (Node.parser moduleDefinition)
         |> Combine.ignore (maybe Layout.layoutStrict)
-        |> Combine.andMap (many importDefinition)
-        |> Combine.andMap fileDeclarations
-        |> Combine.andMap collectComments
+        |> Combine.keep (many importDefinition)
+        |> Combine.keep fileDeclarations
+        |> Combine.keep collectComments
 
 
 collectComments : Parser State (List (Node String))

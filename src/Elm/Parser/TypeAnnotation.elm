@@ -75,9 +75,9 @@ parensTypeAnnotation =
         nested =
             Combine.succeed asTypeAnnotation
                 |> Combine.ignore (maybe Layout.layout)
-                |> Combine.andMap typeAnnotation
+                |> Combine.keep typeAnnotation
                 |> Combine.ignore (maybe Layout.layout)
-                |> Combine.andMap commaSep
+                |> Combine.keep commaSep
     in
     Node.parser
         (Combine.string "("
@@ -125,7 +125,7 @@ recordTypeAnnotation =
                                 Combine.oneOf
                                     [ Combine.succeed (TypeAnnotation.GenericRecord fname)
                                         |> Combine.ignore (Combine.string "|")
-                                        |> Combine.andMap (Node.parser recordFieldsTypeAnnotation)
+                                        |> Combine.keep (Node.parser recordFieldsTypeAnnotation)
                                         |> Combine.ignore (Combine.string "}")
                                     , Combine.string ":"
                                         |> Combine.ignore (maybe Layout.layout)
@@ -153,8 +153,8 @@ recordTypeAnnotation =
 recordFieldDefinition : Parser State TypeAnnotation.RecordField
 recordFieldDefinition =
     succeed Tuple.pair
-        |> Combine.andMap (maybe Layout.layout |> Combine.continueWith (Node.parser functionName))
-        |> Combine.andMap
+        |> Combine.keep (maybe Layout.layout |> Combine.continueWith (Node.parser functionName))
+        |> Combine.keep
             (maybe Layout.layout
                 |> Combine.continueWith (string ":")
                 |> Combine.continueWith (maybe Layout.layout)

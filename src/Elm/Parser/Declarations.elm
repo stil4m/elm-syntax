@@ -37,7 +37,7 @@ functionSignatureFromVarPointer varPointer =
     succeed (\ta -> Node.combine Signature varPointer ta)
         |> Combine.ignore (string ":")
         |> Combine.ignore (maybe Layout.layout)
-        |> Combine.andMap typeAnnotation
+        |> Combine.keep typeAnnotation
 
 
 functionWithNameNode : Node String -> Parser State Function
@@ -46,10 +46,10 @@ functionWithNameNode pointer =
         functionImplementationFromVarPointer : Node String -> Parser State (Node FunctionImplementation)
         functionImplementationFromVarPointer varPointer =
             succeed (\args expr -> Node (Range.combine [ Node.range varPointer, Node.range expr ]) (FunctionImplementation varPointer args expr))
-                |> Combine.andMap (many (functionArgument |> Combine.ignore (maybe Layout.layout)))
+                |> Combine.keep (many (functionArgument |> Combine.ignore (maybe Layout.layout)))
                 |> Combine.ignore (string "=")
                 |> Combine.ignore (maybe Layout.layout)
-                |> Combine.andMap expression
+                |> Combine.keep expression
 
         fromParts : Node Signature -> Node FunctionImplementation -> Function
         fromParts sig decl =
@@ -92,8 +92,8 @@ function =
 signature : Parser State Signature
 signature =
     succeed Signature
-        |> Combine.andMap (Node.parser functionName)
-        |> Combine.andMap (Layout.maybeAroundBothSides (string ":") |> Combine.continueWith (maybe Layout.layout) |> Combine.continueWith typeAnnotation)
+        |> Combine.keep (Node.parser functionName)
+        |> Combine.keep (Layout.maybeAroundBothSides (string ":") |> Combine.continueWith (maybe Layout.layout) |> Combine.continueWith typeAnnotation)
 
 
 infixDeclaration : Parser State (Node Declaration)
@@ -240,9 +240,9 @@ listExpression =
         innerExpressions : Parser State Expression
         innerExpressions =
             succeed (::)
-                |> Combine.andMap expression
+                |> Combine.keep expression
                 |> Combine.ignore (maybe Layout.layout)
-                |> Combine.andMap (many (string "," |> Combine.ignore (maybe Layout.layout) |> Combine.continueWith expression))
+                |> Combine.keep (many (string "," |> Combine.ignore (maybe Layout.layout) |> Combine.continueWith expression))
                 |> Combine.map ListExpr
     in
     string "["
@@ -267,19 +267,19 @@ recordExpression =
         recordField =
             Node.parser
                 (succeed Tuple.pair
-                    |> Combine.andMap (Node.parser functionName)
+                    |> Combine.keep (Node.parser functionName)
                     |> Combine.ignore (maybe Layout.layout)
                     |> Combine.ignore (string "=")
                     |> Combine.ignore (maybe Layout.layout)
-                    |> Combine.andMap expression
+                    |> Combine.keep expression
                 )
 
         recordFields : Parser State (List (Node RecordSetter))
         recordFields =
             succeed (::)
-                |> Combine.andMap recordField
+                |> Combine.keep recordField
                 |> Combine.ignore (maybe Layout.layout)
-                |> Combine.andMap
+                |> Combine.keep
                     (many
                         (string ","
                             |> Combine.ignore (maybe Layout.layout)
@@ -361,8 +361,8 @@ lambdaExpression =
                 )
                 |> Combine.ignore (string "\\")
                 |> Combine.ignore (maybe Layout.layout)
-                |> Combine.andMap (sepBy1 (maybe Layout.layout) functionArgument)
-                |> Combine.andMap (Layout.maybeAroundBothSides (string "->") |> Combine.continueWith expression)
+                |> Combine.keep (sepBy1 (maybe Layout.layout) functionArgument)
+                |> Combine.keep (Layout.maybeAroundBothSides (string "->") |> Combine.continueWith expression)
         )
 
 
@@ -381,8 +381,8 @@ caseBlock =
 caseStatement : Parser State Case
 caseStatement =
     succeed Tuple.pair
-        |> Combine.andMap pattern
-        |> Combine.andMap
+        |> Combine.keep pattern
+        |> Combine.keep
             (maybe (or Layout.layout Layout.layoutStrict)
                 |> Combine.continueWith (string "->")
                 |> Combine.continueWith (maybe Layout.layout)
@@ -421,8 +421,8 @@ caseExpression =
         |> Combine.andThen
             (\(Node start ()) ->
                 succeed CaseBlock
-                    |> Combine.andMap caseBlock
-                    |> Combine.andMap (Layout.layout |> Combine.continueWith (withIndentedState caseStatements))
+                    |> Combine.keep caseBlock
+                    |> Combine.keep (Layout.layout |> Combine.continueWith (withIndentedState caseStatements))
                     |> Combine.map
                         (\cb ->
                             Node (Range.combine (start :: List.map (Tuple.second >> Node.range) cb.cases))
@@ -438,8 +438,8 @@ caseExpression =
 letBody : Parser State (List (Node LetDeclaration))
 letBody =
     Combine.succeed (::)
-        |> Combine.andMap blockElement
-        |> Combine.andMap (many (blockElement |> Combine.ignore (maybe Layout.layout)))
+        |> Combine.keep blockElement
+        |> Combine.keep (many (blockElement |> Combine.ignore (maybe Layout.layout)))
 
 
 blockElement : Parser State (Node LetDeclaration)
@@ -466,7 +466,7 @@ letDestructuringDeclarationWithPattern pattern =
         |> Combine.ignore (maybe Layout.layout)
         |> Combine.ignore (string "=")
         |> Combine.ignore (maybe Layout.layout)
-        |> Combine.andMap expression
+        |> Combine.keep expression
 
 
 letBlock : Parser State (List (Node LetDeclaration))
@@ -487,8 +487,8 @@ letExpression =
     Ranges.withCurrentPoint
         (\current ->
             succeed (\decls expr -> Node { start = current.start, end = (Node.range expr).end } (LetBlock decls expr |> LetExpression))
-                |> Combine.andMap letBlock
-                |> Combine.andMap (Layout.layout |> Combine.continueWith expression)
+                |> Combine.keep letBlock
+                |> Combine.keep (Layout.layout |> Combine.continueWith expression)
         )
 
 
@@ -510,13 +510,13 @@ ifBlockExpression =
                                 (IfBlock condition ifTrue ifFalse)
                         )
                         |> Combine.ignore (maybe Layout.layout)
-                        |> Combine.andMap expression
+                        |> Combine.keep expression
                         |> Combine.ignore (maybe Layout.layout)
                         |> Combine.ignore thenToken
                         |> Combine.ignore (maybe Layout.layout)
-                        |> Combine.andMap expression
+                        |> Combine.keep expression
                         |> Combine.ignore (maybe Layout.layout)
-                        |> Combine.andMap
+                        |> Combine.keep
                             (elseToken
                                 |> Combine.continueWith Layout.layout
                                 |> Combine.continueWith expression
@@ -620,9 +620,9 @@ tupledExpression =
         nested =
             Combine.succeed asExpression
                 |> Combine.ignore (maybe Layout.layout)
-                |> Combine.andMap expression
+                |> Combine.keep expression
                 |> Combine.ignore (maybe Layout.layout)
-                |> Combine.andMap commaSep
+                |> Combine.keep commaSep
 
         closingParen : Parser state ()
         closingParen =

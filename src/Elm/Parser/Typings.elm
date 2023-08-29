@@ -24,12 +24,12 @@ typeDefinition =
                     (Combine.oneOf
                         [ succeed (TypeAlias Nothing)
                             |> Combine.ignore (string "alias" |> Combine.continueWith Layout.layout)
-                            |> Combine.andMap (Node.parser typeName |> Combine.ignore (maybe Layout.layout))
+                            |> Combine.keep (Node.parser typeName |> Combine.ignore (maybe Layout.layout))
                             |> Combine.ignore (maybe Layout.layout)
-                            |> Combine.andMap genericList
+                            |> Combine.keep genericList
                             |> Combine.ignore (string "=")
                             |> Combine.ignore (maybe Layout.layout)
-                            |> Combine.andMap typeAnnotation
+                            |> Combine.keep typeAnnotation
                             |> Combine.map
                                 (\typeAlias ->
                                     Node
@@ -37,12 +37,12 @@ typeDefinition =
                                         (Declaration.AliasDeclaration typeAlias)
                                 )
                         , succeed (Type Nothing)
-                            |> Combine.andMap (Node.parser typeName)
+                            |> Combine.keep (Node.parser typeName)
                             |> Combine.ignore (maybe Layout.layout)
-                            |> Combine.andMap genericList
+                            |> Combine.keep genericList
                             |> Combine.ignore (maybe Layout.layout)
                             |> Combine.ignore (string "=" |> Combine.ignore (maybe Layout.layout))
-                            |> Combine.andMap valueConstructors
+                            |> Combine.keep valueConstructors
                             |> Combine.map
                                 (\tipe ->
                                     Node

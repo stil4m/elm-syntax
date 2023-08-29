@@ -14,15 +14,15 @@ infixDefinition =
     succeed Infix
         |> Combine.ignore (Combine.fromCore (Core.keyword "infix"))
         |> Combine.ignore Layout.layout
-        |> Combine.andMap (Node.parser infixDirection)
+        |> Combine.keep (Node.parser infixDirection)
         |> Combine.ignore Layout.layout
-        |> Combine.andMap (Node.parser (Combine.fromCore Core.int))
+        |> Combine.keep (Node.parser (Combine.fromCore Core.int))
         |> Combine.ignore Layout.layout
-        |> Combine.andMap (Node.parser <| Combine.parens prefixOperatorToken)
+        |> Combine.keep (Node.parser <| Combine.parens prefixOperatorToken)
         |> Combine.ignore Layout.layout
         |> Combine.ignore (string "=")
         |> Combine.ignore Layout.layout
-        |> Combine.andMap (Node.parser Elm.Parser.Tokens.functionName)
+        |> Combine.keep (Node.parser Elm.Parser.Tokens.functionName)
 
 
 infixDirection : Parser State InfixDirection

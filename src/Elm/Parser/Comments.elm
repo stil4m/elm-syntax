@@ -22,8 +22,8 @@ singleLineComment : Parser State ()
 singleLineComment =
     parseComment
         (succeed (++)
-            |> Combine.andMap (string "--")
-            |> Combine.andMap untilNewlineToken
+            |> Combine.keep (string "--")
+            |> Combine.keep untilNewlineToken
         )
 
 
