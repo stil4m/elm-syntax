@@ -52,9 +52,8 @@ typeExpose =
             (\tipe ->
                 Combine.oneOf
                     [ Node.parser (parens (Layout.maybeAroundBothSides (string "..")))
-                        |> Combine.map Node.range
                         |> Combine.map
-                            (\openRange ->
+                            (\(Node openRange _) ->
                                 Node
                                     (Range.combine [ Node.range tipe, openRange ])
                                     (TypeExpose (ExposedType (Node.value tipe) (Just openRange)))
