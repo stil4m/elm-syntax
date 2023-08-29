@@ -402,16 +402,17 @@ caseStatements =
                             if State.expectedColumn s == l.column then
                                 Combine.oneOf
                                     [ Combine.map (\c -> Combine.Loop (c :: last)) caseStatement
-                                    , Combine.succeed (Combine.Done (List.reverse last))
+                                    , Combine.succeed (Combine.Done last)
                                     ]
 
                             else
-                                Combine.succeed (Combine.Done (List.reverse last))
+                                Combine.succeed (Combine.Done last)
                         )
                 )
     in
     caseStatement
         |> Combine.andThen (\v -> Combine.loop [ v ] helper)
+        |> Combine.map List.reverse
 
 
 caseExpression : Parser State (Node Expression)
