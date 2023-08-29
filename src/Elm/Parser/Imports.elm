@@ -41,7 +41,7 @@ importDefinition =
             Combine.oneOf
                 [ asDefinition
                     |> Combine.ignore Layout.optimisticLayout
-                    |> Combine.andThen (Just >> parseExposingDefinition mod)
+                    |> Combine.andThen (\alias_ -> parseExposingDefinition mod (Just alias_))
                 , parseExposingDefinition mod Nothing
                 ]
     in
