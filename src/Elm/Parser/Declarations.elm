@@ -556,32 +556,25 @@ operatorExpression =
 reference : Parser State ( ModuleName, String )
 reference =
     let
-        helper : ( String, List String ) -> Parser State ( String, List String )
-        helper ( n, xs ) =
+        helper : ( ModuleName, String ) -> Parser State ( ModuleName, String )
+        helper (( moduleNameSoFar, nameOrSegment ) as untouched) =
             Combine.oneOf
                 [ string "."
                     |> Combine.continueWith
                         (Combine.oneOf
-                            [ Tokens.typeName |> Combine.andThen (\t -> helper ( t, n :: xs ))
-                            , Tokens.functionName |> Combine.map (\t -> ( t, n :: xs ))
+                            [ Tokens.typeName |> Combine.andThen (\t -> helper ( nameOrSegment :: moduleNameSoFar, t ))
+                            , Tokens.functionName |> Combine.map (\t -> ( nameOrSegment :: moduleNameSoFar, t ))
                             ]
                         )
-                , Combine.succeed ( n, xs )
+                , Combine.succeed untouched
                 ]
-
-        recurring : Parser State ( ModuleName, String )
-        recurring =
-            Tokens.typeName
-                |> Combine.andThen (\t -> helper ( t, [] ))
-                |> Combine.map (\( t, xs ) -> ( List.reverse xs, t ))
-
-        justFunction : Parser State ( ModuleName, String )
-        justFunction =
-            Tokens.functionName |> Combine.map (\v -> ( [], v ))
     in
     Combine.oneOf
-        [ recurring
-        , justFunction
+        [ Tokens.typeName
+            |> Combine.andThen (\t -> helper ( [], t ))
+            |> Combine.map (\( moduleNameSoFar, t ) -> ( List.reverse moduleNameSoFar, t ))
+        , Tokens.functionName
+            |> Combine.map (\v -> ( [], v ))
         ]
 
 
