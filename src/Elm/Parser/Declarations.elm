@@ -411,8 +411,7 @@ caseStatements =
                 )
     in
     caseStatement
-        |> Combine.map List.singleton
-        |> Combine.andThen (\v -> Combine.loop v helper)
+        |> Combine.andThen (\v -> Combine.loop [ v ] helper)
 
 
 caseExpression : Parser State (Node Expression)
