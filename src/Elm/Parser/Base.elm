@@ -14,12 +14,12 @@ typeIndicator : Parser s ( ModuleName, String )
 typeIndicator =
     let
         helper : ( String, ModuleName ) -> Parser s ( String, ModuleName )
-        helper ( n, xs ) =
+        helper (( n, xs ) as acc) =
             Combine.oneOf
                 [ string "."
                     |> Combine.continueWith Tokens.typeName
                     |> Combine.andThen (\t -> helper ( t, n :: xs ))
-                , Combine.succeed ( n, xs )
+                , Combine.succeed acc
                 ]
     in
     Tokens.typeName
