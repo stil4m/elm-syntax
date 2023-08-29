@@ -419,15 +419,14 @@ caseExpression =
     Node.parser (Combine.succeed ())
         |> Combine.andThen
             (\(Node start ()) ->
-                Combine.map
-                    (\cb ->
-                        Node (Range.combine (start :: List.map (Tuple.second >> Node.range) cb.cases))
-                            (CaseExpression cb)
-                    )
-                    (succeed CaseBlock
-                        |> Combine.andMap caseBlock
-                        |> Combine.andMap (Layout.layout |> Combine.continueWith (withIndentedState caseStatements))
-                    )
+                succeed CaseBlock
+                    |> Combine.andMap caseBlock
+                    |> Combine.andMap (Layout.layout |> Combine.continueWith (withIndentedState caseStatements))
+                    |> Combine.map
+                        (\cb ->
+                            Node (Range.combine (start :: List.map (Tuple.second >> Node.range) cb.cases))
+                                (CaseExpression cb)
+                        )
             )
 
 
