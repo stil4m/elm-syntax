@@ -454,7 +454,8 @@ caseStatements =
                         (\l ->
                             if State.expectedColumn s == l.column then
                                 Combine.oneOf
-                                    [ Combine.map (\c -> Combine.Loop ( Node.range (Tuple.second c), c :: last )) caseStatement
+                                    [ caseStatement
+                                        |> Combine.map (\c -> Combine.Loop ( Node.range (Tuple.second c), c :: last ))
                                     , Combine.succeed (Combine.Done ( endRange, last ))
                                     ]
 
