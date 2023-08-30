@@ -420,15 +420,6 @@ lambdaExpression =
 -- Case Expression
 
 
-caseBlock : Parser State ( Node String, Node Expression )
-caseBlock =
-    Combine.succeed Tuple.pair
-        |> Combine.keep (Node.parser caseToken)
-        |> Combine.ignore Layout.layout
-        |> Combine.keep expression
-        |> Combine.ignore ofToken
-
-
 caseStatement : Parser State Case
 caseStatement =
     succeed Tuple.pair
@@ -465,12 +456,15 @@ caseStatementWithCorrectIndentation =
 
 caseExpression : Parser State (Node Expression)
 caseExpression =
-    succeed
-        (\( caseKeyword, caseBlock_ ) ( end, cases ) ->
+    Combine.succeed
+        (\caseKeyword caseBlock_ ( end, cases ) ->
             Node { start = (Node.range caseKeyword).start, end = end }
                 (CaseExpression (CaseBlock caseBlock_ cases))
         )
-        |> Combine.keep caseBlock
+        |> Combine.keep (Node.parser caseToken)
+        |> Combine.ignore Layout.layout
+        |> Combine.keep expression
+        |> Combine.ignore ofToken
         |> Combine.ignore Layout.layout
         |> Combine.keep (withIndentedState caseStatements)
 
