@@ -10,7 +10,7 @@ import Parser as Core exposing (Nestable(..))
 
 addCommentToState : Parser State (Node String) -> Parser State ()
 addCommentToState p =
-    p |> Combine.andThen (\pair -> modifyState (addComment pair) |> Combine.continueWith (succeed ()))
+    p |> Combine.andThen (\pair -> modifyState (addComment pair))
 
 
 parseComment : Parser State String -> Parser State ()
