@@ -314,8 +314,8 @@ recordExpression =
             string "|"
                 |> Combine.ignore (maybe Layout.layout)
                 |> Combine.continueWith recordFields
-                |> Combine.map (\e -> RecordUpdateExpression fname e)
                 |> Combine.ignore (string "}")
+                |> Combine.map (\e -> RecordUpdateExpression fname e)
 
         recordContents : Parser State Expression
         recordContents =
