@@ -512,13 +512,8 @@ letExpression =
                 |> Combine.ignore (string "let")
                 |> Combine.ignore Layout.layout
                 |> Combine.keep (withIndentedState letBody)
-                |> Combine.ignore
-                    (oneOf
-                        [ Layout.layout
-                        , manySpaces
-                        ]
-                        |> Combine.continueWith (string "in")
-                    )
+                |> Combine.ignore (oneOf [ Layout.layout, manySpaces ])
+                |> Combine.ignore (string "in")
                 |> Combine.keep (Layout.layout |> Combine.continueWith expression)
         )
 
