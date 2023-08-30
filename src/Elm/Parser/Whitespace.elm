@@ -19,8 +19,10 @@ many1Spaces =
 realNewLine : Parser s String
 realNewLine =
     Core.getChompedString
-        (Core.succeed ()
-            |. Core.oneOf [ Core.chompIf ((==) '\u{000D}'), Core.succeed () ]
+        (Core.oneOf
+            [ Core.chompIf ((==) '\u{000D}')
+            , Core.succeed ()
+            ]
             |. Core.symbol "\n"
         )
         |> Combine.fromCore
