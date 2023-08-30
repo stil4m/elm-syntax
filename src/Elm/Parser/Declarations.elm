@@ -131,18 +131,15 @@ infixDirection =
 
 portDeclaration : Parser State (Node Declaration)
 portDeclaration =
-    Combine.withLocation
-        (\start ->
-            portToken
-                |> Combine.ignore Layout.layout
-                |> Combine.continueWith signature
-                |> Combine.map
-                    (\sig ->
-                        Node
-                            { start = start, end = (Node.range sig.typeAnnotation).end }
-                            (Declaration.PortDeclaration sig)
-                    )
+    Combine.succeed
+        (\(Node { start } _) sig ->
+            Node
+                { start = start, end = (Node.range sig.typeAnnotation).end }
+                (Declaration.PortDeclaration sig)
         )
+        |> Combine.keep (Node.parser portToken)
+        |> Combine.ignore Layout.layout
+        |> Combine.keep signature
 
 
 functionArgument : Parser State (Node Pattern)
