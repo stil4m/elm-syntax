@@ -93,7 +93,9 @@ signature : Parser State Signature
 signature =
     succeed Signature
         |> Combine.keep (Node.parser functionName)
-        |> Combine.keep (Layout.maybeAroundBothSides (string ":") |> Combine.continueWith (maybe Layout.layout) |> Combine.continueWith typeAnnotation)
+        |> Combine.ignore (Layout.maybeAroundBothSides (string ":"))
+        |> Combine.ignore (maybe Layout.layout)
+        |> Combine.keep typeAnnotation
 
 
 infixDeclaration : Parser State (Node Declaration)
