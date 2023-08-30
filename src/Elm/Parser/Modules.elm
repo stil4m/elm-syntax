@@ -26,7 +26,8 @@ effectWhereClause : Parser State ( String, Node String )
 effectWhereClause =
     succeed Tuple.pair
         |> Combine.keep functionName
-        |> Combine.keep (Layout.maybeAroundBothSides (string "=") |> Combine.continueWith (Node.parser typeName))
+        |> Combine.ignore (Layout.maybeAroundBothSides (string "="))
+        |> Combine.keep (Node.parser typeName)
 
 
 whereBlock : Parser State { command : Maybe (Node String), subscription : Maybe (Node String) }
