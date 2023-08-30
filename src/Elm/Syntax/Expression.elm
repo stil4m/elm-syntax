@@ -30,7 +30,7 @@ import Elm.Syntax.Infix as Infix exposing (InfixDirection)
 import Elm.Syntax.ModuleName as ModuleName exposing (ModuleName)
 import Elm.Syntax.Node as Node exposing (Node(..))
 import Elm.Syntax.Pattern as Pattern exposing (Pattern)
-import Elm.Syntax.Range as Range exposing (Range)
+import Elm.Syntax.Range exposing (Range)
 import Elm.Syntax.Signature as Signature exposing (Signature)
 import Json.Decode as JD exposing (Decoder)
 import Json.Encode as JE exposing (Value)
@@ -49,17 +49,21 @@ type alias Function =
 -}
 functionRange : Function -> Range
 functionRange function =
-    Range.combine
-        [ case function.documentation of
-            Just documentation ->
-                Node.range documentation
+    let
+        startRange : Range
+        startRange =
+            case function.documentation of
+                Just documentation ->
+                    Node.range documentation
 
-            Nothing ->
-                function.signature
-                    |> Maybe.map (\(Node _ value) -> Node.range value.name)
-                    |> Maybe.withDefault (function.declaration |> Node.value |> .name |> Node.range)
-        , Node.range (Node.value function.declaration).expression
-        ]
+                Nothing ->
+                    function.signature
+                        |> Maybe.map (\(Node _ value) -> Node.range value.name)
+                        |> Maybe.withDefault (function.declaration |> Node.value |> .name |> Node.range)
+    in
+    { start = startRange.start
+    , end = (Node.range (Node.value function.declaration).expression).end
+    }
 
 
 {-| Type alias for a function's implementation
