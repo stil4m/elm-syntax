@@ -327,7 +327,8 @@ recordExpression =
                             [ recordUpdateSyntaxParser fname
                             , string "="
                                 |> Combine.ignore (maybe Layout.layout)
-                                |> Combine.continueWith (expression |> Combine.map (\e -> Node.combine Tuple.pair fname e))
+                                |> Combine.continueWith expression
+                                |> Combine.map (\e -> Node.combine Tuple.pair fname e)
                                 |> Combine.ignore (maybe Layout.layout)
                                 |> Combine.andThen
                                     (\fieldUpdate ->
