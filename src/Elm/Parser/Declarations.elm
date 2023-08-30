@@ -17,7 +17,7 @@ import Elm.Syntax.Expression as Expression exposing (Case, CaseBlock, Cases, Exp
 import Elm.Syntax.ModuleName exposing (ModuleName)
 import Elm.Syntax.Node as Node exposing (Node(..))
 import Elm.Syntax.Pattern as Pattern exposing (Pattern)
-import Elm.Syntax.Range as Range
+import Elm.Syntax.Range as Range exposing (Location, Range)
 import Elm.Syntax.Signature exposing (Signature)
 import Parser as Core exposing (Nestable(..))
 
@@ -390,29 +390,29 @@ caseStatement =
             )
 
 
-caseStatements : Parser State Cases
+caseStatements : Parser State ( Location, Cases )
 caseStatements =
     let
-        helper : List Case -> Parser State (Combine.Step (List Case) (List Case))
-        helper last =
+        helper : ( Range, List Case ) -> Parser State (Combine.Step ( Range, List Case ) ( Range, List Case ))
+        helper ( endRange, last ) =
             Combine.withState
                 (\s ->
                     Combine.withLocation
                         (\l ->
                             if State.expectedColumn s == l.column then
                                 Combine.oneOf
-                                    [ Combine.map (\c -> Combine.Loop (c :: last)) caseStatement
-                                    , Combine.succeed (Combine.Done last)
+                                    [ Combine.map (\c -> Combine.Loop ( Node.range (Tuple.second c), c :: last )) caseStatement
+                                    , Combine.succeed (Combine.Done ( endRange, last ))
                                     ]
 
                             else
-                                Combine.succeed (Combine.Done last)
+                                Combine.succeed (Combine.Done ( endRange, last ))
                         )
                 )
     in
     caseStatement
-        |> Combine.andThen (\v -> Combine.loop [ v ] helper)
-        |> Combine.map List.reverse
+        |> Combine.andThen (\v -> Combine.loop ( Node.range (Tuple.second v), [ v ] ) helper)
+        |> Combine.map (\( endRange, cases ) -> ( endRange.end, List.reverse cases ))
 
 
 caseExpression : Parser State (Node Expression)
@@ -420,15 +420,14 @@ caseExpression =
     Node.parser (Combine.succeed ())
         |> Combine.andThen
             (\(Node start ()) ->
-                succeed CaseBlock
+                succeed
+                    (\caseBlock_ ( end, cases ) ->
+                        Node { start = start.start, end = end }
+                            (CaseExpression (CaseBlock caseBlock_ cases))
+                    )
                     |> Combine.keep caseBlock
                     |> Combine.ignore Layout.layout
                     |> Combine.keep (withIndentedState caseStatements)
-                    |> Combine.map
-                        (\cb ->
-                            Node (Range.combine (start :: List.map (Tuple.second >> Node.range) cb.cases))
-                                (CaseExpression cb)
-                        )
             )
 
 
