@@ -45,7 +45,8 @@ typeDefinition =
                             |> Combine.map
                                 (\tipe ->
                                     Node
-                                        (Range.combine (start :: List.map Node.range tipe.constructors))
+                                        -- Get the position from the last argument
+                                        (Range.combine ({ start = start, end = start } :: List.map Node.range tipe.constructors))
                                         (Declaration.CustomTypeDeclaration tipe)
                                 )
                         ]
