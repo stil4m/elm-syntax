@@ -45,7 +45,7 @@ functionWithNameNode pointer =
     let
         functionImplementationFromVarPointer : Node String -> Parser State (Node FunctionImplementation)
         functionImplementationFromVarPointer varPointer =
-            succeed (\args expr -> Node (Range.combine [ Node.range varPointer, Node.range expr ]) (FunctionImplementation varPointer args expr))
+            succeed (\args expr -> Node { start = (Node.range varPointer).start, end = (Node.range expr).end } (FunctionImplementation varPointer args expr))
                 |> Combine.keep (many (functionArgument |> Combine.ignore (maybe Layout.layout)))
                 |> Combine.ignore (string "=")
                 |> Combine.ignore (maybe Layout.layout)
