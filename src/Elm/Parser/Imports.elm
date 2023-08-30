@@ -31,8 +31,8 @@ importDefinition =
                 ]
                 |> Combine.map (\exposing_ -> Import mod asDef exposing_)
 
-        parseAsDefinition : Node ModuleName -> Parser State Import
-        parseAsDefinition mod =
+        parseAsDefinition : Node () -> Node ModuleName -> Parser State Import
+        parseAsDefinition importKeyword mod =
             Combine.oneOf
                 [ asDefinition
                     |> Combine.ignore Layout.optimisticLayout
@@ -43,7 +43,7 @@ importDefinition =
     Combine.withLocation
         (\start ->
             Combine.succeed parseAsDefinition
-                |> Combine.ignore importToken
+                |> Combine.keep (Node.parser importToken)
                 |> Combine.ignore Layout.layout
                 |> Combine.keep (Node.parser moduleName)
                 |> Combine.ignore Layout.optimisticLayout
