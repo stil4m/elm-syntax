@@ -5,7 +5,6 @@ import Elm.Parser.Layout as Layout
 import Elm.Parser.Node as Node
 import Elm.Parser.Numbers
 import Elm.Parser.Patterns exposing (pattern)
-import Elm.Parser.Ranges as Ranges
 import Elm.Parser.State as State exposing (State, popIndent, pushColumn)
 import Elm.Parser.Tokens as Tokens exposing (caseToken, characterLiteral, elseToken, functionName, ifToken, infixOperatorToken, multiLineStringLiteral, ofToken, portToken, prefixOperatorToken, stringLiteral, thenToken)
 import Elm.Parser.TypeAnnotation exposing (typeAnnotation)
@@ -537,14 +536,14 @@ numberExpression =
 
 ifBlockExpression : Parser State (Node Expression)
 ifBlockExpression =
-    Ranges.withCurrentPoint
-        (\current ->
+    Combine.withLocation
+        (\start ->
             ifToken
                 |> Combine.continueWith
                     (succeed
                         (\condition ifTrue ifFalse ->
                             Node
-                                { start = current.start, end = (Node.range ifFalse).end }
+                                { start = start, end = (Node.range ifFalse).end }
                                 (IfBlock condition ifTrue ifFalse)
                         )
                         |> Combine.ignore (maybe Layout.layout)
