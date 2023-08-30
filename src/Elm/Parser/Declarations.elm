@@ -337,12 +337,13 @@ recordExpression =
                                                 Node.combine Tuple.pair fname e
                                         in
                                         Combine.oneOf
-                                            [ string "}" |> Combine.map (always (RecordExpr [ fieldUpdate ]))
+                                            [ string "}"
+                                                |> Combine.map (always (RecordExpr [ fieldUpdate ]))
                                             , string ","
                                                 |> Combine.ignore (maybe Layout.layout)
                                                 |> Combine.continueWith recordFields
-                                                |> Combine.map (\fieldUpdates -> RecordExpr (fieldUpdate :: fieldUpdates))
                                                 |> Combine.ignore (string "}")
+                                                |> Combine.map (\fieldUpdates -> RecordExpr (fieldUpdate :: fieldUpdates))
                                             ]
                                     )
                             ]
