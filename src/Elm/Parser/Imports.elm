@@ -31,25 +31,22 @@ importDefinition =
                 ]
                 |> Combine.map (\exposing_ -> Import mod asDef exposing_)
 
-        parseAsDefinition : Node () -> Node ModuleName -> Parser State Import
-        parseAsDefinition importKeyword mod =
+        parseAsDefinition : Node () -> Node ModuleName -> Parser State (Node Import)
+        parseAsDefinition (Node importKeywordRange ()) mod =
             Combine.oneOf
                 [ asDefinition
                     |> Combine.ignore Layout.optimisticLayout
                     |> Combine.andThen (\alias_ -> parseExposingDefinition mod (Just alias_))
                 , parseExposingDefinition mod Nothing
                 ]
+                |> Combine.map (setupNode importKeywordRange.start)
     in
-    Combine.withLocation
-        (\start ->
-            Combine.succeed parseAsDefinition
-                |> Combine.keep (Node.parser importToken)
-                |> Combine.ignore Layout.layout
-                |> Combine.keep (Node.parser moduleName)
-                |> Combine.ignore Layout.optimisticLayout
-                |> Combine.andThen identity
-                |> Combine.map (setupNode start)
-        )
+    Combine.succeed parseAsDefinition
+        |> Combine.keep (Node.parser importToken)
+        |> Combine.ignore Layout.layout
+        |> Combine.keep (Node.parser moduleName)
+        |> Combine.ignore Layout.optimisticLayout
+        |> Combine.andThen identity
         |> Combine.ignore Layout.optimisticLayout
 
 
