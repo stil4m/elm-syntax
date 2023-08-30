@@ -1,7 +1,6 @@
 module Elm.Parser.Declarations exposing (declaration, expression, letExpression)
 
 import Combine exposing (Parser, lazy, many, maybe, modifyState, oneOf, or, sepBy1, string, succeed, withLocation)
-import Elm.Parser.Infix as Infix
 import Elm.Parser.Layout as Layout
 import Elm.Parser.Node as Node
 import Elm.Parser.Numbers
@@ -14,6 +13,7 @@ import Elm.Parser.Typings exposing (typeDefinition)
 import Elm.Parser.Whitespace exposing (manySpaces)
 import Elm.Syntax.Declaration as Declaration exposing (Declaration)
 import Elm.Syntax.Expression as Expression exposing (Case, CaseBlock, Cases, Expression(..), Function, FunctionImplementation, Lambda, LetBlock, LetDeclaration(..), RecordSetter)
+import Elm.Syntax.Infix as Infix exposing (Infix)
 import Elm.Syntax.ModuleName exposing (ModuleName)
 import Elm.Syntax.Node as Node exposing (Node(..))
 import Elm.Syntax.Pattern as Pattern exposing (Pattern)
@@ -102,9 +102,34 @@ infixDeclaration : Parser State (Node Declaration)
 infixDeclaration =
     Combine.withLocation
         (\start ->
-            Infix.infixDefinition
+            infixDefinition
                 |> Combine.map (\inf -> Node { start = start, end = (Node.range inf.function).end } (Declaration.InfixDeclaration inf))
         )
+
+
+infixDefinition : Parser State Infix
+infixDefinition =
+    succeed Infix
+        |> Combine.ignore (Combine.fromCore (Core.keyword "infix"))
+        |> Combine.ignore Layout.layout
+        |> Combine.keep (Node.parser infixDirection)
+        |> Combine.ignore Layout.layout
+        |> Combine.keep (Node.parser (Combine.fromCore Core.int))
+        |> Combine.ignore Layout.layout
+        |> Combine.keep (Node.parser <| Combine.parens prefixOperatorToken)
+        |> Combine.ignore Layout.layout
+        |> Combine.ignore (string "=")
+        |> Combine.ignore Layout.layout
+        |> Combine.keep (Node.parser functionName)
+
+
+infixDirection : Parser State Infix.InfixDirection
+infixDirection =
+    oneOf
+        [ succeed Infix.Right |> Combine.ignore (string "right")
+        , succeed Infix.Left |> Combine.ignore (string "left")
+        , succeed Infix.Non |> Combine.ignore (string "non")
+        ]
 
 
 portDeclaration : Parser State (Node Declaration)
