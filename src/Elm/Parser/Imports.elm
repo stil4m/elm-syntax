@@ -42,11 +42,12 @@ importDefinition =
     in
     Combine.withLocation
         (\start ->
-            importToken
-                |> Combine.continueWith Layout.layout
-                |> Combine.continueWith (Node.parser moduleName)
+            Combine.succeed parseAsDefinition
+                |> Combine.ignore importToken
+                |> Combine.ignore Layout.layout
+                |> Combine.keep (Node.parser moduleName)
                 |> Combine.ignore Layout.optimisticLayout
-                |> Combine.andThen parseAsDefinition
+                |> Combine.andThen identity
                 |> Combine.map (setupNode start)
         )
         |> Combine.ignore Layout.optimisticLayout
