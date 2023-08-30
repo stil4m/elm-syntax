@@ -522,28 +522,25 @@ numberExpression =
 
 ifBlockExpression : Parser State (Node Expression)
 ifBlockExpression =
-    Combine.withLocation
-        (\start ->
-            Combine.succeed
-                (\condition ifTrue ifFalse ->
-                    Node
-                        { start = start, end = (Node.range ifFalse).end }
-                        (IfBlock condition ifTrue ifFalse)
-                )
-                |> Combine.ignore ifToken
-                |> Combine.ignore (maybe Layout.layout)
-                |> Combine.keep expression
-                |> Combine.ignore (maybe Layout.layout)
-                |> Combine.ignore thenToken
-                |> Combine.ignore (maybe Layout.layout)
-                |> Combine.keep expression
-                |> Combine.ignore (maybe Layout.layout)
-                |> Combine.keep
-                    (elseToken
-                        |> Combine.continueWith Layout.layout
-                        |> Combine.continueWith expression
-                    )
+    Combine.succeed
+        (\(Node { start } _) condition ifTrue ifFalse ->
+            Node
+                { start = start, end = (Node.range ifFalse).end }
+                (IfBlock condition ifTrue ifFalse)
         )
+        |> Combine.keep (Node.parser ifToken)
+        |> Combine.ignore (maybe Layout.layout)
+        |> Combine.keep expression
+        |> Combine.ignore (maybe Layout.layout)
+        |> Combine.ignore thenToken
+        |> Combine.ignore (maybe Layout.layout)
+        |> Combine.keep expression
+        |> Combine.ignore (maybe Layout.layout)
+        |> Combine.keep
+            (elseToken
+                |> Combine.continueWith Layout.layout
+                |> Combine.continueWith expression
+            )
 
 
 operatorExpression : Parser State (Node Expression)
