@@ -506,7 +506,8 @@ letDestructuringDeclarationWithPattern pattern =
 
 letBlock : Parser State (List (Node LetDeclaration))
 letBlock =
-    (string "let" |> Combine.continueWith Layout.layout)
+    string "let"
+        |> Combine.continueWith Layout.layout
         |> Combine.continueWith (withIndentedState letBody)
         |> Combine.ignore
             (oneOf
