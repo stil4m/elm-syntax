@@ -445,28 +445,24 @@ caseStatement =
 
 caseStatements : Parser State ( Location, Cases )
 caseStatements =
-    let
-        helper : ( Range, List Case ) -> Parser State (Combine.Step ( Range, List Case ) ( Range, List Case ))
-        helper ( endRange, last ) =
-            Combine.withState
-                (\s ->
-                    Combine.withLocation
-                        (\l ->
-                            if State.expectedColumn s == l.column then
-                                Combine.oneOf
-                                    [ caseStatement
-                                        |> Combine.map (\c -> Combine.Loop ( Node.range (Tuple.second c), c :: last ))
-                                    , Combine.succeed (Combine.Done ( endRange, last ))
-                                    ]
+    Combine.many1WithEndLocationForLastElement
+        (\( _, case_ ) -> Node.range case_)
+        caseStatementWithCorrectIndentation
 
-                            else
-                                Combine.succeed (Combine.Done ( endRange, last ))
-                        )
+
+caseStatementWithCorrectIndentation : Parser State Case
+caseStatementWithCorrectIndentation =
+    Combine.withState
+        (\s ->
+            Combine.withLocation
+                (\l ->
+                    if State.expectedColumn s == l.column then
+                        caseStatement
+
+                    else
+                        Combine.fail "Indentation is incorrect to be a case statement"
                 )
-    in
-    caseStatement
-        |> Combine.andThen (\v -> Combine.loop ( Node.range (Tuple.second v), [ v ] ) helper)
-        |> Combine.map (\( endRange, cases ) -> ( endRange.end, List.reverse cases ))
+        )
 
 
 caseExpression : Parser State (Node Expression)
