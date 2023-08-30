@@ -4,7 +4,7 @@ import Combine exposing (Parser, maybe, oneOf, or, parens, sepBy1, string, succe
 import Combine.Char exposing (char)
 import Elm.Parser.Layout as Layout
 import Elm.Parser.Node as Node
-import Elm.Parser.Ranges exposing (withRange)
+import Elm.Parser.Ranges as Ranges
 import Elm.Parser.State exposing (State)
 import Elm.Parser.Tokens exposing (exposingToken, functionName, typeName)
 import Elm.Syntax.Exposing exposing (ExposedType, Exposing(..), TopLevelExpose(..))
@@ -25,7 +25,7 @@ exposeListWith =
 
 exposingListInner : Parser State Exposing
 exposingListInner =
-    or (withRange (succeed All |> Combine.ignore (Layout.maybeAroundBothSides (string ".."))))
+    or (Ranges.withRange (succeed All |> Combine.ignore (Layout.maybeAroundBothSides (string ".."))))
         (Combine.map Explicit (sepBy1 (char ',') (Layout.maybeAroundBothSides exposable)))
 
 
