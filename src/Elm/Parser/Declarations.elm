@@ -100,10 +100,10 @@ signature =
 
 infixDeclaration : Parser State (Node Declaration)
 infixDeclaration =
-    Ranges.withCurrentPoint
-        (\current ->
+    Combine.withLocation
+        (\start ->
             Infix.infixDefinition
-                |> Combine.map (\inf -> Node (Range.combine [ current, Node.range inf.function ]) (Declaration.InfixDeclaration inf))
+                |> Combine.map (\inf -> Node { start = start, end = (Node.range inf.function).end } (Declaration.InfixDeclaration inf))
         )
 
 
