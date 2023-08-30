@@ -109,12 +109,17 @@ infixDeclaration =
 
 portDeclaration : Parser State (Node Declaration)
 portDeclaration =
-    Ranges.withCurrentPoint
-        (\current ->
+    Combine.withLocation
+        (\start ->
             portToken
                 |> Combine.ignore Layout.layout
                 |> Combine.continueWith signature
-                |> Combine.map (\sig -> Node (Range.combine [ current, Node.range sig.typeAnnotation ]) (Declaration.PortDeclaration sig))
+                |> Combine.map
+                    (\sig ->
+                        Node
+                            { start = start, end = (Node.range sig.typeAnnotation).end }
+                            (Declaration.PortDeclaration sig)
+                    )
         )
 
 
