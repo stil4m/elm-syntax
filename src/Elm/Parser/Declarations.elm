@@ -504,26 +504,21 @@ letDestructuringDeclarationWithPattern pattern =
         |> Combine.keep expression
 
 
-letBlock : Parser State (List (Node LetDeclaration))
-letBlock =
-    string "let"
-        |> Combine.continueWith Layout.layout
-        |> Combine.continueWith (withIndentedState letBody)
-        |> Combine.ignore
-            (oneOf
-                [ Layout.layout
-                , manySpaces
-                ]
-                |> Combine.continueWith (string "in")
-            )
-
-
 letExpression : Parser State (Node Expression)
 letExpression =
     Combine.withLocation
         (\start ->
             succeed (\decls expr -> Node { start = start, end = (Node.range expr).end } (LetBlock decls expr |> LetExpression))
-                |> Combine.keep letBlock
+                |> Combine.ignore (string "let")
+                |> Combine.ignore Layout.layout
+                |> Combine.keep (withIndentedState letBody)
+                |> Combine.ignore
+                    (oneOf
+                        [ Layout.layout
+                        , manySpaces
+                        ]
+                        |> Combine.continueWith (string "in")
+                    )
                 |> Combine.keep (Layout.layout |> Combine.continueWith expression)
         )
 
