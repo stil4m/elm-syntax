@@ -23,6 +23,7 @@ module Combine exposing
     , runParser
     , sepBy
     , sepBy1
+    , sepBy1WithoutReverse
     , string
     , succeed
     , while
@@ -174,20 +175,28 @@ maybe (Parser p) =
 
 
 many : Parser s a -> Parser s (List a)
-many (Parser p) =
+many p =
+    manyWithoutReverse [] p
+        |> map List.reverse
+
+
+{-| Same as [`many`](#many), except that it doesn't reverse the list.
+This can be useful if you need to access the range of the last item.
+-}
+manyWithoutReverse : List a -> Parser s a -> Parser s (List a)
+manyWithoutReverse initList (Parser p) =
     let
         helper : ( s, List a ) -> Core.Parser (Core.Step ( s, List a ) ( s, List a ))
-        helper ( oldState, items ) =
+        helper (( oldState, items ) as acc) =
             Core.oneOf
                 [ p oldState
                     |> Core.map (\( newState, item ) -> Core.Loop ( newState, item :: items ))
-                , Core.succeed ()
-                    |> Core.map (\() -> Core.Done ( oldState, List.reverse items ))
+                , Core.succeed (Core.Done acc)
                 ]
     in
     Parser <|
         \state ->
-            Core.loop ( state, [] ) helper
+            Core.loop ( state, initList ) helper
 
 
 manyWithEndLocationForLastElement : Range -> (a -> Range) -> Parser s a -> Parser s ( Location, List a )
@@ -247,6 +256,15 @@ sepBy1 sep p =
     succeed (::)
         |> keep p
         |> keep (many (sep |> continueWith p))
+
+
+{-| Same as [`sepBy1`](#sepBy1), except that it doesn't reverse the list.
+This can be useful if you need to access the range of the last item.
+-}
+sepBy1WithoutReverse : Parser s x -> Parser s a -> Parser s (List a)
+sepBy1WithoutReverse sep p =
+    p
+        |> andThen (\first -> manyWithoutReverse [ first ] (sep |> continueWith p))
 
 
 between : Parser s l -> Parser s r -> Parser s a -> Parser s a
