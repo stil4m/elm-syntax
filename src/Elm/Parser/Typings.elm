@@ -32,8 +32,10 @@ typeDefinition =
                                         }
                                     )
                             )
-                            |> Combine.ignore (string "alias" |> Combine.continueWith Layout.layout)
-                            |> Combine.keep (Node.parser typeName |> Combine.ignore (maybe Layout.layout))
+                            |> Combine.ignore (string "alias")
+                            |> Combine.ignore Layout.layout
+                            |> Combine.keep (Node.parser typeName)
+                            |> Combine.ignore (maybe Layout.layout)
                             |> Combine.ignore (maybe Layout.layout)
                             |> Combine.keep genericList
                             |> Combine.ignore (string "=")
@@ -56,7 +58,8 @@ typeDefinition =
                             |> Combine.ignore (maybe Layout.layout)
                             |> Combine.keep genericList
                             |> Combine.ignore (maybe Layout.layout)
-                            |> Combine.ignore (string "=" |> Combine.ignore (maybe Layout.layout))
+                            |> Combine.ignore (string "=")
+                            |> Combine.ignore (maybe Layout.layout)
                             |> Combine.keep valueConstructors
                         ]
                     )
@@ -65,7 +68,9 @@ typeDefinition =
 
 valueConstructors : Parser State (List (Node ValueConstructor))
 valueConstructors =
-    Combine.sepBy1 (Combine.ignore (maybe Layout.layout) (string "|")) valueConstructor
+    Combine.sepBy1
+        (Combine.ignore (maybe Layout.layout) (string "|"))
+        valueConstructor
 
 
 valueConstructor : Parser State (Node ValueConstructor)
