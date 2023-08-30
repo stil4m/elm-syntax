@@ -9,7 +9,7 @@ import Elm.Parser.TypeAnnotation exposing (typeAnnotation, typeAnnotationNonGree
 import Elm.Syntax.Declaration as Declaration
 import Elm.Syntax.Node as Node exposing (Node(..))
 import Elm.Syntax.Range as Range
-import Elm.Syntax.Type exposing (Type, ValueConstructor)
+import Elm.Syntax.Type exposing (ValueConstructor)
 import Elm.Syntax.TypeAnnotation exposing (TypeAnnotation)
 
 
@@ -20,7 +20,7 @@ typeDefinition =
             typePrefix
                 |> Combine.continueWith
                     (Combine.oneOf
-                        [ succeed
+                        [ Combine.succeed
                             (\name generics typeAnnotation ->
                                 Node
                                     { start = start, end = (Node.range typeAnnotation).end }
@@ -39,20 +39,25 @@ typeDefinition =
                             |> Combine.ignore (string "=")
                             |> Combine.ignore (maybe Layout.layout)
                             |> Combine.keep typeAnnotation
-                        , succeed (Type Nothing)
+                        , Combine.succeed
+                            (\name generics constructors ->
+                                -- Get the position from the last argument
+                                Node
+                                    (Range.combine ({ start = start, end = start } :: List.map Node.range constructors))
+                                    (Declaration.CustomTypeDeclaration
+                                        { documentation = Nothing
+                                        , name = name
+                                        , generics = generics
+                                        , constructors = constructors
+                                        }
+                                    )
+                            )
                             |> Combine.keep (Node.parser typeName)
                             |> Combine.ignore (maybe Layout.layout)
                             |> Combine.keep genericList
                             |> Combine.ignore (maybe Layout.layout)
                             |> Combine.ignore (string "=" |> Combine.ignore (maybe Layout.layout))
                             |> Combine.keep valueConstructors
-                            |> Combine.map
-                                (\tipe ->
-                                    Node
-                                        -- Get the position from the last argument
-                                        (Range.combine ({ start = start, end = start } :: List.map Node.range tipe.constructors))
-                                        (Declaration.CustomTypeDeclaration tipe)
-                                )
                         ]
                     )
         )
