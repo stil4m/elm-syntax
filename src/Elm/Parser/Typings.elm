@@ -33,7 +33,7 @@ typeDefinition =
                             |> Combine.map
                                 (\typeAlias ->
                                     Node
-                                        (Range.combine [ start, Node.range typeAlias.typeAnnotation ])
+                                        { start = start.start, end = (Node.range typeAlias.typeAnnotation).end }
                                         (Declaration.AliasDeclaration typeAlias)
                                 )
                         , succeed (Type Nothing)
