@@ -283,73 +283,7 @@ listExpression =
 
 recordExpression : Parser State (Node Expression)
 recordExpression =
-    (let
-        recordField : Parser State (Node RecordSetter)
-        recordField =
-            Node.parser
-                (succeed Tuple.pair
-                    |> Combine.keep (Node.parser functionName)
-                    |> Combine.ignore (maybe Layout.layout)
-                    |> Combine.ignore (string "=")
-                    |> Combine.ignore (maybe Layout.layout)
-                    |> Combine.keep expression
-                )
-
-        recordFields : Parser State (List (Node RecordSetter))
-        recordFields =
-            succeed (::)
-                |> Combine.keep recordField
-                |> Combine.ignore (maybe Layout.layout)
-                |> Combine.keep
-                    (many
-                        (string ","
-                            |> Combine.ignore (maybe Layout.layout)
-                            |> Combine.continueWith recordField
-                            |> Combine.ignore (maybe Layout.layout)
-                        )
-                    )
-
-        recordUpdateSyntaxParser : Node String -> Parser State Expression
-        recordUpdateSyntaxParser fname =
-            string "|"
-                |> Combine.ignore (maybe Layout.layout)
-                |> Combine.continueWith recordFields
-                |> Combine.ignore (string "}")
-                |> Combine.map (\e -> RecordUpdateExpression fname e)
-
-        recordContents : Parser State Expression
-        recordContents =
-            Node.parser functionName
-                |> Combine.ignore (maybe Layout.layout)
-                |> Combine.andThen
-                    (\fname ->
-                        Combine.oneOf
-                            [ recordUpdateSyntaxParser fname
-                            , string "="
-                                |> Combine.ignore (maybe Layout.layout)
-                                |> Combine.continueWith expression
-                                |> Combine.ignore (maybe Layout.layout)
-                                |> Combine.andThen
-                                    (\e ->
-                                        let
-                                            fieldUpdate : Node RecordSetter
-                                            fieldUpdate =
-                                                Node.combine Tuple.pair fname e
-                                        in
-                                        Combine.oneOf
-                                            [ string "}"
-                                                |> Combine.map (always (RecordExpr [ fieldUpdate ]))
-                                            , string ","
-                                                |> Combine.ignore (maybe Layout.layout)
-                                                |> Combine.continueWith recordFields
-                                                |> Combine.ignore (string "}")
-                                                |> Combine.map (\fieldUpdates -> RecordExpr (fieldUpdate :: fieldUpdates))
-                                            ]
-                                    )
-                            ]
-                    )
-     in
-     string "{"
+    string "{"
         |> Combine.ignore (maybe Layout.layout)
         |> Combine.continueWith
             (Combine.oneOf
@@ -357,8 +291,76 @@ recordExpression =
                 , recordContents
                 ]
             )
-    )
         |> Node.parser
+
+
+recordContents : Parser State Expression
+recordContents =
+    Node.parser functionName
+        |> Combine.ignore (maybe Layout.layout)
+        |> Combine.andThen
+            (\fname ->
+                Combine.oneOf
+                    [ recordUpdateSyntaxParser fname
+                    , string "="
+                        |> Combine.ignore (maybe Layout.layout)
+                        |> Combine.continueWith expression
+                        |> Combine.ignore (maybe Layout.layout)
+                        |> Combine.andThen
+                            (\e ->
+                                let
+                                    fieldUpdate : Node RecordSetter
+                                    fieldUpdate =
+                                        Node.combine Tuple.pair fname e
+                                in
+                                Combine.oneOf
+                                    [ string "}"
+                                        |> Combine.map (always (RecordExpr [ fieldUpdate ]))
+                                    , string ","
+                                        |> Combine.ignore (maybe Layout.layout)
+                                        |> Combine.continueWith recordFields
+                                        |> Combine.ignore (string "}")
+                                        |> Combine.map (\fieldUpdates -> RecordExpr (fieldUpdate :: fieldUpdates))
+                                    ]
+                            )
+                    ]
+            )
+
+
+recordUpdateSyntaxParser : Node String -> Parser State Expression
+recordUpdateSyntaxParser fname =
+    string "|"
+        |> Combine.ignore (maybe Layout.layout)
+        |> Combine.continueWith recordFields
+        |> Combine.ignore (string "}")
+        |> Combine.map (\e -> RecordUpdateExpression fname e)
+
+
+recordFields : Parser State (List (Node RecordSetter))
+recordFields =
+    succeed (::)
+        |> Combine.keep recordField
+        |> Combine.ignore (maybe Layout.layout)
+        |> Combine.keep
+            (many
+                (string ","
+                    |> Combine.ignore (maybe Layout.layout)
+                    |> Combine.continueWith recordField
+                    |> Combine.ignore (maybe Layout.layout)
+                )
+            )
+
+
+recordField : Parser State (Node RecordSetter)
+recordField =
+    Node.parser
+        (succeed Tuple.pair
+            |> Combine.keep (Node.parser functionName)
+            |> Combine.ignore (maybe Layout.layout)
+            |> Combine.ignore (string "=")
+            |> Combine.ignore (maybe Layout.layout)
+            |> Combine.keep expression
+        )
 
 
 literalExpression : Parser State (Node Expression)
