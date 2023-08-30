@@ -72,19 +72,16 @@ valueConstructor =
 
                     argHelper : List (Node TypeAnnotation) -> Parser State (List (Node TypeAnnotation))
                     argHelper xs =
-                        Combine.succeed ()
-                            |> Combine.continueWith
-                                (Combine.oneOf
-                                    [ typeAnnotationNonGreedy
-                                        |> Combine.andThen
-                                            (\ta ->
-                                                Layout.optimisticLayoutWith
-                                                    (\() -> Combine.succeed (List.reverse (ta :: xs)))
-                                                    (\() -> argHelper (ta :: xs))
-                                            )
-                                    , Combine.succeed (List.reverse xs)
-                                    ]
-                                )
+                        Combine.oneOf
+                            [ typeAnnotationNonGreedy
+                                |> Combine.andThen
+                                    (\ta ->
+                                        Layout.optimisticLayoutWith
+                                            (\() -> Combine.succeed (List.reverse (ta :: xs)))
+                                            (\() -> argHelper (ta :: xs))
+                                    )
+                            , Combine.succeed (List.reverse xs)
+                            ]
                 in
                 Layout.optimisticLayoutWith
                     (\() -> complete [])
