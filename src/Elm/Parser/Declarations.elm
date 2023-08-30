@@ -17,7 +17,7 @@ import Elm.Syntax.Infix as Infix exposing (Infix)
 import Elm.Syntax.ModuleName exposing (ModuleName)
 import Elm.Syntax.Node as Node exposing (Node(..))
 import Elm.Syntax.Pattern as Pattern exposing (Pattern)
-import Elm.Syntax.Range as Range exposing (Location, Range)
+import Elm.Syntax.Range exposing (Location, Range)
 import Elm.Syntax.Signature exposing (Signature)
 import Parser as Core exposing (Nestable(..))
 
@@ -201,8 +201,8 @@ expression =
         |> Combine.andThen
             (\first ->
                 let
-                    complete : List (Node Expression) -> Parser s (Node Expression)
-                    complete rest =
+                    complete : Range -> List (Node Expression) -> Parser s (Node Expression)
+                    complete lastExpressionRange rest =
                         case rest of
                             [] ->
                                 succeed first
@@ -213,20 +213,20 @@ expression =
                             _ ->
                                 succeed
                                     (Node
-                                        (Range.combine (Node.range first :: List.map Node.range rest))
+                                        { start = (Node.range first).start, end = lastExpressionRange.end }
                                         (Application (first :: List.reverse rest))
                                     )
 
-                    promoter : List (Node Expression) -> Parser State (Node Expression)
-                    promoter rest =
+                    promoter : Range -> List (Node Expression) -> Parser State (Node Expression)
+                    promoter lastExpressionRange rest =
                         Layout.optimisticLayoutWith
-                            (\() -> complete rest)
+                            (\() -> complete lastExpressionRange rest)
                             (\() ->
                                 or
                                     (expressionNotApplication
-                                        |> Combine.andThen (\next -> promoter (next :: rest))
+                                        |> Combine.andThen (\next -> promoter (Node.range next) (next :: rest))
                                     )
-                                    (complete rest)
+                                    (complete lastExpressionRange rest)
                             )
                 in
                 case first of
@@ -234,7 +234,7 @@ expression =
                         Combine.fail "Expression should not start with an operator"
 
                     _ ->
-                        promoter []
+                        promoter (Node.range first) []
             )
 
 
