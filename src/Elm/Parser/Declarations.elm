@@ -118,14 +118,15 @@ infixDeclaration =
 
 infixDirection : Parser State Infix.InfixDirection
 infixDirection =
-    oneOf
-        [ string "right"
-            |> Combine.map (\_ -> Infix.Right)
-        , string "left"
-            |> Combine.map (\_ -> Infix.Left)
-        , string "non"
-            |> Combine.map (\_ -> Infix.Non)
+    Core.oneOf
+        [ Core.keyword "right"
+            |> Core.map (\_ -> Infix.Right)
+        , Core.keyword "left"
+            |> Core.map (\_ -> Infix.Left)
+        , Core.keyword "non"
+            |> Core.map (\_ -> Infix.Non)
         ]
+        |> Combine.fromCore
 
 
 portDeclaration : Parser State (Node Declaration)
