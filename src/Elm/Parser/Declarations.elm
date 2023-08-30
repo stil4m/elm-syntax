@@ -257,6 +257,7 @@ listExpression =
                 |> Combine.keep expression
                 |> Combine.ignore (maybe Layout.layout)
                 |> Combine.keep (many (string "," |> Combine.ignore (maybe Layout.layout) |> Combine.continueWith expression))
+                |> Combine.ignore (string "]")
                 |> Combine.map ListExpr
     in
     string "["
@@ -264,7 +265,7 @@ listExpression =
         |> Combine.continueWith
             (Combine.oneOf
                 [ string "]" |> Combine.map (always (ListExpr []))
-                , innerExpressions |> Combine.ignore (string "]")
+                , innerExpressions
                 ]
             )
         |> Node.parser
