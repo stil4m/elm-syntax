@@ -57,9 +57,12 @@ functionRange function =
                     Node.range documentation
 
                 Nothing ->
-                    function.signature
-                        |> Maybe.map (\(Node _ value) -> Node.range value.name)
-                        |> Maybe.withDefault (function.declaration |> Node.value |> .name |> Node.range)
+                    case function.signature of
+                        Just (Node _ value) ->
+                            Node.range value.name
+
+                        Nothing ->
+                            function.declaration |> Node.value |> .name |> Node.range
     in
     { start = startRange.start
     , end = (Node.range (Node.value function.declaration).expression).end
