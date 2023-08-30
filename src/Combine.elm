@@ -14,6 +14,7 @@ module Combine exposing
     , loop
     , many
     , many1
+    , manyWithEndLocationForLastElement
     , map
     , maybe
     , modifyState
@@ -30,7 +31,8 @@ module Combine exposing
     , withState
     )
 
-import Elm.Syntax.Range exposing (Location)
+import Elm.Syntax.Node exposing (Node(..))
+import Elm.Syntax.Range exposing (Location, Range)
 import Parser as Core exposing ((|=))
 
 
@@ -188,6 +190,36 @@ many (Parser p) =
     Parser <|
         \state ->
             Core.loop ( state, [] ) helper
+
+
+manyWithEndLocationForLastElement : Range -> Parser s (Node a) -> Parser s ( Location, List (Node a) )
+manyWithEndLocationForLastElement defaultRange (Parser p) =
+    let
+        helper : ( s, List (Node a) ) -> Core.Parser (Core.Step ( s, List (Node a) ) ( s, ( Location, List (Node a) ) ))
+        helper ( oldState, items ) =
+            Core.oneOf
+                [ p oldState
+                    |> Core.map (\( newState, item ) -> Core.Loop ( newState, item :: items ))
+                , Core.succeed ()
+                    |> Core.map
+                        (\() ->
+                            Core.Done ( oldState, ( endLocationForList defaultRange items, List.reverse items ) )
+                        )
+                ]
+    in
+    Parser <|
+        \state ->
+            Core.loop ( state, [] ) helper
+
+
+endLocationForList : Range -> List (Node a) -> Location
+endLocationForList defaultRange list =
+    case list of
+        [] ->
+            defaultRange.end
+
+        (Node range _) :: _ ->
+            range.end
 
 
 type Step a b
