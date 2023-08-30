@@ -536,11 +536,9 @@ ifBlockExpression =
         |> Combine.ignore (maybe Layout.layout)
         |> Combine.keep expression
         |> Combine.ignore (maybe Layout.layout)
-        |> Combine.keep
-            (elseToken
-                |> Combine.continueWith Layout.layout
-                |> Combine.continueWith expression
-            )
+        |> Combine.ignore elseToken
+        |> Combine.ignore Layout.layout
+        |> Combine.keep expression
 
 
 operatorExpression : Parser State (Node Expression)
