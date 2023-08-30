@@ -401,13 +401,13 @@ charLiteralExpression =
 
 lambdaExpression : Parser State (Node Expression)
 lambdaExpression =
-    Ranges.withCurrentPoint
-        (\current ->
+    Combine.withLocation
+        (\start ->
             succeed
                 (\args expr ->
                     Lambda args expr
                         |> LambdaExpression
-                        |> Node { start = current.start, end = (Node.range expr).end }
+                        |> Node { start = start, end = (Node.range expr).end }
                 )
                 |> Combine.ignore (string "\\")
                 |> Combine.ignore (maybe Layout.layout)
