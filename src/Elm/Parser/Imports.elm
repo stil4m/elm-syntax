@@ -46,14 +46,13 @@ importDefinition =
                 , parseExposingDefinition mod Nothing
                 ]
     in
-    Node.parser (Combine.succeed ())
-        |> Combine.andThen
-            (\(Node { start } ()) ->
-                importAndModuleName
-                    |> Combine.ignore Layout.optimisticLayout
-                    |> Combine.andThen parseAsDefinition
-                    |> Combine.map (setupNode start)
-            )
+    Combine.withLocation
+        (\start ->
+            importAndModuleName
+                |> Combine.ignore Layout.optimisticLayout
+                |> Combine.andThen parseAsDefinition
+                |> Combine.map (setupNode start)
+        )
         |> Combine.ignore Layout.optimisticLayout
 
 
