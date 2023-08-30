@@ -16,12 +16,6 @@ import Elm.Syntax.Range exposing (Location, Range)
 importDefinition : Parser State (Node Import)
 importDefinition =
     let
-        importAndModuleName : Parser State (Node ModuleName)
-        importAndModuleName =
-            importToken
-                |> Combine.continueWith Layout.layout
-                |> Combine.continueWith (Node.parser moduleName)
-
         asDefinition : Parser State (Node ModuleName)
         asDefinition =
             asToken
@@ -48,7 +42,9 @@ importDefinition =
     in
     Combine.withLocation
         (\start ->
-            importAndModuleName
+            importToken
+                |> Combine.continueWith Layout.layout
+                |> Combine.continueWith (Node.parser moduleName)
                 |> Combine.ignore Layout.optimisticLayout
                 |> Combine.andThen parseAsDefinition
                 |> Combine.map (setupNode start)
