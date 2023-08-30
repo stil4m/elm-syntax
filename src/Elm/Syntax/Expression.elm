@@ -50,6 +50,9 @@ type alias Function =
 functionRange : Function -> Range
 functionRange function =
     let
+        { name, expression } =
+            Node.value function.declaration
+
         startRange : Range
         startRange =
             case function.documentation of
@@ -62,10 +65,10 @@ functionRange function =
                             Node.range value.name
 
                         Nothing ->
-                            function.declaration |> Node.value |> .name |> Node.range
+                            Node.range name
     in
     { start = startRange.start
-    , end = (Node.range (Node.value function.declaration).expression).end
+    , end = (Node.range expression).end
     }
 
 
