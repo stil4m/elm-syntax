@@ -161,7 +161,14 @@ liftRecordAccess e =
     or
         (string "."
             |> Combine.continueWith (Node.parser functionName)
-            |> Combine.andThen (\f -> liftRecordAccess (Node.combine RecordAccess e f))
+            |> Combine.andThen
+                (\f ->
+                    liftRecordAccess
+                        (Node
+                            { start = (Node.range e).start, end = (Node.range f).end }
+                            (RecordAccess e f)
+                        )
+                )
         )
         (succeed e)
 
