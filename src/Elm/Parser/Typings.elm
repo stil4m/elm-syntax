@@ -8,7 +8,7 @@ import Elm.Parser.Tokens exposing (functionName, typeName)
 import Elm.Parser.TypeAnnotation exposing (typeAnnotation, typeAnnotationNonGreedy)
 import Elm.Syntax.Declaration as Declaration
 import Elm.Syntax.Node as Node exposing (Node(..))
-import Elm.Syntax.Range as Range exposing (Range)
+import Elm.Syntax.Range exposing (Location, Range)
 import Elm.Syntax.Type exposing (ValueConstructor)
 import Elm.Syntax.TypeAnnotation exposing (TypeAnnotation)
 
@@ -43,14 +43,23 @@ typeDefinition =
                             |> Combine.keep typeAnnotation
                         , Combine.succeed
                             (\name generics constructors ->
-                                -- Get the position from the last argument
+                                let
+                                    end : Location
+                                    end =
+                                        case List.head constructors of
+                                            Just (Node range _) ->
+                                                range.end
+
+                                            Nothing ->
+                                                start
+                                in
                                 Node
-                                    (Range.combine ({ start = start, end = start } :: List.map Node.range constructors))
+                                    { start = start, end = end }
                                     (Declaration.CustomTypeDeclaration
                                         { documentation = Nothing
                                         , name = name
                                         , generics = generics
-                                        , constructors = constructors
+                                        , constructors = List.reverse constructors
                                         }
                                     )
                             )
@@ -68,7 +77,7 @@ typeDefinition =
 
 valueConstructors : Parser State (List (Node ValueConstructor))
 valueConstructors =
-    Combine.sepBy1
+    Combine.sepBy1WithoutReverse
         (Combine.ignore (maybe Layout.layout) (string "|"))
         valueConstructor
 
