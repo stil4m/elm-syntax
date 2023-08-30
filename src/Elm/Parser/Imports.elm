@@ -10,7 +10,7 @@ import Elm.Parser.Tokens exposing (asToken, importToken)
 import Elm.Syntax.Import exposing (Import)
 import Elm.Syntax.ModuleName exposing (ModuleName)
 import Elm.Syntax.Node as Node exposing (Node(..))
-import Elm.Syntax.Range as Range exposing (Range)
+import Elm.Syntax.Range exposing (Location, Range)
 
 
 importDefinition : Parser State (Node Import)
@@ -48,7 +48,7 @@ importDefinition =
     in
     Node.parser (Combine.succeed ())
         |> Combine.andThen
-            (\(Node start ()) ->
+            (\(Node { start } ()) ->
                 importAndModuleName
                     |> Combine.ignore Layout.optimisticLayout
                     |> Combine.andThen parseAsDefinition
@@ -57,17 +57,23 @@ importDefinition =
         |> Combine.ignore Layout.optimisticLayout
 
 
-setupNode : Range -> Import -> Node Import
+setupNode : Location -> Import -> Node Import
 setupNode start imp =
     let
-        allRanges : List (Maybe Range)
-        allRanges =
-            [ Just start
-            , Just (Node.range imp.moduleName)
-            , Maybe.map Node.range imp.exposingList
-            , Maybe.map Node.range imp.moduleAlias
-            ]
+        endRange : Range
+        endRange =
+            case imp.moduleAlias of
+                Just moduleAlias ->
+                    Node.range moduleAlias
+
+                Nothing ->
+                    case imp.exposingList of
+                        Just exposingList ->
+                            Node.range exposingList
+
+                        Nothing ->
+                            Node.range imp.moduleName
     in
     Node
-        (Range.combine (List.filterMap identity allRanges))
+        { start = start, end = endRange.end }
         imp
