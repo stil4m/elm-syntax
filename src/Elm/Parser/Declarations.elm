@@ -224,7 +224,8 @@ withIndentedState : Parser State a -> Parser State a
 withIndentedState p =
     withLocation
         (\location ->
-            (modifyState (pushColumn location.column) |> Combine.continueWith p)
+            modifyState (pushColumn location.column)
+                |> Combine.continueWith p
                 |> Combine.ignore (modifyState popIndent)
         )
 
