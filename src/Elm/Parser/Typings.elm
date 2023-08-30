@@ -10,7 +10,6 @@ import Elm.Syntax.Declaration as Declaration
 import Elm.Syntax.Node as Node exposing (Node(..))
 import Elm.Syntax.Range as Range
 import Elm.Syntax.Type exposing (Type, ValueConstructor)
-import Elm.Syntax.TypeAlias exposing (TypeAlias)
 import Elm.Syntax.TypeAnnotation exposing (TypeAnnotation)
 
 
@@ -21,7 +20,18 @@ typeDefinition =
             typePrefix
                 |> Combine.continueWith
                     (Combine.oneOf
-                        [ succeed (TypeAlias Nothing)
+                        [ succeed
+                            (\name generics typeAnnotation ->
+                                Node
+                                    { start = start, end = (Node.range typeAnnotation).end }
+                                    (Declaration.AliasDeclaration
+                                        { documentation = Nothing
+                                        , name = name
+                                        , generics = generics
+                                        , typeAnnotation = typeAnnotation
+                                        }
+                                    )
+                            )
                             |> Combine.ignore (string "alias" |> Combine.continueWith Layout.layout)
                             |> Combine.keep (Node.parser typeName |> Combine.ignore (maybe Layout.layout))
                             |> Combine.ignore (maybe Layout.layout)
@@ -29,12 +39,6 @@ typeDefinition =
                             |> Combine.ignore (string "=")
                             |> Combine.ignore (maybe Layout.layout)
                             |> Combine.keep typeAnnotation
-                            |> Combine.map
-                                (\typeAlias ->
-                                    Node
-                                        { start = start, end = (Node.range typeAlias.typeAnnotation).end }
-                                        (Declaration.AliasDeclaration typeAlias)
-                                )
                         , succeed (Type Nothing)
                             |> Combine.keep (Node.parser typeName)
                             |> Combine.ignore (maybe Layout.layout)
