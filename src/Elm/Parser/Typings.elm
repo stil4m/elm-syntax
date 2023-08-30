@@ -3,7 +3,6 @@ module Elm.Parser.Typings exposing (typeDefinition)
 import Combine exposing (Parser, many, maybe, string, succeed)
 import Elm.Parser.Layout as Layout
 import Elm.Parser.Node as Node
-import Elm.Parser.Ranges exposing (withCurrentPoint)
 import Elm.Parser.State exposing (State)
 import Elm.Parser.Tokens exposing (functionName, typeName)
 import Elm.Parser.TypeAnnotation exposing (typeAnnotation, typeAnnotationNonGreedy)
@@ -17,7 +16,7 @@ import Elm.Syntax.TypeAnnotation exposing (TypeAnnotation)
 
 typeDefinition : Parser State (Node Declaration.Declaration)
 typeDefinition =
-    withCurrentPoint
+    Combine.withLocation
         (\start ->
             typePrefix
                 |> Combine.continueWith
@@ -33,7 +32,7 @@ typeDefinition =
                             |> Combine.map
                                 (\typeAlias ->
                                     Node
-                                        { start = start.start, end = (Node.range typeAlias.typeAnnotation).end }
+                                        { start = start, end = (Node.range typeAlias.typeAnnotation).end }
                                         (Declaration.AliasDeclaration typeAlias)
                                 )
                         , succeed (Type Nothing)

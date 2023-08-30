@@ -1,4 +1,4 @@
-module Elm.Parser.Ranges exposing (withCurrentPoint, withRange)
+module Elm.Parser.Ranges exposing (withRange)
 
 import Combine exposing (Parser, succeed, withLocation)
 import Elm.Parser.State exposing (State)
@@ -19,12 +19,4 @@ withRange p =
                                 }
                         )
                     )
-        )
-
-
-withCurrentPoint : (Range -> Parser State a) -> Parser State a
-withCurrentPoint p =
-    withLocation
-        (\start ->
-            p { start = start, end = start }
         )
