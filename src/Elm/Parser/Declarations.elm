@@ -422,7 +422,8 @@ caseExpression =
             (\(Node start ()) ->
                 succeed CaseBlock
                     |> Combine.keep caseBlock
-                    |> Combine.keep (Layout.layout |> Combine.continueWith (withIndentedState caseStatements))
+                    |> Combine.ignore Layout.layout
+                    |> Combine.keep (withIndentedState caseStatements)
                     |> Combine.map
                         (\cb ->
                             Node (Range.combine (start :: List.map (Tuple.second >> Node.range) cb.cases))
