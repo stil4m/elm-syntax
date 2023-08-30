@@ -161,8 +161,7 @@ liftRecordAccess e =
     or
         (string "."
             |> Combine.continueWith (Node.parser functionName)
-            |> Combine.map (\f -> Node.combine RecordAccess e f)
-            |> Combine.andThen liftRecordAccess
+            |> Combine.andThen (\f -> liftRecordAccess (Node.combine RecordAccess e f))
         )
         (succeed e)
 
