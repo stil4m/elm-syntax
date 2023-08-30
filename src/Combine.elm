@@ -31,7 +31,7 @@ module Combine exposing
     , withState
     )
 
-import Elm.Syntax.Node exposing (Node(..))
+import Elm.Syntax.Node as Node exposing (Node(..))
 import Elm.Syntax.Range exposing (Location, Range)
 import Parser as Core exposing ((|=))
 
@@ -210,6 +210,16 @@ manyWithEndLocationForLastElement defaultRange (Parser p) =
     Parser <|
         \state ->
             Core.loop ( state, [] ) helper
+
+
+many1WithEndLocationForLastElement : Parser s (Node a) -> Parser s ( Location, List (Node a) )
+many1WithEndLocationForLastElement p =
+    p
+        |> andThen
+            (\a ->
+                manyWithEndLocationForLastElement (Node.range a) p
+                    |> map (\( location, list ) -> ( location, a :: list ))
+            )
 
 
 endLocationForList : Range -> List (Node a) -> Location
