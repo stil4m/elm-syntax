@@ -119,9 +119,12 @@ infixDeclaration =
 infixDirection : Parser State Infix.InfixDirection
 infixDirection =
     oneOf
-        [ succeed Infix.Right |> Combine.ignore (string "right")
-        , succeed Infix.Left |> Combine.ignore (string "left")
-        , succeed Infix.Non |> Combine.ignore (string "non")
+        [ string "right"
+            |> Combine.map (\_ -> Infix.Right)
+        , string "left"
+            |> Combine.map (\_ -> Infix.Left)
+        , string "non"
+            |> Combine.map (\_ -> Infix.Non)
         ]
 
 
