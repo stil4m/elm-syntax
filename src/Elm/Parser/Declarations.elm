@@ -226,7 +226,9 @@ expression =
                                     (expressionNotApplication
                                         |> Combine.andThen (\next -> promoter (Node.range next) (next :: rest))
                                     )
-                                    (complete lastExpressionRange rest)
+                                    (Combine.succeed ()
+                                        |> Combine.andThen (\() -> complete lastExpressionRange rest)
+                                    )
                             )
                 in
                 case first of
