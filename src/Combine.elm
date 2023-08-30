@@ -31,7 +31,6 @@ module Combine exposing
     , withState
     )
 
-import Elm.Syntax.Node as Node exposing (Node(..))
 import Elm.Syntax.Range exposing (Location, Range)
 import Parser as Core exposing ((|=))
 
@@ -192,10 +191,10 @@ many (Parser p) =
             Core.loop ( state, [] ) helper
 
 
-manyWithEndLocationForLastElement : Range -> Parser s (Node a) -> Parser s ( Location, List (Node a) )
-manyWithEndLocationForLastElement defaultRange (Parser p) =
+manyWithEndLocationForLastElement : Range -> (a -> Range) -> Parser s a -> Parser s ( Location, List a )
+manyWithEndLocationForLastElement defaultRange getRange (Parser p) =
     let
-        helper : ( s, List (Node a) ) -> Core.Parser (Core.Step ( s, List (Node a) ) ( s, ( Location, List (Node a) ) ))
+        helper : ( s, List a ) -> Core.Parser (Core.Step ( s, List a ) ( s, ( Location, List a ) ))
         helper ( oldState, items ) =
             Core.oneOf
                 [ p oldState
@@ -203,7 +202,7 @@ manyWithEndLocationForLastElement defaultRange (Parser p) =
                 , Core.succeed ()
                     |> Core.map
                         (\() ->
-                            Core.Done ( oldState, ( endLocationForList defaultRange items, List.reverse items ) )
+                            Core.Done ( oldState, ( endLocationForList defaultRange getRange items, List.reverse items ) )
                         )
                 ]
     in
@@ -212,24 +211,24 @@ manyWithEndLocationForLastElement defaultRange (Parser p) =
             Core.loop ( state, [] ) helper
 
 
-many1WithEndLocationForLastElement : Parser s (Node a) -> Parser s ( Location, List (Node a) )
-many1WithEndLocationForLastElement p =
+many1WithEndLocationForLastElement : (a -> Range) -> Parser s a -> Parser s ( Location, List a )
+many1WithEndLocationForLastElement getRange p =
     p
         |> andThen
             (\a ->
-                manyWithEndLocationForLastElement (Node.range a) p
+                manyWithEndLocationForLastElement (getRange a) getRange p
                     |> map (\( location, list ) -> ( location, a :: list ))
             )
 
 
-endLocationForList : Range -> List (Node a) -> Location
-endLocationForList defaultRange list =
+endLocationForList : Range -> (a -> Range) -> List a -> Location
+endLocationForList defaultRange getRange list =
     case list of
         [] ->
             defaultRange.end
 
-        (Node range _) :: _ ->
-            range.end
+        a :: _ ->
+            (getRange a).end
 
 
 type Step a b
