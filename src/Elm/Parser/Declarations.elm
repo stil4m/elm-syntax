@@ -417,18 +417,17 @@ caseStatements =
 
 caseExpression : Parser State (Node Expression)
 caseExpression =
-    Node.parser (Combine.succeed ())
-        |> Combine.andThen
-            (\(Node start ()) ->
-                succeed
-                    (\caseBlock_ ( end, cases ) ->
-                        Node { start = start.start, end = end }
-                            (CaseExpression (CaseBlock caseBlock_ cases))
-                    )
-                    |> Combine.keep caseBlock
-                    |> Combine.ignore Layout.layout
-                    |> Combine.keep (withIndentedState caseStatements)
-            )
+    Combine.withLocation
+        (\start ->
+            succeed
+                (\caseBlock_ ( end, cases ) ->
+                    Node { start = start, end = end }
+                        (CaseExpression (CaseBlock caseBlock_ cases))
+                )
+                |> Combine.keep caseBlock
+                |> Combine.ignore Layout.layout
+                |> Combine.keep (withIndentedState caseStatements)
+        )
 
 
 
