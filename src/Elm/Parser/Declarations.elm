@@ -400,20 +400,17 @@ charLiteralExpression =
 
 lambdaExpression : Parser State (Node Expression)
 lambdaExpression =
-    Combine.withLocation
-        (\start ->
-            succeed
-                (\args expr ->
-                    Lambda args expr
-                        |> LambdaExpression
-                        |> Node { start = start, end = (Node.range expr).end }
-                )
-                |> Combine.ignore (string "\\")
-                |> Combine.ignore (maybe Layout.layout)
-                |> Combine.keep (sepBy1 (maybe Layout.layout) functionArgument)
-                |> Combine.ignore (Layout.maybeAroundBothSides (string "->"))
-                |> Combine.keep expression
+    succeed
+        (\(Node { start } _) args expr ->
+            Lambda args expr
+                |> LambdaExpression
+                |> Node { start = start, end = (Node.range expr).end }
         )
+        |> Combine.keep (Node.parser (string "\\"))
+        |> Combine.ignore (maybe Layout.layout)
+        |> Combine.keep (sepBy1 (maybe Layout.layout) functionArgument)
+        |> Combine.ignore (Layout.maybeAroundBothSides (string "->"))
+        |> Combine.keep expression
 
 
 
