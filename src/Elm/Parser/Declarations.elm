@@ -411,7 +411,8 @@ lambdaExpression =
                 |> Combine.ignore (string "\\")
                 |> Combine.ignore (maybe Layout.layout)
                 |> Combine.keep (sepBy1 (maybe Layout.layout) functionArgument)
-                |> Combine.keep (Layout.maybeAroundBothSides (string "->") |> Combine.continueWith expression)
+                |> Combine.ignore (Layout.maybeAroundBothSides (string "->"))
+                |> Combine.keep expression
         )
 
 
