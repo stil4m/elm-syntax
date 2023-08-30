@@ -100,15 +100,6 @@ signature =
 
 infixDeclaration : Parser State (Node Declaration)
 infixDeclaration =
-    Combine.withLocation
-        (\start ->
-            infixDefinition
-                |> Combine.map (\inf -> Node { start = start, end = (Node.range inf.function).end } (Declaration.InfixDeclaration inf))
-        )
-
-
-infixDefinition : Parser State Infix
-infixDefinition =
     succeed Infix
         |> Combine.ignore (Combine.fromCore (Core.keyword "infix"))
         |> Combine.ignore Layout.layout
@@ -121,6 +112,8 @@ infixDefinition =
         |> Combine.ignore (string "=")
         |> Combine.ignore Layout.layout
         |> Combine.keep (Node.parser functionName)
+        |> Combine.map Declaration.InfixDeclaration
+        |> Node.parser
 
 
 infixDirection : Parser State Infix.InfixDirection
