@@ -256,7 +256,13 @@ listExpression =
             succeed (::)
                 |> Combine.keep expression
                 |> Combine.ignore (maybe Layout.layout)
-                |> Combine.keep (many (string "," |> Combine.ignore (maybe Layout.layout) |> Combine.continueWith expression))
+                |> Combine.keep
+                    (many
+                        (string ","
+                            |> Combine.ignore (maybe Layout.layout)
+                            |> Combine.continueWith expression
+                        )
+                    )
                 |> Combine.ignore (string "]")
                 |> Combine.map ListExpr
     in
