@@ -10,7 +10,7 @@ module Elm.Parser exposing
 
 -}
 
-import Combine exposing (Parser, end, withLocation)
+import Combine exposing (Parser, end)
 import Elm.Internal.RawFile as InternalRawFile
 import Elm.Parser.File exposing (file)
 import Elm.Parser.State exposing (State, emptyState)
@@ -51,4 +51,4 @@ parseToFile input =
 
 withEnd : Parser State File -> Parser State File
 withEnd p =
-    p |> Combine.ignore (withLocation (\_ -> end))
+    p |> Combine.ignore end
