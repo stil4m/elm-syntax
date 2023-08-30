@@ -522,9 +522,9 @@ letBlock =
 
 letExpression : Parser State (Node Expression)
 letExpression =
-    Ranges.withCurrentPoint
-        (\current ->
-            succeed (\decls expr -> Node { start = current.start, end = (Node.range expr).end } (LetBlock decls expr |> LetExpression))
+    Combine.withLocation
+        (\start ->
+            succeed (\decls expr -> Node { start = start, end = (Node.range expr).end } (LetBlock decls expr |> LetExpression))
                 |> Combine.keep letBlock
                 |> Combine.keep (Layout.layout |> Combine.continueWith expression)
         )
