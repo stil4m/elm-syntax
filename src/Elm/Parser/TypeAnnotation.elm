@@ -25,11 +25,10 @@ typeAnnotation =
                     (\() -> succeed typeRef)
                     (\() ->
                         Combine.oneOf
-                            [ Combine.map (\ta -> Node.combine TypeAnnotation.FunctionTypeAnnotation typeRef ta)
-                                (string "->"
-                                    |> Combine.ignore (maybe Layout.layout)
-                                    |> Combine.continueWith typeAnnotation
-                                )
+                            [ string "->"
+                                |> Combine.ignore (maybe Layout.layout)
+                                |> Combine.continueWith typeAnnotation
+                                |> Combine.map (\ta -> Node.combine TypeAnnotation.FunctionTypeAnnotation typeRef ta)
                             , succeed typeRef
                             ]
                     )

@@ -432,14 +432,12 @@ lambdaExpression =
 
 caseStatement : Parser State Case
 caseStatement =
-    succeed Tuple.pair
+    Combine.succeed Tuple.pair
         |> Combine.keep pattern
-        |> Combine.keep
-            (maybe (Combine.oneOf [ Layout.layout, Layout.layoutStrict ])
-                |> Combine.continueWith (string "->")
-                |> Combine.continueWith (maybe Layout.layout)
-                |> Combine.continueWith expression
-            )
+        |> Combine.ignore (maybe (Combine.oneOf [ Layout.layout, Layout.layoutStrict ]))
+        |> Combine.ignore (string "->")
+        |> Combine.ignore (maybe Layout.layout)
+        |> Combine.keep expression
 
 
 caseStatements : Parser State ( Location, Cases )
