@@ -8,7 +8,7 @@ import Elm.Parser.Tokens exposing (functionName, typeName)
 import Elm.Parser.TypeAnnotation exposing (typeAnnotation, typeAnnotationNonGreedy)
 import Elm.Syntax.Declaration as Declaration
 import Elm.Syntax.Node as Node exposing (Node(..))
-import Elm.Syntax.Range as Range
+import Elm.Syntax.Range as Range exposing (Range)
 import Elm.Syntax.Type exposing (ValueConstructor)
 import Elm.Syntax.TypeAnnotation exposing (TypeAnnotation)
 
@@ -82,9 +82,14 @@ valueConstructor =
                 let
                     complete : List (Node TypeAnnotation) -> Parser State (Node ValueConstructor)
                     complete args =
+                        let
+                            endRange : Range
+                            endRange =
+                                List.head args |> Maybe.map Node.range |> Maybe.withDefault range
+                        in
                         Combine.succeed
                             (Node
-                                (Range.combine (range :: List.map Node.range args))
+                                { start = range.start, end = endRange.end }
                                 (ValueConstructor tnn (List.reverse args))
                             )
 
