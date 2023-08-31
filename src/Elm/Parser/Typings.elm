@@ -94,7 +94,8 @@ valueConstructor =
                                             (\() -> Combine.succeed (List.reverse (ta :: xs)))
                                             (\() -> argHelper (ta :: xs))
                                     )
-                            , Combine.succeed (List.reverse xs)
+                            , Combine.succeed ()
+                                |> Combine.map (\() -> List.reverse xs)
                             ]
                 in
                 Layout.optimisticLayoutWith
