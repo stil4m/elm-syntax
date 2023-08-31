@@ -125,7 +125,9 @@ quotedSingleQuote =
     Core.succeed (String.toList >> List.head >> Maybe.withDefault ' ')
         |. Core.symbol "'"
         |= Core.oneOf
-            [ Core.succeed (List.singleton >> String.fromList) |. Core.symbol "\\" |= escapedCharValue
+            [ Core.succeed (List.singleton >> String.fromList)
+                |. Core.symbol "\\"
+                |= escapedCharValue
             , Core.getChompedString (Core.chompIf (always True))
             ]
         |. Core.symbol "'"
