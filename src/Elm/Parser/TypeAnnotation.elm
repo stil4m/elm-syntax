@@ -189,13 +189,13 @@ typedTypeAnnotation mode =
                     (\() ->
                         case mode of
                             Eager ->
-                                Combine.map
-                                    (\args ->
-                                        Node
-                                            (Range.combine (tir :: List.map Node.range args))
-                                            (TypeAnnotation.Typed original args)
-                                    )
-                                    (genericHelper [])
+                                genericHelper []
+                                    |> Combine.map
+                                        (\args ->
+                                            Node
+                                                (Range.combine (tir :: List.map Node.range args))
+                                                (TypeAnnotation.Typed original args)
+                                        )
 
                             Lazy ->
                                 Combine.succeed (Node tir (TypeAnnotation.Typed original []))
