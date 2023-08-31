@@ -64,6 +64,7 @@ functionWithNameNode pointer =
                 |> Combine.andThen
                     (\sig ->
                         Node.parser functionName
+                            |> Combine.andThen (failIfDifferentFrom varPointer)
                             |> Combine.ignore (maybe Layout.layout)
                             |> Combine.andThen functionImplementationFromVarPointer
                             |> Combine.map (fromParts sig)
@@ -78,6 +79,15 @@ functionWithNameNode pointer =
         [ functionWithSignature pointer
         , functionWithoutSignature pointer
         ]
+
+
+failIfDifferentFrom : Node String -> Node String -> Parser State (Node String)
+failIfDifferentFrom (Node _ expectedName) ((Node _ actualName) as actual) =
+    if expectedName == actualName then
+        Combine.succeed actual
+
+    else
+        Combine.fail <| "Expected to find the declaration for " ++ expectedName ++ " but found " ++ actualName
 
 
 function : Parser State (Node Declaration)

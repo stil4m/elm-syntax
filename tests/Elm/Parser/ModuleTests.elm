@@ -412,6 +412,21 @@ b = 2
                                 ]
                             }
                         )
+        , test "should fail to parse two signatures in a row" <|
+            \() ->
+                """module TestModule exposing (..)
+a : Int
+b : Int
+b = 2
+"""
+                    |> expectInvalid
+        , test "should fail to parse signature for a different function" <|
+            \() ->
+                """module TestModule exposing (..)
+a : Int
+b = 2
+"""
+                    |> expectInvalid
         ]
 
 
@@ -424,3 +439,13 @@ expectAst expected source =
         Just actual ->
             actual
                 |> Expect.equal expected
+
+
+expectInvalid : String -> Expect.Expectation
+expectInvalid source =
+    case parse source File.file of
+        Nothing ->
+            Expect.pass
+
+        Just actual ->
+            Expect.fail ("This source code is successfully parsed but it shouldn't:\n" ++ Debug.toString actual)
