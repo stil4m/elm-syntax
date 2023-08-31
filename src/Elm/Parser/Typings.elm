@@ -85,7 +85,7 @@ valueConstructor =
                         Combine.succeed
                             (Node
                                 (Range.combine (range :: List.map Node.range args))
-                                (ValueConstructor tnn args)
+                                (ValueConstructor tnn (List.reverse args))
                             )
 
                     argHelper : List (Node TypeAnnotation) -> Parser State (List (Node TypeAnnotation))
@@ -95,11 +95,11 @@ valueConstructor =
                                 |> Combine.andThen
                                     (\ta ->
                                         Layout.optimisticLayoutWith
-                                            (\() -> Combine.succeed (List.reverse (ta :: xs)))
+                                            (\() -> Combine.succeed (ta :: xs))
                                             (\() -> argHelper (ta :: xs))
                                     )
                             , Combine.succeed ()
-                                |> Combine.map (\() -> List.reverse xs)
+                                |> Combine.map (\() -> xs)
                             ]
                 in
                 Layout.optimisticLayoutWith
