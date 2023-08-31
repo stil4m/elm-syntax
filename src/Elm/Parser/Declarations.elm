@@ -655,18 +655,17 @@ tupledExpression =
         closingParen =
             Combine.fromCore (Core.symbol ")")
     in
-    Node.parser
-        (Combine.fromCore (Core.symbol "(")
-            |> Combine.continueWith
-                (Combine.oneOf
-                    [ closingParen |> Combine.map (always UnitExpr)
-                    , -- Backtracking needed for record access expression
-                      Combine.backtrackable
-                        (prefixOperatorToken
-                            |> Combine.ignore closingParen
-                            |> Combine.map PrefixOperator
-                        )
-                    , nested |> Combine.ignore closingParen
-                    ]
-                )
-        )
+    Combine.fromCore (Core.symbol "(")
+        |> Combine.continueWith
+            (Combine.oneOf
+                [ closingParen |> Combine.map (always UnitExpr)
+                , -- Backtracking needed for record access expression
+                  Combine.backtrackable
+                    (prefixOperatorToken
+                        |> Combine.ignore closingParen
+                        |> Combine.map PrefixOperator
+                    )
+                , nested |> Combine.ignore closingParen
+                ]
+            )
+        |> Node.parser
