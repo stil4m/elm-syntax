@@ -13,6 +13,7 @@ module Combine exposing
     , many
     , many1
     , many1WithEndLocationForLastElement
+    , manyWithEndLocationForLastElement
     , map
     , maybe
     , modifyState

@@ -1,6 +1,6 @@
 module Elm.Parser.Patterns exposing (pattern)
 
-import Combine exposing (Parser, between, many, maybe, parens, sepBy, string)
+import Combine exposing (Parser, between, maybe, parens, sepBy, string)
 import Elm.Parser.Base as Base
 import Elm.Parser.Layout as Layout
 import Elm.Parser.Node as Node
@@ -9,7 +9,6 @@ import Elm.Parser.State exposing (State)
 import Elm.Parser.Tokens exposing (characterLiteral, functionName, stringLiteral)
 import Elm.Syntax.Node as Node exposing (Node(..))
 import Elm.Syntax.Pattern exposing (Pattern(..), QualifiedNameRef)
-import Elm.Syntax.Range as Range
 import Parser as Core
 
 
@@ -117,15 +116,15 @@ qualifiedPattern consumeArgs =
         |> Combine.andThen
             (\(Node range ( mod, name )) ->
                 (if consumeArgs then
-                    many (qualifiedPatternArg |> Combine.ignore (maybe Layout.layout))
+                    Combine.manyWithEndLocationForLastElement range Node.range (qualifiedPatternArg |> Combine.ignore (maybe Layout.layout))
 
                  else
-                    Combine.succeed []
+                    Combine.succeed ( range.end, [] )
                 )
                     |> Combine.map
-                        (\args ->
+                        (\( end, args ) ->
                             Node
-                                (Range.combine (range :: List.map Node.range args))
+                                { start = range.start, end = end }
                                 (NamedPattern (QualifiedNameRef mod name) args)
                         )
             )
