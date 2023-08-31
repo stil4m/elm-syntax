@@ -82,7 +82,11 @@ valueConstructor =
                 let
                     complete : List (Node TypeAnnotation) -> Parser State (Node ValueConstructor)
                     complete args =
-                        Combine.succeed (Node (Range.combine (range :: List.map Node.range args)) (ValueConstructor tnn args))
+                        Combine.succeed
+                            (Node
+                                (Range.combine (range :: List.map Node.range args))
+                                (ValueConstructor tnn args)
+                            )
 
                     argHelper : List (Node TypeAnnotation) -> Parser State (List (Node TypeAnnotation))
                     argHelper xs =
