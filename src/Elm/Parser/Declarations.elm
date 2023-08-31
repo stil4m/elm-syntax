@@ -60,10 +60,10 @@ functionWithNameNode pointer =
         functionWithSignature : Node String -> Parser State Function
         functionWithSignature varPointer =
             functionSignatureFromVarPointer varPointer
+                |> Combine.ignore (maybe Layout.layoutStrict)
                 |> Combine.andThen
                     (\sig ->
-                        maybe Layout.layoutStrict
-                            |> Combine.continueWith (Node.parser functionName)
+                        Node.parser functionName
                             |> Combine.ignore (maybe Layout.layout)
                             |> Combine.andThen functionImplementationFromVarPointer
                             |> Combine.map (fromParts sig)
