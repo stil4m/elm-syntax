@@ -1,6 +1,6 @@
 module Elm.Parser.Declarations exposing (declaration, expression, letExpression)
 
-import Combine exposing (Parser, lazy, many, maybe, modifyState, oneOf, or, sepBy1, string, succeed, withLocation)
+import Combine exposing (Parser, lazy, many, maybe, modifyState, oneOf, sepBy1, string, succeed, withLocation)
 import Elm.Parser.Layout as Layout
 import Elm.Parser.Node as Node
 import Elm.Parser.Numbers
@@ -186,8 +186,8 @@ expressionNotApplication =
 
 liftRecordAccess : Node Expression -> Parser State (Node Expression)
 liftRecordAccess e =
-    or
-        (string "."
+    Combine.oneOf
+        [ Combine.string "."
             |> Combine.continueWith (Node.parser functionName)
             |> Combine.andThen
                 (\f ->
@@ -197,8 +197,8 @@ liftRecordAccess e =
                             (RecordAccess e f)
                         )
                 )
-        )
-        (succeed e)
+        , Combine.succeed e
+        ]
 
 
 expression : Parser State (Node Expression)
@@ -228,13 +228,12 @@ expression =
                         Layout.optimisticLayoutWith
                             (\() -> complete lastExpressionRange rest)
                             (\() ->
-                                or
-                                    (expressionNotApplication
+                                Combine.oneOf
+                                    [ expressionNotApplication
                                         |> Combine.andThen (\next -> promoter (Node.range next) (next :: rest))
-                                    )
-                                    (Combine.succeed ()
+                                    , Combine.succeed ()
                                         |> Combine.andThen (\() -> complete lastExpressionRange rest)
-                                    )
+                                    ]
                             )
                 in
                 case first of
@@ -395,7 +394,11 @@ recordField =
 
 literalExpression : Parser State (Node Expression)
 literalExpression =
-    Combine.map Literal (or multiLineStringLiteral stringLiteral)
+    Combine.oneOf
+        [ multiLineStringLiteral
+        , stringLiteral
+        ]
+        |> Combine.map Literal
         |> Node.parser
 
 
@@ -432,7 +435,7 @@ caseStatement =
     succeed Tuple.pair
         |> Combine.keep pattern
         |> Combine.keep
-            (maybe (or Layout.layout Layout.layoutStrict)
+            (maybe (Combine.oneOf [ Layout.layout, Layout.layoutStrict ])
                 |> Combine.continueWith (string "->")
                 |> Combine.continueWith (maybe Layout.layout)
                 |> Combine.continueWith expression

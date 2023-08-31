@@ -19,7 +19,7 @@ module Elm.Parser.Tokens exposing
     )
 
 import Char
-import Combine exposing (Parser, fail, many1, or, string, succeed)
+import Combine exposing (Parser, fail, many1, string, succeed)
 import Combine.Char exposing (anyChar, char, oneOf)
 import Hex
 import Parser as Core exposing ((|.), (|=), Step(..))
@@ -134,11 +134,12 @@ quotedSingleQuote =
 
 characterLiteral : Parser s Char
 characterLiteral =
-    or quotedSingleQuote
-        (char '\''
+    Combine.oneOf
+        [ quotedSingleQuote
+        , char '\''
             |> Combine.continueWith anyChar
             |> Combine.ignore (char '\'')
-        )
+        ]
 
 
 type alias StringLiteralLoopState =

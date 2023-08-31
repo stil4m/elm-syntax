@@ -1,6 +1,6 @@
 module Elm.Parser.Layout exposing (LayoutStatus(..), layout, layoutStrict, maybeAroundBothSides, optimisticLayout, optimisticLayoutWith)
 
-import Combine exposing (Parser, fail, many, many1, maybe, oneOf, or, succeed, withLocation, withState)
+import Combine exposing (Parser, fail, many, many1, maybe, oneOf, succeed, withLocation, withState)
 import Elm.Parser.Comments as Comments
 import Elm.Parser.State as State exposing (State)
 import Elm.Parser.Whitespace exposing (many1Spaces, realNewLine)
@@ -8,9 +8,10 @@ import Elm.Parser.Whitespace exposing (many1Spaces, realNewLine)
 
 anyComment : Combine.Parser State ()
 anyComment =
-    or
-        Comments.singleLineComment
-        Comments.multilineComment
+    Combine.oneOf
+        [ Comments.singleLineComment
+        , Comments.multilineComment
+        ]
 
 
 layout : Parser State ()

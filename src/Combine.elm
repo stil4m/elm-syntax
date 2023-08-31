@@ -18,7 +18,6 @@ module Combine exposing
     , maybe
     , modifyState
     , oneOf
-    , or
     , parens
     , runParser
     , sepBy
@@ -144,16 +143,6 @@ end =
             Core.end |> Core.map (\x -> ( state, x ))
 
 
-or : Parser s a -> Parser s a -> Parser s a
-or (Parser lp) (Parser rp) =
-    Parser <|
-        \state ->
-            Core.oneOf
-                [ lp state
-                , rp state
-                ]
-
-
 backtrackable : Parser s a -> Parser s a
 backtrackable (Parser p) =
     Parser <| \state -> Core.backtrackable (p state)
@@ -248,7 +237,10 @@ many1 p =
 
 sepBy : Parser s x -> Parser s a -> Parser s (List a)
 sepBy sep p =
-    or (sepBy1 sep p) (succeed [])
+    oneOf
+        [ sepBy1 sep p
+        , succeed []
+        ]
 
 
 sepBy1 : Parser s x -> Parser s a -> Parser s (List a)

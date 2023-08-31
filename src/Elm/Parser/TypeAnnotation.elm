@@ -24,14 +24,14 @@ typeAnnotation =
                 Layout.optimisticLayoutWith
                     (\() -> succeed typeRef)
                     (\() ->
-                        or
-                            (Combine.map (\ta -> Node.combine TypeAnnotation.FunctionTypeAnnotation typeRef ta)
+                        Combine.oneOf
+                            [ Combine.map (\ta -> Node.combine TypeAnnotation.FunctionTypeAnnotation typeRef ta)
                                 (string "->"
                                     |> Combine.ignore (maybe Layout.layout)
                                     |> Combine.continueWith typeAnnotation
                                 )
-                            )
-                            (succeed typeRef)
+                            , succeed typeRef
+                            ]
                     )
             )
 
@@ -167,8 +167,8 @@ typedTypeAnnotation mode =
     let
         genericHelper : List (Node TypeAnnotation) -> Parser State (List (Node TypeAnnotation))
         genericHelper items =
-            or
-                (typeAnnotationNoFn Lazy
+            Combine.oneOf
+                [ typeAnnotationNoFn Lazy
                     |> Combine.andThen
                         (\next ->
                             Layout.optimisticLayoutWith
@@ -176,8 +176,8 @@ typedTypeAnnotation mode =
                                 (\() -> genericHelper (next :: items))
                                 |> Combine.ignore (maybe Layout.layout)
                         )
-                )
-                (Combine.succeed items)
+                , Combine.succeed items
+                ]
     in
     Node.parser typeIndicator
         |> Combine.andThen
