@@ -572,14 +572,14 @@ operatorExpression =
 referenceExpression : Parser State (Node Expression)
 referenceExpression =
     let
-        helper : ( ModuleName, String ) -> Parser s Expression
-        helper ( moduleNameSoFar, nameOrSegment ) =
+        helper : ModuleName -> String -> Parser s Expression
+        helper moduleNameSoFar nameOrSegment =
             Combine.oneOf
                 [ string "."
                     |> Combine.continueWith
                         (Combine.oneOf
                             [ Tokens.typeName
-                                |> Combine.andThen (\t -> helper ( nameOrSegment :: moduleNameSoFar, t ))
+                                |> Combine.andThen (\t -> helper (nameOrSegment :: moduleNameSoFar) t)
                             , Tokens.functionName
                                 |> Combine.map
                                     (\name ->
@@ -595,7 +595,7 @@ referenceExpression =
     in
     Combine.oneOf
         [ Tokens.typeName
-            |> Combine.andThen (\t -> helper ( [], t ))
+            |> Combine.andThen (\t -> helper [] t)
         , Tokens.functionName
             |> Combine.map (\v -> FunctionOrValue [] v)
         ]
