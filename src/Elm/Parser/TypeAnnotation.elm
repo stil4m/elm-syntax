@@ -7,7 +7,7 @@ import Elm.Parser.Node as Node
 import Elm.Parser.State exposing (State)
 import Elm.Parser.Tokens exposing (functionName)
 import Elm.Syntax.Node as Node exposing (Node(..))
-import Elm.Syntax.Range as Range
+import Elm.Syntax.Range exposing (Range)
 import Elm.Syntax.TypeAnnotation as TypeAnnotation exposing (TypeAnnotation)
 
 
@@ -172,14 +172,12 @@ typedTypeAnnotation mode =
                     |> Combine.andThen
                         (\next ->
                             Layout.optimisticLayoutWith
-                                (\() -> Combine.succeed (List.reverse (next :: items)))
+                                (\() -> Combine.succeed (next :: items))
                                 (\() -> genericHelper (next :: items))
                                 |> Combine.ignore (maybe Layout.layout)
                         )
                 )
-                (Combine.succeed ()
-                    |> Combine.map (\() -> List.reverse items)
-                )
+                (Combine.succeed items)
     in
     Node.parser typeIndicator
         |> Combine.andThen
@@ -192,9 +190,19 @@ typedTypeAnnotation mode =
                                 genericHelper []
                                     |> Combine.map
                                         (\args ->
+                                            let
+                                                endRange : Range
+                                                endRange =
+                                                    case args of
+                                                        (Node argRange _) :: _ ->
+                                                            argRange
+
+                                                        [] ->
+                                                            tir
+                                            in
                                             Node
-                                                (Range.combine (tir :: List.map Node.range args))
-                                                (TypeAnnotation.Typed original args)
+                                                { start = tir.start, end = endRange.end }
+                                                (TypeAnnotation.Typed original (List.reverse args))
                                         )
 
                             Lazy ->
