@@ -2,3 +2,4 @@ elm-stuff
 parse.js
 node_modules
 .idea
+*.html
