@@ -99,26 +99,23 @@ valueConstructor =
                                 (ValueConstructor tnn (List.reverse args))
                             )
 
-                    argHelper : List (Node TypeAnnotation) -> Parser State (List (Node TypeAnnotation))
+                    argHelper : List (Node TypeAnnotation) -> Parser State (Node ValueConstructor)
                     argHelper xs =
                         Combine.oneOf
                             [ typeAnnotationNonGreedy
                                 |> Combine.andThen
                                     (\ta ->
                                         Layout.optimisticLayoutWith
-                                            (\() -> Combine.succeed (ta :: xs))
+                                            (\() -> complete (ta :: xs))
                                             (\() -> argHelper (ta :: xs))
                                     )
-                            , Combine.succeed ()
-                                |> Combine.map (\() -> xs)
+                            , Combine.succeed xs
+                                |> Combine.andThen complete
                             ]
                 in
                 Layout.optimisticLayoutWith
                     (\() -> complete [])
-                    (\() ->
-                        argHelper []
-                            |> Combine.andThen complete
-                    )
+                    (\() -> argHelper [])
             )
 
 
