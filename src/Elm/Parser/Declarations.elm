@@ -358,11 +358,11 @@ recordContents =
 
 recordUpdateSyntaxParser : Node String -> Parser State Expression
 recordUpdateSyntaxParser fname =
-    string "|"
+    Combine.succeed (\e -> RecordUpdateExpression fname e)
+        |> Combine.ignore (string "|")
         |> Combine.ignore (maybe Layout.layout)
-        |> Combine.continueWith recordFields
+        |> Combine.keep recordFields
         |> Combine.ignore (string "}")
-        |> Combine.map (\e -> RecordUpdateExpression fname e)
 
 
 recordFields : Parser State (List (Node RecordSetter))
