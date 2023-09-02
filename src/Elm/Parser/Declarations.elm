@@ -345,11 +345,11 @@ recordContents =
                                 Combine.oneOf
                                     [ string "}"
                                         |> Combine.map (always (RecordExpr [ fieldUpdate ]))
-                                    , string ","
+                                    , Combine.succeed (\fieldUpdates -> RecordExpr (fieldUpdate :: fieldUpdates))
+                                        |> Combine.ignore (string ",")
                                         |> Combine.ignore (maybe Layout.layout)
-                                        |> Combine.continueWith recordFields
+                                        |> Combine.keep recordFields
                                         |> Combine.ignore (string "}")
-                                        |> Combine.map (\fieldUpdates -> RecordExpr (fieldUpdate :: fieldUpdates))
                                     ]
                             )
                     ]
