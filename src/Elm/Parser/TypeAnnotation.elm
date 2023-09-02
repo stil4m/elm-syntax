@@ -116,7 +116,8 @@ recordTypeAnnotation =
             |> Combine.ignore (maybe Layout.layout)
             |> Combine.continueWith
                 (Combine.oneOf
-                    [ Combine.string "}" |> Combine.continueWith (Combine.succeed (TypeAnnotation.Record []))
+                    [ Combine.succeed (TypeAnnotation.Record [])
+                        |> Combine.ignore (Combine.string "}")
                     , Node.parser functionName
                         |> Combine.ignore (maybe Layout.layout)
                         |> Combine.andThen
