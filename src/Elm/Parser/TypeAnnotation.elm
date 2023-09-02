@@ -111,42 +111,41 @@ recordFieldsTypeAnnotation =
 
 recordTypeAnnotation : Parser State (Node TypeAnnotation)
 recordTypeAnnotation =
-    Node.parser
-        (string "{"
-            |> Combine.ignore (maybe Layout.layout)
-            |> Combine.continueWith
-                (Combine.oneOf
-                    [ Combine.succeed (TypeAnnotation.Record [])
-                        |> Combine.ignore (Combine.string "}")
-                    , Node.parser functionName
-                        |> Combine.ignore (maybe Layout.layout)
-                        |> Combine.andThen
-                            (\fname ->
-                                Combine.oneOf
-                                    [ Combine.succeed (TypeAnnotation.GenericRecord fname)
-                                        |> Combine.ignore (Combine.string "|")
-                                        |> Combine.keep (Node.parser recordFieldsTypeAnnotation)
-                                        |> Combine.ignore (Combine.string "}")
-                                    , Combine.succeed (\ta rest -> TypeAnnotation.Record <| Node.combine Tuple.pair fname ta :: rest)
-                                        |> Combine.ignore (Combine.string ":")
-                                        |> Combine.ignore (maybe Layout.layout)
-                                        |> Combine.keep typeAnnotation
-                                        |> Combine.ignore (maybe Layout.layout)
-                                        |> Combine.keep
-                                            (Combine.oneOf
-                                                [ -- Skip a comma and then look for at least 1 more field
-                                                  string ","
-                                                    |> Combine.continueWith recordFieldsTypeAnnotation
-                                                , -- Single field record, so just end with no additional fields
-                                                  Combine.succeed []
-                                                ]
-                                            )
-                                        |> Combine.ignore (Combine.string "}")
-                                    ]
-                            )
-                    ]
-                )
-        )
+    string "{"
+        |> Combine.ignore (maybe Layout.layout)
+        |> Combine.continueWith
+            (Combine.oneOf
+                [ Combine.succeed (TypeAnnotation.Record [])
+                    |> Combine.ignore (Combine.string "}")
+                , Node.parser functionName
+                    |> Combine.ignore (maybe Layout.layout)
+                    |> Combine.andThen
+                        (\fname ->
+                            Combine.oneOf
+                                [ Combine.succeed (TypeAnnotation.GenericRecord fname)
+                                    |> Combine.ignore (Combine.string "|")
+                                    |> Combine.keep (Node.parser recordFieldsTypeAnnotation)
+                                    |> Combine.ignore (Combine.string "}")
+                                , Combine.succeed (\ta rest -> TypeAnnotation.Record <| Node.combine Tuple.pair fname ta :: rest)
+                                    |> Combine.ignore (Combine.string ":")
+                                    |> Combine.ignore (maybe Layout.layout)
+                                    |> Combine.keep typeAnnotation
+                                    |> Combine.ignore (maybe Layout.layout)
+                                    |> Combine.keep
+                                        (Combine.oneOf
+                                            [ -- Skip a comma and then look for at least 1 more field
+                                              string ","
+                                                |> Combine.continueWith recordFieldsTypeAnnotation
+                                            , -- Single field record, so just end with no additional fields
+                                              Combine.succeed []
+                                            ]
+                                        )
+                                    |> Combine.ignore (Combine.string "}")
+                                ]
+                        )
+                ]
+            )
+        |> Node.parser
 
 
 recordFieldDefinition : Parser State TypeAnnotation.RecordField
