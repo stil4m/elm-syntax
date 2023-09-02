@@ -1,6 +1,6 @@
 module Elm.Parser.Typings exposing (typeDefinition)
 
-import Combine exposing (Parser, many, maybe, string, succeed)
+import Combine exposing (Parser, many, maybe, string)
 import Elm.Parser.Layout as Layout
 import Elm.Parser.Node as Node
 import Elm.Parser.State exposing (State)
@@ -82,8 +82,7 @@ valueConstructors =
 
 valueConstructor : Parser State (Node ValueConstructor)
 valueConstructor =
-    succeed ValueConstructor
-        |> Combine.continueWith (Node.parser typeName)
+    Node.parser typeName
         |> Combine.andThen
             (\((Node range _) as tnn) ->
                 let
