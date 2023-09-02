@@ -6,6 +6,7 @@
 - Stop parsing `Destructuring` declaration (this is an invalid declaration in Elm 0.19)
 - Fail to parse when doing exposing clause is empty (`exposing ()`)
 - Fail to parse when encountering an annotation for the wrong declaration (`a : T` followed by `b = 1`)
+- Various performance improvements that make the parser 6% to 9% faster
 
 ## [7.3.1] - 2022-08-16
 
