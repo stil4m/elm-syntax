@@ -523,7 +523,8 @@ letExpression =
         |> Combine.keep (withIndentedState letBody)
         |> Combine.ignore (oneOf [ Layout.layout, manySpaces ])
         |> Combine.ignore (string "in")
-        |> Combine.keep (Layout.layout |> Combine.continueWith expression)
+        |> Combine.ignore Layout.layout
+        |> Combine.keep expression
 
 
 numberExpression : Parser State (Node Expression)
