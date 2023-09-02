@@ -78,15 +78,14 @@ parensTypeAnnotation =
                 |> Combine.ignore (maybe Layout.layout)
                 |> Combine.keep commaSep
     in
-    Node.parser
-        (Combine.string "("
-            |> Combine.continueWith
-                (Combine.oneOf
-                    [ Combine.string ")" |> Combine.map (always TypeAnnotation.Unit)
-                    , nested |> Combine.ignore (Combine.string ")")
-                    ]
-                )
-        )
+    Combine.string "("
+        |> Combine.continueWith
+            (Combine.oneOf
+                [ Combine.string ")" |> Combine.map (always TypeAnnotation.Unit)
+                , nested |> Combine.ignore (Combine.string ")")
+                ]
+            )
+        |> Node.parser
 
 
 asTypeAnnotation : Node TypeAnnotation -> List (Node TypeAnnotation) -> TypeAnnotation
