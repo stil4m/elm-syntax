@@ -17,10 +17,10 @@ tryToCompose x =
     maybe Layout.layout
         |> Combine.continueWith
             (Combine.oneOf
-                [ Combine.fromCore (Core.keyword "as")
+                [ Combine.succeed (\y -> Node.combine AsPattern x y)
+                    |> Combine.ignore (Combine.fromCore (Core.keyword "as"))
                     |> Combine.ignore Layout.layout
-                    |> Combine.continueWith (Node.parser functionName)
-                    |> Combine.map (\y -> Node.combine AsPattern x y)
+                    |> Combine.keep (Node.parser functionName)
                 , Combine.succeed (\y -> Node.combine UnConsPattern x y)
                     |> Combine.ignore (Combine.fromCore (Core.symbol "::"))
                     |> Combine.ignore (maybe Layout.layout)
