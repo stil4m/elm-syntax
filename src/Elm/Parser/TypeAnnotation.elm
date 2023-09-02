@@ -153,12 +153,10 @@ recordFieldDefinition : Parser State TypeAnnotation.RecordField
 recordFieldDefinition =
     succeed Tuple.pair
         |> Combine.keep (maybe Layout.layout |> Combine.continueWith (Node.parser functionName))
-        |> Combine.keep
-            (maybe Layout.layout
-                |> Combine.continueWith (string ":")
-                |> Combine.continueWith (maybe Layout.layout)
-                |> Combine.continueWith typeAnnotation
-            )
+        |> Combine.ignore (maybe Layout.layout)
+        |> Combine.ignore (string ":")
+        |> Combine.ignore (maybe Layout.layout)
+        |> Combine.keep typeAnnotation
 
 
 typedTypeAnnotation : Mode -> Parser State (Node TypeAnnotation)
