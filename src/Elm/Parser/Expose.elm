@@ -20,7 +20,11 @@ exposeDefinition =
 
 exposeListWith : Parser State Exposing
 exposeListWith =
-    parens (Layout.optimisticLayout |> Combine.continueWith exposingListInner |> Combine.ignore Layout.optimisticLayout)
+    parens
+        (Layout.optimisticLayout
+            |> Combine.continueWith exposingListInner
+            |> Combine.ignore Layout.optimisticLayout
+        )
 
 
 exposingListInner : Parser State Exposing
