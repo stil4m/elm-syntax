@@ -126,23 +126,21 @@ recordTypeAnnotation =
                                         |> Combine.ignore (Combine.string "|")
                                         |> Combine.keep (Node.parser recordFieldsTypeAnnotation)
                                         |> Combine.ignore (Combine.string "}")
-                                    , Combine.succeed identity
+                                    , Combine.succeed (\ta rest -> TypeAnnotation.Record <| Node.combine Tuple.pair fname ta :: rest)
                                         |> Combine.ignore (Combine.string ":")
                                         |> Combine.ignore (maybe Layout.layout)
                                         |> Combine.keep typeAnnotation
                                         |> Combine.ignore (maybe Layout.layout)
-                                        |> Combine.andThen
-                                            (\ta ->
-                                                Combine.oneOf
-                                                    [ -- Skip a comma and then look for at least 1 more field
-                                                      string ","
-                                                        |> Combine.continueWith recordFieldsTypeAnnotation
-                                                    , -- Single field record, so just end with no additional fields
-                                                      Combine.succeed []
-                                                    ]
-                                                    |> Combine.ignore (Combine.string "}")
-                                                    |> Combine.map (\rest -> TypeAnnotation.Record <| Node.combine Tuple.pair fname ta :: rest)
+                                        |> Combine.keep
+                                            (Combine.oneOf
+                                                [ -- Skip a comma and then look for at least 1 more field
+                                                  string ","
+                                                    |> Combine.continueWith recordFieldsTypeAnnotation
+                                                , -- Single field record, so just end with no additional fields
+                                                  Combine.succeed []
+                                                ]
                                             )
+                                        |> Combine.ignore (Combine.string "}")
                                     ]
                             )
                     ]
