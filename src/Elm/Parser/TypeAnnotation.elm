@@ -126,9 +126,10 @@ recordTypeAnnotation =
                                         |> Combine.ignore (Combine.string "|")
                                         |> Combine.keep (Node.parser recordFieldsTypeAnnotation)
                                         |> Combine.ignore (Combine.string "}")
-                                    , Combine.string ":"
+                                    , Combine.succeed identity
+                                        |> Combine.ignore (Combine.string ":")
                                         |> Combine.ignore (maybe Layout.layout)
-                                        |> Combine.continueWith typeAnnotation
+                                        |> Combine.keep typeAnnotation
                                         |> Combine.ignore (maybe Layout.layout)
                                         |> Combine.andThen
                                             (\ta ->
