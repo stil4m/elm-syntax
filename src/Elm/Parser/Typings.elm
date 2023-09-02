@@ -15,64 +15,62 @@ import Elm.Syntax.TypeAnnotation exposing (TypeAnnotation)
 
 typeDefinition : Parser State (Node Declaration.Declaration)
 typeDefinition =
-    Combine.withLocation
-        (\start ->
-            typePrefix
-                |> Combine.continueWith
-                    (Combine.oneOf
-                        [ Combine.succeed
-                            (\name generics typeAnnotation ->
-                                Node
-                                    { start = start, end = (Node.range typeAnnotation).end }
-                                    (Declaration.AliasDeclaration
-                                        { documentation = Nothing
-                                        , name = name
-                                        , generics = generics
-                                        , typeAnnotation = typeAnnotation
-                                        }
-                                    )
-                            )
-                            |> Combine.ignore (string "alias")
-                            |> Combine.ignore Layout.layout
-                            |> Combine.keep (Node.parser typeName)
-                            |> Combine.ignore (maybe Layout.layout)
-                            |> Combine.ignore (maybe Layout.layout)
-                            |> Combine.keep genericList
-                            |> Combine.ignore (string "=")
-                            |> Combine.ignore (maybe Layout.layout)
-                            |> Combine.keep typeAnnotation
-                        , Combine.succeed
-                            (\name generics constructors ->
-                                let
-                                    end : Location
-                                    end =
-                                        case List.head constructors of
-                                            Just (Node range _) ->
-                                                range.end
+    typePrefix
+        |> Combine.andThen
+            (\(Node { start } _) ->
+                Combine.oneOf
+                    [ Combine.succeed
+                        (\name generics typeAnnotation ->
+                            Node
+                                { start = start, end = (Node.range typeAnnotation).end }
+                                (Declaration.AliasDeclaration
+                                    { documentation = Nothing
+                                    , name = name
+                                    , generics = generics
+                                    , typeAnnotation = typeAnnotation
+                                    }
+                                )
+                        )
+                        |> Combine.ignore (string "alias")
+                        |> Combine.ignore Layout.layout
+                        |> Combine.keep (Node.parser typeName)
+                        |> Combine.ignore (maybe Layout.layout)
+                        |> Combine.ignore (maybe Layout.layout)
+                        |> Combine.keep genericList
+                        |> Combine.ignore (string "=")
+                        |> Combine.ignore (maybe Layout.layout)
+                        |> Combine.keep typeAnnotation
+                    , Combine.succeed
+                        (\name generics constructors ->
+                            let
+                                end : Location
+                                end =
+                                    case List.head constructors of
+                                        Just (Node range _) ->
+                                            range.end
 
-                                            Nothing ->
-                                                start
-                                in
-                                Node
-                                    { start = start, end = end }
-                                    (Declaration.CustomTypeDeclaration
-                                        { documentation = Nothing
-                                        , name = name
-                                        , generics = generics
-                                        , constructors = List.reverse constructors
-                                        }
-                                    )
-                            )
-                            |> Combine.keep (Node.parser typeName)
-                            |> Combine.ignore (maybe Layout.layout)
-                            |> Combine.keep genericList
-                            |> Combine.ignore (maybe Layout.layout)
-                            |> Combine.ignore (string "=")
-                            |> Combine.ignore (maybe Layout.layout)
-                            |> Combine.keep valueConstructors
-                        ]
-                    )
-        )
+                                        Nothing ->
+                                            start
+                            in
+                            Node
+                                { start = start, end = end }
+                                (Declaration.CustomTypeDeclaration
+                                    { documentation = Nothing
+                                    , name = name
+                                    , generics = generics
+                                    , constructors = List.reverse constructors
+                                    }
+                                )
+                        )
+                        |> Combine.keep (Node.parser typeName)
+                        |> Combine.ignore (maybe Layout.layout)
+                        |> Combine.keep genericList
+                        |> Combine.ignore (maybe Layout.layout)
+                        |> Combine.ignore (string "=")
+                        |> Combine.ignore (maybe Layout.layout)
+                        |> Combine.keep valueConstructors
+                    ]
+            )
 
 
 valueConstructors : Parser State (List (Node ValueConstructor))
@@ -130,6 +128,8 @@ genericList =
     many (Node.parser functionName |> Combine.ignore (maybe Layout.layout))
 
 
-typePrefix : Parser State ()
+typePrefix : Parser State (Node String)
 typePrefix =
-    Combine.string "type" |> Combine.continueWith Layout.layout
+    Combine.string "type"
+        |> Node.parser
+        |> Combine.ignore Layout.layout
