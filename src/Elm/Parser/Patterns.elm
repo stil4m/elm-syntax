@@ -21,10 +21,10 @@ tryToCompose x =
                     |> Combine.ignore Layout.layout
                     |> Combine.continueWith (Node.parser functionName)
                     |> Combine.map (\y -> Node.combine AsPattern x y)
-                , Combine.fromCore (Core.symbol "::")
+                , Combine.succeed (\y -> Node.combine UnConsPattern x y)
+                    |> Combine.ignore (Combine.fromCore (Core.symbol "::"))
                     |> Combine.ignore (maybe Layout.layout)
-                    |> Combine.continueWith pattern
-                    |> Combine.map (\y -> Node.combine UnConsPattern x y)
+                    |> Combine.keep pattern
                 , Combine.succeed x
                 ]
             )
