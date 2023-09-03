@@ -1,4 +1,4 @@
-module Elm.Parser.Expression exposing (expression, function)
+module Elm.Parser.Expression exposing (expression, functionWithNameNode)
 
 import Combine exposing (Parser, lazy, many, maybe, modifyState, oneOf, sepBy1, string, succeed, withLocation)
 import Elm.Parser.Layout as Layout
@@ -9,7 +9,6 @@ import Elm.Parser.State as State exposing (State, popIndent, pushColumn)
 import Elm.Parser.Tokens as Tokens exposing (caseToken, characterLiteral, elseToken, functionName, ifToken, infixOperatorToken, multiLineStringLiteral, ofToken, prefixOperatorToken, stringLiteral, thenToken)
 import Elm.Parser.TypeAnnotation exposing (typeAnnotation)
 import Elm.Parser.Whitespace exposing (manySpaces)
-import Elm.Syntax.Declaration as Declaration exposing (Declaration)
 import Elm.Syntax.Expression as Expression exposing (Case, CaseBlock, Cases, Expression(..), Function, FunctionImplementation, Lambda, LetBlock, LetDeclaration(..), RecordSetter)
 import Elm.Syntax.ModuleName exposing (ModuleName)
 import Elm.Syntax.Node as Node exposing (Node(..))
@@ -561,14 +560,6 @@ failIfDifferentFrom (Node _ expectedName) ((Node _ actualName) as actual) =
 
     else
         Combine.fail <| "Expected to find the declaration for " ++ expectedName ++ " but found " ++ actualName
-
-
-function : Parser State (Node Declaration)
-function =
-    Node.parser functionName
-        |> Combine.ignore (maybe Layout.layout)
-        |> Combine.andThen functionWithNameNode
-        |> Combine.map (\f -> Node (Expression.functionRange f) (Declaration.FunctionDeclaration f))
 
 
 functionSignatureFromVarPointer : Node String -> Parser State (Node Signature)
