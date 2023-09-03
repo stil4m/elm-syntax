@@ -25,7 +25,6 @@ module Combine exposing
     , sepBy
     , sepBy1
     , sepBy1WithoutReverse
-    , start
     , string
     , succeed
     , symbol
@@ -151,18 +150,6 @@ end =
     Parser <|
         \state ->
             Core.end |> Core.map (\x -> ( state, x ))
-
-
-start : Parser s ()
-start =
-    withLocation
-        (\{ row, column } ->
-            if row == 1 && column == 1 then
-                succeed ()
-
-            else
-                fail "not at start of file"
-        )
 
 
 backtrackable : Parser s a -> Parser s a
