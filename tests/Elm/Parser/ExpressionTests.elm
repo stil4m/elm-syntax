@@ -3,6 +3,7 @@ module Elm.Parser.ExpressionTests exposing (all)
 import Elm.Parser.CombineTestUtil as CombineTestUtil
 import Elm.Parser.Expression exposing (expression)
 import Elm.Syntax.Expression exposing (Expression(..))
+import Elm.Syntax.Infix as Infix
 import Elm.Syntax.Node exposing (Node(..))
 import Elm.Syntax.Pattern exposing (..)
 import Expect
@@ -95,11 +96,10 @@ all =
                 "model + 1"
                     |> expectAst
                         (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 10 } } <|
-                            Application
-                                [ Node { start = { row = 1, column = 1 }, end = { row = 1, column = 6 } } <| FunctionOrValue [] "model"
-                                , Node { start = { row = 1, column = 7 }, end = { row = 1, column = 8 } } <| Operator "+"
-                                , Node { start = { row = 1, column = 9 }, end = { row = 1, column = 10 } } <| Integer 1
-                                ]
+                            OperatorApplication "+"
+                                Infix.Left
+                                (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 6 } } <| FunctionOrValue [] "model")
+                                (Node { start = { row = 1, column = 9 }, end = { row = 1, column = 10 } } <| Integer 1)
                         )
         , test "application expression 2" <|
             \() ->
