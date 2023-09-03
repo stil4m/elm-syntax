@@ -150,10 +150,8 @@ infixRight precedence symbol =
 
 functionCall : Pratt.Config s (Node Expression) -> ( Int, Node Expression -> Parser s (Node Expression) )
 functionCall =
-    -- TODO Does not work yet
     Pratt.infixRight 99
-        -- This is not the correct symbol, you can have it all attached `f(x)`
-        (Combine.symbol " ")
+        (Combine.succeed ())
         (\((Node leftRange leftValue) as left) right ->
             case leftValue of
                 Expression.Application args ->
