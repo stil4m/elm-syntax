@@ -2,7 +2,7 @@ module Pratt.Advanced exposing
     ( Config, expression
     , subExpression
     , literal, constant, prefix
-    , infixLeft, infixRight, postfix
+    , infixLeft, infixRight, postfix, recordAccessPostfix
     )
 
 {-| `Pratt.Advanced` provides the same API as [`Pratt`](Pratt),
@@ -26,11 +26,12 @@ but for [`Parser.Advanced`](https://package.elm-lang.org/packages/elm/parser/1.1
 
 ## **andThenOneOf** helpers
 
-@docs infixLeft, infixRight, postfix
+@docs infixLeft, infixRight, postfix, recordAccessPostfix
 
 -}
 
 import Combine exposing (Parser, Step(..), map, oneOf, succeed)
+import Elm.Syntax.Node exposing (Node)
 
 
 
@@ -187,4 +188,11 @@ postfix : Int -> Parser s () -> (e -> e) -> Config s e -> ( Int, e -> Parser s e
 postfix precedence operator apply _ =
     ( precedence
     , \left -> map (\_ -> apply left) operator
+    )
+
+
+recordAccessPostfix : Int -> Parser s (Node String) -> (e -> Node String -> e) -> Config s e -> ( Int, e -> Parser s e )
+recordAccessPostfix precedence postFixParser apply _ =
+    ( precedence
+    , \left -> map (\recordField -> apply left recordField) postFixParser
     )
