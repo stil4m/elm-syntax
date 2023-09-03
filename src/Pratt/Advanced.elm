@@ -158,17 +158,17 @@ prefix precedence operator apply config =
 {-| Just like [`Pratt.infixLeft`](Pratt#infixLeft).
 -}
 infixLeft : Int -> Parser s () -> (e -> e -> e) -> Config s e -> ( Int, e -> Parser s e )
-infixLeft precedence =
-    infixHelp ( precedence, precedence )
+infixLeft precedence p apply config =
+    infixHelp ( precedence, precedence ) p apply config
 
 
 {-| Just like [`Pratt.infixRight`](Pratt#infixRight).
 -}
 infixRight : Int -> Parser s () -> (e -> e -> e) -> Config s e -> ( Int, e -> Parser s e )
-infixRight precedence =
+infixRight precedence p apply config =
     -- To get right associativity, we use (precedence - 1) for the
     -- right precedence.
-    infixHelp ( precedence, precedence - 1 )
+    infixHelp ( precedence, precedence - 1 ) p apply config
 
 
 infixHelp : ( Int, Int ) -> Parser s () -> (e -> e -> e) -> Config s e -> ( Int, e -> Parser s e )
