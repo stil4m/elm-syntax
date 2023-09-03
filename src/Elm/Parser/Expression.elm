@@ -57,7 +57,7 @@ expression =
             , tupledExpression
             , recordAccessFunctionExpression
                 |> Pratt.literal
-            , operatorExpression
+            , negationOperation
             , letExpression
             , lambdaExpression
             , literalExpression
@@ -529,29 +529,18 @@ ifBlockExpression config =
         |> Combine.keep (Pratt.subExpression 0 config)
 
 
-operatorExpression : Config State (Node Expression) -> Parser State (Node Expression)
-operatorExpression config =
-    let
-        negationExpression : Parser State Expression
-        negationExpression =
-            Combine.map Negation
-                (oneOf
-                    [ referenceExpression
-                    , numberExpression
-                    , tupledExpression config
-                    ]
-                    |> Combine.andThen liftRecordAccess
-                )
-    in
-    Combine.oneOf
-        [ string "-"
-            |> Combine.continueWith
-                (Combine.oneOf
-                    [ negationExpression
-                    ]
-                )
-            |> Node.parser
-        ]
+negationOperation : Config State (Node Expression) -> Parser State (Node Expression)
+negationOperation config =
+    Combine.succeed Negation
+        |> Combine.ignore (string "-")
+        |> Combine.keep
+            (Combine.oneOf
+                [ referenceExpression
+                , numberExpression
+                , tupledExpression config
+                ]
+            )
+        |> Node.parser
 
 
 referenceExpression : Parser State (Node Expression)
