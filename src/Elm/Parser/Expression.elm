@@ -107,19 +107,19 @@ expression =
             --  , precedence = 4
             --  , operator = ">="
             --  }infixRight 5 "++"
+            , infixRight 5 "::"
+            , infixLeft 5 "|="
+            , infixLeft 6 "|."
             , infixLeft 6 "+"
             , infixLeft 6 "-"
             , infixLeft 7 "*"
             , infixLeft 7 "/"
             , infixLeft 7 "//"
+            , infixRight 7 "</>"
+            , infixLeft 8 "<?>"
             , infixRight 8 "^"
             , infixLeft 9 "<<"
             , infixRight 9 ">>"
-            , infixRight 5 "::"
-            , infixRight 7 "</>"
-            , infixLeft 8 "<?>"
-            , infixLeft 5 "|="
-            , infixLeft 6 "|."
             , functionCall
             ]
         , spaces = Combine.maybe Layout.layout |> Combine.map (always ())
