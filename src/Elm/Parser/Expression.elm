@@ -483,9 +483,9 @@ tupledExpression =
 
         closingParen : Parser state ()
         closingParen =
-            Combine.fromCore (Core.symbol ")")
+            Combine.symbol ")"
     in
-    Combine.fromCore (Core.symbol "(")
+    Combine.symbol "("
         |> Combine.continueWith
             (Combine.oneOf
                 [ closingParen |> Combine.map (always UnitExpr)

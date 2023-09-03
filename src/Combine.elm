@@ -27,6 +27,7 @@ module Combine exposing
     , sepBy1WithoutReverse
     , string
     , succeed
+    , symbol
     , while
     , withLocation
     , withState
@@ -128,6 +129,12 @@ string s =
         \state ->
             Core.getChompedString (Core.token s)
                 |> Core.map (\x -> ( state, x ))
+
+
+symbol : String -> Parser s ()
+symbol str =
+    Core.symbol str
+        |> fromCore
 
 
 while : (Char -> Bool) -> Parser s String
