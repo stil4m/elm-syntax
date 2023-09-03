@@ -2,7 +2,7 @@ module Pratt exposing
     ( Config, expression
     , subExpression
     , literal, constant, prefix
-    , infixLeft, infixRight, postfix
+    , infixLeft, infixRight, postfix, recordAccessPostfix
     )
 
 {-|
@@ -32,11 +32,12 @@ module Pratt exposing
 
 ## **andThenOneOf** helpers
 
-@docs infixLeft, infixRight, postfix
+@docs infixLeft, infixRight, postfix, recordAccessPostfix
 
 -}
 
 import Combine exposing (Parser)
+import Elm.Syntax.Node exposing (Node)
 import Pratt.Advanced as Advanced
 
 
@@ -417,3 +418,8 @@ The `Config` argument is passed automatically by the parser.
 postfix : Int -> Parser state () -> (expr -> expr) -> Config state expr -> ( Int, expr -> Parser state expr )
 postfix =
     Advanced.postfix
+
+
+recordAccessPostfix : Int -> Parser s (Node String) -> (e -> Node String -> e) -> Advanced.Config s e -> ( Int, e -> Parser s e )
+recordAccessPostfix =
+    Advanced.recordAccessPostfix
