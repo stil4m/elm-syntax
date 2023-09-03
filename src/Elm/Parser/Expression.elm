@@ -57,8 +57,7 @@ expression =
             , tupledExpression
             , recordAccessFunctionExpression
                 |> Pratt.literal
-
-            --, operatorExpression
+            , operatorExpression
             , letExpression
             , lambdaExpression
             , literalExpression
