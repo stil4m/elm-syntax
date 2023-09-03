@@ -175,7 +175,7 @@ infixHelp : ( Int, Int ) -> Parser s () -> (e -> e -> e) -> Config s e -> ( Int,
 infixHelp ( leftPrecedence, rightPrecedence ) operator apply config =
     ( leftPrecedence
     , \left ->
-        succeed (apply left)
+        Combine.succeed (\e -> apply left e)
             |> Combine.ignore operator
             |> Combine.keep (subExpression rightPrecedence config)
     )
