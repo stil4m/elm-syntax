@@ -252,13 +252,11 @@ listExpression : Config State (Node Expression) -> Parser State (Node Expression
 listExpression config =
     Combine.succeed ListExpr
         |> Combine.ignore (string "[")
-        |> Combine.ignore (maybe Layout.layout)
         |> Combine.keep
             (Combine.sepBy
-                (string "," |> Combine.ignore (maybe Layout.layout))
+                (string ",")
                 (Pratt.subExpression 0 config)
             )
-        |> Combine.ignore (maybe Layout.layout)
         |> Combine.ignore (string "]")
         |> Node.parser
 
@@ -289,9 +287,7 @@ recordContents config =
                 Combine.oneOf
                     [ recordUpdateSyntaxParser config fname
                     , string "="
-                        |> Combine.ignore (maybe Layout.layout)
                         |> Combine.continueWith (Pratt.subExpression 0 config)
-                        |> Combine.ignore (maybe Layout.layout)
                         |> Combine.andThen
                             (\e ->
                                 let
@@ -344,7 +340,6 @@ recordField config =
             |> Combine.keep (Node.parser functionName)
             |> Combine.ignore (maybe Layout.layout)
             |> Combine.ignore (string "=")
-            |> Combine.ignore (maybe Layout.layout)
             |> Combine.keep (Pratt.subExpression 0 config)
         )
 
@@ -393,7 +388,6 @@ caseStatement config =
         |> Combine.keep pattern
         |> Combine.ignore (maybe (Combine.oneOf [ Layout.layout, Layout.layoutStrict ]))
         |> Combine.ignore (string "->")
-        |> Combine.ignore (maybe Layout.layout)
         |> Combine.keep (Pratt.subExpression 0 config)
 
 
@@ -468,7 +462,6 @@ letDestructuringDeclarationWithPattern config pattern =
         )
         |> Combine.ignore (maybe Layout.layout)
         |> Combine.ignore (string "=")
-        |> Combine.ignore (maybe Layout.layout)
         |> Combine.keep (Pratt.subExpression 0 config)
 
 
@@ -595,17 +588,13 @@ tupledExpression config =
         commaSep =
             many
                 (string ","
-                    |> Combine.ignore (maybe Layout.layout)
                     |> Combine.continueWith (Pratt.subExpression 0 config)
-                    |> Combine.ignore (maybe Layout.layout)
                 )
 
         nested : Parser State Expression
         nested =
             Combine.succeed asExpression
-                |> Combine.ignore (maybe Layout.layout)
                 |> Combine.keep (Pratt.subExpression 0 config)
-                |> Combine.ignore (maybe Layout.layout)
                 |> Combine.keep commaSep
 
         closingParen : Parser state ()
@@ -646,7 +635,6 @@ functionWithNameNode config pointer =
             succeed (\args expr -> Node { start = (Node.range varPointer).start, end = (Node.range expr).end } (FunctionImplementation varPointer args expr))
                 |> Combine.keep (many (pattern |> Combine.ignore (maybe Layout.layout)))
                 |> Combine.ignore (string "=")
-                |> Combine.ignore (maybe Layout.layout)
                 |> Combine.keep (Pratt.subExpression 0 config)
 
         fromParts : Node Signature -> Node FunctionImplementation -> Function
