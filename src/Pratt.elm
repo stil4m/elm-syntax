@@ -36,7 +36,7 @@ module Pratt exposing
 
 -}
 
-import Parser exposing (Parser, Problem)
+import Combine exposing (Parser)
 import Pratt.Advanced as Advanced
 
 
@@ -48,8 +48,8 @@ import Pratt.Advanced as Advanced
 [`Pratt.Advanced.Config`](Pratt.Advanced#Config) holding the parser
 configuration.
 -}
-type alias Config expr =
-    Advanced.Config Never Problem expr
+type alias Config state expr =
+    Advanced.Config state expr
 
 
 
@@ -150,11 +150,11 @@ For example, a basic calculator could be configured like this:
 
 -}
 expression :
-    { oneOf : List (Config expr -> Parser expr)
-    , andThenOneOf : List (Config expr -> ( Int, expr -> Parser expr ))
-    , spaces : Parser ()
+    { oneOf : List (Config state expr -> Parser state expr)
+    , andThenOneOf : List (Config state expr -> ( Int, expr -> Parser state expr ))
+    , spaces : Parser state ()
     }
-    -> Parser expr
+    -> Parser state expr
 expression =
     Advanced.expression
 
@@ -170,7 +170,7 @@ The [`expression`](#expression) function is actually implemented using
 
 For example [`prefix`](#prefix) can be implemented like this:
 
-    prefix : Int -> Parser () -> (expr -> expr) -> Config expr -> Parser expr
+    prefix : Int -> Parser state () -> (expr -> expr) -> Config state expr -> Parser state expr
     prefix precedence operator apply config =
         succeed apply
             |. operator
@@ -210,7 +210,7 @@ A parser for sub-expressions between parentheses like this:
         expression.
 
 -}
-subExpression : Int -> Config expr -> Parser expr
+subExpression : Int -> Config state expr -> Parser state expr
 subExpression =
     Advanced.subExpression
 
@@ -258,7 +258,7 @@ you could have a negation _prefix_ parser like `prefix 3 (-) Neg` declared
 before the `literal digits` and let `digits` only handle positive numbers.
 
 -}
-literal : Parser expr -> Config expr -> Parser expr
+literal : Parser state expr -> Config state expr -> Parser state expr
 literal =
     Advanced.literal
 
@@ -282,7 +282,7 @@ The `Config` argument is passed automatically by the parser.
     run expression "pi" --> Ok pi
 
 -}
-constant : Parser () -> expr -> Config expr -> Parser expr
+constant : Parser state () -> expr -> Config state expr -> Parser state expr
 constant =
     Advanced.constant
 
@@ -325,7 +325,7 @@ The `Config` argument is passed automatically by the parser.
             |= prefix 0 (keyword "else") identity config
 
 -}
-prefix : Int -> Parser () -> (expr -> expr) -> Config expr -> Parser expr
+prefix : Int -> Parser state () -> (expr -> expr) -> Config state expr -> Parser state expr
 prefix =
     Advanced.prefix
 
@@ -360,7 +360,7 @@ The `Config` argument is passed automatically by the parser.
     run expression "5+4-3*2/1" --> Ok 3
 
 -}
-infixLeft : Int -> Parser () -> (expr -> expr -> expr) -> Config expr -> ( Int, expr -> Parser expr )
+infixLeft : Int -> Parser state () -> (expr -> expr -> expr) -> Config state expr -> ( Int, expr -> Parser state expr )
 infixLeft =
     Advanced.infixLeft
 
@@ -389,7 +389,7 @@ The `Config` argument is passed automatically by the parser.
 expression with the _precedence_ of the infix operator minus 1.
 
 -}
-infixRight : Int -> Parser () -> (expr -> expr -> expr) -> Config expr -> ( Int, expr -> Parser expr )
+infixRight : Int -> Parser state () -> (expr -> expr -> expr) -> Config state expr -> ( Int, expr -> Parser state expr )
 infixRight =
     Advanced.infixRight
 
@@ -414,6 +414,6 @@ The `Config` argument is passed automatically by the parser.
     run expression "360°" --> Ok (2*pi)
 
 -}
-postfix : Int -> Parser () -> (expr -> expr) -> Config expr -> ( Int, expr -> Parser expr )
+postfix : Int -> Parser state () -> (expr -> expr) -> Config state expr -> ( Int, expr -> Parser state expr )
 postfix =
     Advanced.postfix

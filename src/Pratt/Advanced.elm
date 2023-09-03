@@ -30,19 +30,7 @@ but for [`Parser.Advanced`](https://package.elm-lang.org/packages/elm/parser/1.1
 
 -}
 
-import Parser.Advanced
-    exposing
-        ( (|.)
-        , (|=)
-        , Parser
-        , Step(..)
-        , andThen
-        , lazy
-        , loop
-        , map
-        , oneOf
-        , succeed
-        )
+import Combine exposing (Parser, Step(..), map, oneOf, succeed)
 
 
 
@@ -51,11 +39,11 @@ import Parser.Advanced
 
 {-| An opaque type holding the parser configuration.
 -}
-type Config c x e
+type Config s e
     = Config
-        { oneOf : List (Config c x e -> Parser c x e)
-        , andThenOneOf : List (Config c x e -> ( Int, e -> Parser c x e ))
-        , spaces : Parser c x ()
+        { oneOf : List (Config s e -> Parser s e)
+        , andThenOneOf : List (Config s e -> ( Int, e -> Parser s e ))
+        , spaces : Parser s ()
         }
 
 
@@ -66,11 +54,11 @@ type Config c x e
 {-| Just like [`Pratt.expression`](Pratt#expression).
 -}
 expression :
-    { oneOf : List (Config c x e -> Parser c x e)
-    , andThenOneOf : List (Config c x e -> ( Int, e -> Parser c x e ))
-    , spaces : Parser c x ()
+    { oneOf : List (Config s e -> Parser s e)
+    , andThenOneOf : List (Config s e -> ( Int, e -> Parser s e ))
+    , spaces : Parser s ()
     }
-    -> Parser c x e
+    -> Parser s e
 expression config =
     subExpression 0 <|
         Config
@@ -82,12 +70,16 @@ expression config =
 
 {-| Just like [`Pratt.subExpression`](Pratt#subExpression).
 -}
-subExpression : Int -> Config c x e -> Parser c x e
+subExpression : Int -> Config s e -> Parser s e
 subExpression precedence ((Config conf) as config) =
-    succeed identity
-        |. conf.spaces
-        |= lazy (\_ -> oneOf <| List.map (\e -> e config) conf.oneOf)
-        |> andThen (\leftExpression -> loop ( config, precedence, leftExpression ) expressionHelp)
+    conf.spaces
+        |> Combine.continueWith
+            (Combine.lazy
+                (\_ ->
+                    oneOf <| List.map (\e -> e config) conf.oneOf
+                )
+            )
+        |> Combine.andThen (\leftExpression -> Combine.loop ( config, precedence, leftExpression ) expressionHelp)
 
 
 {-| This is the core of the Pratt parser algorithm.
@@ -101,19 +93,21 @@ Also note that `oneOf` and `andThenOneOf` parsers may call recursively
 `subExpression`.
 
 -}
-expressionHelp : ( Config c x e, Int, e ) -> Parser c x (Step ( Config c x e, Int, e ) e)
+expressionHelp : ( Config s e, Int, e ) -> Parser s (Step ( Config s e, Int, e ) e)
 expressionHelp ( (Config conf) as config, precedence, leftExpression ) =
     succeed identity
-        |. conf.spaces
-        |= oneOf
-            [ map
-                (\expr -> Loop ( config, precedence, expr ))
-                (operation config precedence leftExpression)
-            , succeed (Done leftExpression)
-            ]
+        |> Combine.ignore conf.spaces
+        |> Combine.keep
+            (oneOf
+                [ map
+                    (\expr -> Loop ( config, precedence, expr ))
+                    (operation config precedence leftExpression)
+                , succeed (Done leftExpression)
+                ]
+            )
 
 
-operation : Config c x e -> Int -> e -> Parser c x e
+operation : Config s e -> Int -> e -> Parser s e
 operation ((Config conf) as config) precedence leftExpression =
     oneOf <|
         List.filterMap
@@ -121,7 +115,7 @@ operation ((Config conf) as config) precedence leftExpression =
             conf.andThenOneOf
 
 
-filter : ( Int, e -> Parser c x e ) -> Int -> e -> Maybe (Parser c x e)
+filter : ( Int, e -> Parser s e ) -> Int -> e -> Maybe (Parser s e)
 filter ( precedence, parser ) currentPrecedence leftExpression =
     if precedence > currentPrecedence then
         Just (parser leftExpression)
@@ -136,25 +130,25 @@ filter ( precedence, parser ) currentPrecedence leftExpression =
 
 {-| Just like [`Pratt.literal`](Pratt#literal).
 -}
-literal : Parser c x e -> Config c x e -> Parser c x e
+literal : Parser s e -> Config s e -> Parser s e
 literal =
     always
 
 
 {-| Just like [`Pratt.constant`](Pratt#constant).
 -}
-constant : Parser c x () -> e -> Config c x e -> Parser c x e
+constant : Parser s () -> e -> Config s e -> Parser s e
 constant constantParser e _ =
     map (always e) constantParser
 
 
 {-| Just like [`Pratt.prefix`](Pratt#prefix).
 -}
-prefix : Int -> Parser c x () -> (e -> e) -> Config c x e -> Parser c x e
+prefix : Int -> Parser s () -> (e -> e) -> Config s e -> Parser s e
 prefix precedence operator apply config =
     succeed apply
-        |. operator
-        |= subExpression precedence config
+        |> Combine.ignore operator
+        |> Combine.keep (subExpression precedence config)
 
 
 
@@ -163,33 +157,33 @@ prefix precedence operator apply config =
 
 {-| Just like [`Pratt.infixLeft`](Pratt#infixLeft).
 -}
-infixLeft : Int -> Parser c x () -> (e -> e -> e) -> Config c x e -> ( Int, e -> Parser c x e )
+infixLeft : Int -> Parser s () -> (e -> e -> e) -> Config s e -> ( Int, e -> Parser s e )
 infixLeft precedence =
     infixHelp ( precedence, precedence )
 
 
 {-| Just like [`Pratt.infixRight`](Pratt#infixRight).
 -}
-infixRight : Int -> Parser c x () -> (e -> e -> e) -> Config c x e -> ( Int, e -> Parser c x e )
+infixRight : Int -> Parser s () -> (e -> e -> e) -> Config s e -> ( Int, e -> Parser s e )
 infixRight precedence =
     -- To get right associativity, we use (precedence - 1) for the
     -- right precedence.
     infixHelp ( precedence, precedence - 1 )
 
 
-infixHelp : ( Int, Int ) -> Parser c x () -> (e -> e -> e) -> Config c x e -> ( Int, e -> Parser c x e )
+infixHelp : ( Int, Int ) -> Parser s () -> (e -> e -> e) -> Config s e -> ( Int, e -> Parser s e )
 infixHelp ( leftPrecedence, rightPrecedence ) operator apply config =
     ( leftPrecedence
     , \left ->
         succeed (apply left)
-            |. operator
-            |= subExpression rightPrecedence config
+            |> Combine.ignore operator
+            |> Combine.keep (subExpression rightPrecedence config)
     )
 
 
 {-| Just like [`Pratt.postfix`](Pratt#postfix).
 -}
-postfix : Int -> Parser c x () -> (e -> e) -> Config c x e -> ( Int, e -> Parser c x e )
+postfix : Int -> Parser s () -> (e -> e) -> Config s e -> ( Int, e -> Parser s e )
 postfix precedence operator apply _ =
     ( precedence
     , \left -> map (\_ -> apply left) operator
