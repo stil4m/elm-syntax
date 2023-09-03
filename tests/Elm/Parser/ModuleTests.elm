@@ -1,6 +1,6 @@
 module Elm.Parser.ModuleTests exposing (all)
 
-import Elm.Parser.CombineTestUtil exposing (..)
+import Elm.Parser.CombineTestUtil as CombineTestUtil exposing (..)
 import Elm.Parser.File as File
 import Elm.Parser.Modules as Parser
 import Elm.Syntax.Declaration exposing (Declaration(..))
@@ -431,21 +431,10 @@ b = 2
 
 
 expectAst : Module -> String -> Expect.Expectation
-expectAst expected source =
-    case parse source Parser.moduleDefinition of
-        Nothing ->
-            Expect.fail "Expected the source to be parsed correctly"
-
-        Just actual ->
-            actual
-                |> Expect.equal expected
+expectAst =
+    CombineTestUtil.expectAst Parser.moduleDefinition
 
 
 expectInvalid : String -> Expect.Expectation
-expectInvalid source =
-    case parse source File.file of
-        Nothing ->
-            Expect.pass
-
-        Just actual ->
-            Expect.fail ("This source code is successfully parsed but it shouldn't:\n" ++ Debug.toString actual)
+expectInvalid =
+    CombineTestUtil.expectInvalid File.file

@@ -1,6 +1,6 @@
 module Elm.Parser.PatternTests exposing (all)
 
-import Elm.Parser.CombineTestUtil exposing (..)
+import Elm.Parser.CombineTestUtil as CombineTestUtil exposing (..)
 import Elm.Parser.Patterns as Parser
 import Elm.Syntax.Node exposing (Node(..))
 import Elm.Syntax.Pattern exposing (..)
@@ -287,21 +287,10 @@ all =
 
 
 expectAst : Node Pattern -> String -> Expect.Expectation
-expectAst expected source =
-    case parse source Parser.pattern of
-        Nothing ->
-            Expect.fail "Expected the source to be parsed correctly"
-
-        Just actual ->
-            actual
-                |> Expect.equal expected
+expectAst =
+    CombineTestUtil.expectAst Parser.pattern
 
 
 expectInvalid : String -> Expect.Expectation
-expectInvalid source =
-    case parse source Parser.pattern of
-        Nothing ->
-            Expect.pass
-
-        Just actual ->
-            Expect.fail ("This source code is successfully parsed but it shouldn't:\n" ++ Debug.toString actual)
+expectInvalid =
+    CombineTestUtil.expectInvalid Parser.pattern

@@ -1,7 +1,7 @@
 module Elm.Parser.LetExpressionTests exposing (all)
 
 import Combine
-import Elm.Parser.CombineTestUtil exposing (..)
+import Elm.Parser.CombineTestUtil as CombineTestUtil exposing (..)
 import Elm.Parser.Expression exposing (expression)
 import Elm.Parser.Layout as Layout
 import Elm.Syntax.Expression exposing (..)
@@ -321,21 +321,10 @@ all =
 
 
 expectAst : Node Expression -> String -> Expect.Expectation
-expectAst expected source =
-    case parse source expression of
-        Nothing ->
-            Expect.fail "Expected the source to be parsed correctly"
-
-        Just actual ->
-            actual
-                |> Expect.equal expected
+expectAst =
+    CombineTestUtil.expectAst expression
 
 
 expectInvalid : String -> Expect.Expectation
-expectInvalid source =
-    case parse source expression of
-        Nothing ->
-            Expect.pass
-
-        Just actual ->
-            Expect.fail ("This source code is successfully parsed but it shouldn't:\n" ++ Debug.toString actual)
+expectInvalid =
+    CombineTestUtil.expectInvalid expression

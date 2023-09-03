@@ -1,6 +1,6 @@
 module Elm.Parser.InfixTests exposing (all)
 
-import Elm.Parser.CombineTestUtil exposing (..)
+import Elm.Parser.CombineTestUtil as CombineTestUtil
 import Elm.Parser.Declarations exposing (declaration)
 import Elm.Syntax.Declaration as Declaration exposing (Declaration)
 import Elm.Syntax.Infix exposing (..)
@@ -55,11 +55,5 @@ all =
 
 
 expectAst : Node Declaration -> String -> Expect.Expectation
-expectAst expected source =
-    case parse source declaration of
-        Nothing ->
-            Expect.fail "Expected the source to be parsed correctly"
-
-        Just actual ->
-            actual
-                |> Expect.equal expected
+expectAst =
+    CombineTestUtil.expectAst declaration

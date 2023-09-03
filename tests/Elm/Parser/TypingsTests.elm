@@ -1,6 +1,6 @@
 module Elm.Parser.TypingsTests exposing (all)
 
-import Elm.Parser.CombineTestUtil exposing (..)
+import Elm.Parser.CombineTestUtil as CombineTestUtil exposing (..)
 import Elm.Parser.Typings as Parser
 import Elm.Syntax.Declaration as Declaration exposing (Declaration(..))
 import Elm.Syntax.Node exposing (Node(..))
@@ -200,21 +200,10 @@ all =
 
 
 expectAst : Node Declaration -> String -> Expect.Expectation
-expectAst expected source =
-    case parse source Parser.typeDefinition of
-        Nothing ->
-            Expect.fail "Expected the source to be parsed correctly"
-
-        Just actual ->
-            actual
-                |> Expect.equal expected
+expectAst =
+    CombineTestUtil.expectAst Parser.typeDefinition
 
 
 expectInvalid : String -> Expect.Expectation
-expectInvalid source =
-    case parse source Parser.typeDefinition of
-        Nothing ->
-            Expect.pass
-
-        Just actual ->
-            Expect.fail ("This source code is successfully parsed but it shouldn't:\n" ++ Debug.toString actual)
+expectInvalid =
+    CombineTestUtil.expectInvalid Parser.typeDefinition

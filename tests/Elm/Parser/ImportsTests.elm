@@ -1,6 +1,6 @@
 module Elm.Parser.ImportsTests exposing (all)
 
-import Elm.Parser.CombineTestUtil exposing (..)
+import Elm.Parser.CombineTestUtil as CombineTestUtil
 import Elm.Parser.Imports as Parser
 import Elm.Syntax.Exposing exposing (..)
 import Elm.Syntax.Import exposing (Import)
@@ -68,11 +68,5 @@ all =
 
 
 expectAst : Node Import -> String -> Expect.Expectation
-expectAst expected source =
-    case parse source Parser.importDefinition of
-        Nothing ->
-            Expect.fail "Expected the source to be parsed correctly"
-
-        Just actual ->
-            actual
-                |> Expect.equal expected
+expectAst =
+    CombineTestUtil.expectAst Parser.importDefinition

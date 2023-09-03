@@ -1,6 +1,6 @@
 module Elm.Parser.DeclarationsTests exposing (all)
 
-import Elm.Parser.CombineTestUtil exposing (..)
+import Elm.Parser.CombineTestUtil as CombineTestUtil
 import Elm.Parser.Declarations exposing (..)
 import Elm.Syntax.Declaration exposing (..)
 import Elm.Syntax.Expression exposing (..)
@@ -569,21 +569,10 @@ update msg model =
 
 
 expectAst : Node Declaration -> String -> Expect.Expectation
-expectAst expected source =
-    case parse source declaration of
-        Nothing ->
-            Expect.fail "Expected the source to be parsed correctly"
-
-        Just actual ->
-            actual
-                |> Expect.equal expected
+expectAst =
+    CombineTestUtil.expectAst declaration
 
 
 expectInvalid : String -> Expect.Expectation
-expectInvalid source =
-    case parse source declaration of
-        Nothing ->
-            Expect.pass
-
-        Just actual ->
-            Expect.fail ("This source code is successfully parsed but it shouldn't:\n" ++ Debug.toString actual)
+expectInvalid =
+    CombineTestUtil.expectInvalid declaration

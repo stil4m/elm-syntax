@@ -11,10 +11,10 @@ all =
     describe "BaseTest"
         [ test "moduleName" <|
             \() ->
-                parse "Foo" Parser.moduleName
-                    |> Expect.equal (Just <| [ "Foo" ])
+                parseWithFailure "Foo" Parser.moduleName
+                    |> Expect.equal (Ok [ "Foo" ])
         , test "moduleNameDir" <|
             \() ->
-                parse "Foo.Bar" Parser.moduleName
-                    |> Expect.equal (Just <| [ "Foo", "Bar" ])
+                parseWithFailure "Foo.Bar" Parser.moduleName
+                    |> Expect.equal (Ok [ "Foo", "Bar" ])
         ]

@@ -1,6 +1,6 @@
 module Elm.Parser.TypeAnnotationTests exposing (all)
 
-import Elm.Parser.CombineTestUtil exposing (..)
+import Elm.Parser.CombineTestUtil as CombineTestUtil exposing (..)
 import Elm.Parser.TypeAnnotation as Parser
 import Elm.Syntax.Node exposing (Node(..))
 import Elm.Syntax.TypeAnnotation exposing (..)
@@ -399,22 +399,11 @@ all =
         ]
 
 
-expectInvalid : String -> Expect.Expectation
-expectInvalid source =
-    case parse source Parser.typeAnnotation of
-        Nothing ->
-            Expect.pass
-
-        Just actual ->
-            Expect.fail ("This source code is successfully parsed but it shouldn't:\n" ++ Debug.toString actual)
-
-
 expectAst : Node TypeAnnotation -> String -> Expect.Expectation
-expectAst expected source =
-    case parse source Parser.typeAnnotation of
-        Nothing ->
-            Expect.fail "Expected the source to be parsed correctly"
+expectAst =
+    CombineTestUtil.expectAst Parser.typeAnnotation
 
-        Just actual ->
-            actual
-                |> Expect.equal expected
+
+expectInvalid : String -> Expect.Expectation
+expectInvalid =
+    CombineTestUtil.expectInvalid Parser.typeAnnotation
