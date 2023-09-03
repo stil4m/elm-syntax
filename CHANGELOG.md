@@ -2,6 +2,8 @@
 
 ## [Unreleased]
 
+## [7.3.2] - 2022-09-03
+
 - Stop parsing `FloatPattern` (this is an invalid pattern in Elm 0.19)
 - Stop parsing `Destructuring` declaration (this is an invalid declaration in Elm 0.19)
 - Fail to parse when doing exposing clause is empty (`exposing ()`)
@@ -113,7 +115,8 @@ With this change some additional big changes were made to the projects and the d
 - Range information is added to a significant bigger set of AST elements.
 - The decoders and encoders for the specific AST elements are moved to their modules (`Elm.Syntax.*`).
 
-[Unreleased]: https://github.com/stil4m/elm-syntax/compare/v7.3.1...HEAD
+[Unreleased]: https://github.com/stil4m/elm-syntax/compare/v7.3.2...HEAD
+[7.3.2]: https://github.com/stil4m/elm-syntax/releases/tag/7.3.2
 [7.3.1]: https://github.com/stil4m/elm-syntax/releases/tag/7.3.1
 [7.3.0]: https://github.com/stil4m/elm-syntax/releases/tag/7.3.0
 [7.2.9]: https://github.com/stil4m/elm-syntax/releases/tag/7.2.9
