@@ -16,7 +16,7 @@ import Elm.Syntax.Node as Node exposing (Node(..))
 import Elm.Syntax.Pattern as Pattern exposing (Pattern)
 import Elm.Syntax.Range exposing (Location, Range)
 import Elm.Syntax.Signature exposing (Signature)
-import Parser as Core exposing (Nestable(..))
+import Parser as Core exposing ((|=), Nestable(..))
 import Pratt exposing (Config)
 
 
@@ -162,8 +162,19 @@ recordAccess =
 
 recordAccessParser : Parser State (Node String)
 recordAccessParser =
-    string "."
-        |> Combine.continueWith (Node.parser functionName)
+    Core.succeed (\offset source -> String.slice (offset - 1) offset source)
+        |= Core.getOffset
+        |= Core.getSource
+        |> Combine.fromCore
+        |> Combine.andThen
+            (\c ->
+                if c == " " || c == "\n" || c == "\u{000D}" then
+                    Combine.fail "Record access can't start with a space"
+
+                else
+                    string "."
+                        |> Combine.continueWith (Node.parser functionName)
+            )
 
 
 functionCall : Pratt.Config s (Node Expression) -> ( Int, Node Expression -> Parser s (Node Expression) )
