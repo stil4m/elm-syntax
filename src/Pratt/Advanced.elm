@@ -86,7 +86,7 @@ subExpression : Int -> Config c x e -> Parser c x e
 subExpression precedence ((Config conf) as config) =
     succeed identity
         |. conf.spaces
-        |= lazy (\_ -> oneOf <| List.map ((|>) config) conf.oneOf)
+        |= lazy (\_ -> oneOf <| List.map (\e -> e config) conf.oneOf)
         |> andThen (\leftExpression -> loop ( config, precedence, leftExpression ) expressionHelp)
 
 
