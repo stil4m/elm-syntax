@@ -121,18 +121,8 @@ expression =
             , infixLeft 5 "|="
             , infixLeft 6 "|."
             ]
-        , spaces = spaces
+        , spaces = Combine.maybe Layout.layout |> Combine.map (always ())
         }
-
-
-spaces : Parser State ()
-spaces =
-    Combine.oneOf
-        [ -- TODO Tests don't pass without this, but this should probably not be used in production
-          Combine.start
-        , Layout.layout
-        , Combine.end
-        ]
 
 
 infixLeft : Int -> String -> Config s (Node Expression) -> ( Int, Node Expression -> Parser s (Node Expression) )
