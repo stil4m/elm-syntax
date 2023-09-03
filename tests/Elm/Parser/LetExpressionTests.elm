@@ -314,7 +314,7 @@ all =
                         )
         , test "let with trailing whitespace" <|
             \() ->
-                parse " let\n b = 1\n in\n b\n\n\n\n--some comment\n" (Layout.layout |> Combine.continueWith Parser.letExpression)
+                parse " let\n b = 1\n in\n b\n\n\n\n--some comment\n" (Layout.layout |> Combine.continueWith Parser.expression)
                     |> Maybe.map Node.range
                     |> Expect.equal (Just { start = { row = 1, column = 2 }, end = { row = 4, column = 3 } })
         ]
