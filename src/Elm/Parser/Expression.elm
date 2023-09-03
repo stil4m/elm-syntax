@@ -122,7 +122,7 @@ expression =
             , infixRight 9 ">>"
             , functionCall
             ]
-        , spaces = Combine.maybe Layout.layout |> Combine.map (always ())
+        , spaces = oneOf [ Layout.layout, manySpaces ]
         }
 
 
