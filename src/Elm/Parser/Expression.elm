@@ -120,6 +120,7 @@ expression =
             , infixRight 8 "^"
             , infixLeft 9 "<<"
             , infixRight 9 ">>"
+            , recordAccess
             , functionCall
             ]
         , spaces = oneOf [ Layout.layout, manySpaces ]
@@ -146,6 +147,23 @@ infixRight precedence symbol =
                 { start = (Node.range left).start, end = (Node.range right).end }
                 (OperatorApplication symbol Infix.Right left right)
         )
+
+
+recordAccess : Config State (Node Expression) -> ( Int, Node Expression -> Parser State (Node Expression) )
+recordAccess =
+    Pratt.recordAccessPostfix 98
+        recordAccessParser
+        (\((Node leftRange _) as left) ((Node rightRange _) as field) ->
+            Node
+                { start = leftRange.start, end = rightRange.end }
+                (Expression.RecordAccess left field)
+        )
+
+
+recordAccessParser : Parser State (Node String)
+recordAccessParser =
+    string "."
+        |> Combine.continueWith (Node.parser functionName)
 
 
 functionCall : Pratt.Config s (Node Expression) -> ( Int, Node Expression -> Parser s (Node Expression) )
