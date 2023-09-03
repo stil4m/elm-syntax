@@ -120,6 +120,7 @@ expression =
             , infixLeft 8 "<?>"
             , infixLeft 5 "|="
             , infixLeft 6 "|."
+            , functionCall
             ]
         , spaces = Combine.maybe Layout.layout |> Combine.map (always ())
         }
@@ -144,6 +145,26 @@ infixRight precedence symbol =
             Node
                 { start = (Node.range left).start, end = (Node.range right).end }
                 (OperatorApplication symbol Infix.Right left right)
+        )
+
+
+functionCall : Pratt.Config s (Node Expression) -> ( Int, Node Expression -> Parser s (Node Expression) )
+functionCall =
+    -- TODO Does not work yet
+    Pratt.infixRight 99
+        -- This is not the correct symbol, you can have it all attached `f(x)`
+        (Combine.symbol " ")
+        (\((Node leftRange leftValue) as left) right ->
+            case leftValue of
+                Expression.Application args ->
+                    Node
+                        { start = leftRange.start, end = (Node.range right).end }
+                        (Expression.Application (args ++ [ right ]))
+
+                _ ->
+                    Node
+                        { start = leftRange.start, end = (Node.range right).end }
+                        (Expression.Application [ left, right ])
         )
 
 
