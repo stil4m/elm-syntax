@@ -2,7 +2,7 @@ module Elm.Parser.LambdaExpressionTests exposing (all)
 
 import Combine
 import Elm.Parser.CombineTestUtil exposing (..)
-import Elm.Parser.Declarations as Parser
+import Elm.Parser.Expression exposing (expression)
 import Elm.Parser.Layout as Layout
 import Elm.Syntax.Expression exposing (..)
 import Elm.Syntax.Node as Node exposing (Node(..))
@@ -83,7 +83,7 @@ all =
 
 
 --some comment
-""" (Layout.layout |> Combine.continueWith Parser.expression)
+""" (Layout.layout |> Combine.continueWith expression)
                     |> Maybe.map Node.range
                     |> Expect.equal (Just { start = { row = 1, column = 2 }, end = { row = 1, column = 15 } })
         ]
@@ -91,7 +91,7 @@ all =
 
 expectAst : Node Expression -> String -> Expect.Expectation
 expectAst expected source =
-    case parse source Parser.expression of
+    case parse source expression of
         Nothing ->
             Expect.fail "Expected the source to be parsed correctly"
 

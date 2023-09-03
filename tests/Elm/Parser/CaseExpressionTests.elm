@@ -1,7 +1,7 @@
 module Elm.Parser.CaseExpressionTests exposing (all)
 
 import Elm.Parser.CombineTestUtil exposing (..)
-import Elm.Parser.Declarations as Parser
+import Elm.Parser.Expression exposing (expression)
 import Elm.Syntax.Expression exposing (..)
 import Elm.Syntax.Node exposing (Node(..))
 import Elm.Syntax.Pattern exposing (..)
@@ -183,7 +183,7 @@ True -> 1"""
 
 expectAst : Node Expression -> String -> Expect.Expectation
 expectAst expected source =
-    case parse source Parser.expression of
+    case parse source expression of
         Nothing ->
             Expect.fail "Expected the source to be parsed correctly"
 
@@ -194,7 +194,7 @@ expectAst expected source =
 
 expectInvalid : String -> Expect.Expectation
 expectInvalid source =
-    case parse source Parser.expression of
+    case parse source expression of
         Nothing ->
             Expect.pass
 

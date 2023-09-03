@@ -1,7 +1,7 @@
 module Elm.Parser.GlslTests exposing (all)
 
 import Elm.Parser.CombineTestUtil exposing (..)
-import Elm.Parser.Declarations as Parser
+import Elm.Parser.Expression exposing (expression)
 import Elm.Syntax.Expression exposing (..)
 import Elm.Syntax.Node exposing (Node(..))
 import Expect
@@ -23,7 +23,7 @@ all =
 
 expectAst : Node Expression -> String -> Expect.Expectation
 expectAst expected source =
-    case parse source Parser.expression of
+    case parse source expression of
         Nothing ->
             Expect.fail "Expected the source to be parsed correctly"
 
