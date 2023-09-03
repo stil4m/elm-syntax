@@ -1,15 +1,16 @@
 module Elm.Parser.Declarations exposing (declaration)
 
 import Combine exposing (Parser, maybe, oneOf, string, succeed)
-import Elm.Parser.Expression exposing (functionWithNameNode)
+import Elm.Parser.Expression exposing (expression, failIfDifferentFrom, functionSignatureFromVarPointer)
 import Elm.Parser.Layout as Layout
 import Elm.Parser.Node as Node
+import Elm.Parser.Patterns exposing (pattern)
 import Elm.Parser.State exposing (State)
 import Elm.Parser.Tokens exposing (functionName, portToken, prefixOperatorToken)
 import Elm.Parser.TypeAnnotation exposing (typeAnnotation)
 import Elm.Parser.Typings exposing (typeDefinition)
 import Elm.Syntax.Declaration as Declaration exposing (Declaration)
-import Elm.Syntax.Expression as Expression
+import Elm.Syntax.Expression as Expression exposing (Function, FunctionImplementation)
 import Elm.Syntax.Infix as Infix exposing (Infix)
 import Elm.Syntax.Node as Node exposing (Node(..))
 import Elm.Syntax.Signature exposing (Signature)
@@ -32,6 +33,48 @@ function =
         |> Combine.ignore (maybe Layout.layout)
         |> Combine.andThen functionWithNameNode
         |> Combine.map (\f -> Node (Expression.functionRange f) (Declaration.FunctionDeclaration f))
+
+
+functionWithNameNode : Node String -> Parser State Function
+functionWithNameNode pointer =
+    let
+        functionImplementationFromVarPointer : Node String -> Parser State (Node FunctionImplementation)
+        functionImplementationFromVarPointer varPointer =
+            succeed (\args expr -> Node { start = (Node.range varPointer).start, end = (Node.range expr).end } (FunctionImplementation varPointer args expr))
+                |> Combine.keep (Combine.many (pattern |> Combine.ignore (maybe Layout.layout)))
+                |> Combine.ignore (string "=")
+                |> Combine.ignore (maybe Layout.layout)
+                |> Combine.keep expression
+
+        fromParts : Node Signature -> Node FunctionImplementation -> Function
+        fromParts sig decl =
+            { documentation = Nothing
+            , signature = Just sig
+            , declaration = decl
+            }
+
+        functionWithSignature : Node String -> Parser State Function
+        functionWithSignature varPointer =
+            functionSignatureFromVarPointer varPointer
+                |> Combine.ignore (maybe Layout.layoutStrict)
+                |> Combine.andThen
+                    (\sig ->
+                        Node.parser functionName
+                            |> Combine.andThen (failIfDifferentFrom varPointer)
+                            |> Combine.ignore (maybe Layout.layout)
+                            |> Combine.andThen functionImplementationFromVarPointer
+                            |> Combine.map (fromParts sig)
+                    )
+
+        functionWithoutSignature : Node String -> Parser State Function
+        functionWithoutSignature varPointer =
+            functionImplementationFromVarPointer varPointer
+                |> Combine.map (Function Nothing Nothing)
+    in
+    Combine.oneOf
+        [ functionWithSignature pointer
+        , functionWithoutSignature pointer
+        ]
 
 
 signature : Parser State Signature

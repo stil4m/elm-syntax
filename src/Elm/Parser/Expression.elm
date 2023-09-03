@@ -1,4 +1,4 @@
-module Elm.Parser.Expression exposing (expression, functionWithNameNode)
+module Elm.Parser.Expression exposing (expression, failIfDifferentFrom, functionSignatureFromVarPointer)
 
 import Combine exposing (Parser, lazy, many, maybe, modifyState, oneOf, sepBy1, string, succeed, withLocation)
 import Elm.Parser.Layout as Layout
