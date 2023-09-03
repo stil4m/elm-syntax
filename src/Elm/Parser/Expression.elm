@@ -124,16 +124,16 @@ glslExpression =
 
 listExpression : Parser State (Node Expression)
 listExpression =
-    string "["
+    Combine.succeed ListExpr
+        |> Combine.ignore (string "[")
         |> Combine.ignore (maybe Layout.layout)
-        |> Combine.continueWith
+        |> Combine.keep
             (Combine.sepBy
                 (string "," |> Combine.ignore (maybe Layout.layout))
                 expression
             )
         |> Combine.ignore (maybe Layout.layout)
         |> Combine.ignore (string "]")
-        |> Combine.map ListExpr
         |> Node.parser
 
 
