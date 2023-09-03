@@ -1,7 +1,7 @@
 module Elm.Parser.Declarations exposing (declaration)
 
 import Combine exposing (Parser, maybe, oneOf, string, succeed)
-import Elm.Parser.Expression exposing (function)
+import Elm.Parser.Expression exposing (functionWithNameNode)
 import Elm.Parser.Layout as Layout
 import Elm.Parser.Node as Node
 import Elm.Parser.State exposing (State)
@@ -9,6 +9,7 @@ import Elm.Parser.Tokens exposing (functionName, portToken, prefixOperatorToken)
 import Elm.Parser.TypeAnnotation exposing (typeAnnotation)
 import Elm.Parser.Typings exposing (typeDefinition)
 import Elm.Syntax.Declaration as Declaration exposing (Declaration)
+import Elm.Syntax.Expression as Expression
 import Elm.Syntax.Infix as Infix exposing (Infix)
 import Elm.Syntax.Node as Node exposing (Node(..))
 import Elm.Syntax.Signature exposing (Signature)
@@ -23,6 +24,14 @@ declaration =
         , typeDefinition
         , portDeclaration
         ]
+
+
+function : Parser State (Node Declaration)
+function =
+    Node.parser functionName
+        |> Combine.ignore (maybe Layout.layout)
+        |> Combine.andThen functionWithNameNode
+        |> Combine.map (\f -> Node (Expression.functionRange f) (Declaration.FunctionDeclaration f))
 
 
 signature : Parser State Signature
