@@ -121,7 +121,7 @@ expression =
             , infixLeft 5 "|="
             , infixLeft 6 "|."
             ]
-        , spaces = Layout.layout
+        , spaces = Combine.maybe Layout.layout |> Combine.map (always ())
         }
 
 
