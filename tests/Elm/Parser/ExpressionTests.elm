@@ -413,11 +413,10 @@ all =
                                 (Node { start = { row = 1, column = 2 }, end = { row = 1, column = 9 } }
                                     (ParenthesizedExpression
                                         (Node { start = { row = 1, column = 3 }, end = { row = 1, column = 8 } }
-                                            (Application
-                                                [ Node { start = { row = 1, column = 3 }, end = { row = 1, column = 4 } } (FunctionOrValue [] "x")
-                                                , Node { start = { row = 1, column = 5 }, end = { row = 1, column = 7 } } (Operator "-")
-                                                , Node { start = { row = 1, column = 7 }, end = { row = 1, column = 8 } } (FunctionOrValue [] "y")
-                                                ]
+                                            (OperatorApplication "-"
+                                                Left
+                                                (Node { start = { row = 1, column = 3 }, end = { row = 1, column = 4 } } (FunctionOrValue [] "x"))
+                                                (Node { start = { row = 1, column = 7 }, end = { row = 1, column = 8 } } (FunctionOrValue [] "y"))
                                             )
                                         )
                                     )
