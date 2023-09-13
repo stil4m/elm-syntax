@@ -426,20 +426,22 @@ all =
             \() ->
                 """main =
   {- y -} x"""
-                    |> expectAst
-                        (Node { start = { row = 1, column = 1 }, end = { row = 2, column = 12 } }
-                            (FunctionDeclaration
-                                { documentation = Nothing
-                                , signature = Nothing
-                                , declaration =
-                                    Node { start = { row = 1, column = 1 }, end = { row = 2, column = 12 } }
-                                        { arguments = []
-                                        , expression = Node { start = { row = 2, column = 11 }, end = { row = 2, column = 12 } } (FunctionOrValue [] "x")
-                                        , name = Node { start = { row = 1, column = 1 }, end = { row = 1, column = 5 } } "main"
-                                        }
-                                }
-                            )
-                        )
+                    |> expectAstWithComments
+                        { ast =
+                            Node { start = { row = 1, column = 1 }, end = { row = 2, column = 12 } }
+                                (FunctionDeclaration
+                                    { documentation = Nothing
+                                    , signature = Nothing
+                                    , declaration =
+                                        Node { start = { row = 1, column = 1 }, end = { row = 2, column = 12 } }
+                                            { arguments = []
+                                            , expression = Node { start = { row = 2, column = 11 }, end = { row = 2, column = 12 } } (FunctionOrValue [] "x")
+                                            , name = Node { start = { row = 1, column = 1 }, end = { row = 1, column = 5 } } "main"
+                                            }
+                                    }
+                                )
+                        , comments = [ Node { start = { row = 2, column = 3 }, end = { row = 2, column = 10 } } "{- y -}" ]
+                        }
         , test "function with a lot of symbols" <|
             \() ->
                 "updateState update sendPort = curry <| (uncurry update) >> batchStateCmds sendPort"
@@ -571,6 +573,11 @@ update msg model =
 expectAst : Node Declaration -> String -> Expect.Expectation
 expectAst =
     CombineTestUtil.expectAst declaration
+
+
+expectAstWithComments : { ast : Node Declaration, comments : List (Node String) } -> String -> Expect.Expectation
+expectAstWithComments =
+    CombineTestUtil.expectAstWithComments declaration
 
 
 expectInvalid : String -> Expect.Expectation
