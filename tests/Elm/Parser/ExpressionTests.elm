@@ -1,4 +1,4 @@
-module Elm.Parser.ExpressionTests exposing (all)
+module Elm.Parser.ExpressionTests exposing (all, expectAstWithComments)
 
 import Elm.Parser.CombineTestUtil as CombineTestUtil
 import Elm.Parser.Expression exposing (expression)
@@ -210,20 +210,22 @@ all =
         , test "recordExpression with comment" <|
             \() ->
                 "{ foo = 1 -- bar\n , baz = 2 }"
-                    |> expectAst
-                        (Node { start = { row = 1, column = 1 }, end = { row = 2, column = 13 } }
-                            (RecordExpr
-                                [ Node { start = { row = 1, column = 3 }, end = { row = 1, column = 10 } }
-                                    ( Node { start = { row = 1, column = 3 }, end = { row = 1, column = 6 } } "foo"
-                                    , Node { start = { row = 1, column = 9 }, end = { row = 1, column = 10 } } (Integer 1)
-                                    )
-                                , Node { start = { row = 2, column = 4 }, end = { row = 2, column = 12 } }
-                                    ( Node { start = { row = 2, column = 4 }, end = { row = 2, column = 7 } } "baz"
-                                    , Node { start = { row = 2, column = 10 }, end = { row = 2, column = 11 } } (Integer 2)
-                                    )
-                                ]
-                            )
-                        )
+                    |> expectAstWithComments
+                        { ast =
+                            Node { start = { row = 1, column = 1 }, end = { row = 2, column = 13 } }
+                                (RecordExpr
+                                    [ Node { start = { row = 1, column = 3 }, end = { row = 1, column = 10 } }
+                                        ( Node { start = { row = 1, column = 3 }, end = { row = 1, column = 6 } } "foo"
+                                        , Node { start = { row = 1, column = 9 }, end = { row = 1, column = 10 } } (Integer 1)
+                                        )
+                                    , Node { start = { row = 2, column = 4 }, end = { row = 2, column = 12 } }
+                                        ( Node { start = { row = 2, column = 4 }, end = { row = 2, column = 7 } } "baz"
+                                        , Node { start = { row = 2, column = 10 }, end = { row = 2, column = 11 } } (Integer 2)
+                                        )
+                                    ]
+                                )
+                        , comments = [ Node { start = { row = 1, column = 11 }, end = { row = 1, column = 17 } } "-- bar" ]
+                        }
         , test "listExpression" <|
             \() ->
                 "[ class \"a\", text \"Foo\"]"
@@ -248,17 +250,22 @@ all =
         , test "listExpression singleton with comment" <|
             \() ->
                 "[ 1 {- Foo-} ]"
-                    |> expectAst
-                        (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 15 } }
-                            (ListExpr
-                                [ Node { start = { row = 1, column = 3 }, end = { row = 1, column = 4 } } (Integer 1)
-                                ]
-                            )
-                        )
+                    |> expectAstWithComments
+                        { ast =
+                            Node { start = { row = 1, column = 1 }, end = { row = 1, column = 15 } }
+                                (ListExpr
+                                    [ Node { start = { row = 1, column = 3 }, end = { row = 1, column = 4 } } (Integer 1)
+                                    ]
+                                )
+                        , comments = [ Node { start = { row = 1, column = 5 }, end = { row = 1, column = 13 } } "{- Foo-}" ]
+                        }
         , test "listExpression empty with comment" <|
             \() ->
                 "[{- Foo -}]"
-                    |> expectAst (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 12 } } (ListExpr []))
+                    |> expectAstWithComments
+                        { ast = Node { start = { row = 1, column = 1 }, end = { row = 1, column = 12 } } (ListExpr [])
+                        , comments = [ Node { start = { row = 1, column = 2 }, end = { row = 1, column = 11 } } "{- Foo -}" ]
+                        }
         , test "qualified expression" <|
             \() ->
                 "Html.text"
@@ -514,6 +521,11 @@ all =
 expectAst : Node Expression -> String -> Expect.Expectation
 expectAst =
     CombineTestUtil.expectAst expression
+
+
+expectAstWithComments : { ast : Node Expression, comments : List (Node String) } -> String -> Expect.Expectation
+expectAstWithComments =
+    CombineTestUtil.expectAstWithComments expression
 
 
 expectInvalid : String -> Expect.Expectation
