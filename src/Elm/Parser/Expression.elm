@@ -76,36 +76,16 @@ expression =
             , infixRight 2 "||"
             , infixRight 3 "&&"
 
-            --, -- infix non   4 (==) = eq
-            --  { direction = Non
-            --  , precedence = 4
-            --  , operator = "=="
-            --  }
-            --, -- infix non   4 (/=) = neq
-            --  { direction = Non
-            --  , precedence = 4
-            --  , operator = "/="
-            --  }
-            --, -- infix non   4 (<)  = lt
-            --  { direction = Non
-            --  , precedence = 4
-            --  , operator = "<"
-            --  }
-            --, -- infix non   4 (>)  = gt
-            --  { direction = Non
-            --  , precedence = 4
-            --  , operator = ">"
-            --  }
-            --, -- infix non   4 (<=) = le
-            --  { direction = Non
-            --  , precedence = 4
-            --  , operator = "<="
-            --  }
-            --, -- infix non   4 (>=) = ge
-            --  { direction = Non
-            --  , precedence = 4
-            --  , operator = ">="
-            --  }infixRight 5 "++"
+            -- TODO Report a syntax error when encountering multiple of the comparison operators
+            -- `a < b < c` is not valid Elm syntax
+            -- TODO Add tests for all operators
+            , infixNonAssociative 4 "=="
+            , infixNonAssociative 4 "/="
+            , infixNonAssociative 4 "<"
+            , infixNonAssociative 4 ">"
+            , infixNonAssociative 4 "<="
+            , infixNonAssociative 4 ">="
+            , infixRight 5 "++"
             , infixRight 5 "::"
             , infixLeft 5 "|="
             , infixLeft 6 "|."
@@ -134,6 +114,17 @@ infixLeft precedence symbol =
             Node
                 { start = (Node.range left).start, end = (Node.range right).end }
                 (OperatorApplication symbol Infix.Left left right)
+        )
+
+
+infixNonAssociative : Int -> String -> Config s (Node Expression) -> ( Int, Node Expression -> Parser s (Node Expression) )
+infixNonAssociative precedence symbol =
+    Pratt.infixLeft precedence
+        (Combine.symbol symbol)
+        (\left right ->
+            Node
+                { start = (Node.range left).start, end = (Node.range right).end }
+                (OperatorApplication symbol Infix.Non left right)
         )
 
 
