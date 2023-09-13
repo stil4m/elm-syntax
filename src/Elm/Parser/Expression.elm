@@ -6,7 +6,7 @@ import Elm.Parser.Node as Node
 import Elm.Parser.Numbers
 import Elm.Parser.Patterns exposing (pattern)
 import Elm.Parser.State as State exposing (State, popIndent, pushColumn)
-import Elm.Parser.Tokens as Tokens exposing (caseToken, characterLiteral, elseToken, functionName, ifToken, infixOperatorToken, multiLineStringLiteral, ofToken, prefixOperatorToken, stringLiteral, thenToken)
+import Elm.Parser.Tokens as Tokens exposing (caseToken, characterLiteral, elseToken, functionName, ifToken, multiLineStringLiteral, ofToken, prefixOperatorToken, stringLiteral, thenToken)
 import Elm.Parser.TypeAnnotation exposing (typeAnnotation)
 import Elm.Parser.Whitespace exposing (manySpaces)
 import Elm.Syntax.Expression as Expression exposing (Case, CaseBlock, Cases, Expression(..), Function, FunctionImplementation, Lambda, LetBlock, LetDeclaration(..), RecordSetter)
@@ -520,18 +520,15 @@ ifBlockExpression config =
         |> Combine.keep (Pratt.subExpression 0 config)
 
 
-negationOperation : Config State (Node Expression) -> Parser State (Node Expression)
-negationOperation config =
-    Combine.succeed Negation
-        |> Combine.ignore (string "-")
-        |> Combine.keep
-            (Combine.oneOf
-                [ referenceExpression
-                , numberExpression
-                , tupledExpression config
-                ]
-            )
-        |> Node.parser
+negationOperation : Config s (Node Expression) -> Parser s (Node Expression)
+negationOperation =
+    Pratt.prefix 3
+        (Combine.symbol "-")
+        (\((Node { start, end } _) as subExpr) ->
+            Node
+                { start = { row = start.row, column = start.column - 1 }, end = end }
+                (Negation subExpr)
+        )
 
 
 referenceExpression : Parser State (Node Expression)
