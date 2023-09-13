@@ -4,6 +4,7 @@ import Elm.Parser.CombineTestUtil as CombineTestUtil
 import Elm.Parser.Declarations exposing (..)
 import Elm.Syntax.Declaration exposing (..)
 import Elm.Syntax.Expression exposing (..)
+import Elm.Syntax.Infix as Infix
 import Elm.Syntax.Node exposing (Node(..))
 import Elm.Syntax.Pattern exposing (..)
 import Elm.Syntax.TypeAnnotation exposing (..)
@@ -126,11 +127,10 @@ all =
                                         , arguments = [ Node { start = { row = 1, column = 5 }, end = { row = 1, column = 6 } } (VarPattern "x") ]
                                         , expression =
                                             Node { start = { row = 1, column = 9 }, end = { row = 1, column = 14 } }
-                                                (Application
-                                                    [ Node { start = { row = 1, column = 9 }, end = { row = 1, column = 10 } } (FunctionOrValue [] "x")
-                                                    , Node { start = { row = 1, column = 11 }, end = { row = 1, column = 12 } } (Operator "+")
-                                                    , Node { start = { row = 1, column = 13 }, end = { row = 1, column = 14 } } (Integer 1)
-                                                    ]
+                                                (OperatorApplication "+"
+                                                    Infix.Left
+                                                    (Node { start = { row = 1, column = 9 }, end = { row = 1, column = 10 } } (FunctionOrValue [] "x"))
+                                                    (Node { start = { row = 1, column = 13 }, end = { row = 1, column = 14 } } (Integer 1))
                                                 )
                                         }
                                 }
