@@ -257,8 +257,8 @@ all =
                         )
         , test "listExpression empty with comment" <|
             \() ->
-                "[{-| Foo -}]"
-                    |> expectAst (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 13 } } (ListExpr []))
+                "[{- Foo -}]"
+                    |> expectAst (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 12 } } (ListExpr []))
         , test "qualified expression" <|
             \() ->
                 "Html.text"
