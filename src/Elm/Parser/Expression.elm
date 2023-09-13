@@ -269,6 +269,7 @@ listExpression : Config State (Node Expression) -> Parser State (Node Expression
 listExpression config =
     Combine.succeed ListExpr
         |> Combine.ignore (string "[")
+        |> Combine.ignore (maybe Layout.layout)
         |> Combine.keep
             (Combine.sepBy
                 (string ",")
