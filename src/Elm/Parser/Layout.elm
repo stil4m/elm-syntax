@@ -103,7 +103,12 @@ verifyIndent f =
         (\s ->
             withLocation
                 (\l ->
-                    if f (State.expectedColumn s) l.column then
+                    let
+                        expectedColumn : Int
+                        expectedColumn =
+                            State.expectedColumn s
+                    in
+                    if f expectedColumn l.column then
                         succeed ()
 
                     else
