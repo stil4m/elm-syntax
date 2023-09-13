@@ -1,7 +1,8 @@
-module Elm.Parser.CombineTestUtil exposing (expectAst, expectInvalid, parse, parseWithFailure, parseWithState)
+module Elm.Parser.CombineTestUtil exposing (expectAst, expectAstWithComments, expectInvalid, parse, parseWithFailure, parseWithState)
 
 import Combine exposing (Parser)
-import Elm.Parser.State exposing (State, emptyState)
+import Elm.Parser.State as State exposing (State, emptyState)
+import Elm.Syntax.Node exposing (Node)
 import Expect
 import Parser exposing (DeadEnd)
 
@@ -34,6 +35,21 @@ expectAst parser =
             Ok actual ->
                 actual
                     |> Expect.equal expected
+
+
+expectAstWithComments : Parser State a -> { ast : a, comments : List (Node String) } -> String -> Expect.Expectation
+expectAstWithComments parser =
+    \expected source ->
+        case Combine.runParser (parser |> Combine.ignore Combine.end) emptyState source of
+            Err error ->
+                Expect.fail ("Expected the source to be parsed correctly:\n" ++ Debug.toString error)
+
+            Ok actual ->
+                Expect.all
+                    [ \( _, ast ) -> ast |> Expect.equal expected.ast
+                    , \( state, _ ) -> State.getComments state |> Expect.equal expected.comments
+                    ]
+                    actual
 
 
 expectInvalid : Parser State a -> String -> Expect.Expectation
