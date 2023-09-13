@@ -28,13 +28,19 @@ parseWithFailure s p =
 expectAst : Parser State a -> a -> String -> Expect.Expectation
 expectAst parser =
     \expected source ->
-        case parseWithFailure source parser of
+        case Combine.runParser (parser |> Combine.ignore Combine.end) emptyState source of
             Err error ->
                 Expect.fail ("Expected the source to be parsed correctly:\n" ++ Debug.toString error)
 
             Ok actual ->
-                actual
-                    |> Expect.equal expected
+                Expect.all
+                    [ \( _, ast ) -> ast |> Expect.equal expected
+                    , \( state, _ ) ->
+                        State.getComments state
+                            |> Expect.equalLists []
+                            |> Expect.onFail "This parser should not produce any comments. If this is expected, then you should use expectAstWithComments instead."
+                    ]
+                    actual
 
 
 expectAstWithComments : Parser State a -> { ast : a, comments : List (Node String) } -> String -> Expect.Expectation
