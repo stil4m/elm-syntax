@@ -400,13 +400,19 @@ lambdaExpression config =
 -- Case Expression
 
 
-caseStatement : Config State (Node Expression) -> Parser State Case
-caseStatement config =
-    Combine.succeed Tuple.pair
-        |> Combine.keep pattern
-        |> Combine.ignore (maybe (Combine.oneOf [ Layout.layout, Layout.layoutStrict ]))
-        |> Combine.ignore (string "->")
+caseExpression : Config State (Node Expression) -> Parser State (Node Expression)
+caseExpression config =
+    Combine.succeed
+        (\caseKeyword caseBlock_ ( end, cases ) ->
+            Node { start = (Node.range caseKeyword).start, end = end }
+                (CaseExpression (CaseBlock caseBlock_ cases))
+        )
+        |> Combine.keep (Node.parser caseToken)
+        |> Combine.ignore Layout.layout
         |> Combine.keep (Pratt.subExpression 0 config)
+        |> Combine.ignore ofToken
+        |> Combine.ignore Layout.layout
+        |> Combine.keep (withIndentedState (caseStatements config))
 
 
 caseStatements : Config State (Node Expression) -> Parser State ( Location, Cases )
@@ -431,19 +437,13 @@ caseStatementWithCorrectIndentation config =
         )
 
 
-caseExpression : Config State (Node Expression) -> Parser State (Node Expression)
-caseExpression config =
-    Combine.succeed
-        (\caseKeyword caseBlock_ ( end, cases ) ->
-            Node { start = (Node.range caseKeyword).start, end = end }
-                (CaseExpression (CaseBlock caseBlock_ cases))
-        )
-        |> Combine.keep (Node.parser caseToken)
-        |> Combine.ignore Layout.layout
+caseStatement : Config State (Node Expression) -> Parser State Case
+caseStatement config =
+    Combine.succeed Tuple.pair
+        |> Combine.keep pattern
+        |> Combine.ignore (maybe (Combine.oneOf [ Layout.layout, Layout.layoutStrict ]))
+        |> Combine.ignore (string "->")
         |> Combine.keep (Pratt.subExpression 0 config)
-        |> Combine.ignore ofToken
-        |> Combine.ignore Layout.layout
-        |> Combine.keep (withIndentedState (caseStatements config))
 
 
 
