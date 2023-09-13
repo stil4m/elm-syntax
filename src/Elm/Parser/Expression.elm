@@ -452,6 +452,7 @@ caseExpression config =
 
 letBody : Config State (Node Expression) -> Parser State (List (Node LetDeclaration))
 letBody config =
+    -- TODO Add failing tests where let declarations are not aligned
     Combine.succeed (::)
         |> Combine.keep (blockElement config)
         |> Combine.keep (many (blockElement config |> Combine.ignore (maybe Layout.layout)))
