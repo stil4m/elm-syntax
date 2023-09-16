@@ -428,7 +428,7 @@ caseStatementWithCorrectIndentation config =
         (\s ->
             Combine.withLocation
                 (\l ->
-                    if State.expectedColumn (Debug.log "ok" <| s) == l.column then
+                    if Debug.log "condition" <| State.expectedColumn (Debug.log "ok" <| s) == l.column then
                         caseStatement config
 
                     else
