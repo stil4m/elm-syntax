@@ -443,6 +443,8 @@ caseStatement config =
         |> Combine.keep pattern
         |> Combine.ignore (maybe (Combine.oneOf [ Layout.layout, Layout.layoutStrict ]))
         |> Combine.ignore (string "->")
+        -- TODO The problem is that the expression parser is not aware of the current indentation
+        -- and tries to parse `False -` (from `False ->` as an expression)
         |> Combine.keep (Pratt.subExpression 0 config)
 
 
