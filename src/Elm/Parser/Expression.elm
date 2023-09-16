@@ -102,7 +102,7 @@ expression =
             , recordAccess
             , functionCall
             ]
-        , spaces = oneOf [ Layout.layoutWithoutIndentCheck, manySpaces ]
+        , spaces = oneOf [ Layout.layout, manySpaces ]
         }
 
 
