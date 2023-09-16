@@ -112,6 +112,10 @@ verifyIndent f =
                         succeed ()
 
                     else
+                        let
+                            _ =
+                                Debug.log "failing expectation" ( expectedColumn, l.column )
+                        in
                         fail ("Expected higher indent than " ++ String.fromInt (expectedColumn - 1) ++ " but found something at column " ++ String.fromInt (l.column - 1))
                 )
         )
