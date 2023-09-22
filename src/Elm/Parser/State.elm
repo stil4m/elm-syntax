@@ -1,4 +1,4 @@
-module Elm.Parser.State exposing (State, addComment, emptyState, expectedColumn, getComments, popIndent, pushColumn, storedColumns)
+module Elm.Parser.State exposing (State, addComment, emptyState, expectedColumn, getComments, popIndent, pushIndent, storedColumns)
 
 import Elm.Syntax.Node exposing (Node)
 
@@ -38,8 +38,8 @@ popIndent (State s) =
     State { s | indents = List.drop 1 s.indents }
 
 
-pushColumn : Int -> State -> State
-pushColumn col (State s) =
+pushIndent : Int -> State -> State
+pushIndent col (State s) =
     State { s | indents = (col + 1) :: s.indents }
 
 

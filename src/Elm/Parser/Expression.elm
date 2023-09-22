@@ -5,7 +5,7 @@ import Elm.Parser.Layout as Layout
 import Elm.Parser.Node as Node
 import Elm.Parser.Numbers
 import Elm.Parser.Patterns exposing (pattern)
-import Elm.Parser.State as State exposing (State, popIndent, pushColumn)
+import Elm.Parser.State as State exposing (State, popIndent, pushIndent)
 import Elm.Parser.Tokens as Tokens exposing (caseToken, characterLiteral, elseToken, functionName, ifToken, multiLineStringLiteral, ofToken, prefixOperatorToken, stringLiteral, thenToken)
 import Elm.Parser.TypeAnnotation exposing (typeAnnotation)
 import Elm.Parser.Whitespace exposing (manySpaces)
@@ -625,7 +625,7 @@ withIndentedState : Parser State a -> Parser State a
 withIndentedState p =
     withLocation
         (\location ->
-            modifyState (pushColumn location.column)
+            modifyState (pushIndent location.column)
                 |> Combine.continueWith p
                 |> Combine.ignore (modifyState popIndent)
         )
