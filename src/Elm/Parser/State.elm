@@ -38,14 +38,9 @@ popIndent (State s) =
     State { s | indents = List.drop 1 s.indents }
 
 
-pushIndent : Int -> State -> State
-pushIndent x (State s) =
-    State { s | indents = x :: s.indents }
-
-
 pushColumn : Int -> State -> State
-pushColumn col state =
-    pushIndent (col - 1) state
+pushColumn col (State s) =
+    State { s | indents = (col + 1) :: s.indents }
 
 
 addComment : Node String -> State -> State
