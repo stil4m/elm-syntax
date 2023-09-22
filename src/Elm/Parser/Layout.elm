@@ -1,4 +1,4 @@
-module Elm.Parser.Layout exposing (LayoutStatus(..), layout, layoutStrict, maybeAroundBothSides, optimisticLayout, optimisticLayoutWith)
+module Elm.Parser.Layout exposing (LayoutStatus(..), layout, layoutStrict, layoutWithoutIndentCheck, maybeAroundBothSides, optimisticLayout, optimisticLayoutWith)
 
 import Combine exposing (Parser, fail, many, many1, maybe, oneOf, succeed, withLocation, withState)
 import Elm.Parser.Comments as Comments
@@ -30,6 +30,25 @@ layout =
             ]
         )
         |> Combine.continueWith (verifyIndent (\stateIndent current -> stateIndent < current))
+
+
+layoutWithoutIndentCheck : Parser State ()
+layoutWithoutIndentCheck =
+    -- TODO Refactor with layout
+    many1
+        (oneOf
+            [ anyComment
+            , many1 realNewLine
+                |> Combine.continueWith
+                    (oneOf
+                        [ many1Spaces
+                        , anyComment
+                        ]
+                    )
+            , many1Spaces
+            ]
+        )
+        |> Combine.map (always ())
 
 
 type LayoutStatus
@@ -108,11 +127,20 @@ verifyIndent f =
         (\s ->
             withLocation
                 (\l ->
-                    if f (State.expectedColumn s) l.column then
+                    let
+                        expectedColumn : Int
+                        expectedColumn =
+                            State.expectedColumn s
+                    in
+                    if f expectedColumn l.column then
                         succeed ()
 
                     else
-                        fail ("Expected higher indent than " ++ String.fromInt l.column)
+                        let
+                            _ =
+                                Debug.log "failing expectation" ( expectedColumn, l.column )
+                        in
+                        fail ("Expected higher indent than " ++ String.fromInt (expectedColumn - 1) ++ " but found something at column " ++ String.fromInt (l.column - 1))
                 )
         )
 

@@ -44,6 +44,7 @@ config =
         , from = exposedModules
         }
     , Docs.ReviewLinksAndSections.rule
+        |> Rule.ignoreErrorsForFiles [ "src/Pratt.elm", "src/Pratt/Advanced.elm" ]
     , Docs.ReviewAtDocs.rule
     , Docs.UpToDateReadmeLinks.rule
     , NoConfusingPrefixOperator.rule
@@ -68,6 +69,7 @@ config =
             , exceptionsAre = []
             }
         |> NoUnused.Exports.toRule
+        |> Rule.ignoreErrorsForFiles [ "src/Pratt.elm", "src/Pratt/Advanced.elm" ]
     , NoUnused.Parameters.rule
     , NoUnused.Patterns.rule
     , NoUnused.Variables.rule

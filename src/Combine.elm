@@ -1,5 +1,6 @@
 module Combine exposing
     ( Parser(..)
+    , Step(..)
     , andThen
     , backtrackable
     , between
@@ -10,6 +11,7 @@ module Combine exposing
     , ignore
     , keep
     , lazy
+    , loop
     , many
     , many1
     , many1WithEndLocationForLastElement
@@ -25,6 +27,7 @@ module Combine exposing
     , sepBy1WithoutReverse
     , string
     , succeed
+    , symbol
     , while
     , withLocation
     , withState
@@ -128,6 +131,12 @@ string s =
                 |> Core.map (\x -> ( state, x ))
 
 
+symbol : String -> Parser s ()
+symbol str =
+    Core.symbol str
+        |> fromCore
+
+
 while : (Char -> Bool) -> Parser s String
 while pred =
     Parser <|
@@ -226,6 +235,34 @@ endLocationForList defaultRange getRange list =
 
         a :: _ ->
             (getRange a).end
+
+
+type Step a b
+    = Loop a
+    | Done b
+
+
+loop : a -> (a -> Parser s (Step a b)) -> Parser s b
+loop init stepper =
+    let
+        wrapper : ( s, a ) -> Core.Parser (Core.Step ( s, a ) ( s, b ))
+        wrapper ( oldState, v ) =
+            let
+                (Parser p) =
+                    stepper v
+            in
+            p oldState
+                |> Core.map
+                    (\( newState, r ) ->
+                        case r of
+                            Loop l ->
+                                Core.Loop ( newState, l )
+
+                            Done d ->
+                                Core.Done ( newState, d )
+                    )
+    in
+    Parser <| \state -> Core.loop ( state, init ) wrapper
 
 
 many1 : Parser s a -> Parser s (List a)

@@ -4,6 +4,7 @@ import Elm.Parser.CombineTestUtil as CombineTestUtil
 import Elm.Parser.Declarations exposing (..)
 import Elm.Syntax.Declaration exposing (..)
 import Elm.Syntax.Expression exposing (..)
+import Elm.Syntax.Infix as Infix
 import Elm.Syntax.Node exposing (Node(..))
 import Elm.Syntax.Pattern exposing (..)
 import Elm.Syntax.TypeAnnotation exposing (..)
@@ -126,11 +127,10 @@ all =
                                         , arguments = [ Node { start = { row = 1, column = 5 }, end = { row = 1, column = 6 } } (VarPattern "x") ]
                                         , expression =
                                             Node { start = { row = 1, column = 9 }, end = { row = 1, column = 14 } }
-                                                (Application
-                                                    [ Node { start = { row = 1, column = 9 }, end = { row = 1, column = 10 } } (FunctionOrValue [] "x")
-                                                    , Node { start = { row = 1, column = 11 }, end = { row = 1, column = 12 } } (Operator "+")
-                                                    , Node { start = { row = 1, column = 13 }, end = { row = 1, column = 14 } } (Integer 1)
-                                                    ]
+                                                (OperatorApplication "+"
+                                                    Infix.Left
+                                                    (Node { start = { row = 1, column = 9 }, end = { row = 1, column = 10 } } (FunctionOrValue [] "x"))
+                                                    (Node { start = { row = 1, column = 13 }, end = { row = 1, column = 14 } } (Integer 1))
                                                 )
                                         }
                                 }
@@ -260,57 +260,58 @@ all =
                                 }
                             )
                         )
-        , test "update function" <|
-            \() ->
-                """update msg model =
+        , Test.only <|
+            test "update function" <|
+                \() ->
+                    """update msg model =
   case msg of
     Increment ->
       model + 1
 
     Decrement ->
       model - 1"""
-                    |> expectAst
-                        (Node { start = { row = 1, column = 1 }, end = { row = 7, column = 16 } }
-                            (FunctionDeclaration
-                                { declaration =
-                                    Node { start = { row = 1, column = 1 }, end = { row = 7, column = 16 } }
-                                        { arguments =
-                                            [ Node { start = { row = 1, column = 8 }, end = { row = 1, column = 11 } } (VarPattern "msg")
-                                            , Node { start = { row = 1, column = 12 }, end = { row = 1, column = 17 } } (VarPattern "model")
-                                            ]
-                                        , expression =
-                                            Node { start = { row = 2, column = 3 }, end = { row = 7, column = 16 } }
-                                                (CaseExpression
-                                                    { cases =
-                                                        [ ( Node { start = { row = 3, column = 5 }, end = { row = 3, column = 14 } } (NamedPattern { moduleName = [], name = "Increment" } [])
-                                                          , Node { start = { row = 4, column = 7 }, end = { row = 4, column = 16 } }
-                                                                (Application
-                                                                    [ Node { start = { row = 4, column = 7 }, end = { row = 4, column = 12 } } (FunctionOrValue [] "model")
-                                                                    , Node { start = { row = 4, column = 13 }, end = { row = 4, column = 14 } } (Operator "+")
-                                                                    , Node { start = { row = 4, column = 15 }, end = { row = 4, column = 16 } } (Integer 1)
-                                                                    ]
-                                                                )
-                                                          )
-                                                        , ( Node { start = { row = 6, column = 5 }, end = { row = 6, column = 14 } } (NamedPattern { moduleName = [], name = "Decrement" } [])
-                                                          , Node { start = { row = 7, column = 7 }, end = { row = 7, column = 16 } }
-                                                                (Application
-                                                                    [ Node { start = { row = 7, column = 7 }, end = { row = 7, column = 12 } } (FunctionOrValue [] "model")
-                                                                    , Node { start = { row = 7, column = 13 }, end = { row = 7, column = 15 } } (Operator "-")
-                                                                    , Node { start = { row = 7, column = 15 }, end = { row = 7, column = 16 } } (Integer 1)
-                                                                    ]
-                                                                )
-                                                          )
-                                                        ]
-                                                    , expression = Node { start = { row = 2, column = 8 }, end = { row = 2, column = 11 } } (FunctionOrValue [] "msg")
-                                                    }
-                                                )
-                                        , name = Node { start = { row = 1, column = 1 }, end = { row = 1, column = 7 } } "update"
-                                        }
-                                , documentation = Nothing
-                                , signature = Nothing
-                                }
+                        |> expectAst
+                            (Node { start = { row = 1, column = 1 }, end = { row = 7, column = 16 } }
+                                (FunctionDeclaration
+                                    { declaration =
+                                        Node { start = { row = 1, column = 1 }, end = { row = 7, column = 16 } }
+                                            { arguments =
+                                                [ Node { start = { row = 1, column = 8 }, end = { row = 1, column = 11 } } (VarPattern "msg")
+                                                , Node { start = { row = 1, column = 12 }, end = { row = 1, column = 17 } } (VarPattern "model")
+                                                ]
+                                            , expression =
+                                                Node { start = { row = 2, column = 3 }, end = { row = 7, column = 16 } }
+                                                    (CaseExpression
+                                                        { cases =
+                                                            [ ( Node { start = { row = 3, column = 5 }, end = { row = 3, column = 14 } } (NamedPattern { moduleName = [], name = "Increment" } [])
+                                                              , Node { start = { row = 4, column = 7 }, end = { row = 4, column = 16 } }
+                                                                    (Application
+                                                                        [ Node { start = { row = 4, column = 7 }, end = { row = 4, column = 12 } } (FunctionOrValue [] "model")
+                                                                        , Node { start = { row = 4, column = 13 }, end = { row = 4, column = 14 } } (Operator "+")
+                                                                        , Node { start = { row = 4, column = 15 }, end = { row = 4, column = 16 } } (Integer 1)
+                                                                        ]
+                                                                    )
+                                                              )
+                                                            , ( Node { start = { row = 6, column = 5 }, end = { row = 6, column = 14 } } (NamedPattern { moduleName = [], name = "Decrement" } [])
+                                                              , Node { start = { row = 7, column = 7 }, end = { row = 7, column = 16 } }
+                                                                    (Application
+                                                                        [ Node { start = { row = 7, column = 7 }, end = { row = 7, column = 12 } } (FunctionOrValue [] "model")
+                                                                        , Node { start = { row = 7, column = 13 }, end = { row = 7, column = 15 } } (Operator "-")
+                                                                        , Node { start = { row = 7, column = 15 }, end = { row = 7, column = 16 } } (Integer 1)
+                                                                        ]
+                                                                    )
+                                                              )
+                                                            ]
+                                                        , expression = Node { start = { row = 2, column = 8 }, end = { row = 2, column = 11 } } (FunctionOrValue [] "msg")
+                                                        }
+                                                    )
+                                            , name = Node { start = { row = 1, column = 1 }, end = { row = 1, column = 7 } } "update"
+                                            }
+                                    , documentation = Nothing
+                                    , signature = Nothing
+                                    }
+                                )
                             )
-                        )
         , test "port declaration for command" <|
             \() ->
                 "port parseResponse : ( String, String ) -> Cmd msg"
@@ -426,20 +427,22 @@ all =
             \() ->
                 """main =
   {- y -} x"""
-                    |> expectAst
-                        (Node { start = { row = 1, column = 1 }, end = { row = 2, column = 12 } }
-                            (FunctionDeclaration
-                                { documentation = Nothing
-                                , signature = Nothing
-                                , declaration =
-                                    Node { start = { row = 1, column = 1 }, end = { row = 2, column = 12 } }
-                                        { arguments = []
-                                        , expression = Node { start = { row = 2, column = 11 }, end = { row = 2, column = 12 } } (FunctionOrValue [] "x")
-                                        , name = Node { start = { row = 1, column = 1 }, end = { row = 1, column = 5 } } "main"
-                                        }
-                                }
-                            )
-                        )
+                    |> expectAstWithComments
+                        { ast =
+                            Node { start = { row = 1, column = 1 }, end = { row = 2, column = 12 } }
+                                (FunctionDeclaration
+                                    { documentation = Nothing
+                                    , signature = Nothing
+                                    , declaration =
+                                        Node { start = { row = 1, column = 1 }, end = { row = 2, column = 12 } }
+                                            { arguments = []
+                                            , expression = Node { start = { row = 2, column = 11 }, end = { row = 2, column = 12 } } (FunctionOrValue [] "x")
+                                            , name = Node { start = { row = 1, column = 1 }, end = { row = 1, column = 5 } } "main"
+                                            }
+                                    }
+                                )
+                        , comments = [ Node { start = { row = 2, column = 3 }, end = { row = 2, column = 10 } } "{- y -}" ]
+                        }
         , test "function with a lot of symbols" <|
             \() ->
                 "updateState update sendPort = curry <| (uncurry update) >> batchStateCmds sendPort"
@@ -571,6 +574,11 @@ update msg model =
 expectAst : Node Declaration -> String -> Expect.Expectation
 expectAst =
     CombineTestUtil.expectAst declaration
+
+
+expectAstWithComments : { ast : Node Declaration, comments : List (Node String) } -> String -> Expect.Expectation
+expectAstWithComments =
+    CombineTestUtil.expectAstWithComments declaration
 
 
 expectInvalid : String -> Expect.Expectation
