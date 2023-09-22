@@ -33,14 +33,14 @@ expectedColumn state =
     currentIndent state + 1
 
 
-popIndent : State -> State
-popIndent (State s) =
-    State { s | indents = List.drop 1 s.indents }
-
-
 pushIndent : Int -> State -> State
 pushIndent col (State s) =
     State { s | indents = (col + 1) :: s.indents }
+
+
+popIndent : State -> State
+popIndent (State s) =
+    State { s | indents = List.drop 1 s.indents }
 
 
 addComment : Node String -> State -> State
