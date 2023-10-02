@@ -37,7 +37,7 @@ module Pratt exposing
 -}
 
 import Combine exposing (Parser)
-import Elm.Parser.State exposing (State)
+import Elm.Parser.State as State exposing (State)
 import Elm.Syntax.Node exposing (Node)
 import Pratt.Advanced as Advanced
 
@@ -157,8 +157,27 @@ expression :
     , spaces : Parser State ()
     }
     -> Parser State expr
-expression =
+expression options =
     Advanced.expression
+        { oneOf = List.map failOnIncorrectIndentation options.oneOf
+        , andThenOneOf = options.andThenOneOf
+        , spaces = options.spaces
+        }
+
+
+failOnIncorrectIndentation : (Config State expr -> Parser State expr) -> (Config State expr -> Parser State expr)
+failOnIncorrectIndentation parser config =
+    Combine.withState
+        (\state ->
+            Combine.withLocation
+                (\location ->
+                    if location.column <= State.expectedColumn state then
+                        Combine.fail "Incorrect indentation for expression"
+
+                    else
+                        parser config
+                )
+        )
 
 
 {-| Build an expression parser based on the _precedence_ and
