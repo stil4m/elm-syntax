@@ -29,7 +29,8 @@ layout =
             , many1Spaces
             ]
         )
-        |> Combine.continueWith (verifyIndent (\stateIndent current -> stateIndent < current))
+        --|> Combine.continueWith (verifyIndent (\stateIndent current -> stateIndent < current))
+        |> Combine.map (always ())
 
 
 layoutWithoutIndentCheck : Parser State ()
@@ -113,7 +114,8 @@ layoutStrict =
             , many1Spaces
             ]
         )
-        |> Combine.continueWith (verifyIndent (\stateIndent current -> stateIndent == current))
+        --|> Combine.continueWith (verifyIndent (\stateIndent current -> stateIndent == current))
+        |> Combine.map (always ())
 
 
 verifyIndent : (Int -> Int -> Bool) -> Parser State ()
