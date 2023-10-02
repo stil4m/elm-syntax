@@ -37,6 +37,7 @@ module Pratt exposing
 -}
 
 import Combine exposing (Parser)
+import Elm.Parser.State exposing (State)
 import Elm.Syntax.Node exposing (Node)
 import Pratt.Advanced as Advanced
 
@@ -151,11 +152,11 @@ For example, a basic calculator could be configured like this:
 
 -}
 expression :
-    { oneOf : List (Config state expr -> Parser state expr)
-    , andThenOneOf : List (Config state expr -> ( Int, expr -> Parser state expr ))
-    , spaces : Parser state ()
+    { oneOf : List (Config State expr -> Parser State expr)
+    , andThenOneOf : List (Config State expr -> ( Int, expr -> Parser State expr ))
+    , spaces : Parser State ()
     }
-    -> Parser state expr
+    -> Parser State expr
 expression =
     Advanced.expression
 
