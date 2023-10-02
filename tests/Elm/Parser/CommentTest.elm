@@ -16,21 +16,13 @@ all =
                 parseWithState "--bar" Parser.singleLineComment
                     |> Maybe.map toIndentAndComments
                     |> Expect.equal
-                        (Just
-                            { comments = [ Node { start = { row = 1, column = 1 }, end = { row = 1, column = 6 } } "--bar" ]
-                            , indents = []
-                            }
-                        )
+                        (Just [ Node { start = { row = 1, column = 1 }, end = { row = 1, column = 6 } } "--bar" ])
         , test "singleLineComment state" <|
             \() ->
                 parseWithState "--bar" Parser.singleLineComment
                     |> Maybe.map toIndentAndComments
                     |> Expect.equal
-                        (Just
-                            { comments = [ Node { start = { row = 1, column = 1 }, end = { row = 1, column = 6 } } "--bar" ]
-                            , indents = []
-                            }
-                        )
+                        (Just [ Node { start = { row = 1, column = 1 }, end = { row = 1, column = 6 } } "--bar" ])
         , test "singleLineComment does not include new line" <|
             \() ->
                 parse "--bar\n" Parser.singleLineComment
@@ -40,21 +32,13 @@ all =
                 parseWithState "{-foo\nbar-}" Parser.multilineComment
                     |> Maybe.map toIndentAndComments
                     |> Expect.equal
-                        (Just
-                            { comments = [ Node { start = { row = 1, column = 1 }, end = { row = 2, column = 6 } } "{-foo\nbar-}" ]
-                            , indents = []
-                            }
-                        )
+                        (Just [ Node { start = { row = 1, column = 1 }, end = { row = 2, column = 6 } } "{-foo\nbar-}" ])
         , test "multilineComment range" <|
             \() ->
                 parseWithState "{-foo\nbar-}" Parser.multilineComment
                     |> Maybe.map toIndentAndComments
                     |> Expect.equal
-                        (Just
-                            { comments = [ Node { start = { row = 1, column = 1 }, end = { row = 2, column = 6 } } "{-foo\nbar-}" ]
-                            , indents = []
-                            }
-                        )
+                        (Just [ Node { start = { row = 1, column = 1 }, end = { row = 2, column = 6 } } "{-foo\nbar-}" ])
         , test "nested multilineComment only open" <|
             \() ->
                 parse "{- {- -}" Parser.multilineComment
@@ -64,16 +48,10 @@ all =
                 parseWithState "{- {- -} -}" Parser.multilineComment
                     |> Maybe.map toIndentAndComments
                     |> Expect.equal
-                        (Just
-                            { comments = [ Node { start = { row = 1, column = 1 }, end = { row = 1, column = 12 } } "{- {- -} -}" ]
-                            , indents = []
-                            }
-                        )
+                        (Just [ Node { start = { row = 1, column = 1 }, end = { row = 1, column = 12 } } "{- {- -} -}" ])
         ]
 
 
-toIndentAndComments : ( State, () ) -> { comments : List (Node String), indents : List Int }
+toIndentAndComments : ( State, () ) -> List (Node String)
 toIndentAndComments ( state, () ) =
-    { comments = State.getComments state
-    , indents = State.storedColumns state
-    }
+    State.getComments state
