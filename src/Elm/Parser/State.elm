@@ -18,19 +18,19 @@ emptyState =
         }
 
 
-currentIndent : State -> Int
-currentIndent (State { indents }) =
-    List.head indents |> Maybe.withDefault 0
-
-
 storedColumns : State -> List Int
 storedColumns (State { indents }) =
     indents
 
 
 expectedColumn : State -> Int
-expectedColumn state =
-    currentIndent state + 1
+expectedColumn (State { indents }) =
+    case indents of
+        [] ->
+            0
+
+        head :: _ ->
+            head + 1
 
 
 pushIndent : Int -> State -> State
