@@ -25,7 +25,7 @@ currentIndent (State { indents }) =
 
 storedColumns : State -> List Int
 storedColumns (State { indents }) =
-    indents |> List.map ((+) 1)
+    indents
 
 
 expectedColumn : State -> Int

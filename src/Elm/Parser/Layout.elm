@@ -73,15 +73,10 @@ optimisticLayout =
 compute : Parser State LayoutStatus
 compute =
     withState
-        (\s ->
+        (\state ->
             withLocation
                 (\l ->
-                    let
-                        known : List Int
-                        known =
-                            1 :: State.storedColumns s
-                    in
-                    if List.member l.column known then
+                    if l.column == 1 || List.member (l.column - 1) (State.storedColumns state) then
                         succeed Strict
 
                     else
