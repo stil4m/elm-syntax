@@ -19,14 +19,12 @@ True
   of
     A -> 1"""
                     |> expectInvalid
-
-        -- TODO Make this pass
-        --        ,   test "should fail to parse when the `of` keyword has the wrong indentation" <|
-        --                \() ->
-        --                    """case True
-        --of
-        --    A -> 1"""
-        --                        |> expectInvalid
+        , test "should fail to parse when the `of` keyword has the wrong indentation" <|
+            \() ->
+                """case True
+of
+               A -> 1"""
+                    |> expectInvalid
         , test "should fail to parse a branch at the start of a line" <|
             \() ->
                 """case True of
