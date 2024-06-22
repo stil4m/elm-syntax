@@ -103,7 +103,7 @@ expression =
             , recordAccess
             , functionCall
             ]
-        , spaces = oneOf [ Layout.layout, manySpaces ]
+        , spaces = oneOf [ Layout.layout |> Combine.backtrackable, manySpaces ]
         }
 
 
