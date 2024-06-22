@@ -71,8 +71,9 @@ expression =
             , caseExpression
             ]
         , andThenOneOf =
-            [ infixRight 0 "<|"
-            , infixLeft 0 "|>"
+            [ -- Elm Basics sets the precedence of <| and |> to 0, but Pratt.expression starts at 0 so it needs to be larger
+              infixRight 1 "<|"
+            , infixLeft 1 "|>"
             , infixRight 2 "||"
             , infixRight 3 "&&"
 
