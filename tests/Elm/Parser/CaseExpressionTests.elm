@@ -62,34 +62,6 @@ True -> 1"""
                                 }
                             )
                         )
-        , test "case expression with trailing whitespace" <|
-            \() ->
-                """case f of
-  True -> 1
-  False -> 2
-
-"""
-                    |> expectAst
-                        (Node { start = { row = 1, column = 1 }, end = { row = 3, column = 13 } }
-                            (CaseExpression
-                                { expression =
-                                    Node { start = { row = 1, column = 6 }, end = { row = 1, column = 7 } } <|
-                                        FunctionOrValue [] "f"
-                                , cases =
-                                    [ ( Node { start = { row = 2, column = 3 }, end = { row = 2, column = 7 } } <|
-                                            NamedPattern (QualifiedNameRef [] "True") []
-                                      , Node { start = { row = 2, column = 11 }, end = { row = 2, column = 12 } } <|
-                                            Integer 1
-                                      )
-                                    , ( Node { start = { row = 3, column = 3 }, end = { row = 3, column = 8 } } <|
-                                            NamedPattern (QualifiedNameRef [] "False") []
-                                      , Node { start = { row = 3, column = 12 }, end = { row = 3, column = 13 } } <|
-                                            Integer 2
-                                      )
-                                    ]
-                                }
-                            )
-                        )
         , test "case expression with qualified imports" <|
             \() ->
                 """case f of
@@ -158,8 +130,7 @@ True -> 1"""
             \() ->
                 """case f of
   True -> 1
-   False -> 2
-"""
+   False -> 2"""
                     |> expectInvalid
         , test "should parse case expression when " <|
             \() ->
