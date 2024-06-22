@@ -4,7 +4,7 @@ import Elm.Parser.CombineTestUtil as CombineTestUtil
 import Elm.Parser.Declarations exposing (..)
 import Elm.Syntax.Declaration exposing (..)
 import Elm.Syntax.Expression exposing (..)
-import Elm.Syntax.Infix as Infix
+import Elm.Syntax.Infix as Infix exposing (InfixDirection(..))
 import Elm.Syntax.Node exposing (Node(..))
 import Elm.Syntax.Pattern exposing (..)
 import Elm.Syntax.TypeAnnotation exposing (..)
@@ -284,20 +284,18 @@ all =
                                                     { cases =
                                                         [ ( Node { start = { row = 3, column = 5 }, end = { row = 3, column = 14 } } (NamedPattern { moduleName = [], name = "Increment" } [])
                                                           , Node { start = { row = 4, column = 7 }, end = { row = 4, column = 16 } }
-                                                                (Application
-                                                                    [ Node { start = { row = 4, column = 7 }, end = { row = 4, column = 12 } } (FunctionOrValue [] "model")
-                                                                    , Node { start = { row = 4, column = 13 }, end = { row = 4, column = 14 } } (Operator "+")
-                                                                    , Node { start = { row = 4, column = 15 }, end = { row = 4, column = 16 } } (Integer 1)
-                                                                    ]
+                                                                (OperatorApplication "+"
+                                                                    Left
+                                                                    (Node { start = { row = 4, column = 7 }, end = { row = 4, column = 12 } } (FunctionOrValue [] "model"))
+                                                                    (Node { start = { row = 4, column = 15 }, end = { row = 4, column = 16 } } (Integer 1))
                                                                 )
                                                           )
                                                         , ( Node { start = { row = 6, column = 5 }, end = { row = 6, column = 14 } } (NamedPattern { moduleName = [], name = "Decrement" } [])
                                                           , Node { start = { row = 7, column = 7 }, end = { row = 7, column = 16 } }
-                                                                (Application
-                                                                    [ Node { start = { row = 7, column = 7 }, end = { row = 7, column = 12 } } (FunctionOrValue [] "model")
-                                                                    , Node { start = { row = 7, column = 13 }, end = { row = 7, column = 15 } } (Operator "-")
-                                                                    , Node { start = { row = 7, column = 15 }, end = { row = 7, column = 16 } } (Integer 1)
-                                                                    ]
+                                                                (OperatorApplication "-"
+                                                                    Left
+                                                                    (Node { start = { row = 7, column = 7 }, end = { row = 7, column = 12 } } (FunctionOrValue [] "model"))
+                                                                    (Node { start = { row = 7, column = 15 }, end = { row = 7, column = 16 } } (Integer 1))
                                                                 )
                                                           )
                                                         ]
@@ -500,24 +498,20 @@ all =
                                             Node { start = { row = 2, column = 3 }, end = { row = 7, column = 16 } }
                                                 (CaseExpression
                                                     { cases =
-                                                        [ ( Node { start = { row = 3, column = 5 }, end = { row = 3, column = 14 } }
-                                                                (NamedPattern { moduleName = [], name = "Increment" } [])
+                                                        [ ( Node { start = { row = 3, column = 5 }, end = { row = 3, column = 14 } } (NamedPattern { moduleName = [], name = "Increment" } [])
                                                           , Node { start = { row = 4, column = 7 }, end = { row = 4, column = 16 } }
-                                                                (Application
-                                                                    [ Node { start = { row = 4, column = 7 }, end = { row = 4, column = 12 } } (FunctionOrValue [] "model")
-                                                                    , Node { start = { row = 4, column = 13 }, end = { row = 4, column = 14 } } (Operator "+")
-                                                                    , Node { start = { row = 4, column = 15 }, end = { row = 4, column = 16 } } (Integer 1)
-                                                                    ]
+                                                                (OperatorApplication "+"
+                                                                    Left
+                                                                    (Node { start = { row = 4, column = 7 }, end = { row = 4, column = 12 } } (FunctionOrValue [] "model"))
+                                                                    (Node { start = { row = 4, column = 15 }, end = { row = 4, column = 16 } } (Integer 1))
                                                                 )
                                                           )
-                                                        , ( Node { start = { row = 6, column = 5 }, end = { row = 6, column = 14 } }
-                                                                (NamedPattern { moduleName = [], name = "Decrement" } [])
+                                                        , ( Node { start = { row = 6, column = 5 }, end = { row = 6, column = 14 } } (NamedPattern { moduleName = [], name = "Decrement" } [])
                                                           , Node { start = { row = 7, column = 7 }, end = { row = 7, column = 16 } }
-                                                                (Application
-                                                                    [ Node { start = { row = 7, column = 7 }, end = { row = 7, column = 12 } } (FunctionOrValue [] "model")
-                                                                    , Node { start = { row = 7, column = 13 }, end = { row = 7, column = 15 } } (Operator "-")
-                                                                    , Node { start = { row = 7, column = 15 }, end = { row = 7, column = 16 } } (Integer 1)
-                                                                    ]
+                                                                (OperatorApplication "-"
+                                                                    Left
+                                                                    (Node { start = { row = 7, column = 7 }, end = { row = 7, column = 12 } } (FunctionOrValue [] "model"))
+                                                                    (Node { start = { row = 7, column = 15 }, end = { row = 7, column = 16 } } (Integer 1))
                                                                 )
                                                           )
                                                         ]
