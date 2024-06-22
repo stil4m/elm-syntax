@@ -139,11 +139,11 @@ b = 3
                                                             )
                                                             (Node { start = { row = 5, column = 9 }, end = { row = 5, column = 10 } } (Integer 1))
                                                             (Node
-                                                                { end = { column = 10, row = 7 }
-                                                                , start =
-                                                                    { column = 9
-                                                                    , row = 7
+                                                                { start =
+                                                                    { row = 7
+                                                                    , column = 9
                                                                     }
+                                                                , end = { row = 7, column = 10 }
                                                                 }
                                                                 (Integer 2)
                                                             )
@@ -158,12 +158,11 @@ b = 3
                                     (FunctionDeclaration
                                         { declaration =
                                             Node
-                                                { end =
-                                                    { column = 6
-                                                    , row =
-                                                        13
+                                                { start = { row = 13, column = 1 }
+                                                , end =
+                                                    { row = 13
+                                                    , column = 6
                                                     }
-                                                , start = { column = 1, row = 13 }
                                                 }
                                                 { arguments = []
                                                 , expression = Node { start = { row = 13, column = 5 }, end = { row = 13, column = 6 } } (Integer 3)
@@ -180,19 +179,17 @@ b = 3
                                     (NormalModule
                                         { exposingList =
                                             Node
-                                                { end =
-                                                    { column =
-                                                        32
-                                                    , row = 1
+                                                { start = { row = 1, column = 19 }
+                                                , end =
+                                                    { row = 1
+                                                    , column = 32
                                                     }
-                                                , start = { column = 19, row = 1 }
                                                 }
                                                 (All { start = { row = 1, column = 29 }, end = { row = 1, column = 31 } })
                                         , moduleName =
                                             Node
-                                                { end =
-                                                    { column = 18, row = 1 }
-                                                , start = { column = 8, row = 1 }
+                                                { start = { row = 1, column = 8 }
+                                                , end = { row = 1, column = 18 }
                                                 }
                                                 [ "TestModule" ]
                                         }
@@ -219,8 +216,8 @@ b = 3
                             { comments = [ Node { start = { row = 8, column = 1 }, end = { row = 9, column = 3 } } "{-| doc\n-}" ]
                             , declarations =
                                 [ Node
-                                    { end = { column = 6, row = 4 }
-                                    , start = { column = 1, row = 3 }
+                                    { start = { row = 3, column = 1 }
+                                    , end = { row = 4, column = 6 }
                                     }
                                     (FunctionDeclaration
                                         { declaration =
@@ -228,9 +225,8 @@ b = 3
                                                 { arguments = []
                                                 , expression =
                                                     Node
-                                                        { end =
-                                                            { column = 6, row = 4 }
-                                                        , start = { column = 5, row = 4 }
+                                                        { start = { row = 4, column = 5 }
+                                                        , end = { row = 4, column = 6 }
                                                         }
                                                         (Integer 2)
                                                 , name = Node { start = { row = 3, column = 1 }, end = { row = 3, column = 2 } } "a"
@@ -240,9 +236,8 @@ b = 3
                                         }
                                     )
                                 , Node
-                                    { end =
-                                        { column = 6, row = 10 }
-                                    , start = { column = 1, row = 10 }
+                                    { start = { row = 10, column = 1 }
+                                    , end = { row = 10, column = 6 }
                                     }
                                     (FunctionDeclaration
                                         { declaration =
@@ -250,9 +245,8 @@ b = 3
                                                 { arguments = []
                                                 , expression =
                                                     Node
-                                                        { end =
-                                                            { column = 6, row = 10 }
-                                                        , start = { column = 5, row = 10 }
+                                                        { start = { row = 10, column = 5 }
+                                                        , end = { row = 10, column = 6 }
                                                         }
                                                         (Integer 3)
                                                 , name = Node { start = { row = 10, column = 1 }, end = { row = 10, column = 2 } } "b"
@@ -269,9 +263,8 @@ b = 3
                                         { exposingList =
                                             Node { start = { row = 1, column = 19 }, end = { row = 1, column = 32 } }
                                                 (All
-                                                    { end =
-                                                        { column = 31, row = 1 }
-                                                    , start = { column = 29, row = 1 }
+                                                    { start = { row = 1, column = 29 }
+                                                    , end = { row = 1, column = 31 }
                                                     }
                                                 )
                                         , moduleName = Node { start = { row = 1, column = 8 }, end = { row = 1, column = 18 } } [ "TestModule" ]
