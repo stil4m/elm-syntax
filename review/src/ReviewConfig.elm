@@ -33,6 +33,7 @@ import NoUnused.Exports exposing (annotatedBy)
 import NoUnused.Parameters
 import NoUnused.Patterns
 import NoUnused.Variables
+import OrderedRanges
 import Review.Rule as Rule exposing (Rule)
 import Simplify
 
@@ -72,4 +73,5 @@ config =
     , NoUnused.Patterns.rule
     , NoUnused.Variables.rule
     , Simplify.rule Simplify.defaults
+    , OrderedRanges.rule
     ]
