@@ -82,18 +82,14 @@ expression =
             -- TODO Add tests for all operators
             , infixNonAssociative 4 "=="
             , infixNonAssociative 4 "/="
-            , infixNonAssociative 4 "<"
-            , infixNonAssociative 4 ">"
             , infixNonAssociative 4 "<="
             , infixNonAssociative 4 ">="
             , infixRight 5 "++"
             , infixRight 5 "::"
             , infixLeft 5 "|="
             , infixLeft 6 "|."
-            , infixLeft 6 "+"
             , infixLeftSubtraction 6
             , infixLeft 7 "*"
-            , infixLeft 7 "/"
             , infixLeft 7 "//"
             , infixRight 7 "</>"
             , infixLeft 8 "<?>"
@@ -102,6 +98,12 @@ expression =
             , infixRight 9 ">>"
             , recordAccess
             , functionCall
+
+            -- these operators are prefixes of others, we try them last
+            , infixNonAssociative 4 "<"
+            , infixNonAssociative 4 ">"
+            , infixLeft 6 "+"
+            , infixLeft 7 "/"
             ]
         , spaces = oneOf [ Layout.layout |> Combine.backtrackable, manySpaces ]
         }
