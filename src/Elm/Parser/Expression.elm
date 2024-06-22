@@ -90,7 +90,7 @@ expression =
             , infixLeft 5 "|="
             , infixLeft 6 "|."
             , infixLeft 6 "+"
-            , infixLeft 6 "-"
+            , infixLeftSubtraction 6
             , infixLeft 7 "*"
             , infixLeft 7 "/"
             , infixLeft 7 "//"
@@ -136,6 +136,34 @@ infixRight precedence symbol =
             Node
                 { start = (Node.range left).start, end = (Node.range right).end }
                 (OperatorApplication symbol Infix.Right left right)
+        )
+
+
+infixLeftSubtraction : Int -> Config State (Node Expression) -> ( Int, Node Expression -> Parser State (Node Expression) )
+infixLeftSubtraction precedence =
+    Pratt.infixLeft precedence
+        (Core.succeed (\offset source -> String.slice (offset - 1) offset source)
+            |= Core.getOffset
+            |= Core.getSource
+            |> Combine.fromCore
+            |> Combine.andThen
+                (\c ->
+                    -- 'a-b', 'a - b', 'a- b' and  are subtractions, but 'a -b' is an application on a negation
+                    if c == " " || c == "\n" || c == "\u{000D}" then
+                        oneOf
+                            [ Combine.symbol "- "
+                            , Combine.symbol "-\n"
+                            , Combine.symbol "-\u{000D}"
+                            ]
+
+                    else
+                        Combine.symbol "-"
+                )
+        )
+        (\left right ->
+            Node
+                { start = (Node.range left).start, end = (Node.range right).end }
+                (OperatorApplication "-" Infix.Left left right)
         )
 
 
