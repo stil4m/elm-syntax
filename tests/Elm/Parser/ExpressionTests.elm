@@ -430,6 +430,45 @@ all =
                                 )
                             )
                         )
+        , test "negated expression with other operations" <|
+            \() ->
+                "-1 + -10 * -100^2 == -100001"
+                    |> expectAst
+                        (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 29 } }
+                            (OperatorApplication "=="
+                                Non
+                                (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 18 } }
+                                    (OperatorApplication "+"
+                                        Left
+                                        (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 3 } }
+                                            (Negation (Node { start = { row = 1, column = 2 }, end = { row = 1, column = 3 } } (Integer 1)))
+                                        )
+                                        (Node { start = { row = 1, column = 6 }, end = { row = 1, column = 18 } }
+                                            (OperatorApplication "*"
+                                                Left
+                                                (Node { start = { row = 1, column = 6 }, end = { row = 1, column = 9 } }
+                                                    (Negation (Node { start = { row = 1, column = 7 }, end = { row = 1, column = 9 } } (Integer 10)))
+                                                )
+                                                (Node { start = { row = 1, column = 12 }, end = { row = 1, column = 18 } }
+                                                    (OperatorApplication "^"
+                                                        Right
+                                                        (Node { start = { row = 1, column = 12 }, end = { row = 1, column = 16 } }
+                                                            (Negation
+                                                                (Node { start = { row = 1, column = 13 }, end = { row = 1, column = 16 } } (Integer 100))
+                                                            )
+                                                        )
+                                                        (Node { start = { row = 1, column = 17 }, end = { row = 1, column = 18 } } (Integer 2))
+                                                    )
+                                                )
+                                            )
+                                        )
+                                    )
+                                )
+                                (Node { start = { row = 1, column = 22 }, end = { row = 1, column = 29 } }
+                                    (Negation (Node { start = { row = 1, column = 23 }, end = { row = 1, column = 29 } } (Integer 100001)))
+                                )
+                            )
+                        )
         , test "pipe operation" <|
             \() ->
                 "a |> b"
