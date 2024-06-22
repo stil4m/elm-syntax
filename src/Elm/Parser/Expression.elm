@@ -97,13 +97,15 @@ expression =
             , infixLeft 9 "<<"
             , infixRight 9 ">>"
             , recordAccess
-            , functionCall
 
-            -- these operators are prefixes of others, we try them last
+            -- these operators are prefixes of others, we try them after
             , infixNonAssociative 4 "<"
             , infixNonAssociative 4 ">"
             , infixLeft 6 "+"
             , infixLeft 7 "/"
+
+            -- function application must be last
+            , functionCall
             ]
         , spaces = oneOf [ Layout.layout |> Combine.backtrackable, manySpaces ]
         }
@@ -557,7 +559,7 @@ ifBlockExpression config =
 
 negationOperation : Config s (Node Expression) -> Parser s (Node Expression)
 negationOperation =
-    Pratt.prefix 3
+    Pratt.prefix 9
         (Combine.symbol "-")
         (\((Node { start, end } _) as subExpr) ->
             Node
