@@ -430,6 +430,17 @@ all =
                                 )
                             )
                         )
+        , test "pipe operation" <|
+            \() ->
+                "a |> b"
+                    |> expectAst
+                        (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 7 } }
+                            (OperatorApplication "|>"
+                                Left
+                                (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 2 } } (FunctionOrValue [] "a"))
+                                (Node { start = { row = 1, column = 6 }, end = { row = 1, column = 7 } } (FunctionOrValue [] "b"))
+                            )
+                        )
         , test "function with higher order" <|
             \() ->
                 "chompWhile (\\c -> c == ' ' || c == '\\n' || c == '\\r')"
