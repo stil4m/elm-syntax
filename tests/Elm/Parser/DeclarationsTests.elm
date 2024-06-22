@@ -451,23 +451,32 @@ all =
                                         { arguments = [ Node { start = { row = 1, column = 13 }, end = { row = 1, column = 19 } } (VarPattern "update"), Node { start = { row = 1, column = 20 }, end = { row = 1, column = 28 } } (VarPattern "sendPort") ]
                                         , expression =
                                             Node { start = { row = 1, column = 31 }, end = { row = 1, column = 83 } }
-                                                (Application
-                                                    [ Node { start = { row = 1, column = 31 }, end = { row = 1, column = 36 } } (FunctionOrValue [] "curry")
-                                                    , Node { start = { row = 1, column = 37 }, end = { row = 1, column = 39 } } (Operator "<|")
-                                                    , Node { start = { row = 1, column = 40 }, end = { row = 1, column = 56 } }
-                                                        (ParenthesizedExpression
-                                                            (Node { start = { row = 1, column = 41 }, end = { row = 1, column = 55 } }
+                                                (OperatorApplication "<|"
+                                                    Right
+                                                    (Node { start = { row = 1, column = 31 }, end = { row = 1, column = 36 } } (FunctionOrValue [] "curry"))
+                                                    (Node { start = { row = 1, column = 40 }, end = { row = 1, column = 83 } }
+                                                        (OperatorApplication ">>"
+                                                            Right
+                                                            (Node { start = { row = 1, column = 40 }, end = { row = 1, column = 56 } }
+                                                                (ParenthesizedExpression
+                                                                    (Node { start = { row = 1, column = 41 }, end = { row = 1, column = 55 } }
+                                                                        (Application
+                                                                            [ Node { start = { row = 1, column = 41 }, end = { row = 1, column = 48 } } (FunctionOrValue [] "uncurry")
+                                                                            , Node { start = { row = 1, column = 49 }, end = { row = 1, column = 55 } } (FunctionOrValue [] "update")
+                                                                            ]
+                                                                        )
+                                                                    )
+                                                                )
+                                                            )
+                                                            (Node { start = { row = 1, column = 60 }, end = { row = 1, column = 83 } }
                                                                 (Application
-                                                                    [ Node { start = { row = 1, column = 41 }, end = { row = 1, column = 48 } } (FunctionOrValue [] "uncurry")
-                                                                    , Node { start = { row = 1, column = 49 }, end = { row = 1, column = 55 } } (FunctionOrValue [] "update")
+                                                                    [ Node { start = { row = 1, column = 60 }, end = { row = 1, column = 74 } } (FunctionOrValue [] "batchStateCmds")
+                                                                    , Node { start = { row = 1, column = 75 }, end = { row = 1, column = 83 } } (FunctionOrValue [] "sendPort")
                                                                     ]
                                                                 )
                                                             )
                                                         )
-                                                    , Node { start = { row = 1, column = 57 }, end = { row = 1, column = 59 } } (Operator ">>")
-                                                    , Node { start = { row = 1, column = 60 }, end = { row = 1, column = 74 } } (FunctionOrValue [] "batchStateCmds")
-                                                    , Node { start = { row = 1, column = 75 }, end = { row = 1, column = 83 } } (FunctionOrValue [] "sendPort")
-                                                    ]
+                                                    )
                                                 )
                                         , name = Node { start = { row = 1, column = 1 }, end = { row = 1, column = 12 } } "updateState"
                                         }
