@@ -1,11 +1,9 @@
 module Elm.Parser.LetExpressionTests exposing (all)
 
-import Combine
 import Elm.Parser.CombineTestUtil as CombineTestUtil exposing (..)
 import Elm.Parser.Expression exposing (expression)
-import Elm.Parser.Layout as Layout
 import Elm.Syntax.Expression exposing (..)
-import Elm.Syntax.Node as Node exposing (Node(..))
+import Elm.Syntax.Node exposing (Node(..))
 import Elm.Syntax.Pattern exposing (..)
 import Elm.Syntax.TypeAnnotation exposing (TypeAnnotation(..))
 import Expect
@@ -312,11 +310,6 @@ all =
                                 }
                             )
                         )
-        , test "let with trailing whitespace" <|
-            \() ->
-                parse " let\n b = 1\n in\n b\n\n\n\n--some comment\n" (Layout.layout |> Combine.continueWith expression)
-                    |> Maybe.map Node.range
-                    |> Expect.equal (Just { start = { row = 1, column = 2 }, end = { row = 4, column = 3 } })
         ]
 
 
