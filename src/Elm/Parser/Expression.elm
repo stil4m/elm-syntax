@@ -8,7 +8,7 @@ import Elm.Parser.Patterns exposing (pattern)
 import Elm.Parser.State as State exposing (State, popIndent, pushIndent)
 import Elm.Parser.Tokens as Tokens exposing (caseToken, characterLiteral, elseToken, functionName, ifToken, multiLineStringLiteral, ofToken, prefixOperatorToken, stringLiteral, thenToken)
 import Elm.Parser.TypeAnnotation exposing (typeAnnotation)
-import Elm.Parser.Whitespace exposing (manySpaces)
+import Elm.Parser.Whitespace as Whitespace exposing (manySpaces)
 import Elm.Syntax.Expression as Expression exposing (Case, CaseBlock, Cases, Expression(..), Function, FunctionImplementation, Lambda, LetBlock, LetDeclaration(..), RecordSetter)
 import Elm.Syntax.Infix as Infix
 import Elm.Syntax.ModuleName exposing (ModuleName)
@@ -560,12 +560,33 @@ ifBlockExpression config =
 negationOperation : Config s (Node Expression) -> Parser s (Node Expression)
 negationOperation =
     Pratt.prefix 9
-        (Combine.symbol "-")
+        minusNotFollowedBySpace
         (\((Node { start, end } _) as subExpr) ->
             Node
                 { start = { row = start.row, column = start.column - 1 }, end = end }
                 (Negation subExpr)
         )
+
+
+minusNotFollowedBySpace : Parser s ()
+minusNotFollowedBySpace =
+    Combine.succeed identity
+        |> Combine.ignore (Combine.backtrackable (Combine.string "-"))
+        |> Combine.keep
+            (oneOf
+                [ Combine.map (always True) (Combine.backtrackable Whitespace.realNewLine)
+                , Combine.map (always True) (Combine.backtrackable (Combine.string " "))
+                , Combine.succeed False
+                ]
+            )
+        |> Combine.andThen
+            (\isSpace ->
+                if isSpace then
+                    Combine.fail "negation sign cannot be followed by a space"
+
+                else
+                    Combine.fromCore (Core.commit ())
+            )
 
 
 referenceExpression : Parser State (Node Expression)
