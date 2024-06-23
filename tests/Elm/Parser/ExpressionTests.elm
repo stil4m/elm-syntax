@@ -502,37 +502,6 @@ all =
             \() ->
                 "chompWhile (\\c -> c == ' ' || c == '\\n' || c == '\\r')"
                     |> expectAst
-                        --(Node { start = { row = 1, column = 1 }, end = { row = 1, column = 54 } }
-                        --    (Application
-                        --        [ Node { start = { row = 1, column = 1 }, end = { row = 1, column = 11 } } (FunctionOrValue [] "chompWhile")
-                        --        , Node { start = { row = 1, column = 12 }, end = { row = 1, column = 54 } }
-                        --            (ParenthesizedExpression
-                        --                (Node { start = { row = 1, column = 13 }, end = { row = 1, column = 53 } }
-                        --                    (LambdaExpression
-                        --                        { expression =
-                        --                            Node { start = { row = 1, column = 19 }, end = { row = 1, column = 53 } }
-                        --                                (Application
-                        --                                    [ Node { start = { row = 1, column = 19 }, end = { row = 1, column = 20 } } (FunctionOrValue [] "c")
-                        --                                    , Node { start = { row = 1, column = 21 }, end = { row = 1, column = 23 } } (Operator "==")
-                        --                                    , Node { start = { row = 1, column = 24 }, end = { row = 1, column = 27 } } (CharLiteral ' ')
-                        --                                    , Node { start = { row = 1, column = 28 }, end = { row = 1, column = 30 } } (Operator "||")
-                        --                                    , Node { start = { row = 1, column = 31 }, end = { row = 1, column = 32 } } (FunctionOrValue [] "c")
-                        --                                    , Node { start = { row = 1, column = 33 }, end = { row = 1, column = 35 } } (Operator "==")
-                        --                                    , Node { start = { row = 1, column = 36 }, end = { row = 1, column = 40 } } (CharLiteral '\n')
-                        --                                    , Node { start = { row = 1, column = 41 }, end = { row = 1, column = 43 } } (Operator "||")
-                        --                                    , Node { start = { row = 1, column = 44 }, end = { row = 1, column = 45 } } (FunctionOrValue [] "c")
-                        --                                    , Node { start = { row = 1, column = 46 }, end = { row = 1, column = 48 } } (Operator "==")
-                        --                                    , Node { start = { row = 1, column = 49 }, end = { row = 1, column = 53 } } (CharLiteral '\u{000D}')
-                        --                                    ]
-                        --                                )
-                        --                        , args = [ Node { start = { row = 1, column = 14 }, end = { row = 1, column = 15 } } (VarPattern "c") ]
-                        --                        }
-                        --                    )
-                        --                )
-                        --            )
-                        --        ]
-                        --    )
-                        --)
                         (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 54 } }
                             (Application
                                 [ Node { start = { row = 1, column = 1 }, end = { row = 1, column = 11 } } (FunctionOrValue [] "chompWhile")
