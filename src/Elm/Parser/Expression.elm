@@ -153,7 +153,7 @@ infixLeftSubtraction precedence =
             |> Combine.fromCore
             |> Combine.andThen
                 (\c ->
-                    -- 'a-b', 'a - b', 'a- b' and  are subtractions, but 'a -b' is an application on a negation
+                    -- 'a-b', 'a - b' and 'a- b' are subtractions, but 'a -b' is an application on a negation
                     if c == " " || c == "\n" || c == "\u{000D}" then
                         oneOf
                             [ Combine.symbol "- "
