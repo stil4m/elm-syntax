@@ -7,7 +7,7 @@ import Elm.Parser.File as Parser
 import Elm.Parser.Samples as Samples
 import Elm.RawFile as RawFile exposing (RawFile)
 import Elm.Syntax.Declaration exposing (Declaration(..))
-import Elm.Syntax.Exposing exposing (Exposing(..), TopLevelExpose(..))
+import Elm.Syntax.Exposing exposing (Exposing(..))
 import Elm.Syntax.Expression exposing (Expression(..), LetDeclaration(..))
 import Elm.Syntax.Infix exposing (InfixDirection(..))
 import Elm.Syntax.Module exposing (Module(..))
