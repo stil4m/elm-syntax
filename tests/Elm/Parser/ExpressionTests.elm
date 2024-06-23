@@ -469,6 +469,24 @@ all =
                                 )
                             )
                         )
+        , test "plus and minus in the same expression" <|
+            \() ->
+                " 1 + 2 - 3"
+                    |> expectAst
+                        (Node
+                            { start = { row = 1, column = 2 }, end = { row = 1, column = 11 } }
+                            (OperatorApplication "-"
+                                Left
+                                (Node { start = { row = 1, column = 2 }, end = { row = 1, column = 7 } }
+                                    (OperatorApplication "+"
+                                        Left
+                                        (Node { start = { row = 1, column = 2 }, end = { row = 1, column = 3 } } (Integer 1))
+                                        (Node { start = { row = 1, column = 6 }, end = { row = 1, column = 7 } } (Integer 2))
+                                    )
+                                )
+                                (Node { start = { row = 1, column = 10 }, end = { row = 1, column = 11 } } (Integer 3))
+                            )
+                        )
         , test "pipe operation" <|
             \() ->
                 "a |> b"
