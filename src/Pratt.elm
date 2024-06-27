@@ -1,44 +1,17 @@
 module Pratt exposing
-    ( Config, expression
+    ( Config
+    , constant
+    , expression
+    , infixLeft
+    , infixRight
+    , literal
+    , postfix
+    , prefix
     , subExpression
-    , literal, constant, prefix
-    , infixLeft, infixRight, postfix, recordAccessPostfix
     )
-
-{-|
-
-  - **Expression parser**: [`expression`](#expression)
-  - **Configuration helpers**: [`subExpression`](#subExpression)
-      - **oneOf** helpers: [`literal`](#literal) [`constant`](#constant)
-        [`prefix`](#prefix)
-      - **andThenOneOf** helpers: [`infixLeft`](#infixLeft)
-        [`infixRight`](#infixRight) [`postfix`](#postfix)
-
-
-# Expression parser
-
-@docs Config, expression
-
-
-# Configuration helpers
-
-@docs subExpression
-
-
-## **oneOf** helpers
-
-@docs literal, constant, prefix
-
-
-## **andThenOneOf** helpers
-
-@docs infixLeft, infixRight, postfix, recordAccessPostfix
-
--}
 
 import Combine exposing (Parser, Step(..))
 import Elm.Parser.State as State exposing (State)
-import Elm.Syntax.Node exposing (Node)
 
 
 
@@ -237,12 +210,9 @@ subExpression : Int -> Config state expr -> Parser state expr
 subExpression precedence ((Config conf) as config) =
     conf.spaces
         |> Combine.continueWith
-            (Combine.lazy
-                (\_ ->
-                    Combine.oneOf <| List.map (\e -> e config) conf.oneOf
-                )
-            )
-        |> Combine.andThen (\leftExpression -> Combine.loop ( config, precedence, leftExpression ) expressionHelp)
+            (Combine.oneOf (List.map (\e -> e config) conf.oneOf))
+        |> Combine.andThen
+            (\leftExpression -> Combine.loop ( config, precedence, leftExpression ) expressionHelp)
 
 
 {-| This is the core of the Pratt parser algorithm.
@@ -272,10 +242,9 @@ expressionHelp ( (Config conf) as config, precedence, leftExpression ) =
 
 operation : Config s e -> Int -> e -> Parser s e
 operation ((Config conf) as config) precedence leftExpression =
-    Combine.oneOf <|
-        List.filterMap
-            (\toOperation -> filter (toOperation config) precedence leftExpression)
-            conf.andThenOneOf
+    conf.andThenOneOf
+        |> List.filterMap (\toOperation -> filter (toOperation config) precedence leftExpression)
+        |> Combine.oneOf
 
 
 filter : ( Int, e -> Parser s e ) -> Int -> e -> Maybe (Parser s e)
@@ -500,15 +469,8 @@ The `Config` argument is passed automatically by the parser.
     run expression "360°" --> Ok (2*pi)
 
 -}
-postfix : Int -> Parser state () -> (expr -> expr) -> Config state expr -> ( Int, expr -> Parser state expr )
+postfix : Int -> Parser state a -> (expr -> a -> expr) -> Config state expr -> ( Int, expr -> Parser state expr )
 postfix precedence operator apply _ =
     ( precedence
-    , \left -> Combine.map (\_ -> apply left) operator
-    )
-
-
-recordAccessPostfix : Int -> Parser s (Node String) -> (e -> Node String -> e) -> Config s e -> ( Int, e -> Parser s e )
-recordAccessPostfix precedence postFixParser apply _ =
-    ( precedence
-    , \left -> Combine.map (\recordField -> apply left recordField) postFixParser
+    , \left -> Combine.map (\right -> apply left right) operator
     )
