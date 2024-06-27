@@ -174,7 +174,7 @@ infixLeftSubtraction precedence =
 
 recordAccess : Config State (Node Expression) -> ( Int, Node Expression -> Parser State (Node Expression) )
 recordAccess =
-    Pratt.recordAccessPostfix 98
+    Pratt.postfix 98
         recordAccessParser
         (\((Node leftRange _) as left) ((Node rightRange _) as field) ->
             Node
