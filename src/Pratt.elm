@@ -210,7 +210,11 @@ subExpression : Int -> Config state expr -> Parser state expr
 subExpression precedence ((Config conf) as config) =
     conf.spaces
         |> Combine.continueWith
-            (Combine.oneOf (List.map (\e -> e config) conf.oneOf))
+            (Combine.lazy
+                (\_ ->
+                    Combine.oneOf <| List.map (\e -> e config) conf.oneOf
+                )
+            )
         |> Combine.andThen
             (\leftExpression -> Combine.loop ( config, precedence, leftExpression ) expressionHelp)
 

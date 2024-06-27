@@ -14,35 +14,10 @@ import Elm.Syntax.Infix as Infix
 import Elm.Syntax.ModuleName exposing (ModuleName)
 import Elm.Syntax.Node as Node exposing (Node(..))
 import Elm.Syntax.Pattern as Pattern exposing (Pattern)
-import Elm.Syntax.Range exposing (Location, Range)
+import Elm.Syntax.Range exposing (Location)
 import Elm.Syntax.Signature exposing (Signature)
 import Parser as Core exposing ((|=), Nestable(..))
 import Pratt exposing (Config)
-
-
-
---expressionNotApplication : Parser State (Node Expression)
---expressionNotApplication =
---    lazy
---        (\() ->
---            oneOf
---                [ numberExpression
---                , referenceExpression
---                , ifBlockExpression
---                , tupledExpression
---                , recordAccessFunctionExpression
---                , operatorExpression
---                , letExpression
---                , lambdaExpression
---                , literalExpression
---                , charLiteralExpression
---                , recordExpression
---                , glslExpression
---                , listExpression
---                , caseExpression
---                ]
---                |> Combine.andThen liftRecordAccess
---        )
 
 
 expression : Parser State (Node Expression)
@@ -216,68 +191,6 @@ functionCall =
                         { start = leftRange.start, end = (Node.range right).end }
                         (Expression.Application [ left, right ])
         )
-
-
-liftRecordAccess : Node Expression -> Parser State (Node Expression)
-liftRecordAccess e =
-    Combine.oneOf
-        [ Combine.string "."
-            |> Combine.continueWith (Node.parser functionName)
-            |> Combine.andThen
-                (\f ->
-                    liftRecordAccess
-                        (Node
-                            { start = (Node.range e).start, end = (Node.range f).end }
-                            (RecordAccess e f)
-                        )
-                )
-        , Combine.succeed e
-        ]
-
-
-
---expression : Parser State (Node Expression)
---expression =
---    expressionNotApplication
---        |> Combine.andThen
---            (\first ->
---                let
---                    complete : Range -> List (Node Expression) -> Parser s (Node Expression)
---                    complete lastExpressionRange rest =
---                        case rest of
---                            [] ->
---                                succeed first
---
---                            (Node _ (Operator _)) :: _ ->
---                                Combine.fail "Expression should not end with an operator"
---
---                            _ ->
---                                succeed
---                                    (Node
---                                        { start = (Node.range first).start, end = lastExpressionRange.end }
---                                        (Application (first :: List.reverse rest))
---                                    )
---
---                    promoter : Range -> List (Node Expression) -> Parser State (Node Expression)
---                    promoter lastExpressionRange rest =
---                        Layout.optimisticLayoutWith
---                            (\() -> complete lastExpressionRange rest)
---                            (\() ->
---                                Combine.oneOf
---                                    [ expressionNotApplication
---                                        |> Combine.andThen (\next -> promoter (Node.range next) (next :: rest))
---                                    , Combine.succeed ()
---                                        |> Combine.andThen (\() -> complete lastExpressionRange rest)
---                                    ]
---                            )
---                in
---                case first of
---                    Node _ (Operator _) ->
---                        Combine.fail "Expression should not start with an operator"
---
---                    _ ->
---                        promoter (Node.range first) []
---            )
 
 
 glslExpression : Parser State (Node Expression)
