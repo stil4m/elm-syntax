@@ -36,22 +36,23 @@ module Pratt exposing
 
 -}
 
-import Combine exposing (Parser)
+import Combine exposing (Parser, Step(..))
 import Elm.Parser.State as State exposing (State)
 import Elm.Syntax.Node exposing (Node)
-import Pratt.Advanced as Advanced
 
 
 
 -- EXPRESSION PARSER CONFIGURATION
 
 
-{-| An opaque type based on
-[`Pratt.Advanced.Config`](Pratt.Advanced#Config) holding the parser
-configuration.
+{-| An opaque type holding the parser configuration.
 -}
-type alias Config state expr =
-    Advanced.Config state expr
+type Config s e
+    = Config
+        { oneOf : List (Config s e -> Parser s e)
+        , andThenOneOf : List (Config s e -> ( Int, e -> Parser s e ))
+        , spaces : Parser s ()
+        }
 
 
 
@@ -157,12 +158,13 @@ expression :
     , spaces : Parser State ()
     }
     -> Parser State expr
-expression options =
-    Advanced.expression
-        { oneOf = List.map failOnIncorrectIndentation options.oneOf
-        , andThenOneOf = options.andThenOneOf
-        , spaces = options.spaces
-        }
+expression config =
+    subExpression 0 <|
+        Config
+            { oneOf = List.map failOnIncorrectIndentation config.oneOf
+            , andThenOneOf = config.andThenOneOf
+            , spaces = config.spaces
+            }
 
 
 failOnIncorrectIndentation : (Config State expr -> Parser State expr) -> (Config State expr -> Parser State expr)
@@ -232,8 +234,57 @@ A parser for sub-expressions between parentheses like this:
 
 -}
 subExpression : Int -> Config state expr -> Parser state expr
-subExpression =
-    Advanced.subExpression
+subExpression precedence ((Config conf) as config) =
+    conf.spaces
+        |> Combine.continueWith
+            (Combine.lazy
+                (\_ ->
+                    Combine.oneOf <| List.map (\e -> e config) conf.oneOf
+                )
+            )
+        |> Combine.andThen (\leftExpression -> Combine.loop ( config, precedence, leftExpression ) expressionHelp)
+
+
+{-| This is the core of the Pratt parser algorithm.
+It continues parsing the expression as long as a `andThenOneOf` parser with a
+precedence above the current one succeeds.
+
+[`loop`](https://package.elm-lang.org/packages/elm/parser/1.1.0/Parser#loop)
+is used instead of a recursive parser to get Tail-Call Elimination.
+
+Also note that `oneOf` and `andThenOneOf` parsers may call recursively
+`subExpression`.
+
+-}
+expressionHelp : ( Config s e, Int, e ) -> Parser s (Step ( Config s e, Int, e ) e)
+expressionHelp ( (Config conf) as config, precedence, leftExpression ) =
+    Combine.succeed identity
+        |> Combine.ignore conf.spaces
+        |> Combine.keep
+            (Combine.oneOf
+                [ Combine.map
+                    (\expr -> Loop ( config, precedence, expr ))
+                    (operation config precedence leftExpression)
+                , Combine.succeed (Done leftExpression)
+                ]
+            )
+
+
+operation : Config s e -> Int -> e -> Parser s e
+operation ((Config conf) as config) precedence leftExpression =
+    Combine.oneOf <|
+        List.filterMap
+            (\toOperation -> filter (toOperation config) precedence leftExpression)
+            conf.andThenOneOf
+
+
+filter : ( Int, e -> Parser s e ) -> Int -> e -> Maybe (Parser s e)
+filter ( precedence, parser ) currentPrecedence leftExpression =
+    if precedence > currentPrecedence then
+        Just (parser leftExpression)
+
+    else
+        Nothing
 
 
 
@@ -281,7 +332,7 @@ before the `literal digits` and let `digits` only handle positive numbers.
 -}
 literal : Parser state expr -> Config state expr -> Parser state expr
 literal =
-    Advanced.literal
+    always
 
 
 {-| Build a parser for a _constant_.
@@ -304,8 +355,8 @@ The `Config` argument is passed automatically by the parser.
 
 -}
 constant : Parser state () -> expr -> Config state expr -> Parser state expr
-constant =
-    Advanced.constant
+constant constantParser e _ =
+    Combine.map (always e) constantParser
 
 
 {-| Build a parser for a _prefix_ expression with a given _precedence_.
@@ -347,8 +398,10 @@ The `Config` argument is passed automatically by the parser.
 
 -}
 prefix : Int -> Parser state () -> (expr -> expr) -> Config state expr -> Parser state expr
-prefix =
-    Advanced.prefix
+prefix precedence operator apply config =
+    Combine.succeed apply
+        |> Combine.ignore operator
+        |> Combine.keep (subExpression precedence config)
 
 
 
@@ -382,8 +435,8 @@ The `Config` argument is passed automatically by the parser.
 
 -}
 infixLeft : Int -> Parser state () -> (expr -> expr -> expr) -> Config state expr -> ( Int, expr -> Parser state expr )
-infixLeft =
-    Advanced.infixLeft
+infixLeft precedence p apply config =
+    infixHelp precedence precedence p apply config
 
 
 {-| Build a parser for an _infix_ expression with a right-associative operator
@@ -411,8 +464,20 @@ expression with the _precedence_ of the infix operator minus 1.
 
 -}
 infixRight : Int -> Parser state () -> (expr -> expr -> expr) -> Config state expr -> ( Int, expr -> Parser state expr )
-infixRight =
-    Advanced.infixRight
+infixRight precedence p apply config =
+    -- To get right associativity, we use (precedence - 1) for the
+    -- right precedence.
+    infixHelp precedence (precedence - 1) p apply config
+
+
+infixHelp : Int -> Int -> Parser state () -> (expr -> expr -> expr) -> Config state expr -> ( Int, expr -> Parser state expr )
+infixHelp leftPrecedence rightPrecedence operator apply config =
+    ( leftPrecedence
+    , \left ->
+        Combine.succeed (\e -> apply left e)
+            |> Combine.ignore operator
+            |> Combine.keep (subExpression rightPrecedence config)
+    )
 
 
 {-| Build a parser for a _postfix_ expression with a given _precedence_.
@@ -436,10 +501,14 @@ The `Config` argument is passed automatically by the parser.
 
 -}
 postfix : Int -> Parser state () -> (expr -> expr) -> Config state expr -> ( Int, expr -> Parser state expr )
-postfix =
-    Advanced.postfix
+postfix precedence operator apply _ =
+    ( precedence
+    , \left -> Combine.map (\_ -> apply left) operator
+    )
 
 
-recordAccessPostfix : Int -> Parser s (Node String) -> (e -> Node String -> e) -> Advanced.Config s e -> ( Int, e -> Parser s e )
-recordAccessPostfix =
-    Advanced.recordAccessPostfix
+recordAccessPostfix : Int -> Parser s (Node String) -> (e -> Node String -> e) -> Config s e -> ( Int, e -> Parser s e )
+recordAccessPostfix precedence postFixParser apply _ =
+    ( precedence
+    , \left -> Combine.map (\recordField -> apply left recordField) postFixParser
+    )
