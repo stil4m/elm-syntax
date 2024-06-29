@@ -435,7 +435,7 @@ unsafePositiveToDigits digits num =
     if num < 16 then
         unsafeToDigit num :: digits
     else
-        unsafePositiveToDigits (unsafeToDigit (num % 16) :: digits) (num // 16)
+        unsafePositiveToDigits (unsafeToDigit (modBy num 16) :: digits) (num // 16)
 
 """
 
@@ -633,10 +633,10 @@ update : Msg -> Model -> (Model, Cmd Msg)
 update msg model =
     case msg of
         NoOp ->
-            model ! []
+            (model, [])
 
         Increment ->
-            { model | value = model}! []
+            ({ model | value = model}, [])
 
 
 
