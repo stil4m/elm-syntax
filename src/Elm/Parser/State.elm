@@ -27,7 +27,7 @@ expectedColumn : State -> Int
 expectedColumn (State { indents }) =
     case indents of
         [] ->
-            0
+            1
 
         head :: _ ->
             head + 1
