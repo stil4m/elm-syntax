@@ -134,25 +134,10 @@ expression :
 expression config =
     subExpression 0 <|
         Config
-            { oneOf = List.map failOnIncorrectIndentation config.oneOf
+            { oneOf = config.oneOf
             , andThenOneOf = config.andThenOneOf
             , spaces = config.spaces
             }
-
-
-failOnIncorrectIndentation : (Config State expr -> Parser State expr) -> (Config State expr -> Parser State expr)
-failOnIncorrectIndentation parser config =
-    Combine.withState
-        (\state ->
-            Combine.withLocation
-                (\location ->
-                    if location.column <= State.expectedColumn state then
-                        Combine.fail "Incorrect indentation for expression"
-
-                    else
-                        parser config
-                )
-        )
 
 
 {-| Build an expression parser based on the _precedence_ and
