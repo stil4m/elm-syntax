@@ -1,4 +1,4 @@
-module Elm.Parser.Layout exposing (LayoutStatus(..), layout, layoutStrict, layoutWithoutIndentCheck, maybeAroundBothSides, optimisticLayout, optimisticLayoutWith)
+module Elm.Parser.Layout exposing (LayoutStatus(..), layout, layoutStrict, maybeAroundBothSides, optimisticLayout, optimisticLayoutWith)
 
 import Combine exposing (Parser, fail, many, many1, maybe, oneOf, succeed, withLocation, withState)
 import Elm.Parser.Comments as Comments
@@ -29,27 +29,7 @@ layout =
             , many1Spaces
             ]
         )
-        --|> Combine.continueWith (verifyIndent (\stateIndent current -> stateIndent < current))
-        |> Combine.map (always ())
-
-
-layoutWithoutIndentCheck : Parser State ()
-layoutWithoutIndentCheck =
-    -- TODO Refactor with layout
-    many1
-        (oneOf
-            [ anyComment
-            , many1 realNewLine
-                |> Combine.continueWith
-                    (oneOf
-                        [ many1Spaces
-                        , anyComment
-                        ]
-                    )
-            , many1Spaces
-            ]
-        )
-        |> Combine.map (always ())
+        |> Combine.continueWith (verifyIndent (\stateIndent current -> stateIndent < current))
 
 
 type LayoutStatus
@@ -114,8 +94,7 @@ layoutStrict =
             , many1Spaces
             ]
         )
-        --|> Combine.continueWith (verifyIndent (\stateIndent current -> stateIndent == current))
-        |> Combine.map (always ())
+        |> Combine.continueWith (verifyIndent (\stateIndent current -> stateIndent == current))
 
 
 verifyIndent : (Int -> Int -> Bool) -> Parser State ()
@@ -124,16 +103,11 @@ verifyIndent f =
         (\s ->
             withLocation
                 (\l ->
-                    let
-                        expectedColumn : Int
-                        expectedColumn =
-                            State.expectedColumn s
-                    in
-                    if f expectedColumn l.column then
+                    if f (State.expectedColumn s) l.column then
                         succeed ()
 
                     else
-                        fail ("Expected higher indent than " ++ String.fromInt (expectedColumn - 1) ++ " but found something at column " ++ String.fromInt (l.column - 1))
+                        fail ("Expected higher indent than " ++ String.fromInt l.column)
                 )
         )
 
