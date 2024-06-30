@@ -20,7 +20,10 @@ all =
                 """exposing (
   .. -- foo
   )"""
-                    |> expectAst (All { start = { row = 2, column = 3 }, end = { row = 3, column = 3 } })
+                    |> expectAstWithComments
+                        { comments = [ Node { end = { column = 12, row = 2 }, start = { column = 6, row = 2 } } "-- foo" ]
+                        , ast = All { start = { row = 2, column = 3 }, end = { row = 3, column = 3 } }
+                        }
         , test "should fail to parse multi-line exposing all when closing parens is at the end of a line" <|
             \() ->
                 """exposing (
@@ -113,18 +116,25 @@ all =
         , test "Comments inside the exposing clause" <|
             \() ->
                 "exposing (foo\n --bar\n )"
-                    |> expectAst
-                        (Explicit
-                            [ Node { start = { row = 1, column = 11 }, end = { row = 1, column = 14 } }
-                                (FunctionExpose "foo")
-                            ]
-                        )
+                    |> expectAstWithComments
+                        { comments = [ Node { end = { column = 7, row = 2 }, start = { column = 2, row = 2 } } "--bar" ]
+                        , ast =
+                            Explicit
+                                [ Node { start = { row = 1, column = 11 }, end = { row = 1, column = 14 } }
+                                    (FunctionExpose "foo")
+                                ]
+                        }
         ]
 
 
 expectAst : Exposing -> String -> Expect.Expectation
 expectAst =
     CombineTestUtil.expectAst exposeDefinition
+
+
+expectAstWithComments : { ast : Exposing, comments : List (Node String) } -> String -> Expect.Expectation
+expectAstWithComments =
+    CombineTestUtil.expectAstWithComments exposeDefinition
 
 
 expectInvalid : String -> Expect.Expectation
