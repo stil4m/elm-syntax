@@ -1,7 +1,7 @@
 module Elm.Parser.Expression exposing (expression, failIfDifferentFrom, functionSignatureFromVarPointer)
 
 import Combine exposing (Parser, many, maybe, modifyState, oneOf, sepBy1, string, succeed, withLocation)
-import Elm.Parser.Layout as Layout
+import Elm.Parser.Layout as Layout exposing (LayoutStatus(..))
 import Elm.Parser.Node as Node
 import Elm.Parser.Numbers
 import Elm.Parser.Patterns exposing (pattern)
@@ -82,6 +82,8 @@ expression =
             -- function application must be last
             , functionCall
             ]
+
+        -- TODO backtrackable is not great for performance, try to avoid it
         , spaces = oneOf [ Layout.layout |> Combine.backtrackable, manySpaces ]
         }
 
@@ -363,34 +365,24 @@ caseExpression config =
 
 caseStatements : Config State (Node Expression) -> Parser State ( Location, Cases )
 caseStatements config =
-    Combine.many1WithEndLocationForLastElement
-        (\( _, case_ ) -> Node.range case_)
-        (caseStatementWithCorrectIndentation config)
+    Combine.sepBy1WithoutReverse (Layout.layoutStrict |> Combine.backtrackable) (caseStatement config)
+        |> Combine.andThen
+            (\cases ->
+                case cases of
+                    [] ->
+                        Combine.fail "can't happen, refactor later"
 
-
-caseStatementWithCorrectIndentation : Config State (Node Expression) -> Parser State Case
-caseStatementWithCorrectIndentation config =
-    Combine.withState
-        (\s ->
-            Combine.withLocation
-                (\l ->
-                    if State.expectedColumn s == l.column then
-                        caseStatement config
-
-                    else
-                        Combine.fail "Indentation is incorrect to be a case statement"
-                )
-        )
+                    ( _, Node { end } _ ) :: _ ->
+                        Combine.succeed ( end, List.reverse cases )
+            )
 
 
 caseStatement : Config State (Node Expression) -> Parser State Case
 caseStatement config =
     Combine.succeed Tuple.pair
         |> Combine.keep pattern
-        |> Combine.ignore (maybe (Combine.oneOf [ Layout.layout, Layout.layoutStrict ]))
+        |> Combine.ignore (maybe Layout.layout)
         |> Combine.ignore (string "->")
-        -- TODO The problem is that the expression parser is not aware of the current indentation
-        -- and tries to parse `False -` (from `False ->` as an expression)
         |> Combine.keep (Pratt.subExpression 0 config)
 
 
