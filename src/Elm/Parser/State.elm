@@ -18,9 +18,9 @@ emptyState =
         }
 
 
-storedColumns : State -> List Int
+storedColumns : State -> Maybe Int
 storedColumns (State { indents }) =
-    indents
+    List.head indents
 
 
 expectedColumn : State -> Int
