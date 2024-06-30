@@ -205,11 +205,12 @@ manyWithEndLocationForLastElement defaultRange getRange (Parser p) =
             Core.oneOf
                 [ p oldState
                     |> Core.map (\( newState, item ) -> Core.Loop ( newState, item :: items ))
-                , Core.succeed ()
-                    |> Core.map
-                        (\() ->
-                            Core.Done ( oldState, ( endLocationForList defaultRange getRange items, List.reverse items ) )
+                , Core.succeed
+                    (Core.Done
+                        ( oldState
+                        , ( endLocationForList defaultRange getRange items, List.reverse items )
                         )
+                    )
                 ]
     in
     Parser <|
