@@ -130,7 +130,8 @@ True -> 1"""
             \() ->
                 """case f of
   True -> 1
-   False -> 2"""
+   False -> 2
+"""
                     |> expectInvalid
         , test "should parse case expression when " <|
             \() ->
