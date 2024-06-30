@@ -1,6 +1,6 @@
 module Elm.Parser.LambdaExpressionTests exposing (all)
 
-import Elm.Parser.CombineTestUtil as CombineTestUtil exposing (..)
+import Elm.Parser.CombineTestUtil as CombineTestUtil
 import Elm.Parser.Expression exposing (expression)
 import Elm.Syntax.Expression exposing (..)
 import Elm.Syntax.Infix exposing (InfixDirection(..))

@@ -14,7 +14,6 @@ module Combine exposing
     , loop
     , many
     , many1
-    , many1WithEndLocationForLastElement
     , manyWithEndLocationForLastElement
     , map
     , maybe
@@ -216,16 +215,6 @@ manyWithEndLocationForLastElement defaultRange getRange (Parser p) =
     Parser <|
         \state ->
             Core.loop ( state, [] ) helper
-
-
-many1WithEndLocationForLastElement : (a -> Range) -> Parser s a -> Parser s ( Location, List a )
-many1WithEndLocationForLastElement getRange p =
-    p
-        |> andThen
-            (\a ->
-                manyWithEndLocationForLastElement (getRange a) getRange p
-                    |> map (\( location, list ) -> ( location, a :: list ))
-            )
 
 
 endLocationForList : Range -> (a -> Range) -> List a -> Location

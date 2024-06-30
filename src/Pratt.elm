@@ -1,6 +1,5 @@
 module Pratt exposing
     ( Config
-    , constant
     , expression
     , infixLeft
     , infixRight
@@ -11,7 +10,7 @@ module Pratt exposing
     )
 
 import Combine exposing (Parser, Step(..))
-import Elm.Parser.State as State exposing (State)
+import Elm.Parser.State exposing (State)
 
 
 
@@ -291,30 +290,6 @@ before the `literal digits` and let `digits` only handle positive numbers.
 literal : Parser state expr -> Config state expr -> Parser state expr
 literal =
     always
-
-
-{-| Build a parser for a _constant_.
-
-The `Config` argument is passed automatically by the parser.
-
-    import Parser exposing (Parser, keyword, run)
-    import Pratt exposing (constant)
-
-    expression : Parser Float
-    expression =
-        Pratt.expression
-            { oneOf = [ constant (keyword "pi") pi ]
-            , andThenOneOf = []
-            , spaces = Parser.spaces
-            }
-
-
-    run expression "pi" --> Ok pi
-
--}
-constant : Parser state () -> expr -> Config state expr -> Parser state expr
-constant constantParser e _ =
-    Combine.map (always e) constantParser
 
 
 {-| Build a parser for a _prefix_ expression with a given _precedence_.

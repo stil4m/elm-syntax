@@ -1,4 +1,4 @@
-module Elm.Parser.ExpressionTests exposing (all, expectAstWithComments)
+module Elm.Parser.ExpressionTests exposing (all)
 
 import Elm.Parser.CombineTestUtil as CombineTestUtil
 import Elm.Parser.Expression exposing (expression)
