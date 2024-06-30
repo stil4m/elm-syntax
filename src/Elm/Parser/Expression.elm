@@ -390,12 +390,42 @@ caseStatement config =
 -- Let Expression
 
 
+letExpression : Config State (Node Expression) -> Parser State (Node Expression)
+letExpression config =
+    succeed (\( Node { start } _, decls ) expr -> Node { start = start, end = (Node.range expr).end } (LetBlock decls expr |> LetExpression))
+        |> Combine.keep
+            (withIndentedState
+                (Combine.succeed Tuple.pair
+                    |> Combine.keep (Node.parser (string "let"))
+                    |> Combine.ignore Layout.layout
+                    |> Combine.keep (withIndentedState (letBody config))
+                    |> Combine.ignore Layout.optimisticLayout
+                    |> Combine.ignore (string "in")
+                )
+            )
+        |> Combine.ignore Layout.layout
+        |> Combine.keep (Pratt.subExpression 0 config)
+
+
 letBody : Config State (Node Expression) -> Parser State (List (Node LetDeclaration))
 letBody config =
     -- TODO Add failing tests where let declarations are not aligned
-    Combine.succeed (::)
-        |> Combine.keep (blockElement config)
-        |> Combine.keep (many (blockElement config |> Combine.ignore (maybe Layout.layout)))
+    -- Combine.sepBy1 (Layout.layoutStrict |> Combine.backtrackable) (blockElement config)
+    Combine.many1
+        -- (Combine.backtrackable Layout.optimisticLayoutWith
+        --     (\() -> blockElement config)
+        --     (\() -> Combine.fail "not indented correctly for a let block element"))
+        (Combine.backtrackable Layout.optimisticLayout
+            |> Combine.andThen
+                (\ind ->
+                    case ind of
+                        Strict ->
+                            Combine.fromCore (Core.commit ()) |> Combine.continueWith (blockElement config)
+
+                        Indented ->
+                            Combine.fail "not indented correctly for a let block element"
+                )
+        )
 
 
 blockElement : Config State (Node Expression) -> Parser State (Node LetDeclaration)
@@ -421,18 +451,6 @@ letDestructuringDeclarationWithPattern config pattern =
         )
         |> Combine.ignore (maybe Layout.layout)
         |> Combine.ignore (string "=")
-        |> Combine.keep (Pratt.subExpression 0 config)
-
-
-letExpression : Config State (Node Expression) -> Parser State (Node Expression)
-letExpression config =
-    succeed (\(Node { start } _) decls expr -> Node { start = start, end = (Node.range expr).end } (LetBlock decls expr |> LetExpression))
-        |> Combine.keep (Node.parser (string "let"))
-        |> Combine.ignore Layout.layout
-        |> Combine.keep (withIndentedState (letBody config))
-        |> Combine.ignore (oneOf [ Layout.layout, manySpaces ])
-        |> Combine.ignore (string "in")
-        |> Combine.ignore Layout.layout
         |> Combine.keep (Pratt.subExpression 0 config)
 
 

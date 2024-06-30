@@ -40,8 +40,7 @@ When parsing fails, the result will contain a list of errors indicating what wen
 -}
 parseToFile : String -> Result (List DeadEnd) File
 parseToFile input =
-    -- A single line is added for unfinished ranges produced by `parser-combinators` on the last line.
-    case Combine.runParser (withEnd file) emptyState (input ++ "\n") of
+    case Combine.runParser (withEnd file) emptyState input of
         Ok ( _, r ) ->
             Ok (Processing.process Processing.init (InternalRawFile.fromFile r))
 
