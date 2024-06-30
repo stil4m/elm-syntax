@@ -9,6 +9,9 @@ module Pratt exposing
     , subExpression
     )
 
+{-| Elm implementation for Pratt parsers. Adapted from dmy/elm-pratt-parser.
+-}
+
 import Combine exposing (Parser, Step(..))
 import Elm.Parser.State exposing (State)
 
