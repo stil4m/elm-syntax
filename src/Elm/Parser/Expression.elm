@@ -409,23 +409,7 @@ letExpression config =
 
 letBody : Config State (Node Expression) -> Parser State (List (Node LetDeclaration))
 letBody config =
-    -- TODO Add failing tests where let declarations are not aligned
-    -- Combine.sepBy1 (Layout.layoutStrict |> Combine.backtrackable) (blockElement config)
-    Combine.many1
-        -- (Combine.backtrackable Layout.optimisticLayoutWith
-        --     (\() -> blockElement config)
-        --     (\() -> Combine.fail "not indented correctly for a let block element"))
-        (Combine.backtrackable Layout.optimisticLayout
-            |> Combine.andThen
-                (\ind ->
-                    case ind of
-                        Strict ->
-                            Combine.fromCore (Core.commit ()) |> Combine.continueWith (blockElement config)
-
-                        Indented ->
-                            Combine.fail "not indented correctly for a let block element"
-                )
-        )
+    Combine.sepBy1 (Layout.layoutStrict |> Combine.backtrackable) (blockElement config)
 
 
 blockElement : Config State (Node Expression) -> Parser State (Node LetDeclaration)
