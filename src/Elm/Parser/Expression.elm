@@ -1,7 +1,7 @@
 module Elm.Parser.Expression exposing (expression, failIfDifferentFrom, functionSignatureFromVarPointer)
 
 import Combine exposing (Parser, many, maybe, modifyState, oneOf, sepBy1, string, succeed, withLocation)
-import Elm.Parser.Layout as Layout exposing (LayoutStatus(..))
+import Elm.Parser.Layout as Layout
 import Elm.Parser.Node as Node
 import Elm.Parser.Numbers
 import Elm.Parser.Patterns exposing (pattern)
