@@ -7,7 +7,6 @@ module Elm.Parser.Tokens exposing
     , functionName
     , ifToken
     , importToken
-    , infixOperatorToken
     , moduleToken
     , multiLineStringLiteral
     , ofToken
@@ -272,11 +271,6 @@ allowedPrefixOperatorTokens =
 prefixOperatorToken : Parser s String
 prefixOperatorToken =
     operatorTokenFromList allowedPrefixOperatorTokens
-
-
-infixOperatorToken : Parser s String
-infixOperatorToken =
-    operatorTokenFromList allowedOperatorTokens
 
 
 operatorTokenFromList : List Char -> Parser s String

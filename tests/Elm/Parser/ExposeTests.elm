@@ -21,7 +21,7 @@ all =
   .. -- foo
   )"""
                     |> expectAstWithComments
-                        { comments = [ Node { end = { column = 12, row = 2 }, start = { column = 6, row = 2 } } "-- foo" ]
+                        { comments = [ Node { start = { row = 2, column = 6 }, end = { row = 2, column = 12 } } "-- foo" ]
                         , ast = All { start = { row = 2, column = 3 }, end = { row = 3, column = 3 } }
                         }
         , test "should fail to parse multi-line exposing all when closing parens is at the end of a line" <|
@@ -117,7 +117,7 @@ all =
             \() ->
                 "exposing (foo\n --bar\n )"
                     |> expectAstWithComments
-                        { comments = [ Node { end = { column = 7, row = 2 }, start = { column = 2, row = 2 } } "--bar" ]
+                        { comments = [ Node { start = { row = 2, column = 2 }, end = { row = 2, column = 7 } } "--bar" ]
                         , ast =
                             Explicit
                                 [ Node { start = { row = 1, column = 11 }, end = { row = 1, column = 14 } }

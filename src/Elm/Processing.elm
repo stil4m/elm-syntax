@@ -24,9 +24,7 @@ import Elm.Internal.RawFile as InternalRawFile
 import Elm.RawFile as RawFile
 import Elm.Syntax.Comments exposing (Comment)
 import Elm.Syntax.Declaration exposing (Declaration(..))
-import Elm.Syntax.Expression exposing (..)
 import Elm.Syntax.File exposing (File)
-import Elm.Syntax.Infix exposing (InfixDirection(..))
 import Elm.Syntax.ModuleName exposing (ModuleName)
 import Elm.Syntax.Node as Node exposing (Node(..))
 import Elm.Syntax.Range as Range exposing (Range)
