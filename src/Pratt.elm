@@ -22,11 +22,11 @@ import Elm.Parser.State exposing (State)
 
 {-| An opaque type holding the parser configuration.
 -}
-type Config s e
+type Config state expr
     = Config
-        { oneOf : List (Config s e -> Parser s e)
-        , andThenOneOf : List (Config s e -> ( Int, e -> Parser s e ))
-        , spaces : Parser s ()
+        { oneOf : List (Config state expr -> Parser state expr)
+        , andThenOneOf : List (Config state expr -> ( Int, expr -> Parser state expr ))
+        , spaces : Parser state ()
         }
 
 
@@ -134,12 +134,7 @@ expression :
     }
     -> Parser State expr
 expression config =
-    subExpression 0 <|
-        Config
-            { oneOf = config.oneOf
-            , andThenOneOf = config.andThenOneOf
-            , spaces = config.spaces
-            }
+    subExpression 0 (Config config)
 
 
 {-| Build an expression parser based on the _precedence_ and
