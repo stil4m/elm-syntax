@@ -1,4 +1,4 @@
-module Elm.Parser.State exposing (State, addComment, emptyState, expectedColumn, getComments, popIndent, pushIndent, storedColumns)
+module Elm.Parser.State exposing (State, addComment, currentIndent, emptyState, expectedColumn, getComments, popIndent, pushIndent)
 
 import Elm.Syntax.Node exposing (Node)
 
@@ -18,8 +18,8 @@ emptyState =
         }
 
 
-storedColumns : State -> Maybe Int
-storedColumns (State { indents }) =
+currentIndent : State -> Maybe Int
+currentIndent (State { indents }) =
     List.head indents
 
 
