@@ -107,7 +107,7 @@ f =
                             , Node { start = { row = 20, column = 1 }, end = { row = 20, column = 8 } } "{- 6 -}"
                             ]
                         )
-        , test "function declarations with trailing whitespace" <|
+        , test "function declaration with a case and trailing whitespace" <|
             \() ->
                 """
 module Trailing.Whitespace exposing (..)
@@ -121,23 +121,9 @@ caseWhitespace f = case f   of
      
          2    
 
+   --some comment
 
-lambdaWhitespace =   \\ a b ->    a    
-
-       + 
-
-    b 
-
-
-letWhitespace = let
-                  b =   1
-
- in
- b
-
-
---some comment
-
+    
     """
                     |> Elm.Parser.parseToFile
                     |> Expect.equal
@@ -151,7 +137,7 @@ letWhitespace = let
                                         , moduleName = Node { start = { row = 2, column = 8 }, end = { row = 2, column = 27 } } [ "Trailing", "Whitespace" ]
                                         }
                                     )
-                            , comments = [ Node { start = { row = 28, column = 1 }, end = { row = 28, column = 15 } } "--some comment" ]
+                            , comments = [ Node { start = { row = 13, column = 4 }, end = { row = 13, column = 18 } } "--some comment" ]
                             , imports = []
                             , declarations =
                                 [ Node { start = { row = 4, column = 1 }, end = { row = 11, column = 11 } }
@@ -179,59 +165,125 @@ letWhitespace = let
                                         , signature = Nothing
                                         }
                                     )
-                                , Node { start = { row = 14, column = 1 }, end = { row = 18, column = 6 } }
+                                ]
+                            }
+                        )
+        , test "function declaration with lambda and trailing whitespace" <|
+            \() ->
+                """
+module Trailing.Whitespace exposing (..)
+
+lambdaWhitespace =   \\ a b ->    a    
+
+       + 
+
+    b 
+
+
+--some comment
+
+    """
+                    |> Elm.Parser.parseToFile
+                    |> Expect.equal
+                        (Ok
+                            { moduleDefinition =
+                                Node { start = { row = 2, column = 1 }, end = { row = 2, column = 41 } }
+                                    (NormalModule
+                                        { exposingList =
+                                            Node { start = { row = 2, column = 28 }, end = { row = 2, column = 41 } }
+                                                (All { start = { row = 2, column = 38 }, end = { row = 2, column = 40 } })
+                                        , moduleName = Node { start = { row = 2, column = 8 }, end = { row = 2, column = 27 } } [ "Trailing", "Whitespace" ]
+                                        }
+                                    )
+                            , comments = [ Node { start = { row = 11, column = 1 }, end = { row = 11, column = 15 } } "--some comment" ]
+                            , imports = []
+                            , declarations =
+                                [ Node { start = { row = 4, column = 1 }, end = { row = 8, column = 6 } }
                                     (FunctionDeclaration
                                         { declaration =
-                                            Node { start = { row = 14, column = 1 }, end = { row = 18, column = 6 } }
+                                            Node { start = { row = 4, column = 1 }, end = { row = 8, column = 6 } }
                                                 { arguments = []
                                                 , expression =
-                                                    Node { start = { row = 14, column = 22 }, end = { row = 18, column = 6 } }
+                                                    Node { start = { row = 4, column = 22 }, end = { row = 8, column = 6 } }
                                                         (LambdaExpression
                                                             { args =
-                                                                [ Node { start = { row = 14, column = 24 }, end = { row = 14, column = 25 } } (VarPattern "a")
-                                                                , Node { start = { row = 14, column = 26 }, end = { row = 14, column = 27 } } (VarPattern "b")
+                                                                [ Node { start = { row = 4, column = 24 }, end = { row = 4, column = 25 } } (VarPattern "a")
+                                                                , Node { start = { row = 4, column = 26 }, end = { row = 4, column = 27 } } (VarPattern "b")
                                                                 ]
                                                             , expression =
-                                                                Node { start = { row = 14, column = 34 }, end = { row = 18, column = 6 } }
+                                                                Node { start = { row = 4, column = 34 }, end = { row = 8, column = 6 } }
                                                                     (OperatorApplication "+"
                                                                         Left
-                                                                        (Node { start = { row = 14, column = 34 }, end = { row = 14, column = 35 } } (FunctionOrValue [] "a"))
-                                                                        (Node { start = { row = 18, column = 5 }, end = { row = 18, column = 6 } } (FunctionOrValue [] "b"))
+                                                                        (Node { start = { row = 4, column = 34 }, end = { row = 4, column = 35 } } (FunctionOrValue [] "a"))
+                                                                        (Node { start = { row = 8, column = 5 }, end = { row = 8, column = 6 } } (FunctionOrValue [] "b"))
                                                                     )
                                                             }
                                                         )
-                                                , name = Node { start = { row = 14, column = 1 }, end = { row = 14, column = 17 } } "lambdaWhitespace"
+                                                , name = Node { start = { row = 4, column = 1 }, end = { row = 4, column = 17 } } "lambdaWhitespace"
                                                 }
                                         , documentation = Nothing
                                         , signature = Nothing
                                         }
                                     )
-                                , Node { start = { row = 21, column = 1 }, end = { row = 25, column = 3 } }
+                                ]
+                            }
+                        )
+        , test "function declaration with let and trailing whitespace" <|
+            \() ->
+                """
+module Trailing.Whitespace exposing (..)
+
+letWhitespace = let
+                  b =   1
+
+ in
+ b
+
+
+--some comment
+
+    """
+                    |> Elm.Parser.parseToFile
+                    |> Expect.equal
+                        (Ok
+                            { moduleDefinition =
+                                Node { start = { row = 2, column = 1 }, end = { row = 2, column = 41 } }
+                                    (NormalModule
+                                        { exposingList =
+                                            Node { start = { row = 2, column = 28 }, end = { row = 2, column = 41 } }
+                                                (All { start = { row = 2, column = 38 }, end = { row = 2, column = 40 } })
+                                        , moduleName = Node { start = { row = 2, column = 8 }, end = { row = 2, column = 27 } } [ "Trailing", "Whitespace" ]
+                                        }
+                                    )
+                            , comments = [ Node { start = { row = 11, column = 1 }, end = { row = 11, column = 15 } } "--some comment" ]
+                            , imports = []
+                            , declarations =
+                                [ Node { start = { row = 4, column = 1 }, end = { row = 8, column = 3 } }
                                     (FunctionDeclaration
                                         { declaration =
-                                            Node { start = { row = 21, column = 1 }, end = { row = 25, column = 3 } }
+                                            Node { start = { row = 4, column = 1 }, end = { row = 8, column = 3 } }
                                                 { arguments = []
                                                 , expression =
-                                                    Node { start = { row = 21, column = 17 }, end = { row = 25, column = 3 } }
+                                                    Node { start = { row = 4, column = 17 }, end = { row = 8, column = 3 } }
                                                         (LetExpression
                                                             { declarations =
-                                                                [ Node { start = { row = 22, column = 19 }, end = { row = 22, column = 26 } }
+                                                                [ Node { start = { row = 5, column = 19 }, end = { row = 5, column = 26 } }
                                                                     (LetFunction
                                                                         { declaration =
-                                                                            Node { start = { row = 22, column = 19 }, end = { row = 22, column = 26 } }
+                                                                            Node { start = { row = 5, column = 19 }, end = { row = 5, column = 26 } }
                                                                                 { arguments = []
-                                                                                , expression = Node { start = { row = 22, column = 25 }, end = { row = 22, column = 26 } } (Integer 1)
-                                                                                , name = Node { start = { row = 22, column = 19 }, end = { row = 22, column = 20 } } "b"
+                                                                                , expression = Node { start = { row = 5, column = 25 }, end = { row = 5, column = 26 } } (Integer 1)
+                                                                                , name = Node { start = { row = 5, column = 19 }, end = { row = 5, column = 20 } } "b"
                                                                                 }
                                                                         , documentation = Nothing
                                                                         , signature = Nothing
                                                                         }
                                                                     )
                                                                 ]
-                                                            , expression = Node { start = { row = 25, column = 2 }, end = { row = 25, column = 3 } } (FunctionOrValue [] "b")
+                                                            , expression = Node { start = { row = 8, column = 2 }, end = { row = 8, column = 3 } } (FunctionOrValue [] "b")
                                                             }
                                                         )
-                                                , name = Node { start = { row = 21, column = 1 }, end = { row = 21, column = 14 } } "letWhitespace"
+                                                , name = Node { start = { row = 4, column = 1 }, end = { row = 4, column = 14 } } "letWhitespace"
                                                 }
                                         , documentation = Nothing
                                         , signature = Nothing
