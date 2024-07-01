@@ -75,14 +75,6 @@ all =
             \() ->
                 parse "--" Parser.prefixOperatorToken
                     |> Expect.equal Nothing
-        , test "operatorToken 12" <|
-            \() ->
-                parse "≡" Parser.prefixOperatorToken
-                    |> Expect.equal (Just "≡")
-        , test "operatorToken 13" <|
-            \() ->
-                parse "~" Parser.prefixOperatorToken
-                    |> Expect.equal (Just "~")
         , test "operatorToken 14" <|
             \() ->
                 parse "=" Parser.prefixOperatorToken
@@ -91,10 +83,6 @@ all =
             \() ->
                 parse "?" Parser.prefixOperatorToken
                     |> Expect.equal (Just "?")
-        , test "operatorToken 16" <|
-            \() ->
-                parse "@" Parser.prefixOperatorToken
-                    |> Expect.equal (Just "@")
         , test "multiline string" <|
             \() ->
                 parse "\"\"\"Bar foo \n a\"\"\"" Parser.multiLineStringLiteral

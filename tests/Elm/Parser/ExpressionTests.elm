@@ -40,10 +40,6 @@ all =
                                 ]
                             )
                         )
-        , test "prefix expression" <|
-            \() ->
-                "(,)"
-                    |> expectAst (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 4 } } (PrefixOperator ","))
         , test "String literal multiline" <|
             \() ->
                 "\"\"\"Bar foo \n a\"\"\""

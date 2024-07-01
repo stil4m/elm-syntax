@@ -260,17 +260,12 @@ excludedOperators =
 
 allowedOperatorTokens : List Char
 allowedOperatorTokens =
-    [ '+', '-', ':', '/', '*', '>', '<', '=', '/', '&', '^', '%', '|', '!', '.', '#', '$', '≡', '~', '?', '@' ]
-
-
-allowedPrefixOperatorTokens : List Char
-allowedPrefixOperatorTokens =
-    ',' :: allowedOperatorTokens
+    [ '+', '-', ':', '/', '*', '>', '<', '=', '&', '^', '%', '|', '!', '.', '?' ]
 
 
 prefixOperatorToken : Parser s String
 prefixOperatorToken =
-    operatorTokenFromList allowedPrefixOperatorTokens
+    operatorTokenFromList allowedOperatorTokens
 
 
 operatorTokenFromList : List Char -> Parser s String
