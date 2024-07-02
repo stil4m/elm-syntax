@@ -548,6 +548,52 @@ all =
                                 ]
                             )
                         )
+        , test "application should be lower-priority than field access" <|
+            \() ->
+                "foo { d | b = f x y }.b"
+                    |> expectAst
+                        (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 24 } }
+                            (Application
+                                [ Node { start = { row = 1, column = 1 }, end = { row = 1, column = 4 } } (FunctionOrValue [] "foo")
+                                , Node { start = { row = 1, column = 5 }, end = { row = 1, column = 24 } }
+                                    (RecordAccess
+                                        (Node { start = { row = 1, column = 5 }, end = { row = 1, column = 22 } }
+                                            (RecordUpdateExpression (Node { start = { row = 1, column = 7 }, end = { row = 1, column = 8 } } "d")
+                                                [ Node { start = { row = 1, column = 11 }, end = { row = 1, column = 21 } }
+                                                    ( Node { start = { row = 1, column = 11 }, end = { row = 1, column = 12 } } "b"
+                                                    , Node { start = { row = 1, column = 15 }, end = { row = 1, column = 20 } }
+                                                        (Application
+                                                            [ Node { start = { row = 1, column = 15 }, end = { row = 1, column = 16 } } (FunctionOrValue [] "f")
+                                                            , Node { start = { row = 1, column = 17 }, end = { row = 1, column = 18 } } (FunctionOrValue [] "x")
+                                                            , Node { start = { row = 1, column = 19 }, end = { row = 1, column = 20 } } (FunctionOrValue [] "y")
+                                                            ]
+                                                        )
+                                                    )
+                                                ]
+                                            )
+                                        )
+                                        (Node { start = { row = 1, column = 23 }, end = { row = 1, column = 24 } } "b")
+                                    )
+                                ]
+                            )
+                        )
+        , test "should not consider a negative number parameter as the start of a new application" <|
+            \() ->
+                "Random.list -1 generator"
+                    |> expectAst
+                        (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 25 } }
+                            (Application
+                                [ Node { start = { row = 1, column = 1 }, end = { row = 1, column = 12 } } (FunctionOrValue [ "Random" ] "list")
+                                , Node { start = { row = 1, column = 13 }, end = { row = 1, column = 15 } }
+                                    (Negation
+                                        (Node { start = { row = 1, column = 14 }, end = { row = 1, column = 15 } }
+                                            (Integer 1)
+                                        )
+                                    )
+                                , Node { start = { row = 1, column = 16 }, end = { row = 1, column = 25 } } (FunctionOrValue [] "generator")
+                                ]
+                            )
+                        )
         ]
 
 
