@@ -577,6 +577,23 @@ all =
                                 ]
                             )
                         )
+        , test "should not consider a negative number parameter as the start of a new application" <|
+            \() ->
+                "Random.list -1 generator"
+                    |> expectAst
+                        (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 25 } }
+                            (Application
+                                [ Node { start = { row = 1, column = 1 }, end = { row = 1, column = 12 } } (FunctionOrValue [ "Random" ] "list")
+                                , Node { start = { row = 1, column = 13 }, end = { row = 1, column = 15 } }
+                                    (Negation
+                                        (Node { start = { row = 1, column = 14 }, end = { row = 1, column = 15 } }
+                                            (Integer 1)
+                                        )
+                                    )
+                                , Node { start = { row = 1, column = 16 }, end = { row = 1, column = 25 } } (FunctionOrValue [] "generator")
+                                ]
+                            )
+                        )
         ]
 
 
