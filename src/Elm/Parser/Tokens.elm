@@ -7,7 +7,6 @@ module Elm.Parser.Tokens exposing
     , functionName
     , ifToken
     , importToken
-    , infixOperatorToken
     , moduleToken
     , multiLineStringLiteral
     , ofToken
@@ -261,21 +260,11 @@ excludedOperators =
 
 allowedOperatorTokens : List Char
 allowedOperatorTokens =
-    [ '+', '-', ':', '/', '*', '>', '<', '=', '/', '&', '^', '%', '|', '!', '.', '#', '$', '≡', '~', '?', '@' ]
-
-
-allowedPrefixOperatorTokens : List Char
-allowedPrefixOperatorTokens =
-    ',' :: allowedOperatorTokens
+    [ '+', '-', ':', '/', '*', '>', '<', '=', '&', '^', '%', '|', '!', '.', '?' ]
 
 
 prefixOperatorToken : Parser s String
 prefixOperatorToken =
-    operatorTokenFromList allowedPrefixOperatorTokens
-
-
-infixOperatorToken : Parser s String
-infixOperatorToken =
     operatorTokenFromList allowedOperatorTokens
 
 

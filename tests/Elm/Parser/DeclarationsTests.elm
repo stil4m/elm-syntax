@@ -4,6 +4,7 @@ import Elm.Parser.CombineTestUtil as CombineTestUtil
 import Elm.Parser.Declarations exposing (..)
 import Elm.Syntax.Declaration exposing (..)
 import Elm.Syntax.Expression exposing (..)
+import Elm.Syntax.Infix as Infix exposing (InfixDirection(..))
 import Elm.Syntax.Node exposing (Node(..))
 import Elm.Syntax.Pattern exposing (..)
 import Elm.Syntax.TypeAnnotation exposing (..)
@@ -126,11 +127,10 @@ all =
                                         , arguments = [ Node { start = { row = 1, column = 5 }, end = { row = 1, column = 6 } } (VarPattern "x") ]
                                         , expression =
                                             Node { start = { row = 1, column = 9 }, end = { row = 1, column = 14 } }
-                                                (Application
-                                                    [ Node { start = { row = 1, column = 9 }, end = { row = 1, column = 10 } } (FunctionOrValue [] "x")
-                                                    , Node { start = { row = 1, column = 11 }, end = { row = 1, column = 12 } } (Operator "+")
-                                                    , Node { start = { row = 1, column = 13 }, end = { row = 1, column = 14 } } (Integer 1)
-                                                    ]
+                                                (OperatorApplication "+"
+                                                    Infix.Left
+                                                    (Node { start = { row = 1, column = 9 }, end = { row = 1, column = 10 } } (FunctionOrValue [] "x"))
+                                                    (Node { start = { row = 1, column = 13 }, end = { row = 1, column = 14 } } (Integer 1))
                                                 )
                                         }
                                 }
@@ -284,20 +284,18 @@ all =
                                                     { cases =
                                                         [ ( Node { start = { row = 3, column = 5 }, end = { row = 3, column = 14 } } (NamedPattern { moduleName = [], name = "Increment" } [])
                                                           , Node { start = { row = 4, column = 7 }, end = { row = 4, column = 16 } }
-                                                                (Application
-                                                                    [ Node { start = { row = 4, column = 7 }, end = { row = 4, column = 12 } } (FunctionOrValue [] "model")
-                                                                    , Node { start = { row = 4, column = 13 }, end = { row = 4, column = 14 } } (Operator "+")
-                                                                    , Node { start = { row = 4, column = 15 }, end = { row = 4, column = 16 } } (Integer 1)
-                                                                    ]
+                                                                (OperatorApplication "+"
+                                                                    Left
+                                                                    (Node { start = { row = 4, column = 7 }, end = { row = 4, column = 12 } } (FunctionOrValue [] "model"))
+                                                                    (Node { start = { row = 4, column = 15 }, end = { row = 4, column = 16 } } (Integer 1))
                                                                 )
                                                           )
                                                         , ( Node { start = { row = 6, column = 5 }, end = { row = 6, column = 14 } } (NamedPattern { moduleName = [], name = "Decrement" } [])
                                                           , Node { start = { row = 7, column = 7 }, end = { row = 7, column = 16 } }
-                                                                (Application
-                                                                    [ Node { start = { row = 7, column = 7 }, end = { row = 7, column = 12 } } (FunctionOrValue [] "model")
-                                                                    , Node { start = { row = 7, column = 13 }, end = { row = 7, column = 15 } } (Operator "-")
-                                                                    , Node { start = { row = 7, column = 15 }, end = { row = 7, column = 16 } } (Integer 1)
-                                                                    ]
+                                                                (OperatorApplication "-"
+                                                                    Left
+                                                                    (Node { start = { row = 7, column = 7 }, end = { row = 7, column = 12 } } (FunctionOrValue [] "model"))
+                                                                    (Node { start = { row = 7, column = 15 }, end = { row = 7, column = 16 } } (Integer 1))
                                                                 )
                                                           )
                                                         ]
@@ -426,20 +424,22 @@ all =
             \() ->
                 """main =
   {- y -} x"""
-                    |> expectAst
-                        (Node { start = { row = 1, column = 1 }, end = { row = 2, column = 12 } }
-                            (FunctionDeclaration
-                                { documentation = Nothing
-                                , signature = Nothing
-                                , declaration =
-                                    Node { start = { row = 1, column = 1 }, end = { row = 2, column = 12 } }
-                                        { arguments = []
-                                        , expression = Node { start = { row = 2, column = 11 }, end = { row = 2, column = 12 } } (FunctionOrValue [] "x")
-                                        , name = Node { start = { row = 1, column = 1 }, end = { row = 1, column = 5 } } "main"
-                                        }
-                                }
-                            )
-                        )
+                    |> expectAstWithComments
+                        { ast =
+                            Node { start = { row = 1, column = 1 }, end = { row = 2, column = 12 } }
+                                (FunctionDeclaration
+                                    { documentation = Nothing
+                                    , signature = Nothing
+                                    , declaration =
+                                        Node { start = { row = 1, column = 1 }, end = { row = 2, column = 12 } }
+                                            { arguments = []
+                                            , expression = Node { start = { row = 2, column = 11 }, end = { row = 2, column = 12 } } (FunctionOrValue [] "x")
+                                            , name = Node { start = { row = 1, column = 1 }, end = { row = 1, column = 5 } } "main"
+                                            }
+                                    }
+                                )
+                        , comments = [ Node { start = { row = 2, column = 3 }, end = { row = 2, column = 10 } } "{- y -}" ]
+                        }
         , test "function with a lot of symbols" <|
             \() ->
                 "updateState update sendPort = curry <| (uncurry update) >> batchStateCmds sendPort"
@@ -451,23 +451,32 @@ all =
                                         { arguments = [ Node { start = { row = 1, column = 13 }, end = { row = 1, column = 19 } } (VarPattern "update"), Node { start = { row = 1, column = 20 }, end = { row = 1, column = 28 } } (VarPattern "sendPort") ]
                                         , expression =
                                             Node { start = { row = 1, column = 31 }, end = { row = 1, column = 83 } }
-                                                (Application
-                                                    [ Node { start = { row = 1, column = 31 }, end = { row = 1, column = 36 } } (FunctionOrValue [] "curry")
-                                                    , Node { start = { row = 1, column = 37 }, end = { row = 1, column = 39 } } (Operator "<|")
-                                                    , Node { start = { row = 1, column = 40 }, end = { row = 1, column = 56 } }
-                                                        (ParenthesizedExpression
-                                                            (Node { start = { row = 1, column = 41 }, end = { row = 1, column = 55 } }
+                                                (OperatorApplication "<|"
+                                                    Right
+                                                    (Node { start = { row = 1, column = 31 }, end = { row = 1, column = 36 } } (FunctionOrValue [] "curry"))
+                                                    (Node { start = { row = 1, column = 40 }, end = { row = 1, column = 83 } }
+                                                        (OperatorApplication ">>"
+                                                            Right
+                                                            (Node { start = { row = 1, column = 40 }, end = { row = 1, column = 56 } }
+                                                                (ParenthesizedExpression
+                                                                    (Node { start = { row = 1, column = 41 }, end = { row = 1, column = 55 } }
+                                                                        (Application
+                                                                            [ Node { start = { row = 1, column = 41 }, end = { row = 1, column = 48 } } (FunctionOrValue [] "uncurry")
+                                                                            , Node { start = { row = 1, column = 49 }, end = { row = 1, column = 55 } } (FunctionOrValue [] "update")
+                                                                            ]
+                                                                        )
+                                                                    )
+                                                                )
+                                                            )
+                                                            (Node { start = { row = 1, column = 60 }, end = { row = 1, column = 83 } }
                                                                 (Application
-                                                                    [ Node { start = { row = 1, column = 41 }, end = { row = 1, column = 48 } } (FunctionOrValue [] "uncurry")
-                                                                    , Node { start = { row = 1, column = 49 }, end = { row = 1, column = 55 } } (FunctionOrValue [] "update")
+                                                                    [ Node { start = { row = 1, column = 60 }, end = { row = 1, column = 74 } } (FunctionOrValue [] "batchStateCmds")
+                                                                    , Node { start = { row = 1, column = 75 }, end = { row = 1, column = 83 } } (FunctionOrValue [] "sendPort")
                                                                     ]
                                                                 )
                                                             )
                                                         )
-                                                    , Node { start = { row = 1, column = 57 }, end = { row = 1, column = 59 } } (Operator ">>")
-                                                    , Node { start = { row = 1, column = 60 }, end = { row = 1, column = 74 } } (FunctionOrValue [] "batchStateCmds")
-                                                    , Node { start = { row = 1, column = 75 }, end = { row = 1, column = 83 } } (FunctionOrValue [] "sendPort")
-                                                    ]
+                                                    )
                                                 )
                                         , name = Node { start = { row = 1, column = 1 }, end = { row = 1, column = 12 } } "updateState"
                                         }
@@ -498,24 +507,20 @@ all =
                                             Node { start = { row = 2, column = 3 }, end = { row = 7, column = 16 } }
                                                 (CaseExpression
                                                     { cases =
-                                                        [ ( Node { start = { row = 3, column = 5 }, end = { row = 3, column = 14 } }
-                                                                (NamedPattern { moduleName = [], name = "Increment" } [])
+                                                        [ ( Node { start = { row = 3, column = 5 }, end = { row = 3, column = 14 } } (NamedPattern { moduleName = [], name = "Increment" } [])
                                                           , Node { start = { row = 4, column = 7 }, end = { row = 4, column = 16 } }
-                                                                (Application
-                                                                    [ Node { start = { row = 4, column = 7 }, end = { row = 4, column = 12 } } (FunctionOrValue [] "model")
-                                                                    , Node { start = { row = 4, column = 13 }, end = { row = 4, column = 14 } } (Operator "+")
-                                                                    , Node { start = { row = 4, column = 15 }, end = { row = 4, column = 16 } } (Integer 1)
-                                                                    ]
+                                                                (OperatorApplication "+"
+                                                                    Left
+                                                                    (Node { start = { row = 4, column = 7 }, end = { row = 4, column = 12 } } (FunctionOrValue [] "model"))
+                                                                    (Node { start = { row = 4, column = 15 }, end = { row = 4, column = 16 } } (Integer 1))
                                                                 )
                                                           )
-                                                        , ( Node { start = { row = 6, column = 5 }, end = { row = 6, column = 14 } }
-                                                                (NamedPattern { moduleName = [], name = "Decrement" } [])
+                                                        , ( Node { start = { row = 6, column = 5 }, end = { row = 6, column = 14 } } (NamedPattern { moduleName = [], name = "Decrement" } [])
                                                           , Node { start = { row = 7, column = 7 }, end = { row = 7, column = 16 } }
-                                                                (Application
-                                                                    [ Node { start = { row = 7, column = 7 }, end = { row = 7, column = 12 } } (FunctionOrValue [] "model")
-                                                                    , Node { start = { row = 7, column = 13 }, end = { row = 7, column = 15 } } (Operator "-")
-                                                                    , Node { start = { row = 7, column = 15 }, end = { row = 7, column = 16 } } (Integer 1)
-                                                                    ]
+                                                                (OperatorApplication "-"
+                                                                    Left
+                                                                    (Node { start = { row = 7, column = 7 }, end = { row = 7, column = 12 } } (FunctionOrValue [] "model"))
+                                                                    (Node { start = { row = 7, column = 15 }, end = { row = 7, column = 16 } } (Integer 1))
                                                                 )
                                                           )
                                                         ]
@@ -571,6 +576,11 @@ update msg model =
 expectAst : Node Declaration -> String -> Expect.Expectation
 expectAst =
     CombineTestUtil.expectAst declaration
+
+
+expectAstWithComments : { ast : Node Declaration, comments : List (Node String) } -> String -> Expect.Expectation
+expectAstWithComments =
+    CombineTestUtil.expectAstWithComments declaration
 
 
 expectInvalid : String -> Expect.Expectation

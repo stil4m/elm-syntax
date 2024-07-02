@@ -71,58 +71,10 @@ all =
             \() ->
                 parse "exposing" Parser.exposingToken
                     |> Expect.equal (Just "exposing")
-        , test "operatorToken 1" <|
-            \() ->
-                parse "++" Parser.infixOperatorToken
-                    |> Expect.equal (Just "++")
-        , test "operatorToken 2" <|
-            \() ->
-                parse "//" Parser.infixOperatorToken
-                    |> Expect.equal (Just "//")
-        , test "operatorToken 3" <|
-            \() ->
-                parse "*" Parser.infixOperatorToken
-                    |> Expect.equal (Just "*")
-        , test "operatorToken 4" <|
-            \() ->
-                parse ":" Parser.infixOperatorToken
-                    |> Expect.equal Nothing
-        , test "operatorToken 5" <|
-            \() ->
-                parse "->" Parser.infixOperatorToken
-                    |> Expect.equal Nothing
-        , test "operatorToken 6" <|
-            \() ->
-                parse "\\" Parser.infixOperatorToken
-                    |> Expect.equal Nothing
-        , test "operatorToken 7" <|
-            \() ->
-                parse "." Parser.infixOperatorToken
-                    |> Expect.equal (Just ".")
-        , test "operatorToken 8" <|
-            \() ->
-                parse "$" Parser.infixOperatorToken
-                    |> Expect.equal (Just "$")
-        , test "operatorToken 9" <|
-            \() ->
-                parse "#" Parser.infixOperatorToken
-                    |> Expect.equal (Just "#")
-        , test "operatorToken 10 - , is not an infix operator" <|
-            \() ->
-                parse "," Parser.infixOperatorToken
-                    |> Expect.equal Nothing
         , test "operatorToken 11 -- is not an operator" <|
             \() ->
                 parse "--" Parser.prefixOperatorToken
                     |> Expect.equal Nothing
-        , test "operatorToken 12" <|
-            \() ->
-                parse "≡" Parser.prefixOperatorToken
-                    |> Expect.equal (Just "≡")
-        , test "operatorToken 13" <|
-            \() ->
-                parse "~" Parser.prefixOperatorToken
-                    |> Expect.equal (Just "~")
         , test "operatorToken 14" <|
             \() ->
                 parse "=" Parser.prefixOperatorToken
@@ -131,10 +83,6 @@ all =
             \() ->
                 parse "?" Parser.prefixOperatorToken
                     |> Expect.equal (Just "?")
-        , test "operatorToken 16" <|
-            \() ->
-                parse "@" Parser.prefixOperatorToken
-                    |> Expect.equal (Just "@")
         , test "multiline string" <|
             \() ->
                 parse "\"\"\"Bar foo \n a\"\"\"" Parser.multiLineStringLiteral

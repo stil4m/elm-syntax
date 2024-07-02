@@ -19,14 +19,12 @@ True
   of
     A -> 1"""
                     |> expectInvalid
-
-        -- TODO Make this pass
-        --        ,   test "should fail to parse when the `of` keyword has the wrong indentation" <|
-        --                \() ->
-        --                    """case True
-        --of
-        --    A -> 1"""
-        --                        |> expectInvalid
+        , test "should fail to parse when the `of` keyword has the wrong indentation" <|
+            \() ->
+                """case True
+of
+               A -> 1"""
+                    |> expectInvalid
         , test "should fail to parse a branch at the start of a line" <|
             \() ->
                 """case True of
@@ -43,34 +41,6 @@ True -> 1"""
                 """case f of
   True -> 1
   False -> 2"""
-                    |> expectAst
-                        (Node { start = { row = 1, column = 1 }, end = { row = 3, column = 13 } }
-                            (CaseExpression
-                                { expression =
-                                    Node { start = { row = 1, column = 6 }, end = { row = 1, column = 7 } } <|
-                                        FunctionOrValue [] "f"
-                                , cases =
-                                    [ ( Node { start = { row = 2, column = 3 }, end = { row = 2, column = 7 } } <|
-                                            NamedPattern (QualifiedNameRef [] "True") []
-                                      , Node { start = { row = 2, column = 11 }, end = { row = 2, column = 12 } } <|
-                                            Integer 1
-                                      )
-                                    , ( Node { start = { row = 3, column = 3 }, end = { row = 3, column = 8 } } <|
-                                            NamedPattern (QualifiedNameRef [] "False") []
-                                      , Node { start = { row = 3, column = 12 }, end = { row = 3, column = 13 } } <|
-                                            Integer 2
-                                      )
-                                    ]
-                                }
-                            )
-                        )
-        , test "case expression with trailing whitespace" <|
-            \() ->
-                """case f of
-  True -> 1
-  False -> 2
-
-"""
                     |> expectAst
                         (Node { start = { row = 1, column = 1 }, end = { row = 3, column = 13 } }
                             (CaseExpression
@@ -132,17 +102,25 @@ True -> 1"""
                                 }
                             )
                         )
-
-        -- TODO Make this pass
-        --        , test "should parse case expression with first branch on the same line as case of" <|
-        --            \() ->
-        --                """
-        --case x of True -> 1
-        --          False -> 2
-        --"""
-        --                    |> expectAst
-        --                        -- AST is incorrect, but this should parse to something correct
-        --                        (Node { start = { row = 1, column = 1 }, end = { row = 2, column = 15 } } UnitExpr)
+        , test "should parse case expression with first branch on the same line as case of" <|
+            \() ->
+                """case x of True -> 1
+          False -> 2"""
+                    |> expectAst
+                        (Node { start = { row = 1, column = 1 }, end = { row = 2, column = 21 } }
+                            (CaseExpression
+                                { cases =
+                                    [ ( Node { start = { row = 1, column = 11 }, end = { row = 1, column = 15 } } (NamedPattern { moduleName = [], name = "True" } [])
+                                      , Node { start = { row = 1, column = 19 }, end = { row = 1, column = 20 } } (Integer 1)
+                                      )
+                                    , ( Node { start = { row = 2, column = 11 }, end = { row = 2, column = 16 } } (NamedPattern { moduleName = [], name = "False" } [])
+                                      , Node { start = { row = 2, column = 20 }, end = { row = 2, column = 21 } } (Integer 2)
+                                      )
+                                    ]
+                                , expression = Node { start = { row = 1, column = 6 }, end = { row = 1, column = 7 } } (FunctionOrValue [] "x")
+                                }
+                            )
+                        )
         , test "should fail to parse case expression with second branch indented differently than the first line (before)" <|
             \() ->
                 expectInvalid """case f of
