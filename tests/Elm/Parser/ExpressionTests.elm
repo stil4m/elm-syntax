@@ -392,11 +392,11 @@ all =
             \() ->
                 "2-1"
                     |> expectAst
-                        (Node { end = { column = 4, row = 1 }, start = { column = 1, row = 1 } }
+                        (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 4 } }
                             (OperatorApplication "-"
                                 Left
-                                (Node { end = { column = 2, row = 1 }, start = { column = 1, row = 1 } } (Integer 2))
-                                (Node { end = { column = 4, row = 1 }, start = { column = 3, row = 1 } } (Integer 1))
+                                (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 2 } } (Integer 2))
+                                (Node { start = { row = 1, column = 3 }, end = { row = 1, column = 4 } } (Integer 1))
                             )
                         )
         , test "negated expression for value" <|
