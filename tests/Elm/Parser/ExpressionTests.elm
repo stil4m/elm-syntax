@@ -388,6 +388,17 @@ all =
                                 ]
                             )
                         )
+        , test "subtraction without spaces" <|
+            \() ->
+                "2-1"
+                    |> expectAst
+                        (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 4 } }
+                            (OperatorApplication "-"
+                                Left
+                                (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 2 } } (Integer 2))
+                                (Node { start = { row = 1, column = 3 }, end = { row = 1, column = 4 } } (Integer 1))
+                            )
+                        )
         , test "negated expression for value" <|
             \() ->
                 "-x"
