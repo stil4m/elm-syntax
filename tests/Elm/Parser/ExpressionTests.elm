@@ -594,6 +594,34 @@ all =
                                 ]
                             )
                         )
+        , test "negation can be applied on record access" <|
+            \() ->
+                "1 + -{x = 10}.x"
+                    |> expectAst
+                        (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 16 } }
+                            (OperatorApplication "+"
+                                Left
+                                (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 2 } } (Integer 1))
+                                (Node { start = { row = 1, column = 5 }, end = { row = 1, column = 16 } }
+                                    (Negation
+                                        (Node { start = { row = 1, column = 6 }, end = { row = 1, column = 16 } }
+                                            (RecordAccess
+                                                (Node { start = { row = 1, column = 6 }, end = { row = 1, column = 14 } }
+                                                    (RecordExpr
+                                                        [ Node { start = { row = 1, column = 7 }, end = { row = 1, column = 13 } }
+                                                            ( Node { start = { row = 1, column = 7 }, end = { row = 1, column = 8 } } "x"
+                                                            , Node { start = { row = 1, column = 11 }, end = { row = 1, column = 13 } } (Integer 10)
+                                                            )
+                                                        ]
+                                                    )
+                                                )
+                                                (Node { start = { row = 1, column = 15 }, end = { row = 1, column = 16 } } "x")
+                                            )
+                                        )
+                                    )
+                                )
+                            )
+                        )
         ]
 
 
