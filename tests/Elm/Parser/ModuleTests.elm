@@ -6,6 +6,7 @@ import Elm.Parser.Modules as Parser
 import Elm.Syntax.Declaration exposing (Declaration(..))
 import Elm.Syntax.Exposing exposing (..)
 import Elm.Syntax.Expression exposing (Expression(..))
+import Elm.Syntax.Infix exposing (InfixDirection(..))
 import Elm.Syntax.Module exposing (..)
 import Elm.Syntax.Node exposing (Node(..))
 import Elm.Syntax.Pattern exposing (Pattern(..))
@@ -444,13 +445,22 @@ fun2 n =
                                                 { arguments = [ Node { start = { row = 3, column = 6 }, end = { row = 3, column = 7 } } (VarPattern "n") ]
                                                 , expression =
                                                     Node { start = { row = 4, column = 3 }, end = { row = 5, column = 11 } }
-                                                        (Application
-                                                            [ Node { start = { row = 4, column = 3 }, end = { row = 4, column = 7 } } (FunctionOrValue [] "fun2")
-                                                            , Node { start = { row = 4, column = 8 }, end = { row = 4, column = 9 } } (FunctionOrValue [] "n")
-                                                            , Node { start = { row = 5, column = 3 }, end = { row = 5, column = 4 } } (Operator "+")
-                                                            , Node { start = { row = 5, column = 5 }, end = { row = 5, column = 9 } } (FunctionOrValue [] "fun2")
-                                                            , Node { start = { row = 5, column = 10 }, end = { row = 5, column = 11 } } (FunctionOrValue [] "n")
-                                                            ]
+                                                        (OperatorApplication "+"
+                                                            Left
+                                                            (Node { start = { row = 4, column = 3 }, end = { row = 4, column = 9 } }
+                                                                (Application
+                                                                    [ Node { start = { row = 4, column = 3 }, end = { row = 4, column = 7 } } (FunctionOrValue [] "fun2")
+                                                                    , Node { start = { row = 4, column = 8 }, end = { row = 4, column = 9 } } (FunctionOrValue [] "n")
+                                                                    ]
+                                                                )
+                                                            )
+                                                            (Node { start = { row = 5, column = 5 }, end = { row = 5, column = 11 } }
+                                                                (Application
+                                                                    [ Node { start = { row = 5, column = 5 }, end = { row = 5, column = 9 } } (FunctionOrValue [] "fun2")
+                                                                    , Node { start = { row = 5, column = 10 }, end = { row = 5, column = 11 } } (FunctionOrValue [] "n")
+                                                                    ]
+                                                                )
+                                                            )
                                                         )
                                                 , name = Node { start = { row = 3, column = 1 }, end = { row = 3, column = 5 } } "fun1"
                                                 }

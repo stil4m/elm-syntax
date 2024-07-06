@@ -467,7 +467,7 @@ ifBlockExpression config =
 negationOperation : Config s (Node Expression) -> Parser s (Node Expression)
 negationOperation =
     Pratt.prefix 9
-        minusNotFollowedBySpace
+        minusNotFollowedBySpaceOrComment
         (\((Node { start, end } _) as subExpr) ->
             Node
                 { start = { row = start.row, column = start.column - 1 }, end = end }
@@ -475,21 +475,22 @@ negationOperation =
         )
 
 
-minusNotFollowedBySpace : Parser s ()
-minusNotFollowedBySpace =
+minusNotFollowedBySpaceOrComment : Parser s ()
+minusNotFollowedBySpaceOrComment =
     Combine.succeed identity
         |> Combine.ignore (Combine.backtrackable (Combine.string "-"))
         |> Combine.keep
             (oneOf
                 [ Combine.map (always True) (Combine.backtrackable Whitespace.realNewLine)
                 , Combine.map (always True) (Combine.backtrackable (Combine.string " "))
+                , Combine.map (always True) (Combine.backtrackable (Combine.string "-"))
                 , Combine.succeed False
                 ]
             )
         |> Combine.andThen
-            (\isSpace ->
-                if isSpace then
-                    Combine.fail "negation sign cannot be followed by a space"
+            (\isSpaceOrComment ->
+                if isSpaceOrComment then
+                    Combine.fail "negation sign cannot be followed by a space or a dash"
 
                 else
                     Combine.fromCore (Core.commit ())
