@@ -179,7 +179,7 @@ recordAccessParser =
 
 functionCall : Pratt.Config s (Node Expression) -> ( Int, Node Expression -> Parser s (Node Expression) )
 functionCall =
-    Pratt.infixLeft 95
+    Pratt.infixLeft 90
         (Combine.succeed ())
         (\((Node leftRange leftValue) as left) right ->
             case leftValue of
@@ -466,7 +466,7 @@ ifBlockExpression config =
 
 negationOperation : Config s (Node Expression) -> Parser s (Node Expression)
 negationOperation =
-    Pratt.prefix 9
+    Pratt.prefix 95
         minusNotFollowedBySpaceOrComment
         (\((Node { start, end } _) as subExpr) ->
             Node
