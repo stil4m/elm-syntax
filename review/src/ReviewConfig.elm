@@ -45,7 +45,7 @@ config =
         , from = exposedModules
         }
     , Docs.ReviewLinksAndSections.rule
-        |> Rule.ignoreErrorsForFiles [ "src/Pratt.elm"]
+        |> Rule.ignoreErrorsForFiles [ "src/Pratt.elm" ]
     , Docs.ReviewAtDocs.rule
     , Docs.UpToDateReadmeLinks.rule
     , NoConfusingPrefixOperator.rule

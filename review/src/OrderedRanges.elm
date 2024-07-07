@@ -18,6 +18,24 @@ rule =
 expressionVisitor : Node Expression -> List (Error {})
 expressionVisitor node =
     case Node.value node of
+        Expression.Application [ Node _ (Expression.FunctionOrValue [] "Application"), Node _ (Expression.ListExpr ((Node firstItemRange _) :: _)) ] ->
+            let
+                { start, end } =
+                    Node.range node
+            in
+            if start.row == end.row then
+                [ Rule.errorWithFix
+                    { message = "Split Application on multiple likes"
+                    , details =
+                        [ "If like me you have the bad habit of copying nodes from test outputs, this rule will cover for you." ]
+                    }
+                    (Node.range node)
+                    [ Review.Fix.insertAt firstItemRange.start ("\n" ++ String.repeat firstItemRange.start.column " ") ]
+                ]
+
+            else
+                []
+
         Expression.RecordExpr recordSetters ->
             case recordSetters of
                 [ Node _ ( Node _ "end", _ ), Node _ ( Node _ "start", _ ) ] ->

@@ -352,7 +352,19 @@ log a =
       , declarations =
             [ Node { start = { row = 4, column = 1 }, end = { row = 6, column = 21 } }
                 (FunctionDeclaration
-                    { declaration = Node { start = { row = 5, column = 1 }, end = { row = 6, column = 21 } } { arguments = [ Node { start = { row = 5, column = 5 }, end = { row = 5, column = 6 } } (VarPattern "a") ], expression = Node { start = { row = 6, column = 5 }, end = { row = 6, column = 21 } } (Application [ Node { start = { row = 6, column = 5 }, end = { row = 6, column = 14 } } (FunctionOrValue [ "Debug" ] "log"), Node { start = { row = 6, column = 15 }, end = { row = 6, column = 19 } } (Literal "ok"), Node { start = { row = 6, column = 20 }, end = { row = 6, column = 21 } } (FunctionOrValue [] "a") ]), name = Node { start = { row = 5, column = 1 }, end = { row = 5, column = 4 } } "log" }
+                    { declaration =
+                        Node { start = { row = 5, column = 1 }, end = { row = 6, column = 21 } }
+                            { arguments = [ Node { start = { row = 5, column = 5 }, end = { row = 5, column = 6 } } (VarPattern "a") ]
+                            , expression =
+                                Node { start = { row = 6, column = 5 }, end = { row = 6, column = 21 } }
+                                    (Application
+                                        [ Node { start = { row = 6, column = 5 }, end = { row = 6, column = 14 } } (FunctionOrValue [ "Debug" ] "log")
+                                        , Node { start = { row = 6, column = 15 }, end = { row = 6, column = 19 } } (Literal "ok")
+                                        , Node { start = { row = 6, column = 20 }, end = { row = 6, column = 21 } } (FunctionOrValue [] "a")
+                                        ]
+                                    )
+                            , name = Node { start = { row = 5, column = 1 }, end = { row = 5, column = 4 } } "log"
+                            }
                     , documentation = Nothing
                     , signature = Just (Node { start = { row = 4, column = 1 }, end = { row = 4, column = 17 } } { name = Node { start = { row = 4, column = 1 }, end = { row = 4, column = 4 } } "log", typeAnnotation = Node { start = { row = 4, column = 7 }, end = { row = 4, column = 17 } } (FunctionTypeAnnotation (Node { start = { row = 4, column = 7 }, end = { row = 4, column = 10 } } (Typed (Node { start = { row = 4, column = 7 }, end = { row = 4, column = 10 } } ( [], "Int" )) [])) (Node { start = { row = 4, column = 14 }, end = { row = 4, column = 17 } } (Typed (Node { start = { row = 4, column = 14 }, end = { row = 4, column = 17 } } ( [], "Int" )) []))) })
                     }
