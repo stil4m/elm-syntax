@@ -4,7 +4,6 @@ import Combine exposing (Parser)
 import Elm.Parser.CombineTestUtil exposing (..)
 import Elm.Parser.Layout as Layout
 import Elm.Parser.State exposing (State)
-import Elm.Syntax.Documentation exposing (Documentation)
 import Elm.Syntax.Node exposing (Node(..))
 import Elm.Syntax.Range as Range
 import Expect
@@ -93,7 +92,7 @@ all =
         , test "declarationDocumentation when there is one" <|
             \() ->
                 parse "{-| docs -}\n" Layout.declarationDocumentation
-                    |> Expect.equal (Just (Just (Node { end = { column = 12, row = 1 }, start = { column = 1, row = 1 } } "{-| docs -}")))
+                    |> Expect.equal (Just (Just (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 12 } } "{-| docs -}")))
         , test "declarationDocumentation when there one documentation in the state not claimed by an import or declaration" <|
             \() ->
                 parse ""

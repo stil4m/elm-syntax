@@ -6,7 +6,7 @@ import Elm.Parser.State exposing (State, addComment)
 import Elm.Parser.Whitespace exposing (untilNewlineToken)
 import Elm.Syntax.Documentation exposing (Documentation)
 import Elm.Syntax.Node exposing (Node)
-import Parser as Core exposing ((|.), Nestable(..))
+import Parser as Core exposing (Nestable(..))
 
 
 addCommentToState : Parser State (Node String) -> Parser State ()
