@@ -32,6 +32,24 @@ all =
                                 }
                             )
                         )
+        , test "function declaration with documentation" <|
+            \() ->
+                """{-| Foo does bar -}
+foo = bar"""
+                    |> expectAst
+                        (Node { start = { row = 1, column = 1 }, end = { row = 2, column = 10 } }
+                            (FunctionDeclaration
+                                { declaration =
+                                    Node { start = { row = 2, column = 1 }, end = { row = 2, column = 10 } }
+                                        { arguments = []
+                                        , expression = Node { start = { row = 2, column = 7 }, end = { row = 2, column = 10 } } (FunctionOrValue [] "bar")
+                                        , name = Node { start = { row = 2, column = 1 }, end = { row = 2, column = 4 } } "foo"
+                                        }
+                                , documentation = Just (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 20 } } "{-| Foo does bar -}")
+                                , signature = Nothing
+                                }
+                            )
+                        )
         , test "function declaration with empty record" <|
             \() ->
                 "foo = {}"
@@ -176,6 +194,14 @@ all =
                                 }
                             )
                         )
+        , test "documentation comment inside a let is invalid" <|
+            \() ->
+                expectInvalid """foo =
+ let
+  {-| b is one -}
+  b = 1
+ in
+  b"""
         , test "let destructuring with no spaces around '='" <|
             \() ->
                 """foo =

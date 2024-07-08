@@ -4,6 +4,9 @@ import Combine exposing (Parser)
 import Elm.Parser.CombineTestUtil exposing (..)
 import Elm.Parser.Layout as Layout
 import Elm.Parser.State exposing (State)
+import Elm.Syntax.Documentation exposing (Documentation)
+import Elm.Syntax.Node exposing (Node(..))
+import Elm.Syntax.Range as Range
 import Expect
 import Test exposing (..)
 
@@ -31,6 +34,14 @@ all =
             \() ->
                 parse " \n " Layout.layout
                     |> Expect.equal (Just ())
+        , test "layout with multiline comment" <|
+            \() ->
+                parse "\n--x\n{- foo \n-}\n " Layout.layout
+                    |> Expect.equal (Just ())
+        , test "layout with documentation comment fails" <|
+            \() ->
+                parse "\n--x\n{-| foo \n-}\n " Layout.layout
+                    |> Expect.equal Nothing
         , test "with newline and higher indent 4" <|
             \() ->
                 parse " \n  " (pushIndent 1 Layout.layout)
@@ -57,8 +68,12 @@ all =
                     |> Expect.equal (Just ())
         , test "layoutStrict with comments 2" <|
             \() ->
-                parse "\n--x\n{-| foo \n-}\n" Layout.layoutStrict
+                parse "\n--x\n{- foo \n-}\n" Layout.layoutStrict
                     |> Expect.equal (Just ())
+        , test "layoutStrict with documentation comment fails" <|
+            \() ->
+                parse "\n--x\n{-| foo \n-}\n" Layout.layoutStrict
+                    |> Expect.equal Nothing
         , test "layoutStrict some" <|
             \() ->
                 parse "\n  \n  " (pushIndent 2 Layout.layoutStrict)
@@ -75,6 +90,32 @@ all =
             \() ->
                 parse "\n{- some note -}    \n" Layout.layoutStrict
                     |> Expect.equal (Just ())
+        , test "declarationDocumentation when there is one" <|
+            \() ->
+                parse "{-| docs -}\n" Layout.declarationDocumentation
+                    |> Expect.equal (Just (Just (Node { end = { column = 12, row = 1 }, start = { column = 1, row = 1 } } "{-| docs -}")))
+        , test "declarationDocumentation when there one documentation in the state not claimed by an import or declaration" <|
+            \() ->
+                parse ""
+                    (modifyState
+                        (Elm.Parser.State.addComment (Node Range.empty "{-| docs -}"))
+                        Layout.declarationDocumentation
+                    )
+                    |> Expect.equal (Just (Just (Node Range.empty "{-| docs -}")))
+        , test "declarationDocumentation when there one documentation in the state claimed by an import or declaration" <|
+            \() ->
+                parse ""
+                    (modifyState
+                        (Elm.Parser.State.parsedImportOrDeclaration
+                            >> Elm.Parser.State.addComment (Node Range.empty "{-| docs -}")
+                        )
+                        Layout.declarationDocumentation
+                    )
+                    |> Expect.equal (Just Nothing)
+        , test "declarationDocumentation when there is no documentation in the state" <|
+            \() ->
+                parse "" Layout.declarationDocumentation
+                    |> Expect.equal (Just Nothing)
         ]
 
 
@@ -82,3 +123,8 @@ pushIndent : Int -> Parser State b -> Parser State b
 pushIndent x p =
     Combine.modifyState (Elm.Parser.State.pushIndent (x + 1))
         |> Combine.continueWith p
+
+
+modifyState : (State -> State) -> Parser State b -> Parser State b
+modifyState f p =
+    Combine.modifyState f |> Combine.continueWith p

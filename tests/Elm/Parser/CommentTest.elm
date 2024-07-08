@@ -49,6 +49,17 @@ all =
                     |> Maybe.map toIndentAndComments
                     |> Expect.equal
                         (Just [ Node { start = { row = 1, column = 1 }, end = { row = 1, column = 12 } } "{- {- -} -}" ])
+        , test "multilineComment on module documentation" <|
+            \() ->
+                parseWithState "{-|foo\nbar-}" Parser.multilineComment
+                    |> Maybe.map toIndentAndComments
+                    |> Expect.equal Nothing
+        , test "module documentation" <|
+            \() ->
+                parseWithState "{-|foo\nbar-}" Parser.moduleDocumentation
+                    |> Maybe.map toIndentAndComments
+                    |> Expect.equal
+                        (Just [ Node { start = { row = 1, column = 1 }, end = { row = 2, column = 6 } } "{-|foo\nbar-}" ])
         ]
 
 

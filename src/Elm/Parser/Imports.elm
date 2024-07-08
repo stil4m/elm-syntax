@@ -5,7 +5,7 @@ import Elm.Parser.Base exposing (moduleName)
 import Elm.Parser.Expose exposing (exposeDefinition)
 import Elm.Parser.Layout as Layout
 import Elm.Parser.Node as Node
-import Elm.Parser.State exposing (State)
+import Elm.Parser.State as State exposing (State)
 import Elm.Parser.Tokens exposing (asToken, importToken)
 import Elm.Syntax.Import exposing (Import)
 import Elm.Syntax.ModuleName exposing (ModuleName)
@@ -48,6 +48,7 @@ importDefinition =
         |> Combine.ignore Layout.optimisticLayout
         |> Combine.andThen identity
         |> Combine.ignore Layout.optimisticLayout
+        |> Combine.ignore (Combine.modifyState State.parsedImportOrDeclaration)
 
 
 setupNode : Location -> Import -> Node Import

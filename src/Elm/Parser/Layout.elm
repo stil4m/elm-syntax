@@ -1,9 +1,12 @@
-module Elm.Parser.Layout exposing (LayoutStatus(..), layout, layoutStrict, maybeAroundBothSides, optimisticLayout, optimisticLayoutWith)
+module Elm.Parser.Layout exposing (LayoutStatus(..), declarationDocumentation, layout, layoutStrict, maybeAroundBothSides, optimisticLayout, optimisticLayoutWith)
 
 import Combine exposing (Parser, fail, many, many1, maybe, oneOf, succeed, withLocation, withState)
 import Elm.Parser.Comments as Comments
 import Elm.Parser.State as State exposing (State)
 import Elm.Parser.Whitespace exposing (many1Spaces, realNewLine)
+import Elm.Syntax.Documentation exposing (Documentation)
+import Elm.Syntax.Node exposing (Node(..))
+import List.Extra
 
 
 anyComment : Combine.Parser State ()
@@ -117,3 +120,26 @@ maybeAroundBothSides x =
     maybe layout
         |> Combine.continueWith x
         |> Combine.ignore (maybe layout)
+
+
+declarationDocumentation : Parser State (Maybe (Node Documentation))
+declarationDocumentation =
+    Combine.oneOf
+        [ Comments.declarationDocumentation
+            |> Combine.ignore layoutStrict
+            |> Combine.map Just
+        , Combine.withState
+            (\state ->
+                if State.checkParsedImportOrDeclaration state then
+                    Combine.succeed Nothing
+
+                else
+                    case state |> State.getComments |> List.Extra.find (\(Node _ comment) -> String.startsWith "{-|" comment) of
+                        Nothing ->
+                            Combine.succeed Nothing
+
+                        Just doc ->
+                            Combine.modifyState (State.removeComment doc)
+                                |> Combine.continueWith (Combine.succeed (Just doc))
+            )
+        ]

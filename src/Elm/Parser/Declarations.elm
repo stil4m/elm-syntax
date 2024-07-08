@@ -5,7 +5,7 @@ import Elm.Parser.Expression exposing (expression, failIfDifferentFrom, function
 import Elm.Parser.Layout as Layout
 import Elm.Parser.Node as Node
 import Elm.Parser.Patterns exposing (pattern)
-import Elm.Parser.State exposing (State)
+import Elm.Parser.State as State exposing (State)
 import Elm.Parser.Tokens exposing (functionName, portToken, prefixOperatorToken)
 import Elm.Parser.TypeAnnotation exposing (typeAnnotation)
 import Elm.Parser.Typings exposing (typeDefinition)
@@ -25,14 +25,25 @@ declaration =
         , typeDefinition
         , portDeclaration
         ]
+        |> Combine.ignore (Combine.modifyState State.parsedImportOrDeclaration)
 
 
 function : Parser State (Node Declaration)
 function =
-    Node.parser functionName
-        |> Combine.ignore (maybe Layout.layout)
-        |> Combine.andThen functionWithNameNode
-        |> Combine.map (\f -> Node (Expression.functionRange f) (Declaration.FunctionDeclaration f))
+    Combine.succeed
+        (\maybeDoc f ->
+            Node
+                { start = maybeDoc |> Maybe.map (Node.range >> .start) |> Maybe.withDefault (Expression.functionRange f).start
+                , end = (Expression.functionRange f).end
+                }
+                (Declaration.FunctionDeclaration { f | documentation = maybeDoc })
+        )
+        |> Combine.keep Layout.declarationDocumentation
+        |> Combine.keep
+            (Node.parser functionName
+                |> Combine.ignore (maybe Layout.layout)
+                |> Combine.andThen functionWithNameNode
+            )
 
 
 functionWithNameNode : Node String -> Parser State Function

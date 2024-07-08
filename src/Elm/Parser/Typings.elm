@@ -7,6 +7,7 @@ import Elm.Parser.State exposing (State)
 import Elm.Parser.Tokens exposing (functionName, typeName)
 import Elm.Parser.TypeAnnotation exposing (typeAnnotation, typeAnnotationNonGreedy)
 import Elm.Syntax.Declaration as Declaration
+import Elm.Syntax.Documentation exposing (Documentation)
 import Elm.Syntax.Node as Node exposing (Node(..))
 import Elm.Syntax.Range exposing (Location, Range)
 import Elm.Syntax.Type exposing (ValueConstructor)
@@ -17,14 +18,14 @@ typeDefinition : Parser State (Node Declaration.Declaration)
 typeDefinition =
     typePrefix
         |> Combine.andThen
-            (\(Node { start } _) ->
+            (\( start, maybeDocs ) ->
                 Combine.oneOf
                     [ Combine.succeed
                         (\name generics typeAnnotation ->
                             Node
                                 { start = start, end = (Node.range typeAnnotation).end }
                                 (Declaration.AliasDeclaration
-                                    { documentation = Nothing
+                                    { documentation = maybeDocs
                                     , name = name
                                     , generics = generics
                                     , typeAnnotation = typeAnnotation
@@ -55,7 +56,7 @@ typeDefinition =
                             Node
                                 { start = start, end = end }
                                 (Declaration.CustomTypeDeclaration
-                                    { documentation = Nothing
+                                    { documentation = maybeDocs
                                     , name = name
                                     , generics = generics
                                     , constructors = List.reverse constructors
@@ -124,8 +125,17 @@ genericList =
     many (Node.parser functionName |> Combine.ignore (maybe Layout.layout))
 
 
-typePrefix : Parser State (Node String)
+typePrefix : Parser State ( Location, Maybe (Node Documentation) )
 typePrefix =
-    Combine.string "type"
-        |> Node.parser
+    Combine.succeed
+        (\maybeDocs prefix ->
+            case maybeDocs of
+                Nothing ->
+                    ( (Node.range prefix).start, Nothing )
+
+                Just (Node { start } _) ->
+                    ( start, maybeDocs )
+        )
+        |> Combine.keep Layout.declarationDocumentation
+        |> Combine.keep (Node.parser (Combine.string "type"))
         |> Combine.ignore Layout.layout

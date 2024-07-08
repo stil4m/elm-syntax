@@ -126,7 +126,7 @@ b = 3
                     File.file
                     |> Expect.equal
                         (Just
-                            { comments = [ Node { start = { row = 11, column = 1 }, end = { row = 12, column = 3 } } "{-| doc\n-}" ]
+                            { comments = []
                             , declarations =
                                 [ Node { start = { row = 3, column = 1 }, end = { row = 7, column = 10 } }
                                     (FunctionDeclaration
@@ -156,7 +156,7 @@ b = 3
                                         , signature = Nothing
                                         }
                                     )
-                                , Node { start = { row = 13, column = 1 }, end = { row = 13, column = 6 } }
+                                , Node { start = { row = 11, column = 1 }, end = { row = 13, column = 6 } }
                                     (FunctionDeclaration
                                         { declaration =
                                             Node
@@ -170,7 +170,7 @@ b = 3
                                                 , expression = Node { start = { row = 13, column = 5 }, end = { row = 13, column = 6 } } (Integer 3)
                                                 , name = Node { start = { row = 13, column = 1 }, end = { row = 13, column = 2 } } "b"
                                                 }
-                                        , documentation = Nothing
+                                        , documentation = Just (Node { start = { row = 11, column = 1 }, end = { row = 12, column = 3 } } "{-| doc\n-}")
                                         , signature = Nothing
                                         }
                                     )
@@ -215,7 +215,7 @@ b = 3
                     File.file
                     |> Expect.equal
                         (Just
-                            { comments = [ Node { start = { row = 8, column = 1 }, end = { row = 9, column = 3 } } "{-| doc\n-}" ]
+                            { comments = []
                             , declarations =
                                 [ Node
                                     { start = { row = 3, column = 1 }
@@ -238,7 +238,7 @@ b = 3
                                         }
                                     )
                                 , Node
-                                    { start = { row = 10, column = 1 }
+                                    { start = { row = 8, column = 1 }
                                     , end = { row = 10, column = 6 }
                                     }
                                     (FunctionDeclaration
@@ -253,7 +253,7 @@ b = 3
                                                         (Integer 3)
                                                 , name = Node { start = { row = 10, column = 1 }, end = { row = 10, column = 2 } } "b"
                                                 }
-                                        , documentation = Nothing
+                                        , documentation = Just (Node { start = { row = 8, column = 1 }, end = { row = 9, column = 3 } } "{-| doc\n-}")
                                         , signature = Nothing
                                         }
                                     )
