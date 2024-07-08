@@ -25,7 +25,7 @@ expressionVisitor node =
             in
             if start.row == end.row then
                 [ Rule.errorWithFix
-                    { message = "Split Application on multiple likes"
+                    { message = "Split Application on multiple lines"
                     , details =
                         [ "If like me you have the bad habit of copying nodes from test outputs, this rule will cover for you." ]
                     }
