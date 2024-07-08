@@ -23,13 +23,13 @@ all =
                 "module Foo exposing (Bar)"
                     |> expectAst
                         (NormalModule
-                            { exposingList =
+                            { moduleName = Node { start = { row = 1, column = 8 }, end = { row = 1, column = 11 } } [ "Foo" ]
+                            , exposingList =
                                 Node { start = { row = 1, column = 12 }, end = { row = 1, column = 26 } }
                                     (Explicit
                                         [ Node { start = { row = 1, column = 22 }, end = { row = 1, column = 25 } } (TypeOrAliasExpose "Bar")
                                         ]
                                     )
-                            , moduleName = Node { start = { row = 1, column = 8 }, end = { row = 1, column = 11 } } [ "Foo" ]
                             }
                         )
         , test "port moduleDefinition" <|
@@ -37,12 +37,12 @@ all =
                 "port module Foo exposing (Bar)"
                     |> expectAst
                         (PortModule
-                            { exposingList =
+                            { moduleName = Node { start = { row = 1, column = 13 }, end = { row = 1, column = 16 } } [ "Foo" ]
+                            , exposingList =
                                 Node { start = { row = 1, column = 17 }, end = { row = 1, column = 31 } }
                                     (Explicit
                                         [ Node { start = { row = 1, column = 27 }, end = { row = 1, column = 30 } } (TypeOrAliasExpose "Bar") ]
                                     )
-                            , moduleName = Node { start = { row = 1, column = 13 }, end = { row = 1, column = 16 } } [ "Foo" ]
                             }
                         )
         , test "port moduleDefinition with spacing" <|
@@ -50,12 +50,12 @@ all =
                 "port module Foo exposing ( Bar )"
                     |> expectAst
                         (PortModule
-                            { exposingList =
+                            { moduleName = Node { start = { row = 1, column = 13 }, end = { row = 1, column = 16 } } [ "Foo" ]
+                            , exposingList =
                                 Node { start = { row = 1, column = 17 }, end = { row = 1, column = 33 } }
                                     (Explicit
                                         [ Node { start = { row = 1, column = 28 }, end = { row = 1, column = 31 } } (TypeOrAliasExpose "Bar") ]
                                     )
-                            , moduleName = Node { start = { row = 1, column = 13 }, end = { row = 1, column = 16 } } [ "Foo" ]
                             }
                         )
         , test "effect moduleDefinition" <|
@@ -64,9 +64,9 @@ all =
                     |> expectAst
                         (EffectModule
                             { moduleName = Node { start = { row = 1, column = 15 }, end = { row = 1, column = 18 } } [ "Foo" ]
+                            , exposingList = Node { start = { row = 1, column = 66 }, end = { row = 1, column = 80 } } (Explicit [ Node { start = { row = 1, column = 76 }, end = { row = 1, column = 79 } } (TypeOrAliasExpose "Bar") ])
                             , command = Just (Node { start = { row = 1, column = 36 }, end = { row = 1, column = 41 } } "MyCmd")
                             , subscription = Just (Node { start = { row = 1, column = 58 }, end = { row = 1, column = 63 } } "MySub")
-                            , exposingList = Node { start = { row = 1, column = 66 }, end = { row = 1, column = 80 } } (Explicit [ Node { start = { row = 1, column = 76 }, end = { row = 1, column = 79 } } (TypeOrAliasExpose "Bar") ])
                             }
                         )
         , test "unformatted" <|
@@ -74,10 +74,10 @@ all =
                 "module \n Foo \n exposing  (..)"
                     |> expectAst
                         (NormalModule
-                            { exposingList =
+                            { moduleName = Node { start = { row = 2, column = 2 }, end = { row = 2, column = 5 } } [ "Foo" ]
+                            , exposingList =
                                 Node { start = { row = 3, column = 2 }, end = { row = 3, column = 16 } }
                                     (All { start = { row = 3, column = 13 }, end = { row = 3, column = 15 } })
-                            , moduleName = Node { start = { row = 2, column = 2 }, end = { row = 2, column = 5 } } [ "Foo" ]
                             }
                         )
         , test "unformatted wrong" <|
@@ -89,10 +89,10 @@ all =
                 "module Foo exposing (..)"
                     |> expectAst
                         (NormalModule
-                            { exposingList =
+                            { moduleName = Node { start = { row = 1, column = 8 }, end = { row = 1, column = 11 } } [ "Foo" ]
+                            , exposingList =
                                 Node { start = { row = 1, column = 12 }, end = { row = 1, column = 25 } }
                                     (All { start = { row = 1, column = 22 }, end = { row = 1, column = 24 } })
-                            , moduleName = Node { start = { row = 1, column = 8 }, end = { row = 1, column = 11 } } [ "Foo" ]
                             }
                         )
         , test "module name with _" <|
@@ -100,10 +100,10 @@ all =
                 "module I_en_gb exposing (..)"
                     |> expectAst
                         (NormalModule
-                            { exposingList =
+                            { moduleName = Node { start = { row = 1, column = 8 }, end = { row = 1, column = 15 } } [ "I_en_gb" ]
+                            , exposingList =
                                 Node { start = { row = 1, column = 16 }, end = { row = 1, column = 29 } }
                                     (All { start = { row = 1, column = 26 }, end = { row = 1, column = 28 } })
-                            , moduleName = Node { start = { row = 1, column = 8 }, end = { row = 1, column = 15 } } [ "I_en_gb" ]
                             }
                         )
         , test "Regression test for Incorrect range in if expression" <|
@@ -126,13 +126,36 @@ b = 3
                     File.file
                     |> Expect.equal
                         (Just
-                            { comments = []
+                            { moduleDefinition =
+                                Node { start = { row = 1, column = 1 }, end = { row = 1, column = 32 } }
+                                    (NormalModule
+                                        { moduleName =
+                                            Node
+                                                { start = { row = 1, column = 8 }
+                                                , end = { row = 1, column = 18 }
+                                                }
+                                                [ "TestModule" ]
+                                        , exposingList =
+                                            Node
+                                                { start = { row = 1, column = 19 }
+                                                , end =
+                                                    { row = 1
+                                                    , column = 32
+                                                    }
+                                                }
+                                                (All { start = { row = 1, column = 29 }, end = { row = 1, column = 31 } })
+                                        }
+                                    )
+                            , imports = []
                             , declarations =
                                 [ Node { start = { row = 3, column = 1 }, end = { row = 7, column = 10 } }
                                     (FunctionDeclaration
-                                        { declaration =
+                                        { documentation = Nothing
+                                        , signature = Nothing
+                                        , declaration =
                                             Node { start = { row = 3, column = 1 }, end = { row = 7, column = 10 } }
-                                                { arguments = []
+                                                { name = Node { start = { row = 3, column = 1 }, end = { row = 3, column = 2 } } "a"
+                                                , arguments = []
                                                 , expression =
                                                     Node { start = { row = 4, column = 5 }, end = { row = 7, column = 10 } }
                                                         (IfBlock
@@ -150,15 +173,14 @@ b = 3
                                                                 (Integer 2)
                                                             )
                                                         )
-                                                , name = Node { start = { row = 3, column = 1 }, end = { row = 3, column = 2 } } "a"
                                                 }
-                                        , documentation = Nothing
-                                        , signature = Nothing
                                         }
                                     )
                                 , Node { start = { row = 11, column = 1 }, end = { row = 13, column = 6 } }
                                     (FunctionDeclaration
-                                        { declaration =
+                                        { documentation = Just (Node { start = { row = 11, column = 1 }, end = { row = 12, column = 3 } } "{-| doc\n-}")
+                                        , signature = Nothing
+                                        , declaration =
                                             Node
                                                 { start = { row = 13, column = 1 }
                                                 , end =
@@ -166,36 +188,14 @@ b = 3
                                                     , column = 6
                                                     }
                                                 }
-                                                { arguments = []
+                                                { name = Node { start = { row = 13, column = 1 }, end = { row = 13, column = 2 } } "b"
+                                                , arguments = []
                                                 , expression = Node { start = { row = 13, column = 5 }, end = { row = 13, column = 6 } } (Integer 3)
-                                                , name = Node { start = { row = 13, column = 1 }, end = { row = 13, column = 2 } } "b"
                                                 }
-                                        , documentation = Just (Node { start = { row = 11, column = 1 }, end = { row = 12, column = 3 } } "{-| doc\n-}")
-                                        , signature = Nothing
                                         }
                                     )
                                 ]
-                            , imports = []
-                            , moduleDefinition =
-                                Node { start = { row = 1, column = 1 }, end = { row = 1, column = 32 } }
-                                    (NormalModule
-                                        { exposingList =
-                                            Node
-                                                { start = { row = 1, column = 19 }
-                                                , end =
-                                                    { row = 1
-                                                    , column = 32
-                                                    }
-                                                }
-                                                (All { start = { row = 1, column = 29 }, end = { row = 1, column = 31 } })
-                                        , moduleName =
-                                            Node
-                                                { start = { row = 1, column = 8 }
-                                                , end = { row = 1, column = 18 }
-                                                }
-                                                [ "TestModule" ]
-                                        }
-                                    )
+                            , comments = []
                             }
                         )
         , test "Simple module range test" <|
@@ -215,26 +215,39 @@ b = 3
                     File.file
                     |> Expect.equal
                         (Just
-                            { comments = []
+                            { moduleDefinition =
+                                Node { start = { row = 1, column = 1 }, end = { row = 1, column = 32 } }
+                                    (NormalModule
+                                        { moduleName = Node { start = { row = 1, column = 8 }, end = { row = 1, column = 18 } } [ "TestModule" ]
+                                        , exposingList =
+                                            Node { start = { row = 1, column = 19 }, end = { row = 1, column = 32 } }
+                                                (All
+                                                    { start = { row = 1, column = 29 }
+                                                    , end = { row = 1, column = 31 }
+                                                    }
+                                                )
+                                        }
+                                    )
+                            , imports = []
                             , declarations =
                                 [ Node
                                     { start = { row = 3, column = 1 }
                                     , end = { row = 4, column = 6 }
                                     }
                                     (FunctionDeclaration
-                                        { declaration =
+                                        { documentation = Nothing
+                                        , signature = Nothing
+                                        , declaration =
                                             Node { start = { row = 3, column = 1 }, end = { row = 4, column = 6 } }
-                                                { arguments = []
+                                                { name = Node { start = { row = 3, column = 1 }, end = { row = 3, column = 2 } } "a"
+                                                , arguments = []
                                                 , expression =
                                                     Node
                                                         { start = { row = 4, column = 5 }
                                                         , end = { row = 4, column = 6 }
                                                         }
                                                         (Integer 2)
-                                                , name = Node { start = { row = 3, column = 1 }, end = { row = 3, column = 2 } } "a"
                                                 }
-                                        , documentation = Nothing
-                                        , signature = Nothing
                                         }
                                     )
                                 , Node
@@ -242,36 +255,23 @@ b = 3
                                     , end = { row = 10, column = 6 }
                                     }
                                     (FunctionDeclaration
-                                        { declaration =
+                                        { documentation = Just (Node { start = { row = 8, column = 1 }, end = { row = 9, column = 3 } } "{-| doc\n-}")
+                                        , signature = Nothing
+                                        , declaration =
                                             Node { start = { row = 10, column = 1 }, end = { row = 10, column = 6 } }
-                                                { arguments = []
+                                                { name = Node { start = { row = 10, column = 1 }, end = { row = 10, column = 2 } } "b"
+                                                , arguments = []
                                                 , expression =
                                                     Node
                                                         { start = { row = 10, column = 5 }
                                                         , end = { row = 10, column = 6 }
                                                         }
                                                         (Integer 3)
-                                                , name = Node { start = { row = 10, column = 1 }, end = { row = 10, column = 2 } } "b"
                                                 }
-                                        , documentation = Just (Node { start = { row = 8, column = 1 }, end = { row = 9, column = 3 } } "{-| doc\n-}")
-                                        , signature = Nothing
                                         }
                                     )
                                 ]
-                            , imports = []
-                            , moduleDefinition =
-                                Node { start = { row = 1, column = 1 }, end = { row = 1, column = 32 } }
-                                    (NormalModule
-                                        { exposingList =
-                                            Node { start = { row = 1, column = 19 }, end = { row = 1, column = 32 } }
-                                                (All
-                                                    { start = { row = 1, column = 29 }
-                                                    , end = { row = 1, column = 31 }
-                                                    }
-                                                )
-                                        , moduleName = Node { start = { row = 1, column = 8 }, end = { row = 1, column = 18 } } [ "TestModule" ]
-                                        }
-                                    )
+                            , comments = []
                             }
                         )
         , test "File with multiple imports" <|
@@ -286,42 +286,42 @@ a = 1
                     File.file
                     |> Expect.equal
                         (Just
-                            { comments = []
-                            , moduleDefinition =
+                            { moduleDefinition =
                                 Node { start = { row = 1, column = 1 }, end = { row = 1, column = 32 } }
                                     (NormalModule
-                                        { exposingList =
+                                        { moduleName = Node { start = { row = 1, column = 8 }, end = { row = 1, column = 18 } } [ "TestModule" ]
+                                        , exposingList =
                                             Node { start = { row = 1, column = 19 }, end = { row = 1, column = 32 } }
                                                 (All { start = { row = 1, column = 29 }, end = { row = 1, column = 31 } })
-                                        , moduleName = Node { start = { row = 1, column = 8 }, end = { row = 1, column = 18 } } [ "TestModule" ]
                                         }
                                     )
                             , imports =
                                 [ Node { start = { row = 2, column = 1 }, end = { row = 2, column = 9 } }
-                                    { exposingList = Nothing
+                                    { moduleName = Node { start = { row = 2, column = 8 }, end = { row = 2, column = 9 } } [ "A" ]
                                     , moduleAlias = Nothing
-                                    , moduleName = Node { start = { row = 2, column = 8 }, end = { row = 2, column = 9 } } [ "A" ]
+                                    , exposingList = Nothing
                                     }
                                 , Node { start = { row = 3, column = 1 }, end = { row = 3, column = 9 } }
-                                    { exposingList = Nothing
+                                    { moduleName = Node { start = { row = 3, column = 8 }, end = { row = 3, column = 9 } } [ "B" ]
                                     , moduleAlias = Nothing
-                                    , moduleName = Node { start = { row = 3, column = 8 }, end = { row = 3, column = 9 } } [ "B" ]
+                                    , exposingList = Nothing
                                     }
                                 ]
                             , declarations =
                                 [ Node { start = { row = 5, column = 1 }, end = { row = 5, column = 6 } }
                                     (FunctionDeclaration
-                                        { declaration =
-                                            Node { start = { row = 5, column = 1 }, end = { row = 5, column = 6 } }
-                                                { arguments = []
-                                                , expression = Node { start = { row = 5, column = 5 }, end = { row = 5, column = 6 } } (Integer 1)
-                                                , name = Node { start = { row = 5, column = 1 }, end = { row = 5, column = 2 } } "a"
-                                                }
-                                        , documentation = Nothing
+                                        { documentation = Nothing
                                         , signature = Nothing
+                                        , declaration =
+                                            Node { start = { row = 5, column = 1 }, end = { row = 5, column = 6 } }
+                                                { name = Node { start = { row = 5, column = 1 }, end = { row = 5, column = 2 } } "a"
+                                                , arguments = []
+                                                , expression = Node { start = { row = 5, column = 5 }, end = { row = 5, column = 6 } } (Integer 1)
+                                                }
                                         }
                                     )
                                 ]
+                            , comments = []
                             }
                         )
         , test "File with multiple declarations" <|
@@ -337,50 +337,49 @@ b = 2
                     File.file
                     |> Expect.equal
                         (Just
-                            { comments = []
-                            , moduleDefinition =
+                            { moduleDefinition =
                                 Node { start = { row = 1, column = 1 }, end = { row = 1, column = 32 } }
                                     (NormalModule
-                                        { exposingList = Node { start = { row = 1, column = 19 }, end = { row = 1, column = 32 } } (All { start = { row = 1, column = 29 }, end = { row = 1, column = 31 } })
-                                        , moduleName = Node { start = { row = 1, column = 8 }, end = { row = 1, column = 18 } } [ "TestModule" ]
+                                        { moduleName = Node { start = { row = 1, column = 8 }, end = { row = 1, column = 18 } } [ "TestModule" ]
+                                        , exposingList = Node { start = { row = 1, column = 19 }, end = { row = 1, column = 32 } } (All { start = { row = 1, column = 29 }, end = { row = 1, column = 31 } })
                                         }
                                     )
                             , imports = []
                             , declarations =
                                 [ Node { start = { row = 2, column = 1 }, end = { row = 2, column = 15 } }
                                     (CustomTypeDeclaration
-                                        { constructors =
+                                        { documentation = Nothing
+                                        , name = Node { start = { row = 2, column = 6 }, end = { row = 2, column = 7 } } "A"
+                                        , generics = []
+                                        , constructors =
                                             [ Node { start = { row = 2, column = 10 }, end = { row = 2, column = 11 } }
-                                                { arguments = []
-                                                , name = Node { start = { row = 2, column = 10 }, end = { row = 2, column = 11 } } "B"
+                                                { name = Node { start = { row = 2, column = 10 }, end = { row = 2, column = 11 } } "B"
+                                                , arguments = []
                                                 }
                                             , Node { start = { row = 2, column = 14 }, end = { row = 2, column = 15 } }
-                                                { arguments = []
-                                                , name = Node { start = { row = 2, column = 14 }, end = { row = 2, column = 15 } } "C"
+                                                { name = Node { start = { row = 2, column = 14 }, end = { row = 2, column = 15 } } "C"
+                                                , arguments = []
                                                 }
                                             ]
-                                        , documentation = Nothing
-                                        , generics = []
-                                        , name = Node { start = { row = 2, column = 6 }, end = { row = 2, column = 7 } } "A"
                                         }
                                     )
                                 , Node { start = { row = 3, column = 1 }, end = { row = 3, column = 6 } }
                                     (FunctionDeclaration
-                                        { declaration =
-                                            Node { start = { row = 3, column = 1 }, end = { row = 3, column = 6 } }
-                                                { arguments = []
-                                                , expression = Node { start = { row = 3, column = 5 }, end = { row = 3, column = 6 } } (Integer 1)
-                                                , name = Node { start = { row = 3, column = 1 }, end = { row = 3, column = 2 } } "a"
-                                                }
-                                        , documentation = Nothing
+                                        { documentation = Nothing
                                         , signature = Nothing
+                                        , declaration =
+                                            Node { start = { row = 3, column = 1 }, end = { row = 3, column = 6 } }
+                                                { name = Node { start = { row = 3, column = 1 }, end = { row = 3, column = 2 } } "a"
+                                                , arguments = []
+                                                , expression = Node { start = { row = 3, column = 5 }, end = { row = 3, column = 6 } } (Integer 1)
+                                                }
                                         }
                                     )
                                 , Node { start = { row = 4, column = 1 }, end = { row = 4, column = 17 } }
                                     (AliasDeclaration
                                         { documentation = Nothing
-                                        , generics = []
                                         , name = Node { start = { row = 4, column = 12 }, end = { row = 4, column = 13 } } "B"
+                                        , generics = []
                                         , typeAnnotation =
                                             Node { start = { row = 4, column = 16 }, end = { row = 4, column = 17 } }
                                                 (Typed (Node { start = { row = 4, column = 16 }, end = { row = 4, column = 17 } } ( [], "A" )) [])
@@ -398,13 +397,14 @@ b = 2
                                                 )
                                         , declaration =
                                             Node { start = { row = 6, column = 1 }, end = { row = 6, column = 6 } }
-                                                { arguments = []
+                                                { name = Node { start = { row = 6, column = 1 }, end = { row = 6, column = 2 } } "b"
+                                                , arguments = []
                                                 , expression = Node { start = { row = 6, column = 5 }, end = { row = 6, column = 6 } } (Integer 2)
-                                                , name = Node { start = { row = 6, column = 1 }, end = { row = 6, column = 2 } } "b"
                                                 }
                                         }
                                     )
                                 ]
+                            , comments = []
                             }
                         )
         , test "should fail to parse two signatures in a row" <|
@@ -436,13 +436,17 @@ fun2 n =
                     File.file
                     |> Expect.equal
                         (Just
-                            { comments = [ Node { start = { row = 5, column = 13 }, end = { row = 5, column = 17 } } "-- a", Node { start = { row = 8, column = 13 }, end = { row = 8, column = 17 } } "-- b" ]
+                            { moduleDefinition = Node { start = { row = 1, column = 1 }, end = { row = 1, column = 31 } } (NormalModule { moduleName = Node { start = { row = 1, column = 8 }, end = { row = 1, column = 9 } } [ "A" ], exposingList = Node { start = { row = 1, column = 10 }, end = { row = 1, column = 31 } } (Explicit [ Node { start = { row = 1, column = 20 }, end = { row = 1, column = 24 } } (FunctionExpose "fun1"), Node { start = { row = 1, column = 26 }, end = { row = 1, column = 30 } } (FunctionExpose "fun2") ]) })
+                            , imports = []
                             , declarations =
                                 [ Node { start = { row = 3, column = 1 }, end = { row = 5, column = 11 } }
                                     (FunctionDeclaration
-                                        { declaration =
+                                        { documentation = Nothing
+                                        , signature = Nothing
+                                        , declaration =
                                             Node { start = { row = 3, column = 1 }, end = { row = 5, column = 11 } }
-                                                { arguments = [ Node { start = { row = 3, column = 6 }, end = { row = 3, column = 7 } } (VarPattern "n") ]
+                                                { name = Node { start = { row = 3, column = 1 }, end = { row = 3, column = 5 } } "fun1"
+                                                , arguments = [ Node { start = { row = 3, column = 6 }, end = { row = 3, column = 7 } } (VarPattern "n") ]
                                                 , expression =
                                                     Node { start = { row = 4, column = 3 }, end = { row = 5, column = 11 } }
                                                         (OperatorApplication "+"
@@ -462,17 +466,17 @@ fun2 n =
                                                                 )
                                                             )
                                                         )
-                                                , name = Node { start = { row = 3, column = 1 }, end = { row = 3, column = 5 } } "fun1"
                                                 }
-                                        , documentation = Nothing
-                                        , signature = Nothing
                                         }
                                     )
                                 , Node { start = { row = 7, column = 1 }, end = { row = 8, column = 9 } }
                                     (FunctionDeclaration
-                                        { declaration =
+                                        { documentation = Nothing
+                                        , signature = Nothing
+                                        , declaration =
                                             Node { start = { row = 7, column = 1 }, end = { row = 8, column = 9 } }
-                                                { arguments = [ Node { start = { row = 7, column = 6 }, end = { row = 7, column = 7 } } (VarPattern "n") ]
+                                                { name = Node { start = { row = 7, column = 1 }, end = { row = 7, column = 5 } } "fun2"
+                                                , arguments = [ Node { start = { row = 7, column = 6 }, end = { row = 7, column = 7 } } (VarPattern "n") ]
                                                 , expression =
                                                     Node { start = { row = 8, column = 3 }, end = { row = 8, column = 9 } }
                                                         (Application
@@ -480,15 +484,11 @@ fun2 n =
                                                             , Node { start = { row = 8, column = 8 }, end = { row = 8, column = 9 } } (FunctionOrValue [] "n")
                                                             ]
                                                         )
-                                                , name = Node { start = { row = 7, column = 1 }, end = { row = 7, column = 5 } } "fun2"
                                                 }
-                                        , documentation = Nothing
-                                        , signature = Nothing
                                         }
                                     )
                                 ]
-                            , imports = []
-                            , moduleDefinition = Node { start = { row = 1, column = 1 }, end = { row = 1, column = 31 } } (NormalModule { exposingList = Node { start = { row = 1, column = 10 }, end = { row = 1, column = 31 } } (Explicit [ Node { start = { row = 1, column = 20 }, end = { row = 1, column = 24 } } (FunctionExpose "fun1"), Node { start = { row = 1, column = 26 }, end = { row = 1, column = 30 } } (FunctionExpose "fun2") ]), moduleName = Node { start = { row = 1, column = 8 }, end = { row = 1, column = 9 } } [ "A" ] })
+                            , comments = [ Node { start = { row = 5, column = 13 }, end = { row = 5, column = 17 } } "-- a", Node { start = { row = 8, column = 13 }, end = { row = 8, column = 17 } } "-- b" ]
                             }
                         )
         ]

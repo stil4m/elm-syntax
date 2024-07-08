@@ -61,9 +61,9 @@ infixExpose =
     Core.succeed InfixExpose
         |. Tokens.parensStart
         |= Core.variable
-            { start = \c -> c /= ')'
-            , inner = \c -> c /= ')'
+            { inner = \c -> c /= ')'
             , reserved = Set.empty
+            , start = \c -> c /= ')'
             }
         |. Tokens.parensEnd
 

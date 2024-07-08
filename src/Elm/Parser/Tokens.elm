@@ -143,9 +143,9 @@ escapedCharValue =
             )
             |. Core.symbol "u{"
             |= Core.variable
-                { start = Char.isHexDigit
-                , inner = Char.isHexDigit
+                { inner = Char.isHexDigit
                 , reserved = Set.empty
+                , start = Char.isHexDigit
                 }
             |. Core.symbol "}"
         ]
@@ -215,24 +215,24 @@ multiLineStringLiteralStep stringSoFar =
 functionName : Core.Parser String
 functionName =
     Core.variable
-        { start = \c -> Char.isLower c || Unicode.isLower c
-        , inner =
+        { inner =
             \c ->
                 -- checking for Char.isAlphaNum early is much faster
                 Char.isAlphaNum c || c == '_' || Unicode.isAlphaNum c
         , reserved = reservedList
+        , start = \c -> Char.isLower c || Unicode.isLower c
         }
 
 
 typeName : Core.Parser String
 typeName =
     Core.variable
-        { start = \c -> Char.isUpper c || Unicode.isUpper c
-        , inner =
+        { inner =
             \c ->
                 -- checking for Char.isAlphaNum early is much faster
                 Char.isAlphaNum c || c == '_' || Unicode.isAlphaNum c
         , reserved = Set.empty
+        , start = \c -> Char.isUpper c || Unicode.isUpper c
         }
 
 

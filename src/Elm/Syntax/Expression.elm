@@ -414,7 +414,7 @@ encodeDestructuring pattern expression =
 
 
 encodeCaseBlock : CaseBlock -> Value
-encodeCaseBlock { cases, expression } =
+encodeCaseBlock { expression, cases } =
     JE.object
         [ ( "cases", JE.list encodeCase cases )
         , ( "expression", Node.encode encode expression )

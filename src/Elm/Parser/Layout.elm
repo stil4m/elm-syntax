@@ -27,9 +27,9 @@ layout =
     Combine.many1Ignore
         (Combine.oneOf
             ((Core.variable
-                { start = \c -> c == ' ' || c == '\n' || c == '\u{000D}'
-                , inner = \c -> c == ' ' || c == '\n' || c == '\u{000D}'
+                { inner = \c -> c == ' ' || c == '\n' || c == '\u{000D}'
                 , reserved = Set.empty
+                , start = \c -> c == ' ' || c == '\n' || c == '\u{000D}'
                 }
                 |> Combine.fromCoreMap (\_ -> ())
              )
@@ -53,9 +53,9 @@ optimisticLayout =
     Combine.manyIgnore
         (Combine.oneOf
             ((Core.variable
-                { start = \c -> c == ' ' || c == '\n' || c == '\u{000D}'
-                , inner = \c -> c == ' ' || c == '\n' || c == '\u{000D}'
+                { inner = \c -> c == ' ' || c == '\n' || c == '\u{000D}'
                 , reserved = Set.empty
+                , start = \c -> c == ' ' || c == '\n' || c == '\u{000D}'
                 }
                 |> Combine.fromCoreMap (\_ -> ())
              )
@@ -88,9 +88,9 @@ layoutStrict =
     Combine.many1Ignore
         (Combine.oneOf
             ((Core.variable
-                { start = \c -> c == ' ' || c == '\n' || c == '\u{000D}'
-                , inner = \c -> c == ' ' || c == '\n' || c == '\u{000D}'
+                { inner = \c -> c == ' ' || c == '\n' || c == '\u{000D}'
                 , reserved = Set.empty
+                , start = \c -> c == ' ' || c == '\n' || c == '\u{000D}'
                 }
                 |> Combine.fromCoreMap (\_ -> ())
              )

@@ -21,14 +21,14 @@ all =
                     |> expectAst
                         (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 10 } }
                             (FunctionDeclaration
-                                { declaration =
+                                { documentation = Nothing
+                                , signature = Nothing
+                                , declaration =
                                     Node { start = { row = 1, column = 1 }, end = { row = 1, column = 10 } }
                                         { name = Node { start = { row = 1, column = 1 }, end = { row = 1, column = 4 } } "foo"
                                         , arguments = []
                                         , expression = Node { start = { row = 1, column = 7 }, end = { row = 1, column = 10 } } (FunctionOrValue [] "bar")
                                         }
-                                , documentation = Nothing
-                                , signature = Nothing
                                 }
                             )
                         )
@@ -39,14 +39,14 @@ foo = bar"""
                     |> expectAst
                         (Node { start = { row = 1, column = 1 }, end = { row = 2, column = 10 } }
                             (FunctionDeclaration
-                                { declaration =
-                                    Node { start = { row = 2, column = 1 }, end = { row = 2, column = 10 } }
-                                        { arguments = []
-                                        , expression = Node { start = { row = 2, column = 7 }, end = { row = 2, column = 10 } } (FunctionOrValue [] "bar")
-                                        , name = Node { start = { row = 2, column = 1 }, end = { row = 2, column = 4 } } "foo"
-                                        }
-                                , documentation = Just (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 20 } } "{-| Foo does bar -}")
+                                { documentation = Just (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 20 } } "{-| Foo does bar -}")
                                 , signature = Nothing
+                                , declaration =
+                                    Node { start = { row = 2, column = 1 }, end = { row = 2, column = 10 } }
+                                        { name = Node { start = { row = 2, column = 1 }, end = { row = 2, column = 4 } } "foo"
+                                        , arguments = []
+                                        , expression = Node { start = { row = 2, column = 7 }, end = { row = 2, column = 10 } } (FunctionOrValue [] "bar")
+                                        }
                                 }
                             )
                         )
@@ -60,8 +60,8 @@ foo = bar"""
                                 , signature = Nothing
                                 , declaration =
                                     Node { start = { row = 1, column = 1 }, end = { row = 1, column = 9 } }
-                                        { arguments = []
-                                        , name = Node { start = { row = 1, column = 1 }, end = { row = 1, column = 4 } } "foo"
+                                        { name = Node { start = { row = 1, column = 1 }, end = { row = 1, column = 4 } } "foo"
+                                        , arguments = []
                                         , expression = Node { start = { row = 1, column = 7 }, end = { row = 1, column = 9 } } (RecordExpr [])
                                         }
                                 }
@@ -164,33 +164,33 @@ foo = bar"""
                     |> expectAst
                         (Node { start = { row = 1, column = 1 }, end = { row = 5, column = 4 } }
                             (FunctionDeclaration
-                                { declaration =
+                                { documentation = Nothing
+                                , signature = Nothing
+                                , declaration =
                                     Node { start = { row = 1, column = 1 }, end = { row = 5, column = 4 } }
-                                        { arguments = []
+                                        { name = Node { start = { row = 1, column = 1 }, end = { row = 1, column = 4 } } "foo"
+                                        , arguments = []
                                         , expression =
                                             Node { start = { row = 2, column = 2 }, end = { row = 5, column = 4 } }
                                                 (LetExpression
                                                     { declarations =
                                                         [ Node { start = { row = 3, column = 3 }, end = { row = 3, column = 8 } }
                                                             (LetFunction
-                                                                { declaration =
-                                                                    Node { start = { row = 3, column = 3 }, end = { row = 3, column = 8 } }
-                                                                        { arguments = []
-                                                                        , expression = Node { start = { row = 3, column = 7 }, end = { row = 3, column = 8 } } (Integer 1)
-                                                                        , name = Node { start = { row = 3, column = 3 }, end = { row = 3, column = 4 } } "b"
-                                                                        }
-                                                                , documentation = Nothing
+                                                                { documentation = Nothing
                                                                 , signature = Nothing
+                                                                , declaration =
+                                                                    Node { start = { row = 3, column = 3 }, end = { row = 3, column = 8 } }
+                                                                        { name = Node { start = { row = 3, column = 3 }, end = { row = 3, column = 4 } } "b"
+                                                                        , arguments = []
+                                                                        , expression = Node { start = { row = 3, column = 7 }, end = { row = 3, column = 8 } } (Integer 1)
+                                                                        }
                                                                 }
                                                             )
                                                         ]
                                                     , expression = Node { start = { row = 5, column = 3 }, end = { row = 5, column = 4 } } (FunctionOrValue [] "b")
                                                     }
                                                 )
-                                        , name = Node { start = { row = 1, column = 1 }, end = { row = 1, column = 4 } } "foo"
                                         }
-                                , documentation = Nothing
-                                , signature = Nothing
                                 }
                             )
                         )
@@ -212,9 +212,12 @@ foo = bar"""
                     |> expectAst
                         (Node { start = { row = 1, column = 1 }, end = { row = 5, column = 4 } }
                             (FunctionDeclaration
-                                { declaration =
+                                { documentation = Nothing
+                                , signature = Nothing
+                                , declaration =
                                     Node { start = { row = 1, column = 1 }, end = { row = 5, column = 4 } }
-                                        { arguments = []
+                                        { name = Node { start = { row = 1, column = 1 }, end = { row = 1, column = 4 } } "foo"
+                                        , arguments = []
                                         , expression =
                                             Node { start = { row = 2, column = 2 }, end = { row = 5, column = 4 } }
                                                 (LetExpression
@@ -240,10 +243,7 @@ foo = bar"""
                                                     , expression = Node { start = { row = 5, column = 3 }, end = { row = 5, column = 4 } } (FunctionOrValue [] "b")
                                                     }
                                                 )
-                                        , name = Node { start = { row = 1, column = 1 }, end = { row = 1, column = 4 } } "foo"
                                         }
-                                , documentation = Nothing
-                                , signature = Nothing
                                 }
                             )
                         )
@@ -254,9 +254,12 @@ foo = bar"""
                     |> expectAst
                         (Node { start = { row = 1, column = 1 }, end = { row = 2, column = 62 } }
                             (FunctionDeclaration
-                                { declaration =
+                                { documentation = Nothing
+                                , signature = Nothing
+                                , declaration =
                                     Node { start = { row = 1, column = 1 }, end = { row = 2, column = 62 } }
-                                        { arguments = []
+                                        { name = Node { start = { row = 1, column = 1 }, end = { row = 1, column = 5 } } "main"
+                                        , arguments = []
                                         , expression =
                                             Node { start = { row = 2, column = 3 }, end = { row = 2, column = 62 } }
                                                 (Application
@@ -279,10 +282,7 @@ foo = bar"""
                                                         )
                                                     ]
                                                 )
-                                        , name = Node { start = { row = 1, column = 1 }, end = { row = 1, column = 5 } } "main"
                                         }
-                                , documentation = Nothing
-                                , signature = Nothing
                                 }
                             )
                         )
@@ -298,16 +298,20 @@ foo = bar"""
                     |> expectAst
                         (Node { start = { row = 1, column = 1 }, end = { row = 7, column = 16 } }
                             (FunctionDeclaration
-                                { declaration =
+                                { documentation = Nothing
+                                , signature = Nothing
+                                , declaration =
                                     Node { start = { row = 1, column = 1 }, end = { row = 7, column = 16 } }
-                                        { arguments =
+                                        { name = Node { start = { row = 1, column = 1 }, end = { row = 1, column = 7 } } "update"
+                                        , arguments =
                                             [ Node { start = { row = 1, column = 8 }, end = { row = 1, column = 11 } } (VarPattern "msg")
                                             , Node { start = { row = 1, column = 12 }, end = { row = 1, column = 17 } } (VarPattern "model")
                                             ]
                                         , expression =
                                             Node { start = { row = 2, column = 3 }, end = { row = 7, column = 16 } }
                                                 (CaseExpression
-                                                    { cases =
+                                                    { expression = Node { start = { row = 2, column = 8 }, end = { row = 2, column = 11 } } (FunctionOrValue [] "msg")
+                                                    , cases =
                                                         [ ( Node { start = { row = 3, column = 5 }, end = { row = 3, column = 14 } } (NamedPattern { moduleName = [], name = "Increment" } [])
                                                           , Node { start = { row = 4, column = 7 }, end = { row = 4, column = 16 } }
                                                                 (OperatorApplication "+"
@@ -325,13 +329,9 @@ foo = bar"""
                                                                 )
                                                           )
                                                         ]
-                                                    , expression = Node { start = { row = 2, column = 8 }, end = { row = 2, column = 11 } } (FunctionOrValue [] "msg")
                                                     }
                                                 )
-                                        , name = Node { start = { row = 1, column = 1 }, end = { row = 1, column = 7 } } "update"
                                         }
-                                , documentation = Nothing
-                                , signature = Nothing
                                 }
                             )
                         )
@@ -405,9 +405,12 @@ foo = bar"""
                     |> expectAst
                         (Node { start = { row = 1, column = 1 }, end = { row = 2, column = 23 } }
                             (FunctionDeclaration
-                                { declaration =
+                                { documentation = Nothing
+                                , signature = Nothing
+                                , declaration =
                                     Node { start = { row = 1, column = 1 }, end = { row = 2, column = 23 } }
-                                        { arguments = []
+                                        { name = Node { start = { row = 1, column = 1 }, end = { row = 1, column = 5 } } "main"
+                                        , arguments = []
                                         , expression =
                                             Node { start = { row = 2, column = 3 }, end = { row = 2, column = 23 } }
                                                 (Application
@@ -415,10 +418,7 @@ foo = bar"""
                                                     , Node { start = { row = 2, column = 8 }, end = { row = 2, column = 23 } } (Literal "Hello, World!")
                                                     ]
                                                 )
-                                        , name = Node { start = { row = 1, column = 1 }, end = { row = 1, column = 5 } } "main"
                                         }
-                                , documentation = Nothing
-                                , signature = Nothing
                                 }
                             )
                         )
@@ -429,9 +429,12 @@ foo = bar"""
                     |> expectAst
                         (Node { start = { row = 1, column = 1 }, end = { row = 2, column = 23 } }
                             (FunctionDeclaration
-                                { declaration =
+                                { documentation = Nothing
+                                , signature = Nothing
+                                , declaration =
                                     Node { start = { row = 1, column = 1 }, end = { row = 2, column = 23 } }
-                                        { arguments = []
+                                        { name = Node { start = { row = 1, column = 1 }, end = { row = 1, column = 5 } } "main"
+                                        , arguments = []
                                         , expression =
                                             Node { start = { row = 2, column = 3 }, end = { row = 2, column = 23 } }
                                                 (Application
@@ -439,10 +442,7 @@ foo = bar"""
                                                     , Node { start = { row = 2, column = 8 }, end = { row = 2, column = 23 } } (Literal "Hello, World!")
                                                     ]
                                                 )
-                                        , name = Node { start = { row = 1, column = 1 }, end = { row = 1, column = 5 } } "main"
                                         }
-                                , documentation = Nothing
-                                , signature = Nothing
                                 }
                             )
                         )
@@ -458,9 +458,9 @@ foo = bar"""
                                     , signature = Nothing
                                     , declaration =
                                         Node { start = { row = 1, column = 1 }, end = { row = 2, column = 12 } }
-                                            { arguments = []
+                                            { name = Node { start = { row = 1, column = 1 }, end = { row = 1, column = 5 } } "main"
+                                            , arguments = []
                                             , expression = Node { start = { row = 2, column = 11 }, end = { row = 2, column = 12 } } (FunctionOrValue [] "x")
-                                            , name = Node { start = { row = 1, column = 1 }, end = { row = 1, column = 5 } } "main"
                                             }
                                     }
                                 )
@@ -472,9 +472,12 @@ foo = bar"""
                     |> expectAst
                         (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 83 } }
                             (FunctionDeclaration
-                                { declaration =
+                                { documentation = Nothing
+                                , signature = Nothing
+                                , declaration =
                                     Node { start = { row = 1, column = 1 }, end = { row = 1, column = 83 } }
-                                        { arguments = [ Node { start = { row = 1, column = 13 }, end = { row = 1, column = 19 } } (VarPattern "update"), Node { start = { row = 1, column = 20 }, end = { row = 1, column = 28 } } (VarPattern "sendPort") ]
+                                        { name = Node { start = { row = 1, column = 1 }, end = { row = 1, column = 12 } } "updateState"
+                                        , arguments = [ Node { start = { row = 1, column = 13 }, end = { row = 1, column = 19 } } (VarPattern "update"), Node { start = { row = 1, column = 20 }, end = { row = 1, column = 28 } } (VarPattern "sendPort") ]
                                         , expression =
                                             Node { start = { row = 1, column = 31 }, end = { row = 1, column = 83 } }
                                                 (OperatorApplication "<|"
@@ -504,10 +507,7 @@ foo = bar"""
                                                         )
                                                     )
                                                 )
-                                        , name = Node { start = { row = 1, column = 1 }, end = { row = 1, column = 12 } } "updateState"
                                         }
-                                , documentation = Nothing
-                                , signature = Nothing
                                 }
                             )
                         )
@@ -523,16 +523,20 @@ foo = bar"""
                     |> expectAst
                         (Node { start = { row = 1, column = 1 }, end = { row = 7, column = 16 } }
                             (FunctionDeclaration
-                                { declaration =
+                                { documentation = Nothing
+                                , signature = Nothing
+                                , declaration =
                                     Node { start = { row = 1, column = 1 }, end = { row = 7, column = 16 } }
-                                        { arguments =
+                                        { name = Node { start = { row = 1, column = 1 }, end = { row = 1, column = 7 } } "update"
+                                        , arguments =
                                             [ Node { start = { row = 1, column = 8 }, end = { row = 1, column = 11 } } (VarPattern "msg")
                                             , Node { start = { row = 1, column = 12 }, end = { row = 1, column = 17 } } (VarPattern "model")
                                             ]
                                         , expression =
                                             Node { start = { row = 2, column = 3 }, end = { row = 7, column = 16 } }
                                                 (CaseExpression
-                                                    { cases =
+                                                    { expression = Node { start = { row = 2, column = 8 }, end = { row = 2, column = 11 } } (FunctionOrValue [] "msg")
+                                                    , cases =
                                                         [ ( Node { start = { row = 3, column = 5 }, end = { row = 3, column = 14 } } (NamedPattern { moduleName = [], name = "Increment" } [])
                                                           , Node { start = { row = 4, column = 7 }, end = { row = 4, column = 16 } }
                                                                 (OperatorApplication "+"
@@ -550,13 +554,9 @@ foo = bar"""
                                                                 )
                                                           )
                                                         ]
-                                                    , expression = Node { start = { row = 2, column = 8 }, end = { row = 2, column = 11 } } (FunctionOrValue [] "msg")
                                                     }
                                                 )
-                                        , name = Node { start = { row = 1, column = 1 }, end = { row = 1, column = 7 } } "update"
                                         }
-                                , documentation = Nothing
-                                , signature = Nothing
                                 }
                             )
                         )
@@ -568,16 +568,7 @@ update msg model =
                     |> expectAst
                         (Node { start = { row = 1, column = 1 }, end = { row = 3, column = 8 } }
                             (FunctionDeclaration
-                                { declaration =
-                                    Node { start = { row = 2, column = 1 }, end = { row = 3, column = 8 } }
-                                        { arguments =
-                                            [ Node { start = { row = 2, column = 8 }, end = { row = 2, column = 11 } } (VarPattern "msg")
-                                            , Node { start = { row = 2, column = 12 }, end = { row = 2, column = 17 } } (VarPattern "model")
-                                            ]
-                                        , expression = Node { start = { row = 3, column = 5 }, end = { row = 3, column = 8 } } (FunctionOrValue [] "msg")
-                                        , name = Node { start = { row = 2, column = 1 }, end = { row = 2, column = 7 } } "update"
-                                        }
-                                , documentation = Nothing
+                                { documentation = Nothing
                                 , signature =
                                     Just
                                         (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 15 } }
@@ -585,6 +576,15 @@ update msg model =
                                             , typeAnnotation = Node { start = { row = 1, column = 10 }, end = { row = 1, column = 15 } } (Typed (Node { start = { row = 1, column = 10 }, end = { row = 1, column = 15 } } ( [], "Model" )) [])
                                             }
                                         )
+                                , declaration =
+                                    Node { start = { row = 2, column = 1 }, end = { row = 3, column = 8 } }
+                                        { name = Node { start = { row = 2, column = 1 }, end = { row = 2, column = 7 } } "update"
+                                        , arguments =
+                                            [ Node { start = { row = 2, column = 8 }, end = { row = 2, column = 11 } } (VarPattern "msg")
+                                            , Node { start = { row = 2, column = 12 }, end = { row = 2, column = 17 } } (VarPattern "model")
+                                            ]
+                                        , expression = Node { start = { row = 3, column = 5 }, end = { row = 3, column = 8 } } (FunctionOrValue [] "msg")
+                                        }
                                 }
                             )
                         )

@@ -25,26 +25,26 @@ all =
                                 { declarations =
                                     [ Node { start = { row = 2, column = 3 }, end = { row = 2, column = 12 } }
                                         (LetFunction
-                                            { declaration =
-                                                Node { start = { row = 2, column = 3 }, end = { row = 2, column = 12 } }
-                                                    { arguments = []
-                                                    , expression = Node { start = { row = 2, column = 9 }, end = { row = 2, column = 12 } } (FunctionOrValue [] "bar")
-                                                    , name = Node { start = { row = 2, column = 3 }, end = { row = 2, column = 6 } } "foo"
-                                                    }
-                                            , documentation = Nothing
+                                            { documentation = Nothing
                                             , signature = Nothing
+                                            , declaration =
+                                                Node { start = { row = 2, column = 3 }, end = { row = 2, column = 12 } }
+                                                    { name = Node { start = { row = 2, column = 3 }, end = { row = 2, column = 6 } } "foo"
+                                                    , arguments = []
+                                                    , expression = Node { start = { row = 2, column = 9 }, end = { row = 2, column = 12 } } (FunctionOrValue [] "bar")
+                                                    }
                                             }
                                         )
                                     , Node { start = { row = 4, column = 3 }, end = { row = 4, column = 13 } }
                                         (LetFunction
-                                            { declaration =
-                                                Node { start = { row = 4, column = 3 }, end = { row = 4, column = 13 } }
-                                                    { arguments = [ Node { start = { row = 4, column = 8 }, end = { row = 4, column = 9 } } (VarPattern "n") ]
-                                                    , expression = Node { start = { row = 4, column = 12 }, end = { row = 4, column = 13 } } (FunctionOrValue [] "n")
-                                                    , name = Node { start = { row = 4, column = 3 }, end = { row = 4, column = 7 } } "john"
-                                                    }
-                                            , documentation = Nothing
+                                            { documentation = Nothing
                                             , signature = Nothing
+                                            , declaration =
+                                                Node { start = { row = 4, column = 3 }, end = { row = 4, column = 13 } }
+                                                    { name = Node { start = { row = 4, column = 3 }, end = { row = 4, column = 7 } } "john"
+                                                    , arguments = [ Node { start = { row = 4, column = 8 }, end = { row = 4, column = 9 } } (VarPattern "n") ]
+                                                    , expression = Node { start = { row = 4, column = 12 }, end = { row = 4, column = 13 } } (FunctionOrValue [] "n")
+                                                    }
                                             }
                                         )
                                     ]
@@ -64,14 +64,14 @@ all =
                                 { declarations =
                                     [ Node { start = { row = 2, column = 3 }, end = { row = 2, column = 10 } }
                                         (LetFunction
-                                            { declaration =
-                                                Node { start = { row = 2, column = 3 }, end = { row = 2, column = 10 } }
-                                                    { arguments = []
-                                                    , expression = Node { start = { row = 2, column = 9 }, end = { row = 2, column = 10 } } (Integer 1)
-                                                    , name = Node { start = { row = 2, column = 3 }, end = { row = 2, column = 6 } } "bar"
-                                                    }
-                                            , documentation = Nothing
+                                            { documentation = Nothing
                                             , signature = Nothing
+                                            , declaration =
+                                                Node { start = { row = 2, column = 3 }, end = { row = 2, column = 10 } }
+                                                    { name = Node { start = { row = 2, column = 3 }, end = { row = 2, column = 6 } } "bar"
+                                                    , arguments = []
+                                                    , expression = Node { start = { row = 2, column = 9 }, end = { row = 2, column = 10 } } (Integer 1)
+                                                    }
                                             }
                                         )
                                     ]
@@ -106,14 +106,14 @@ all =
                                 { declarations =
                                     [ Node { start = { row = 2, column = 3 }, end = { row = 2, column = 10 } }
                                         (LetFunction
-                                            { declaration =
-                                                Node { start = { row = 2, column = 3 }, end = { row = 2, column = 10 } }
-                                                    { arguments = []
-                                                    , expression = Node { start = { row = 2, column = 9 }, end = { row = 2, column = 10 } } (Integer 1)
-                                                    , name = Node { start = { row = 2, column = 3 }, end = { row = 2, column = 6 } } "bar"
-                                                    }
-                                            , documentation = Nothing
+                                            { documentation = Nothing
                                             , signature = Nothing
+                                            , declaration =
+                                                Node { start = { row = 2, column = 3 }, end = { row = 2, column = 10 } }
+                                                    { name = Node { start = { row = 2, column = 3 }, end = { row = 2, column = 6 } } "bar"
+                                                    , arguments = []
+                                                    , expression = Node { start = { row = 2, column = 9 }, end = { row = 2, column = 10 } } (Integer 1)
+                                                    }
                                             }
                                         )
                                     ]
@@ -146,9 +146,9 @@ all =
                                                     )
                                             , declaration =
                                                 Node { start = { row = 3, column = 5 }, end = { row = 3, column = 12 } }
-                                                    { arguments = []
+                                                    { name = Node { start = { row = 3, column = 5 }, end = { row = 3, column = 8 } } "bar"
+                                                    , arguments = []
                                                     , expression = Node { start = { row = 3, column = 11 }, end = { row = 3, column = 12 } } (Integer 1)
-                                                    , name = Node { start = { row = 3, column = 5 }, end = { row = 3, column = 8 } } "bar"
                                                     }
                                             }
                                         )
@@ -182,9 +182,9 @@ all =
                                                     )
                                             , declaration =
                                                 Node { start = { row = 5, column = 5 }, end = { row = 5, column = 12 } }
-                                                    { arguments = []
+                                                    { name = Node { start = { row = 5, column = 5 }, end = { row = 5, column = 8 } } "bar"
+                                                    , arguments = []
                                                     , expression = Node { start = { row = 5, column = 11 }, end = { row = 5, column = 12 } } (Integer 1)
-                                                    , name = Node { start = { row = 5, column = 5 }, end = { row = 5, column = 8 } } "bar"
                                                     }
                                             }
                                         )
@@ -289,9 +289,12 @@ all =
                                 { declarations =
                                     [ Node { start = { row = 1, column = 5 }, end = { row = 1, column = 29 } }
                                         (LetFunction
-                                            { declaration =
+                                            { documentation = Nothing
+                                            , signature = Nothing
+                                            , declaration =
                                                 Node { start = { row = 1, column = 5 }, end = { row = 1, column = 29 } }
-                                                    { arguments = []
+                                                    { name = Node { start = { row = 1, column = 5 }, end = { row = 1, column = 11 } } "indent"
+                                                    , arguments = []
                                                     , expression =
                                                         Node { start = { row = 1, column = 14 }, end = { row = 1, column = 29 } }
                                                             (Application
@@ -299,10 +302,7 @@ all =
                                                                 , Node { start = { row = 1, column = 28 }, end = { row = 1, column = 29 } } (FunctionOrValue [] "s")
                                                                 ]
                                                             )
-                                                    , name = Node { start = { row = 1, column = 5 }, end = { row = 1, column = 11 } } "indent"
                                                     }
-                                            , documentation = Nothing
-                                            , signature = Nothing
                                             }
                                         )
                                     ]
@@ -321,14 +321,14 @@ all =
                                 { declarations =
                                     [ Node { start = { row = 2, column = 9 }, end = { row = 2, column = 14 } }
                                         (LetFunction
-                                            { declaration =
-                                                Node { start = { row = 2, column = 9 }, end = { row = 2, column = 14 } }
-                                                    { arguments = []
-                                                    , expression = Node { start = { row = 2, column = 13 }, end = { row = 2, column = 14 } } (Integer 1)
-                                                    , name = Node { start = { row = 2, column = 9 }, end = { row = 2, column = 10 } } "a"
-                                                    }
-                                            , documentation = Nothing
+                                            { documentation = Nothing
                                             , signature = Nothing
+                                            , declaration =
+                                                Node { start = { row = 2, column = 9 }, end = { row = 2, column = 14 } }
+                                                    { name = Node { start = { row = 2, column = 9 }, end = { row = 2, column = 10 } } "a"
+                                                    , arguments = []
+                                                    , expression = Node { start = { row = 2, column = 13 }, end = { row = 2, column = 14 } } (Integer 1)
+                                                    }
                                             }
                                         )
                                     ]
@@ -347,14 +347,14 @@ all =
                                 { declarations =
                                     [ Node { start = { row = 2, column = 9 }, end = { row = 2, column = 14 } }
                                         (LetFunction
-                                            { declaration =
-                                                Node { start = { row = 2, column = 9 }, end = { row = 2, column = 14 } }
-                                                    { arguments = []
-                                                    , expression = Node { start = { row = 2, column = 13 }, end = { row = 2, column = 14 } } (Integer 1)
-                                                    , name = Node { start = { row = 2, column = 9 }, end = { row = 2, column = 10 } } "a"
-                                                    }
-                                            , documentation = Nothing
+                                            { documentation = Nothing
                                             , signature = Nothing
+                                            , declaration =
+                                                Node { start = { row = 2, column = 9 }, end = { row = 2, column = 14 } }
+                                                    { name = Node { start = { row = 2, column = 9 }, end = { row = 2, column = 10 } } "a"
+                                                    , arguments = []
+                                                    , expression = Node { start = { row = 2, column = 13 }, end = { row = 2, column = 14 } } (Integer 1)
+                                                    }
                                             }
                                         )
                                     ]
@@ -373,14 +373,14 @@ all =
                                 { declarations =
                                     [ Node { start = { row = 2, column = 9 }, end = { row = 2, column = 14 } }
                                         (LetFunction
-                                            { declaration =
-                                                Node { start = { row = 2, column = 9 }, end = { row = 2, column = 14 } }
-                                                    { arguments = []
-                                                    , expression = Node { start = { row = 2, column = 13 }, end = { row = 2, column = 14 } } (Integer 1)
-                                                    , name = Node { start = { row = 2, column = 9 }, end = { row = 2, column = 10 } } "a"
-                                                    }
-                                            , documentation = Nothing
+                                            { documentation = Nothing
                                             , signature = Nothing
+                                            , declaration =
+                                                Node { start = { row = 2, column = 9 }, end = { row = 2, column = 14 } }
+                                                    { name = Node { start = { row = 2, column = 9 }, end = { row = 2, column = 10 } } "a"
+                                                    , arguments = []
+                                                    , expression = Node { start = { row = 2, column = 13 }, end = { row = 2, column = 14 } } (Integer 1)
+                                                    }
                                             }
                                         )
                                     ]

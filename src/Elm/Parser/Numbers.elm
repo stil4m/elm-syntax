@@ -6,11 +6,11 @@ import Parser as Core
 raw : Maybe (Float -> a) -> (Int -> a) -> (Int -> a) -> Core.Parser a
 raw floatf intf hexf =
     Core.number
-        { int = Just intf
-        , hex = Just hexf
-        , octal = Nothing
-        , binary = Nothing
+        { binary = Nothing
         , float = floatf
+        , hex = Just hexf
+        , int = Just intf
+        , octal = Nothing
         }
 
 

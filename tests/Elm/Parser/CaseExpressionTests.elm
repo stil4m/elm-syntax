@@ -109,7 +109,8 @@ True -> 1"""
                     |> expectAst
                         (Node { start = { row = 1, column = 1 }, end = { row = 2, column = 21 } }
                             (CaseExpression
-                                { cases =
+                                { expression = Node { start = { row = 1, column = 6 }, end = { row = 1, column = 7 } } (FunctionOrValue [] "x")
+                                , cases =
                                     [ ( Node { start = { row = 1, column = 11 }, end = { row = 1, column = 15 } } (NamedPattern { moduleName = [], name = "True" } [])
                                       , Node { start = { row = 1, column = 19 }, end = { row = 1, column = 20 } } (Integer 1)
                                       )
@@ -117,7 +118,6 @@ True -> 1"""
                                       , Node { start = { row = 2, column = 20 }, end = { row = 2, column = 21 } } (Integer 2)
                                       )
                                     ]
-                                , expression = Node { start = { row = 1, column = 6 }, end = { row = 1, column = 7 } } (FunctionOrValue [] "x")
                                 }
                             )
                         )
@@ -176,7 +176,8 @@ True -> 1"""
                     |> expectAst
                         (Node { start = { row = 1, column = 1 }, end = { row = 6, column = 6 } }
                             (CaseExpression
-                                { cases =
+                                { expression = Node { start = { row = 1, column = 6 }, end = { row = 1, column = 9 } } (FunctionOrValue [] "msg")
+                                , cases =
                                     [ ( Node { start = { row = 2, column = 3 }, end = { row = 2, column = 12 } } (NamedPattern { moduleName = [], name = "Increment" } [])
                                       , Node { start = { row = 3, column = 5 }, end = { row = 3, column = 6 } } (Integer 1)
                                       )
@@ -184,7 +185,6 @@ True -> 1"""
                                       , Node { start = { row = 6, column = 5 }, end = { row = 6, column = 6 } } (Integer 2)
                                       )
                                     ]
-                                , expression = Node { start = { row = 1, column = 6 }, end = { row = 1, column = 9 } } (FunctionOrValue [] "msg")
                                 }
                             )
                         )

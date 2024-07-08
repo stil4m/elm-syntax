@@ -19,9 +19,9 @@ all =
                         (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 28 } }
                             (Declaration.InfixDeclaration
                                 { direction = Node { start = { row = 1, column = 7 }, end = { row = 1, column = 12 } } Right
-                                , function = Node { start = { row = 1, column = 23 }, end = { row = 1, column = 28 } } "slash"
-                                , operator = Node { start = { row = 1, column = 15 }, end = { row = 1, column = 20 } } "</>"
                                 , precedence = Node { start = { row = 1, column = 13 }, end = { row = 1, column = 14 } } 7
+                                , operator = Node { start = { row = 1, column = 15 }, end = { row = 1, column = 20 } } "</>"
+                                , function = Node { start = { row = 1, column = 23 }, end = { row = 1, column = 28 } } "slash"
                                 }
                             )
                         )
@@ -32,9 +32,9 @@ all =
                         (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 35 } }
                             (Declaration.InfixDeclaration
                                 { direction = Node { start = { row = 1, column = 7 }, end = { row = 1, column = 11 } } Left
-                                , function = Node { start = { row = 1, column = 23 }, end = { row = 1, column = 35 } } "questionMark"
-                                , operator = Node { start = { row = 1, column = 15 }, end = { row = 1, column = 20 } } "<?>"
                                 , precedence = Node { start = { row = 1, column = 13 }, end = { row = 1, column = 14 } } 8
+                                , operator = Node { start = { row = 1, column = 15 }, end = { row = 1, column = 20 } } "<?>"
+                                , function = Node { start = { row = 1, column = 23 }, end = { row = 1, column = 35 } } "questionMark"
                                 }
                             )
                         )
@@ -45,9 +45,9 @@ all =
                         (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 24 } }
                             (Declaration.InfixDeclaration
                                 { direction = Node { start = { row = 1, column = 7 }, end = { row = 1, column = 10 } } Non
-                                , function = Node { start = { row = 1, column = 22 }, end = { row = 1, column = 24 } } "eq"
-                                , operator = Node { start = { row = 1, column = 15 }, end = { row = 1, column = 19 } } "=="
                                 , precedence = Node { start = { row = 1, column = 13 }, end = { row = 1, column = 14 } } 4
+                                , operator = Node { start = { row = 1, column = 15 }, end = { row = 1, column = 19 } } "=="
+                                , function = Node { start = { row = 1, column = 22 }, end = { row = 1, column = 24 } } "eq"
                                 }
                             )
                         )

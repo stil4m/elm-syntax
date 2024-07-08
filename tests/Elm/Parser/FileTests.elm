@@ -131,24 +131,27 @@ caseWhitespace f = case f   of
                             { moduleDefinition =
                                 Node { start = { row = 2, column = 1 }, end = { row = 2, column = 41 } }
                                     (NormalModule
-                                        { exposingList =
+                                        { moduleName = Node { start = { row = 2, column = 8 }, end = { row = 2, column = 27 } } [ "Trailing", "Whitespace" ]
+                                        , exposingList =
                                             Node { start = { row = 2, column = 28 }, end = { row = 2, column = 41 } }
                                                 (All { start = { row = 2, column = 38 }, end = { row = 2, column = 40 } })
-                                        , moduleName = Node { start = { row = 2, column = 8 }, end = { row = 2, column = 27 } } [ "Trailing", "Whitespace" ]
                                         }
                                     )
-                            , comments = [ Node { start = { row = 13, column = 4 }, end = { row = 13, column = 18 } } "--some comment" ]
                             , imports = []
                             , declarations =
                                 [ Node { start = { row = 4, column = 1 }, end = { row = 11, column = 11 } }
                                     (FunctionDeclaration
-                                        { declaration =
+                                        { documentation = Nothing
+                                        , signature = Nothing
+                                        , declaration =
                                             Node { start = { row = 4, column = 1 }, end = { row = 11, column = 11 } }
-                                                { arguments = [ Node { start = { row = 4, column = 16 }, end = { row = 4, column = 17 } } (VarPattern "f") ]
+                                                { name = Node { start = { row = 4, column = 1 }, end = { row = 4, column = 15 } } "caseWhitespace"
+                                                , arguments = [ Node { start = { row = 4, column = 16 }, end = { row = 4, column = 17 } } (VarPattern "f") ]
                                                 , expression =
                                                     Node { start = { row = 4, column = 20 }, end = { row = 11, column = 11 } }
                                                         (CaseExpression
-                                                            { cases =
+                                                            { expression = Node { start = { row = 4, column = 25 }, end = { row = 4, column = 26 } } (FunctionOrValue [] "f")
+                                                            , cases =
                                                                 [ ( Node { start = { row = 5, column = 3 }, end = { row = 5, column = 7 } } (NamedPattern { moduleName = [], name = "True" } [])
                                                                   , Node { start = { row = 6, column = 5 }, end = { row = 6, column = 6 } } (Integer 1)
                                                                   )
@@ -156,16 +159,13 @@ caseWhitespace f = case f   of
                                                                   , Node { start = { row = 11, column = 10 }, end = { row = 11, column = 11 } } (Integer 2)
                                                                   )
                                                                 ]
-                                                            , expression = Node { start = { row = 4, column = 25 }, end = { row = 4, column = 26 } } (FunctionOrValue [] "f")
                                                             }
                                                         )
-                                                , name = Node { start = { row = 4, column = 1 }, end = { row = 4, column = 15 } } "caseWhitespace"
                                                 }
-                                        , documentation = Nothing
-                                        , signature = Nothing
                                         }
                                     )
                                 ]
+                            , comments = [ Node { start = { row = 13, column = 4 }, end = { row = 13, column = 18 } } "--some comment" ]
                             }
                         )
         , test "function declaration with lambda and trailing whitespace" <|
@@ -189,20 +189,22 @@ lambdaWhitespace =   \\ a b ->    a
                             { moduleDefinition =
                                 Node { start = { row = 2, column = 1 }, end = { row = 2, column = 41 } }
                                     (NormalModule
-                                        { exposingList =
+                                        { moduleName = Node { start = { row = 2, column = 8 }, end = { row = 2, column = 27 } } [ "Trailing", "Whitespace" ]
+                                        , exposingList =
                                             Node { start = { row = 2, column = 28 }, end = { row = 2, column = 41 } }
                                                 (All { start = { row = 2, column = 38 }, end = { row = 2, column = 40 } })
-                                        , moduleName = Node { start = { row = 2, column = 8 }, end = { row = 2, column = 27 } } [ "Trailing", "Whitespace" ]
                                         }
                                     )
-                            , comments = [ Node { start = { row = 11, column = 1 }, end = { row = 11, column = 15 } } "--some comment" ]
                             , imports = []
                             , declarations =
                                 [ Node { start = { row = 4, column = 1 }, end = { row = 8, column = 6 } }
                                     (FunctionDeclaration
-                                        { declaration =
+                                        { documentation = Nothing
+                                        , signature = Nothing
+                                        , declaration =
                                             Node { start = { row = 4, column = 1 }, end = { row = 8, column = 6 } }
-                                                { arguments = []
+                                                { name = Node { start = { row = 4, column = 1 }, end = { row = 4, column = 17 } } "lambdaWhitespace"
+                                                , arguments = []
                                                 , expression =
                                                     Node { start = { row = 4, column = 22 }, end = { row = 8, column = 6 } }
                                                         (LambdaExpression
@@ -219,13 +221,11 @@ lambdaWhitespace =   \\ a b ->    a
                                                                     )
                                                             }
                                                         )
-                                                , name = Node { start = { row = 4, column = 1 }, end = { row = 4, column = 17 } } "lambdaWhitespace"
                                                 }
-                                        , documentation = Nothing
-                                        , signature = Nothing
                                         }
                                     )
                                 ]
+                            , comments = [ Node { start = { row = 11, column = 1 }, end = { row = 11, column = 15 } } "--some comment" ]
                             }
                         )
         , test "function declaration with let and trailing whitespace" <|
@@ -249,47 +249,47 @@ letWhitespace = let
                             { moduleDefinition =
                                 Node { start = { row = 2, column = 1 }, end = { row = 2, column = 41 } }
                                     (NormalModule
-                                        { exposingList =
+                                        { moduleName = Node { start = { row = 2, column = 8 }, end = { row = 2, column = 27 } } [ "Trailing", "Whitespace" ]
+                                        , exposingList =
                                             Node { start = { row = 2, column = 28 }, end = { row = 2, column = 41 } }
                                                 (All { start = { row = 2, column = 38 }, end = { row = 2, column = 40 } })
-                                        , moduleName = Node { start = { row = 2, column = 8 }, end = { row = 2, column = 27 } } [ "Trailing", "Whitespace" ]
                                         }
                                     )
-                            , comments = [ Node { start = { row = 11, column = 1 }, end = { row = 11, column = 15 } } "--some comment" ]
                             , imports = []
                             , declarations =
                                 [ Node { start = { row = 4, column = 1 }, end = { row = 8, column = 3 } }
                                     (FunctionDeclaration
-                                        { declaration =
+                                        { documentation = Nothing
+                                        , signature = Nothing
+                                        , declaration =
                                             Node { start = { row = 4, column = 1 }, end = { row = 8, column = 3 } }
-                                                { arguments = []
+                                                { name = Node { start = { row = 4, column = 1 }, end = { row = 4, column = 14 } } "letWhitespace"
+                                                , arguments = []
                                                 , expression =
                                                     Node { start = { row = 4, column = 17 }, end = { row = 8, column = 3 } }
                                                         (LetExpression
                                                             { declarations =
                                                                 [ Node { start = { row = 5, column = 19 }, end = { row = 5, column = 26 } }
                                                                     (LetFunction
-                                                                        { declaration =
-                                                                            Node { start = { row = 5, column = 19 }, end = { row = 5, column = 26 } }
-                                                                                { arguments = []
-                                                                                , expression = Node { start = { row = 5, column = 25 }, end = { row = 5, column = 26 } } (Integer 1)
-                                                                                , name = Node { start = { row = 5, column = 19 }, end = { row = 5, column = 20 } } "b"
-                                                                                }
-                                                                        , documentation = Nothing
+                                                                        { documentation = Nothing
                                                                         , signature = Nothing
+                                                                        , declaration =
+                                                                            Node { start = { row = 5, column = 19 }, end = { row = 5, column = 26 } }
+                                                                                { name = Node { start = { row = 5, column = 19 }, end = { row = 5, column = 20 } } "b"
+                                                                                , arguments = []
+                                                                                , expression = Node { start = { row = 5, column = 25 }, end = { row = 5, column = 26 } } (Integer 1)
+                                                                                }
                                                                         }
                                                                     )
                                                                 ]
                                                             , expression = Node { start = { row = 8, column = 2 }, end = { row = 8, column = 3 } } (FunctionOrValue [] "b")
                                                             }
                                                         )
-                                                , name = Node { start = { row = 4, column = 1 }, end = { row = 4, column = 14 } } "letWhitespace"
                                                 }
-                                        , documentation = Nothing
-                                        , signature = Nothing
                                         }
                                     )
                                 ]
+                            , comments = [ Node { start = { row = 11, column = 1 }, end = { row = 11, column = 15 } } "--some comment" ]
                             }
                         )
         , test "type declaration with documentation after imports" <|
@@ -307,38 +307,38 @@ type Configuration
                     |> Elm.Parser.parseToFile
                     |> Expect.equal
                         (Ok
-                            { comments = []
+                            { moduleDefinition =
+                                Node { start = { row = 2, column = 1 }, end = { row = 2, column = 25 } }
+                                    (NormalModule
+                                        { moduleName = Node { start = { row = 2, column = 8 }, end = { row = 2, column = 11 } } [ "Foo" ]
+                                        , exposingList =
+                                            Node { start = { row = 2, column = 12 }, end = { row = 2, column = 25 } }
+                                                (All { start = { row = 2, column = 22 }, end = { row = 2, column = 24 } })
+                                        }
+                                    )
+                            , imports =
+                                [ Node { start = { row = 4, column = 1 }, end = { row = 4, column = 12 } }
+                                    { moduleName = Node { start = { row = 4, column = 8 }, end = { row = 4, column = 12 } } [ "Dict" ]
+                                    , moduleAlias = Nothing
+                                    , exposingList = Nothing
+                                    }
+                                ]
                             , declarations =
                                 [ Node { start = { row = 6, column = 1 }, end = { row = 9, column = 20 } }
                                     (CustomTypeDeclaration
-                                        { constructors =
+                                        { documentation = Just (Node { start = { row = 6, column = 1 }, end = { row = 7, column = 3 } } "{-| Config goes here\n-}")
+                                        , name = Node { start = { row = 8, column = 6 }, end = { row = 8, column = 19 } } "Configuration"
+                                        , generics = []
+                                        , constructors =
                                             [ Node { start = { row = 9, column = 7 }, end = { row = 9, column = 20 } }
-                                                { arguments = []
-                                                , name = Node { start = { row = 9, column = 7 }, end = { row = 9, column = 20 } } "Configuration"
+                                                { name = Node { start = { row = 9, column = 7 }, end = { row = 9, column = 20 } } "Configuration"
+                                                , arguments = []
                                                 }
                                             ]
-                                        , documentation = Just (Node { start = { row = 6, column = 1 }, end = { row = 7, column = 3 } } "{-| Config goes here\n-}")
-                                        , generics = []
-                                        , name = Node { start = { row = 8, column = 6 }, end = { row = 8, column = 19 } } "Configuration"
                                         }
                                     )
                                 ]
-                            , imports =
-                                [ Node { start = { row = 4, column = 1 }, end = { row = 4, column = 12 } }
-                                    { exposingList = Nothing
-                                    , moduleAlias = Nothing
-                                    , moduleName = Node { start = { row = 4, column = 8 }, end = { row = 4, column = 12 } } [ "Dict" ]
-                                    }
-                                ]
-                            , moduleDefinition =
-                                Node { start = { row = 2, column = 1 }, end = { row = 2, column = 25 } }
-                                    (NormalModule
-                                        { exposingList =
-                                            Node { start = { row = 2, column = 12 }, end = { row = 2, column = 25 } }
-                                                (All { start = { row = 2, column = 22 }, end = { row = 2, column = 24 } })
-                                        , moduleName = Node { start = { row = 2, column = 8 }, end = { row = 2, column = 11 } } [ "Foo" ]
-                                        }
-                                    )
+                            , comments = []
                             }
                         )
         , test "module documentation formatted like a type documentation" <|
@@ -354,32 +354,32 @@ type Configuration
                     |> Elm.Parser.parseToFile
                     |> Expect.equal
                         (Ok
-                            { comments = [ Node { start = { row = 4, column = 1 }, end = { row = 5, column = 3 } } "{-| actually module doc\n-}" ]
+                            { moduleDefinition =
+                                Node { start = { row = 2, column = 1 }, end = { row = 2, column = 25 } }
+                                    (NormalModule
+                                        { moduleName = Node { start = { row = 2, column = 8 }, end = { row = 2, column = 11 } } [ "Foo" ]
+                                        , exposingList =
+                                            Node { start = { row = 2, column = 12 }, end = { row = 2, column = 25 } }
+                                                (All { start = { row = 2, column = 22 }, end = { row = 2, column = 24 } })
+                                        }
+                                    )
+                            , imports = []
                             , declarations =
                                 [ Node { start = { row = 6, column = 1 }, end = { row = 7, column = 20 } }
                                     (CustomTypeDeclaration
-                                        { constructors =
+                                        { documentation = Nothing
+                                        , name = Node { start = { row = 6, column = 6 }, end = { row = 6, column = 19 } } "Configuration"
+                                        , generics = []
+                                        , constructors =
                                             [ Node { start = { row = 7, column = 7 }, end = { row = 7, column = 20 } }
-                                                { arguments = []
-                                                , name = Node { start = { row = 7, column = 7 }, end = { row = 7, column = 20 } } "Configuration"
+                                                { name = Node { start = { row = 7, column = 7 }, end = { row = 7, column = 20 } } "Configuration"
+                                                , arguments = []
                                                 }
                                             ]
-                                        , documentation = Nothing
-                                        , generics = []
-                                        , name = Node { start = { row = 6, column = 6 }, end = { row = 6, column = 19 } } "Configuration"
                                         }
                                     )
                                 ]
-                            , imports = []
-                            , moduleDefinition =
-                                Node { start = { row = 2, column = 1 }, end = { row = 2, column = 25 } }
-                                    (NormalModule
-                                        { exposingList =
-                                            Node { start = { row = 2, column = 12 }, end = { row = 2, column = 25 } }
-                                                (All { start = { row = 2, column = 22 }, end = { row = 2, column = 24 } })
-                                        , moduleName = Node { start = { row = 2, column = 8 }, end = { row = 2, column = 11 } } [ "Foo" ]
-                                        }
-                                    )
+                            , comments = [ Node { start = { row = 4, column = 1 }, end = { row = 5, column = 3 } } "{-| actually module doc\n-}" ]
                             }
                         )
         , test "documentation on a port declaration is treated as a normal comment" <|
@@ -396,7 +396,22 @@ port sendResponse : String -> Cmd msg
                     |> Elm.Parser.parseToFile
                     |> Expect.equal
                         (Ok
-                            { comments = [ Node { start = { row = 6, column = 1 }, end = { row = 7, column = 3 } } "{-| foo\n-}" ]
+                            { moduleDefinition =
+                                Node { start = { row = 2, column = 1 }, end = { row = 2, column = 30 } }
+                                    (PortModule
+                                        { moduleName = Node { start = { row = 2, column = 13 }, end = { row = 2, column = 16 } } [ "Foo" ]
+                                        , exposingList =
+                                            Node { start = { row = 2, column = 17 }, end = { row = 2, column = 30 } }
+                                                (All { start = { row = 2, column = 27 }, end = { row = 2, column = 29 } })
+                                        }
+                                    )
+                            , imports =
+                                [ Node { start = { row = 4, column = 1 }, end = { row = 4, column = 14 } }
+                                    { moduleName = Node { start = { row = 4, column = 8 }, end = { row = 4, column = 14 } } [ "String" ]
+                                    , moduleAlias = Nothing
+                                    , exposingList = Nothing
+                                    }
+                                ]
                             , declarations =
                                 [ Node { start = { row = 8, column = 1 }, end = { row = 8, column = 38 } }
                                     (PortDeclaration
@@ -416,22 +431,7 @@ port sendResponse : String -> Cmd msg
                                         }
                                     )
                                 ]
-                            , imports =
-                                [ Node { start = { row = 4, column = 1 }, end = { row = 4, column = 14 } }
-                                    { exposingList = Nothing
-                                    , moduleAlias = Nothing
-                                    , moduleName = Node { start = { row = 4, column = 8 }, end = { row = 4, column = 14 } } [ "String" ]
-                                    }
-                                ]
-                            , moduleDefinition =
-                                Node { start = { row = 2, column = 1 }, end = { row = 2, column = 30 } }
-                                    (PortModule
-                                        { exposingList =
-                                            Node { start = { row = 2, column = 17 }, end = { row = 2, column = 30 } }
-                                                (All { start = { row = 2, column = 27 }, end = { row = 2, column = 29 } })
-                                        , moduleName = Node { start = { row = 2, column = 13 }, end = { row = 2, column = 16 } } [ "Foo" ]
-                                        }
-                                    )
+                            , comments = [ Node { start = { row = 6, column = 1 }, end = { row = 7, column = 3 } } "{-| foo\n-}" ]
                             }
                         )
         ]

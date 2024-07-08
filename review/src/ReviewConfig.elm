@@ -26,6 +26,7 @@ import NoMissingTypeAnnotationInLetIn
 import NoMissingTypeExpose
 import NoPrematureLetComputation
 import NoSimpleLetBody
+import NoUnsortedRecords
 import NoUnused.CustomTypeConstructorArgs
 import NoUnused.CustomTypeConstructors
 import NoUnused.Dependencies
@@ -76,4 +77,5 @@ config =
     , NoUnused.Variables.rule
     , Simplify.rule Simplify.defaults
     , OrderedRanges.rule
+    , NoUnsortedRecords.rule NoUnsortedRecords.defaults
     ]
