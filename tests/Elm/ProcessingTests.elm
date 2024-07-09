@@ -123,10 +123,10 @@ bar = 1
                             All { start = { row = 1, column = 22 }, end = { row = 1, column = 24 } }
                     }
       , imports =
-            [ Node { end = { column = 14, row = 3 }, start = { column = 1, row = 3 } }
+            [ Node { start = { row = 3, column = 1 }, end = { row = 3, column = 14 } }
                 { exposingList = Nothing
                 , moduleAlias = Nothing
-                , moduleName = Node { end = { column = 14, row = 3 }, start = { column = 8, row = 3 } } [ "String" ]
+                , moduleName = Node { start = { row = 3, column = 8 }, end = { row = 3, column = 14 } } [ "String" ]
                 }
             ]
       , declarations =
@@ -167,10 +167,10 @@ bar = 1
                     , exposingList = Node { start = { row = 1, column = 12 }, end = { row = 1, column = 25 } } <| All { start = { row = 1, column = 22 }, end = { row = 1, column = 24 } }
                     }
       , imports =
-            [ Node { end = { column = 14, row = 3 }, start = { column = 1, row = 3 } }
+            [ Node { start = { row = 3, column = 1 }, end = { row = 3, column = 14 } }
                 { exposingList = Nothing
                 , moduleAlias = Nothing
-                , moduleName = Node { end = { column = 14, row = 3 }, start = { column = 8, row = 3 } } [ "String" ]
+                , moduleName = Node { start = { row = 3, column = 8 }, end = { row = 3, column = 14 } } [ "String" ]
                 }
             ]
       , declarations =
@@ -332,10 +332,10 @@ type alias Foo
                     , exposingList = Node { start = { row = 1, column = 12 }, end = { row = 1, column = 25 } } <| All { start = { row = 1, column = 22 }, end = { row = 1, column = 24 } }
                     }
       , imports =
-            [ Node { end = { column = 14, row = 3 }, start = { column = 1, row = 3 } }
+            [ Node { start = { row = 3, column = 1 }, end = { row = 3, column = 14 } }
                 { exposingList = Nothing
                 , moduleAlias = Nothing
-                , moduleName = Node { end = { column = 14, row = 3 }, start = { column = 8, row = 3 } } [ "String" ]
+                , moduleName = Node { start = { row = 3, column = 8 }, end = { row = 3, column = 14 } } [ "String" ]
                 }
             ]
       , declarations =
@@ -445,10 +445,10 @@ type Foo
                 )
             ]
       , imports =
-            [ Node { end = { column = 14, row = 3 }, start = { column = 1, row = 3 } }
+            [ Node { start = { row = 3, column = 1 }, end = { row = 3, column = 14 } }
                 { exposingList = Nothing
                 , moduleAlias = Nothing
-                , moduleName = Node { end = { column = 14, row = 3 }, start = { column = 8, row = 3 } } [ "String" ]
+                , moduleName = Node { start = { row = 3, column = 8 }, end = { row = 3, column = 14 } } [ "String" ]
                 }
             ]
       , moduleDefinition = Node { start = { row = 1, column = 1 }, end = { row = 1, column = 25 } } (NormalModule { exposingList = Node { start = { row = 1, column = 12 }, end = { row = 1, column = 25 } } (All { start = { row = 1, column = 22 }, end = { row = 1, column = 24 } }), moduleName = Node { start = { row = 1, column = 8 }, end = { row = 1, column = 11 } } [ "Bar" ] })
