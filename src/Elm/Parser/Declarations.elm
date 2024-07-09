@@ -6,7 +6,7 @@ import Elm.Parser.Expression exposing (expression, failIfDifferentFrom, function
 import Elm.Parser.Layout as Layout
 import Elm.Parser.Node as Node
 import Elm.Parser.Patterns exposing (pattern)
-import Elm.Parser.State exposing (State)
+import Elm.Parser.State as State exposing (State)
 import Elm.Parser.Tokens exposing (functionName, portToken, prefixOperatorToken)
 import Elm.Parser.TypeAnnotation exposing (typeAnnotation)
 import Elm.Parser.Typings exposing (typeDefinition)
@@ -23,13 +23,13 @@ declaration : Parser State (Node Declaration)
 declaration =
     oneOf
         [ infixDeclaration
-        , portDeclaration
         , maybeDocumentation
             |> Combine.andThen
                 (\maybeDoc ->
                     oneOf
                         [ function maybeDoc
                         , typeDefinition maybeDoc
+                        , portDeclaration maybeDoc
                         ]
                 )
         ]
@@ -144,14 +144,22 @@ infixDirection =
         |> Combine.fromCore
 
 
-portDeclaration : Parser State (Node Declaration)
-portDeclaration =
+portDeclaration : Maybe (Node Documentation) -> Parser State (Node Declaration)
+portDeclaration maybeDoc =
     Combine.succeed
         (\(Node { start } _) sig ->
             Node
                 { start = start, end = (Node.range sig.typeAnnotation).end }
                 (Declaration.PortDeclaration sig)
         )
+        |> Combine.ignore
+            (case maybeDoc of
+                Nothing ->
+                    Combine.succeed ()
+
+                Just doc ->
+                    Combine.modifyState (State.addComment doc)
+            )
         |> Combine.keep (Node.parser portToken)
         |> Combine.ignore Layout.layout
         |> Combine.keep signature

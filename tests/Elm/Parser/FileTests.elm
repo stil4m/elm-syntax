@@ -13,6 +13,7 @@ import Elm.Syntax.Infix exposing (InfixDirection(..))
 import Elm.Syntax.Module exposing (Module(..))
 import Elm.Syntax.Node exposing (Node(..))
 import Elm.Syntax.Pattern exposing (Pattern(..))
+import Elm.Syntax.TypeAnnotation exposing (TypeAnnotation(..))
 import Expect
 import Json.Decode
 import Json.Encode
@@ -378,6 +379,58 @@ type Configuration
                                             Node { start = { row = 2, column = 12 }, end = { row = 2, column = 25 } }
                                                 (All { start = { row = 2, column = 22 }, end = { row = 2, column = 24 } })
                                         , moduleName = Node { start = { row = 2, column = 8 }, end = { row = 2, column = 11 } } [ "Foo" ]
+                                        }
+                                    )
+                            }
+                        )
+        , test "documentation on a port declaration is treated as a normal comment" <|
+            \() ->
+                """
+port module Foo exposing (..)
+
+import String
+
+{-| foo
+-}
+port sendResponse : String -> Cmd msg
+"""
+                    |> Elm.Parser.parseToFile
+                    |> Expect.equal
+                        (Ok
+                            { comments = [ Node { end = { column = 3, row = 7 }, start = { column = 1, row = 6 } } "{-| foo\n-}" ]
+                            , declarations =
+                                [ Node { end = { column = 38, row = 8 }, start = { column = 1, row = 8 } }
+                                    (PortDeclaration
+                                        { name = Node { end = { column = 18, row = 8 }, start = { column = 6, row = 8 } } "sendResponse"
+                                        , typeAnnotation =
+                                            Node { end = { column = 38, row = 8 }, start = { column = 21, row = 8 } }
+                                                (FunctionTypeAnnotation
+                                                    (Node { end = { column = 27, row = 8 }, start = { column = 21, row = 8 } }
+                                                        (Typed (Node { end = { column = 27, row = 8 }, start = { column = 21, row = 8 } } ( [], "String" )) [])
+                                                    )
+                                                    (Node { end = { column = 38, row = 8 }, start = { column = 31, row = 8 } }
+                                                        (Typed (Node { end = { column = 34, row = 8 }, start = { column = 31, row = 8 } } ( [], "Cmd" ))
+                                                            [ Node { end = { column = 38, row = 8 }, start = { column = 35, row = 8 } } (GenericType "msg") ]
+                                                        )
+                                                    )
+                                                )
+                                        }
+                                    )
+                                ]
+                            , imports =
+                                [ Node { end = { column = 14, row = 4 }, start = { column = 1, row = 4 } }
+                                    { exposingList = Nothing
+                                    , moduleAlias = Nothing
+                                    , moduleName = Node { end = { column = 14, row = 4 }, start = { column = 8, row = 4 } } [ "String" ]
+                                    }
+                                ]
+                            , moduleDefinition =
+                                Node { end = { column = 30, row = 2 }, start = { column = 1, row = 2 } }
+                                    (PortModule
+                                        { exposingList =
+                                            Node { end = { column = 30, row = 2 }, start = { column = 17, row = 2 } }
+                                                (All { end = { column = 29, row = 2 }, start = { column = 27, row = 2 } })
+                                        , moduleName = Node { end = { column = 16, row = 2 }, start = { column = 13, row = 2 } } [ "Foo" ]
                                         }
                                     )
                             }
