@@ -341,4 +341,45 @@ type Configuration
                                     )
                             }
                         )
+        , test "module documentation formatted like a type documentation" <|
+            \() ->
+                """
+module Foo exposing (..)
+
+{-| actually module doc
+-}
+type Configuration
+    = Configuration
+"""
+                    |> Elm.Parser.parseToFile
+                    |> Expect.equal
+                        (Ok
+                            { comments = [ Node { start = { row = 4, column = 1 }, end = { row = 5, column = 3 } } "{-| actually module doc\n-}" ]
+                            , declarations =
+                                [ Node { start = { row = 6, column = 1 }, end = { row = 7, column = 20 } }
+                                    (CustomTypeDeclaration
+                                        { constructors =
+                                            [ Node { start = { row = 7, column = 7 }, end = { row = 7, column = 20 } }
+                                                { arguments = []
+                                                , name = Node { start = { row = 7, column = 7 }, end = { row = 7, column = 20 } } "Configuration"
+                                                }
+                                            ]
+                                        , documentation = Nothing
+                                        , generics = []
+                                        , name = Node { start = { row = 6, column = 6 }, end = { row = 6, column = 19 } } "Configuration"
+                                        }
+                                    )
+                                ]
+                            , imports = []
+                            , moduleDefinition =
+                                Node { start = { row = 2, column = 1 }, end = { row = 2, column = 25 } }
+                                    (NormalModule
+                                        { exposingList =
+                                            Node { start = { row = 2, column = 12 }, end = { row = 2, column = 25 } }
+                                                (All { start = { row = 2, column = 22 }, end = { row = 2, column = 24 } })
+                                        , moduleName = Node { start = { row = 2, column = 8 }, end = { row = 2, column = 11 } } [ "Foo" ]
+                                        }
+                                    )
+                            }
+                        )
         ]
