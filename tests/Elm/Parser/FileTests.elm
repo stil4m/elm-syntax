@@ -13,6 +13,7 @@ import Elm.Syntax.Infix exposing (InfixDirection(..))
 import Elm.Syntax.Module exposing (Module(..))
 import Elm.Syntax.Node exposing (Node(..))
 import Elm.Syntax.Pattern exposing (Pattern(..))
+import Elm.Syntax.TypeAnnotation exposing (TypeAnnotation(..))
 import Expect
 import Json.Decode
 import Json.Encode
@@ -378,6 +379,58 @@ type Configuration
                                             Node { start = { row = 2, column = 12 }, end = { row = 2, column = 25 } }
                                                 (All { start = { row = 2, column = 22 }, end = { row = 2, column = 24 } })
                                         , moduleName = Node { start = { row = 2, column = 8 }, end = { row = 2, column = 11 } } [ "Foo" ]
+                                        }
+                                    )
+                            }
+                        )
+        , test "documentation on a port declaration is treated as a normal comment" <|
+            \() ->
+                """
+port module Foo exposing (..)
+
+import String
+
+{-| foo
+-}
+port sendResponse : String -> Cmd msg
+"""
+                    |> Elm.Parser.parseToFile
+                    |> Expect.equal
+                        (Ok
+                            { comments = [ Node { start = { row = 6, column = 1 }, end = { row = 7, column = 3 } } "{-| foo\n-}" ]
+                            , declarations =
+                                [ Node { start = { row = 8, column = 1 }, end = { row = 8, column = 38 } }
+                                    (PortDeclaration
+                                        { name = Node { start = { row = 8, column = 6 }, end = { row = 8, column = 18 } } "sendResponse"
+                                        , typeAnnotation =
+                                            Node { start = { row = 8, column = 21 }, end = { row = 8, column = 38 } }
+                                                (FunctionTypeAnnotation
+                                                    (Node { start = { row = 8, column = 21 }, end = { row = 8, column = 27 } }
+                                                        (Typed (Node { start = { row = 8, column = 21 }, end = { row = 8, column = 27 } } ( [], "String" )) [])
+                                                    )
+                                                    (Node { start = { row = 8, column = 31 }, end = { row = 8, column = 38 } }
+                                                        (Typed (Node { start = { row = 8, column = 31 }, end = { row = 8, column = 34 } } ( [], "Cmd" ))
+                                                            [ Node { start = { row = 8, column = 35 }, end = { row = 8, column = 38 } } (GenericType "msg") ]
+                                                        )
+                                                    )
+                                                )
+                                        }
+                                    )
+                                ]
+                            , imports =
+                                [ Node { start = { row = 4, column = 1 }, end = { row = 4, column = 14 } }
+                                    { exposingList = Nothing
+                                    , moduleAlias = Nothing
+                                    , moduleName = Node { start = { row = 4, column = 8 }, end = { row = 4, column = 14 } } [ "String" ]
+                                    }
+                                ]
+                            , moduleDefinition =
+                                Node { start = { row = 2, column = 1 }, end = { row = 2, column = 30 } }
+                                    (PortModule
+                                        { exposingList =
+                                            Node { start = { row = 2, column = 17 }, end = { row = 2, column = 30 } }
+                                                (All { start = { row = 2, column = 27 }, end = { row = 2, column = 29 } })
+                                        , moduleName = Node { start = { row = 2, column = 13 }, end = { row = 2, column = 16 } } [ "Foo" ]
                                         }
                                     )
                             }
