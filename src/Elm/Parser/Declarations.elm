@@ -6,7 +6,7 @@ import Elm.Parser.Expression exposing (expression, failIfDifferentFrom, function
 import Elm.Parser.Layout as Layout
 import Elm.Parser.Node as Node
 import Elm.Parser.Patterns exposing (pattern)
-import Elm.Parser.State as State exposing (State)
+import Elm.Parser.State exposing (State)
 import Elm.Parser.Tokens exposing (functionName, portToken, prefixOperatorToken)
 import Elm.Parser.TypeAnnotation exposing (typeAnnotation)
 import Elm.Parser.Typings exposing (typeDefinition)
@@ -16,7 +16,6 @@ import Elm.Syntax.Expression as Expression exposing (Function, FunctionImplement
 import Elm.Syntax.Infix as Infix exposing (Infix)
 import Elm.Syntax.Node as Node exposing (Node(..))
 import Elm.Syntax.Signature exposing (Signature)
-import List.Extra
 import Parser as Core
 
 
@@ -34,30 +33,13 @@ declaration =
                         ]
                 )
         ]
-        |> Combine.ignore (Combine.modifyState State.parsedImportOrDeclaration)
 
 
 maybeDocumentation : Parser State (Maybe (Node Documentation))
 maybeDocumentation =
-    Combine.oneOf
-        [ Comments.declarationDocumentation
-            |> Combine.ignore Layout.layoutStrict
-            |> Combine.map Just
-        , Combine.withState
-            (\state ->
-                if State.checkParsedImportOrDeclaration state then
-                    Combine.succeed Nothing
-
-                else
-                    case state |> State.getComments |> List.Extra.find (\(Node _ comment) -> String.startsWith "{-|" comment) of
-                        Nothing ->
-                            Combine.succeed Nothing
-
-                        Just doc ->
-                            Combine.modifyState (State.removeComment doc)
-                                |> Combine.continueWith (Combine.succeed (Just doc))
-            )
-        ]
+    Comments.declarationDocumentation
+        |> Combine.ignore Layout.layoutStrict
+        |> maybe
 
 
 function : Maybe (Node Documentation) -> Parser State (Node Declaration)

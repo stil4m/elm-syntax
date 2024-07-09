@@ -1,26 +1,21 @@
 module Elm.Parser.State exposing
     ( State
     , addComment
-    , checkParsedImportOrDeclaration
     , currentIndent
     , emptyState
     , expectedColumn
     , getComments
-    , parsedImportOrDeclaration
     , popIndent
     , pushIndent
-    , removeComment
     )
 
 import Elm.Syntax.Node exposing (Node)
-import List.Extra
 
 
 type State
     = State
         { indents : List Int
         , comments : List (Node String)
-        , importOrDeclarationParsed : Bool
         }
 
 
@@ -29,18 +24,7 @@ emptyState =
     State
         { indents = []
         , comments = []
-        , importOrDeclarationParsed = False
         }
-
-
-parsedImportOrDeclaration : State -> State
-parsedImportOrDeclaration (State state) =
-    State { state | importOrDeclarationParsed = True }
-
-
-checkParsedImportOrDeclaration : State -> Bool
-checkParsedImportOrDeclaration (State { importOrDeclarationParsed }) =
-    importOrDeclarationParsed
 
 
 currentIndent : State -> Maybe Int
@@ -71,11 +55,6 @@ popIndent (State s) =
 addComment : Node String -> State -> State
 addComment pair (State s) =
     State { s | comments = pair :: s.comments }
-
-
-removeComment : Node String -> State -> State
-removeComment comment (State ({ comments } as state)) =
-    State { state | comments = List.Extra.remove comment comments }
 
 
 getComments : State -> List (Node String)
