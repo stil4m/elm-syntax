@@ -4,8 +4,6 @@ import Combine exposing (Parser)
 import Elm.Parser.CombineTestUtil exposing (..)
 import Elm.Parser.Layout as Layout
 import Elm.Parser.State exposing (State)
-import Elm.Syntax.Node exposing (Node(..))
-import Elm.Syntax.Range as Range
 import Expect
 import Test exposing (..)
 
@@ -89,32 +87,6 @@ all =
             \() ->
                 parse "\n{- some note -}    \n" Layout.layoutStrict
                     |> Expect.equal (Just ())
-        , test "declarationDocumentation when there is one" <|
-            \() ->
-                parse "{-| docs -}\n" Layout.declarationDocumentation
-                    |> Expect.equal (Just (Just (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 12 } } "{-| docs -}")))
-        , test "declarationDocumentation when there one documentation in the state not claimed by an import or declaration" <|
-            \() ->
-                parse ""
-                    (modifyState
-                        (Elm.Parser.State.addComment (Node Range.empty "{-| docs -}"))
-                        Layout.declarationDocumentation
-                    )
-                    |> Expect.equal (Just (Just (Node Range.empty "{-| docs -}")))
-        , test "declarationDocumentation when there one documentation in the state claimed by an import or declaration" <|
-            \() ->
-                parse ""
-                    (modifyState
-                        (Elm.Parser.State.parsedImportOrDeclaration
-                            >> Elm.Parser.State.addComment (Node Range.empty "{-| docs -}")
-                        )
-                        Layout.declarationDocumentation
-                    )
-                    |> Expect.equal (Just Nothing)
-        , test "declarationDocumentation when there is no documentation in the state" <|
-            \() ->
-                parse "" Layout.declarationDocumentation
-                    |> Expect.equal (Just Nothing)
         ]
 
 
@@ -122,8 +94,3 @@ pushIndent : Int -> Parser State b -> Parser State b
 pushIndent x p =
     Combine.modifyState (Elm.Parser.State.pushIndent (x + 1))
         |> Combine.continueWith p
-
-
-modifyState : (State -> State) -> Parser State b -> Parser State b
-modifyState f p =
-    Combine.modifyState f |> Combine.continueWith p

@@ -14,18 +14,20 @@ import Elm.Syntax.Type exposing (ValueConstructor)
 import Elm.Syntax.TypeAnnotation exposing (TypeAnnotation)
 
 
-typeDefinition : Parser State (Node Declaration.Declaration)
-typeDefinition =
+typeDefinition : Maybe (Node Documentation) -> Parser State (Node Declaration.Declaration)
+typeDefinition maybeDoc =
     typePrefix
         |> Combine.andThen
-            (\( start, maybeDocs ) ->
+            (\(Node { start } _) ->
                 Combine.oneOf
                     [ Combine.succeed
                         (\name generics typeAnnotation ->
                             Node
-                                { start = start, end = (Node.range typeAnnotation).end }
+                                { start = maybeDoc |> Maybe.map (Node.range >> .start) |> Maybe.withDefault start
+                                , end = (Node.range typeAnnotation).end
+                                }
                                 (Declaration.AliasDeclaration
-                                    { documentation = maybeDocs
+                                    { documentation = maybeDoc
                                     , name = name
                                     , generics = generics
                                     , typeAnnotation = typeAnnotation
@@ -35,7 +37,6 @@ typeDefinition =
                         |> Combine.ignore (string "alias")
                         |> Combine.ignore Layout.layout
                         |> Combine.keep (Node.parser typeName)
-                        |> Combine.ignore (maybe Layout.layout)
                         |> Combine.ignore (maybe Layout.layout)
                         |> Combine.keep genericList
                         |> Combine.ignore (string "=")
@@ -54,9 +55,11 @@ typeDefinition =
                                             start
                             in
                             Node
-                                { start = start, end = end }
+                                { start = maybeDoc |> Maybe.map (Node.range >> .start) |> Maybe.withDefault start
+                                , end = end
+                                }
                                 (Declaration.CustomTypeDeclaration
-                                    { documentation = maybeDocs
+                                    { documentation = maybeDoc
                                     , name = name
                                     , generics = generics
                                     , constructors = List.reverse constructors
@@ -125,17 +128,8 @@ genericList =
     many (Node.parser functionName |> Combine.ignore (maybe Layout.layout))
 
 
-typePrefix : Parser State ( Location, Maybe (Node Documentation) )
+typePrefix : Parser State (Node String)
 typePrefix =
-    Combine.succeed
-        (\maybeDocs prefix ->
-            case maybeDocs of
-                Nothing ->
-                    ( (Node.range prefix).start, Nothing )
-
-                Just (Node { start } _) ->
-                    ( start, maybeDocs )
-        )
-        |> Combine.keep Layout.declarationDocumentation
-        |> Combine.keep (Node.parser (Combine.string "type"))
+    Combine.string "type"
+        |> Node.parser
         |> Combine.ignore Layout.layout

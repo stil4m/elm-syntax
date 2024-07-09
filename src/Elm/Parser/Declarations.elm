@@ -1,6 +1,7 @@
 module Elm.Parser.Declarations exposing (declaration)
 
 import Combine exposing (Parser, maybe, oneOf, string, succeed)
+import Elm.Parser.Comments as Comments
 import Elm.Parser.Expression exposing (expression, failIfDifferentFrom, functionSignatureFromVarPointer)
 import Elm.Parser.Layout as Layout
 import Elm.Parser.Node as Node
@@ -10,10 +11,12 @@ import Elm.Parser.Tokens exposing (functionName, portToken, prefixOperatorToken)
 import Elm.Parser.TypeAnnotation exposing (typeAnnotation)
 import Elm.Parser.Typings exposing (typeDefinition)
 import Elm.Syntax.Declaration as Declaration exposing (Declaration)
+import Elm.Syntax.Documentation exposing (Documentation)
 import Elm.Syntax.Expression as Expression exposing (Function, FunctionImplementation)
 import Elm.Syntax.Infix as Infix exposing (Infix)
 import Elm.Syntax.Node as Node exposing (Node(..))
 import Elm.Syntax.Signature exposing (Signature)
+import List.Extra
 import Parser as Core
 
 
@@ -21,28 +24,54 @@ declaration : Parser State (Node Declaration)
 declaration =
     oneOf
         [ infixDeclaration
-        , function
-        , typeDefinition
         , portDeclaration
+        , maybeDocumentation
+            |> Combine.andThen
+                (\maybeDoc ->
+                    oneOf
+                        [ function maybeDoc
+                        , typeDefinition maybeDoc
+                        ]
+                )
         ]
         |> Combine.ignore (Combine.modifyState State.parsedImportOrDeclaration)
 
 
-function : Parser State (Node Declaration)
-function =
-    Combine.succeed
-        (\maybeDoc f ->
-            Node
-                { start = maybeDoc |> Maybe.map (Node.range >> .start) |> Maybe.withDefault (Expression.functionRange f).start
-                , end = (Expression.functionRange f).end
-                }
-                (Declaration.FunctionDeclaration { f | documentation = maybeDoc })
-        )
-        |> Combine.keep Layout.declarationDocumentation
-        |> Combine.keep
-            (Node.parser functionName
-                |> Combine.ignore (maybe Layout.layout)
-                |> Combine.andThen functionWithNameNode
+maybeDocumentation : Parser State (Maybe (Node Documentation))
+maybeDocumentation =
+    Combine.oneOf
+        [ Comments.declarationDocumentation
+            |> Combine.ignore Layout.layoutStrict
+            |> Combine.map Just
+        , Combine.withState
+            (\state ->
+                if State.checkParsedImportOrDeclaration state then
+                    Combine.succeed Nothing
+
+                else
+                    case state |> State.getComments |> List.Extra.find (\(Node _ comment) -> String.startsWith "{-|" comment) of
+                        Nothing ->
+                            Combine.succeed Nothing
+
+                        Just doc ->
+                            Combine.modifyState (State.removeComment doc)
+                                |> Combine.continueWith (Combine.succeed (Just doc))
+            )
+        ]
+
+
+function : Maybe (Node Documentation) -> Parser State (Node Declaration)
+function maybeDoc =
+    Node.parser functionName
+        |> Combine.ignore (maybe Layout.layout)
+        |> Combine.andThen functionWithNameNode
+        |> Combine.map
+            (\f ->
+                Node
+                    { start = maybeDoc |> Maybe.map (Node.range >> .start) |> Maybe.withDefault (Expression.functionRange f).start
+                    , end = (Expression.functionRange f).end
+                    }
+                    (Declaration.FunctionDeclaration { f | documentation = maybeDoc })
             )
 
 
