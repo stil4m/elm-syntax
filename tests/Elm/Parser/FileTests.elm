@@ -397,20 +397,20 @@ port sendResponse : String -> Cmd msg
                     |> Elm.Parser.parseToFile
                     |> Expect.equal
                         (Ok
-                            { comments = [ Node { end = { column = 3, row = 7 }, start = { column = 1, row = 6 } } "{-| foo\n-}" ]
+                            { comments = [ Node { start = { row = 6, column = 1 }, end = { row = 7, column = 3 } } "{-| foo\n-}" ]
                             , declarations =
-                                [ Node { end = { column = 38, row = 8 }, start = { column = 1, row = 8 } }
+                                [ Node { start = { row = 8, column = 1 }, end = { row = 8, column = 38 } }
                                     (PortDeclaration
-                                        { name = Node { end = { column = 18, row = 8 }, start = { column = 6, row = 8 } } "sendResponse"
+                                        { name = Node { start = { row = 8, column = 6 }, end = { row = 8, column = 18 } } "sendResponse"
                                         , typeAnnotation =
-                                            Node { end = { column = 38, row = 8 }, start = { column = 21, row = 8 } }
+                                            Node { start = { row = 8, column = 21 }, end = { row = 8, column = 38 } }
                                                 (FunctionTypeAnnotation
-                                                    (Node { end = { column = 27, row = 8 }, start = { column = 21, row = 8 } }
-                                                        (Typed (Node { end = { column = 27, row = 8 }, start = { column = 21, row = 8 } } ( [], "String" )) [])
+                                                    (Node { start = { row = 8, column = 21 }, end = { row = 8, column = 27 } }
+                                                        (Typed (Node { start = { row = 8, column = 21 }, end = { row = 8, column = 27 } } ( [], "String" )) [])
                                                     )
-                                                    (Node { end = { column = 38, row = 8 }, start = { column = 31, row = 8 } }
-                                                        (Typed (Node { end = { column = 34, row = 8 }, start = { column = 31, row = 8 } } ( [], "Cmd" ))
-                                                            [ Node { end = { column = 38, row = 8 }, start = { column = 35, row = 8 } } (GenericType "msg") ]
+                                                    (Node { start = { row = 8, column = 31 }, end = { row = 8, column = 38 } }
+                                                        (Typed (Node { start = { row = 8, column = 31 }, end = { row = 8, column = 34 } } ( [], "Cmd" ))
+                                                            [ Node { start = { row = 8, column = 35 }, end = { row = 8, column = 38 } } (GenericType "msg") ]
                                                         )
                                                     )
                                                 )
@@ -418,19 +418,19 @@ port sendResponse : String -> Cmd msg
                                     )
                                 ]
                             , imports =
-                                [ Node { end = { column = 14, row = 4 }, start = { column = 1, row = 4 } }
+                                [ Node { start = { row = 4, column = 1 }, end = { row = 4, column = 14 } }
                                     { exposingList = Nothing
                                     , moduleAlias = Nothing
-                                    , moduleName = Node { end = { column = 14, row = 4 }, start = { column = 8, row = 4 } } [ "String" ]
+                                    , moduleName = Node { start = { row = 4, column = 8 }, end = { row = 4, column = 14 } } [ "String" ]
                                     }
                                 ]
                             , moduleDefinition =
-                                Node { end = { column = 30, row = 2 }, start = { column = 1, row = 2 } }
+                                Node { start = { row = 2, column = 1 }, end = { row = 2, column = 30 } }
                                     (PortModule
                                         { exposingList =
-                                            Node { end = { column = 30, row = 2 }, start = { column = 17, row = 2 } }
-                                                (All { end = { column = 29, row = 2 }, start = { column = 27, row = 2 } })
-                                        , moduleName = Node { end = { column = 16, row = 2 }, start = { column = 13, row = 2 } } [ "Foo" ]
+                                            Node { start = { row = 2, column = 17 }, end = { row = 2, column = 30 } }
+                                                (All { start = { row = 2, column = 27 }, end = { row = 2, column = 29 } })
+                                        , moduleName = Node { start = { row = 2, column = 13 }, end = { row = 2, column = 16 } } [ "Foo" ]
                                         }
                                     )
                             }
