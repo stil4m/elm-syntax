@@ -108,6 +108,8 @@ functionWithDocs =
     , """
 module Bar exposing (..)
 
+import String
+
 {-| The docs
 -}
 bar = 1
@@ -120,17 +122,23 @@ bar = 1
                         Node { start = { row = 1, column = 12 }, end = { row = 1, column = 25 } } <|
                             All { start = { row = 1, column = 22 }, end = { row = 1, column = 24 } }
                     }
-      , imports = []
+      , imports =
+            [ Node { end = { column = 14, row = 3 }, start = { column = 1, row = 3 } }
+                { exposingList = Nothing
+                , moduleAlias = Nothing
+                , moduleName = Node { end = { column = 14, row = 3 }, start = { column = 8, row = 3 } } [ "String" ]
+                }
+            ]
       , declarations =
-            [ Node { start = { row = 3, column = 1 }, end = { row = 5, column = 8 } } <|
+            [ Node { start = { row = 5, column = 1 }, end = { row = 7, column = 8 } } <|
                 FunctionDeclaration
-                    { documentation = Just (Node { start = { row = 3, column = 1 }, end = { row = 4, column = 3 } } "{-| The docs\n-}")
+                    { documentation = Just (Node { start = { row = 5, column = 1 }, end = { row = 6, column = 3 } } "{-| The docs\n-}")
                     , signature = Nothing
                     , declaration =
-                        Node { start = { row = 5, column = 1 }, end = { row = 5, column = 8 } }
-                            { name = Node { start = { row = 5, column = 1 }, end = { row = 5, column = 4 } } "bar"
+                        Node { start = { row = 7, column = 1 }, end = { row = 7, column = 8 } }
+                            { name = Node { start = { row = 7, column = 1 }, end = { row = 7, column = 4 } } "bar"
                             , arguments = []
-                            , expression = Node { start = { row = 5, column = 7 }, end = { row = 5, column = 8 } } <| Integer 1
+                            , expression = Node { start = { row = 7, column = 7 }, end = { row = 7, column = 8 } } <| Integer 1
                             }
                     }
             ]
@@ -145,6 +153,8 @@ functionWithDocsAndSignature =
     , """
 module Bar exposing (..)
 
+import String
+
 {-| The docs
 -}
 bar : Int
@@ -156,26 +166,32 @@ bar = 1
                     { moduleName = Node { start = { row = 1, column = 8 }, end = { row = 1, column = 11 } } [ "Bar" ]
                     , exposingList = Node { start = { row = 1, column = 12 }, end = { row = 1, column = 25 } } <| All { start = { row = 1, column = 22 }, end = { row = 1, column = 24 } }
                     }
-      , imports = []
+      , imports =
+            [ Node { end = { column = 14, row = 3 }, start = { column = 1, row = 3 } }
+                { exposingList = Nothing
+                , moduleAlias = Nothing
+                , moduleName = Node { end = { column = 14, row = 3 }, start = { column = 8, row = 3 } } [ "String" ]
+                }
+            ]
       , declarations =
-            [ Node { start = { row = 3, column = 1 }, end = { row = 6, column = 8 } } <|
+            [ Node { start = { row = 5, column = 1 }, end = { row = 8, column = 8 } } <|
                 FunctionDeclaration
                     { documentation =
-                        Just <| Node { start = { row = 3, column = 1 }, end = { row = 4, column = 3 } } "{-| The docs\n-}"
+                        Just <| Node { start = { row = 5, column = 1 }, end = { row = 6, column = 3 } } "{-| The docs\n-}"
                     , signature =
                         Just
-                            (Node { start = { row = 5, column = 1 }, end = { row = 5, column = 10 } } <|
-                                { name = Node { start = { row = 5, column = 1 }, end = { row = 5, column = 4 } } "bar"
+                            (Node { start = { row = 7, column = 1 }, end = { row = 7, column = 10 } } <|
+                                { name = Node { start = { row = 7, column = 1 }, end = { row = 7, column = 4 } } "bar"
                                 , typeAnnotation =
-                                    Node { start = { row = 5, column = 7 }, end = { row = 5, column = 10 } } <|
-                                        Typed (Node { start = { row = 5, column = 7 }, end = { row = 5, column = 10 } } ( [], "Int" )) []
+                                    Node { start = { row = 7, column = 7 }, end = { row = 7, column = 10 } } <|
+                                        Typed (Node { start = { row = 7, column = 7 }, end = { row = 7, column = 10 } } ( [], "Int" )) []
                                 }
                             )
                     , declaration =
-                        Node { start = { row = 6, column = 1 }, end = { row = 6, column = 8 } }
-                            { name = Node { start = { row = 6, column = 1 }, end = { row = 6, column = 4 } } "bar"
+                        Node { start = { row = 8, column = 1 }, end = { row = 8, column = 8 } }
+                            { name = Node { start = { row = 8, column = 1 }, end = { row = 8, column = 4 } } "bar"
                             , arguments = []
-                            , expression = Node { start = { row = 6, column = 7 }, end = { row = 6, column = 8 } } <| Integer 1
+                            , expression = Node { start = { row = 8, column = 7 }, end = { row = 8, column = 8 } } <| Integer 1
                             }
                     }
             ]
@@ -303,6 +319,8 @@ typeAliasWithDocumentation =
     , """
 module Bar exposing (..)
 
+import String
+
 {-| The Doc -}
 type alias Foo
    = { name : String }
@@ -313,22 +331,28 @@ type alias Foo
                     { moduleName = Node { start = { row = 1, column = 8 }, end = { row = 1, column = 11 } } [ "Bar" ]
                     , exposingList = Node { start = { row = 1, column = 12 }, end = { row = 1, column = 25 } } <| All { start = { row = 1, column = 22 }, end = { row = 1, column = 24 } }
                     }
-      , imports = []
+      , imports =
+            [ Node { end = { column = 14, row = 3 }, start = { column = 1, row = 3 } }
+                { exposingList = Nothing
+                , moduleAlias = Nothing
+                , moduleName = Node { end = { column = 14, row = 3 }, start = { column = 8, row = 3 } } [ "String" ]
+                }
+            ]
       , declarations =
-            [ Node { start = { row = 3, column = 1 }, end = { row = 5, column = 23 } } <|
+            [ Node { start = { row = 5, column = 1 }, end = { row = 7, column = 23 } } <|
                 AliasDeclaration
                     { documentation =
                         Just <|
-                            Node { start = { row = 3, column = 1 }, end = { row = 3, column = 15 } } "{-| The Doc -}"
-                    , name = Node { start = { row = 4, column = 12 }, end = { row = 4, column = 15 } } "Foo"
+                            Node { start = { row = 5, column = 1 }, end = { row = 5, column = 15 } } "{-| The Doc -}"
+                    , name = Node { start = { row = 6, column = 12 }, end = { row = 6, column = 15 } } "Foo"
                     , generics = []
                     , typeAnnotation =
-                        Node { start = { row = 5, column = 6 }, end = { row = 5, column = 23 } } <|
+                        Node { start = { row = 7, column = 6 }, end = { row = 7, column = 23 } } <|
                             Record
-                                [ Node { start = { row = 5, column = 8 }, end = { row = 5, column = 21 } }
-                                    ( Node { start = { row = 5, column = 8 }, end = { row = 5, column = 12 } } "name"
-                                    , Node { start = { row = 5, column = 15 }, end = { row = 5, column = 21 } } <|
-                                        Typed (Node { start = { row = 5, column = 15 }, end = { row = 5, column = 21 } } ( [], "String" )) []
+                                [ Node { start = { row = 7, column = 8 }, end = { row = 7, column = 21 } }
+                                    ( Node { start = { row = 7, column = 8 }, end = { row = 7, column = 12 } } "name"
+                                    , Node { start = { row = 7, column = 15 }, end = { row = 7, column = 21 } } <|
+                                        Typed (Node { start = { row = 7, column = 15 }, end = { row = 7, column = 21 } } ( [], "String" )) []
                                     )
                                 ]
                     }
@@ -393,6 +417,8 @@ typeWithDocumentation =
     , """
 module Bar exposing (..)
 
+import String
+
 {-| The Doc -}
 type Foo
    = Red
@@ -400,25 +426,31 @@ type Foo
 """
     , { comments = []
       , declarations =
-            [ Node { start = { row = 3, column = 1 }, end = { row = 6, column = 10 } }
+            [ Node { start = { row = 5, column = 1 }, end = { row = 8, column = 10 } }
                 (CustomTypeDeclaration
                     { constructors =
-                        [ Node { start = { row = 5, column = 6 }, end = { row = 5, column = 9 } }
-                            { arguments = [], name = Node { start = { row = 5, column = 6 }, end = { row = 5, column = 9 } } "Red" }
-                        , Node { start = { row = 6, column = 6 }, end = { row = 6, column = 10 } }
-                            { arguments = [], name = Node { start = { row = 6, column = 6 }, end = { row = 6, column = 10 } } "Blue" }
+                        [ Node { start = { row = 7, column = 6 }, end = { row = 7, column = 9 } }
+                            { arguments = [], name = Node { start = { row = 7, column = 6 }, end = { row = 7, column = 9 } } "Red" }
+                        , Node { start = { row = 8, column = 6 }, end = { row = 8, column = 10 } }
+                            { arguments = [], name = Node { start = { row = 8, column = 6 }, end = { row = 8, column = 10 } } "Blue" }
                         ]
                     , documentation =
                         Just
-                            (Node { start = { row = 3, column = 1 }, end = { row = 3, column = 15 } }
+                            (Node { start = { row = 5, column = 1 }, end = { row = 5, column = 15 } }
                                 "{-| The Doc -}"
                             )
                     , generics = []
-                    , name = Node { start = { row = 4, column = 6 }, end = { row = 4, column = 9 } } "Foo"
+                    , name = Node { start = { row = 6, column = 6 }, end = { row = 6, column = 9 } } "Foo"
                     }
                 )
             ]
-      , imports = []
+      , imports =
+            [ Node { end = { column = 14, row = 3 }, start = { column = 1, row = 3 } }
+                { exposingList = Nothing
+                , moduleAlias = Nothing
+                , moduleName = Node { end = { column = 14, row = 3 }, start = { column = 8, row = 3 } } [ "String" ]
+                }
+            ]
       , moduleDefinition = Node { start = { row = 1, column = 1 }, end = { row = 1, column = 25 } } (NormalModule { exposingList = Node { start = { row = 1, column = 12 }, end = { row = 1, column = 25 } } (All { start = { row = 1, column = 22 }, end = { row = 1, column = 24 } }), moduleName = Node { start = { row = 1, column = 8 }, end = { row = 1, column = 11 } } [ "Bar" ] })
       }
     )
