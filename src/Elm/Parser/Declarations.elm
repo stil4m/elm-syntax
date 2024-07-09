@@ -49,11 +49,16 @@ function maybeDoc =
         |> Combine.andThen functionWithNameNode
         |> Combine.map
             (\f ->
-                Node
-                    { start = maybeDoc |> Maybe.map (Node.range >> .start) |> Maybe.withDefault (Expression.functionRange f).start
-                    , end = (Expression.functionRange f).end
-                    }
-                    (Declaration.FunctionDeclaration { f | documentation = maybeDoc })
+                let
+                    ({ end } as functionRange) =
+                        Expression.functionRange f
+                in
+                case maybeDoc of
+                    Just (Node { start } _) ->
+                        Node { start = start, end = end } (Declaration.FunctionDeclaration { f | documentation = maybeDoc })
+
+                    Nothing ->
+                        Node functionRange (Declaration.FunctionDeclaration f)
             )
 
 

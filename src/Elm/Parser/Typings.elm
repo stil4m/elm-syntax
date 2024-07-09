@@ -21,10 +21,10 @@ typeDefinition maybeDoc =
             (\(Node { start } _) ->
                 Combine.oneOf
                     [ Combine.succeed
-                        (\name generics typeAnnotation ->
+                        (\name generics ((Node { end } _) as typeAnnotation) ->
                             Node
                                 { start = maybeDoc |> Maybe.map (Node.range >> .start) |> Maybe.withDefault start
-                                , end = (Node.range typeAnnotation).end
+                                , end = end
                                 }
                                 (Declaration.AliasDeclaration
                                     { documentation = maybeDoc
