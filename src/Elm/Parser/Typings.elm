@@ -7,24 +7,27 @@ import Elm.Parser.State exposing (State)
 import Elm.Parser.Tokens exposing (functionName, typeName)
 import Elm.Parser.TypeAnnotation exposing (typeAnnotation, typeAnnotationNonGreedy)
 import Elm.Syntax.Declaration as Declaration
+import Elm.Syntax.Documentation exposing (Documentation)
 import Elm.Syntax.Node as Node exposing (Node(..))
 import Elm.Syntax.Range exposing (Location, Range)
 import Elm.Syntax.Type exposing (ValueConstructor)
 import Elm.Syntax.TypeAnnotation exposing (TypeAnnotation)
 
 
-typeDefinition : Parser State (Node Declaration.Declaration)
-typeDefinition =
+typeDefinition : Maybe (Node Documentation) -> Parser State (Node Declaration.Declaration)
+typeDefinition maybeDoc =
     typePrefix
         |> Combine.andThen
             (\(Node { start } _) ->
                 Combine.oneOf
                     [ Combine.succeed
-                        (\name generics typeAnnotation ->
+                        (\name generics ((Node { end } _) as typeAnnotation) ->
                             Node
-                                { start = start, end = (Node.range typeAnnotation).end }
+                                { start = maybeDoc |> Maybe.map (Node.range >> .start) |> Maybe.withDefault start
+                                , end = end
+                                }
                                 (Declaration.AliasDeclaration
-                                    { documentation = Nothing
+                                    { documentation = maybeDoc
                                     , name = name
                                     , generics = generics
                                     , typeAnnotation = typeAnnotation
@@ -34,7 +37,6 @@ typeDefinition =
                         |> Combine.ignore (string "alias")
                         |> Combine.ignore Layout.layout
                         |> Combine.keep (Node.parser typeName)
-                        |> Combine.ignore (maybe Layout.layout)
                         |> Combine.ignore (maybe Layout.layout)
                         |> Combine.keep genericList
                         |> Combine.ignore (string "=")
@@ -53,9 +55,11 @@ typeDefinition =
                                             start
                             in
                             Node
-                                { start = start, end = end }
+                                { start = maybeDoc |> Maybe.map (Node.range >> .start) |> Maybe.withDefault start
+                                , end = end
+                                }
                                 (Declaration.CustomTypeDeclaration
-                                    { documentation = Nothing
+                                    { documentation = maybeDoc
                                     , name = name
                                     , generics = generics
                                     , constructors = List.reverse constructors

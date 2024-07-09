@@ -292,4 +292,94 @@ letWhitespace = let
                                 ]
                             }
                         )
+        , test "type declaration with documentation after imports" <|
+            \() ->
+                """
+module Foo exposing (..)
+
+import Dict
+
+{-| Config goes here
+-}
+type Configuration
+    = Configuration
+"""
+                    |> Elm.Parser.parseToFile
+                    |> Expect.equal
+                        (Ok
+                            { comments = []
+                            , declarations =
+                                [ Node { start = { row = 6, column = 1 }, end = { row = 9, column = 20 } }
+                                    (CustomTypeDeclaration
+                                        { constructors =
+                                            [ Node { start = { row = 9, column = 7 }, end = { row = 9, column = 20 } }
+                                                { arguments = []
+                                                , name = Node { start = { row = 9, column = 7 }, end = { row = 9, column = 20 } } "Configuration"
+                                                }
+                                            ]
+                                        , documentation = Just (Node { start = { row = 6, column = 1 }, end = { row = 7, column = 3 } } "{-| Config goes here\n-}")
+                                        , generics = []
+                                        , name = Node { start = { row = 8, column = 6 }, end = { row = 8, column = 19 } } "Configuration"
+                                        }
+                                    )
+                                ]
+                            , imports =
+                                [ Node { start = { row = 4, column = 1 }, end = { row = 4, column = 12 } }
+                                    { exposingList = Nothing
+                                    , moduleAlias = Nothing
+                                    , moduleName = Node { start = { row = 4, column = 8 }, end = { row = 4, column = 12 } } [ "Dict" ]
+                                    }
+                                ]
+                            , moduleDefinition =
+                                Node { start = { row = 2, column = 1 }, end = { row = 2, column = 25 } }
+                                    (NormalModule
+                                        { exposingList =
+                                            Node { start = { row = 2, column = 12 }, end = { row = 2, column = 25 } }
+                                                (All { start = { row = 2, column = 22 }, end = { row = 2, column = 24 } })
+                                        , moduleName = Node { start = { row = 2, column = 8 }, end = { row = 2, column = 11 } } [ "Foo" ]
+                                        }
+                                    )
+                            }
+                        )
+        , test "module documentation formatted like a type documentation" <|
+            \() ->
+                """
+module Foo exposing (..)
+
+{-| actually module doc
+-}
+type Configuration
+    = Configuration
+"""
+                    |> Elm.Parser.parseToFile
+                    |> Expect.equal
+                        (Ok
+                            { comments = [ Node { start = { row = 4, column = 1 }, end = { row = 5, column = 3 } } "{-| actually module doc\n-}" ]
+                            , declarations =
+                                [ Node { start = { row = 6, column = 1 }, end = { row = 7, column = 20 } }
+                                    (CustomTypeDeclaration
+                                        { constructors =
+                                            [ Node { start = { row = 7, column = 7 }, end = { row = 7, column = 20 } }
+                                                { arguments = []
+                                                , name = Node { start = { row = 7, column = 7 }, end = { row = 7, column = 20 } } "Configuration"
+                                                }
+                                            ]
+                                        , documentation = Nothing
+                                        , generics = []
+                                        , name = Node { start = { row = 6, column = 6 }, end = { row = 6, column = 19 } } "Configuration"
+                                        }
+                                    )
+                                ]
+                            , imports = []
+                            , moduleDefinition =
+                                Node { start = { row = 2, column = 1 }, end = { row = 2, column = 25 } }
+                                    (NormalModule
+                                        { exposingList =
+                                            Node { start = { row = 2, column = 12 }, end = { row = 2, column = 25 } }
+                                                (All { start = { row = 2, column = 22 }, end = { row = 2, column = 24 } })
+                                        , moduleName = Node { start = { row = 2, column = 8 }, end = { row = 2, column = 11 } } [ "Foo" ]
+                                        }
+                                    )
+                            }
+                        )
         ]

@@ -1,6 +1,7 @@
 module Elm.Parser.Declarations exposing (declaration)
 
 import Combine exposing (Parser, maybe, oneOf, string, succeed)
+import Elm.Parser.Comments as Comments
 import Elm.Parser.Expression exposing (expression, failIfDifferentFrom, functionSignatureFromVarPointer)
 import Elm.Parser.Layout as Layout
 import Elm.Parser.Node as Node
@@ -10,6 +11,7 @@ import Elm.Parser.Tokens exposing (functionName, portToken, prefixOperatorToken)
 import Elm.Parser.TypeAnnotation exposing (typeAnnotation)
 import Elm.Parser.Typings exposing (typeDefinition)
 import Elm.Syntax.Declaration as Declaration exposing (Declaration)
+import Elm.Syntax.Documentation exposing (Documentation)
 import Elm.Syntax.Expression as Expression exposing (Function, FunctionImplementation)
 import Elm.Syntax.Infix as Infix exposing (Infix)
 import Elm.Syntax.Node as Node exposing (Node(..))
@@ -21,18 +23,43 @@ declaration : Parser State (Node Declaration)
 declaration =
     oneOf
         [ infixDeclaration
-        , function
-        , typeDefinition
         , portDeclaration
+        , maybeDocumentation
+            |> Combine.andThen
+                (\maybeDoc ->
+                    oneOf
+                        [ function maybeDoc
+                        , typeDefinition maybeDoc
+                        ]
+                )
         ]
 
 
-function : Parser State (Node Declaration)
-function =
+maybeDocumentation : Parser State (Maybe (Node Documentation))
+maybeDocumentation =
+    Comments.declarationDocumentation
+        |> Combine.ignore Layout.layoutStrict
+        |> maybe
+
+
+function : Maybe (Node Documentation) -> Parser State (Node Declaration)
+function maybeDoc =
     Node.parser functionName
         |> Combine.ignore (maybe Layout.layout)
         |> Combine.andThen functionWithNameNode
-        |> Combine.map (\f -> Node (Expression.functionRange f) (Declaration.FunctionDeclaration f))
+        |> Combine.map
+            (\f ->
+                let
+                    ({ end } as functionRange) =
+                        Expression.functionRange f
+                in
+                case maybeDoc of
+                    Just (Node { start } _) ->
+                        Node { start = start, end = end } (Declaration.FunctionDeclaration { f | documentation = maybeDoc })
+
+                    Nothing ->
+                        Node functionRange (Declaration.FunctionDeclaration f)
+            )
 
 
 functionWithNameNode : Node String -> Parser State Function

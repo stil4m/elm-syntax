@@ -1,6 +1,7 @@
 module Elm.Parser.File exposing (file)
 
 import Combine exposing (Parser, many, maybe, succeed, withState)
+import Elm.Parser.Comments as Comments
 import Elm.Parser.Declarations exposing (declaration)
 import Elm.Parser.Imports exposing (importDefinition)
 import Elm.Parser.Layout as Layout
@@ -18,6 +19,7 @@ file =
         |> Combine.ignore (maybe Layout.layoutStrict)
         |> Combine.keep (Node.parser moduleDefinition)
         |> Combine.ignore (maybe Layout.layoutStrict)
+        |> Combine.ignore (maybe (Comments.moduleDocumentation |> Combine.ignore Layout.layoutStrict))
         |> Combine.keep (many importDefinition)
         |> Combine.keep fileDeclarations
         |> Combine.keep collectComments

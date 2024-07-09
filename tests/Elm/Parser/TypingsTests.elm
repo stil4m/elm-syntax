@@ -3,6 +3,7 @@ module Elm.Parser.TypingsTests exposing (all)
 import Elm.Parser.CombineTestUtil as CombineTestUtil exposing (..)
 import Elm.Parser.Typings as Parser
 import Elm.Syntax.Declaration as Declaration exposing (Declaration(..))
+import Elm.Syntax.Documentation exposing (Documentation)
 import Elm.Syntax.Node exposing (Node(..))
 import Elm.Syntax.TypeAnnotation exposing (..)
 import Expect
@@ -19,6 +20,28 @@ all =
                         (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 34 } }
                             (AliasDeclaration
                                 { documentation = Nothing
+                                , generics = []
+                                , name = Node { start = { row = 1, column = 12 }, end = { row = 1, column = 15 } } "Foo"
+                                , typeAnnotation =
+                                    Node { start = { row = 1, column = 18 }, end = { row = 1, column = 34 } }
+                                        (Record
+                                            [ Node { start = { row = 1, column = 19 }, end = { row = 1, column = 32 } }
+                                                ( Node { start = { row = 1, column = 19 }, end = { row = 1, column = 24 } } "color"
+                                                , Node { start = { row = 1, column = 26 }, end = { row = 1, column = 32 } }
+                                                    (Typed (Node { start = { row = 1, column = 26 }, end = { row = 1, column = 32 } } ( [], "String" )) [])
+                                                )
+                                            ]
+                                        )
+                                }
+                            )
+                        )
+        , test "type alias with documentation" <|
+            \() ->
+                "type alias Foo = {color: String }"
+                    |> expectAstWithDocs (Node { start = { row = -1, column = -1 }, end = { row = 0, column = 0 } } "{-| Foo is colorful -}")
+                        (Node { start = { row = -1, column = -1 }, end = { row = 1, column = 34 } }
+                            (AliasDeclaration
+                                { documentation = Just (Node { start = { row = -1, column = -1 }, end = { row = 0, column = 0 } } "{-| Foo is colorful -}")
                                 , generics = []
                                 , name = Node { start = { row = 1, column = 12 }, end = { row = 1, column = 15 } } "Foo"
                                 , typeAnnotation =
@@ -106,6 +129,35 @@ all =
                                 }
                             )
                         )
+        , test "type with documentation" <|
+            \() ->
+                "type Color = Blue String | Red | Green"
+                    |> expectAstWithDocs (Node { start = { row = -1, column = -1 }, end = { row = 0, column = 0 } } "{-| Classic RGB -}")
+                        (Node { start = { row = -1, column = -1 }, end = { row = 1, column = 39 } }
+                            (Declaration.CustomTypeDeclaration
+                                { constructors =
+                                    [ Node { start = { row = 1, column = 14 }, end = { row = 1, column = 25 } }
+                                        { name = Node { start = { row = 1, column = 14 }, end = { row = 1, column = 18 } } "Blue"
+                                        , arguments =
+                                            [ Node { start = { row = 1, column = 19 }, end = { row = 1, column = 25 } }
+                                                (Typed (Node { start = { row = 1, column = 19 }, end = { row = 1, column = 25 } } ( [], "String" )) [])
+                                            ]
+                                        }
+                                    , Node { start = { row = 1, column = 28 }, end = { row = 1, column = 31 } }
+                                        { name = Node { start = { row = 1, column = 28 }, end = { row = 1, column = 31 } } "Red"
+                                        , arguments = []
+                                        }
+                                    , Node { start = { row = 1, column = 34 }, end = { row = 1, column = 39 } }
+                                        { name = Node { start = { row = 1, column = 34 }, end = { row = 1, column = 39 } } "Green"
+                                        , arguments = []
+                                        }
+                                    ]
+                                , documentation = Just (Node { start = { row = -1, column = -1 }, end = { row = 0, column = 0 } } "{-| Classic RGB -}")
+                                , generics = []
+                                , name = Node { start = { row = 1, column = 6 }, end = { row = 1, column = 11 } } "Color"
+                                }
+                            )
+                        )
         , test "type with multiple args" <|
             \() ->
                 "type D = C a B"
@@ -178,7 +230,7 @@ all =
                         )
         , test "type with value on next line " <|
             \() ->
-                parse "type Maybe a = Just a |\nNothing" Parser.typeDefinition
+                parse "type Maybe a = Just a |\nNothing" (Parser.typeDefinition Nothing)
                     |> Expect.equal Nothing
         , test "type with spacing after " <|
             \() ->
@@ -201,9 +253,14 @@ all =
 
 expectAst : Node Declaration -> String -> Expect.Expectation
 expectAst =
-    CombineTestUtil.expectAst Parser.typeDefinition
+    CombineTestUtil.expectAst (Parser.typeDefinition Nothing)
+
+
+expectAstWithDocs : Node Documentation -> Node Declaration -> String -> Expect.Expectation
+expectAstWithDocs documentation =
+    CombineTestUtil.expectAst (Parser.typeDefinition (Just documentation))
 
 
 expectInvalid : String -> Expect.Expectation
 expectInvalid =
-    CombineTestUtil.expectInvalid Parser.typeDefinition
+    CombineTestUtil.expectInvalid (Parser.typeDefinition Nothing)

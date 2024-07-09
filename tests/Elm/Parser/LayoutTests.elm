@@ -31,6 +31,14 @@ all =
             \() ->
                 parse " \n " Layout.layout
                     |> Expect.equal (Just ())
+        , test "layout with multiline comment" <|
+            \() ->
+                parse "\n--x\n{- foo \n-}\n " Layout.layout
+                    |> Expect.equal (Just ())
+        , test "layout with documentation comment fails" <|
+            \() ->
+                parse "\n--x\n{-| foo \n-}\n " Layout.layout
+                    |> Expect.equal Nothing
         , test "with newline and higher indent 4" <|
             \() ->
                 parse " \n  " (pushIndent 1 Layout.layout)
@@ -57,8 +65,12 @@ all =
                     |> Expect.equal (Just ())
         , test "layoutStrict with comments 2" <|
             \() ->
-                parse "\n--x\n{-| foo \n-}\n" Layout.layoutStrict
+                parse "\n--x\n{- foo \n-}\n" Layout.layoutStrict
                     |> Expect.equal (Just ())
+        , test "layoutStrict with documentation comment fails" <|
+            \() ->
+                parse "\n--x\n{-| foo \n-}\n" Layout.layoutStrict
+                    |> Expect.equal Nothing
         , test "layoutStrict some" <|
             \() ->
                 parse "\n  \n  " (pushIndent 2 Layout.layoutStrict)
