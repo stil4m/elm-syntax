@@ -14,7 +14,6 @@ allSamples =
     , sample9
     , sample11
     , sample12
-    , sample13
     , sample14
     , sample15
     , sample16
@@ -665,17 +664,6 @@ x baz =
 
     in
         bar
-
-"""
-
-
-sample13 : String
-sample13 =
-    """module Foo exposing (..)
-
-
-bar =
-  (.) Foo
 
 """
 

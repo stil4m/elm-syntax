@@ -1,4 +1,4 @@
-module Combine.Char exposing (anyChar, char, oneOf)
+module Combine.Char exposing (anyChar, char)
 
 import Combine exposing (Parser)
 import Parser as Core
@@ -16,13 +16,6 @@ anyChar =
     satisfy
         (always True)
         "expected any character"
-
-
-oneOf : List Char -> Parser s Char
-oneOf cs =
-    satisfy
-        (\a -> List.member a cs)
-        ("expected one of '" ++ String.fromList cs ++ "'")
 
 
 satisfy : (Char -> Bool) -> String -> Parser state Char

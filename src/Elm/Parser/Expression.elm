@@ -571,12 +571,9 @@ tupledExpression config =
         |> Combine.continueWith
             (Combine.oneOf
                 [ closingParen |> Combine.map (always UnitExpr)
-                , -- Backtracking needed for record access expression
-                  Combine.backtrackable
-                    (prefixOperatorToken
-                        |> Combine.ignore closingParen
-                        |> Combine.map PrefixOperator
-                    )
+                , prefixOperatorToken
+                    |> Combine.ignore closingParen
+                    |> Combine.map PrefixOperator
                 , nested |> Combine.ignore closingParen
                 ]
             )

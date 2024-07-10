@@ -79,10 +79,6 @@ all =
             \() ->
                 parse "=" Parser.prefixOperatorToken
                     |> Expect.equal Nothing
-        , test "operatorToken 15" <|
-            \() ->
-                parse "?" Parser.prefixOperatorToken
-                    |> Expect.equal (Just "?")
         , test "multiline string" <|
             \() ->
                 parse "\"\"\"Bar foo \n a\"\"\"" Parser.multiLineStringLiteral

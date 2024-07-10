@@ -18,8 +18,8 @@ module Elm.Parser.Tokens exposing
     )
 
 import Char
-import Combine exposing (Parser, fail, many1, string, succeed)
-import Combine.Char exposing (anyChar, char, oneOf)
+import Combine exposing (Parser, string)
+import Combine.Char exposing (anyChar, char)
 import Hex
 import Parser as Core exposing ((|.), (|=), Step(..))
 import Set
@@ -253,34 +253,13 @@ typeName =
         |> Combine.fromCore
 
 
-excludedOperators : List String
-excludedOperators =
-    [ ":", "->", "--", "=" ]
-
-
-allowedOperatorTokens : List Char
+allowedOperatorTokens : List String
 allowedOperatorTokens =
-    [ '+', '-', ':', '/', '*', '>', '<', '=', '&', '^', '%', '|', '!', '.', '?' ]
+    [ "<|", "|>", "||", "&&", "==", "/=", "<=", ">=", "++", "::", "|=", "|.", "*", "//", "</>", "<?>", "^", "<<", ">>", "<", ">", "+", "-", "/" ]
 
 
 prefixOperatorToken : Parser s String
 prefixOperatorToken =
-    operatorTokenFromList allowedOperatorTokens
-
-
-operatorTokenFromList : List Char -> Parser s String
-operatorTokenFromList allowedChars =
-    many1 (oneOf allowedChars)
-        |> Combine.andThen
-            (\chars ->
-                let
-                    charList : String
-                    charList =
-                        String.fromList chars
-                in
-                if List.member charList excludedOperators then
-                    fail "operator is not allowed"
-
-                else
-                    succeed charList
-            )
+    allowedOperatorTokens
+        |> List.map Combine.string
+        |> Combine.oneOf
