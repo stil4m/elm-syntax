@@ -29,7 +29,10 @@ layout =
             , many1Spaces
             ]
         )
-        |> Combine.continueWith (verifyIndent (\stateIndent current -> stateIndent < current))
+        |> Combine.continueWith
+            (verifyIndent (\stateIndent current -> stateIndent < current)
+                (\stateIndent current -> "Expected indent larger than " ++ String.fromInt stateIndent ++ ", got " ++ String.fromInt current)
+            )
 
 
 type LayoutStatus
@@ -94,20 +97,28 @@ layoutStrict =
             , many1Spaces
             ]
         )
-        |> Combine.continueWith (verifyIndent (\stateIndent current -> stateIndent == current))
+        |> Combine.continueWith
+            (verifyIndent (\stateIndent current -> stateIndent == current)
+                (\stateIndent current -> "Expected indent " ++ String.fromInt stateIndent ++ ", got " ++ String.fromInt current)
+            )
 
 
-verifyIndent : (Int -> Int -> Bool) -> Parser State ()
-verifyIndent f =
+verifyIndent : (Int -> Int -> Bool) -> (Int -> Int -> String) -> Parser State ()
+verifyIndent verify failMessage =
     withState
-        (\s ->
+        (\state ->
             withLocation
-                (\l ->
-                    if f (State.expectedColumn s) l.column then
+                (\{ column } ->
+                    let
+                        expectedColumn : Int
+                        expectedColumn =
+                            State.expectedColumn state
+                    in
+                    if verify expectedColumn column then
                         succeed ()
 
                     else
-                        fail ("Expected higher indent than " ++ String.fromInt l.column)
+                        fail (failMessage expectedColumn column)
                 )
         )
 
