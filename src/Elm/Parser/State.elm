@@ -7,6 +7,7 @@ module Elm.Parser.State exposing
     , getComments
     , popIndent
     , pushIndent
+    , storedColumns
     )
 
 import Elm.Syntax.Node exposing (Node)
@@ -25,6 +26,11 @@ emptyState =
         { indents = []
         , comments = []
         }
+
+
+storedColumns : State -> List Int
+storedColumns (State { indents }) =
+    indents
 
 
 currentIndent : State -> Maybe Int

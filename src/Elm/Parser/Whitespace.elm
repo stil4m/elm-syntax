@@ -1,12 +1,7 @@
-module Elm.Parser.Whitespace exposing (many1Spaces, manySpaces, realNewLine, untilNewlineToken)
+module Elm.Parser.Whitespace exposing (many1Spaces, realNewLine, untilNewlineToken)
 
 import Combine exposing (Parser)
 import Parser as Core exposing ((|.))
-
-
-manySpaces : Parser s ()
-manySpaces =
-    Combine.fromCore (Core.chompWhile (\c -> c == ' '))
 
 
 many1Spaces : Parser s ()

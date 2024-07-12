@@ -5,10 +5,10 @@ import Elm.Parser.Layout as Layout
 import Elm.Parser.Node as Node
 import Elm.Parser.Numbers
 import Elm.Parser.Patterns exposing (pattern)
-import Elm.Parser.State exposing (State, popIndent, pushIndent)
+import Elm.Parser.State as State exposing (State, popIndent, pushIndent)
 import Elm.Parser.Tokens as Tokens exposing (caseToken, characterLiteral, elseToken, functionName, ifToken, multiLineStringLiteral, ofToken, prefixOperatorToken, stringLiteral, thenToken)
 import Elm.Parser.TypeAnnotation exposing (typeAnnotation)
-import Elm.Parser.Whitespace as Whitespace exposing (manySpaces)
+import Elm.Parser.Whitespace as Whitespace
 import Elm.Syntax.Expression as Expression exposing (Case, CaseBlock, Cases, Expression(..), Function, FunctionImplementation, Lambda, LetBlock, LetDeclaration(..), RecordSetter)
 import Elm.Syntax.Infix as Infix
 import Elm.Syntax.ModuleName exposing (ModuleName)
@@ -82,9 +82,7 @@ expression =
             -- function application must be last
             , functionCall
             ]
-
-        -- TODO backtrackable is not great for performance, try to avoid it
-        , spaces = oneOf [ Layout.layout |> Combine.backtrackable, manySpaces ]
+        , spaces = Layout.optimisticLayout |> Combine.map (always ())
         }
 
 
@@ -177,10 +175,13 @@ recordAccessParser =
             )
 
 
-functionCall : Pratt.Config s (Node Expression) -> ( Int, Node Expression -> Parser s (Node Expression) )
+functionCall : Pratt.Config State (Node Expression) -> ( Int, Node Expression -> Parser State (Node Expression) )
 functionCall =
     Pratt.infixLeft 90
-        (Combine.succeed ())
+        (Layout.optimisticLayoutWith
+            (\() -> Combine.fail "function call must be indented")
+            (\() -> Combine.succeed ())
+        )
         (\((Node leftRange leftValue) as left) right ->
             case leftValue of
                 Expression.Application args ->
@@ -340,7 +341,8 @@ lambdaExpression config =
         |> Combine.keep (Node.parser (string "\\"))
         |> Combine.ignore (maybe Layout.layout)
         |> Combine.keep (sepBy1 (maybe Layout.layout) pattern)
-        |> Combine.ignore (Layout.maybeAroundBothSides (string "->"))
+        |> Combine.ignore (maybe Layout.layout)
+        |> Combine.ignore (string "->")
         |> Combine.keep (Pratt.subExpression 0 config)
 
 
@@ -358,6 +360,11 @@ caseExpression config =
         |> Combine.keep (Node.parser caseToken)
         |> Combine.ignore Layout.layout
         |> Combine.keep (Pratt.subExpression 0 config)
+        |> Combine.ignore
+            (Layout.optimisticLayoutWith
+                (\() -> Combine.fail "function call must be indented")
+                (\() -> Combine.succeed ())
+            )
         |> Combine.ignore ofToken
         |> Combine.ignore Layout.layout
         |> Combine.keep (withIndentedState (caseStatements config))
@@ -365,25 +372,33 @@ caseExpression config =
 
 caseStatements : Config State (Node Expression) -> Parser State ( Location, Cases )
 caseStatements config =
-    Combine.sepBy1WithoutReverse (Layout.layoutStrict |> Combine.backtrackable) (caseStatement config)
-        |> Combine.andThen
-            (\cases ->
-                case cases of
-                    [] ->
-                        Combine.fail "can't happen, refactor later"
-
-                    ( _, Node { end } _ ) :: _ ->
-                        Combine.succeed ( end, List.reverse cases )
-            )
+    Combine.many1WithEndLocationForLastElement (\( _, Node range _ ) -> range) (caseStatement config)
 
 
 caseStatement : Config State (Node Expression) -> Parser State Case
 caseStatement config =
     Combine.succeed Tuple.pair
+        |> Combine.ignore onTopIndentation
         |> Combine.keep pattern
         |> Combine.ignore (maybe Layout.layout)
         |> Combine.ignore (string "->")
+        |> Combine.ignore (maybe Layout.layout)
         |> Combine.keep (Pratt.subExpression 0 config)
+
+
+onTopIndentation : Parser State ()
+onTopIndentation =
+    Combine.withState
+        (\state ->
+            Combine.withLocation
+                (\{ column } ->
+                    if State.currentIndent state == Just (column - 1) then
+                        Combine.succeed ()
+
+                    else
+                        Combine.fail "must be on top indentation"
+                )
+        )
 
 
 
@@ -403,18 +418,18 @@ letExpression config =
                     |> Combine.ignore (string "in")
                 )
             )
-        |> Combine.ignore Layout.layout
         |> Combine.keep (Pratt.subExpression 0 config)
 
 
 letBody : Config State (Node Expression) -> Parser State (List (Node LetDeclaration))
 letBody config =
-    Combine.sepBy1 (Layout.layoutStrict |> Combine.backtrackable) (blockElement config)
+    Combine.many1 (blockElement config)
 
 
 blockElement : Config State (Node Expression) -> Parser State (Node LetDeclaration)
 blockElement config =
-    pattern
+    onTopIndentation
+        |> Combine.continueWith pattern
         |> Combine.andThen
             (\(Node r p) ->
                 case p of
@@ -433,7 +448,6 @@ letDestructuringDeclarationWithPattern config pattern =
         (\expr ->
             Node { start = (Node.range pattern).start, end = (Node.range expr).end } (LetDestructuring pattern expr)
         )
-        |> Combine.ignore (maybe Layout.layout)
         |> Combine.ignore (string "=")
         |> Combine.keep (Pratt.subExpression 0 config)
 
@@ -452,13 +466,9 @@ ifBlockExpression config =
                 (IfBlock condition ifTrue ifFalse)
         )
         |> Combine.keep (Node.parser ifToken)
-        |> Combine.ignore (maybe Layout.layout)
         |> Combine.keep (Pratt.subExpression 0 config)
-        |> Combine.ignore (maybe Layout.layout)
         |> Combine.ignore thenToken
-        |> Combine.ignore (maybe Layout.layout)
         |> Combine.keep (Pratt.subExpression 0 config)
-        |> Combine.ignore (maybe Layout.layout)
         |> Combine.ignore elseToken
         |> Combine.ignore Layout.layout
         |> Combine.keep (Pratt.subExpression 0 config)
@@ -571,7 +581,9 @@ tupledExpression config =
         |> Combine.continueWith
             (Combine.oneOf
                 [ closingParen |> Combine.map (always UnitExpr)
-                , prefixOperatorToken
+
+                -- TODO remove backtrackable
+                , Combine.backtrackable prefixOperatorToken
                     |> Combine.ignore closingParen
                     |> Combine.map PrefixOperator
                 , nested |> Combine.ignore closingParen
