@@ -16,6 +16,10 @@ import Parser exposing (DeadEnd)
 import Test exposing (..)
 
 
+
+-- TODO Elm.Processing doesn't exiat anymore, move these tests somewhere else
+
+
 suite : Test
 suite =
     describe "Elm.Processing"

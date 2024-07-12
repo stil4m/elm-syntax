@@ -40,6 +40,17 @@ all =
                                 ]
                             )
                         )
+        , test "tuple expression with spaces" <|
+            \() ->
+                "( 1  ,  2 )"
+                    |> expectAst
+                        (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 12 } }
+                            (TupledExpression
+                                [ Node { start = { row = 1, column = 3 }, end = { row = 1, column = 4 } } (Integer 1)
+                                , Node { start = { row = 1, column = 9 }, end = { row = 1, column = 10 } } (Integer 2)
+                                ]
+                            )
+                        )
         , test "String literal multiline" <|
             \() ->
                 "\"\"\"Bar foo \n a\"\"\""
@@ -75,6 +86,23 @@ all =
                         (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 6 } }
                             (ParenthesizedExpression
                                 (Node { start = { row = 1, column = 2 }, end = { row = 1, column = 5 } } (FunctionOrValue [] "bar"))
+                            )
+                        )
+        , test "parenthesized expression starting with a negation" <|
+            \() ->
+                "(-1 * sign)"
+                    |> expectAst
+                        (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 12 } }
+                            (ParenthesizedExpression
+                                (Node { start = { row = 1, column = 2 }, end = { row = 1, column = 11 } }
+                                    (OperatorApplication "*"
+                                        Left
+                                        (Node { start = { row = 1, column = 2 }, end = { row = 1, column = 4 } }
+                                            (Negation (Node { start = { row = 1, column = 3 }, end = { row = 1, column = 4 } } (Integer 1)))
+                                        )
+                                        (Node { start = { row = 1, column = 7 }, end = { row = 1, column = 11 } } (FunctionOrValue [] "sign"))
+                                    )
+                                )
                             )
                         )
         , test "application expression" <|
