@@ -43,6 +43,10 @@ all =
             \() ->
                 parse "alias" Parser.functionName
                     |> Expect.equal (Just "alias")
+        , test "infix can be a functionName (it is not reserved)" <|
+            \() ->
+                parse "infix" Parser.functionName
+                    |> Expect.equal (Just "infix")
         , test "functionName is not matched with 'if'" <|
             \() ->
                 parse "if" Parser.functionName
