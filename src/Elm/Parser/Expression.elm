@@ -23,6 +23,7 @@ import Pratt exposing (Config)
 expression : Parser State (Node Expression)
 expression =
     Pratt.expression
+        -- TODO make sure that operators and expressions are indented properly
         { oneOf =
             [ numberExpression
                 |> Pratt.literal
@@ -392,7 +393,7 @@ onTopIndentation =
         (\state ->
             Combine.withLocation
                 (\{ column } ->
-                    if State.currentIndent state == Just (column - 1) then
+                    if State.currentIndent state == Just column then
                         Combine.succeed ()
 
                     else

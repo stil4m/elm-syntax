@@ -182,6 +182,10 @@ all =
                                 ]
                             )
                         )
+        , test "Function call with argument badly indented" <|
+            \() ->
+                "foo\nbar"
+                    |> expectInvalid
         , test "ifBlockExpression" <|
             \() ->
                 "if True then foo else bar"

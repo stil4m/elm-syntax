@@ -45,12 +45,12 @@ expectedColumn (State { indents }) =
             1
 
         head :: _ ->
-            head + 1
+            head
 
 
 pushIndent : Int -> State -> State
 pushIndent col (State s) =
-    State { s | indents = (col - 1) :: s.indents }
+    State { s | indents = col :: s.indents }
 
 
 popIndent : State -> State

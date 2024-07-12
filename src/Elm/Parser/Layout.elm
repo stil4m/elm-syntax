@@ -79,7 +79,7 @@ compute =
         (\state ->
             withLocation
                 (\l ->
-                    if l.column == 1 || List.member (l.column - 1) (State.storedColumns state) then
+                    if l.column == 1 || List.member l.column (State.storedColumns state) then
                         succeed Strict
 
                     else
