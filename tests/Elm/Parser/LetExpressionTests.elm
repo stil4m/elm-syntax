@@ -310,6 +310,86 @@ all =
                                 }
                             )
                         )
+        , test "let with list after in without space" <|
+            \() ->
+                """let
+        a = 1
+    in[]"""
+                    |> expectAst
+                        (Node { start = { row = 1, column = 1 }, end = { row = 3, column = 9 } }
+                            (LetExpression
+                                { declarations =
+                                    [ Node { start = { row = 2, column = 9 }, end = { row = 2, column = 14 } }
+                                        (LetFunction
+                                            { declaration =
+                                                Node { start = { row = 2, column = 9 }, end = { row = 2, column = 14 } }
+                                                    { arguments = []
+                                                    , expression = Node { start = { row = 2, column = 13 }, end = { row = 2, column = 14 } } (Integer 1)
+                                                    , name = Node { start = { row = 2, column = 9 }, end = { row = 2, column = 10 } } "a"
+                                                    }
+                                            , documentation = Nothing
+                                            , signature = Nothing
+                                            }
+                                        )
+                                    ]
+                                , expression = Node { start = { row = 3, column = 7 }, end = { row = 3, column = 9 } } (ListExpr [])
+                                }
+                            )
+                        )
+        , test "let with record after in without space" <|
+            \() ->
+                """let
+        a = 1
+    in{}"""
+                    |> expectAst
+                        (Node { start = { row = 1, column = 1 }, end = { row = 3, column = 9 } }
+                            (LetExpression
+                                { declarations =
+                                    [ Node { start = { row = 2, column = 9 }, end = { row = 2, column = 14 } }
+                                        (LetFunction
+                                            { declaration =
+                                                Node { start = { row = 2, column = 9 }, end = { row = 2, column = 14 } }
+                                                    { arguments = []
+                                                    , expression = Node { start = { row = 2, column = 13 }, end = { row = 2, column = 14 } } (Integer 1)
+                                                    , name = Node { start = { row = 2, column = 9 }, end = { row = 2, column = 10 } } "a"
+                                                    }
+                                            , documentation = Nothing
+                                            , signature = Nothing
+                                            }
+                                        )
+                                    ]
+                                , expression = Node { start = { row = 3, column = 7 }, end = { row = 3, column = 9 } } (RecordExpr [])
+                                }
+                            )
+                        )
+        , test "let with lambda after in without space" <|
+            \() ->
+                """let
+        a = 1
+    in\\_ -> 1"""
+                    |> expectAst
+                        (Node { start = { row = 1, column = 1 }, end = { row = 3, column = 14 } }
+                            (LetExpression
+                                { declarations =
+                                    [ Node { start = { row = 2, column = 9 }, end = { row = 2, column = 14 } }
+                                        (LetFunction
+                                            { declaration =
+                                                Node { start = { row = 2, column = 9 }, end = { row = 2, column = 14 } }
+                                                    { arguments = []
+                                                    , expression = Node { start = { row = 2, column = 13 }, end = { row = 2, column = 14 } } (Integer 1)
+                                                    , name = Node { start = { row = 2, column = 9 }, end = { row = 2, column = 10 } } "a"
+                                                    }
+                                            , documentation = Nothing
+                                            , signature = Nothing
+                                            }
+                                        )
+                                    ]
+                                , expression =
+                                    Node { start = { row = 3, column = 7 }, end = { row = 3, column = 14 } }
+                                        (LambdaExpression { args = [ Node { start = { row = 3, column = 8 }, end = { row = 3, column = 9 } } AllPattern ], expression = Node { start = { row = 3, column = 13 }, end = { row = 3, column = 14 } } (Integer 1) })
+                                }
+                            )
+                        )
         ]
 
 
