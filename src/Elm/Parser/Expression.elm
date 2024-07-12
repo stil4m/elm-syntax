@@ -582,10 +582,9 @@ tupledExpression config =
         |> Combine.continueWith
             (Combine.oneOf
                 [ closingParen |> Combine.map (always UnitExpr)
-
-                -- TODO remove backtrackable
                 , Combine.backtrackable Tokens.prefixOperatorToken
                     |> Combine.ignore closingParen
+                    |> Combine.ignore (Combine.fromCore (Core.commit ()))
                     |> Combine.map PrefixOperator
                 , nested |> Combine.ignore closingParen
                 ]
