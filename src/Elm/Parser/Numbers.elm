@@ -16,7 +16,7 @@ raw floatf intf hexf =
         }
 
 
-{-| Strange case that a number is consumes and does not function in a `oneOf`
+{-| Core.number bug: consumes leading '.' or 'e'
 -}
 forgivingNumber : (Float -> a) -> (Int -> a) -> (Int -> a) -> Parser State a
 forgivingNumber floatf intf hexf =

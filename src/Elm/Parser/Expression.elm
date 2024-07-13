@@ -81,6 +81,7 @@ expression =
             , infixLeft 7 "/"
 
             -- function application must be last
+            -- TODO validate function application arguments (issue #209)
             , functionCall
             ]
         , spaces = Layout.optimisticLayout |> Combine.map (always ())
@@ -456,7 +457,7 @@ ifBlockExpression config =
 negationOperation : Config s (Node Expression) -> Parser s (Node Expression)
 negationOperation =
     Pratt.prefix 95
-        minusNotFollowedBySpaceOrComment
+        minusNotFollowedBySpace
         (\((Node { start, end } _) as subExpr) ->
             Node
                 { start = { row = start.row, column = start.column - 1 }, end = end }
@@ -464,22 +465,21 @@ negationOperation =
         )
 
 
-minusNotFollowedBySpaceOrComment : Parser s ()
-minusNotFollowedBySpaceOrComment =
+minusNotFollowedBySpace : Parser s ()
+minusNotFollowedBySpace =
     Combine.succeed identity
         |> Combine.ignore (Combine.backtrackable (Combine.string "-"))
         |> Combine.keep
             (Combine.oneOf
                 [ Combine.map (always True) (Combine.backtrackable Whitespace.realNewLine)
                 , Combine.map (always True) (Combine.backtrackable (Combine.string " "))
-                , Combine.map (always True) (Combine.backtrackable (Combine.string "-"))
                 , Combine.succeed False
                 ]
             )
         |> Combine.andThen
             (\isSpaceOrComment ->
                 if isSpaceOrComment then
-                    Combine.fail "negation sign cannot be followed by a space or a dash"
+                    Combine.fail "negation sign cannot be followed by a space"
 
                 else
                     Combine.fromCore (Core.commit ())
