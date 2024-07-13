@@ -179,10 +179,7 @@ recordAccessParser =
 functionCall : Pratt.Config State (Node Expression) -> ( Int, Node Expression -> Parser State (Node Expression) )
 functionCall =
     Pratt.infixLeft 90
-        (Layout.optimisticLayoutWith
-            (\() -> Combine.fail "function call must be indented")
-            (\() -> Combine.succeed ())
-        )
+        Layout.positivelyIndented
         (\((Node leftRange leftValue) as left) right ->
             case leftValue of
                 Expression.Application args ->
@@ -361,11 +358,7 @@ caseExpression config =
         |> Combine.keep (Node.parser Tokens.caseToken)
         |> Combine.ignore Layout.layout
         |> Combine.keep (Pratt.subExpression 0 config)
-        |> Combine.ignore
-            (Layout.optimisticLayoutWith
-                (\() -> Combine.fail "function call must be indented")
-                (\() -> Combine.succeed ())
-            )
+        |> Combine.ignore Layout.positivelyIndented
         |> Combine.ignore Tokens.ofToken
         |> Combine.ignore Layout.layout
         |> Combine.keep (withIndentedState (caseStatements config))
@@ -379,27 +372,12 @@ caseStatements config =
 caseStatement : Config State (Node Expression) -> Parser State Case
 caseStatement config =
     Combine.succeed Tuple.pair
-        |> Combine.ignore onTopIndentation
+        |> Combine.ignore Layout.onTopIndentation
         |> Combine.keep Patterns.pattern
         |> Combine.ignore (Combine.maybe Layout.layout)
         |> Combine.ignore (Combine.string "->")
         |> Combine.ignore (Combine.maybe Layout.layout)
         |> Combine.keep (Pratt.subExpression 0 config)
-
-
-onTopIndentation : Parser State ()
-onTopIndentation =
-    Combine.withState
-        (\state ->
-            Combine.withLocation
-                (\{ column } ->
-                    if State.currentIndent state == Just column then
-                        Combine.succeed ()
-
-                    else
-                        Combine.fail "must be on top indentation"
-                )
-        )
 
 
 
@@ -429,7 +407,7 @@ letBody config =
 
 blockElement : Config State (Node Expression) -> Parser State (Node LetDeclaration)
 blockElement config =
-    onTopIndentation
+    Layout.onTopIndentation
         |> Combine.continueWith Patterns.pattern
         |> Combine.andThen
             (\(Node r p) ->

@@ -1,4 +1,13 @@
-module Elm.Parser.Layout exposing (LayoutStatus(..), layout, layoutStrict, maybeAroundBothSides, optimisticLayout, optimisticLayoutWith)
+module Elm.Parser.Layout exposing
+    ( LayoutStatus(..)
+    , layout
+    , layoutStrict
+    , maybeAroundBothSides
+    , onTopIndentation
+    , optimisticLayout
+    , optimisticLayoutWith
+    , positivelyIndented
+    )
 
 import Combine exposing (Parser, fail, many, many1, maybe, oneOf, succeed, withLocation, withState)
 import Elm.Parser.Comments as Comments
@@ -101,6 +110,26 @@ layoutStrict =
             (verifyIndent (\stateIndent current -> stateIndent == current)
                 (\stateIndent current -> "Expected indent " ++ String.fromInt stateIndent ++ ", got " ++ String.fromInt current)
             )
+
+
+onTopIndentation : Parser State ()
+onTopIndentation =
+    Combine.withState
+        (\state ->
+            Combine.withLocation
+                (\{ column } ->
+                    if State.currentIndent state == Just column then
+                        Combine.succeed ()
+
+                    else
+                        Combine.fail "must be on top indentation"
+                )
+        )
+
+
+positivelyIndented : Parser State ()
+positivelyIndented =
+    verifyIndent (\stateIndent current -> stateIndent < current) (\_ _ -> "must be positively indented")
 
 
 verifyIndent : (Int -> Int -> Bool) -> (Int -> Int -> String) -> Parser State ()
