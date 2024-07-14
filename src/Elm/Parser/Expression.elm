@@ -25,60 +25,56 @@ expression =
     Pratt.expression
         -- TODO make sure that operators and expressions are indented properly
         { oneOf =
-            [ numberExpression
+            [ referenceExpression
                 |> Pratt.literal
-            , referenceExpression
-                |> Pratt.literal
-            , ifBlockExpression
-            , tupledExpression
-            , recordAccessFunctionExpression
-                |> Pratt.literal
-            , negationOperation
-            , letExpression
-            , lambdaExpression
             , literalExpression
                 |> Pratt.literal
-            , charLiteralExpression
+            , numberExpression
                 |> Pratt.literal
-            , recordExpression
+            , tupledExpression
             , glslExpression
                 |> Pratt.literal
             , listExpression
+            , recordExpression
             , caseExpression
+            , lambdaExpression
+            , letExpression
+            , ifBlockExpression
+            , recordAccessFunctionExpression
+                |> Pratt.literal
+            , negationOperation
+            , charLiteralExpression
+                |> Pratt.literal
             ]
         , andThenOneOf =
-            [ -- Elm Basics sets the precedence of <| and |> to 0, but Pratt.expression starts at 0 so it needs to be larger
-              infixRight 1 "<|"
-            , infixLeft 1 "|>"
-            , infixRight 2 "||"
-            , infixRight 3 "&&"
-
+            -- TODO Add tests for all operators
             -- TODO Report a syntax error when encountering multiple of the comparison operators
             -- `a < b < c` is not valid Elm syntax
-            -- TODO Add tests for all operators
+            [ recordAccess
+            , infixLeft 1 "|>"
+            , infixRight 5 "++"
+            , infixRight 1 "<|"
+            , infixRight 9 ">>"
             , infixNonAssociative 4 "=="
+            , infixLeft 7 "*"
+            , infixRight 5 "::"
+            , infixLeft 6 "+"
+            , infixLeftSubtraction 6
+            , infixLeft 6 "|."
+            , infixRight 3 "&&"
+            , infixLeft 5 "|="
+            , infixLeft 9 "<<"
             , infixNonAssociative 4 "/="
+            , infixLeft 7 "//"
+            , infixLeft 7 "/"
+            , infixRight 7 "</>"
+            , infixRight 2 "||"
             , infixNonAssociative 4 "<="
             , infixNonAssociative 4 ">="
-            , infixRight 5 "++"
-            , infixRight 5 "::"
-            , infixLeft 5 "|="
-            , infixLeft 6 "|."
-            , infixLeftSubtraction 6
-            , infixLeft 7 "*"
-            , infixLeft 7 "//"
-            , infixRight 7 "</>"
-            , infixLeft 8 "<?>"
-            , infixRight 8 "^"
-            , infixLeft 9 "<<"
-            , infixRight 9 ">>"
-            , recordAccess
-
-            -- these operators are prefixes of others, we try them after
-            , infixNonAssociative 4 "<"
             , infixNonAssociative 4 ">"
-            , infixLeft 6 "+"
-            , infixLeft 7 "/"
+            , infixLeft 8 "<?>"
+            , infixNonAssociative 4 "<"
+            , infixRight 8 "^"
 
             -- function application must be last
             -- TODO validate function application arguments (issue #209)

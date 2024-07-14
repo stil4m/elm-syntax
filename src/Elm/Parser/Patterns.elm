@@ -82,14 +82,14 @@ composablePattern =
     Combine.oneOf
         [ variablePart
         , qualifiedPattern True
-        , Node.parser (stringLiteral |> Combine.map StringPattern)
-        , Node.parser (characterLiteral |> Combine.map CharPattern)
-        , Node.parser numberPart
-        , Node.parser (Core.symbol "()" |> Combine.fromCore |> Combine.map (always UnitPattern))
         , Node.parser (Core.symbol "_" |> Combine.fromCore |> Combine.map (always AllPattern))
-        , recordPattern
-        , listPattern
+        , Node.parser (Core.symbol "()" |> Combine.fromCore |> Combine.map (always UnitPattern))
         , parensPattern
+        , recordPattern
+        , Node.parser (stringLiteral |> Combine.map StringPattern)
+        , listPattern
+        , Node.parser numberPart
+        , Node.parser (characterLiteral |> Combine.map CharPattern)
         ]
 
 
@@ -98,14 +98,14 @@ qualifiedPatternArg =
     Combine.oneOf
         [ variablePart
         , qualifiedPattern False
-        , Node.parser (stringLiteral |> Combine.map StringPattern)
-        , Node.parser (characterLiteral |> Combine.map CharPattern)
-        , Node.parser numberPart
-        , Node.parser (Core.symbol "()" |> Combine.fromCore |> Combine.map (always UnitPattern))
         , Node.parser (Core.symbol "_" |> Combine.fromCore |> Combine.map (always AllPattern))
-        , recordPattern
-        , listPattern
+        , Node.parser (Core.symbol "()" |> Combine.fromCore |> Combine.map (always UnitPattern))
         , parensPattern
+        , recordPattern
+        , Node.parser (stringLiteral |> Combine.map StringPattern)
+        , listPattern
+        , Node.parser numberPart
+        , Node.parser (characterLiteral |> Combine.map CharPattern)
         ]
 
 
