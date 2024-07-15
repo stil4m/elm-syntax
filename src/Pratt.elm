@@ -214,9 +214,8 @@ Also note that `oneOf` and `andThenOneOf` parsers may call recursively
 -}
 expressionHelp : ( Config s e, Int, e ) -> Parser s (Step ( Config s e, Int, e ) e)
 expressionHelp ( (Config conf) as config, precedence, leftExpression ) =
-    Combine.succeed identity
-        |> Combine.ignore conf.spaces
-        |> Combine.keep
+    conf.spaces
+        |> Combine.continueWith
             (Combine.oneOf
                 [ Combine.map
                     (\expr -> Loop ( config, precedence, expr ))

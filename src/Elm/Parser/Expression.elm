@@ -464,9 +464,8 @@ negationOperation =
 
 minusNotFollowedBySpace : Parser s ()
 minusNotFollowedBySpace =
-    Combine.succeed identity
-        |> Combine.ignore (Combine.backtrackable (Combine.string "-"))
-        |> Combine.keep
+    Combine.backtrackable (Combine.string "-")
+        |> Combine.continueWith
             (Combine.oneOf
                 [ Combine.map (always True) (Combine.backtrackable Whitespace.realNewLine)
                 , Combine.map (always True) (Combine.backtrackable (Combine.string " "))
