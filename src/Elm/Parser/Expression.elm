@@ -342,14 +342,15 @@ charLiteralExpression =
 lambdaExpression : Config State (Node Expression) -> Parser State (Node Expression)
 lambdaExpression config =
     Combine.succeed
-        (\(Node { start } _) ->
+        (\start ->
             \args ->
                 \((Node { end } _) as expr) ->
                     Lambda args expr
                         |> LambdaExpression
                         |> Node { start = start, end = end }
         )
-        |> Combine.keep (Node.parser backSlash)
+        |> Combine.keep Combine.location
+        |> Combine.ignore backSlash
         |> Combine.ignore (Combine.maybe Layout.layout)
         |> Combine.keep (Combine.sepBy1 (Combine.maybe Layout.layout) Patterns.pattern)
         |> Combine.ignore (Combine.maybe Layout.layout)
@@ -364,13 +365,14 @@ lambdaExpression config =
 caseExpression : Config State (Node Expression) -> Parser State (Node Expression)
 caseExpression config =
     Combine.succeed
-        (\(Node { start } _) ->
+        (\start ->
             \caseBlock_ ->
                 \( end, cases ) ->
                     Node { start = start, end = end }
                         (CaseExpression (CaseBlock caseBlock_ cases))
         )
-        |> Combine.keep (Node.parser Tokens.caseToken)
+        |> Combine.keep Combine.location
+        |> Combine.ignore Tokens.caseToken
         |> Combine.ignore Layout.layout
         |> Combine.keep (Pratt.subExpression 0 config)
         |> Combine.ignore Layout.positivelyIndented
@@ -402,7 +404,7 @@ caseStatement config =
 letExpression : Config State (Node Expression) -> Parser State (Node Expression)
 letExpression config =
     Combine.succeed
-        (\( Node { start } _, decls ) ->
+        (\( start, decls ) ->
             \((Node { end } _) as expr) ->
                 Node { start = start, end = end }
                     (LetExpression (LetBlock decls expr))
@@ -410,7 +412,8 @@ letExpression config =
         |> Combine.keep
             (withIndentedState
                 (Combine.succeed (\let_ -> \declarations -> ( let_, declarations ))
-                    |> Combine.keep (Node.parser Tokens.letToken)
+                    |> Combine.keep Combine.location
+                    |> Combine.ignore Tokens.letToken
                     |> Combine.ignore Layout.layout
                     |> Combine.keep (withIndentedState (letDeclarations config))
                     |> Combine.ignore Layout.optimisticLayout
@@ -460,7 +463,7 @@ numberExpression =
 ifBlockExpression : Config State (Node Expression) -> Parser State (Node Expression)
 ifBlockExpression config =
     Combine.succeed
-        (\(Node { start } _) ->
+        (\start ->
             \condition ->
                 \ifTrue ->
                     \((Node { end } _) as ifFalse) ->
@@ -468,7 +471,8 @@ ifBlockExpression config =
                             { start = start, end = end }
                             (IfBlock condition ifTrue ifFalse)
         )
-        |> Combine.keep (Node.parser Tokens.ifToken)
+        |> Combine.keep Combine.location
+        |> Combine.ignore Tokens.ifToken
         |> Combine.keep (Pratt.subExpression 0 config)
         |> Combine.ignore Tokens.thenToken
         |> Combine.keep (Pratt.subExpression 0 config)

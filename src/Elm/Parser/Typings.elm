@@ -16,9 +16,11 @@ import Elm.Syntax.TypeAnnotation exposing (TypeAnnotation)
 
 typeDefinition : Maybe (Node Documentation) -> Parser State (Node Declaration.Declaration)
 typeDefinition maybeDoc =
-    typePrefix
+    Combine.succeed identity
+        |> Combine.keep Combine.location
+        |> Combine.ignore typePrefix
         |> Combine.andThen
-            (\(Node { start } _) ->
+            (\start ->
                 Combine.oneOf
                     [ Combine.succeed
                         (\name ->

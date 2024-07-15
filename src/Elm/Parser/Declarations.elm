@@ -157,7 +157,7 @@ infixDirection =
 portDeclaration : Maybe (Node Documentation) -> Parser State (Node Declaration)
 portDeclaration maybeDoc =
     Combine.succeed
-        (\(Node { start } _) ->
+        (\start ->
             \sig ->
                 Node
                     { start = start, end = (Node.range sig.typeAnnotation).end }
@@ -171,6 +171,7 @@ portDeclaration maybeDoc =
                 Just doc ->
                     Combine.modifyState (State.addComment doc)
             )
-        |> Combine.keep (Node.parser portToken)
+        |> Combine.keep Combine.location
+        |> Combine.ignore portToken
         |> Combine.ignore Layout.layout
         |> Combine.keep signature

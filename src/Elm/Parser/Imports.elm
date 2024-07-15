@@ -41,8 +41,9 @@ importDefinition =
                 ]
                 |> Combine.map (\imp -> setupNode start imp)
     in
-    Combine.succeed (\(Node { start } ()) -> \mod -> parseAsDefinition start mod)
-        |> Combine.keep (Node.parser importToken)
+    Combine.succeed (\start -> \mod -> parseAsDefinition start mod)
+        |> Combine.keep Combine.location
+        |> Combine.ignore importToken
         |> Combine.ignore Layout.layout
         |> Combine.keep moduleName
         |> Combine.ignore Layout.optimisticLayout
