@@ -16,9 +16,8 @@ typeIndicator =
         helper : ModuleName -> String -> Parser s ( ModuleName, String )
         helper moduleNameSoFar typeOrSegment =
             Combine.oneOf
-                [ Combine.succeed identity
-                    |> Combine.ignore (string ".")
-                    |> Combine.keep Tokens.typeName
+                [ string "."
+                    |> Combine.continueWith Tokens.typeName
                     |> Combine.andThen (\t -> helper (typeOrSegment :: moduleNameSoFar) t)
                 , Combine.succeed ()
                     |> Combine.map (\() -> ( List.reverse moduleNameSoFar, typeOrSegment ))
