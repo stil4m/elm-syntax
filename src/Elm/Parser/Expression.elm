@@ -315,13 +315,13 @@ recordField config =
 
 literalExpression : Parser state (Node Expression)
 literalExpression =
-    Combine.oneOf
+    Core.oneOf
         [ Tokens.multiLineStringLiteral
         , Tokens.stringLiteral
-            |> Combine.fromCore
         ]
-        |> Combine.map Literal
-        |> Node.parser
+        |> Core.map Literal
+        |> Node.parserCore
+        |> Combine.fromCore
 
 
 charLiteralExpression : Parser state (Node Expression)

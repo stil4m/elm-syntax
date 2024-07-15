@@ -205,7 +205,7 @@ type alias MultilineStringLiteralLoopState =
     }
 
 
-multiLineStringLiteral : Parser state String
+multiLineStringLiteral : Core.Parser String
 multiLineStringLiteral =
     let
         helper : MultilineStringLiteralLoopState -> Core.Parser (Step MultilineStringLiteralLoopState String)
@@ -239,7 +239,6 @@ multiLineStringLiteral =
     Core.succeed identity
         |. Core.symbol "\"\"\""
         |= Core.loop { escaped = False, parts = [], counter = 0 } helper
-        |> Combine.fromCore
 
 
 functionName : Parser state String

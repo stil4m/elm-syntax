@@ -90,11 +90,11 @@ all =
                     |> Expect.equal Nothing
         , test "multiline string" <|
             \() ->
-                parse "\"\"\"Bar foo \n a\"\"\"" Parser.multiLineStringLiteral
+                parse "\"\"\"Bar foo \n a\"\"\"" (Combine.fromCore Parser.multiLineStringLiteral)
                     |> Expect.equal (Just "Bar foo \n a")
         , test "multiline string escape" <|
             \() ->
-                parse """\"\"\" \\\"\"\" \"\"\"""" Parser.multiLineStringLiteral
+                parse """\"\"\" \\\"\"\" \"\"\"""" (Combine.fromCore Parser.multiLineStringLiteral)
                     |> Expect.equal (Just """ \"\"\" """)
         , test "character escaped" <|
             \() ->
@@ -130,7 +130,7 @@ all =
                     |> Expect.notEqual Nothing
         , test "long multi line string" <|
             \() ->
-                parse longMultiLineString Parser.multiLineStringLiteral
+                parse longMultiLineString (Combine.fromCore Parser.multiLineStringLiteral)
                     |> Expect.notEqual Nothing
         , test "ρ function" <|
             \() ->
