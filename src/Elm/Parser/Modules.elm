@@ -1,6 +1,6 @@
 module Elm.Parser.Modules exposing (moduleDefinition)
 
-import Combine exposing (Parser, between, oneOf, sepBy1, string, succeed, symbol)
+import Combine exposing (Parser, between, oneOf, sepBy1, succeed, symbol)
 import Elm.Parser.Base exposing (moduleName)
 import Elm.Parser.Expose exposing (exposeDefinition)
 import Elm.Parser.Layout as Layout
@@ -27,16 +27,16 @@ effectWhereClause : Parser State ( String, Node String )
 effectWhereClause =
     succeed (\fnName -> \typeName_ -> ( fnName, typeName_ ))
         |> Combine.keep functionName
-        |> Combine.ignore (Layout.maybeAroundBothSides (string "="))
+        |> Combine.ignore (Layout.maybeAroundBothSides (symbol "="))
         |> Combine.keep (Node.parser typeName)
 
 
 whereBlock : Parser State { command : Maybe (Node String), subscription : Maybe (Node String) }
 whereBlock =
     between
-        (string "{")
-        (string "}")
-        (sepBy1 (string ",")
+        (symbol "{")
+        (symbol "}")
+        (sepBy1 (symbol ",")
             (Layout.maybeAroundBothSides effectWhereClause)
         )
         |> Combine.map
@@ -67,7 +67,7 @@ effectModuleDefinition =
                 }
     in
     succeed (\name -> \whereClauses -> \exp -> createEffectModule name whereClauses exp)
-        |> Combine.ignore (string "effect")
+        |> Combine.ignore (symbol "effect")
         |> Combine.ignore Layout.layout
         |> Combine.ignore moduleToken
         |> Combine.ignore Layout.layout
@@ -80,25 +80,21 @@ effectModuleDefinition =
 
 normalModuleDefinition : Parser State Module
 normalModuleDefinition =
-    Combine.map NormalModule
-        (succeed (\moduleName -> \exposingList -> DefaultModuleData moduleName exposingList)
-            |> Combine.ignore moduleToken
-            |> Combine.ignore Layout.layout
-            |> Combine.keep moduleName
-            |> Combine.ignore Layout.layout
-            |> Combine.keep (Node.parser exposeDefinition)
-        )
+    succeed (\moduleName -> \exposingList -> NormalModule (DefaultModuleData moduleName exposingList))
+        |> Combine.ignore moduleToken
+        |> Combine.ignore Layout.layout
+        |> Combine.keep moduleName
+        |> Combine.ignore Layout.layout
+        |> Combine.keep (Node.parser exposeDefinition)
 
 
 portModuleDefinition : Parser State Module
 portModuleDefinition =
-    Combine.map PortModule
-        (succeed (\moduleName -> \exposingList -> DefaultModuleData moduleName exposingList)
-            |> Combine.ignore portToken
-            |> Combine.ignore Layout.layout
-            |> Combine.ignore moduleToken
-            |> Combine.ignore Layout.layout
-            |> Combine.keep moduleName
-            |> Combine.ignore Layout.layout
-            |> Combine.keep (Node.parser exposeDefinition)
-        )
+    succeed (\moduleName -> \exposingList -> PortModule (DefaultModuleData moduleName exposingList))
+        |> Combine.ignore portToken
+        |> Combine.ignore Layout.layout
+        |> Combine.ignore moduleToken
+        |> Combine.ignore Layout.layout
+        |> Combine.keep moduleName
+        |> Combine.ignore Layout.layout
+        |> Combine.keep (Node.parser exposeDefinition)
