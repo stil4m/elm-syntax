@@ -562,14 +562,19 @@ tupledExpression config =
         |> Combine.continueWith
             (Combine.oneOf
                 [ parensEnd |> Combine.map (always UnitExpr)
-                , Combine.backtrackable Tokens.prefixOperatorToken
-                    |> Combine.ignore parensEnd
-                    |> Combine.ignore (Combine.fromCore (Core.commit ()))
-                    |> Combine.map PrefixOperator
+                , prefixOperator
                 , nested |> Combine.ignore parensEnd
                 ]
             )
         |> Node.parser
+
+
+prefixOperator : Parser s Expression
+prefixOperator =
+    Combine.backtrackable Tokens.prefixOperatorToken
+        |> Combine.ignore parensEnd
+        |> Combine.ignore (Combine.fromCore (Core.commit ()))
+        |> Combine.map PrefixOperator
 
 
 asExpression : Node Expression -> List (Node Expression) -> Expression
