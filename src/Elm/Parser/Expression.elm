@@ -84,7 +84,7 @@ expression =
         }
 
 
-infixLeft : Int -> String -> Config s (Node Expression) -> ( Int, Node Expression -> Parser s (Node Expression) )
+infixLeft : Int -> String -> Config state (Node Expression) -> ( Int, Node Expression -> Parser state (Node Expression) )
 infixLeft precedence symbol =
     Pratt.infixLeft precedence
         (Combine.symbol symbol)
@@ -95,7 +95,7 @@ infixLeft precedence symbol =
         )
 
 
-infixNonAssociative : Int -> String -> Config s (Node Expression) -> ( Int, Node Expression -> Parser s (Node Expression) )
+infixNonAssociative : Int -> String -> Config state (Node Expression) -> ( Int, Node Expression -> Parser state (Node Expression) )
 infixNonAssociative precedence symbol =
     Pratt.infixLeft precedence
         (Combine.symbol symbol)
@@ -106,7 +106,7 @@ infixNonAssociative precedence symbol =
         )
 
 
-infixRight : Int -> String -> Config s (Node Expression) -> ( Int, Node Expression -> Parser s (Node Expression) )
+infixRight : Int -> String -> Config state (Node Expression) -> ( Int, Node Expression -> Parser state (Node Expression) )
 infixRight precedence symbol =
     Pratt.infixRight precedence
         (Combine.symbol symbol)
@@ -188,7 +188,7 @@ functionCall =
         )
 
 
-glslExpression : Parser s (Node Expression)
+glslExpression : Parser state (Node Expression)
 glslExpression =
     let
         start : String
@@ -260,7 +260,7 @@ recordContents config =
                                     toRecordExpr fieldUpdates =
                                         RecordExpr (fieldUpdate :: fieldUpdates)
 
-                                    endSymbol : Parser s ()
+                                    endSymbol : Parser state ()
                                     endSymbol =
                                         curlyEnd
                                 in
@@ -313,7 +313,7 @@ recordField config =
         )
 
 
-literalExpression : Parser s (Node Expression)
+literalExpression : Parser state (Node Expression)
 literalExpression =
     Combine.oneOf
         [ Tokens.multiLineStringLiteral
@@ -323,7 +323,7 @@ literalExpression =
         |> Node.parser
 
 
-charLiteralExpression : Parser s (Node Expression)
+charLiteralExpression : Parser state (Node Expression)
 charLiteralExpression =
     Node.parser (Combine.map CharLiteral Tokens.characterLiteral)
 
@@ -469,7 +469,7 @@ ifBlockExpression config =
         |> Combine.keep (Pratt.subExpression 0 config)
 
 
-negationOperation : Config s (Node Expression) -> Parser s (Node Expression)
+negationOperation : Config state (Node Expression) -> Parser state (Node Expression)
 negationOperation =
     Pratt.prefix 95
         minusNotFollowedBySpace
@@ -480,7 +480,7 @@ negationOperation =
         )
 
 
-minusNotFollowedBySpace : Parser s ()
+minusNotFollowedBySpace : Parser state ()
 minusNotFollowedBySpace =
     Core.succeed identity
         |. Core.backtrackable minus
@@ -500,7 +500,7 @@ minusNotFollowedBySpace =
         |> Combine.fromCore
 
 
-referenceExpression : Parser s (Node Expression)
+referenceExpression : Parser state (Node Expression)
 referenceExpression =
     let
         helper : ModuleName -> String -> Core.Parser Expression
@@ -569,7 +569,7 @@ tupledExpression config =
         |> Node.parser
 
 
-closingPrefixOperator : Parser s Expression
+closingPrefixOperator : Parser state Expression
 closingPrefixOperator =
     Core.backtrackable Tokens.prefixOperatorToken
         |. Core.symbol ")"
@@ -679,61 +679,61 @@ dot =
     Core.symbol "."
 
 
-squareStart : Parser s ()
+squareStart : Parser state ()
 squareStart =
     Combine.symbol "["
 
 
-squareEnd : Parser s ()
+squareEnd : Parser state ()
 squareEnd =
     Combine.symbol "]"
 
 
-curlyStart : Parser s ()
+curlyStart : Parser state ()
 curlyStart =
     Combine.symbol "{"
 
 
-curlyEnd : Parser s ()
+curlyEnd : Parser state ()
 curlyEnd =
     Combine.symbol "}"
 
 
-pipe : Parser s ()
+pipe : Parser state ()
 pipe =
     Combine.symbol "|"
 
 
-backSlash : Parser s ()
+backSlash : Parser state ()
 backSlash =
     Combine.symbol "\\"
 
 
-arrowRight : Parser s ()
+arrowRight : Parser state ()
 arrowRight =
     Combine.symbol "->"
 
 
-equal : Parser s ()
+equal : Parser state ()
 equal =
     Combine.symbol "="
 
 
-comma : Parser s ()
+comma : Parser state ()
 comma =
     Combine.symbol ","
 
 
-parensStart : Parser s ()
+parensStart : Parser state ()
 parensStart =
     Combine.symbol "("
 
 
-parensEnd : Parser s ()
+parensEnd : Parser state ()
 parensEnd =
     Combine.symbol ")"
 
 
-colon : Parser s ()
+colon : Parser state ()
 colon =
     Combine.symbol ":"

@@ -23,7 +23,7 @@ forgivingNumber floatf intf hexf =
         |> Combine.fromCore
 
 
-number : (Int -> a) -> (Int -> a) -> Parser s a
+number : (Int -> a) -> (Int -> a) -> Parser state a
 number intf hexf =
     raw Nothing intf hexf
         |> Combine.fromCore

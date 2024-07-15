@@ -5,7 +5,7 @@ import Elm.Syntax.Node exposing (Node(..))
 import Parser as Core exposing ((|=))
 
 
-parser : Parser s a -> Parser s (Node a)
+parser : Parser state a -> Parser state (Node a)
 parser p =
     Combine.succeed (\start -> \v -> \end -> Node { start = start, end = end } v)
         |> Combine.keep Combine.location

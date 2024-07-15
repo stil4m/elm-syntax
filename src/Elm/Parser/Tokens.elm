@@ -55,62 +55,62 @@ reservedList =
     ]
 
 
-portToken : Parser s ()
+portToken : Parser state ()
 portToken =
     symbol "port"
 
 
-moduleToken : Parser s ()
+moduleToken : Parser state ()
 moduleToken =
     symbol "module"
 
 
-exposingToken : Parser s ()
+exposingToken : Parser state ()
 exposingToken =
     symbol "exposing"
 
 
-importToken : Parser s ()
+importToken : Parser state ()
 importToken =
     Combine.fromCore (Core.keyword "import")
 
 
-asToken : Parser s ()
+asToken : Parser state ()
 asToken =
     Combine.fromCore (Core.keyword "as")
 
 
-ifToken : Parser s ()
+ifToken : Parser state ()
 ifToken =
     symbol "if"
 
 
-thenToken : Parser s ()
+thenToken : Parser state ()
 thenToken =
     symbol "then"
 
 
-elseToken : Parser s ()
+elseToken : Parser state ()
 elseToken =
     symbol "else"
 
 
-caseToken : Parser s ()
+caseToken : Parser state ()
 caseToken =
     symbol "case"
 
 
-ofToken : Parser s ()
+ofToken : Parser state ()
 ofToken =
     symbol "of"
 
 
-letToken : Parser s ()
+letToken : Parser state ()
 letToken =
     symbol "let"
 
 
-inToken : Parser s ()
+inToken : Parser state ()
 inToken =
     symbol "in"
 
@@ -206,7 +206,7 @@ type alias MultilineStringLiteralLoopState =
     }
 
 
-multiLineStringLiteral : Parser s String
+multiLineStringLiteral : Parser state String
 multiLineStringLiteral =
     let
         helper : MultilineStringLiteralLoopState -> Core.Parser (Step MultilineStringLiteralLoopState String)
@@ -243,7 +243,7 @@ multiLineStringLiteral =
         |> Combine.fromCore
 
 
-functionName : Parser s String
+functionName : Parser state String
 functionName =
     Combine.fromCore functionNameCore
 
@@ -257,7 +257,7 @@ functionNameCore =
         }
 
 
-typeName : Parser s String
+typeName : Parser state String
 typeName =
     Combine.fromCore typeNameCore
 

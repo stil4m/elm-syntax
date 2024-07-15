@@ -8,7 +8,7 @@ import Elm.Syntax.Node exposing (Node)
 import Parser as Core exposing ((|.), (|=))
 
 
-moduleName : Parser s ModuleName
+moduleName : Parser state ModuleName
 moduleName =
     sepBy1 (string ".") Tokens.typeName
 

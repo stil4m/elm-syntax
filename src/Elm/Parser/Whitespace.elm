@@ -4,7 +4,7 @@ import Combine exposing (Parser)
 import Parser as Core exposing ((|.))
 
 
-many1Spaces : Parser s ()
+many1Spaces : Parser state ()
 many1Spaces =
     Core.token " "
         |. Core.chompWhile (\c -> c == ' ')

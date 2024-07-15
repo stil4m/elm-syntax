@@ -56,7 +56,7 @@ runParser (Parser p) st s =
     Core.run (p st) s
 
 
-lazy : (() -> Parser s a) -> Parser s a
+lazy : (() -> Parser state a) -> Parser state a
 lazy t =
     Parser
         (\state ->
@@ -71,7 +71,7 @@ lazy t =
         )
 
 
-withState : (s -> Parser s a) -> Parser s a
+withState : (state -> Parser state a) -> Parser state a
 withState f =
     Parser <|
         \state ->
@@ -82,13 +82,13 @@ withState f =
             p state
 
 
-modifyState : (s -> s) -> Parser s ()
+modifyState : (state -> state) -> Parser state ()
 modifyState f =
     Parser <|
         \state -> Core.succeed ( f state, () )
 
 
-withLocation : (Location -> Parser s a) -> Parser s a
+withLocation : (Location -> Parser state a) -> Parser state a
 withLocation f =
     Parser <|
         \state ->
@@ -103,7 +103,7 @@ withLocation f =
                     )
 
 
-location : Parser s Location
+location : Parser state Location
 location =
     Parser <|
         \state ->
@@ -114,7 +114,7 @@ location =
                     )
 
 
-map : (a -> b) -> Parser s a -> Parser s b
+map : (a -> b) -> Parser state a -> Parser state b
 map f (Parser p) =
     Parser <|
         \state ->
@@ -122,7 +122,7 @@ map f (Parser p) =
                 |> Core.map (\( s, a ) -> ( s, f a ))
 
 
-andThen : (a -> Parser s b) -> Parser s a -> Parser s b
+andThen : (a -> Parser state b) -> Parser state a -> Parser state b
 andThen f (Parser p) =
     Parser <|
         \state ->
@@ -137,7 +137,7 @@ andThen f (Parser p) =
                     )
 
 
-keep : Parser s a -> Parser s (a -> b) -> Parser s b
+keep : Parser state a -> Parser state (a -> b) -> Parser state b
 keep (Parser rp) (Parser lp) =
     Parser <|
         \state ->
@@ -145,26 +145,26 @@ keep (Parser rp) (Parser lp) =
                 |> Core.andThen (\( newState, aToB ) -> Core.map (\( s, a ) -> ( s, aToB a )) (rp newState))
 
 
-problem : String -> Parser s a
+problem : String -> Parser state a
 problem m =
     Parser <|
         \_ ->
             Core.problem m
 
 
-succeed : a -> Parser s a
+succeed : a -> Parser state a
 succeed res =
     Parser <| \state -> Core.succeed ( state, res )
 
 
-string : String -> Parser s String
+string : String -> Parser state String
 string s =
     Parser <|
         \state ->
             Core.mapChompedString (\x _ -> ( state, x )) (Core.token s)
 
 
-symbol : String -> Parser s ()
+symbol : String -> Parser state ()
 symbol str =
     Core.symbol str
         |> fromCore
@@ -177,19 +177,19 @@ while pred =
             Core.mapChompedString (\x _ -> ( state, x )) (Core.chompWhile pred)
 
 
-end : Parser s ()
+end : Parser state ()
 end =
     Parser <|
         \state ->
             Core.end |> Core.map (\x -> ( state, x ))
 
 
-oneOf : List (Parser s a) -> Parser s a
+oneOf : List (Parser state a) -> Parser state a
 oneOf xs =
     Parser <| \state -> Core.oneOf (List.map (\(Parser x) -> x state) xs)
 
 
-maybe : Parser s a -> Parser s (Maybe a)
+maybe : Parser state a -> Parser state (Maybe a)
 maybe (Parser p) =
     Parser <|
         \state ->
@@ -199,7 +199,7 @@ maybe (Parser p) =
                 ]
 
 
-many : Parser s a -> Parser s (List a)
+many : Parser state a -> Parser state (List a)
 many p =
     manyWithoutReverse [] p
         |> map List.reverse
@@ -208,10 +208,10 @@ many p =
 {-| Same as [`many`](#many), except that it doesn't reverse the list.
 This can be useful if you need to access the range of the last item.
 -}
-manyWithoutReverse : List a -> Parser s a -> Parser s (List a)
+manyWithoutReverse : List a -> Parser state a -> Parser state (List a)
 manyWithoutReverse initList (Parser p) =
     let
-        helper : ( s, List a ) -> Core.Parser (Core.Step ( s, List a ) ( s, List a ))
+        helper : ( state, List a ) -> Core.Parser (Core.Step ( state, List a ) ( state, List a ))
         helper (( oldState, items ) as acc) =
             Core.oneOf
                 [ p oldState
@@ -224,10 +224,10 @@ manyWithoutReverse initList (Parser p) =
             Core.loop ( state, initList ) helper
 
 
-manyIgnore : Parser s a -> Parser s ()
+manyIgnore : Parser state a -> Parser state ()
 manyIgnore (Parser p) =
     let
-        helper : s -> Core.Parser (Core.Step s ( s, () ))
+        helper : state -> Core.Parser (Core.Step state ( state, () ))
         helper state =
             Core.oneOf
                 [ p state
@@ -240,16 +240,16 @@ manyIgnore (Parser p) =
             Core.loop state helper
 
 
-many1Ignore : Parser s a -> Parser s ()
+many1Ignore : Parser state a -> Parser state ()
 many1Ignore p =
     p
         |> continueWith (manyIgnore p)
 
 
-manyWithEndLocationForLastElement : Range -> (a -> Range) -> Parser s a -> Parser s ( Location, List a )
+manyWithEndLocationForLastElement : Range -> (a -> Range) -> Parser state a -> Parser state ( Location, List a )
 manyWithEndLocationForLastElement defaultRange getRange (Parser p) =
     let
-        helper : ( s, List a ) -> Core.Parser (Core.Step ( s, List a ) ( s, ( Location, List a ) ))
+        helper : ( state, List a ) -> Core.Parser (Core.Step ( state, List a ) ( state, ( Location, List a ) ))
         helper ( oldState, items ) =
             Core.oneOf
                 [ p oldState
@@ -266,7 +266,7 @@ manyWithEndLocationForLastElement defaultRange getRange (Parser p) =
             Core.loop ( state, [] ) helper
 
 
-many1WithEndLocationForLastElement : (a -> Range) -> Parser s a -> Parser s ( Location, List a )
+many1WithEndLocationForLastElement : (a -> Range) -> Parser state a -> Parser state ( Location, List a )
 many1WithEndLocationForLastElement getRange p =
     p
         |> andThen
@@ -291,10 +291,10 @@ type Step a b
     | Done b
 
 
-loop : a -> (a -> Parser s (Step a b)) -> Parser s b
+loop : a -> (a -> Parser state (Step a b)) -> Parser state b
 loop init stepper =
     let
-        wrapper : ( s, a ) -> Core.Parser (Core.Step ( s, a ) ( s, b ))
+        wrapper : ( state, a ) -> Core.Parser (Core.Step ( state, a ) ( state, b ))
         wrapper ( oldState, v ) =
             let
                 (Parser p) =
@@ -314,14 +314,14 @@ loop init stepper =
     Parser <| \state -> Core.loop ( state, init ) wrapper
 
 
-many1 : Parser s a -> Parser s (List a)
+many1 : Parser state a -> Parser state (List a)
 many1 p =
     succeed cons
         |> keep p
         |> keep (many p)
 
 
-sepBy : Parser s x -> Parser s a -> Parser s (List a)
+sepBy : Parser state x -> Parser state a -> Parser state (List a)
 sepBy sep p =
     oneOf
         [ sepBy1 sep p
@@ -329,7 +329,7 @@ sepBy sep p =
         ]
 
 
-sepBy1 : Parser s x -> Parser s a -> Parser s (List a)
+sepBy1 : Parser state x -> Parser state a -> Parser state (List a)
 sepBy1 sep p =
     succeed cons
         |> keep p
@@ -339,32 +339,32 @@ sepBy1 sep p =
 {-| Same as [`sepBy1`](#sepBy1), except that it doesn't reverse the list.
 This can be useful if you need to access the range of the last item.
 -}
-sepBy1WithoutReverse : Parser s x -> Parser s a -> Parser s (List a)
+sepBy1WithoutReverse : Parser state x -> Parser state a -> Parser state (List a)
 sepBy1WithoutReverse sep p =
     p
         |> andThen (\first -> manyWithoutReverse [ first ] (sep |> continueWith p))
 
 
-between : Parser s l -> Parser s r -> Parser s a -> Parser s a
+between : Parser state l -> Parser state r -> Parser state a -> Parser state a
 between lp rp p =
     lp
         |> continueWith p
         |> ignore rp
 
 
-parens : Parser s a -> Parser s a
+parens : Parser state a -> Parser state a
 parens =
     between (string "(") (string ")")
 
 
-ignore : Parser s x -> Parser s a -> Parser s a
+ignore : Parser state x -> Parser state a -> Parser state a
 ignore dropped target =
     target
         |> map always
         |> keep dropped
 
 
-continueWith : Parser s a -> Parser s x -> Parser s a
+continueWith : Parser state a -> Parser state x -> Parser state a
 continueWith target dropped =
     dropped
         |> map (\_ a -> a)

@@ -4,7 +4,7 @@ import Combine exposing (Parser)
 import Parser as Core
 
 
-char : Char -> Parser s Char
+char : Char -> Parser state Char
 char c =
     satisfy
         (\c_ -> c_ == c)

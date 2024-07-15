@@ -212,7 +212,7 @@ Also note that `oneOf` and `andThenOneOf` parsers may call recursively
 `subExpression`.
 
 -}
-expressionHelp : Config s e -> Int -> e -> Parser s (Step e e)
+expressionHelp : Config state e -> Int -> e -> Parser state (Step e e)
 expressionHelp ((Config conf) as config) precedence leftExpression =
     conf.spaces
         |> Combine.continueWith
@@ -224,14 +224,14 @@ expressionHelp ((Config conf) as config) precedence leftExpression =
             )
 
 
-operation : Config s e -> Int -> e -> Parser s e
+operation : Config state e -> Int -> e -> Parser state e
 operation ((Config conf) as config) precedence leftExpression =
     conf.andThenOneOf
         |> List.filterMap (\toOperation -> filter (toOperation config) precedence leftExpression)
         |> Combine.oneOf
 
 
-filter : ( Int, e -> Parser s e ) -> Int -> e -> Maybe (Parser s e)
+filter : ( Int, e -> Parser state e ) -> Int -> e -> Maybe (Parser state e)
 filter ( precedence, parser ) currentPrecedence leftExpression =
     if precedence > currentPrecedence then
         Just (parser leftExpression)
