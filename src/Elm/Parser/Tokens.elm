@@ -126,7 +126,7 @@ escapedCharValue =
         , Core.succeed (String.toLower >> Hex.fromString >> Result.withDefault 0 >> Char.fromCode)
             |. Core.symbol "u"
             |. Core.symbol "{"
-            |= (Core.chompWhile (\c -> String.any ((==) c) "0123456789ABCDEFabcdef") |> Core.getChompedString)
+            |= (Core.chompWhile Char.isHexDigit |> Core.getChompedString)
             |. Core.symbol "}"
         ]
 

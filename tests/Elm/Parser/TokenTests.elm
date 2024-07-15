@@ -107,6 +107,10 @@ all =
             \() ->
                 parse "'\\u{000D}'" Parser.characterLiteral
                     |> Expect.equal (Just '\u{000D}')
+        , test "unicode char with lowercase hex" <|
+            \() ->
+                parse "'\\u{000d}'" Parser.characterLiteral
+                    |> Expect.equal (Just '\u{000D}')
         , test "string escaped 3" <|
             \() ->
                 parse "\"\\\"\"" Parser.stringLiteral
