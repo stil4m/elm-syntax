@@ -403,23 +403,21 @@ caseStatement config =
 
 letExpression : Config State (Node Expression) -> Parser State (Node Expression)
 letExpression config =
-    Combine.succeed
-        (\( start, decls ) ->
-            \((Node { end } _) as expr) ->
-                Node { start = start, end = end }
-                    (LetExpression (LetBlock decls expr))
-        )
-        |> Combine.keep
-            (withIndentedState
-                (Combine.succeed (\let_ -> \declarations -> ( let_, declarations ))
-                    |> Combine.keep Combine.location
-                    |> Combine.ignore Tokens.letToken
-                    |> Combine.ignore Layout.layout
-                    |> Combine.keep (withIndentedState (letDeclarations config))
-                    |> Combine.ignore Layout.optimisticLayout
-                    |> Combine.ignore Tokens.inToken
-                )
+    withIndentedState
+        (Combine.succeed
+            (\start ->
+                \declarations ->
+                    \((Node { end } _) as expr) ->
+                        Node { start = start, end = end }
+                            (LetExpression (LetBlock declarations expr))
             )
+            |> Combine.keep Combine.location
+            |> Combine.ignore Tokens.letToken
+            |> Combine.ignore Layout.layout
+            |> Combine.keep (withIndentedState (letDeclarations config))
+            |> Combine.ignore Layout.optimisticLayout
+            |> Combine.ignore Tokens.inToken
+        )
         |> Combine.keep (Pratt.subExpression 0 config)
 
 
