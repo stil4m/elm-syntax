@@ -34,7 +34,7 @@ module Combine exposing
     )
 
 import Elm.Syntax.Range exposing (Location, Range)
-import Parser as Core exposing ((|=))
+import Parser as Core
 
 
 type Parser state res
@@ -45,7 +45,7 @@ fromCore : Core.Parser res -> Parser state res
 fromCore p =
     Parser
         (\state ->
-            Core.succeed (\v -> ( state, v )) |= p
+            Core.map (\v -> ( state, v )) p
         )
 
 
