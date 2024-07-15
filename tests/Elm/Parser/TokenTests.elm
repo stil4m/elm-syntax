@@ -114,11 +114,11 @@ all =
                     |> Expect.equal (Just '\u{000D}')
         , test "string escaped 3" <|
             \() ->
-                parse "\"\\\"\"" Parser.stringLiteral
+                parse "\"\\\"\"" (Combine.fromCore Parser.stringLiteral)
                     |> Expect.equal (Just "\"")
         , test "string escaped" <|
             \() ->
-                parse "\"foo\\\\\"" Parser.stringLiteral
+                parse "\"foo\\\\\"" (Combine.fromCore Parser.stringLiteral)
                     |> Expect.equal (Just "foo\\")
         , test "character escaped 3" <|
             \() ->
@@ -126,7 +126,7 @@ all =
                     |> Expect.equal (Just '\n')
         , test "long string" <|
             \() ->
-                parse longString Parser.stringLiteral
+                parse longString (Combine.fromCore Parser.stringLiteral)
                     |> Expect.notEqual Nothing
         , test "long multi line string" <|
             \() ->

@@ -9,7 +9,7 @@ import Elm.Parser.State exposing (State)
 import Elm.Parser.Tokens exposing (characterLiteral, functionName, functionNameCore, stringLiteral)
 import Elm.Syntax.Node as Node exposing (Node(..))
 import Elm.Syntax.Pattern exposing (Pattern(..), QualifiedNameRef)
-import Parser as Core
+import Parser as Core exposing ((|.))
 
 
 tryToCompose : Node Pattern -> Parser State (Node Pattern)
@@ -83,11 +83,11 @@ composablePattern =
     Combine.oneOf
         [ variablePart
         , qualifiedPattern True
-        , Node.parser (Core.symbol "_" |> Combine.fromCore |> Combine.map (always AllPattern))
-        , Node.parser (Core.symbol "()" |> Combine.fromCore |> Combine.map (always UnitPattern))
+        , allPattern
+        , unitPattern
         , parensPattern
         , recordPattern
-        , Node.parser (stringLiteral |> Combine.map StringPattern)
+        , stringPattern
         , listPattern
         , Node.parser numberPart
         , Node.parser (characterLiteral |> Combine.map CharPattern)
@@ -99,15 +99,39 @@ qualifiedPatternArg =
     Combine.oneOf
         [ variablePart
         , qualifiedPattern False
-        , Node.parser (Core.symbol "_" |> Combine.fromCore |> Combine.map (always AllPattern))
-        , Node.parser (Core.symbol "()" |> Combine.fromCore |> Combine.map (always UnitPattern))
+        , allPattern
+        , unitPattern
         , parensPattern
         , recordPattern
-        , Node.parser (stringLiteral |> Combine.map StringPattern)
+        , stringPattern
         , listPattern
         , Node.parser numberPart
         , Node.parser (characterLiteral |> Combine.map CharPattern)
         ]
+
+
+allPattern : Parser state (Node Pattern)
+allPattern =
+    Core.succeed AllPattern
+        |. Core.symbol "_"
+        |> Node.parserCore
+        |> Combine.fromCore
+
+
+unitPattern : Parser state (Node Pattern)
+unitPattern =
+    Core.succeed UnitPattern
+        |. Core.symbol "()"
+        |> Node.parserCore
+        |> Combine.fromCore
+
+
+stringPattern : Parser state (Node Pattern)
+stringPattern =
+    stringLiteral
+        |> Core.map StringPattern
+        |> Node.parserCore
+        |> Combine.fromCore
 
 
 qualifiedPattern : ConsumeArgs -> Parser State (Node Pattern)

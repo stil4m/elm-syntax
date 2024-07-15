@@ -163,7 +163,7 @@ type alias StringLiteralLoopState =
     }
 
 
-stringLiteral : Parser s String
+stringLiteral : Core.Parser String
 stringLiteral =
     let
         helper : StringLiteralLoopState -> Core.Parser (Step StringLiteralLoopState String)
@@ -196,7 +196,6 @@ stringLiteral =
     Core.succeed identity
         |. Core.symbol "\""
         |= Core.loop { escaped = False, parts = [] } helper
-        |> Combine.fromCore
 
 
 type alias MultilineStringLiteralLoopState =

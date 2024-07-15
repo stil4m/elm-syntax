@@ -318,6 +318,7 @@ literalExpression =
     Combine.oneOf
         [ Tokens.multiLineStringLiteral
         , Tokens.stringLiteral
+            |> Combine.fromCore
         ]
         |> Combine.map Literal
         |> Node.parser
