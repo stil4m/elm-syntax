@@ -134,11 +134,11 @@ infixDirection : Parser State Infix.InfixDirection
 infixDirection =
     Core.oneOf
         [ Core.keyword "right"
-            |> Core.map (\_ -> Infix.Right)
+            |> Core.map (\() -> Infix.Right)
         , Core.keyword "left"
-            |> Core.map (\_ -> Infix.Left)
+            |> Core.map (\() -> Infix.Left)
         , Core.keyword "non"
-            |> Core.map (\_ -> Infix.Non)
+            |> Core.map (\() -> Infix.Non)
         ]
         |> Combine.fromCore
 
