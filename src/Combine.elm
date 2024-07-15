@@ -265,7 +265,7 @@ loop init stepper =
 
 many1 : Parser s a -> Parser s (List a)
 many1 p =
-    succeed (::)
+    succeed cons
         |> keep p
         |> keep (many p)
 
@@ -280,7 +280,7 @@ sepBy sep p =
 
 sepBy1 : Parser s x -> Parser s a -> Parser s (List a)
 sepBy1 sep p =
-    succeed (::)
+    succeed cons
         |> keep p
         |> keep (many (sep |> continueWith p))
 
@@ -318,3 +318,8 @@ continueWith target dropped =
     dropped
         |> map (\_ a -> a)
         |> keep target
+
+
+cons : a -> List a -> List a
+cons first =
+    \rest -> first :: rest
