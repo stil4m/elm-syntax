@@ -9,15 +9,7 @@ parser : Parser State a -> Parser State (Node a)
 parser p =
     withLocation
         (\start ->
-            succeed (\v -> \r -> Node r v)
+            succeed (\v -> \end -> Node { start = start, end = end } v)
                 |> Combine.keep p
-                |> Combine.keep
-                    (withLocation
-                        (\end ->
-                            succeed
-                                { start = start
-                                , end = end
-                                }
-                        )
-                    )
+                |> Combine.keep (withLocation succeed)
         )
