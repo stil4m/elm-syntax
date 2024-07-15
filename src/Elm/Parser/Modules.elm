@@ -1,6 +1,6 @@
 module Elm.Parser.Modules exposing (moduleDefinition)
 
-import Combine exposing (Parser, between, oneOf, sepBy1, string, succeed)
+import Combine exposing (Parser, between, oneOf, sepBy1, string, succeed, symbol)
 import Elm.Parser.Base exposing (moduleName)
 import Elm.Parser.Expose exposing (exposeDefinition)
 import Elm.Parser.Layout as Layout
@@ -48,7 +48,7 @@ whereBlock =
 
 effectWhereClauses : Parser State { command : Maybe (Node String), subscription : Maybe (Node String) }
 effectWhereClauses =
-    string "where"
+    symbol "where"
         |> Combine.continueWith Layout.layout
         |> Combine.continueWith whereBlock
 

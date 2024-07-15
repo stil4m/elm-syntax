@@ -30,7 +30,7 @@ exposeListWith =
 exposingListInner : Parser State Exposing
 exposingListInner =
     Combine.oneOf
-        [ Ranges.withRange (succeed All |> Combine.ignore (Layout.maybeAroundBothSides (string "..")))
+        [ Ranges.withRange (succeed All |> Combine.ignore (Layout.maybeAroundBothSides (Combine.symbol "..")))
         , Combine.map Explicit (sepBy1 (char ',') (Layout.maybeAroundBothSides exposable))
         ]
 

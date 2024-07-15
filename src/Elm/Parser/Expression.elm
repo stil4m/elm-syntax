@@ -168,7 +168,7 @@ recordAccessParser =
                     Combine.fail "Record access can't start with a space"
 
                 else
-                    Combine.string "."
+                    Combine.symbol "."
                         |> Combine.continueWith (Node.parser Tokens.functionName)
             )
 
@@ -206,21 +206,21 @@ glslExpression =
         (\s _ -> s |> String.dropLeft (String.length start) |> GLSLExpression)
         (Core.multiComment start end NotNestable)
         |> Combine.fromCore
-        |> Combine.ignore (Combine.string end)
+        |> Combine.ignore (Combine.symbol end)
         |> Node.parser
 
 
 listExpression : Config State (Node Expression) -> Parser State (Node Expression)
 listExpression config =
     Combine.succeed ListExpr
-        |> Combine.ignore (Combine.string "[")
+        |> Combine.ignore (Combine.symbol "[")
         |> Combine.ignore (Combine.maybe Layout.layout)
         |> Combine.keep
             (Combine.sepBy
-                (Combine.string ",")
+                (Combine.symbol ",")
                 (Pratt.subExpression 0 config)
             )
-        |> Combine.ignore (Combine.string "]")
+        |> Combine.ignore (Combine.symbol "]")
         |> Node.parser
 
 
@@ -230,11 +230,11 @@ listExpression config =
 
 recordExpression : Config State (Node Expression) -> Parser State (Node Expression)
 recordExpression config =
-    Combine.string "{"
+    Combine.symbol "{"
         |> Combine.ignore (Combine.maybe Layout.layout)
         |> Combine.continueWith
             (Combine.oneOf
-                [ Combine.string "}" |> Combine.map (always (RecordExpr []))
+                [ Combine.symbol "}" |> Combine.map (\() -> RecordExpr [])
                 , recordContents config
                 ]
             )
@@ -249,7 +249,7 @@ recordContents config =
             (\fname ->
                 Combine.oneOf
                     [ recordUpdateSyntaxParser config fname
-                    , Combine.string "="
+                    , Combine.symbol "="
                         |> Combine.continueWith (Pratt.subExpression 0 config)
                         |> Combine.andThen
                             (\e ->
@@ -261,15 +261,19 @@ recordContents config =
                                     toRecordExpr : List (Node RecordSetter) -> Expression
                                     toRecordExpr fieldUpdates =
                                         RecordExpr (fieldUpdate :: fieldUpdates)
+
+                                    endSymbol : Parser s ()
+                                    endSymbol =
+                                        Combine.symbol "}"
                                 in
                                 Combine.oneOf
-                                    [ Combine.string "}"
-                                        |> Combine.map (\_ -> toRecordExpr [])
+                                    [ endSymbol
+                                        |> Combine.map (\() -> toRecordExpr [])
                                     , Combine.succeed toRecordExpr
-                                        |> Combine.ignore (Combine.string ",")
+                                        |> Combine.ignore (Combine.symbol ",")
                                         |> Combine.ignore (Combine.maybe Layout.layout)
                                         |> Combine.keep (recordFields config)
-                                        |> Combine.ignore (Combine.string "}")
+                                        |> Combine.ignore endSymbol
                                     ]
                             )
                     ]
@@ -279,10 +283,10 @@ recordContents config =
 recordUpdateSyntaxParser : Config State (Node Expression) -> Node String -> Parser State Expression
 recordUpdateSyntaxParser config fname =
     Combine.succeed (\e -> RecordUpdateExpression fname e)
-        |> Combine.ignore (Combine.string "|")
+        |> Combine.ignore (Combine.symbol "|")
         |> Combine.ignore (Combine.maybe Layout.layout)
         |> Combine.keep (recordFields config)
-        |> Combine.ignore (Combine.string "}")
+        |> Combine.ignore (Combine.symbol "}")
 
 
 recordFields : Config State (Node Expression) -> Parser State (List (Node RecordSetter))
@@ -292,7 +296,7 @@ recordFields config =
         |> Combine.ignore (Combine.maybe Layout.layout)
         |> Combine.keep
             (Combine.many
-                (Combine.string ","
+                (Combine.symbol ","
                     |> Combine.ignore (Combine.maybe Layout.layout)
                     |> Combine.continueWith (recordField config)
                     |> Combine.ignore (Combine.maybe Layout.layout)
@@ -306,7 +310,7 @@ recordField config =
         (Combine.succeed (\fnName -> \expr -> ( fnName, expr ))
             |> Combine.keep (Node.parser Tokens.functionName)
             |> Combine.ignore (Combine.maybe Layout.layout)
-            |> Combine.ignore (Combine.string "=")
+            |> Combine.ignore (Combine.symbol "=")
             |> Combine.keep (Pratt.subExpression 0 config)
         )
 
@@ -340,11 +344,11 @@ lambdaExpression config =
                         |> LambdaExpression
                         |> Node { start = start, end = (Node.range expr).end }
         )
-        |> Combine.keep (Node.parser (Combine.string "\\"))
+        |> Combine.keep (Node.parser (Combine.symbol "\\"))
         |> Combine.ignore (Combine.maybe Layout.layout)
         |> Combine.keep (Combine.sepBy1 (Combine.maybe Layout.layout) Patterns.pattern)
         |> Combine.ignore (Combine.maybe Layout.layout)
-        |> Combine.ignore (Combine.string "->")
+        |> Combine.ignore (Combine.symbol "->")
         |> Combine.keep (Pratt.subExpression 0 config)
 
 
@@ -381,7 +385,7 @@ caseStatement config =
         |> Combine.ignore Layout.onTopIndentation
         |> Combine.keep Patterns.pattern
         |> Combine.ignore (Combine.maybe Layout.layout)
-        |> Combine.ignore (Combine.string "->")
+        |> Combine.ignore (Combine.symbol "->")
         |> Combine.ignore (Combine.maybe Layout.layout)
         |> Combine.keep (Pratt.subExpression 0 config)
 
@@ -438,7 +442,7 @@ letDestructuringDeclarationWithPattern config pattern =
         (\expr ->
             Node { start = (Node.range pattern).start, end = (Node.range expr).end } (LetDestructuring pattern expr)
         )
-        |> Combine.ignore (Combine.string "=")
+        |> Combine.ignore (Combine.symbol "=")
         |> Combine.keep (Pratt.subExpression 0 config)
 
 
@@ -480,11 +484,11 @@ negationOperation =
 
 minusNotFollowedBySpace : Parser s ()
 minusNotFollowedBySpace =
-    Combine.backtrackable (Combine.string "-")
+    Combine.backtrackable (Combine.symbol "-")
         |> Combine.continueWith
             (Combine.oneOf
                 [ Combine.map (always True) (Combine.backtrackable Whitespace.realNewLine)
-                , Combine.map (always True) (Combine.backtrackable (Combine.string " "))
+                , Combine.map (always True) (Combine.backtrackable (Combine.symbol " "))
                 , Combine.succeed False
                 ]
             )
@@ -504,7 +508,7 @@ referenceExpression =
         helper : ModuleName -> String -> Parser s Expression
         helper moduleNameSoFar nameOrSegment =
             Combine.oneOf
-                [ Combine.string "."
+                [ Combine.symbol "."
                     |> Combine.continueWith
                         (Combine.oneOf
                             [ Tokens.typeName
@@ -534,7 +538,7 @@ referenceExpression =
 recordAccessFunctionExpression : Parser State (Node Expression)
 recordAccessFunctionExpression =
     Combine.succeed (\field -> RecordAccessFunction ("." ++ field))
-        |> Combine.ignore (Combine.string ".")
+        |> Combine.ignore (Combine.symbol ".")
         |> Combine.keep Tokens.functionName
         |> Node.parser
 
@@ -545,7 +549,7 @@ tupledExpression config =
         commaSep : Parser State (List (Node Expression))
         commaSep =
             Combine.many
-                (Combine.string ","
+                (Combine.symbol ","
                     |> Combine.continueWith (Pratt.subExpression 0 config)
                 )
 
@@ -626,7 +630,7 @@ functionImplementationFromVarPointer : Config State (Node Expression) -> Node St
 functionImplementationFromVarPointer config ((Node { start } _) as varPointer) =
     Combine.succeed (\args -> \expr -> Node { start = start, end = (Node.range expr).end } (FunctionImplementation varPointer args expr))
         |> Combine.keep (Combine.many (Patterns.pattern |> Combine.ignore (Combine.maybe Layout.layout)))
-        |> Combine.ignore (Combine.string "=")
+        |> Combine.ignore (Combine.symbol "=")
         |> Combine.keep (Pratt.subExpression 0 config)
 
 
@@ -650,6 +654,6 @@ failIfDifferentFrom (Node _ expectedName) ((Node _ actualName) as actual) =
 functionSignatureFromVarPointer : Node String -> Parser State (Node Signature)
 functionSignatureFromVarPointer varPointer =
     Combine.succeed (\ta -> Node.combine Signature varPointer ta)
-        |> Combine.ignore (Combine.string ":")
+        |> Combine.ignore (Combine.symbol ":")
         |> Combine.ignore (Combine.maybe Layout.layout)
         |> Combine.keep TypeAnnotation.typeAnnotation
