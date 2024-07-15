@@ -20,7 +20,7 @@ module Elm.Parser.Tokens exposing
     )
 
 import Char
-import Combine exposing (Parser, string)
+import Combine exposing (Parser, symbol)
 import Combine.Char exposing (anyChar, char)
 import Hex
 import Parser as Core exposing ((|.), (|=), Step(..))
@@ -53,19 +53,19 @@ reservedList =
     ]
 
 
-portToken : Parser s String
+portToken : Parser s ()
 portToken =
-    string "port"
+    symbol "port"
 
 
-moduleToken : Parser s String
+moduleToken : Parser s ()
 moduleToken =
-    string "module"
+    symbol "module"
 
 
-exposingToken : Parser s String
+exposingToken : Parser s ()
 exposingToken =
-    string "exposing"
+    symbol "exposing"
 
 
 importToken : Parser s ()
@@ -78,39 +78,39 @@ asToken =
     Combine.fromCore (Core.keyword "as")
 
 
-ifToken : Parser s String
+ifToken : Parser s ()
 ifToken =
-    string "if"
+    symbol "if"
 
 
-thenToken : Parser s String
+thenToken : Parser s ()
 thenToken =
-    string "then"
+    symbol "then"
 
 
-elseToken : Parser s String
+elseToken : Parser s ()
 elseToken =
-    string "else"
+    symbol "else"
 
 
-caseToken : Parser s String
+caseToken : Parser s ()
 caseToken =
-    string "case"
+    symbol "case"
 
 
-ofToken : Parser s String
+ofToken : Parser s ()
 ofToken =
-    string "of"
+    symbol "of"
 
 
-letToken : Parser s String
+letToken : Parser s ()
 letToken =
-    string "let"
+    symbol "let"
 
 
-inToken : Parser s String
+inToken : Parser s ()
 inToken =
-    string "in"
+    symbol "in"
 
 
 escapedCharValue : Core.Parser Char

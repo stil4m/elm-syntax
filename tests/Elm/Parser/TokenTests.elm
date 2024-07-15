@@ -70,11 +70,11 @@ all =
         , test "moduleToken" <|
             \() ->
                 parse "module" Parser.moduleToken
-                    |> Expect.equal (Just "module")
+                    |> Expect.equal (Just ())
         , test "exposingToken" <|
             \() ->
                 parse "exposing" Parser.exposingToken
-                    |> Expect.equal (Just "exposing")
+                    |> Expect.equal (Just ())
         , test "operatorToken 11 -- is not an operator" <|
             \() ->
                 parse "--" Parser.prefixOperatorToken
