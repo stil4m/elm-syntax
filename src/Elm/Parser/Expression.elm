@@ -260,7 +260,7 @@ recordContents config =
                                 in
                                 Combine.oneOf
                                     [ Combine.string "}"
-                                        |> Combine.map (always (RecordExpr [ fieldUpdate ]))
+                                        |> Combine.map (\_ -> RecordExpr [ fieldUpdate ])
                                     , Combine.succeed (\fieldUpdates -> RecordExpr (fieldUpdate :: fieldUpdates))
                                         |> Combine.ignore (Combine.string ",")
                                         |> Combine.ignore (Combine.maybe Layout.layout)
