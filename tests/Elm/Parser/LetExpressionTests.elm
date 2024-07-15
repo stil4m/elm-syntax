@@ -390,6 +390,11 @@ all =
                                 }
                             )
                         )
+        , test "let is not confused by a variable name starting with let" <|
+            \() ->
+                "letterbox"
+                    |> expectAst
+                        (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 10 } } (FunctionOrValue [] "letterbox"))
         ]
 
 

@@ -7,6 +7,8 @@ module Elm.Parser.Tokens exposing
     , functionName
     , ifToken
     , importToken
+    , inToken
+    , letToken
     , moduleToken
     , multiLineStringLiteral
     , ofToken
@@ -99,6 +101,16 @@ caseToken =
 ofToken : Parser s String
 ofToken =
     string "of"
+
+
+letToken : Parser s String
+letToken =
+    string "let"
+
+
+inToken : Parser s String
+inToken =
+    string "in"
 
 
 escapedCharValue : Core.Parser Char

@@ -387,11 +387,11 @@ letExpression config =
         |> Combine.keep
             (withIndentedState
                 (Combine.succeed Tuple.pair
-                    |> Combine.keep (Node.parser (Combine.string "let"))
+                    |> Combine.keep (Node.parser Tokens.letToken)
                     |> Combine.ignore Layout.layout
                     |> Combine.keep (withIndentedState (letBody config))
                     |> Combine.ignore Layout.optimisticLayout
-                    |> Combine.ignore (Combine.string "in")
+                    |> Combine.ignore Tokens.inToken
                 )
             )
         |> Combine.keep (Pratt.subExpression 0 config)
