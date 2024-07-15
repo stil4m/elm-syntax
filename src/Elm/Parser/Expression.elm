@@ -80,7 +80,7 @@ expression =
             -- TODO validate function application arguments (issue #209)
             , functionCall
             ]
-        , spaces = Layout.optimisticLayout |> Combine.map (always ())
+        , spaces = Layout.optimisticLayout
         }
 
 

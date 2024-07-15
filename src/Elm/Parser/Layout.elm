@@ -9,7 +9,7 @@ module Elm.Parser.Layout exposing
     , positivelyIndented
     )
 
-import Combine exposing (Parser, fail, many, many1, maybe, oneOf, succeed, withLocation, withState)
+import Combine exposing (Parser, fail, many1, maybe, oneOf, succeed, withLocation, withState)
 import Elm.Parser.Comments as Comments
 import Elm.Parser.State as State exposing (State)
 import Elm.Parser.Whitespace exposing (many1Spaces, realNewLine)
@@ -52,6 +52,7 @@ type LayoutStatus
 optimisticLayoutWith : (() -> Parser State a) -> (() -> Parser State a) -> Parser State a
 optimisticLayoutWith onStrict onIndented =
     optimisticLayout
+        |> Combine.continueWith compute
         |> Combine.andThen
             (\ind ->
                 case ind of
@@ -63,9 +64,9 @@ optimisticLayoutWith onStrict onIndented =
             )
 
 
-optimisticLayout : Parser State LayoutStatus
+optimisticLayout : Parser State ()
 optimisticLayout =
-    many
+    Combine.manyIgnore
         (oneOf
             [ anyComment
             , many1 realNewLine
@@ -79,7 +80,6 @@ optimisticLayout =
             , many1Spaces
             ]
         )
-        |> Combine.continueWith compute
 
 
 compute : Parser State LayoutStatus

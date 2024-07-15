@@ -16,6 +16,7 @@ module Combine exposing
     , many
     , many1
     , many1WithEndLocationForLastElement
+    , manyIgnore
     , manyWithEndLocationForLastElement
     , map
     , maybe
@@ -226,6 +227,22 @@ manyWithoutReverse initList (Parser p) =
     Parser <|
         \state ->
             Core.loop ( state, initList ) helper
+
+
+manyIgnore : Parser s a -> Parser s ()
+manyIgnore (Parser p) =
+    let
+        helper : s -> Core.Parser (Core.Step s ( s, () ))
+        helper state =
+            Core.oneOf
+                [ p state
+                    |> Core.map (\( newState, _ ) -> Core.Loop newState)
+                , Core.succeed (Core.Done ( state, () ))
+                ]
+    in
+    Parser <|
+        \state ->
+            Core.loop state helper
 
 
 manyWithEndLocationForLastElement : Range -> (a -> Range) -> Parser s a -> Parser s ( Location, List a )
