@@ -595,24 +595,24 @@ withIndentedState p =
 
 functionWithNameNode : Config State (Node Expression) -> Node String -> Parser State Function
 functionWithNameNode config pointer =
-    let
-        functionWithSignature : Node String -> Parser State Function
-        functionWithSignature varPointer =
-            functionSignatureFromVarPointer varPointer
-                |> Combine.ignore (Combine.maybe Layout.layoutStrict)
-                |> Combine.andThen
-                    (\sig ->
-                        Node.parser Tokens.functionName
-                            |> Combine.andThen (\fnName -> failIfDifferentFrom varPointer fnName)
-                            |> Combine.ignore (Combine.maybe Layout.layout)
-                            |> Combine.andThen (\newPointer -> functionImplementationFromVarPointer config newPointer)
-                            |> Combine.map (\decl -> fromParts sig decl)
-                    )
-    in
     Combine.oneOf
-        [ functionWithSignature pointer
+        [ functionWithSignature config pointer
         , functionWithoutSignature config pointer
         ]
+
+
+functionWithSignature : Config State (Node Expression) -> Node String -> Parser State Function
+functionWithSignature config varPointer =
+    functionSignatureFromVarPointer varPointer
+        |> Combine.ignore (Combine.maybe Layout.layoutStrict)
+        |> Combine.andThen
+            (\sig ->
+                Node.parser Tokens.functionName
+                    |> Combine.andThen (\fnName -> failIfDifferentFrom varPointer fnName)
+                    |> Combine.ignore (Combine.maybe Layout.layout)
+                    |> Combine.andThen (\newPointer -> functionImplementationFromVarPointer config newPointer)
+                    |> Combine.map (\decl -> fromParts sig decl)
+            )
 
 
 functionWithoutSignature : Config State (Node Expression) -> Node String -> Parser State Function
