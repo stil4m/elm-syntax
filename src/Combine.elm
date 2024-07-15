@@ -108,7 +108,7 @@ keep (Parser rp) (Parser lp) =
     Parser <|
         \state ->
             lp state
-                |> Core.andThen (\( newState, a ) -> Core.map (Tuple.mapSecond a) (rp newState))
+                |> Core.andThen (\( newState, aToB ) -> Core.map (\( s, a ) -> ( s, aToB a )) (rp newState))
 
 
 fail : String -> Parser s a
