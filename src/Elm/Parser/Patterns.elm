@@ -54,12 +54,12 @@ parensPattern =
         )
 
 
-variablePart : Parser State (Node Pattern)
+variablePart : Parser state (Node Pattern)
 variablePart =
     Node.parser (Combine.map VarPattern functionName)
 
 
-numberPart : Parser State Pattern
+numberPart : Parser state Pattern
 numberPart =
     Elm.Parser.Numbers.number IntPattern HexPattern
 
