@@ -62,8 +62,7 @@ all =
                                     roundTrip : Maybe RawFile
                                     roundTrip =
                                         parsed
-                                            |> Maybe.map (RawFile.encode >> Json.Encode.encode 0)
-                                            |> Maybe.andThen (Json.Decode.decodeString RawFile.decoder >> Result.toMaybe)
+                                            |> Maybe.andThen (RawFile.encode >> Json.Encode.encode 0 >> Json.Decode.decodeString RawFile.decoder >> Result.toMaybe)
                                 in
                                 Expect.equal parsed roundTrip
                     )
