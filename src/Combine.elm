@@ -135,8 +135,8 @@ keep (Parser rp) (Parser lp) =
 fail : String -> Parser s a
 fail m =
     Parser <|
-        \state ->
-            Core.problem m |> Core.map (\x -> ( state, x ))
+        \_ ->
+            Core.problem m
 
 
 succeed : a -> Parser s a
