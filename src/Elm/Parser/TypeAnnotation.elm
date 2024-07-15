@@ -72,7 +72,7 @@ parensTypeAnnotation =
 
         nested : Parser State TypeAnnotation
         nested =
-            Combine.succeed asTypeAnnotation
+            Combine.succeed (\x -> \xs -> asTypeAnnotation x xs)
                 |> Combine.ignore (maybe Layout.layout)
                 |> Combine.keep typeAnnotation
                 |> Combine.ignore (maybe Layout.layout)

@@ -24,7 +24,7 @@ moduleDefinition =
 
 effectWhereClause : Parser State ( String, Node String )
 effectWhereClause =
-    succeed Tuple.pair
+    succeed (\fnName -> \typeName_ -> ( fnName, typeName_ ))
         |> Combine.keep functionName
         |> Combine.ignore (Layout.maybeAroundBothSides (string "="))
         |> Combine.keep (Node.parser typeName)
@@ -65,7 +65,7 @@ effectModuleDefinition =
                 , subscription = whereClauses.subscription
                 }
     in
-    succeed createEffectModule
+    succeed (\name -> \whereClauses -> \exp -> createEffectModule name whereClauses exp)
         |> Combine.ignore (string "effect")
         |> Combine.ignore Layout.layout
         |> Combine.ignore moduleToken
@@ -80,7 +80,7 @@ effectModuleDefinition =
 normalModuleDefinition : Parser State Module
 normalModuleDefinition =
     Combine.map NormalModule
-        (succeed DefaultModuleData
+        (succeed (\moduleName -> \exposingList -> DefaultModuleData moduleName exposingList)
             |> Combine.ignore moduleToken
             |> Combine.ignore Layout.layout
             |> Combine.keep (Node.parser moduleName)
@@ -92,7 +92,7 @@ normalModuleDefinition =
 portModuleDefinition : Parser State Module
 portModuleDefinition =
     Combine.map PortModule
-        (succeed DefaultModuleData
+        (succeed (\moduleName -> \exposingList -> DefaultModuleData moduleName exposingList)
             |> Combine.ignore portToken
             |> Combine.ignore Layout.layout
             |> Combine.ignore moduleToken

@@ -617,16 +617,16 @@ functionWithNameNode config pointer =
                 |> Combine.andThen
                     (\sig ->
                         Node.parser Tokens.functionName
-                            |> Combine.andThen (failIfDifferentFrom varPointer)
+                            |> Combine.andThen (\fnName -> failIfDifferentFrom varPointer fnName)
                             |> Combine.ignore (Combine.maybe Layout.layout)
                             |> Combine.andThen functionImplementationFromVarPointer
-                            |> Combine.map (fromParts sig)
+                            |> Combine.map (\decl -> fromParts sig decl)
                     )
 
         functionWithoutSignature : Node String -> Parser State Function
         functionWithoutSignature varPointer =
             functionImplementationFromVarPointer varPointer
-                |> Combine.map (Function Nothing Nothing)
+                |> Combine.map (\decl -> Function Nothing Nothing decl)
     in
     Combine.oneOf
         [ functionWithSignature pointer

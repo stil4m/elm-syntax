@@ -87,7 +87,7 @@ functionWithNameNode pointer =
                 |> Combine.andThen
                     (\sig ->
                         Node.parser functionName
-                            |> Combine.andThen (failIfDifferentFrom varPointer)
+                            |> Combine.andThen (\fnName -> failIfDifferentFrom varPointer fnName)
                             |> Combine.ignore (maybe Layout.layout)
                             |> Combine.andThen functionImplementationFromVarPointer
                             |> Combine.map (fromParts sig)
@@ -147,10 +147,11 @@ infixDirection =
 portDeclaration : Maybe (Node Documentation) -> Parser State (Node Declaration)
 portDeclaration maybeDoc =
     Combine.succeed
-        (\(Node { start } _) sig ->
-            Node
-                { start = start, end = (Node.range sig.typeAnnotation).end }
-                (Declaration.PortDeclaration sig)
+        (\(Node { start } _) ->
+            \sig ->
+                Node
+                    { start = start, end = (Node.range sig.typeAnnotation).end }
+                    (Declaration.PortDeclaration sig)
         )
         |> Combine.ignore
             (case maybeDoc of

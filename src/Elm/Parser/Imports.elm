@@ -39,9 +39,9 @@ importDefinition =
                     |> Combine.andThen (\alias_ -> parseExposingDefinition mod (Just alias_))
                 , parseExposingDefinition mod Nothing
                 ]
-                |> Combine.map (setupNode importKeywordRange.start)
+                |> Combine.map (\imp -> setupNode importKeywordRange.start imp)
     in
-    Combine.succeed parseAsDefinition
+    Combine.succeed (\node -> \mod -> parseAsDefinition node mod)
         |> Combine.keep (Node.parser importToken)
         |> Combine.ignore Layout.layout
         |> Combine.keep (Node.parser moduleName)

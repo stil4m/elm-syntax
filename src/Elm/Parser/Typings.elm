@@ -21,18 +21,20 @@ typeDefinition maybeDoc =
             (\(Node { start } _) ->
                 Combine.oneOf
                     [ Combine.succeed
-                        (\name generics ((Node { end } _) as typeAnnotation) ->
-                            Node
-                                { start = maybeDoc |> Maybe.map (Node.range >> .start) |> Maybe.withDefault start
-                                , end = end
-                                }
-                                (Declaration.AliasDeclaration
-                                    { documentation = maybeDoc
-                                    , name = name
-                                    , generics = generics
-                                    , typeAnnotation = typeAnnotation
-                                    }
-                                )
+                        (\name ->
+                            \generics ->
+                                \((Node { end } _) as typeAnnotation) ->
+                                    Node
+                                        { start = maybeDoc |> Maybe.map (Node.range >> .start) |> Maybe.withDefault start
+                                        , end = end
+                                        }
+                                        (Declaration.AliasDeclaration
+                                            { documentation = maybeDoc
+                                            , name = name
+                                            , generics = generics
+                                            , typeAnnotation = typeAnnotation
+                                            }
+                                        )
                         )
                         |> Combine.ignore (string "alias")
                         |> Combine.ignore Layout.layout
@@ -43,28 +45,30 @@ typeDefinition maybeDoc =
                         |> Combine.ignore (maybe Layout.layout)
                         |> Combine.keep typeAnnotation
                     , Combine.succeed
-                        (\name generics constructors ->
-                            let
-                                end : Location
-                                end =
-                                    case List.head constructors of
-                                        Just (Node range _) ->
-                                            range.end
+                        (\name ->
+                            \generics ->
+                                \constructors ->
+                                    let
+                                        end : Location
+                                        end =
+                                            case List.head constructors of
+                                                Just (Node range _) ->
+                                                    range.end
 
-                                        Nothing ->
-                                            start
-                            in
-                            Node
-                                { start = maybeDoc |> Maybe.map (Node.range >> .start) |> Maybe.withDefault start
-                                , end = end
-                                }
-                                (Declaration.CustomTypeDeclaration
-                                    { documentation = maybeDoc
-                                    , name = name
-                                    , generics = generics
-                                    , constructors = List.reverse constructors
-                                    }
-                                )
+                                                Nothing ->
+                                                    start
+                                    in
+                                    Node
+                                        { start = maybeDoc |> Maybe.map (Node.range >> .start) |> Maybe.withDefault start
+                                        , end = end
+                                        }
+                                        (Declaration.CustomTypeDeclaration
+                                            { documentation = maybeDoc
+                                            , name = name
+                                            , generics = generics
+                                            , constructors = List.reverse constructors
+                                            }
+                                        )
                         )
                         |> Combine.keep (Node.parser typeName)
                         |> Combine.ignore (maybe Layout.layout)

@@ -30,7 +30,7 @@ singleLineComment =
 
 multilineCommentInner : Parser State String
 multilineCommentInner =
-    Core.succeed (\offset source -> String.slice offset (offset + 3) source)
+    Core.succeed (\offset -> \source -> String.slice offset (offset + 3) source)
         |= Core.getOffset
         |= Core.getSource
         |> Core.andThen
