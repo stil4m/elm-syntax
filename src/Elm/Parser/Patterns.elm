@@ -60,9 +60,10 @@ variablePart =
         |> Combine.fromCore
 
 
-numberPart : Parser state Pattern
+numberPart : Parser state (Node Pattern)
 numberPart =
     Elm.Parser.Numbers.number IntPattern HexPattern
+        |> Node.parser
 
 
 listPattern : Parser State (Node Pattern)
@@ -89,7 +90,7 @@ composablePattern =
         , recordPattern
         , stringPattern
         , listPattern
-        , Node.parser numberPart
+        , numberPart
         , Node.parser (characterLiteral |> Combine.map CharPattern)
         ]
 
@@ -105,7 +106,7 @@ qualifiedPatternArg =
         , recordPattern
         , stringPattern
         , listPattern
-        , Node.parser numberPart
+        , numberPart
         , Node.parser (characterLiteral |> Combine.map CharPattern)
         ]
 
