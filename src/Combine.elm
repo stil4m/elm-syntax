@@ -11,6 +11,7 @@ module Combine exposing
     , ignore
     , keep
     , lazy
+    , location
     , loop
     , many
     , many1
@@ -98,6 +99,17 @@ withLocation f =
                                 f { row = row, column = col }
                         in
                         p state
+                    )
+
+
+location : Parser s Location
+location =
+    Parser <|
+        \state ->
+            Core.getPosition
+                |> Core.andThen
+                    (\( row, col ) ->
+                        Core.succeed ( state, { row = row, column = col } )
                     )
 
 
@@ -242,7 +254,7 @@ many1WithEndLocationForLastElement getRange p =
         |> andThen
             (\a ->
                 manyWithEndLocationForLastElement (getRange a) getRange p
-                    |> map (\( location, list ) -> ( location, a :: list ))
+                    |> map (\( location_, list ) -> ( location_, a :: list ))
             )
 
 
