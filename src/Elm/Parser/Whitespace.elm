@@ -1,4 +1,4 @@
-module Elm.Parser.Whitespace exposing (many1Spaces, realNewLine, untilNewlineToken)
+module Elm.Parser.Whitespace exposing (many1Spaces, realNewLine, realNewLineCore, untilNewlineToken)
 
 import Combine exposing (Parser)
 import Parser as Core exposing ((|.))
@@ -11,14 +11,18 @@ many1Spaces =
         |> Combine.fromCore
 
 
-realNewLine : Parser s ()
+realNewLine : Parser state ()
 realNewLine =
+    Combine.fromCore realNewLineCore
+
+
+realNewLineCore : Core.Parser ()
+realNewLineCore =
     Core.oneOf
         [ Core.chompIf (\c -> c == '\u{000D}')
         , Core.succeed ()
         ]
         |. Core.symbol "\n"
-        |> Combine.fromCore
 
 
 untilNewlineToken : Core.Parser ()

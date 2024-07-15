@@ -16,7 +16,7 @@ import Elm.Syntax.Node as Node exposing (Node(..))
 import Elm.Syntax.Pattern as Pattern exposing (Pattern)
 import Elm.Syntax.Range exposing (Location)
 import Elm.Syntax.Signature exposing (Signature)
-import Parser as Core exposing ((|=), Nestable(..))
+import Parser as Core exposing ((|.), (|=), Nestable(..))
 import Pratt exposing (Config)
 
 
@@ -123,8 +123,7 @@ infixLeftSubtraction precedence =
         (Core.succeed (\offset -> \source -> String.slice (offset - 1) offset source)
             |= Core.getOffset
             |= Core.getSource
-            |> Combine.fromCore
-            |> Combine.andThen
+            |> Core.andThen
                 (\c ->
                     -- 'a-b', 'a - b' and 'a- b' are subtractions, but 'a -b' is an application on a negation
                     if c == " " || c == "\n" || c == "\u{000D}" then
@@ -133,6 +132,7 @@ infixLeftSubtraction precedence =
                     else
                         minus
                 )
+            |> Combine.fromCore
         )
         (\left right ->
             Node
@@ -480,22 +480,22 @@ negationOperation =
 
 minusNotFollowedBySpace : Parser s ()
 minusNotFollowedBySpace =
-    Combine.backtrackable minus
-        |> Combine.continueWith
-            (Combine.oneOf
-                [ Combine.map (always True) (Combine.backtrackable Whitespace.realNewLine)
-                , Combine.map (always True) (Combine.backtrackable (Combine.symbol " "))
-                , Combine.succeed False
-                ]
-            )
-        |> Combine.andThen
+    Core.succeed identity
+        |. Core.backtrackable minus
+        |= Core.oneOf
+            [ Core.map (always True) (Core.backtrackable Whitespace.realNewLineCore)
+            , Core.map (always True) (Core.backtrackable (Core.symbol " "))
+            , Core.succeed False
+            ]
+        |> Core.andThen
             (\isSpaceOrComment ->
                 if isSpaceOrComment then
-                    Combine.fail "negation sign cannot be followed by a space"
+                    Core.problem "negation sign cannot be followed by a space"
 
                 else
-                    Combine.fromCore (Core.commit ())
+                    Core.commit ()
             )
+        |> Combine.fromCore
 
 
 referenceExpression : Parser State (Node Expression)
@@ -655,17 +655,17 @@ functionSignatureFromVarPointer varPointer =
         |> Combine.keep TypeAnnotation.typeAnnotation
 
 
-minus : Parser s ()
+minus : Core.Parser ()
 minus =
-    Combine.symbol "-"
+    Core.symbol "-"
 
 
-minusSymbols : Parser s ()
+minusSymbols : Core.Parser ()
 minusSymbols =
-    Combine.oneOf
-        [ Combine.symbol "- "
-        , Combine.symbol "-\n"
-        , Combine.symbol "-\u{000D}"
+    Core.oneOf
+        [ Core.symbol "- "
+        , Core.symbol "-\n"
+        , Core.symbol "-\u{000D}"
         ]
 
 
