@@ -193,7 +193,7 @@ subExpression precedence ((Config conf) as config) =
     conf.spaces
         |> Combine.continueWith
             (Combine.lazy
-                (\_ ->
+                (\() ->
                     Combine.oneOf <| List.map (\e -> e config) conf.oneOf
                 )
             )
