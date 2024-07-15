@@ -603,13 +603,6 @@ functionWithNameNode config pointer =
                 |> Combine.ignore (Combine.string "=")
                 |> Combine.keep (Pratt.subExpression 0 config)
 
-        fromParts : Node Signature -> Node FunctionImplementation -> Function
-        fromParts sig decl =
-            { documentation = Nothing
-            , signature = Just sig
-            , declaration = decl
-            }
-
         functionWithSignature : Node String -> Parser State Function
         functionWithSignature varPointer =
             functionSignatureFromVarPointer varPointer
@@ -632,6 +625,14 @@ functionWithNameNode config pointer =
         [ functionWithSignature pointer
         , functionWithoutSignature pointer
         ]
+
+
+fromParts : Node Signature -> Node FunctionImplementation -> Function
+fromParts sig decl =
+    { documentation = Nothing
+    , signature = Just sig
+    , declaration = decl
+    }
 
 
 failIfDifferentFrom : Node String -> Node String -> Parser State (Node String)
