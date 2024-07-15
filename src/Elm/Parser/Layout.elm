@@ -1,6 +1,5 @@
 module Elm.Parser.Layout exposing
-    ( LayoutStatus(..)
-    , layout
+    ( layout
     , layoutStrict
     , maybeAroundBothSides
     , onTopIndentation
@@ -44,24 +43,10 @@ layout =
             )
 
 
-type LayoutStatus
-    = Strict
-    | Indented
-
-
 optimisticLayoutWith : (() -> Parser State a) -> (() -> Parser State a) -> Parser State a
 optimisticLayoutWith onStrict onIndented =
     optimisticLayout
-        |> Combine.continueWith compute
-        |> Combine.andThen
-            (\ind ->
-                case ind of
-                    Strict ->
-                        onStrict ()
-
-                    Indented ->
-                        onIndented ()
-            )
+        |> Combine.continueWith (compute onStrict onIndented)
 
 
 optimisticLayout : Parser State ()
@@ -82,17 +67,17 @@ optimisticLayout =
         )
 
 
-compute : Parser State LayoutStatus
-compute =
+compute : (() -> Parser State a) -> (() -> Parser State a) -> Parser State a
+compute onStrict onIndented =
     withState
         (\state ->
             withLocation
                 (\l ->
                     if l.column == 1 || List.member l.column (State.storedColumns state) then
-                        succeed Strict
+                        onStrict ()
 
                     else
-                        succeed Indented
+                        onIndented ()
                 )
         )
 
