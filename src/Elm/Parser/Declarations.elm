@@ -65,20 +65,21 @@ function maybeDoc =
 functionWithNameNode : Node String -> Parser State Function
 functionWithNameNode pointer =
     let
-        functionImplementationFromVarPointer : Node String -> Parser State (Node FunctionImplementation)
-        functionImplementationFromVarPointer varPointer =
-            succeed (\args expr -> Node { start = (Node.range varPointer).start, end = (Node.range expr).end } (FunctionImplementation varPointer args expr))
+        functionImplementationFromVarPointer : Maybe (Node Signature) -> Node String -> Parser State Function
+        functionImplementationFromVarPointer signature_ varPointer =
+            succeed
+                (\args expr ->
+                    { documentation = Nothing
+                    , signature = signature_
+                    , declaration =
+                        Node { start = (Node.range varPointer).start, end = (Node.range expr).end }
+                            (FunctionImplementation varPointer args expr)
+                    }
+                )
                 |> Combine.keep (Combine.many (pattern |> Combine.ignore (maybe Layout.layout)))
                 |> Combine.ignore (string "=")
                 |> Combine.ignore (maybe Layout.layout)
                 |> Combine.keep expression
-
-        fromParts : Node Signature -> Node FunctionImplementation -> Function
-        fromParts sig decl =
-            { documentation = Nothing
-            , signature = Just sig
-            , declaration = decl
-            }
 
         functionWithSignature : Node String -> Parser State Function
         functionWithSignature varPointer =
@@ -89,14 +90,12 @@ functionWithNameNode pointer =
                         Node.parser functionName
                             |> Combine.andThen (\fnName -> failIfDifferentFrom varPointer fnName)
                             |> Combine.ignore (maybe Layout.layout)
-                            |> Combine.andThen functionImplementationFromVarPointer
-                            |> Combine.map (fromParts sig)
+                            |> Combine.andThen (\body -> functionImplementationFromVarPointer (Just sig) body)
                     )
 
         functionWithoutSignature : Node String -> Parser State Function
         functionWithoutSignature varPointer =
-            functionImplementationFromVarPointer varPointer
-                |> Combine.map (Function Nothing Nothing)
+            functionImplementationFromVarPointer Nothing varPointer
     in
     Combine.oneOf
         [ functionWithSignature pointer
