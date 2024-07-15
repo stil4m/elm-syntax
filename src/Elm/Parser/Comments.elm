@@ -6,7 +6,7 @@ import Elm.Parser.State exposing (State, addComment)
 import Elm.Parser.Whitespace exposing (untilNewlineToken)
 import Elm.Syntax.Documentation exposing (Documentation)
 import Elm.Syntax.Node exposing (Node)
-import Parser as Core exposing (Nestable(..))
+import Parser as Core exposing ((|=), Nestable(..))
 
 
 addCommentToState : Parser State (Node String) -> Parser State ()
@@ -30,18 +30,19 @@ singleLineComment =
 
 multilineCommentInner : Parser State String
 multilineCommentInner =
-    Core.getChompedString (Core.multiComment "{-" "-}" Nestable)
-        |> Combine.fromCore
-        |> Combine.backtrackable
-        |> Combine.andThen
-            (\comment ->
-                if String.startsWith "{-|" comment then
-                    Combine.fail "unexpected documentation comment"
+    Core.succeed (\offset source -> String.slice offset (offset + 3) source)
+        |= Core.getOffset
+        |= Core.getSource
+        |> Core.andThen
+            (\opening ->
+                if String.startsWith "{-" opening && opening /= "{-|" then
+                    Core.multiComment "{-" "-}" Nestable
 
                 else
-                    Combine.fromCore (Core.commit ())
-                        |> Combine.continueWith (Combine.succeed comment)
+                    Core.problem "unexpected documentation comment"
             )
+        |> Core.getChompedString
+        |> Combine.fromCore
 
 
 multilineComment : Parser State ()
