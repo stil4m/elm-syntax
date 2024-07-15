@@ -56,14 +56,28 @@ runParser (Parser p) st s =
 
 lazy : (() -> Parser s a) -> Parser s a
 lazy t =
-    Parser (\state -> Core.lazy (\() -> (\(Parser t_) -> t_ state) (t ())))
+    Parser
+        (\state ->
+            Core.lazy
+                (\() ->
+                    let
+                        (Parser t_) =
+                            t ()
+                    in
+                    t_ state
+                )
+        )
 
 
 withState : (s -> Parser s a) -> Parser s a
 withState f =
     Parser <|
         \state ->
-            (\(Parser p) -> p state) (f state)
+            let
+                (Parser p) =
+                    f state
+            in
+            p state
 
 
 modifyState : (s -> s) -> Parser s ()
@@ -100,7 +114,14 @@ andThen f (Parser p) =
     Parser <|
         \state ->
             p state
-                |> Core.andThen (\( s, a ) -> (\(Parser x) -> x s) (f a))
+                |> Core.andThen
+                    (\( s, a ) ->
+                        let
+                            (Parser x) =
+                                f a
+                        in
+                        x s
+                    )
 
 
 keep : Parser s a -> Parser s (a -> b) -> Parser s b
