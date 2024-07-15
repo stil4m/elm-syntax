@@ -622,8 +622,8 @@ functionWithoutSignature config varPointer =
 
 
 functionImplementationFromVarPointer : Config State (Node Expression) -> Node String -> Parser State (Node FunctionImplementation)
-functionImplementationFromVarPointer config varPointer =
-    Combine.succeed (\args -> \expr -> Node { start = (Node.range varPointer).start, end = (Node.range expr).end } (FunctionImplementation varPointer args expr))
+functionImplementationFromVarPointer config ((Node { start } _) as varPointer) =
+    Combine.succeed (\args -> \expr -> Node { start = start, end = (Node.range expr).end } (FunctionImplementation varPointer args expr))
         |> Combine.keep (Combine.many (Patterns.pattern |> Combine.ignore (Combine.maybe Layout.layout)))
         |> Combine.ignore (Combine.string "=")
         |> Combine.keep (Pratt.subExpression 0 config)
