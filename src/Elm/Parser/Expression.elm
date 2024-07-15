@@ -240,7 +240,8 @@ recordExpression config =
 
 recordContents : Config State (Node Expression) -> Parser State Expression
 recordContents config =
-    Node.parser Tokens.functionName
+    Node.parserCore Tokens.functionNameCore
+        |> Combine.fromCore
         |> Combine.ignore (Combine.maybe Layout.layout)
         |> Combine.andThen
             (\fname ->
