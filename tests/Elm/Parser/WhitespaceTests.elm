@@ -16,11 +16,11 @@ all =
         , test "realNewLine - normal" <|
             \() ->
                 parse "\n" Whitespace.realNewLine
-                    |> Expect.equal (Just "\n")
+                    |> Expect.equal (Just ())
         , test "realNewLine - with line feed" <|
             \() ->
                 parse "\u{000D}\n" Whitespace.realNewLine
-                    |> Expect.equal (Just "\u{000D}\n")
+                    |> Expect.equal (Just ())
         , test "realNewLine - incorrect" <|
             \() ->
                 parse "foo" Whitespace.realNewLine

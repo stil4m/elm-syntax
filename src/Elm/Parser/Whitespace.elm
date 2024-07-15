@@ -11,14 +11,13 @@ many1Spaces =
         |> Combine.fromCore
 
 
-realNewLine : Parser s String
+realNewLine : Parser s ()
 realNewLine =
     Core.oneOf
         [ Core.chompIf (\c -> c == '\u{000D}')
         , Core.succeed ()
         ]
         |. Core.symbol "\n"
-        |> Core.getChompedString
         |> Combine.fromCore
 
 
