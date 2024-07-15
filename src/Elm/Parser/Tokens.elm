@@ -5,6 +5,7 @@ module Elm.Parser.Tokens exposing
     , elseToken
     , exposingToken
     , functionName
+    , functionNameCore
     , ifToken
     , importToken
     , inToken
@@ -243,12 +244,16 @@ multiLineStringLiteral =
 
 functionName : Parser s String
 functionName =
+    Combine.fromCore functionNameCore
+
+
+functionNameCore : Core.Parser String
+functionNameCore =
     Core.variable
         { start = Unicode.isLower
         , inner = \c -> Unicode.isAlphaNum c || c == '_'
         , reserved = Set.fromList reservedList
         }
-        |> Combine.fromCore
 
 
 typeName : Parser s String
