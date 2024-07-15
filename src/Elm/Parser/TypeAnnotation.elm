@@ -6,6 +6,7 @@ import Elm.Parser.Layout as Layout
 import Elm.Parser.Node as Node
 import Elm.Parser.State exposing (State)
 import Elm.Parser.Tokens exposing (functionName, functionNameCore)
+import Elm.Syntax.ModuleName exposing (ModuleName)
 import Elm.Syntax.Node as Node exposing (Node(..))
 import Elm.Syntax.Range exposing (Range)
 import Elm.Syntax.TypeAnnotation as TypeAnnotation exposing (TypeAnnotation)
@@ -162,6 +163,24 @@ recordFieldDefinition =
 
 typedTypeAnnotation : Mode -> Parser State (Node TypeAnnotation)
 typedTypeAnnotation mode =
+    typeIndicator
+        |> Combine.andThen
+            (\((Node tir _) as original) ->
+                Layout.optimisticLayoutWith
+                    (\() -> Combine.succeed (Node tir (TypeAnnotation.Typed original [])))
+                    (\() ->
+                        case mode of
+                            Eager ->
+                                eagerTypedTypeAnnotation original
+
+                            Lazy ->
+                                Combine.succeed (Node tir (TypeAnnotation.Typed original []))
+                    )
+            )
+
+
+eagerTypedTypeAnnotation : Node ( ModuleName, String ) -> Parser State (Node TypeAnnotation)
+eagerTypedTypeAnnotation ((Node range _) as original) =
     let
         genericHelper : List (Node TypeAnnotation) -> Parser State (List (Node TypeAnnotation))
         genericHelper items =
@@ -177,33 +196,20 @@ typedTypeAnnotation mode =
                 , Combine.succeed items
                 ]
     in
-    typeIndicator
-        |> Combine.andThen
-            (\((Node tir _) as original) ->
-                Layout.optimisticLayoutWith
-                    (\() -> Combine.succeed (Node tir (TypeAnnotation.Typed original [])))
-                    (\() ->
-                        case mode of
-                            Eager ->
-                                genericHelper []
-                                    |> Combine.map
-                                        (\args ->
-                                            let
-                                                endRange : Range
-                                                endRange =
-                                                    case args of
-                                                        (Node argRange _) :: _ ->
-                                                            argRange
+    genericHelper []
+        |> Combine.map
+            (\args ->
+                let
+                    endRange : Range
+                    endRange =
+                        case args of
+                            (Node argRange _) :: _ ->
+                                argRange
 
-                                                        [] ->
-                                                            tir
-                                            in
-                                            Node
-                                                { start = tir.start, end = endRange.end }
-                                                (TypeAnnotation.Typed original (List.reverse args))
-                                        )
-
-                            Lazy ->
-                                Combine.succeed (Node tir (TypeAnnotation.Typed original []))
-                    )
+                            [] ->
+                                range
+                in
+                Node
+                    { start = range.start, end = endRange.end }
+                    (TypeAnnotation.Typed original (List.reverse args))
             )
