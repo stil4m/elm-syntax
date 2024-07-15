@@ -31,17 +31,17 @@ importDefinition =
                 ]
                 |> Combine.map (\exposing_ -> Import mod asDef exposing_)
 
-        parseAsDefinition : Node () -> Node ModuleName -> Parser State (Node Import)
-        parseAsDefinition (Node importKeywordRange ()) mod =
+        parseAsDefinition : Location -> Node ModuleName -> Parser State (Node Import)
+        parseAsDefinition start mod =
             Combine.oneOf
                 [ asDefinition
                     |> Combine.ignore Layout.optimisticLayout
                     |> Combine.andThen (\alias_ -> parseExposingDefinition mod (Just alias_))
                 , parseExposingDefinition mod Nothing
                 ]
-                |> Combine.map (\imp -> setupNode importKeywordRange.start imp)
+                |> Combine.map (\imp -> setupNode start imp)
     in
-    Combine.succeed (\node -> \mod -> parseAsDefinition node mod)
+    Combine.succeed (\(Node { start } ()) -> \mod -> parseAsDefinition start mod)
         |> Combine.keep (Node.parser importToken)
         |> Combine.ignore Layout.layout
         |> Combine.keep moduleName
@@ -56,13 +56,13 @@ setupNode start imp =
         endRange : Range
         endRange =
             case imp.moduleAlias of
-                Just moduleAlias ->
-                    Node.range moduleAlias
+                Just (Node range _) ->
+                    range
 
                 Nothing ->
                     case imp.exposingList of
-                        Just exposingList ->
-                            Node.range exposingList
+                        Just (Node range _) ->
+                            range
 
                         Nothing ->
                             Node.range imp.moduleName

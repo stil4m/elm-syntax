@@ -88,9 +88,9 @@ infixLeft : Int -> String -> Config state (Node Expression) -> ( Int, Node Expre
 infixLeft precedence symbol =
     Pratt.infixLeft precedence
         (Combine.symbol symbol)
-        (\left right ->
+        (\((Node { start } _) as left) ((Node { end } _) as right) ->
             Node
-                { start = (Node.range left).start, end = (Node.range right).end }
+                { start = start, end = end }
                 (OperatorApplication symbol Infix.Left left right)
         )
 
@@ -99,9 +99,9 @@ infixNonAssociative : Int -> String -> Config state (Node Expression) -> ( Int, 
 infixNonAssociative precedence symbol =
     Pratt.infixLeft precedence
         (Combine.symbol symbol)
-        (\left right ->
+        (\((Node { start } _) as left) ((Node { end } _) as right) ->
             Node
-                { start = (Node.range left).start, end = (Node.range right).end }
+                { start = start, end = end }
                 (OperatorApplication symbol Infix.Non left right)
         )
 
@@ -110,9 +110,9 @@ infixRight : Int -> String -> Config state (Node Expression) -> ( Int, Node Expr
 infixRight precedence symbol =
     Pratt.infixRight precedence
         (Combine.symbol symbol)
-        (\left right ->
+        (\((Node { start } _) as left) ((Node { end } _) as right) ->
             Node
-                { start = (Node.range left).start, end = (Node.range right).end }
+                { start = start, end = end }
                 (OperatorApplication symbol Infix.Right left right)
         )
 
@@ -134,9 +134,9 @@ infixLeftSubtraction precedence =
                 )
             |> Combine.fromCore
         )
-        (\left right ->
+        (\((Node { start } _) as left) ((Node { end } _) as right) ->
             Node
-                { start = (Node.range left).start, end = (Node.range right).end }
+                { start = start, end = end }
                 (OperatorApplication "-" Infix.Left left right)
         )
 
@@ -145,9 +145,9 @@ recordAccess : Config State (Node Expression) -> ( Int, Node Expression -> Parse
 recordAccess =
     Pratt.postfix 100
         recordAccessParser
-        (\((Node leftRange _) as left) ((Node rightRange _) as field) ->
+        (\((Node { start } _) as left) ((Node { end } _) as field) ->
             Node
-                { start = leftRange.start, end = rightRange.end }
+                { start = start, end = end }
                 (Expression.RecordAccess left field)
         )
 
@@ -174,16 +174,16 @@ functionCall : Pratt.Config State (Node Expression) -> ( Int, Node Expression ->
 functionCall =
     Pratt.infixLeft 90
         Layout.positivelyIndented
-        (\((Node leftRange leftValue) as left) right ->
+        (\((Node { start } leftValue) as left) ((Node { end } _) as right) ->
             case leftValue of
                 Expression.Application args ->
                     Node
-                        { start = leftRange.start, end = (Node.range right).end }
+                        { start = start, end = end }
                         (Expression.Application (args ++ [ right ]))
 
                 _ ->
                     Node
-                        { start = leftRange.start, end = (Node.range right).end }
+                        { start = start, end = end }
                         (Expression.Application [ left, right ])
         )
 
@@ -341,10 +341,10 @@ lambdaExpression config =
     Combine.succeed
         (\(Node { start } _) ->
             \args ->
-                \expr ->
+                \((Node { end } _) as expr) ->
                     Lambda args expr
                         |> LambdaExpression
-                        |> Node { start = start, end = (Node.range expr).end }
+                        |> Node { start = start, end = end }
         )
         |> Combine.keep (Node.parser backSlash)
         |> Combine.ignore (Combine.maybe Layout.layout)
@@ -361,10 +361,10 @@ lambdaExpression config =
 caseExpression : Config State (Node Expression) -> Parser State (Node Expression)
 caseExpression config =
     Combine.succeed
-        (\caseKeyword ->
+        (\(Node { start } _) ->
             \caseBlock_ ->
                 \( end, cases ) ->
-                    Node { start = (Node.range caseKeyword).start, end = end }
+                    Node { start = start, end = end }
                         (CaseExpression (CaseBlock caseBlock_ cases))
         )
         |> Combine.keep (Node.parser Tokens.caseToken)
@@ -400,8 +400,8 @@ letExpression : Config State (Node Expression) -> Parser State (Node Expression)
 letExpression config =
     Combine.succeed
         (\( Node { start } _, decls ) ->
-            \expr ->
-                Node { start = start, end = (Node.range expr).end }
+            \((Node { end } _) as expr) ->
+                Node { start = start, end = end }
                     (LetExpression (LetBlock decls expr))
         )
         |> Combine.keep
@@ -439,10 +439,10 @@ blockElement config =
 
 
 letDestructuringDeclarationWithPattern : Config State (Node Expression) -> Node Pattern -> Parser State (Node LetDeclaration)
-letDestructuringDeclarationWithPattern config pattern =
+letDestructuringDeclarationWithPattern config ((Node { start } _) as pattern) =
     Combine.succeed
-        (\expr ->
-            Node { start = (Node.range pattern).start, end = (Node.range expr).end } (LetDestructuring pattern expr)
+        (\((Node { end } _) as expr) ->
+            Node { start = start, end = end } (LetDestructuring pattern expr)
         )
         |> Combine.ignore equal
         |> Combine.keep (Pratt.subExpression 0 config)
@@ -460,9 +460,9 @@ ifBlockExpression config =
         (\(Node { start } _) ->
             \condition ->
                 \ifTrue ->
-                    \ifFalse ->
+                    \((Node { end } _) as ifFalse) ->
                         Node
-                            { start = start, end = (Node.range ifFalse).end }
+                            { start = start, end = end }
                             (IfBlock condition ifTrue ifFalse)
         )
         |> Combine.keep (Node.parser Tokens.ifToken)
@@ -634,7 +634,12 @@ functionWithoutSignature config varPointer =
 
 functionImplementationFromVarPointer : Config State (Node Expression) -> Node String -> Parser State (Node FunctionImplementation)
 functionImplementationFromVarPointer config ((Node { start } _) as varPointer) =
-    Combine.succeed (\args -> \expr -> Node { start = start, end = (Node.range expr).end } (FunctionImplementation varPointer args expr))
+    Combine.succeed
+        (\args ->
+            \((Node { end } _) as expr) ->
+                Node { start = start, end = end }
+                    (FunctionImplementation varPointer args expr)
+        )
         |> Combine.keep (Combine.many (Patterns.pattern |> Combine.ignore (Combine.maybe Layout.layout)))
         |> Combine.ignore equal
         |> Combine.keep (Pratt.subExpression 0 config)

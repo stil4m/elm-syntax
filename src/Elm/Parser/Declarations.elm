@@ -67,13 +67,13 @@ functionWithNameNode : Node String -> Parser State Function
 functionWithNameNode pointer =
     let
         functionImplementationFromVarPointer : Maybe (Node Signature) -> Node String -> Parser State Function
-        functionImplementationFromVarPointer signature_ varPointer =
+        functionImplementationFromVarPointer signature_ ((Node { start } _) as varPointer) =
             succeed
-                (\args expr ->
+                (\args ((Node { end } _) as expr) ->
                     { documentation = Nothing
                     , signature = signature_
                     , declaration =
-                        Node { start = (Node.range varPointer).start, end = (Node.range expr).end }
+                        Node { start = start, end = end }
                             (FunctionImplementation varPointer args expr)
                     }
                 )
