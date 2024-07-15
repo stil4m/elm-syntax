@@ -257,11 +257,15 @@ recordContents config =
                                     fieldUpdate : Node RecordSetter
                                     fieldUpdate =
                                         Node.combine Tuple.pair fname e
+
+                                    toRecordExpr : List (Node RecordSetter) -> Expression
+                                    toRecordExpr fieldUpdates =
+                                        RecordExpr (fieldUpdate :: fieldUpdates)
                                 in
                                 Combine.oneOf
                                     [ Combine.string "}"
-                                        |> Combine.map (\_ -> RecordExpr [ fieldUpdate ])
-                                    , Combine.succeed (\fieldUpdates -> RecordExpr (fieldUpdate :: fieldUpdates))
+                                        |> Combine.map (\_ -> toRecordExpr [])
+                                    , Combine.succeed toRecordExpr
                                         |> Combine.ignore (Combine.string ",")
                                         |> Combine.ignore (Combine.maybe Layout.layout)
                                         |> Combine.keep (recordFields config)
