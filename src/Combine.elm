@@ -127,8 +127,7 @@ string : String -> Parser s String
 string s =
     Parser <|
         \state ->
-            Core.getChompedString (Core.token s)
-                |> Core.map (\x -> ( state, x ))
+            Core.mapChompedString (\x _ -> ( state, x )) (Core.token s)
 
 
 symbol : String -> Parser s ()
@@ -141,8 +140,7 @@ while : (Char -> Bool) -> Parser s String
 while pred =
     Parser <|
         \state ->
-            Core.getChompedString (Core.chompWhile pred)
-                |> Core.map (\x -> ( state, x ))
+            Core.mapChompedString (\x _ -> ( state, x )) (Core.chompWhile pred)
 
 
 end : Parser s ()

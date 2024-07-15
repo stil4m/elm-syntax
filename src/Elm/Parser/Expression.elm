@@ -202,9 +202,10 @@ glslExpression =
         end =
             "|]"
     in
-    Core.getChompedString (Core.multiComment start end NotNestable)
+    Core.mapChompedString
+        (\s _ -> s |> String.dropLeft (String.length start) |> GLSLExpression)
+        (Core.multiComment start end NotNestable)
         |> Combine.fromCore
-        |> Combine.map (String.dropLeft (String.length start) >> GLSLExpression)
         |> Combine.ignore (Combine.string end)
         |> Node.parser
 
