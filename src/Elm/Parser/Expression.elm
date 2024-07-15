@@ -542,16 +542,6 @@ recordAccessFunctionExpression =
 tupledExpression : Config State (Node Expression) -> Parser State (Node Expression)
 tupledExpression config =
     let
-        asExpression : Node Expression -> List (Node Expression) -> Expression
-        asExpression x =
-            \xs ->
-                case xs of
-                    [] ->
-                        ParenthesizedExpression x
-
-                    _ ->
-                        TupledExpression (x :: xs)
-
         commaSep : Parser State (List (Node Expression))
         commaSep =
             Combine.many
@@ -581,6 +571,17 @@ tupledExpression config =
                 ]
             )
         |> Node.parser
+
+
+asExpression : Node Expression -> List (Node Expression) -> Expression
+asExpression x =
+    \xs ->
+        case xs of
+            [] ->
+                ParenthesizedExpression x
+
+            _ ->
+                TupledExpression (x :: xs)
 
 
 withIndentedState : Parser State a -> Parser State a
