@@ -8,7 +8,7 @@ module Elm.Parser.Layout exposing
     , positivelyIndented
     )
 
-import Combine exposing (Parser, fail, many1, maybe, oneOf, succeed, withLocation, withState)
+import Combine exposing (Parser, fail, many1Ignore, maybe, oneOf, succeed, withLocation, withState)
 import Elm.Parser.Comments as Comments
 import Elm.Parser.State as State exposing (State)
 import Elm.Parser.Whitespace exposing (many1Spaces, realNewLine)
@@ -24,10 +24,10 @@ anyComment =
 
 layout : Parser State ()
 layout =
-    many1
+    many1Ignore
         (oneOf
             [ anyComment
-            , many1 realNewLine
+            , many1Ignore realNewLine
                 |> Combine.continueWith
                     (oneOf
                         [ many1Spaces
@@ -84,10 +84,10 @@ compute onStrict onIndented =
 
 layoutStrict : Parser State ()
 layoutStrict =
-    many1
+    many1Ignore
         (oneOf
             [ anyComment
-            , many1 realNewLine |> Combine.continueWith (succeed ())
+            , many1Ignore realNewLine
             , many1Spaces
             ]
         )
