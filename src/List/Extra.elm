@@ -1,6 +1,13 @@
-module List.Extra exposing (unique)
+module List.Extra exposing
+    ( find
+    , unique
+    )
 
 {-| Helper for List functions. Taken from elm-community/list-extra.
+
+@docs find
+@docs unique
+
 -}
 
 
@@ -27,3 +34,17 @@ uniqueHelp existing remaining accumulator =
 
             else
                 uniqueHelp (first :: existing) rest (first :: accumulator)
+
+
+find : (a -> Bool) -> List a -> Maybe a
+find predicate list =
+    case list of
+        [] ->
+            Nothing
+
+        x :: xs ->
+            if predicate x then
+                Just x
+
+            else
+                find predicate xs

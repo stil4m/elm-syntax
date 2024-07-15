@@ -11,6 +11,7 @@ import Elm.Syntax.Exposing exposing (Exposing)
 import Elm.Syntax.Module exposing (DefaultModuleData, Module(..))
 import Elm.Syntax.ModuleName exposing (ModuleName)
 import Elm.Syntax.Node exposing (Node)
+import List.Extra
 
 
 moduleDefinition : Parser State Module
@@ -40,8 +41,8 @@ whereBlock =
         )
         |> Combine.map
             (\pairs ->
-                { command = pairs |> List.filter (Tuple.first >> (==) "command") |> List.head |> Maybe.map Tuple.second
-                , subscription = pairs |> List.filter (Tuple.first >> (==) "subscription") |> List.head |> Maybe.map Tuple.second
+                { command = pairs |> List.Extra.find (\( fnName, _ ) -> fnName == "command") |> Maybe.map Tuple.second
+                , subscription = pairs |> List.Extra.find (\( fnName, _ ) -> fnName == "subscription") |> Maybe.map Tuple.second
                 }
             )
 
