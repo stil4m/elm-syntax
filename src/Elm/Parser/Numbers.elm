@@ -17,10 +17,9 @@ raw floatf intf hexf =
 
 {-| Core.number bug: consumes leading '.' or 'e'
 -}
-forgivingNumber : (Float -> a) -> (Int -> a) -> (Int -> a) -> Parser s a
+forgivingNumber : (Float -> a) -> (Int -> a) -> (Int -> a) -> Core.Parser a
 forgivingNumber floatf intf hexf =
     Core.backtrackable (raw (Just floatf) intf hexf)
-        |> Combine.fromCore
 
 
 number : (Int -> a) -> (Int -> a) -> Parser state a

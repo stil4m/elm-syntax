@@ -444,9 +444,10 @@ letDestructuringDeclarationWithPattern config pattern =
         |> Combine.keep (Pratt.subExpression 0 config)
 
 
-numberExpression : Parser State (Node Expression)
+numberExpression : Parser state (Node Expression)
 numberExpression =
-    Node.parser (Elm.Parser.Numbers.forgivingNumber Floatable Integer Hex)
+    Node.parserCore (Elm.Parser.Numbers.forgivingNumber Floatable Integer Hex)
+        |> Combine.fromCore
 
 
 ifBlockExpression : Config State (Node Expression) -> Parser State (Node Expression)
