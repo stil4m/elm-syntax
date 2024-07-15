@@ -157,16 +157,17 @@ recordAccessParser =
     Core.succeed (\offset -> \source -> String.slice (offset - 1) offset source)
         |= Core.getOffset
         |= Core.getSource
-        |> Combine.fromCore
-        |> Combine.andThen
+        |> Core.andThen
             (\c ->
                 if c == " " || c == "\n" || c == "\u{000D}" then
-                    Combine.problem "Record access can't start with a space"
+                    Core.problem "Record access can't start with a space"
 
                 else
-                    dot
-                        |> Combine.continueWith (Node.parser Tokens.functionName)
+                    Core.succeed identity
+                        |. dot
+                        |= Node.parserCore Tokens.functionNameCore
             )
+        |> Combine.fromCore
 
 
 functionCall : Pratt.Config State (Node Expression) -> ( Int, Node Expression -> Parser State (Node Expression) )
@@ -505,6 +506,7 @@ referenceExpression =
         helper moduleNameSoFar nameOrSegment =
             Combine.oneOf
                 [ dot
+                    |> Combine.fromCore
                     |> Combine.continueWith
                         (Combine.oneOf
                             [ Tokens.typeName
@@ -531,12 +533,13 @@ referenceExpression =
         |> Node.parser
 
 
-recordAccessFunctionExpression : Parser State (Node Expression)
+recordAccessFunctionExpression : Parser state (Node Expression)
 recordAccessFunctionExpression =
-    Combine.succeed (\field -> RecordAccessFunction ("." ++ field))
-        |> Combine.ignore dot
-        |> Combine.keep Tokens.functionName
-        |> Node.parser
+    Core.succeed (\field -> RecordAccessFunction ("." ++ field))
+        |. dot
+        |= Tokens.functionNameCore
+        |> Node.parserCore
+        |> Combine.fromCore
 
 
 tupledExpression : Config State (Node Expression) -> Parser State (Node Expression)
@@ -669,9 +672,9 @@ minusSymbols =
         ]
 
 
-dot : Parser s ()
+dot : Core.Parser ()
 dot =
-    Combine.symbol "."
+    Core.symbol "."
 
 
 squareStart : Parser s ()
