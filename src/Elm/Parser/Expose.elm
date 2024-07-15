@@ -50,13 +50,12 @@ exposable =
 
 infixExpose : Parser state (Node TopLevelExpose)
 infixExpose =
-    Core.succeed identity
+    Core.succeed InfixExpose
         |. Core.symbol "("
         |= (Core.chompWhile (\c -> c /= ')')
                 |> Core.getChompedString
            )
         |. Core.symbol ")"
-        |> Core.map InfixExpose
         |> Node.parserCore
         |> Combine.fromCore
 
