@@ -571,7 +571,7 @@ tupledExpression config =
 
 closingPrefixOperator : Parser s Expression
 closingPrefixOperator =
-    Core.backtrackable Tokens.prefixOperatorTokenCore
+    Core.backtrackable Tokens.prefixOperatorToken
         |. Core.symbol ")"
         |. Core.commit ()
         |> Core.map PrefixOperator

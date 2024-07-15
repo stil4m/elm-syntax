@@ -1,5 +1,6 @@
 module Elm.Parser.TokenTests exposing (all)
 
+import Combine
 import Elm.Parser.CombineTestUtil exposing (..)
 import Elm.Parser.Tokens as Parser
 import Expect
@@ -77,15 +78,15 @@ all =
                     |> Expect.equal (Just ())
         , test "operatorToken 11 -- is not an operator" <|
             \() ->
-                parse "--" Parser.prefixOperatorToken
+                parse "--" (Combine.fromCore Parser.prefixOperatorToken)
                     |> Expect.equal Nothing
         , test "operatorToken 14" <|
             \() ->
-                parse "=" Parser.prefixOperatorToken
+                parse "=" (Combine.fromCore Parser.prefixOperatorToken)
                     |> Expect.equal Nothing
         , test "operatorToken 15" <|
             \() ->
-                parse "?" Parser.prefixOperatorToken
+                parse "?" (Combine.fromCore Parser.prefixOperatorToken)
                     |> Expect.equal Nothing
         , test "multiline string" <|
             \() ->

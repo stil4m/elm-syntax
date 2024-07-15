@@ -16,7 +16,7 @@ import Elm.Syntax.Expression as Expression exposing (Function, FunctionImplement
 import Elm.Syntax.Infix as Infix exposing (Infix)
 import Elm.Syntax.Node as Node exposing (Node(..))
 import Elm.Syntax.Signature exposing (Signature)
-import Parser as Core
+import Parser as Core exposing ((|.), (|=))
 
 
 declaration : Parser State (Node Declaration)
@@ -122,13 +122,23 @@ infixDeclaration =
         |> Combine.ignore Layout.layout
         |> Combine.keep (Node.parser (Combine.fromCore Core.int))
         |> Combine.ignore Layout.layout
-        |> Combine.keep (Node.parser <| Combine.parens prefixOperatorToken)
+        |> Combine.keep operatorWithParens
         |> Combine.ignore Layout.layout
         |> Combine.ignore (Combine.symbol "=")
         |> Combine.ignore Layout.layout
         |> Combine.keep (Node.parser functionName)
         |> Combine.map Declaration.InfixDeclaration
         |> Node.parser
+
+
+operatorWithParens : Parser state (Node String)
+operatorWithParens =
+    Core.succeed identity
+        |. Core.symbol "("
+        |= prefixOperatorToken
+        |. Core.symbol ")"
+        |> Node.parserCore
+        |> Combine.fromCore
 
 
 infixDirection : Parser State Infix.InfixDirection
