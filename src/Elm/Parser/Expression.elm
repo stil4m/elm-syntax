@@ -557,20 +557,16 @@ tupledExpression config =
             Combine.succeed asExpression
                 |> Combine.keep (Pratt.subExpression 0 config)
                 |> Combine.keep commaSep
-
-        closingParen : Parser state ()
-        closingParen =
-            parensEnd
     in
     parensStart
         |> Combine.continueWith
             (Combine.oneOf
-                [ closingParen |> Combine.map (always UnitExpr)
+                [ parensEnd |> Combine.map (always UnitExpr)
                 , Combine.backtrackable Tokens.prefixOperatorToken
-                    |> Combine.ignore closingParen
+                    |> Combine.ignore parensEnd
                     |> Combine.ignore (Combine.fromCore (Core.commit ()))
                     |> Combine.map PrefixOperator
-                , nested |> Combine.ignore closingParen
+                , nested |> Combine.ignore parensEnd
                 ]
             )
         |> Node.parser
