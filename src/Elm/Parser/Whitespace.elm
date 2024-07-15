@@ -21,7 +21,6 @@ realNewLine =
         |> Combine.fromCore
 
 
-untilNewlineToken : Parser s String
+untilNewlineToken : Core.Parser ()
 untilNewlineToken =
-    Core.getChompedString (Core.chompWhile (\c -> c /= '\u{000D}' && c /= '\n'))
-        |> Combine.fromCore
+    Core.chompWhile (\c -> c /= '\u{000D}' && c /= '\n')

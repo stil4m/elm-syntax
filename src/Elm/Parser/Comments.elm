@@ -1,12 +1,12 @@
 module Elm.Parser.Comments exposing (declarationDocumentation, moduleDocumentation, multilineComment, singleLineComment)
 
-import Combine exposing (Parser, modifyState, string, succeed)
+import Combine exposing (Parser, modifyState)
 import Elm.Parser.Node as Node
 import Elm.Parser.State exposing (State, addComment)
 import Elm.Parser.Whitespace exposing (untilNewlineToken)
 import Elm.Syntax.Documentation exposing (Documentation)
 import Elm.Syntax.Node exposing (Node)
-import Parser as Core exposing ((|=), Nestable(..))
+import Parser as Core exposing ((|.), (|=), Nestable(..))
 
 
 addCommentToState : Parser State (Node String) -> Parser State ()
@@ -22,9 +22,10 @@ parseComment commentParser =
 singleLineComment : Parser State ()
 singleLineComment =
     parseComment
-        (succeed (++)
-            |> Combine.keep (string "--")
-            |> Combine.keep untilNewlineToken
+        (Core.symbol "--"
+            |. untilNewlineToken
+            |> Core.getChompedString
+            |> Combine.fromCore
         )
 
 
