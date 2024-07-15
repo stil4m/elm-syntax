@@ -1,6 +1,6 @@
 module Elm.Parser.Declarations exposing (declaration)
 
-import Combine exposing (Parser, maybe, oneOf, string, succeed)
+import Combine exposing (Parser, maybe, oneOf, succeed)
 import Elm.Parser.Comments as Comments
 import Elm.Parser.Expression exposing (expression, failIfDifferentFrom, functionSignatureFromVarPointer)
 import Elm.Parser.Layout as Layout
@@ -77,7 +77,7 @@ functionWithNameNode pointer =
                     }
                 )
                 |> Combine.keep (Combine.many (pattern |> Combine.ignore (maybe Layout.layout)))
-                |> Combine.ignore (string "=")
+                |> Combine.ignore (Combine.symbol "=")
                 |> Combine.ignore (maybe Layout.layout)
                 |> Combine.keep expression
 
@@ -107,7 +107,7 @@ signature : Parser State Signature
 signature =
     succeed Signature
         |> Combine.keep (Node.parser functionName)
-        |> Combine.ignore (Layout.maybeAroundBothSides (string ":"))
+        |> Combine.ignore (Layout.maybeAroundBothSides (Combine.symbol ":"))
         |> Combine.ignore (maybe Layout.layout)
         |> Combine.keep typeAnnotation
 
@@ -123,7 +123,7 @@ infixDeclaration =
         |> Combine.ignore Layout.layout
         |> Combine.keep (Node.parser <| Combine.parens prefixOperatorToken)
         |> Combine.ignore Layout.layout
-        |> Combine.ignore (string "=")
+        |> Combine.ignore (Combine.symbol "=")
         |> Combine.ignore Layout.layout
         |> Combine.keep (Node.parser functionName)
         |> Combine.map Declaration.InfixDeclaration
