@@ -4,7 +4,7 @@ import Combine exposing (Parser, many, maybe, string)
 import Elm.Parser.Layout as Layout
 import Elm.Parser.Node as Node
 import Elm.Parser.State exposing (State)
-import Elm.Parser.Tokens exposing (functionName, typeName)
+import Elm.Parser.Tokens exposing (functionNameCore, typeNameCore)
 import Elm.Parser.TypeAnnotation exposing (typeAnnotation, typeAnnotationNonGreedy)
 import Elm.Syntax.Declaration as Declaration
 import Elm.Syntax.Documentation exposing (Documentation)
@@ -38,7 +38,7 @@ typeDefinition maybeDoc =
                         )
                         |> Combine.ignore (string "alias")
                         |> Combine.ignore Layout.layout
-                        |> Combine.keep (Node.parser typeName)
+                        |> Combine.keep (Node.parserFromCore typeNameCore)
                         |> Combine.ignore (maybe Layout.layout)
                         |> Combine.keep genericList
                         |> Combine.ignore (string "=")
@@ -70,7 +70,7 @@ typeDefinition maybeDoc =
                                             }
                                         )
                         )
-                        |> Combine.keep (Node.parser typeName)
+                        |> Combine.keep (Node.parserFromCore typeNameCore)
                         |> Combine.ignore (maybe Layout.layout)
                         |> Combine.keep genericList
                         |> Combine.ignore (maybe Layout.layout)
@@ -90,7 +90,7 @@ valueConstructors =
 
 valueConstructor : Parser State (Node ValueConstructor)
 valueConstructor =
-    Node.parser typeName
+    Node.parserFromCore typeNameCore
         |> Combine.andThen
             (\((Node range _) as tnn) ->
                 let
@@ -129,7 +129,7 @@ valueConstructor =
 
 genericList : Parser State (List (Node String))
 genericList =
-    many (Node.parser functionName |> Combine.ignore (maybe Layout.layout))
+    many (Node.parserFromCore functionNameCore |> Combine.ignore (maybe Layout.layout))
 
 
 typePrefix : Parser State (Node String)

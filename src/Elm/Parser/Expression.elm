@@ -303,13 +303,12 @@ recordFields config =
 
 recordField : Config State (Node Expression) -> Parser State (Node RecordSetter)
 recordField config =
-    Node.parser
-        (Combine.succeed (\fnName -> \expr -> ( fnName, expr ))
-            |> Combine.keep (Node.parser Tokens.functionName)
-            |> Combine.ignore (Combine.maybe Layout.layout)
-            |> Combine.ignore equal
-            |> Combine.keep (Pratt.subExpression 0 config)
-        )
+    Combine.succeed (\fnName -> \expr -> ( fnName, expr ))
+        |> Combine.keep (Node.parserFromCore Tokens.functionNameCore)
+        |> Combine.ignore (Combine.maybe Layout.layout)
+        |> Combine.ignore equal
+        |> Combine.keep (Pratt.subExpression 0 config)
+        |> Node.parser
 
 
 literalExpression : Parser state (Node Expression)

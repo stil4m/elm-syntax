@@ -5,7 +5,7 @@ import Combine.Char exposing (char)
 import Elm.Parser.Layout as Layout
 import Elm.Parser.Node as Node
 import Elm.Parser.State exposing (State)
-import Elm.Parser.Tokens exposing (exposingToken, functionName, typeName)
+import Elm.Parser.Tokens exposing (exposingToken, functionNameCore, typeNameCore)
 import Elm.Syntax.Exposing exposing (ExposedType, Exposing(..), TopLevelExpose(..))
 import Elm.Syntax.Node as Node exposing (Node(..))
 import Parser as Core exposing ((|.), (|=))
@@ -56,13 +56,12 @@ infixExpose =
                 |> Core.getChompedString
            )
         |. Core.symbol ")"
-        |> Node.parserCore
-        |> Combine.fromCore
+        |> Node.parserFromCore
 
 
 typeExpose : Parser State (Node TopLevelExpose)
 typeExpose =
-    Node.parser typeName
+    Node.parserFromCore typeNameCore
         |> Combine.ignore (maybe Layout.layout)
         |> Combine.andThen
             (\((Node typeRange typeValue) as tipe) ->
@@ -82,4 +81,4 @@ typeExpose =
 
 functionExpose : Parser state (Node TopLevelExpose)
 functionExpose =
-    Node.parser (Combine.map FunctionExpose functionName)
+    Node.parserFromCore (Core.map FunctionExpose functionNameCore)

@@ -6,7 +6,7 @@ import Elm.Parser.Expose exposing (exposeDefinition)
 import Elm.Parser.Layout as Layout
 import Elm.Parser.Node as Node
 import Elm.Parser.State exposing (State)
-import Elm.Parser.Tokens exposing (functionName, moduleToken, portToken, typeName)
+import Elm.Parser.Tokens exposing (functionName, moduleToken, portToken, typeNameCore)
 import Elm.Syntax.Exposing exposing (Exposing)
 import Elm.Syntax.Module exposing (DefaultModuleData, Module(..))
 import Elm.Syntax.ModuleName exposing (ModuleName)
@@ -28,7 +28,7 @@ effectWhereClause =
     succeed (\fnName -> \typeName_ -> ( fnName, typeName_ ))
         |> Combine.keep functionName
         |> Combine.ignore (Layout.maybeAroundBothSides (symbol "="))
-        |> Combine.keep (Node.parser typeName)
+        |> Combine.keep (Node.parserFromCore typeNameCore)
 
 
 whereBlock : Parser State { command : Maybe (Node String), subscription : Maybe (Node String) }

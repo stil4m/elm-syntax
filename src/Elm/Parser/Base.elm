@@ -11,8 +11,7 @@ import Parser as Core exposing ((|.), (|=))
 moduleName : Parser state (Node ModuleName)
 moduleName =
     sepBy1Core (Core.symbol ".") Tokens.typeNameCore
-        |> Node.parserCore
-        |> Combine.fromCore
+        |> Node.parserFromCore
 
 
 typeIndicator : Parser state (Node ( ModuleName, String ))
@@ -31,5 +30,4 @@ typeIndicator =
     in
     Tokens.typeNameCore
         |> Core.andThen (\typeOrSegment -> helper [] typeOrSegment)
-        |> Node.parserCore
-        |> Combine.fromCore
+        |> Node.parserFromCore
