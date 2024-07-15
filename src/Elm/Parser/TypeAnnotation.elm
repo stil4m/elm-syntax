@@ -5,10 +5,11 @@ import Elm.Parser.Base exposing (typeIndicator)
 import Elm.Parser.Layout as Layout
 import Elm.Parser.Node as Node
 import Elm.Parser.State exposing (State)
-import Elm.Parser.Tokens exposing (functionName)
+import Elm.Parser.Tokens exposing (functionName, functionNameCore)
 import Elm.Syntax.Node as Node exposing (Node(..))
 import Elm.Syntax.Range exposing (Range)
 import Elm.Syntax.TypeAnnotation as TypeAnnotation exposing (TypeAnnotation)
+import Parser as Core
 
 
 type Mode
@@ -98,9 +99,10 @@ asTypeAnnotation ((Node _ value) as x) xs =
             TypeAnnotation.Tupled (x :: xs)
 
 
-genericTypeAnnotation : Parser State (Node TypeAnnotation)
+genericTypeAnnotation : Parser state (Node TypeAnnotation)
 genericTypeAnnotation =
-    Node.parser (Combine.map TypeAnnotation.GenericType functionName)
+    Node.parserCore (Core.map TypeAnnotation.GenericType functionNameCore)
+        |> Combine.fromCore
 
 
 recordFieldsTypeAnnotation : Parser State TypeAnnotation.RecordDefinition
