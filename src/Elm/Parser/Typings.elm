@@ -4,7 +4,7 @@ import Combine exposing (Parser, many, maybe, string)
 import Elm.Parser.Layout as Layout
 import Elm.Parser.Node as Node
 import Elm.Parser.State exposing (State)
-import Elm.Parser.Tokens exposing (functionNameCore, typeNameCore)
+import Elm.Parser.Tokens exposing (functionNameCore, typeName)
 import Elm.Parser.TypeAnnotation exposing (typeAnnotation, typeAnnotationNonGreedy)
 import Elm.Syntax.Declaration as Declaration
 import Elm.Syntax.Documentation exposing (Documentation)
@@ -38,7 +38,7 @@ typeDefinition maybeDoc =
                         )
                         |> Combine.ignore (string "alias")
                         |> Combine.ignore Layout.layout
-                        |> Combine.keep (Node.parserFromCore typeNameCore)
+                        |> Combine.keep (Node.parserFromCore typeName)
                         |> Combine.ignore (maybe Layout.layout)
                         |> Combine.keep genericList
                         |> Combine.ignore (string "=")
@@ -70,7 +70,7 @@ typeDefinition maybeDoc =
                                             }
                                         )
                         )
-                        |> Combine.keep (Node.parserFromCore typeNameCore)
+                        |> Combine.keep (Node.parserFromCore typeName)
                         |> Combine.ignore (maybe Layout.layout)
                         |> Combine.keep genericList
                         |> Combine.ignore (maybe Layout.layout)
@@ -90,7 +90,7 @@ valueConstructors =
 
 valueConstructor : Parser State (Node ValueConstructor)
 valueConstructor =
-    Node.parserFromCore typeNameCore
+    Node.parserFromCore typeName
         |> Combine.andThen
             (\((Node range _) as tnn) ->
                 let

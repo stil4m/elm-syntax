@@ -304,11 +304,16 @@ recordFields config =
 recordField : Config State (Node Expression) -> Parser State (Node RecordSetter)
 recordField config =
     Combine.succeed (\fnName -> \expr -> ( fnName, expr ))
-        |> Combine.keep (Node.parserFromCore Tokens.functionNameCore)
-        |> Combine.ignore (Combine.maybe Layout.layout)
-        |> Combine.ignore equal
+        |> Combine.keep recordFieldWithoutValue
         |> Combine.keep (Pratt.subExpression 0 config)
         |> Node.parser
+
+
+recordFieldWithoutValue : Parser State (Node String)
+recordFieldWithoutValue =
+    Node.parserFromCore Tokens.functionNameCore
+        |> Combine.ignore (Combine.maybe Layout.layout)
+        |> Combine.ignore equal
 
 
 literalExpression : Parser state (Node Expression)
@@ -512,7 +517,7 @@ referenceExpression =
                 [ Core.succeed identity
                     |. dot
                     |= Core.oneOf
-                        [ Tokens.typeNameCore
+                        [ Tokens.typeName
                             |> Core.andThen (\t -> helper (nameOrSegment :: moduleNameSoFar) t)
                         , Tokens.functionNameCore
                             |> Core.map
@@ -527,7 +532,7 @@ referenceExpression =
                 ]
     in
     Core.oneOf
-        [ Tokens.typeNameCore
+        [ Tokens.typeName
             |> Core.andThen (\t -> helper [] t)
         , Tokens.functionNameCore
             |> Core.map (\v -> FunctionOrValue [] v)

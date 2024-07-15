@@ -18,7 +18,6 @@ module Elm.Parser.Tokens exposing
     , stringLiteral
     , thenToken
     , typeName
-    , typeNameCore
     )
 
 import Char
@@ -255,13 +254,8 @@ functionNameCore =
         }
 
 
-typeName : Parser state String
+typeName : Core.Parser String
 typeName =
-    Combine.fromCore typeNameCore
-
-
-typeNameCore : Core.Parser String
-typeNameCore =
     Core.variable
         { start = Unicode.isUpper
         , inner = \c -> Unicode.isAlphaNum c || c == '_'

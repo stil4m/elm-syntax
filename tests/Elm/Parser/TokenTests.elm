@@ -58,15 +58,15 @@ all =
                     |> Expect.equal (Just "foo_")
         , test "typeName" <|
             \() ->
-                parse "MyCmd" Parser.typeName
+                parse "MyCmd" (Combine.fromCore Parser.typeName)
                     |> Expect.equal (Just "MyCmd")
         , test "typeName not empty" <|
             \() ->
-                parse "" Parser.typeName
+                parse "" (Combine.fromCore Parser.typeName)
                     |> Expect.equal Nothing
         , test "typeName with number" <|
             \() ->
-                parse "T1" Parser.typeName
+                parse "T1" (Combine.fromCore Parser.typeName)
                     |> Expect.equal (Just "T1")
         , test "moduleToken" <|
             \() ->
@@ -154,22 +154,22 @@ all =
                     |> Expect.equal Nothing
         , test "ρ type name" <|
             \() ->
-                parse "ρ" Parser.typeName
+                parse "ρ" (Combine.fromCore Parser.typeName)
                     |> Expect.equal Nothing
         , test "ε2 type name" <|
             \() ->
-                parse "ε2" Parser.typeName
+                parse "ε2" (Combine.fromCore Parser.typeName)
                     |> Expect.equal Nothing
         , test "εε type name" <|
             \() ->
-                parse "εε" Parser.typeName
+                parse "εε" (Combine.fromCore Parser.typeName)
                     |> Expect.equal Nothing
         , test "ρ uppercase type name" <|
             \() ->
-                parse (String.toUpper "ρ") Parser.typeName
+                parse (String.toUpper "ρ") (Combine.fromCore Parser.typeName)
                     |> Expect.notEqual Nothing
         , test "ε uppercase type name" <|
             \() ->
-                parse (String.toUpper "ε") Parser.typeName
+                parse (String.toUpper "ε") (Combine.fromCore Parser.typeName)
                     |> Expect.notEqual Nothing
         ]

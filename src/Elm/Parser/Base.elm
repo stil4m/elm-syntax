@@ -10,7 +10,7 @@ import Parser as Core exposing ((|.), (|=))
 
 moduleName : Parser state (Node ModuleName)
 moduleName =
-    sepBy1Core (Core.symbol ".") Tokens.typeNameCore
+    sepBy1Core (Core.symbol ".") Tokens.typeName
         |> Node.parserFromCore
 
 
@@ -22,12 +22,12 @@ typeIndicator =
             Core.oneOf
                 [ Core.succeed identity
                     |. Core.symbol "."
-                    |= Tokens.typeNameCore
+                    |= Tokens.typeName
                     |> Core.andThen (\t -> helper (typeOrSegment :: moduleNameSoFar) t)
                 , Core.succeed ()
                     |> Core.map (\() -> ( List.reverse moduleNameSoFar, typeOrSegment ))
                 ]
     in
-    Tokens.typeNameCore
+    Tokens.typeName
         |> Core.andThen (\typeOrSegment -> helper [] typeOrSegment)
         |> Node.parserFromCore
