@@ -6,7 +6,7 @@ import Elm.Parser.Layout as Layout
 import Elm.Parser.Node as Node
 import Elm.Parser.Numbers
 import Elm.Parser.State exposing (State)
-import Elm.Parser.Tokens exposing (characterLiteral, functionName, stringLiteral)
+import Elm.Parser.Tokens exposing (characterLiteral, functionName, functionNameCore, stringLiteral)
 import Elm.Syntax.Node as Node exposing (Node(..))
 import Elm.Syntax.Pattern exposing (Pattern(..), QualifiedNameRef)
 import Parser as Core
@@ -56,7 +56,8 @@ parensPattern =
 
 variablePart : Parser state (Node Pattern)
 variablePart =
-    Node.parser (Combine.map VarPattern functionName)
+    Node.parserCore (Core.map VarPattern functionNameCore)
+        |> Combine.fromCore
 
 
 numberPart : Parser state Pattern
