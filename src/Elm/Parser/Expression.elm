@@ -596,13 +596,6 @@ withIndentedState p =
 functionWithNameNode : Config State (Node Expression) -> Node String -> Parser State Function
 functionWithNameNode config pointer =
     let
-        functionImplementationFromVarPointer : Node String -> Parser State (Node FunctionImplementation)
-        functionImplementationFromVarPointer varPointer =
-            Combine.succeed (\args -> \expr -> Node { start = (Node.range varPointer).start, end = (Node.range expr).end } (FunctionImplementation varPointer args expr))
-                |> Combine.keep (Combine.many (Patterns.pattern |> Combine.ignore (Combine.maybe Layout.layout)))
-                |> Combine.ignore (Combine.string "=")
-                |> Combine.keep (Pratt.subExpression 0 config)
-
         functionWithSignature : Node String -> Parser State Function
         functionWithSignature varPointer =
             functionSignatureFromVarPointer varPointer
@@ -612,19 +605,27 @@ functionWithNameNode config pointer =
                         Node.parser Tokens.functionName
                             |> Combine.andThen (\fnName -> failIfDifferentFrom varPointer fnName)
                             |> Combine.ignore (Combine.maybe Layout.layout)
-                            |> Combine.andThen functionImplementationFromVarPointer
+                            |> Combine.andThen (\newPointer -> functionImplementationFromVarPointer config newPointer)
                             |> Combine.map (\decl -> fromParts sig decl)
                     )
 
         functionWithoutSignature : Node String -> Parser State Function
         functionWithoutSignature varPointer =
-            functionImplementationFromVarPointer varPointer
+            functionImplementationFromVarPointer config varPointer
                 |> Combine.map (\decl -> Function Nothing Nothing decl)
     in
     Combine.oneOf
         [ functionWithSignature pointer
         , functionWithoutSignature pointer
         ]
+
+
+functionImplementationFromVarPointer : Config State (Node Expression) -> Node String -> Parser State (Node FunctionImplementation)
+functionImplementationFromVarPointer config varPointer =
+    Combine.succeed (\args -> \expr -> Node { start = (Node.range varPointer).start, end = (Node.range expr).end } (FunctionImplementation varPointer args expr))
+        |> Combine.keep (Combine.many (Patterns.pattern |> Combine.ignore (Combine.maybe Layout.layout)))
+        |> Combine.ignore (Combine.string "=")
+        |> Combine.keep (Pratt.subExpression 0 config)
 
 
 fromParts : Node Signature -> Node FunctionImplementation -> Function
