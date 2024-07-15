@@ -6,7 +6,6 @@ module Combine exposing
     , between
     , continueWith
     , end
-    , fail
     , fromCore
     , ignore
     , keep
@@ -24,6 +23,7 @@ module Combine exposing
     , modifyState
     , oneOf
     , parens
+    , problem
     , runParser
     , sepBy
     , sepBy1
@@ -146,8 +146,8 @@ keep (Parser rp) (Parser lp) =
                 |> Core.andThen (\( newState, aToB ) -> Core.map (\( s, a ) -> ( s, aToB a )) (rp newState))
 
 
-fail : String -> Parser s a
-fail m =
+problem : String -> Parser s a
+problem m =
     Parser <|
         \_ ->
             Core.problem m

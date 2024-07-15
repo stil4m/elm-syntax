@@ -8,7 +8,7 @@ module Elm.Parser.Layout exposing
     , positivelyIndented
     )
 
-import Combine exposing (Parser, fail, many1Ignore, maybe, oneOf, succeed, withLocation, withState)
+import Combine exposing (Parser, many1Ignore, maybe, oneOf, problem, succeed, withLocation, withState)
 import Elm.Parser.Comments as Comments
 import Elm.Parser.State as State exposing (State)
 import Elm.Parser.Whitespace exposing (many1Spaces, realNewLine)
@@ -107,7 +107,7 @@ onTopIndentation =
                         Combine.succeed ()
 
                     else
-                        Combine.fail "must be on top indentation"
+                        Combine.problem "must be on top indentation"
                 )
         )
 
@@ -132,7 +132,7 @@ verifyIndent verify failMessage =
                         succeed ()
 
                     else
-                        fail (failMessage expectedColumn column)
+                        problem (failMessage expectedColumn column)
                 )
         )
 

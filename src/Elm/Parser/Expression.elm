@@ -161,7 +161,7 @@ recordAccessParser =
         |> Combine.andThen
             (\c ->
                 if c == " " || c == "\n" || c == "\u{000D}" then
-                    Combine.fail "Record access can't start with a space"
+                    Combine.problem "Record access can't start with a space"
 
                 else
                     dot
@@ -644,7 +644,7 @@ failIfDifferentFrom (Node _ expectedName) ((Node _ actualName) as actual) =
         Combine.succeed actual
 
     else
-        Combine.fail <| "Expected to find the declaration for " ++ expectedName ++ " but found " ++ actualName
+        Combine.problem <| "Expected to find the declaration for " ++ expectedName ++ " but found " ++ actualName
 
 
 functionSignatureFromVarPointer : Node String -> Parser State (Node Signature)
