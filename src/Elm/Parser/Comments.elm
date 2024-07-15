@@ -9,14 +9,17 @@ import Elm.Syntax.Node exposing (Node)
 import Parser as Core exposing ((|.), (|=), Nestable(..))
 
 
-addCommentToState : Parser State (Node String) -> Parser State ()
+addCommentToState : Core.Parser (Node String) -> Parser State ()
 addCommentToState p =
-    p |> Combine.andThen (\pair -> modifyState (addComment pair))
+    p
+        |> Combine.fromCore
+        |> Combine.andThen (\pair -> modifyState (addComment pair))
 
 
-parseComment : Parser State String -> Parser State ()
+parseComment : Core.Parser String -> Parser State ()
 parseComment commentParser =
-    Node.parser commentParser |> addCommentToState
+    Node.parserCore commentParser
+        |> addCommentToState
 
 
 singleLineComment : Parser State ()
@@ -25,11 +28,10 @@ singleLineComment =
         (Core.symbol "--"
             |. untilNewlineToken
             |> Core.getChompedString
-            |> Combine.fromCore
         )
 
 
-multilineCommentInner : Parser State String
+multilineCommentInner : Core.Parser String
 multilineCommentInner =
     Core.succeed (\offset -> \source -> String.slice offset (offset + 3) source)
         |= Core.getOffset
@@ -43,7 +45,6 @@ multilineCommentInner =
                     Core.problem "unexpected documentation comment"
             )
         |> Core.getChompedString
-        |> Combine.fromCore
 
 
 multilineComment : Parser State ()
@@ -53,11 +54,10 @@ multilineComment =
 
 moduleDocumentation : Parser State ()
 moduleDocumentation =
-    declarationDocumentation |> addCommentToState
+    addCommentToState declarationDocumentation
 
 
-declarationDocumentation : Parser State (Node Documentation)
+declarationDocumentation : Core.Parser (Node Documentation)
 declarationDocumentation =
     Core.getChompedString (Core.multiComment "{-|" "-}" Nestable)
-        |> Combine.fromCore
-        |> Node.parser
+        |> Node.parserCore

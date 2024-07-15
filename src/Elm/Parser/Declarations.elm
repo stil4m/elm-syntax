@@ -38,6 +38,7 @@ declaration =
 maybeDocumentation : Parser State (Maybe (Node Documentation))
 maybeDocumentation =
     Comments.declarationDocumentation
+        |> Combine.fromCore
         |> Combine.ignore Layout.layoutStrict
         |> maybe
 
