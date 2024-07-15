@@ -608,16 +608,17 @@ functionWithNameNode config pointer =
                             |> Combine.andThen (\newPointer -> functionImplementationFromVarPointer config newPointer)
                             |> Combine.map (\decl -> fromParts sig decl)
                     )
-
-        functionWithoutSignature : Node String -> Parser State Function
-        functionWithoutSignature varPointer =
-            functionImplementationFromVarPointer config varPointer
-                |> Combine.map (\decl -> Function Nothing Nothing decl)
     in
     Combine.oneOf
         [ functionWithSignature pointer
-        , functionWithoutSignature pointer
+        , functionWithoutSignature config pointer
         ]
+
+
+functionWithoutSignature : Config State (Node Expression) -> Node String -> Parser State Function
+functionWithoutSignature config varPointer =
+    functionImplementationFromVarPointer config varPointer
+        |> Combine.map (\decl -> Function Nothing Nothing decl)
 
 
 functionImplementationFromVarPointer : Config State (Node Expression) -> Node String -> Parser State (Node FunctionImplementation)
