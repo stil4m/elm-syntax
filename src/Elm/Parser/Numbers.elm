@@ -1,7 +1,6 @@
 module Elm.Parser.Numbers exposing (forgivingNumber, number)
 
 import Combine exposing (Parser)
-import Elm.Parser.State exposing (State)
 import Parser as Core
 
 
@@ -18,13 +17,13 @@ raw floatf intf hexf =
 
 {-| Core.number bug: consumes leading '.' or 'e'
 -}
-forgivingNumber : (Float -> a) -> (Int -> a) -> (Int -> a) -> Parser State a
+forgivingNumber : (Float -> a) -> (Int -> a) -> (Int -> a) -> Parser s a
 forgivingNumber floatf intf hexf =
     Core.backtrackable (raw (Just floatf) intf hexf)
         |> Combine.fromCore
 
 
-number : (Int -> a) -> (Int -> a) -> Parser State a
+number : (Int -> a) -> (Int -> a) -> Parser s a
 number intf hexf =
     raw Nothing intf hexf
         |> Combine.fromCore

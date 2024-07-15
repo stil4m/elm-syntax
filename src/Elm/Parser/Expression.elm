@@ -313,7 +313,7 @@ recordField config =
         )
 
 
-literalExpression : Parser State (Node Expression)
+literalExpression : Parser s (Node Expression)
 literalExpression =
     Combine.oneOf
         [ Tokens.multiLineStringLiteral
@@ -323,7 +323,7 @@ literalExpression =
         |> Node.parser
 
 
-charLiteralExpression : Parser State (Node Expression)
+charLiteralExpression : Parser s (Node Expression)
 charLiteralExpression =
     Node.parser (Combine.map CharLiteral Tokens.characterLiteral)
 

@@ -44,7 +44,7 @@ exposable =
         ]
 
 
-infixExpose : Parser State (Node TopLevelExpose)
+infixExpose : Parser s (Node TopLevelExpose)
 infixExpose =
     Node.parser (Combine.map InfixExpose (parens (while ((/=) ')'))))
 
@@ -69,6 +69,6 @@ typeExpose =
             )
 
 
-functionExpose : Parser State (Node TopLevelExpose)
+functionExpose : Parser s (Node TopLevelExpose)
 functionExpose =
     Node.parser (Combine.map FunctionExpose functionName)
