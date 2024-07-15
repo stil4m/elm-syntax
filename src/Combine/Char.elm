@@ -9,6 +9,7 @@ char c =
     satisfy
         (\c_ -> c_ == c)
         ("expected '" ++ String.fromChar c ++ "'")
+        |> Combine.fromCore
 
 
 anyChar : Parser s Char
@@ -16,19 +17,19 @@ anyChar =
     satisfy
         (always True)
         "expected any character"
+        |> Combine.fromCore
 
 
-satisfy : (Char -> Bool) -> String -> Parser state Char
+satisfy : (Char -> Bool) -> String -> Core.Parser Char
 satisfy pred problem =
-    Combine.fromCore
-        (Core.getChompedString (Core.chompIf pred)
-            |> Core.andThen
-                (\s ->
-                    case String.toList s of
-                        [] ->
-                            Core.problem problem
+    Core.chompIf pred
+        |> Core.getChompedString
+        |> Core.andThen
+            (\s ->
+                case String.toList s of
+                    [] ->
+                        Core.problem problem
 
-                        c :: _ ->
-                            Core.succeed c
-                )
-        )
+                    c :: _ ->
+                        Core.succeed c
+            )
