@@ -571,10 +571,11 @@ tupledExpression config =
 
 prefixOperator : Parser s Expression
 prefixOperator =
-    Combine.backtrackable Tokens.prefixOperatorToken
-        |> Combine.ignore parensEnd
-        |> Combine.ignore (Combine.fromCore (Core.commit ()))
-        |> Combine.map PrefixOperator
+    Core.backtrackable Tokens.prefixOperatorTokenCore
+        |. Core.symbol ")"
+        |. Core.commit ()
+        |> Core.map PrefixOperator
+        |> Combine.fromCore
 
 
 asExpression : Node Expression -> List (Node Expression) -> Expression

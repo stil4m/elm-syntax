@@ -2,7 +2,6 @@ module Combine exposing
     ( Parser(..)
     , Step(..)
     , andThen
-    , backtrackable
     , between
     , continueWith
     , end
@@ -183,11 +182,6 @@ end =
     Parser <|
         \state ->
             Core.end |> Core.map (\x -> ( state, x ))
-
-
-backtrackable : Parser s a -> Parser s a
-backtrackable (Parser p) =
-    Parser <| \state -> Core.backtrackable (p state)
 
 
 oneOf : List (Parser s a) -> Parser s a

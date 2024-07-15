@@ -15,6 +15,7 @@ module Elm.Parser.Tokens exposing
     , ofToken
     , portToken
     , prefixOperatorToken
+    , prefixOperatorTokenCore
     , stringLiteral
     , thenToken
     , typeName
@@ -305,3 +306,10 @@ prefixOperatorToken =
     allowedOperatorTokens
         |> List.map Combine.string
         |> Combine.oneOf
+
+
+prefixOperatorTokenCore : Core.Parser String
+prefixOperatorTokenCore =
+    allowedOperatorTokens
+        |> List.map (\token -> Core.token token |> Core.getChompedString)
+        |> Core.oneOf
