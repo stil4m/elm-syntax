@@ -562,15 +562,15 @@ tupledExpression config =
         |> Combine.continueWith
             (Combine.oneOf
                 [ parensEnd |> Combine.map (always UnitExpr)
-                , prefixOperator
+                , closingPrefixOperator
                 , nested |> Combine.ignore parensEnd
                 ]
             )
         |> Node.parser
 
 
-prefixOperator : Parser s Expression
-prefixOperator =
+closingPrefixOperator : Parser s Expression
+closingPrefixOperator =
     Core.backtrackable Tokens.prefixOperatorTokenCore
         |. Core.symbol ")"
         |. Core.commit ()
