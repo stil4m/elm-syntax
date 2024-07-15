@@ -499,38 +499,37 @@ minusNotFollowedBySpace =
         |> Combine.fromCore
 
 
-referenceExpression : Parser State (Node Expression)
+referenceExpression : Parser s (Node Expression)
 referenceExpression =
     let
-        helper : ModuleName -> String -> Parser s Expression
+        helper : ModuleName -> String -> Core.Parser Expression
         helper moduleNameSoFar nameOrSegment =
-            Combine.oneOf
-                [ dot
-                    |> Combine.fromCore
-                    |> Combine.continueWith
-                        (Combine.oneOf
-                            [ Tokens.typeName
-                                |> Combine.andThen (\t -> helper (nameOrSegment :: moduleNameSoFar) t)
-                            , Tokens.functionName
-                                |> Combine.map
-                                    (\name ->
-                                        FunctionOrValue
-                                            (List.reverse (nameOrSegment :: moduleNameSoFar))
-                                            name
-                                    )
-                            ]
-                        )
-                , Combine.succeed ()
-                    |> Combine.map (\() -> FunctionOrValue (List.reverse moduleNameSoFar) nameOrSegment)
+            Core.oneOf
+                [ Core.succeed identity
+                    |. dot
+                    |= Core.oneOf
+                        [ Tokens.typeNameCore
+                            |> Core.andThen (\t -> helper (nameOrSegment :: moduleNameSoFar) t)
+                        , Tokens.functionNameCore
+                            |> Core.map
+                                (\name ->
+                                    FunctionOrValue
+                                        (List.reverse (nameOrSegment :: moduleNameSoFar))
+                                        name
+                                )
+                        ]
+                , Core.succeed ()
+                    |> Core.map (\() -> FunctionOrValue (List.reverse moduleNameSoFar) nameOrSegment)
                 ]
     in
-    Combine.oneOf
-        [ Tokens.typeName
-            |> Combine.andThen (\t -> helper [] t)
-        , Tokens.functionName
-            |> Combine.map (\v -> FunctionOrValue [] v)
+    Core.oneOf
+        [ Tokens.typeNameCore
+            |> Core.andThen (\t -> helper [] t)
+        , Tokens.functionNameCore
+            |> Core.map (\v -> FunctionOrValue [] v)
         ]
-        |> Node.parser
+        |> Node.parserCore
+        |> Combine.fromCore
 
 
 recordAccessFunctionExpression : Parser state (Node Expression)

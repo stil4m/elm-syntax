@@ -18,6 +18,7 @@ module Elm.Parser.Tokens exposing
     , stringLiteral
     , thenToken
     , typeName
+    , typeNameCore
     )
 
 import Char
@@ -258,12 +259,16 @@ functionNameCore =
 
 typeName : Parser s String
 typeName =
+    Combine.fromCore typeNameCore
+
+
+typeNameCore : Core.Parser String
+typeNameCore =
     Core.variable
         { start = Unicode.isUpper
         , inner = \c -> Unicode.isAlphaNum c || c == '_'
         , reserved = Set.fromList reservedList
         }
-        |> Combine.fromCore
 
 
 allowedOperatorTokens : List String
