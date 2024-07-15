@@ -326,7 +326,10 @@ literalExpression =
 
 charLiteralExpression : Parser state (Node Expression)
 charLiteralExpression =
-    Node.parser (Combine.map CharLiteral Tokens.characterLiteral)
+    Tokens.characterLiteral
+        |> Core.map CharLiteral
+        |> Node.parserCore
+        |> Combine.fromCore
 
 
 

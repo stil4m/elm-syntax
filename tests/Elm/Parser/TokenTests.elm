@@ -98,19 +98,19 @@ all =
                     |> Expect.equal (Just """ \"\"\" """)
         , test "character escaped" <|
             \() ->
-                parse "'\\''" Parser.characterLiteral
+                parse "'\\''" (Combine.fromCore Parser.characterLiteral)
                     |> Expect.equal (Just '\'')
         , test "character escaped - 2" <|
             \() ->
-                parse "'\\r'" Parser.characterLiteral
+                parse "'\\r'" (Combine.fromCore Parser.characterLiteral)
                     |> Expect.equal (Just '\u{000D}')
         , test "unicode char" <|
             \() ->
-                parse "'\\u{000D}'" Parser.characterLiteral
+                parse "'\\u{000D}'" (Combine.fromCore Parser.characterLiteral)
                     |> Expect.equal (Just '\u{000D}')
         , test "unicode char with lowercase hex" <|
             \() ->
-                parse "'\\u{000d}'" Parser.characterLiteral
+                parse "'\\u{000d}'" (Combine.fromCore Parser.characterLiteral)
                     |> Expect.equal (Just '\u{000D}')
         , test "string escaped 3" <|
             \() ->
@@ -122,7 +122,7 @@ all =
                     |> Expect.equal (Just "foo\\")
         , test "character escaped 3" <|
             \() ->
-                parse "'\\n'" Parser.characterLiteral
+                parse "'\\n'" (Combine.fromCore Parser.characterLiteral)
                     |> Expect.equal (Just '\n')
         , test "long string" <|
             \() ->

@@ -12,12 +12,11 @@ char c =
         |> Combine.fromCore
 
 
-anyChar : Parser s Char
+anyChar : Core.Parser Char
 anyChar =
     satisfy
         (always True)
         "expected any character"
-        |> Combine.fromCore
 
 
 satisfy : (Char -> Bool) -> String -> Core.Parser Char

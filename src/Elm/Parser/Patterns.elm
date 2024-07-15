@@ -66,6 +66,14 @@ numberPart =
         |> Node.parser
 
 
+charPattern : Parser state (Node Pattern)
+charPattern =
+    characterLiteral
+        |> Core.map CharPattern
+        |> Node.parserCore
+        |> Combine.fromCore
+
+
 listPattern : Parser State (Node Pattern)
 listPattern =
     Node.parser <|
@@ -91,7 +99,7 @@ composablePattern =
         , stringPattern
         , listPattern
         , numberPart
-        , Node.parser (characterLiteral |> Combine.map CharPattern)
+        , charPattern
         ]
 
 
@@ -107,7 +115,7 @@ qualifiedPatternArg =
         , stringPattern
         , listPattern
         , numberPart
-        , Node.parser (characterLiteral |> Combine.map CharPattern)
+        , charPattern
         ]
 
 

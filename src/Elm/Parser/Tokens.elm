@@ -23,7 +23,7 @@ module Elm.Parser.Tokens exposing
 
 import Char
 import Combine exposing (Parser, symbol)
-import Combine.Char exposing (anyChar, char)
+import Combine.Char exposing (anyChar)
 import Hex
 import Parser as Core exposing ((|.), (|=), Step(..))
 import Set
@@ -133,7 +133,7 @@ escapedCharValue =
         ]
 
 
-quotedSingleQuote : Parser s Char
+quotedSingleQuote : Core.Parser Char
 quotedSingleQuote =
     Core.succeed (String.toList >> List.head >> Maybe.withDefault ' ')
         |. Core.symbol "'"
@@ -144,16 +144,16 @@ quotedSingleQuote =
             , Core.getChompedString (Core.chompIf (always True))
             ]
         |. Core.symbol "'"
-        |> Combine.fromCore
 
 
-characterLiteral : Parser s Char
+characterLiteral : Core.Parser Char
 characterLiteral =
-    Combine.oneOf
+    Core.oneOf
         [ quotedSingleQuote
-        , char '\''
-            |> Combine.continueWith anyChar
-            |> Combine.ignore (char '\'')
+        , Core.succeed identity
+            |. Core.symbol "'"
+            |= anyChar
+            |. Core.symbol "'"
         ]
 
 
