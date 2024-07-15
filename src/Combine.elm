@@ -26,6 +26,7 @@ module Combine exposing
     , runParser
     , sepBy
     , sepBy1
+    , sepBy1Core
     , sepBy1WithoutReverse
     , string
     , succeed
@@ -35,7 +36,7 @@ module Combine exposing
     )
 
 import Elm.Syntax.Range exposing (Location, Range)
-import Parser as Core
+import Parser as Core exposing ((|.), (|=))
 
 
 type Parser state res
@@ -232,6 +233,26 @@ manyIgnore (Parser p) =
             Core.loop state helper
 
 
+manyCore : Core.Parser a -> Core.Parser (List a)
+manyCore p =
+    manyWithoutReverseCore [] p
+        |> Core.map List.reverse
+
+
+manyWithoutReverseCore : List a -> Core.Parser a -> Core.Parser (List a)
+manyWithoutReverseCore initList p =
+    let
+        helper : List a -> Core.Parser (Core.Step (List a) (List a))
+        helper items =
+            Core.oneOf
+                [ p
+                    |> Core.map (\item -> Core.Loop (item :: items))
+                , Core.succeed (Core.Done items)
+                ]
+    in
+    Core.loop initList helper
+
+
 many1Ignore : Parser state a -> Parser state ()
 many1Ignore p =
     p
@@ -326,6 +347,17 @@ sepBy1 sep p =
     succeed cons
         |> keep p
         |> keep (many (sep |> continueWith p))
+
+
+sepBy1Core : Core.Parser x -> Core.Parser a -> Core.Parser (List a)
+sepBy1Core sep p =
+    Core.succeed cons
+        |= p
+        |= manyCore
+            (Core.succeed identity
+                |. sep
+                |= p
+            )
 
 
 {-| Same as [`sepBy1`](#sepBy1), except that it doesn't reverse the list.

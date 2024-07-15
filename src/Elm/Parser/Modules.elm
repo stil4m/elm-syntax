@@ -71,7 +71,7 @@ effectModuleDefinition =
         |> Combine.ignore Layout.layout
         |> Combine.ignore moduleToken
         |> Combine.ignore Layout.layout
-        |> Combine.keep (Node.parser moduleName)
+        |> Combine.keep moduleName
         |> Combine.ignore Layout.layout
         |> Combine.keep effectWhereClauses
         |> Combine.ignore Layout.layout
@@ -84,7 +84,7 @@ normalModuleDefinition =
         (succeed (\moduleName -> \exposingList -> DefaultModuleData moduleName exposingList)
             |> Combine.ignore moduleToken
             |> Combine.ignore Layout.layout
-            |> Combine.keep (Node.parser moduleName)
+            |> Combine.keep moduleName
             |> Combine.ignore Layout.layout
             |> Combine.keep (Node.parser exposeDefinition)
         )
@@ -98,7 +98,7 @@ portModuleDefinition =
             |> Combine.ignore Layout.layout
             |> Combine.ignore moduleToken
             |> Combine.ignore Layout.layout
-            |> Combine.keep (Node.parser moduleName)
+            |> Combine.keep moduleName
             |> Combine.ignore Layout.layout
             |> Combine.keep (Node.parser exposeDefinition)
         )
