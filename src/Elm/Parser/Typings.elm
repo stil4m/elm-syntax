@@ -16,8 +16,17 @@ import Elm.Syntax.TypeAnnotation exposing (TypeAnnotation)
 
 typeDefinition : Maybe (Node Documentation) -> Parser State (Node Declaration.Declaration)
 typeDefinition maybeDoc =
-    Combine.succeed identity
-        |> Combine.keep Combine.location
+    let
+        startParser : Parser state Location
+        startParser =
+            case maybeDoc of
+                Just (Node { start } _) ->
+                    Combine.succeed start
+
+                Nothing ->
+                    Combine.location
+    in
+    startParser
         |> Combine.ignore typePrefix
         |> Combine.andThen
             (\start ->
@@ -27,7 +36,7 @@ typeDefinition maybeDoc =
                             \generics ->
                                 \((Node { end } _) as typeAnnotation) ->
                                     Node
-                                        { start = maybeDoc |> Maybe.map (Node.range >> .start) |> Maybe.withDefault start
+                                        { start = start
                                         , end = end
                                         }
                                         (Declaration.AliasDeclaration
@@ -61,7 +70,7 @@ typeDefinition maybeDoc =
                                                     start
                                     in
                                     Node
-                                        { start = maybeDoc |> Maybe.map (Node.range >> .start) |> Maybe.withDefault start
+                                        { start = start
                                         , end = end
                                         }
                                         (Declaration.CustomTypeDeclaration
