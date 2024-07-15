@@ -175,7 +175,7 @@ typedTypeAnnotation mode =
                 , Combine.succeed items
                 ]
     in
-    Node.parser typeIndicator
+    typeIndicator
         |> Combine.andThen
             (\((Node tir _) as original) ->
                 Layout.optimisticLayoutWith

@@ -111,7 +111,7 @@ qualifiedPatternArg =
 
 qualifiedPattern : ConsumeArgs -> Parser State (Node Pattern)
 qualifiedPattern consumeArgs =
-    Node.parser Base.typeIndicator
+    Base.typeIndicator
         |> Combine.ignore (maybe Layout.layout)
         |> Combine.andThen
             (\(Node range ( mod, name )) ->
