@@ -188,7 +188,7 @@ functionCall =
         )
 
 
-glslExpression : Parser State (Node Expression)
+glslExpression : Parser s (Node Expression)
 glslExpression =
     let
         start : String
@@ -202,9 +202,9 @@ glslExpression =
     Core.mapChompedString
         (\s _ -> s |> String.dropLeft (String.length start) |> GLSLExpression)
         (Core.multiComment start end NotNestable)
+        |. Core.symbol end
+        |> Node.parserCore
         |> Combine.fromCore
-        |> Combine.ignore (Combine.symbol end)
-        |> Node.parser
 
 
 listExpression : Config State (Node Expression) -> Parser State (Node Expression)
