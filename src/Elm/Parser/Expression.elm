@@ -403,7 +403,7 @@ letExpression config =
                 (Combine.succeed (\let_ -> \declarations -> ( let_, declarations ))
                     |> Combine.keep (Node.parser Tokens.letToken)
                     |> Combine.ignore Layout.layout
-                    |> Combine.keep (withIndentedState (letBody config))
+                    |> Combine.keep (withIndentedState (letDeclarations config))
                     |> Combine.ignore Layout.optimisticLayout
                     |> Combine.ignore Tokens.inToken
                 )
@@ -411,8 +411,8 @@ letExpression config =
         |> Combine.keep (Pratt.subExpression 0 config)
 
 
-letBody : Config State (Node Expression) -> Parser State (List (Node LetDeclaration))
-letBody config =
+letDeclarations : Config State (Node Expression) -> Parser State (List (Node LetDeclaration))
+letDeclarations config =
     Combine.many1 (blockElement config)
 
 
