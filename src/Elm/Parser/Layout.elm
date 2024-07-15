@@ -54,7 +54,7 @@ optimisticLayout =
     Combine.manyIgnore
         (oneOf
             [ anyComment
-            , many1 realNewLine
+            , Combine.many1Ignore realNewLine
                 |> Combine.continueWith
                     (oneOf
                         [ many1Spaces

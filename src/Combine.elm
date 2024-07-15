@@ -15,6 +15,7 @@ module Combine exposing
     , loop
     , many
     , many1
+    , many1Ignore
     , many1WithEndLocationForLastElement
     , manyIgnore
     , manyWithEndLocationForLastElement
@@ -243,6 +244,12 @@ manyIgnore (Parser p) =
     Parser <|
         \state ->
             Core.loop state helper
+
+
+many1Ignore : Parser s a -> Parser s ()
+many1Ignore p =
+    p
+        |> continueWith (manyIgnore p)
 
 
 manyWithEndLocationForLastElement : Range -> (a -> Range) -> Parser s a -> Parser s ( Location, List a )
