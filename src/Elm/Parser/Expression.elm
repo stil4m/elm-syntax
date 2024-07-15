@@ -175,16 +175,15 @@ functionCall =
     Pratt.infixLeft 90
         Layout.positivelyIndented
         (\((Node { start } leftValue) as left) ((Node { end } _) as right) ->
-            case leftValue of
-                Expression.Application args ->
-                    Node
-                        { start = start, end = end }
-                        (Expression.Application (args ++ [ right ]))
+            Node
+                { start = start, end = end }
+                (case leftValue of
+                    Expression.Application args ->
+                        Expression.Application (args ++ [ right ])
 
-                _ ->
-                    Node
-                        { start = start, end = end }
-                        (Expression.Application [ left, right ])
+                    _ ->
+                        Expression.Application [ left, right ]
+                )
         )
 
 
