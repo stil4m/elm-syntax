@@ -1,6 +1,6 @@
 module Elm.Parser.Expose exposing (exposeDefinition)
 
-import Combine exposing (Parser, maybe, oneOf, parens, sepBy1, string, symbol, while)
+import Combine exposing (Parser, maybe, oneOf, parens, sepBy1, string, symbol)
 import Combine.Char exposing (char)
 import Elm.Parser.Layout as Layout
 import Elm.Parser.Node as Node
@@ -8,6 +8,7 @@ import Elm.Parser.State exposing (State)
 import Elm.Parser.Tokens exposing (exposingToken, functionName, typeName)
 import Elm.Syntax.Exposing exposing (ExposedType, Exposing(..), TopLevelExpose(..))
 import Elm.Syntax.Node as Node exposing (Node(..))
+import Parser as Core exposing ((|.), (|=))
 
 
 exposeDefinition : Parser State Exposing
@@ -49,7 +50,15 @@ exposable =
 
 infixExpose : Parser state (Node TopLevelExpose)
 infixExpose =
-    Node.parser (Combine.map InfixExpose (parens (while ((/=) ')'))))
+    Core.succeed identity
+        |. Core.symbol "("
+        |= (Core.chompWhile (\c -> c /= ')')
+                |> Core.getChompedString
+           )
+        |. Core.symbol ")"
+        |> Core.map InfixExpose
+        |> Node.parserCore
+        |> Combine.fromCore
 
 
 typeExpose : Parser State (Node TopLevelExpose)

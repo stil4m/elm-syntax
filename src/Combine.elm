@@ -30,7 +30,6 @@ module Combine exposing
     , string
     , succeed
     , symbol
-    , while
     , withLocation
     , withState
     )
@@ -168,13 +167,6 @@ symbol : String -> Parser state ()
 symbol str =
     Core.symbol str
         |> fromCore
-
-
-while : (Char -> Bool) -> Parser s String
-while pred =
-    Parser <|
-        \state ->
-            Core.mapChompedString (\x _ -> ( state, x )) (Core.chompWhile pred)
 
 
 end : Parser state ()
