@@ -198,7 +198,7 @@ subExpression precedence ((Config conf) as config) =
                 )
             )
         |> Combine.andThen
-            (\leftExpression -> Combine.loop ( config, precedence, leftExpression ) expressionHelp)
+            (\leftExpression -> Combine.loop leftExpression (expressionHelp config precedence))
 
 
 {-| This is the core of the Pratt parser algorithm.
@@ -212,14 +212,13 @@ Also note that `oneOf` and `andThenOneOf` parsers may call recursively
 `subExpression`.
 
 -}
-expressionHelp : ( Config s e, Int, e ) -> Parser s (Step ( Config s e, Int, e ) e)
-expressionHelp ( (Config conf) as config, precedence, leftExpression ) =
+expressionHelp : Config s e -> Int -> e -> Parser s (Step e e)
+expressionHelp ((Config conf) as config) precedence leftExpression =
     conf.spaces
         |> Combine.continueWith
             (Combine.oneOf
-                [ Combine.map
-                    (\expr -> Loop ( config, precedence, expr ))
-                    (operation config precedence leftExpression)
+                [ operation config precedence leftExpression
+                    |> Combine.map Loop
                 , Combine.succeed (Done leftExpression)
                 ]
             )
