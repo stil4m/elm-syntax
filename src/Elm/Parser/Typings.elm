@@ -96,7 +96,9 @@ typeDefinition maybeDoc =
 valueConstructors : Parser State (List (Node ValueConstructor))
 valueConstructors =
     Combine.sepBy1WithoutReverse
-        (Combine.ignore (Combine.maybeIgnore Layout.layout) (Combine.symbol "|"))
+        (Combine.symbol "|"
+            |> Combine.ignore (Combine.maybeIgnore Layout.layout)
+        )
         valueConstructor
 
 
