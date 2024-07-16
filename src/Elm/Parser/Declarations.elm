@@ -46,7 +46,7 @@ maybeDocumentation =
 function : Maybe (Node Documentation) -> Parser State (Node Declaration)
 function maybeDoc =
     Node.parser functionName
-        |> Combine.ignore (maybe Layout.layout)
+        |> Combine.ignore (Combine.maybeIgnore Layout.layout)
         |> Combine.andThen functionWithNameNode
         |> Combine.map
             (\f ->
@@ -77,20 +77,20 @@ functionWithNameNode pointer =
                             (FunctionImplementation varPointer args expr)
                     }
                 )
-                |> Combine.keep (Combine.many (pattern |> Combine.ignore (maybe Layout.layout)))
+                |> Combine.keep (Combine.many (pattern |> Combine.ignore (Combine.maybeIgnore Layout.layout)))
                 |> Combine.ignore (Combine.symbol "=")
-                |> Combine.ignore (maybe Layout.layout)
+                |> Combine.ignore (Combine.maybeIgnore Layout.layout)
                 |> Combine.keep expression
 
         functionWithSignature : Node String -> Parser State Function
         functionWithSignature varPointer =
             functionSignatureFromVarPointer varPointer
-                |> Combine.ignore (maybe Layout.layoutStrict)
+                |> Combine.ignore (Combine.maybeIgnore Layout.layoutStrict)
                 |> Combine.andThen
                     (\sig ->
                         Node.parser functionName
                             |> Combine.andThen (\fnName -> failIfDifferentFrom varPointer fnName)
-                            |> Combine.ignore (maybe Layout.layout)
+                            |> Combine.ignore (Combine.maybeIgnore Layout.layout)
                             |> Combine.andThen (\body -> functionImplementationFromVarPointer (Just sig) body)
                     )
 
@@ -109,7 +109,7 @@ signature =
     succeed Signature
         |> Combine.keep (Node.parser functionName)
         |> Combine.ignore (Layout.maybeAroundBothSides (Combine.symbol ":"))
-        |> Combine.ignore (maybe Layout.layout)
+        |> Combine.ignore (Combine.maybeIgnore Layout.layout)
         |> Combine.keep typeAnnotation
 
 

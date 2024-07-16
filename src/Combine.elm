@@ -19,6 +19,7 @@ module Combine exposing
     , manyWithEndLocationForLastElement
     , map
     , maybe
+    , maybeIgnore
     , modifyState
     , oneOf
     , parens
@@ -189,6 +190,16 @@ maybe (Parser p) =
             Core.oneOf
                 [ p state |> Core.map (\( c, v ) -> ( c, Just v ))
                 , Core.succeed ( state, Nothing )
+                ]
+
+
+maybeIgnore : Parser state () -> Parser state ()
+maybeIgnore (Parser p) =
+    Parser <|
+        \state ->
+            Core.oneOf
+                [ p state
+                , Core.succeed ( state, () )
                 ]
 
 

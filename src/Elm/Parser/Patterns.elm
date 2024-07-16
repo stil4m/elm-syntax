@@ -23,7 +23,7 @@ tryToCompose x =
                     |> Combine.keep (Node.parser functionName)
                 , Combine.succeed (\y -> Node.combine UnConsPattern x y)
                     |> Combine.ignore (Combine.fromCore (Core.symbol "::"))
-                    |> Combine.ignore (maybe Layout.layout)
+                    |> Combine.ignore (Combine.maybeIgnore Layout.layout)
                     |> Combine.keep pattern
                 , Combine.succeed x
                 ]
@@ -78,7 +78,7 @@ listPattern : Parser State (Node Pattern)
 listPattern =
     Node.parser <|
         between
-            (string "[" |> Combine.ignore (maybe Layout.layout))
+            (string "[" |> Combine.ignore (Combine.maybeIgnore Layout.layout))
             (string "]")
             (Combine.map ListPattern (sepBy (string ",") (Layout.maybeAroundBothSides pattern)))
 
@@ -146,11 +146,11 @@ stringPattern =
 qualifiedPattern : ConsumeArgs -> Parser State (Node Pattern)
 qualifiedPattern consumeArgs =
     Base.typeIndicator
-        |> Combine.ignore (maybe Layout.layout)
+        |> Combine.ignore (Combine.maybeIgnore Layout.layout)
         |> Combine.andThen
             (\(Node range ( mod, name )) ->
                 (if consumeArgs then
-                    Combine.manyWithEndLocationForLastElement range Node.range (qualifiedPatternArg |> Combine.ignore (maybe Layout.layout))
+                    Combine.manyWithEndLocationForLastElement range Node.range (qualifiedPatternArg |> Combine.ignore (Combine.maybeIgnore Layout.layout))
 
                  else
                     Combine.succeed ( range.end, [] )
@@ -169,7 +169,7 @@ recordPattern =
     Node.parser
         (Combine.map RecordPattern <|
             between
-                (string "{" |> Combine.continueWith (maybe Layout.layout))
+                (string "{" |> Combine.continueWith (Combine.maybeIgnore Layout.layout))
                 (string "}")
                 (sepBy (string ",") (Layout.maybeAroundBothSides (Node.parser functionName)))
         )

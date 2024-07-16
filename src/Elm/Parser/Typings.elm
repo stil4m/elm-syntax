@@ -1,6 +1,6 @@
 module Elm.Parser.Typings exposing (typeDefinition)
 
-import Combine exposing (Parser, many, maybe, string)
+import Combine exposing (Parser, many, string)
 import Elm.Parser.Layout as Layout
 import Elm.Parser.Node as Node
 import Elm.Parser.State exposing (State)
@@ -50,10 +50,10 @@ typeDefinition maybeDoc =
                         |> Combine.ignore (string "alias")
                         |> Combine.ignore Layout.layout
                         |> Combine.keep (Node.parserFromCore typeName)
-                        |> Combine.ignore (maybe Layout.layout)
+                        |> Combine.ignore (Combine.maybeIgnore Layout.layout)
                         |> Combine.keep genericList
                         |> Combine.ignore (string "=")
-                        |> Combine.ignore (maybe Layout.layout)
+                        |> Combine.ignore (Combine.maybeIgnore Layout.layout)
                         |> Combine.keep typeAnnotation
                     , Combine.succeed
                         (\name ->
@@ -82,11 +82,11 @@ typeDefinition maybeDoc =
                                         )
                         )
                         |> Combine.keep (Node.parserFromCore typeName)
-                        |> Combine.ignore (maybe Layout.layout)
+                        |> Combine.ignore (Combine.maybeIgnore Layout.layout)
                         |> Combine.keep genericList
-                        |> Combine.ignore (maybe Layout.layout)
+                        |> Combine.ignore (Combine.maybeIgnore Layout.layout)
                         |> Combine.ignore (string "=")
-                        |> Combine.ignore (maybe Layout.layout)
+                        |> Combine.ignore (Combine.maybeIgnore Layout.layout)
                         |> Combine.keep valueConstructors
                     ]
             )
@@ -95,7 +95,7 @@ typeDefinition maybeDoc =
 valueConstructors : Parser State (List (Node ValueConstructor))
 valueConstructors =
     Combine.sepBy1WithoutReverse
-        (Combine.ignore (maybe Layout.layout) (string "|"))
+        (Combine.ignore (Combine.maybeIgnore Layout.layout) (string "|"))
         valueConstructor
 
 
@@ -138,7 +138,7 @@ valueConstructor =
 
 genericList : Parser State (List (Node String))
 genericList =
-    many (Node.parserFromCore functionNameCore |> Combine.ignore (maybe Layout.layout))
+    many (Node.parserFromCore functionNameCore |> Combine.ignore (Combine.maybeIgnore Layout.layout))
 
 
 typePrefix : Parser State ()

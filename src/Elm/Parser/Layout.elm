@@ -8,7 +8,7 @@ module Elm.Parser.Layout exposing
     , positivelyIndented
     )
 
-import Combine exposing (Parser, many1Ignore, maybe, oneOf, problem, succeed, withLocation, withState)
+import Combine exposing (Parser, many1Ignore, oneOf, problem, succeed, withLocation, withState)
 import Elm.Parser.Comments as Comments
 import Elm.Parser.State as State exposing (State)
 import Elm.Parser.Whitespace exposing (many1Spaces, realNewLine)
@@ -139,6 +139,6 @@ verifyIndent verify failMessage =
 
 maybeAroundBothSides : Parser State b -> Parser State b
 maybeAroundBothSides x =
-    maybe layout
+    Combine.maybeIgnore layout
         |> Combine.continueWith x
-        |> Combine.ignore (maybe layout)
+        |> Combine.ignore (Combine.maybeIgnore layout)

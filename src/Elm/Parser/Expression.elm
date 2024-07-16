@@ -210,7 +210,7 @@ listExpression : Config State (Node Expression) -> Parser State (Node Expression
 listExpression config =
     Combine.succeed ListExpr
         |> Combine.ignore squareStart
-        |> Combine.ignore (Combine.maybe Layout.layout)
+        |> Combine.ignore (Combine.maybeIgnore Layout.layout)
         |> Combine.keep
             (Combine.sepBy
                 comma
@@ -227,7 +227,7 @@ listExpression config =
 recordExpression : Config State (Node Expression) -> Parser State (Node Expression)
 recordExpression config =
     curlyStart
-        |> Combine.ignore (Combine.maybe Layout.layout)
+        |> Combine.ignore (Combine.maybeIgnore Layout.layout)
         |> Combine.continueWith
             (Combine.oneOf
                 [ curlyEnd |> Combine.map (\() -> RecordExpr [])
@@ -241,7 +241,7 @@ recordContents : Config State (Node Expression) -> Parser State Expression
 recordContents config =
     Node.parserCore Tokens.functionNameCore
         |> Combine.fromCore
-        |> Combine.ignore (Combine.maybe Layout.layout)
+        |> Combine.ignore (Combine.maybeIgnore Layout.layout)
         |> Combine.andThen
             (\fname ->
                 Combine.oneOf
@@ -268,7 +268,7 @@ recordContents config =
                                         |> Combine.map (\() -> toRecordExpr [])
                                     , Combine.succeed toRecordExpr
                                         |> Combine.ignore comma
-                                        |> Combine.ignore (Combine.maybe Layout.layout)
+                                        |> Combine.ignore (Combine.maybeIgnore Layout.layout)
                                         |> Combine.keep (recordFields config)
                                         |> Combine.ignore endSymbol
                                     ]
@@ -281,7 +281,7 @@ recordUpdateSyntaxParser : Config State (Node Expression) -> Node String -> Pars
 recordUpdateSyntaxParser config fname =
     Combine.succeed (\e -> RecordUpdateExpression fname e)
         |> Combine.ignore pipe
-        |> Combine.ignore (Combine.maybe Layout.layout)
+        |> Combine.ignore (Combine.maybeIgnore Layout.layout)
         |> Combine.keep (recordFields config)
         |> Combine.ignore curlyEnd
 
@@ -290,13 +290,13 @@ recordFields : Config State (Node Expression) -> Parser State (List (Node Record
 recordFields config =
     Combine.succeed (\first -> \rest -> first :: rest)
         |> Combine.keep (recordField config)
-        |> Combine.ignore (Combine.maybe Layout.layout)
+        |> Combine.ignore (Combine.maybeIgnore Layout.layout)
         |> Combine.keep
             (Combine.many
                 (comma
-                    |> Combine.ignore (Combine.maybe Layout.layout)
+                    |> Combine.ignore (Combine.maybeIgnore Layout.layout)
                     |> Combine.continueWith (recordField config)
-                    |> Combine.ignore (Combine.maybe Layout.layout)
+                    |> Combine.ignore (Combine.maybeIgnore Layout.layout)
                 )
             )
 
@@ -312,7 +312,7 @@ recordField config =
 recordFieldWithoutValue : Parser State (Node String)
 recordFieldWithoutValue =
     Node.parserFromCore Tokens.functionNameCore
-        |> Combine.ignore (Combine.maybe Layout.layout)
+        |> Combine.ignore (Combine.maybeIgnore Layout.layout)
         |> Combine.ignore equal
 
 
@@ -351,9 +351,9 @@ lambdaExpression config =
         )
         |> Combine.keep Combine.location
         |> Combine.ignore backSlash
-        |> Combine.ignore (Combine.maybe Layout.layout)
-        |> Combine.keep (Combine.sepBy1 (Combine.maybe Layout.layout) Patterns.pattern)
-        |> Combine.ignore (Combine.maybe Layout.layout)
+        |> Combine.ignore (Combine.maybeIgnore Layout.layout)
+        |> Combine.keep (Combine.sepBy1 (Combine.maybeIgnore Layout.layout) Patterns.pattern)
+        |> Combine.ignore (Combine.maybeIgnore Layout.layout)
         |> Combine.ignore arrowRight
         |> Combine.keep (Pratt.subExpression 0 config)
 
@@ -391,9 +391,9 @@ caseStatement config =
     Combine.succeed (\pattern -> \expr -> ( pattern, expr ))
         |> Combine.ignore Layout.onTopIndentation
         |> Combine.keep Patterns.pattern
-        |> Combine.ignore (Combine.maybe Layout.layout)
+        |> Combine.ignore (Combine.maybeIgnore Layout.layout)
         |> Combine.ignore arrowRight
-        |> Combine.ignore (Combine.maybe Layout.layout)
+        |> Combine.ignore (Combine.maybeIgnore Layout.layout)
         |> Combine.keep (Pratt.subExpression 0 config)
 
 
@@ -620,12 +620,12 @@ functionWithNameNode config pointer =
 functionWithSignature : Config State (Node Expression) -> Node String -> Parser State Function
 functionWithSignature config varPointer =
     functionSignatureFromVarPointer varPointer
-        |> Combine.ignore (Combine.maybe Layout.layoutStrict)
+        |> Combine.ignore (Combine.maybeIgnore Layout.layoutStrict)
         |> Combine.andThen
             (\sig ->
                 Node.parser Tokens.functionName
                     |> Combine.andThen (\fnName -> failIfDifferentFrom varPointer fnName)
-                    |> Combine.ignore (Combine.maybe Layout.layout)
+                    |> Combine.ignore (Combine.maybeIgnore Layout.layout)
                     |> Combine.andThen (\newPointer -> functionImplementationFromVarPointer config newPointer)
                     |> Combine.map (\decl -> fromParts sig decl)
             )
@@ -645,7 +645,7 @@ functionImplementationFromVarPointer config ((Node { start } _) as varPointer) =
                 Node { start = start, end = end }
                     (FunctionImplementation varPointer args expr)
         )
-        |> Combine.keep (Combine.many (Patterns.pattern |> Combine.ignore (Combine.maybe Layout.layout)))
+        |> Combine.keep (Combine.many (Patterns.pattern |> Combine.ignore (Combine.maybeIgnore Layout.layout)))
         |> Combine.ignore equal
         |> Combine.keep (Pratt.subExpression 0 config)
 
@@ -671,7 +671,7 @@ functionSignatureFromVarPointer : Node String -> Parser State (Node Signature)
 functionSignatureFromVarPointer varPointer =
     Combine.succeed (\ta -> Node.combine Signature varPointer ta)
         |> Combine.ignore colon
-        |> Combine.ignore (Combine.maybe Layout.layout)
+        |> Combine.ignore (Combine.maybeIgnore Layout.layout)
         |> Combine.keep TypeAnnotation.typeAnnotation
 
 

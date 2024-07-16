@@ -28,7 +28,7 @@ typeAnnotation =
                     (\() ->
                         Combine.oneOf
                             [ string "->"
-                                |> Combine.ignore (maybe Layout.layout)
+                                |> Combine.ignore (Combine.maybeIgnore Layout.layout)
                                 |> Combine.continueWith typeAnnotation
                                 |> Combine.map (\ta -> Node.combine TypeAnnotation.FunctionTypeAnnotation typeRef ta)
                             , succeed typeRef
@@ -67,17 +67,17 @@ parensTypeAnnotation =
         commaSep =
             many
                 (Combine.symbol ","
-                    |> Combine.ignore (maybe Layout.layout)
+                    |> Combine.ignore (Combine.maybeIgnore Layout.layout)
                     |> Combine.continueWith typeAnnotation
-                    |> Combine.ignore (maybe Layout.layout)
+                    |> Combine.ignore (Combine.maybeIgnore Layout.layout)
                 )
 
         nested : Parser State TypeAnnotation
         nested =
             Combine.succeed (\x -> \xs -> asTypeAnnotation x xs)
-                |> Combine.ignore (maybe Layout.layout)
+                |> Combine.ignore (Combine.maybeIgnore Layout.layout)
                 |> Combine.keep typeAnnotation
-                |> Combine.ignore (maybe Layout.layout)
+                |> Combine.ignore (Combine.maybeIgnore Layout.layout)
                 |> Combine.keep commaSep
     in
     Combine.symbol "("
@@ -114,13 +114,13 @@ recordFieldsTypeAnnotation =
 recordTypeAnnotation : Parser State (Node TypeAnnotation)
 recordTypeAnnotation =
     string "{"
-        |> Combine.ignore (maybe Layout.layout)
+        |> Combine.ignore (Combine.maybeIgnore Layout.layout)
         |> Combine.continueWith
             (Combine.oneOf
                 [ Combine.succeed (TypeAnnotation.Record [])
                     |> Combine.ignore (Combine.symbol "}")
                 , Node.parser functionName
-                    |> Combine.ignore (maybe Layout.layout)
+                    |> Combine.ignore (Combine.maybeIgnore Layout.layout)
                     |> Combine.andThen
                         (\fname ->
                             Combine.oneOf
@@ -130,9 +130,9 @@ recordTypeAnnotation =
                                     |> Combine.ignore (Combine.symbol "}")
                                 , Combine.succeed (\ta rest -> TypeAnnotation.Record <| Node.combine Tuple.pair fname ta :: rest)
                                     |> Combine.ignore (Combine.symbol ":")
-                                    |> Combine.ignore (maybe Layout.layout)
+                                    |> Combine.ignore (Combine.maybeIgnore Layout.layout)
                                     |> Combine.keep typeAnnotation
-                                    |> Combine.ignore (maybe Layout.layout)
+                                    |> Combine.ignore (Combine.maybeIgnore Layout.layout)
                                     |> Combine.keep
                                         (Combine.oneOf
                                             [ -- Skip a comma and then look for at least 1 more field
@@ -153,11 +153,11 @@ recordTypeAnnotation =
 recordFieldDefinition : Parser State TypeAnnotation.RecordField
 recordFieldDefinition =
     succeed Tuple.pair
-        |> Combine.ignore (maybe Layout.layout)
+        |> Combine.ignore (Combine.maybeIgnore Layout.layout)
         |> Combine.keep (Node.parserFromCore functionNameCore)
-        |> Combine.ignore (maybe Layout.layout)
+        |> Combine.ignore (Combine.maybeIgnore Layout.layout)
         |> Combine.ignore (string ":")
-        |> Combine.ignore (maybe Layout.layout)
+        |> Combine.ignore (Combine.maybeIgnore Layout.layout)
         |> Combine.keep typeAnnotation
 
 
@@ -191,7 +191,7 @@ eagerTypedTypeAnnotation ((Node range _) as original) =
                             Layout.optimisticLayoutWith
                                 (\() -> next :: items)
                                 (\() -> genericHelper (next :: items))
-                                |> Combine.ignore (maybe Layout.layout)
+                                |> Combine.ignore (Combine.maybeIgnore Layout.layout)
                         )
                 , Combine.succeed items
                 ]
