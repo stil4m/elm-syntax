@@ -353,7 +353,7 @@ sepBy1 sep p =
         |> keep (many (sep |> continueWith p))
 
 
-sepBy1Core : Core.Parser x -> Core.Parser a -> Core.Parser (List a)
+sepBy1Core : Core.Parser () -> Core.Parser a -> Core.Parser (List a)
 sepBy1Core sep p =
     Core.succeed cons
         |= p
