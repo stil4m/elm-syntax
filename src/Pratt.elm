@@ -131,13 +131,10 @@ For example, a basic calculator could be configured like this:
 
 -}
 expression :
-    { oneOf : List (Config State expr -> Parser State expr)
-    , andThenOneOf : List ( Int, Config State expr -> expr -> Parser State expr )
-    , spaces : Parser State ()
-    }
+    Config State expr
     -> Parser State expr
 expression config =
-    subExpression 0 (Config config)
+    subExpression 0 config
 
 
 c : { oneOf : List (Config state expr -> Parser state expr), andThenOneOf : List ( Int, Config state expr -> expr -> Parser state expr ), spaces : Parser state () } -> Config state expr
