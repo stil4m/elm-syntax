@@ -96,8 +96,8 @@ typeDefinition maybeDoc =
 valueConstructors : Parser State (List (Node ValueConstructor))
 valueConstructors =
     Combine.sepBy1WithoutReverse
-        (Combine.symbol "|"
-            |> Combine.ignore (Combine.maybeIgnore Layout.layout)
+        (Core.symbol "|"
+            |> Combine.continueFromCore (Combine.maybeIgnore Layout.layout)
         )
         valueConstructor
 
@@ -146,5 +146,5 @@ genericList =
 
 typePrefix : Parser State ()
 typePrefix =
-    Combine.symbol "type"
-        |> Combine.ignore Layout.layout
+    Core.symbol "type"
+        |> Combine.continueFromCore Layout.layout

@@ -551,8 +551,8 @@ tupledExpression config =
         commaSep : Parser State (List (Node Expression))
         commaSep =
             Combine.many
-                (Combine.fromCore comma
-                    |> Combine.continueWith (Pratt.subExpression 0 config)
+                (comma
+                    |> Combine.continueFromCore (Pratt.subExpression 0 config)
                 )
 
         nested : Parser State Expression
@@ -561,8 +561,8 @@ tupledExpression config =
                 |> Combine.keep (Pratt.subExpression 0 config)
                 |> Combine.keep commaSep
     in
-    Combine.fromCore parensStart
-        |> Combine.continueWith
+    parensStart
+        |> Combine.continueFromCore
             (Combine.oneOf
                 [ parensEnd |> Core.map (always UnitExpr) |> Combine.fromCore
                 , closingPrefixOperator

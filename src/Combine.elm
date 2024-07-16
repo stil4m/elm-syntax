@@ -3,6 +3,7 @@ module Combine exposing
     , Step(..)
     , andThen
     , between
+    , continueFromCore
     , continueWith
     , end
     , fromCore
@@ -420,6 +421,17 @@ continueWith : Parser state a -> Parser state () -> Parser state a
 continueWith target dropped =
     dropped
         |> andThen (\_ -> target)
+
+
+continueFromCore : Parser state a -> Core.Parser () -> Parser state a
+continueFromCore (Parser target) dropped =
+    Parser <|
+        \state ->
+            dropped
+                |> Core.andThen
+                    (\() ->
+                        target state
+                    )
 
 
 cons : a -> List a -> List a

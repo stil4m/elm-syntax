@@ -50,8 +50,8 @@ whereBlock =
 
 effectWhereClauses : Parser State { command : Maybe (Node String), subscription : Maybe (Node String) }
 effectWhereClauses =
-    Combine.symbol "where"
-        |> Combine.continueWith Layout.layout
+    Core.symbol "where"
+        |> Combine.continueFromCore Layout.layout
         |> Combine.continueWith whereBlock
 
 

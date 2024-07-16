@@ -27,8 +27,8 @@ typeAnnotation =
                     (\() -> typeRef)
                     (\() ->
                         Combine.oneOf
-                            [ Combine.symbol "->"
-                                |> Combine.ignore (Combine.maybeIgnore Layout.layout)
+                            [ Core.symbol "->"
+                                |> Combine.continueFromCore (Combine.maybeIgnore Layout.layout)
                                 |> Combine.continueWith typeAnnotation
                                 |> Combine.map (\ta -> Node.combine TypeAnnotation.FunctionTypeAnnotation typeRef ta)
                             , Combine.succeed typeRef
@@ -66,8 +66,8 @@ parensTypeAnnotation =
         commaSep : Parser State (List (Node TypeAnnotation))
         commaSep =
             Combine.many
-                (Combine.symbol ","
-                    |> Combine.ignore (Combine.maybeIgnore Layout.layout)
+                (Core.symbol ","
+                    |> Combine.continueFromCore (Combine.maybeIgnore Layout.layout)
                     |> Combine.continueWith typeAnnotation
                     |> Combine.ignore (Combine.maybeIgnore Layout.layout)
                 )
@@ -80,10 +80,12 @@ parensTypeAnnotation =
                 |> Combine.ignore (Combine.maybeIgnore Layout.layout)
                 |> Combine.keep commaSep
     in
-    Combine.symbol "("
-        |> Combine.continueWith
+    Core.symbol "("
+        |> Combine.continueFromCore
             (Combine.oneOf
-                [ Combine.symbol ")" |> Combine.map (always TypeAnnotation.Unit)
+                [ Core.symbol ")"
+                    |> Core.map (always TypeAnnotation.Unit)
+                    |> Combine.fromCore
                 , nested |> Combine.ignoreEntirely (Core.symbol ")")
                 ]
             )
@@ -114,8 +116,8 @@ recordFieldsTypeAnnotation =
 
 recordTypeAnnotation : Parser State (Node TypeAnnotation)
 recordTypeAnnotation =
-    Combine.symbol "{"
-        |> Combine.ignore (Combine.maybeIgnore Layout.layout)
+    Core.symbol "{"
+        |> Combine.continueFromCore (Combine.maybeIgnore Layout.layout)
         |> Combine.continueWith
             (Combine.oneOf
                 [ Combine.succeed (TypeAnnotation.Record [])
@@ -137,8 +139,8 @@ recordTypeAnnotation =
                                     |> Combine.keep
                                         (Combine.oneOf
                                             [ -- Skip a comma and then look for at least 1 more field
-                                              Combine.symbol ","
-                                                |> Combine.continueWith recordFieldsTypeAnnotation
+                                              Core.symbol ","
+                                                |> Combine.continueFromCore recordFieldsTypeAnnotation
                                             , -- Single field record, so just end with no additional fields
                                               Combine.succeed []
                                             ]
