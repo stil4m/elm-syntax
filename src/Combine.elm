@@ -220,14 +220,14 @@ manyWithoutReverse initList (Parser p) =
             Core.loop ( state, initList ) helper
 
 
-manyIgnore : Parser state a -> Parser state ()
+manyIgnore : Parser state () -> Parser state ()
 manyIgnore (Parser p) =
     let
         helper : state -> Core.Parser (Core.Step state ( state, () ))
         helper state =
             Core.oneOf
                 [ p state
-                    |> Core.map (\( newState, _ ) -> Core.Loop newState)
+                    |> Core.map (\( newState, () ) -> Core.Loop newState)
                 , Core.succeed (Core.Done ( state, () ))
                 ]
     in
@@ -256,7 +256,7 @@ manyWithoutReverseCore initList p =
     Core.loop initList helper
 
 
-many1Ignore : Parser state a -> Parser state ()
+many1Ignore : Parser state () -> Parser state ()
 many1Ignore p =
     p
         |> continueWith (manyIgnore p)
@@ -366,13 +366,13 @@ sepBy1Core sep p =
 {-| Same as [`sepBy1`](#sepBy1), except that it doesn't reverse the list.
 This can be useful if you need to access the range of the last item.
 -}
-sepBy1WithoutReverse : Parser state x -> Parser state a -> Parser state (List a)
+sepBy1WithoutReverse : Parser state () -> Parser state a -> Parser state (List a)
 sepBy1WithoutReverse sep p =
     p
         |> andThen (\first -> manyWithoutReverse [ first ] (sep |> continueWith p))
 
 
-between : Parser state l -> Parser state r -> Parser state a -> Parser state a
+between : Parser state () -> Parser state () -> Parser state a -> Parser state a
 between lp rp p =
     lp
         |> continueWith p
@@ -384,7 +384,7 @@ parens =
     between (symbol "(") (symbol ")")
 
 
-ignore : Parser state x -> Parser state a -> Parser state a
+ignore : Parser state () -> Parser state a -> Parser state a
 ignore dropped target =
     target
         |> map always
