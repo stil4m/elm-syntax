@@ -394,8 +394,7 @@ ignore dropped target =
 continueWith : Parser state a -> Parser state () -> Parser state a
 continueWith target dropped =
     dropped
-        |> map (\_ -> \a -> a)
-        |> keep target
+        |> andThen (\_ -> target)
 
 
 cons : a -> List a -> List a
