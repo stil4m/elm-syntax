@@ -118,7 +118,7 @@ infixDeclaration =
     Combine.succeed (\direction -> \precedence -> \operator -> \fn -> { direction = direction, precedence = precedence, operator = operator, function = fn })
         |> Combine.ignoreEntirely (Core.keyword "infix")
         |> Combine.ignore Layout.layout
-        |> Combine.keep (Node.parser infixDirection)
+        |> Combine.keep infixDirection
         |> Combine.ignore Layout.layout
         |> Combine.keep (Node.parserFromCore Core.int)
         |> Combine.ignore Layout.layout
@@ -141,7 +141,7 @@ operatorWithParens =
         |> Combine.fromCore
 
 
-infixDirection : Parser State Infix.InfixDirection
+infixDirection : Parser State (Node Infix.InfixDirection)
 infixDirection =
     Core.oneOf
         [ Core.keyword "right"
@@ -151,6 +151,7 @@ infixDirection =
         , Core.keyword "non"
             |> Core.map (\() -> Infix.Non)
         ]
+        |> Node.parserCore
         |> Combine.fromCore
 
 
