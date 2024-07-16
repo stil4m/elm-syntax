@@ -1,15 +1,13 @@
 module Combine.Char exposing (anyChar, char)
 
-import Combine exposing (Parser)
 import Parser as Core
 
 
-char : Char -> Parser state Char
+char : Char -> Core.Parser Char
 char c =
     satisfy
         (\c_ -> c_ == c)
         ("expected '" ++ String.fromChar c ++ "'")
-        |> Combine.fromCore
 
 
 anyChar : Core.Parser Char
