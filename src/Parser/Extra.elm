@@ -1,4 +1,4 @@
-module Combine.Char exposing (anyChar)
+module Parser.Extra exposing (anyChar)
 
 import Parser as Core
 

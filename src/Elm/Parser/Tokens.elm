@@ -20,9 +20,9 @@ module Elm.Parser.Tokens exposing
     )
 
 import Char
-import Combine.Char exposing (anyChar)
 import Hex
 import Parser as Core exposing ((|.), (|=), Step(..))
+import Parser.Extra
 import Set exposing (Set)
 import Unicode
 
@@ -158,7 +158,7 @@ characterLiteral =
         [ quotedSingleQuote
         , Core.succeed identity
             |. Core.symbol "'"
-            |= anyChar
+            |= Parser.Extra.anyChar
             |. Core.symbol "'"
         ]
 
