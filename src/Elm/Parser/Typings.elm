@@ -105,18 +105,16 @@ valueConstructor =
         |> Combine.andThen
             (\((Node range _) as tnn) ->
                 let
-                    complete : List (Node TypeAnnotation) -> Parser State (Node ValueConstructor)
+                    complete : List (Node TypeAnnotation) -> Node ValueConstructor
                     complete args =
                         let
                             endRange : Range
                             endRange =
                                 List.head args |> Maybe.map Node.range |> Maybe.withDefault range
                         in
-                        Combine.succeed
-                            (Node
-                                { start = range.start, end = endRange.end }
-                                (ValueConstructor tnn (List.reverse args))
-                            )
+                        Node
+                            { start = range.start, end = endRange.end }
+                            (ValueConstructor tnn (List.reverse args))
 
                     argHelper : List (Node TypeAnnotation) -> Parser State (Node ValueConstructor)
                     argHelper xs =
@@ -125,15 +123,15 @@ valueConstructor =
                                 |> Combine.andThen
                                     (\ta ->
                                         Layout.optimisticLayoutWith
-                                            (\() -> complete (ta :: xs))
+                                            (\() -> Combine.succeed (complete (ta :: xs)))
                                             (\() -> argHelper (ta :: xs))
                                     )
                             , Combine.succeed xs
-                                |> Combine.andThen complete
+                                |> Combine.map complete
                             ]
                 in
                 Layout.optimisticLayoutWith
-                    (\() -> complete [])
+                    (\() -> Combine.succeed (complete []))
                     (\() -> argHelper [])
             )
 
