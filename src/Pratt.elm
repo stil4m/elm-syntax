@@ -200,7 +200,7 @@ subExpression currentPrecedence ((Config conf) as config) =
                 )
             )
         |> Combine.andThen
-            (\leftExpression -> Combine.loop leftExpression (expressionHelp config currentPrecedence))
+            (\leftExpression -> Combine.loop leftExpression (\expr -> expressionHelp config currentPrecedence expr))
 
 
 {-| This is the core of the Pratt parser algorithm.
