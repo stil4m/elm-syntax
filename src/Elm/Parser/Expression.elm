@@ -1,6 +1,6 @@
 module Elm.Parser.Expression exposing (expression, failIfDifferentFrom, functionSignatureFromVarPointer)
 
-import Combine exposing (Parser)
+import Combine exposing (Parser, Step(..))
 import Elm.Parser.Layout as Layout
 import Elm.Parser.Node as Node
 import Elm.Parser.Numbers
@@ -18,80 +18,72 @@ import Elm.Syntax.Range exposing (Location)
 import Elm.Syntax.Signature exposing (Signature)
 import Parser as Core exposing ((|.), (|=), Nestable(..))
 import Parser.Extra
-import Pratt exposing (Config)
 
 
-config : Config State (Node Expression)
+config : Config (Node Expression)
 config =
-    Pratt.c
-        { oneOf =
-            [ referenceExpression
-                |> Pratt.literal
-            , literalExpression
-                |> Pratt.literal
-            , numberExpression
-                |> Pratt.literal
-            , tupledExpression
-            , glslExpression
-                |> Pratt.literal
-            , listExpression
-            , recordExpression
-            , caseExpression
-            , lambdaExpression
-            , letExpression
-            , ifBlockExpression
-            , recordAccessFunctionExpression
-                |> Pratt.literal
-            , negationOperation
-            , charLiteralExpression
-                |> Pratt.literal
-            ]
-        , andThenOneOf =
-            -- TODO Add tests for all operators
-            -- TODO Report a syntax error when encountering multiple of the comparison operators
-            -- `a < b < c` is not valid Elm syntax
-            [ recordAccess
-            , infixLeft 1 "|>"
-            , infixRight 5 "++"
-            , infixRight 1 "<|"
-            , infixRight 9 ">>"
-            , infixNonAssociative 4 "=="
-            , infixLeft 7 "*"
-            , infixRight 5 "::"
-            , infixLeft 6 "+"
-            , infixLeftSubtraction 6
-            , infixLeft 6 "|."
-            , infixRight 3 "&&"
-            , infixLeft 5 "|="
-            , infixLeft 9 "<<"
-            , infixNonAssociative 4 "/="
-            , infixLeft 7 "//"
-            , infixLeft 7 "/"
-            , infixRight 7 "</>"
-            , infixRight 2 "||"
-            , infixNonAssociative 4 "<="
-            , infixNonAssociative 4 ">="
-            , infixNonAssociative 4 ">"
-            , infixLeft 8 "<?>"
-            , infixNonAssociative 4 "<"
-            , infixRight 8 "^"
+    { oneOf =
+        [ referenceExpression
+        , literalExpression
+        , numberExpression
+        , tupledExpression
+        , glslExpression
+        , listExpression
+        , recordExpression
+        , caseExpression
+        , lambdaExpression
+        , letExpression
+        , ifBlockExpression
+        , recordAccessFunctionExpression
+        , negationOperation
+        , charLiteralExpression
+        ]
+    , andThenOneOf =
+        -- TODO Add tests for all operators
+        -- TODO Report a syntax error when encountering multiple of the comparison operators
+        -- `a < b < c` is not valid Elm syntax
+        [ recordAccess
+        , infixLeft 1 "|>"
+        , infixRight 5 "++"
+        , infixRight 1 "<|"
+        , infixRight 9 ">>"
+        , infixNonAssociative 4 "=="
+        , infixLeft 7 "*"
+        , infixRight 5 "::"
+        , infixLeft 6 "+"
+        , infixLeftSubtraction 6
+        , infixLeft 6 "|."
+        , infixRight 3 "&&"
+        , infixLeft 5 "|="
+        , infixLeft 9 "<<"
+        , infixNonAssociative 4 "/="
+        , infixLeft 7 "//"
+        , infixLeft 7 "/"
+        , infixRight 7 "</>"
+        , infixRight 2 "||"
+        , infixNonAssociative 4 "<="
+        , infixNonAssociative 4 ">="
+        , infixNonAssociative 4 ">"
+        , infixLeft 8 "<?>"
+        , infixNonAssociative 4 "<"
+        , infixRight 8 "^"
 
-            -- function application must be last
-            -- TODO validate function application arguments (issue #209)
-            , functionCall
-            ]
-        , spaces = Layout.optimisticLayout
-        }
+        -- function application must be last
+        -- TODO validate function application arguments (issue #209)
+        , functionCall
+        ]
+    , spaces = Layout.optimisticLayout
+    }
 
 
 expression : Parser State (Node Expression)
 expression =
-    Pratt.expression config
+    subExpression 0
 
 
-infixLeft : Int -> String -> ( Int, Config state (Node Expression) -> Node Expression -> Parser state (Node Expression) )
+infixLeft : Int -> String -> ( Int, Node Expression -> Parser State (Node Expression) )
 infixLeft precedence symbol =
-    Pratt.infixLeft precedence
+    infixLeftHelp precedence
         (Core.symbol symbol)
         (\((Node { start } _) as left) ((Node { end } _) as right) ->
             Node
@@ -100,9 +92,9 @@ infixLeft precedence symbol =
         )
 
 
-infixNonAssociative : Int -> String -> ( Int, Config state (Node Expression) -> Node Expression -> Parser state (Node Expression) )
+infixNonAssociative : Int -> String -> ( Int, Node Expression -> Parser State (Node Expression) )
 infixNonAssociative precedence symbol =
-    Pratt.infixLeft precedence
+    infixLeftHelp precedence
         (Core.symbol symbol)
         (\((Node { start } _) as left) ((Node { end } _) as right) ->
             Node
@@ -111,9 +103,9 @@ infixNonAssociative precedence symbol =
         )
 
 
-infixRight : Int -> String -> ( Int, Config state (Node Expression) -> Node Expression -> Parser state (Node Expression) )
+infixRight : Int -> String -> ( Int, Node Expression -> Parser State (Node Expression) )
 infixRight precedence symbol =
-    Pratt.infixRight precedence
+    infixRightHelp precedence
         (Core.symbol symbol)
         (\((Node { start } _) as left) ((Node { end } _) as right) ->
             Node
@@ -122,9 +114,9 @@ infixRight precedence symbol =
         )
 
 
-infixLeftSubtraction : Int -> ( Int, Config State (Node Expression) -> Node Expression -> Parser State (Node Expression) )
+infixLeftSubtraction : Int -> ( Int, Node Expression -> Parser State (Node Expression) )
 infixLeftSubtraction precedence =
-    Pratt.infixLeft precedence
+    infixLeftHelp precedence
         (Core.succeed (\offset -> \source -> String.slice (offset - 1) offset source)
             |= Core.getOffset
             |= Core.getSource
@@ -145,9 +137,9 @@ infixLeftSubtraction precedence =
         )
 
 
-recordAccess : ( Int, Config State (Node Expression) -> Node Expression -> Parser State (Node Expression) )
+recordAccess : ( Int, Node Expression -> Parser State (Node Expression) )
 recordAccess =
-    Pratt.postfix 100
+    postfix 100
         recordAccessParser
         (\((Node { start } _) as left) ((Node { end } _) as field) ->
             Node
@@ -174,9 +166,9 @@ recordAccessParser =
         |> Combine.fromCore
 
 
-functionCall : ( Int, Pratt.Config State (Node Expression) -> Node Expression -> Parser State (Node Expression) )
+functionCall : ( Int, Node Expression -> Parser State (Node Expression) )
 functionCall =
-    Pratt.infixLeftWithState 90
+    infixLeftWithState 90
         Layout.positivelyIndented
         (\((Node { start } leftValue) as left) ((Node { end } _) as right) ->
             Node
@@ -191,7 +183,7 @@ functionCall =
         )
 
 
-glslExpression : Parser state (Node Expression)
+glslExpression : Parser State (Node Expression)
 glslExpression =
     let
         start : String
@@ -217,7 +209,7 @@ listExpression =
             Combine.succeed ListExpr
                 |> Combine.ignoreEntirely squareStart
                 |> Combine.ignore (Combine.maybeIgnore Layout.layout)
-                |> Combine.keep (Combine.sepBy "," (Pratt.subExpression config 0))
+                |> Combine.keep (Combine.sepBy "," (subExpression 0))
                 |> Combine.ignoreEntirely squareEnd
                 |> Node.parser
         )
@@ -251,7 +243,7 @@ recordContents =
                 Combine.oneOf
                     [ recordUpdateSyntaxParser fname
                     , Combine.fromCore equal
-                        |> Combine.continueWith (Pratt.subExpression config 0)
+                        |> Combine.continueWith (subExpression 0)
                         |> Combine.andThen
                             (\e ->
                                 let
@@ -306,7 +298,7 @@ recordField : Parser State (Node RecordSetter)
 recordField =
     Combine.succeed (\fnName -> \expr -> ( fnName, expr ))
         |> Combine.keep recordFieldWithoutValue
-        |> Combine.keep (Pratt.subExpression config 0)
+        |> Combine.keep (subExpression 0)
         |> Node.parser
 
 
@@ -317,7 +309,7 @@ recordFieldWithoutValue =
         |> Combine.ignoreEntirely equal
 
 
-literalExpression : Parser state (Node Expression)
+literalExpression : Parser State (Node Expression)
 literalExpression =
     Core.oneOf
         [ Tokens.multiLineStringLiteral
@@ -328,7 +320,7 @@ literalExpression =
         |> Combine.fromCore
 
 
-charLiteralExpression : Parser state (Node Expression)
+charLiteralExpression : Parser State (Node Expression)
 charLiteralExpression =
     Tokens.characterLiteral
         |> Core.map CharLiteral
@@ -358,7 +350,7 @@ lambdaExpression =
                 |> Combine.keep (Combine.sepBy1WithState (Combine.maybeIgnore Layout.layout) Patterns.pattern)
                 |> Combine.ignore (Combine.maybeIgnore Layout.layout)
                 |> Combine.ignoreEntirely arrowRight
-                |> Combine.keep (Pratt.subExpression config 0)
+                |> Combine.keep (subExpression 0)
         )
 
 
@@ -380,7 +372,7 @@ caseExpression =
                 |> Combine.keepFromCore Parser.Extra.location
                 |> Combine.ignoreEntirely Tokens.caseToken
                 |> Combine.ignore Layout.layout
-                |> Combine.keep (Pratt.subExpression config 0)
+                |> Combine.keep (subExpression 0)
                 |> Combine.ignore Layout.positivelyIndented
                 |> Combine.ignoreEntirely Tokens.ofToken
                 |> Combine.ignore Layout.layout
@@ -401,7 +393,7 @@ caseStatement =
         |> Combine.ignore (Combine.maybeIgnore Layout.layout)
         |> Combine.ignoreEntirely arrowRight
         |> Combine.ignore (Combine.maybeIgnore Layout.layout)
-        |> Combine.keep (Pratt.subExpression config 0)
+        |> Combine.keep (subExpression 0)
 
 
 
@@ -427,7 +419,7 @@ letExpression =
                     |> Combine.ignore Layout.optimisticLayout
                     |> Combine.ignoreEntirely Tokens.inToken
                 )
-                |> Combine.keep (Pratt.subExpression config 0)
+                |> Combine.keep (subExpression 0)
         )
 
 
@@ -459,10 +451,10 @@ letDestructuringDeclarationWithPattern ((Node { start } _) as pattern) =
             Node { start = start, end = end } (LetDestructuring pattern expr)
         )
         |> Combine.ignoreEntirely equal
-        |> Combine.keep (Pratt.subExpression config 0)
+        |> Combine.keep (subExpression 0)
 
 
-numberExpression : Parser state (Node Expression)
+numberExpression : Parser State (Node Expression)
 numberExpression =
     Node.parserCore (Elm.Parser.Numbers.forgivingNumber Floatable Integer Hex)
         |> Combine.fromCore
@@ -483,12 +475,12 @@ ifBlockExpression =
                 )
                 |> Combine.keepFromCore Parser.Extra.location
                 |> Combine.ignoreEntirely Tokens.ifToken
-                |> Combine.keep (Pratt.subExpression config 0)
+                |> Combine.keep (subExpression 0)
                 |> Combine.ignoreEntirely Tokens.thenToken
-                |> Combine.keep (Pratt.subExpression config 0)
+                |> Combine.keep (subExpression 0)
                 |> Combine.ignoreEntirely Tokens.elseToken
                 |> Combine.ignore Layout.layout
-                |> Combine.keep (Pratt.subExpression config 0)
+                |> Combine.keep (subExpression 0)
         )
 
 
@@ -496,14 +488,13 @@ negationOperation : Parser State (Node Expression)
 negationOperation =
     Combine.lazy
         (\() ->
-            Pratt.prefix 95
+            prefix 95
                 minusNotFollowedBySpace
                 (\((Node { start, end } _) as subExpr) ->
                     Node
                         { start = { row = start.row, column = start.column - 1 }, end = end }
                         (Negation subExpr)
                 )
-                config
         )
 
 
@@ -527,7 +518,7 @@ minusNotFollowedBySpace =
         |> Combine.fromCore
 
 
-referenceExpression : Parser state (Node Expression)
+referenceExpression : Parser State (Node Expression)
 referenceExpression =
     let
         helper : ModuleName -> String -> Core.Parser Expression
@@ -560,7 +551,7 @@ referenceExpression =
         |> Combine.fromCore
 
 
-recordAccessFunctionExpression : Parser state (Node Expression)
+recordAccessFunctionExpression : Parser State (Node Expression)
 recordAccessFunctionExpression =
     Core.succeed (\field -> RecordAccessFunction ("." ++ field))
         |. dot
@@ -577,13 +568,13 @@ tupledExpression =
                 commaSep =
                     Combine.many
                         (comma
-                            |> Combine.continueFromCore (Pratt.subExpression config 0)
+                            |> Combine.continueFromCore (subExpression 0)
                         )
 
                 nested : Parser State Expression
                 nested =
                     Combine.succeed asExpression
-                        |> Combine.keep (Pratt.subExpression config 0)
+                        |> Combine.keep (subExpression 0)
                         |> Combine.keep commaSep
             in
             parensStart
@@ -666,7 +657,7 @@ functionImplementationFromVarPointer ((Node { start } _) as varPointer) =
         )
         |> Combine.keep (Combine.many (Patterns.pattern |> Combine.ignore (Combine.maybeIgnore Layout.layout)))
         |> Combine.ignoreEntirely equal
-        |> Combine.keep (Pratt.subExpression config 0)
+        |> Combine.keep (subExpression 0)
 
 
 fromParts : Node Signature -> Node FunctionImplementation -> Function
@@ -771,3 +762,102 @@ parensEnd =
 colon : Core.Parser ()
 colon =
     Core.symbol ":"
+
+
+
+---
+
+
+{-| Elm implementation for Pratt parsers. Adapted from dmy/elm-pratt-parser.
+-}
+type alias Config expr =
+    { oneOf : List (Parser State expr)
+    , andThenOneOf : List ( Int, expr -> Parser State expr )
+    , spaces : Parser State ()
+    }
+
+
+subExpression : Int -> Parser State (Node Expression)
+subExpression =
+    let
+        spacesAndOneOf : Parser State (Node Expression)
+        spacesAndOneOf =
+            config.spaces
+                |> Combine.continueWith (Combine.oneOf config.oneOf)
+    in
+    \currentPrecedence ->
+        spacesAndOneOf
+            |> Combine.andThen
+                (\leftExpression -> Combine.loop leftExpression (\expr -> expressionHelp currentPrecedence expr))
+
+
+expressionHelp : Int -> Node Expression -> Parser State (Step (Node Expression) (Node Expression))
+expressionHelp currentPrecedence leftExpression =
+    config.spaces
+        |> Combine.continueWith
+            (Combine.oneOf
+                [ operation currentPrecedence leftExpression
+                    |> Combine.map Loop
+                , Combine.succeed (Done leftExpression)
+                ]
+            )
+
+
+operation : Int -> Node Expression -> Parser State (Node Expression)
+operation currentPrecedence leftExpression =
+    config.andThenOneOf
+        |> List.filterMap
+            (\( precedence, parser ) ->
+                if precedence > currentPrecedence then
+                    Just (parser leftExpression)
+
+                else
+                    Nothing
+            )
+        |> Combine.oneOf
+
+
+prefix : Int -> Parser State () -> (Node Expression -> Node Expression) -> Parser State (Node Expression)
+prefix precedence operator apply =
+    Combine.succeed apply
+        |> Combine.ignore operator
+        |> Combine.keep (subExpression precedence)
+
+
+infixLeftHelp : Int -> Core.Parser () -> (Node Expression -> Node Expression -> Node Expression) -> ( Int, Node Expression -> Parser State (Node Expression) )
+infixLeftHelp precedence p apply =
+    infixHelp precedence precedence p apply
+
+
+infixLeftWithState : Int -> Parser State () -> (Node Expression -> Node Expression -> Node Expression) -> ( Int, Node Expression -> Parser State (Node Expression) )
+infixLeftWithState precedence operator apply =
+    ( precedence
+    , \left ->
+        Combine.succeed (\e -> apply left e)
+            |> Combine.ignore operator
+            |> Combine.keep (subExpression precedence)
+    )
+
+
+infixRightHelp : Int -> Core.Parser () -> (Node Expression -> Node Expression -> Node Expression) -> ( Int, Node Expression -> Parser State (Node Expression) )
+infixRightHelp precedence p apply =
+    -- To get right associativity, we use (precedence - 1) for the
+    -- right precedence.
+    infixHelp precedence (precedence - 1) p apply
+
+
+infixHelp : Int -> Int -> Core.Parser () -> (Node Expression -> Node Expression -> Node Expression) -> ( Int, Node Expression -> Parser State (Node Expression) )
+infixHelp leftPrecedence rightPrecedence operator apply =
+    ( leftPrecedence
+    , \left ->
+        Combine.succeed (\e -> apply left e)
+            |> Combine.ignoreEntirely operator
+            |> Combine.keep (subExpression rightPrecedence)
+    )
+
+
+postfix : Int -> Parser state a -> (expr -> a -> expr) -> ( Int, expr -> Parser state expr )
+postfix precedence operator apply =
+    ( precedence
+    , \left -> Combine.map (\right -> apply left right) operator
+    )
