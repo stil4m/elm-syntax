@@ -124,7 +124,15 @@ escapedCharValue =
         , -- Eventhough Elm-format will change \r to a unicode version. When you dont use elm-format, this will not happen.
           Core.succeed '\u{000D}' |. Core.symbol "r"
         , Core.succeed '\\' |. Core.symbol "\\"
-        , Core.succeed (String.toLower >> Hex.fromString >> Result.withDefault 0 >> Char.fromCode)
+        , Core.succeed
+            (\hex ->
+                case String.toLower hex |> Hex.fromString of
+                    Ok n ->
+                        Char.fromCode n
+
+                    Err _ ->
+                        '\u{0000}'
+            )
             |. Core.symbol "u"
             |. Core.symbol "{"
             |= (Core.chompWhile Char.isHexDigit |> Core.getChompedString)
