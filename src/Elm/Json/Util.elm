@@ -19,7 +19,7 @@ decodeTyped opts =
             JD.field "type" JD.string
                 |> JD.andThen
                     (\t ->
-                        case List.filter (Tuple.first >> (==) t) opts |> List.head of
+                        case List.filter (\( opt, _ ) -> opt == t) opts |> List.head of
                             Just m ->
                                 JD.field (Tuple.first m) <| Tuple.second m
 
