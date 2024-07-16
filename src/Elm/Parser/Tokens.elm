@@ -24,11 +24,11 @@ import Combine exposing (Parser)
 import Combine.Char exposing (anyChar)
 import Hex
 import Parser as Core exposing ((|.), (|=), Step(..))
-import Set
+import Set exposing (Set)
 import Unicode
 
 
-reservedList : List String
+reservedList : Set String
 reservedList =
     [ "module"
     , "exposing"
@@ -51,6 +51,7 @@ reservedList =
     --, "alias" Apparently this is not a reserved keyword
     , "where"
     ]
+        |> Set.fromList
 
 
 portToken : Parser state ()
@@ -244,7 +245,7 @@ functionName =
     Core.variable
         { start = Unicode.isLower
         , inner = \c -> Unicode.isAlphaNum c || c == '_'
-        , reserved = Set.fromList reservedList
+        , reserved = reservedList
         }
 
 
@@ -253,7 +254,7 @@ typeName =
     Core.variable
         { start = Unicode.isUpper
         , inner = \c -> Unicode.isAlphaNum c || c == '_'
-        , reserved = Set.fromList reservedList
+        , reserved = reservedList
         }
 
 
