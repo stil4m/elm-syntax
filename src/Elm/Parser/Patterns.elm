@@ -41,7 +41,7 @@ pattern =
 parensPattern : Parser State (Node Pattern)
 parensPattern =
     Node.parser
-        (Combine.parens (Combine.sepBy (Combine.symbol ",") (Layout.maybeAroundBothSides pattern))
+        (Combine.parens (Combine.sepBy "," (Layout.maybeAroundBothSides pattern))
             |> Combine.map
                 (\c ->
                     case c of
@@ -80,7 +80,7 @@ listPattern =
         Combine.between
             (Combine.symbol "[" |> Combine.ignore (Combine.maybeIgnore Layout.layout))
             (Combine.symbol "]")
-            (Combine.map ListPattern (Combine.sepBy (Combine.symbol ",") (Layout.maybeAroundBothSides pattern)))
+            (Combine.map ListPattern (Combine.sepBy "," (Layout.maybeAroundBothSides pattern)))
 
 
 type alias ConsumeArgs =
@@ -171,5 +171,5 @@ recordPattern =
             Combine.between
                 (Combine.symbol "{" |> Combine.continueWith (Combine.maybeIgnore Layout.layout))
                 (Combine.symbol "}")
-                (Combine.sepBy (Combine.symbol ",") (Layout.maybeAroundBothSides (Node.parserFromCore Tokens.functionName)))
+                (Combine.sepBy "," (Layout.maybeAroundBothSides (Node.parserFromCore Tokens.functionName)))
         )

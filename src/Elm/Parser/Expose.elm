@@ -33,7 +33,7 @@ exposingListInner =
             |> Combine.keep Combine.location
             |> Combine.ignore (Layout.maybeAroundBothSides (Combine.symbol ".."))
             |> Combine.keep Combine.location
-        , Combine.sepBy1 (Combine.symbol ",") (Layout.maybeAroundBothSides exposable)
+        , Combine.sepBy1 "," (Layout.maybeAroundBothSides exposable)
             |> Combine.map Explicit
         ]
 

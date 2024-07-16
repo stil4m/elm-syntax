@@ -109,7 +109,7 @@ genericTypeAnnotation =
 
 recordFieldsTypeAnnotation : Parser State TypeAnnotation.RecordDefinition
 recordFieldsTypeAnnotation =
-    Combine.sepBy1 (Combine.symbol ",") (Layout.maybeAroundBothSides <| Node.parser recordFieldDefinition)
+    Combine.sepBy1 "," (Layout.maybeAroundBothSides <| Node.parser recordFieldDefinition)
 
 
 recordTypeAnnotation : Parser State (Node TypeAnnotation)

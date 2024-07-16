@@ -10,7 +10,7 @@ import Parser as Core exposing ((|.), (|=))
 
 moduleName : Parser state (Node ModuleName)
 moduleName =
-    Combine.sepBy1Core (Core.symbol ".") Tokens.typeName
+    Combine.sepBy1Core "." Tokens.typeName
         |> Node.parserFromCore
 
 

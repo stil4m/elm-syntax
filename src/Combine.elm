@@ -29,6 +29,7 @@ module Combine exposing
     , sepBy
     , sepBy1
     , sepBy1Core
+    , sepBy1WithState
     , sepBy1WithoutReverse
     , succeed
     , symbol
@@ -338,7 +339,7 @@ many1 p =
         |> keep (many p)
 
 
-sepBy : Parser state () -> Parser state a -> Parser state (List a)
+sepBy : String -> Parser state a -> Parser state (List a)
 sepBy sep p =
     oneOf
         [ sepBy1 sep p
@@ -346,20 +347,27 @@ sepBy sep p =
         ]
 
 
-sepBy1 : Parser state () -> Parser state a -> Parser state (List a)
+sepBy1 : String -> Parser state a -> Parser state (List a)
 sepBy1 sep p =
+    succeed cons
+        |> keep p
+        |> keep (many (symbol sep |> continueWith p))
+
+
+sepBy1WithState : Parser state () -> Parser state a -> Parser state (List a)
+sepBy1WithState sep p =
     succeed cons
         |> keep p
         |> keep (many (sep |> continueWith p))
 
 
-sepBy1Core : Core.Parser () -> Core.Parser a -> Core.Parser (List a)
+sepBy1Core : String -> Core.Parser a -> Core.Parser (List a)
 sepBy1Core sep p =
     Core.succeed cons
         |= p
         |= manyCore
             (Core.succeed identity
-                |. sep
+                |. Core.symbol sep
                 |= p
             )
 

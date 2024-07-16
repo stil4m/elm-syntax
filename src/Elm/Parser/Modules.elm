@@ -37,7 +37,7 @@ whereBlock =
     Combine.between
         (Combine.symbol "{")
         (Combine.symbol "}")
-        (Combine.sepBy1 (Combine.symbol ",")
+        (Combine.sepBy1 ","
             (Layout.maybeAroundBothSides effectWhereClause)
         )
         |> Combine.map

@@ -210,11 +210,7 @@ listExpression config =
     Combine.succeed ListExpr
         |> Combine.ignore squareStart
         |> Combine.ignore (Combine.maybeIgnore Layout.layout)
-        |> Combine.keep
-            (Combine.sepBy
-                comma
-                (Pratt.subExpression 0 config)
-            )
+        |> Combine.keep (Combine.sepBy "," (Pratt.subExpression 0 config))
         |> Combine.ignore squareEnd
         |> Node.parser
 
@@ -266,7 +262,7 @@ recordContents config =
                                     [ endSymbol
                                         |> Combine.map (\() -> toRecordExpr [])
                                     , Combine.succeed toRecordExpr
-                                        |> Combine.ignore comma
+                                        |> Combine.ignoreEntirely comma
                                         |> Combine.ignore (Combine.maybeIgnore Layout.layout)
                                         |> Combine.keep (recordFields config)
                                         |> Combine.ignore endSymbol
@@ -292,7 +288,7 @@ recordFields config =
         |> Combine.ignore (Combine.maybeIgnore Layout.layout)
         |> Combine.keep
             (Combine.many
-                (comma
+                (Combine.fromCore comma
                     |> Combine.ignore (Combine.maybeIgnore Layout.layout)
                     |> Combine.continueWith (recordField config)
                     |> Combine.ignore (Combine.maybeIgnore Layout.layout)
@@ -351,7 +347,7 @@ lambdaExpression config =
         |> Combine.keep Combine.location
         |> Combine.ignore backSlash
         |> Combine.ignore (Combine.maybeIgnore Layout.layout)
-        |> Combine.keep (Combine.sepBy1 (Combine.maybeIgnore Layout.layout) Patterns.pattern)
+        |> Combine.keep (Combine.sepBy1WithState (Combine.maybeIgnore Layout.layout) Patterns.pattern)
         |> Combine.ignore (Combine.maybeIgnore Layout.layout)
         |> Combine.ignore arrowRight
         |> Combine.keep (Pratt.subExpression 0 config)
@@ -556,7 +552,7 @@ tupledExpression config =
         commaSep : Parser State (List (Node Expression))
         commaSep =
             Combine.many
-                (comma
+                (Combine.fromCore comma
                     |> Combine.continueWith (Pratt.subExpression 0 config)
                 )
 
@@ -732,9 +728,9 @@ equal =
     Core.symbol "="
 
 
-comma : Parser state ()
+comma : Core.Parser ()
 comma =
-    Combine.symbol ","
+    Core.symbol ","
 
 
 parensStart : Parser state ()
