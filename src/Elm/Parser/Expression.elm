@@ -699,9 +699,14 @@ colon =
 
 subExpression : Int -> Parser State (Node Expression)
 subExpression currentPrecedence =
+    let
+        parser : Node Expression -> Parser State (Step (Node Expression) (Node Expression))
+        parser =
+            expressionHelp currentPrecedence
+    in
     spacesAndOneOf
         |> Combine.andThen
-            (\leftExpression -> Combine.loop leftExpression (\expr -> expressionHelp currentPrecedence expr))
+            (\leftExpression -> Combine.loop leftExpression parser)
 
 
 spacesAndOneOf : Parser State (Node Expression)
@@ -816,11 +821,16 @@ infixLeftHelp precedence p apply =
 
 infixLeftWithState : Int -> Parser State () -> (Node Expression -> Node Expression -> Node Expression) -> ( Int, Node Expression -> Parser State (Node Expression) )
 infixLeftWithState precedence operator apply =
+    let
+        parser : Parser State (Node Expression)
+        parser =
+            subExpression precedence
+    in
     ( precedence
     , \left ->
         Combine.succeed (\e -> apply left e)
             |> Combine.ignore operator
-            |> Combine.keep (subExpression precedence)
+            |> Combine.keep parser
     )
 
 
@@ -833,11 +843,16 @@ infixRightHelp precedence p apply =
 
 infixHelp : Int -> Int -> Core.Parser () -> (Node Expression -> Node Expression -> Node Expression) -> ( Int, Node Expression -> Parser State (Node Expression) )
 infixHelp leftPrecedence rightPrecedence operator apply =
+    let
+        parser : Parser State (Node Expression)
+        parser =
+            subExpression rightPrecedence
+    in
     ( leftPrecedence
     , \left ->
         Combine.succeed (\e -> apply left e)
             |> Combine.ignoreEntirely operator
-            |> Combine.keep (subExpression rightPrecedence)
+            |> Combine.keep parser
     )
 
 
