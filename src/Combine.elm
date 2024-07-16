@@ -64,14 +64,11 @@ lazy : (() -> Parser state a) -> Parser state a
 lazy t =
     Parser
         (\state ->
-            Core.lazy
-                (\() ->
-                    let
-                        (Parser t_) =
-                            t ()
-                    in
-                    t_ state
-                )
+            let
+                (Parser t_) =
+                    t ()
+            in
+            t_ state
         )
 
 
