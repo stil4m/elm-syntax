@@ -155,7 +155,7 @@ listExpression =
     Combine.succeed ListExpr
         |> Combine.ignoreEntirely squareStart
         |> Combine.ignore (Combine.maybeIgnore Layout.layout)
-        |> Combine.keep (Combine.sepBy "," (subExpression 0))
+        |> Combine.keep (Combine.sepBy "," expression)
         |> Combine.ignoreEntirely squareEnd
         |> Node.parser
 
@@ -188,7 +188,7 @@ recordContents =
                 Combine.oneOf
                     [ recordUpdateSyntaxParser fname
                     , Combine.fromCore equal
-                        |> Combine.continueWith (subExpression 0)
+                        |> Combine.continueWith expression
                         |> Combine.andThen
                             (\e ->
                                 let
@@ -243,7 +243,7 @@ recordField : Parser State (Node RecordSetter)
 recordField =
     Combine.succeed (\fnName -> \expr -> ( fnName, expr ))
         |> Combine.keep recordFieldWithoutValue
-        |> Combine.keep (subExpression 0)
+        |> Combine.keep expression
         |> Node.parser
 
 
@@ -293,7 +293,7 @@ lambdaExpression =
         |> Combine.keep (Combine.sepBy1WithState (Combine.maybeIgnore Layout.layout) Patterns.pattern)
         |> Combine.ignore (Combine.maybeIgnore Layout.layout)
         |> Combine.ignoreEntirely arrowRight
-        |> Combine.keep (subExpression 0)
+        |> Combine.keep expression
 
 
 
@@ -312,7 +312,7 @@ caseExpression =
         |> Combine.keepFromCore Parser.Extra.location
         |> Combine.ignoreEntirely Tokens.caseToken
         |> Combine.ignore Layout.layout
-        |> Combine.keep (subExpression 0)
+        |> Combine.keep expression
         |> Combine.ignore Layout.positivelyIndented
         |> Combine.ignoreEntirely Tokens.ofToken
         |> Combine.ignore Layout.layout
@@ -332,7 +332,7 @@ caseStatement =
         |> Combine.ignore (Combine.maybeIgnore Layout.layout)
         |> Combine.ignoreEntirely arrowRight
         |> Combine.ignore (Combine.maybeIgnore Layout.layout)
-        |> Combine.keep (subExpression 0)
+        |> Combine.keep expression
 
 
 
@@ -356,7 +356,7 @@ letExpression =
             |> Combine.ignore Layout.optimisticLayout
             |> Combine.ignoreEntirely Tokens.inToken
         )
-        |> Combine.keep (subExpression 0)
+        |> Combine.keep expression
 
 
 letDeclarations : Parser State (List (Node LetDeclaration))
@@ -387,7 +387,7 @@ letDestructuringDeclarationWithPattern ((Node { start } _) as pattern) =
             Node { start = start, end = end } (LetDestructuring pattern expr)
         )
         |> Combine.ignoreEntirely equal
-        |> Combine.keep (subExpression 0)
+        |> Combine.keep expression
 
 
 numberExpression : Parser State (Node Expression)
@@ -409,12 +409,12 @@ ifBlockExpression =
         )
         |> Combine.keepFromCore Parser.Extra.location
         |> Combine.ignoreEntirely Tokens.ifToken
-        |> Combine.keep (subExpression 0)
+        |> Combine.keep expression
         |> Combine.ignoreEntirely Tokens.thenToken
-        |> Combine.keep (subExpression 0)
+        |> Combine.keep expression
         |> Combine.ignoreEntirely Tokens.elseToken
         |> Combine.ignore Layout.layout
-        |> Combine.keep (subExpression 0)
+        |> Combine.keep expression
 
 
 negationOperation : Parser State (Node Expression)
@@ -496,13 +496,13 @@ tupledExpression =
         commaSep =
             Combine.many
                 (comma
-                    |> Combine.continueFromCore (subExpression 0)
+                    |> Combine.continueFromCore expression
                 )
 
         nested : Parser State Expression
         nested =
             Combine.succeed asExpression
-                |> Combine.keep (subExpression 0)
+                |> Combine.keep expression
                 |> Combine.keep commaSep
     in
     parensStart
@@ -584,7 +584,7 @@ functionImplementationFromVarPointer ((Node { start } _) as varPointer) =
         )
         |> Combine.keep (Combine.many (Patterns.pattern |> Combine.ignore (Combine.maybeIgnore Layout.layout)))
         |> Combine.ignoreEntirely equal
-        |> Combine.keep (subExpression 0)
+        |> Combine.keep expression
 
 
 fromParts : Node Signature -> Node FunctionImplementation -> Function
