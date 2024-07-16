@@ -1,6 +1,6 @@
 module Elm.Parser.TypeAnnotation exposing (typeAnnotation, typeAnnotationNonGreedy)
 
-import Combine exposing (..)
+import Combine exposing (Parser)
 import Elm.Parser.Base exposing (typeIndicator)
 import Elm.Parser.Layout as Layout
 import Elm.Parser.Node as Node
@@ -31,7 +31,7 @@ typeAnnotation =
                                 |> Combine.ignore (Combine.maybeIgnore Layout.layout)
                                 |> Combine.continueWith typeAnnotation
                                 |> Combine.map (\ta -> Node.combine TypeAnnotation.FunctionTypeAnnotation typeRef ta)
-                            , succeed typeRef
+                            , Combine.succeed typeRef
                             ]
                     )
             )
@@ -39,7 +39,7 @@ typeAnnotation =
 
 typeAnnotationNonGreedy : Parser State (Node TypeAnnotation)
 typeAnnotationNonGreedy =
-    oneOf
+    Combine.oneOf
         [ parensTypeAnnotation
         , typedTypeAnnotation Lazy
         , genericTypeAnnotation
@@ -49,9 +49,9 @@ typeAnnotationNonGreedy =
 
 typeAnnotationNoFn : Mode -> Parser State (Node TypeAnnotation)
 typeAnnotationNoFn mode =
-    lazy
+    Combine.lazy
         (\() ->
-            oneOf
+            Combine.oneOf
                 [ parensTypeAnnotation
                 , typedTypeAnnotation mode
                 , genericTypeAnnotation
@@ -65,7 +65,7 @@ parensTypeAnnotation =
     let
         commaSep : Parser State (List (Node TypeAnnotation))
         commaSep =
-            many
+            Combine.many
                 (Combine.symbol ","
                     |> Combine.ignore (Combine.maybeIgnore Layout.layout)
                     |> Combine.continueWith typeAnnotation
@@ -108,7 +108,7 @@ genericTypeAnnotation =
 
 recordFieldsTypeAnnotation : Parser State TypeAnnotation.RecordDefinition
 recordFieldsTypeAnnotation =
-    sepBy1 (Combine.symbol ",") (Layout.maybeAroundBothSides <| Node.parser recordFieldDefinition)
+    Combine.sepBy1 (Combine.symbol ",") (Layout.maybeAroundBothSides <| Node.parser recordFieldDefinition)
 
 
 recordTypeAnnotation : Parser State (Node TypeAnnotation)

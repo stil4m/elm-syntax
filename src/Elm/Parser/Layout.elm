@@ -8,7 +8,7 @@ module Elm.Parser.Layout exposing
     , positivelyIndented
     )
 
-import Combine exposing (Parser, many1Ignore, oneOf, problem, succeed, withLocation, withState)
+import Combine exposing (Parser)
 import Elm.Parser.Comments as Comments
 import Elm.Parser.State as State exposing (State)
 import Elm.Parser.Whitespace exposing (many1Spaces, realNewLine)
@@ -24,12 +24,12 @@ anyComment =
 
 layout : Parser State ()
 layout =
-    many1Ignore
-        (oneOf
+    Combine.many1Ignore
+        (Combine.oneOf
             [ anyComment
-            , many1Ignore realNewLine
+            , Combine.many1Ignore realNewLine
                 |> Combine.continueWith
-                    (oneOf
+                    (Combine.oneOf
                         [ many1Spaces
                         , anyComment
                         ]
@@ -52,14 +52,14 @@ optimisticLayoutWith onStrict onIndented =
 optimisticLayout : Parser State ()
 optimisticLayout =
     Combine.manyIgnore
-        (oneOf
+        (Combine.oneOf
             [ anyComment
             , Combine.many1Ignore realNewLine
                 |> Combine.continueWith
-                    (oneOf
+                    (Combine.oneOf
                         [ many1Spaces
                         , anyComment
-                        , succeed ()
+                        , Combine.succeed ()
                         ]
                     )
             , many1Spaces
@@ -69,13 +69,13 @@ optimisticLayout =
 
 compute : (() -> a) -> (() -> Parser State a) -> Parser State a
 compute onStrict onIndented =
-    withLocation
+    Combine.withLocation
         (\l ->
             if l.column == 1 then
                 Combine.succeed (onStrict ())
 
             else
-                withState
+                Combine.withState
                     (\state ->
                         if List.member l.column (State.storedColumns state) then
                             Combine.succeed (onStrict ())
@@ -88,10 +88,10 @@ compute onStrict onIndented =
 
 layoutStrict : Parser State ()
 layoutStrict =
-    many1Ignore
-        (oneOf
+    Combine.many1Ignore
+        (Combine.oneOf
             [ anyComment
-            , many1Ignore realNewLine
+            , Combine.many1Ignore realNewLine
             , many1Spaces
             ]
         )
@@ -123,9 +123,9 @@ positivelyIndented =
 
 verifyIndent : (Int -> Int -> Bool) -> (Int -> Int -> String) -> Parser State ()
 verifyIndent verify failMessage =
-    withState
+    Combine.withState
         (\state ->
-            withLocation
+            Combine.withLocation
                 (\{ column } ->
                     let
                         expectedColumn : Int
@@ -133,10 +133,10 @@ verifyIndent verify failMessage =
                             State.expectedColumn state
                     in
                     if verify expectedColumn column then
-                        succeed ()
+                        Combine.succeed ()
 
                     else
-                        problem (failMessage expectedColumn column)
+                        Combine.problem (failMessage expectedColumn column)
                 )
         )
 

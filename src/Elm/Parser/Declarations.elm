@@ -1,6 +1,6 @@
 module Elm.Parser.Declarations exposing (declaration)
 
-import Combine exposing (Parser, maybe, oneOf, succeed)
+import Combine exposing (Parser)
 import Elm.Parser.Comments as Comments
 import Elm.Parser.Expression exposing (expression, failIfDifferentFrom, functionSignatureFromVarPointer)
 import Elm.Parser.Layout as Layout
@@ -21,12 +21,12 @@ import Parser as Core exposing ((|.), (|=))
 
 declaration : Parser State (Node Declaration)
 declaration =
-    oneOf
+    Combine.oneOf
         [ infixDeclaration
         , maybeDocumentation
             |> Combine.andThen
                 (\maybeDoc ->
-                    oneOf
+                    Combine.oneOf
                         [ function maybeDoc
                         , typeDefinition maybeDoc
                         , portDeclaration maybeDoc
@@ -40,7 +40,7 @@ maybeDocumentation =
     Comments.declarationDocumentation
         |> Combine.fromCore
         |> Combine.ignore Layout.layoutStrict
-        |> maybe
+        |> Combine.maybe
 
 
 function : Maybe (Node Documentation) -> Parser State (Node Declaration)
@@ -68,7 +68,7 @@ functionWithNameNode pointer =
     let
         functionImplementationFromVarPointer : Maybe (Node Signature) -> Node String -> Parser State Function
         functionImplementationFromVarPointer signature_ ((Node { start } _) as varPointer) =
-            succeed
+            Combine.succeed
                 (\args ((Node { end } _) as expr) ->
                     { documentation = Nothing
                     , signature = signature_
@@ -106,7 +106,7 @@ functionWithNameNode pointer =
 
 signature : Parser State Signature
 signature =
-    succeed Signature
+    Combine.succeed Signature
         |> Combine.keep (Node.parser functionName)
         |> Combine.ignore (Layout.maybeAroundBothSides (Combine.symbol ":"))
         |> Combine.ignore (Combine.maybeIgnore Layout.layout)
@@ -115,7 +115,7 @@ signature =
 
 infixDeclaration : Parser State (Node Declaration)
 infixDeclaration =
-    succeed Infix
+    Combine.succeed Infix
         |> Combine.ignore (Combine.fromCore (Core.keyword "infix"))
         |> Combine.ignore Layout.layout
         |> Combine.keep (Node.parser infixDirection)

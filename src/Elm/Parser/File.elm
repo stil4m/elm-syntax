@@ -1,6 +1,6 @@
 module Elm.Parser.File exposing (file)
 
-import Combine exposing (Parser, many, succeed, withState)
+import Combine exposing (Parser)
 import Elm.Parser.Comments as Comments
 import Elm.Parser.Declarations exposing (declaration)
 import Elm.Parser.Imports exposing (importDefinition)
@@ -15,24 +15,24 @@ import Elm.Syntax.Node exposing (Node)
 
 file : Parser State File
 file =
-    succeed File
+    Combine.succeed File
         |> Combine.ignore (Combine.maybeIgnore Layout.layoutStrict)
         |> Combine.keep (Node.parser moduleDefinition)
         |> Combine.ignore (Combine.maybeIgnore Layout.layoutStrict)
         |> Combine.ignore (Combine.maybeIgnore (Comments.moduleDocumentation |> Combine.ignore Layout.layoutStrict))
-        |> Combine.keep (many importDefinition)
+        |> Combine.keep (Combine.many importDefinition)
         |> Combine.keep fileDeclarations
         |> Combine.keep collectComments
 
 
 collectComments : Parser State (List (Node String))
 collectComments =
-    withState (State.getComments >> succeed)
+    Combine.withState (State.getComments >> Combine.succeed)
 
 
 fileDeclarations : Parser State (List (Node Declaration))
 fileDeclarations =
-    many
+    Combine.many
         (declaration
             |> Combine.ignore (Combine.maybeIgnore Layout.layoutStrict)
         )

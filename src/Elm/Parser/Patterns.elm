@@ -1,6 +1,6 @@
 module Elm.Parser.Patterns exposing (pattern)
 
-import Combine exposing (Parser, between, maybe, parens, sepBy)
+import Combine exposing (Parser)
 import Elm.Parser.Base as Base
 import Elm.Parser.Layout as Layout
 import Elm.Parser.Node as Node
@@ -14,7 +14,7 @@ import Parser as Core exposing ((|.))
 
 tryToCompose : Node Pattern -> Parser State (Node Pattern)
 tryToCompose x =
-    maybe Layout.layout
+    Combine.maybe Layout.layout
         |> Combine.continueWith
             (Combine.oneOf
                 [ Combine.succeed (\y -> Node.combine AsPattern x y)
@@ -41,7 +41,7 @@ pattern =
 parensPattern : Parser State (Node Pattern)
 parensPattern =
     Node.parser
-        (parens (sepBy (Combine.symbol ",") (Layout.maybeAroundBothSides pattern))
+        (Combine.parens (Combine.sepBy (Combine.symbol ",") (Layout.maybeAroundBothSides pattern))
             |> Combine.map
                 (\c ->
                     case c of
@@ -77,10 +77,10 @@ charPattern =
 listPattern : Parser State (Node Pattern)
 listPattern =
     Node.parser <|
-        between
+        Combine.between
             (Combine.symbol "[" |> Combine.ignore (Combine.maybeIgnore Layout.layout))
             (Combine.symbol "]")
-            (Combine.map ListPattern (sepBy (Combine.symbol ",") (Layout.maybeAroundBothSides pattern)))
+            (Combine.map ListPattern (Combine.sepBy (Combine.symbol ",") (Layout.maybeAroundBothSides pattern)))
 
 
 type alias ConsumeArgs =
@@ -168,8 +168,8 @@ recordPattern : Parser State (Node Pattern)
 recordPattern =
     Node.parser
         (Combine.map RecordPattern <|
-            between
+            Combine.between
                 (Combine.symbol "{" |> Combine.continueWith (Combine.maybeIgnore Layout.layout))
                 (Combine.symbol "}")
-                (sepBy (Combine.symbol ",") (Layout.maybeAroundBothSides (Node.parserFromCore functionNameCore)))
+                (Combine.sepBy (Combine.symbol ",") (Layout.maybeAroundBothSides (Node.parserFromCore functionNameCore)))
         )

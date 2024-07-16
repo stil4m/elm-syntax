@@ -3,7 +3,6 @@
   "automatically created by": "elm-review suppress",
   "learn more": "elm-review suppress --help",
   "suppressions": [
-    { "count": 13, "filePath": "src/Elm/Writer.elm" },
-    { "count": 1, "filePath": "src/Elm/Parser/TypeAnnotation.elm" }
+    { "count": 13, "filePath": "src/Elm/Writer.elm" }
   ]
 }

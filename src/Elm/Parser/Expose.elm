@@ -1,6 +1,6 @@
 module Elm.Parser.Expose exposing (exposeDefinition)
 
-import Combine exposing (Parser, maybe, oneOf, parens, symbol)
+import Combine exposing (Parser)
 import Combine.Char exposing (char)
 import Elm.Parser.Layout as Layout
 import Elm.Parser.Node as Node
@@ -14,13 +14,13 @@ import Parser as Core exposing ((|.), (|=))
 exposeDefinition : Parser State Exposing
 exposeDefinition =
     exposingToken
-        |> Combine.continueWith (maybe Layout.layout)
+        |> Combine.continueWith (Combine.maybe Layout.layout)
         |> Combine.continueWith exposeListWith
 
 
 exposeListWith : Parser State Exposing
 exposeListWith =
-    parens
+    Combine.parens
         (Layout.optimisticLayout
             |> Combine.continueWith exposingListInner
             |> Combine.ignore Layout.optimisticLayout
@@ -32,7 +32,7 @@ exposingListInner =
     Combine.oneOf
         [ Combine.succeed (\start -> \end -> All { start = start, end = end })
             |> Combine.keep Combine.location
-            |> Combine.ignore (Layout.maybeAroundBothSides (symbol ".."))
+            |> Combine.ignore (Layout.maybeAroundBothSides (Combine.symbol ".."))
             |> Combine.keep Combine.location
         , Combine.sepBy1 (Combine.fromCore (char ',')) (Layout.maybeAroundBothSides exposable)
             |> Combine.map Explicit
@@ -41,7 +41,7 @@ exposingListInner =
 
 exposable : Parser State (Node TopLevelExpose)
 exposable =
-    oneOf
+    Combine.oneOf
         [ typeExpose
         , infixExpose
         , functionExpose
@@ -66,7 +66,7 @@ typeExpose =
         |> Combine.andThen
             (\((Node typeRange typeValue) as tipe) ->
                 Combine.oneOf
-                    [ Node.parser (parens (Layout.maybeAroundBothSides (Combine.symbol "..")))
+                    [ Node.parser (Combine.parens (Layout.maybeAroundBothSides (Combine.symbol "..")))
                         |> Combine.map
                             (\(Node openRange _) ->
                                 Node

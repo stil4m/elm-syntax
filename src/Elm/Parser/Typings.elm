@@ -1,6 +1,6 @@
 module Elm.Parser.Typings exposing (typeDefinition)
 
-import Combine exposing (Parser, many)
+import Combine exposing (Parser)
 import Elm.Parser.Layout as Layout
 import Elm.Parser.Node as Node
 import Elm.Parser.State exposing (State)
@@ -138,7 +138,7 @@ valueConstructor =
 
 genericList : Parser State (List (Node String))
 genericList =
-    many (Node.parserFromCore functionNameCore |> Combine.ignore (Combine.maybeIgnore Layout.layout))
+    Combine.many (Node.parserFromCore functionNameCore |> Combine.ignore (Combine.maybeIgnore Layout.layout))
 
 
 typePrefix : Parser State ()

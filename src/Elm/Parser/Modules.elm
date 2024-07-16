@@ -1,6 +1,6 @@
 module Elm.Parser.Modules exposing (moduleDefinition)
 
-import Combine exposing (Parser, between, oneOf, sepBy1, succeed, symbol)
+import Combine exposing (Parser)
 import Elm.Parser.Base exposing (moduleName)
 import Elm.Parser.Expose exposing (exposeDefinition)
 import Elm.Parser.Layout as Layout
@@ -16,7 +16,7 @@ import List.Extra
 
 moduleDefinition : Parser State Module
 moduleDefinition =
-    oneOf
+    Combine.oneOf
         [ normalModuleDefinition
         , portModuleDefinition
         , effectModuleDefinition
@@ -25,18 +25,18 @@ moduleDefinition =
 
 effectWhereClause : Parser State ( String, Node String )
 effectWhereClause =
-    succeed (\fnName -> \typeName_ -> ( fnName, typeName_ ))
+    Combine.succeed (\fnName -> \typeName_ -> ( fnName, typeName_ ))
         |> Combine.keep functionName
-        |> Combine.ignore (Layout.maybeAroundBothSides (symbol "="))
+        |> Combine.ignore (Layout.maybeAroundBothSides (Combine.symbol "="))
         |> Combine.keep (Node.parserFromCore typeName)
 
 
 whereBlock : Parser State { command : Maybe (Node String), subscription : Maybe (Node String) }
 whereBlock =
-    between
-        (symbol "{")
-        (symbol "}")
-        (sepBy1 (symbol ",")
+    Combine.between
+        (Combine.symbol "{")
+        (Combine.symbol "}")
+        (Combine.sepBy1 (Combine.symbol ",")
             (Layout.maybeAroundBothSides effectWhereClause)
         )
         |> Combine.map
@@ -49,7 +49,7 @@ whereBlock =
 
 effectWhereClauses : Parser State { command : Maybe (Node String), subscription : Maybe (Node String) }
 effectWhereClauses =
-    symbol "where"
+    Combine.symbol "where"
         |> Combine.continueWith Layout.layout
         |> Combine.continueWith whereBlock
 
@@ -66,8 +66,8 @@ effectModuleDefinition =
                 , subscription = whereClauses.subscription
                 }
     in
-    succeed (\name -> \whereClauses -> \exp -> createEffectModule name whereClauses exp)
-        |> Combine.ignore (symbol "effect")
+    Combine.succeed (\name -> \whereClauses -> \exp -> createEffectModule name whereClauses exp)
+        |> Combine.ignore (Combine.symbol "effect")
         |> Combine.ignore Layout.layout
         |> Combine.ignore moduleToken
         |> Combine.ignore Layout.layout
@@ -80,7 +80,7 @@ effectModuleDefinition =
 
 normalModuleDefinition : Parser State Module
 normalModuleDefinition =
-    succeed (\moduleName -> \exposingList -> NormalModule (DefaultModuleData moduleName exposingList))
+    Combine.succeed (\moduleName -> \exposingList -> NormalModule (DefaultModuleData moduleName exposingList))
         |> Combine.ignore moduleToken
         |> Combine.ignore Layout.layout
         |> Combine.keep moduleName
@@ -90,7 +90,7 @@ normalModuleDefinition =
 
 portModuleDefinition : Parser State Module
 portModuleDefinition =
-    succeed (\moduleName -> \exposingList -> PortModule (DefaultModuleData moduleName exposingList))
+    Combine.succeed (\moduleName -> \exposingList -> PortModule (DefaultModuleData moduleName exposingList))
         |> Combine.ignore portToken
         |> Combine.ignore Layout.layout
         |> Combine.ignore moduleToken

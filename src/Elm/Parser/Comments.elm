@@ -1,6 +1,6 @@
 module Elm.Parser.Comments exposing (declarationDocumentation, moduleDocumentation, multilineComment, singleLineComment)
 
-import Combine exposing (Parser, modifyState)
+import Combine exposing (Parser)
 import Elm.Parser.Node as Node
 import Elm.Parser.State exposing (State, addComment)
 import Elm.Parser.Whitespace exposing (untilNewlineToken)
@@ -13,7 +13,7 @@ addCommentToState : Core.Parser (Node String) -> Parser State ()
 addCommentToState p =
     p
         |> Combine.fromCore
-        |> Combine.andThen (\pair -> modifyState (\state -> addComment pair state))
+        |> Combine.andThen (\pair -> Combine.modifyState (\state -> addComment pair state))
 
 
 parseComment : Core.Parser String -> Parser State ()
