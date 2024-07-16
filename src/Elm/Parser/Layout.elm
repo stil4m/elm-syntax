@@ -11,7 +11,8 @@ module Elm.Parser.Layout exposing
 import Combine exposing (Parser)
 import Elm.Parser.Comments as Comments
 import Elm.Parser.State as State exposing (State)
-import Elm.Parser.Whitespace exposing (many1Spaces, realNewLine)
+import Elm.Parser.Whitespace as Whitespace
+import Parser.Extra
 
 
 anyComment : Combine.Parser State ()
@@ -27,14 +28,14 @@ layout =
     Combine.many1Ignore
         (Combine.oneOf
             [ anyComment
-            , Combine.many1Ignore realNewLine
-                |> Combine.continueWith
+            , Parser.Extra.many1Ignore Whitespace.realNewLine
+                |> Combine.ignoreFromCore
                     (Combine.oneOf
-                        [ many1Spaces
+                        [ Whitespace.many1Spaces
                         , anyComment
                         ]
                     )
-            , many1Spaces
+            , Whitespace.many1Spaces
             ]
         )
         |> Combine.continueWith
@@ -54,15 +55,15 @@ optimisticLayout =
     Combine.manyIgnore
         (Combine.oneOf
             [ anyComment
-            , Combine.many1Ignore realNewLine
-                |> Combine.continueWith
+            , Parser.Extra.many1Ignore Whitespace.realNewLine
+                |> Combine.ignoreFromCore
                     (Combine.oneOf
-                        [ many1Spaces
+                        [ Whitespace.many1Spaces
                         , anyComment
                         , Combine.succeed ()
                         ]
                     )
-            , many1Spaces
+            , Whitespace.many1Spaces
             ]
         )
 
@@ -91,8 +92,9 @@ layoutStrict =
     Combine.many1Ignore
         (Combine.oneOf
             [ anyComment
-            , Combine.many1Ignore realNewLine
-            , many1Spaces
+            , Parser.Extra.many1Ignore Whitespace.realNewLine
+                |> Combine.fromCore
+            , Whitespace.many1Spaces
             ]
         )
         |> Combine.continueWith

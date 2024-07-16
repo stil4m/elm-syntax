@@ -489,7 +489,7 @@ minusNotFollowedBySpace =
     Core.succeed identity
         |. Core.backtrackable minus
         |= Core.oneOf
-            [ Core.map (always True) (Core.backtrackable Whitespace.realNewLineCore)
+            [ Core.map (always True) (Core.backtrackable Whitespace.realNewLine)
             , Core.map (always True) (Core.backtrackable (Core.symbol " "))
             , Core.succeed False
             ]

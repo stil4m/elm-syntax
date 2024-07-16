@@ -1,5 +1,6 @@
 module Elm.Parser.WhitespaceTests exposing (all)
 
+import Combine
 import Elm.Parser.CombineTestUtil exposing (..)
 import Elm.Parser.Whitespace as Whitespace
 import Expect
@@ -15,14 +16,14 @@ all =
                     |> Expect.equal (Just ())
         , test "realNewLine - normal" <|
             \() ->
-                parse "\n" Whitespace.realNewLine
+                parse "\n" (Combine.fromCore Whitespace.realNewLine)
                     |> Expect.equal (Just ())
         , test "realNewLine - with line feed" <|
             \() ->
-                parse "\u{000D}\n" Whitespace.realNewLine
+                parse "\u{000D}\n" (Combine.fromCore Whitespace.realNewLine)
                     |> Expect.equal (Just ())
         , test "realNewLine - incorrect" <|
             \() ->
-                parse "foo" Whitespace.realNewLine
+                parse "foo" (Combine.fromCore Whitespace.realNewLine)
                     |> Expect.equal Nothing
         ]
