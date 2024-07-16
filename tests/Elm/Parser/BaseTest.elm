@@ -1,11 +1,10 @@
 module Elm.Parser.BaseTest exposing (all)
 
-import Combine
 import Elm.Parser.Base as Parser
-import Elm.Parser.CombineTestUtil exposing (..)
+import Elm.Parser.TestUtil as TestUtil
 import Elm.Syntax.Node as Node
 import Expect
-import Test exposing (..)
+import Test exposing (Test, describe, test)
 
 
 all : Test
@@ -13,12 +12,12 @@ all =
     describe "BaseTest"
         [ test "moduleName" <|
             \() ->
-                parseWithFailure "Foo" (Combine.fromCore Parser.moduleName)
-                    |> Result.map Node.value
-                    |> Expect.equal (Ok [ "Foo" ])
+                TestUtil.parse "Foo" Parser.moduleName
+                    |> Maybe.map Node.value
+                    |> Expect.equal (Just [ "Foo" ])
         , test "moduleNameDir" <|
             \() ->
-                parseWithFailure "Foo.Bar" (Combine.fromCore Parser.moduleName)
-                    |> Result.map Node.value
-                    |> Expect.equal (Ok [ "Foo", "Bar" ])
+                TestUtil.parse "Foo.Bar" Parser.moduleName
+                    |> Maybe.map Node.value
+                    |> Expect.equal (Just [ "Foo", "Bar" ])
         ]

@@ -1,4 +1,4 @@
-module Elm.Parser.CombineTestUtil exposing (expectAst, expectAstWithComments, expectInvalid, parse, parseWithFailure, parseWithState)
+module Elm.Parser.CombineTestUtil exposing (expectAst, expectAstWithComments, expectInvalid, parse, parseWithState)
 
 import Combine exposing (Parser)
 import Elm.Parser.State as State exposing (State, emptyState)
