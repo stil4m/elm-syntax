@@ -43,7 +43,7 @@ layout =
             )
 
 
-optimisticLayoutWith : (() -> Parser State a) -> (() -> Parser State a) -> Parser State a
+optimisticLayoutWith : (() -> a) -> (() -> Parser State a) -> Parser State a
 optimisticLayoutWith onStrict onIndented =
     optimisticLayout
         |> Combine.continueWith (compute onStrict onIndented)
@@ -67,14 +67,14 @@ optimisticLayout =
         )
 
 
-compute : (() -> Parser State a) -> (() -> Parser State a) -> Parser State a
+compute : (() -> a) -> (() -> Parser State a) -> Parser State a
 compute onStrict onIndented =
     withState
         (\state ->
             withLocation
                 (\l ->
                     if l.column == 1 || List.member l.column (State.storedColumns state) then
-                        onStrict ()
+                        Combine.succeed (onStrict ())
 
                     else
                         onIndented ()

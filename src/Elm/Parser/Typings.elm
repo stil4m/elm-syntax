@@ -123,7 +123,7 @@ valueConstructor =
                                 |> Combine.andThen
                                     (\ta ->
                                         Layout.optimisticLayoutWith
-                                            (\() -> Combine.succeed (complete (ta :: xs)))
+                                            (\() -> complete (ta :: xs))
                                             (\() -> argHelper (ta :: xs))
                                     )
                             , Combine.succeed xs
@@ -131,7 +131,7 @@ valueConstructor =
                             ]
                 in
                 Layout.optimisticLayoutWith
-                    (\() -> Combine.succeed (complete []))
+                    (\() -> complete [])
                     (\() -> argHelper [])
             )
 

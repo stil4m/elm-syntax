@@ -24,7 +24,7 @@ typeAnnotation =
         |> Combine.andThen
             (\typeRef ->
                 Layout.optimisticLayoutWith
-                    (\() -> succeed typeRef)
+                    (\() -> typeRef)
                     (\() ->
                         Combine.oneOf
                             [ string "->"
@@ -167,7 +167,7 @@ typedTypeAnnotation mode =
         |> Combine.andThen
             (\((Node tir _) as original) ->
                 Layout.optimisticLayoutWith
-                    (\() -> Combine.succeed (Node tir (TypeAnnotation.Typed original [])))
+                    (\() -> Node tir (TypeAnnotation.Typed original []))
                     (\() ->
                         case mode of
                             Eager ->
@@ -189,7 +189,7 @@ eagerTypedTypeAnnotation ((Node range _) as original) =
                     |> Combine.andThen
                         (\next ->
                             Layout.optimisticLayoutWith
-                                (\() -> Combine.succeed (next :: items))
+                                (\() -> next :: items)
                                 (\() -> genericHelper (next :: items))
                                 |> Combine.ignore (maybe Layout.layout)
                         )
