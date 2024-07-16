@@ -141,8 +141,7 @@ genericList =
     many (Node.parserFromCore functionNameCore |> Combine.ignore (maybe Layout.layout))
 
 
-typePrefix : Parser State (Node String)
+typePrefix : Parser State ()
 typePrefix =
-    Combine.string "type"
-        |> Node.parser
+    Combine.symbol "type"
         |> Combine.ignore Layout.layout
