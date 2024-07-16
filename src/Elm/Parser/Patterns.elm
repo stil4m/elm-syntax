@@ -78,9 +78,12 @@ listPattern : Parser State (Node Pattern)
 listPattern =
     Node.parser <|
         Combine.between
-            (Combine.symbol "[" |> Combine.ignore (Combine.maybeIgnore Layout.layout))
+            (Combine.symbol "[")
             "]"
-            (Combine.map ListPattern (Combine.sepBy "," (Layout.maybeAroundBothSides pattern)))
+            (Combine.maybeIgnore Layout.layout
+                |> Combine.continueWith (Combine.sepBy "," (Layout.maybeAroundBothSides pattern))
+                |> Combine.map ListPattern
+            )
 
 
 type alias ConsumeArgs =
@@ -169,7 +172,9 @@ recordPattern =
     Node.parser
         (Combine.map RecordPattern <|
             Combine.between
-                (Combine.symbol "{" |> Combine.continueWith (Combine.maybeIgnore Layout.layout))
+                (Combine.symbol "{")
                 "}"
-                (Combine.sepBy "," (Layout.maybeAroundBothSides (Node.parserFromCore Tokens.functionName)))
+                (Combine.maybeIgnore Layout.layout
+                    |> Combine.continueWith (Combine.sepBy "," (Layout.maybeAroundBothSides (Node.parserFromCore Tokens.functionName)))
+                )
         )
