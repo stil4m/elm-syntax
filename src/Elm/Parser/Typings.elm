@@ -54,7 +54,7 @@ typeDefinition maybeDoc =
                         |> Combine.keepFromCore (Node.parserCore Tokens.typeName)
                         |> Combine.ignore (Combine.maybeIgnore Layout.layout)
                         |> Combine.keep genericList
-                        |> Combine.ignoreEntirely (Core.symbol "=")
+                        |> Combine.ignoreEntirely Tokens.equal
                         |> Combine.ignore (Combine.maybeIgnore Layout.layout)
                         |> Combine.keep typeAnnotation
                     , Combine.succeed
@@ -87,7 +87,7 @@ typeDefinition maybeDoc =
                         |> Combine.ignore (Combine.maybeIgnore Layout.layout)
                         |> Combine.keep genericList
                         |> Combine.ignore (Combine.maybeIgnore Layout.layout)
-                        |> Combine.ignoreEntirely (Core.symbol "=")
+                        |> Combine.ignoreEntirely Tokens.equal
                         |> Combine.ignore (Combine.maybeIgnore Layout.layout)
                         |> Combine.keep valueConstructors
                     ]
@@ -97,7 +97,7 @@ typeDefinition maybeDoc =
 valueConstructors : Parser State (List (Node ValueConstructor))
 valueConstructors =
     Combine.sepBy1WithoutReverse
-        (Core.symbol "|"
+        (Tokens.pipe
             |> Combine.continueFromCore (Combine.maybeIgnore Layout.layout)
         )
         valueConstructor

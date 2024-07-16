@@ -110,7 +110,7 @@ recordAccessParser =
 
                 else
                     Core.succeed identity
-                        |. dot
+                        |. Tokens.dot
                         |= Node.parserCore Tokens.functionName
             )
         |> Combine.fromCore
@@ -155,10 +155,10 @@ glslExpression =
 listExpression : Parser State (Node Expression)
 listExpression =
     Combine.succeed ListExpr
-        |> Combine.ignoreEntirely squareStart
+        |> Combine.ignoreEntirely Tokens.squareStart
         |> Combine.ignore (Combine.maybeIgnore Layout.layout)
         |> Combine.keep (Combine.sepBy "," expression)
-        |> Combine.ignoreEntirely squareEnd
+        |> Combine.ignoreEntirely Tokens.squareEnd
         |> Node.parser
 
 
@@ -168,11 +168,11 @@ listExpression =
 
 recordExpression : Parser State (Node Expression)
 recordExpression =
-    curlyStart
+    Tokens.curlyStart
         |> Combine.ignoreFromCore (Combine.maybeIgnore Layout.layout)
         |> Combine.continueWith
             (Combine.oneOf
-                [ curlyEnd
+                [ Tokens.curlyEnd
                     |> Core.map (\() -> RecordExpr [])
                     |> Combine.fromCore
                 , recordContents
@@ -189,7 +189,7 @@ recordContents =
             (\fname ->
                 Combine.oneOf
                     [ recordUpdateSyntaxParser fname
-                    , Combine.fromCore equal
+                    , Combine.fromCore Tokens.equal
                         |> Combine.continueWith expression
                         |> Combine.andThen
                             (\e ->
@@ -203,14 +203,14 @@ recordContents =
                                         RecordExpr (fieldUpdate :: fieldUpdates)
                                 in
                                 Combine.oneOf
-                                    [ curlyEnd
+                                    [ Tokens.curlyEnd
                                         |> Core.map (\() -> toRecordExpr [])
                                         |> Combine.fromCore
                                     , Combine.succeed toRecordExpr
-                                        |> Combine.ignoreEntirely comma
+                                        |> Combine.ignoreEntirely Tokens.comma
                                         |> Combine.ignore (Combine.maybeIgnore Layout.layout)
                                         |> Combine.keep recordFields
-                                        |> Combine.ignoreEntirely curlyEnd
+                                        |> Combine.ignoreEntirely Tokens.curlyEnd
                                     ]
                             )
                     ]
@@ -220,10 +220,10 @@ recordContents =
 recordUpdateSyntaxParser : Node String -> Parser State Expression
 recordUpdateSyntaxParser fname =
     Combine.succeed (\e -> RecordUpdateExpression fname e)
-        |> Combine.ignoreEntirely pipe
+        |> Combine.ignoreEntirely Tokens.pipe
         |> Combine.ignore (Combine.maybeIgnore Layout.layout)
         |> Combine.keep recordFields
-        |> Combine.ignoreEntirely curlyEnd
+        |> Combine.ignoreEntirely Tokens.curlyEnd
 
 
 recordFields : Parser State (List (Node RecordSetter))
@@ -233,7 +233,7 @@ recordFields =
         |> Combine.ignore (Combine.maybeIgnore Layout.layout)
         |> Combine.keep
             (Combine.many
-                (Combine.fromCore comma
+                (Combine.fromCore Tokens.comma
                     |> Combine.ignore (Combine.maybeIgnore Layout.layout)
                     |> Combine.continueWith recordField
                     |> Combine.ignore (Combine.maybeIgnore Layout.layout)
@@ -253,7 +253,7 @@ recordFieldWithoutValue : Parser State (Node String)
 recordFieldWithoutValue =
     Node.parserCore Tokens.functionName
         |> Combine.ignoreFromCore (Combine.maybeIgnore Layout.layout)
-        |> Combine.ignoreEntirely equal
+        |> Combine.ignoreEntirely Tokens.equal
 
 
 literalExpression : Parser State (Node Expression)
@@ -290,11 +290,11 @@ lambdaExpression =
                         |> Node { start = start, end = end }
         )
         |> Combine.keepFromCore Parser.Extra.location
-        |> Combine.ignoreEntirely backSlash
+        |> Combine.ignoreEntirely Tokens.backSlash
         |> Combine.ignore (Combine.maybeIgnore Layout.layout)
         |> Combine.keep (Combine.sepBy1WithState (Combine.maybeIgnore Layout.layout) Patterns.pattern)
         |> Combine.ignore (Combine.maybeIgnore Layout.layout)
-        |> Combine.ignoreEntirely arrowRight
+        |> Combine.ignoreEntirely Tokens.arrowRight
         |> Combine.keep expression
 
 
@@ -332,7 +332,7 @@ caseStatement =
         |> Combine.ignore Layout.onTopIndentation
         |> Combine.keep Patterns.pattern
         |> Combine.ignore (Combine.maybeIgnore Layout.layout)
-        |> Combine.ignoreEntirely arrowRight
+        |> Combine.ignoreEntirely Tokens.arrowRight
         |> Combine.ignore (Combine.maybeIgnore Layout.layout)
         |> Combine.keep expression
 
@@ -388,7 +388,7 @@ letDestructuringDeclarationWithPattern ((Node { start } _) as pattern) =
         (\((Node { end } _) as expr) ->
             Node { start = start, end = end } (LetDestructuring pattern expr)
         )
-        |> Combine.ignoreEntirely equal
+        |> Combine.ignoreEntirely Tokens.equal
         |> Combine.keep expression
 
 
@@ -434,7 +434,7 @@ negationOperation =
 minusNotFollowedBySpace : Core.Parser ()
 minusNotFollowedBySpace =
     Core.succeed identity
-        |. Core.backtrackable minus
+        |. Core.backtrackable Tokens.minus
         |= Core.oneOf
             [ Core.map (always True) (Core.backtrackable Whitespace.realNewLine)
             , Core.map (always True) (Core.backtrackable (Core.symbol " "))
@@ -457,7 +457,7 @@ referenceExpression =
         helper moduleNameSoFar nameOrSegment =
             Core.oneOf
                 [ Core.succeed identity
-                    |. dot
+                    |. Tokens.dot
                     |= Core.oneOf
                         [ Tokens.typeName
                             |> Core.andThen (\t -> helper (nameOrSegment :: moduleNameSoFar) t)
@@ -486,7 +486,7 @@ referenceExpression =
 recordAccessFunctionExpression : Parser State (Node Expression)
 recordAccessFunctionExpression =
     Core.succeed (\field -> RecordAccessFunction ("." ++ field))
-        |. dot
+        |. Tokens.dot
         |= Tokens.functionName
         |> Node.parserFromCore
 
@@ -497,7 +497,7 @@ tupledExpression =
         commaSep : Parser State (List (Node Expression))
         commaSep =
             Combine.many
-                (comma
+                (Tokens.comma
                     |> Combine.continueFromCore expression
                 )
 
@@ -507,12 +507,12 @@ tupledExpression =
                 |> Combine.keep expression
                 |> Combine.keep commaSep
     in
-    parensStart
+    Tokens.parensStart
         |> Combine.continueFromCore
             (Combine.oneOf
-                [ parensEnd |> Core.map (always UnitExpr) |> Combine.fromCore
+                [ Tokens.parensEnd |> Core.map (always UnitExpr) |> Combine.fromCore
                 , closingPrefixOperator
-                , nested |> Combine.ignoreEntirely parensEnd
+                , nested |> Combine.ignoreEntirely Tokens.parensEnd
                 ]
             )
         |> Node.parser
@@ -521,7 +521,7 @@ tupledExpression =
 closingPrefixOperator : Parser state Expression
 closingPrefixOperator =
     Core.backtrackable Tokens.prefixOperatorToken
-        |. Core.symbol ")"
+        |. Tokens.parensEnd
         |. Core.commit ()
         |> Core.map PrefixOperator
         |> Combine.fromCore
@@ -585,7 +585,7 @@ functionImplementationFromVarPointer ((Node { start } _) as varPointer) =
                     (FunctionImplementation varPointer args expr)
         )
         |> Combine.keep (Combine.many (Patterns.pattern |> Combine.ignore (Combine.maybeIgnore Layout.layout)))
-        |> Combine.ignoreEntirely equal
+        |> Combine.ignoreEntirely Tokens.equal
         |> Combine.keep expression
 
 
@@ -609,88 +609,9 @@ failIfDifferentFrom (Node _ expectedName) ((Node _ actualName) as actual) =
 functionSignatureFromVarPointer : Node String -> Parser State (Node Signature)
 functionSignatureFromVarPointer varPointer =
     Combine.succeed (\ta -> Node.combine Signature varPointer ta)
-        |> Combine.ignoreEntirely colon
+        |> Combine.ignoreEntirely Tokens.colon
         |> Combine.ignore (Combine.maybeIgnore Layout.layout)
         |> Combine.keep TypeAnnotation.typeAnnotation
-
-
-minus : Core.Parser ()
-minus =
-    Core.symbol "-"
-
-
-minusSymbols : Core.Parser ()
-minusSymbols =
-    Core.oneOf
-        [ Core.symbol "- "
-        , Core.symbol "-\n"
-        , Core.symbol "-\u{000D}"
-        ]
-
-
-dot : Core.Parser ()
-dot =
-    Core.symbol "."
-
-
-squareStart : Core.Parser ()
-squareStart =
-    Core.symbol "["
-
-
-squareEnd : Core.Parser ()
-squareEnd =
-    Core.symbol "]"
-
-
-curlyStart : Core.Parser ()
-curlyStart =
-    Core.symbol "{"
-
-
-curlyEnd : Core.Parser ()
-curlyEnd =
-    Core.symbol "}"
-
-
-pipe : Core.Parser ()
-pipe =
-    Core.symbol "|"
-
-
-backSlash : Core.Parser ()
-backSlash =
-    Core.symbol "\\"
-
-
-arrowRight : Core.Parser ()
-arrowRight =
-    Core.symbol "->"
-
-
-equal : Core.Parser ()
-equal =
-    Core.symbol "="
-
-
-comma : Core.Parser ()
-comma =
-    Core.symbol ","
-
-
-parensStart : Core.Parser ()
-parensStart =
-    Core.symbol "("
-
-
-parensEnd : Core.Parser ()
-parensEnd =
-    Core.symbol ")"
-
-
-colon : Core.Parser ()
-colon =
-    Core.symbol ":"
 
 
 
@@ -801,10 +722,10 @@ infixLeftSubtraction precedence =
                 (\c ->
                     -- 'a-b', 'a - b' and 'a- b' are subtractions, but 'a -b' is an application on a negation
                     if c == " " || c == "\n" || c == "\u{000D}" then
-                        minusSymbols
+                        Tokens.minusSymbols
 
                     else
-                        minus
+                        Tokens.minus
                 )
         )
         (\((Node { start } _) as left) ((Node { end } _) as right) ->

@@ -24,7 +24,7 @@ tryToCompose x =
                         )
                     |> Combine.keepFromCore (Node.parserCore Tokens.functionName)
                 , Combine.succeed (\y -> Node.combine UnConsPattern x y)
-                    |> Combine.ignoreEntirely (Core.symbol "::")
+                    |> Combine.ignoreEntirely Tokens.cons
                     |> Combine.ignore (Combine.maybeIgnore Layout.layout)
                     |> Combine.keep pattern
                 , Combine.succeed x

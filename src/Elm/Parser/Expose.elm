@@ -32,7 +32,7 @@ exposingListInner =
     Combine.oneOf
         [ Combine.succeed (\start -> \end -> All { start = start, end = end })
             |> Combine.keepFromCore Parser.Extra.location
-            |> Combine.ignore (Layout.maybeAroundBothSides (Combine.symbol ".."))
+            |> Combine.ignore (Layout.maybeAroundBothSides (Combine.fromCore Tokens.dotDot))
             |> Combine.keepFromCore Parser.Extra.location
         , Combine.sepBy1 "," (Layout.maybeAroundBothSides exposable)
             |> Combine.map Explicit
@@ -51,11 +51,11 @@ exposable =
 infixExpose : Parser state (Node TopLevelExpose)
 infixExpose =
     Core.succeed InfixExpose
-        |. Core.symbol "("
+        |. Tokens.parensStart
         |= (Core.chompWhile (\c -> c /= ')')
                 |> Core.getChompedString
            )
-        |. Core.symbol ")"
+        |. Tokens.parensEnd
         |> Node.parserFromCore
 
 

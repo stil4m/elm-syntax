@@ -1,23 +1,22 @@
 module Elm.Parser.Tokens exposing
-    ( asToken
-    , caseToken
-    , characterLiteral
-    , elseToken
-    , exposingToken
-    , functionName
-    , ifToken
-    , importToken
-    , inToken
-    , letToken
-    , moduleToken
-    , multiLineStringLiteral
-    , ofToken
-    , portToken
-    , prefixOperatorToken
-    , stringLiteral
-    , thenToken
-    , typeName
+    ( asToken, caseToken, elseToken, exposingToken, ifToken, importToken, inToken, letToken, moduleToken, whereToken, ofToken, portToken, prefixOperatorToken, thenToken
+    , dot, dotDot, squareStart, squareEnd, curlyStart, curlyEnd, pipe, backSlash, arrowRight, equal, comma, parensStart, parensEnd, colon, cons
+    , minus, minusSymbols
+    , characterLiteral, stringLiteral, multiLineStringLiteral
+    , functionName, typeName
     )
+
+{-|
+
+@docs asToken, caseToken, elseToken, exposingToken, ifToken, importToken, inToken, letToken, moduleToken, whereToken, ofToken, portToken, prefixOperatorToken, thenToken
+
+@docs dot, dotDot, squareStart, squareEnd, curlyStart, curlyEnd, pipe, backSlash, arrowRight, equal, comma, parensStart, parensEnd, colon, cons
+@docs minus, minusSymbols
+
+@docs characterLiteral, stringLiteral, multiLineStringLiteral
+@docs functionName, typeName
+
+-}
 
 import Char
 import Hex
@@ -61,6 +60,11 @@ portToken =
 moduleToken : Core.Parser ()
 moduleToken =
     Core.symbol "module"
+
+
+whereToken : Core.Parser ()
+whereToken =
+    Core.symbol "where"
 
 
 exposingToken : Core.Parser ()
@@ -303,3 +307,92 @@ prefixOperatorToken =
     allowedOperatorTokens
         |> List.map (\token -> Core.token token |> Core.getChompedString)
         |> Core.oneOf
+
+
+minus : Core.Parser ()
+minus =
+    Core.symbol "-"
+
+
+minusSymbols : Core.Parser ()
+minusSymbols =
+    Core.oneOf
+        [ Core.symbol "- "
+        , Core.symbol "-\n"
+        , Core.symbol "-\u{000D}"
+        ]
+
+
+dot : Core.Parser ()
+dot =
+    Core.symbol "."
+
+
+dotDot : Core.Parser ()
+dotDot =
+    Core.symbol ".."
+
+
+squareStart : Core.Parser ()
+squareStart =
+    Core.symbol "["
+
+
+squareEnd : Core.Parser ()
+squareEnd =
+    Core.symbol "]"
+
+
+curlyStart : Core.Parser ()
+curlyStart =
+    Core.symbol "{"
+
+
+curlyEnd : Core.Parser ()
+curlyEnd =
+    Core.symbol "}"
+
+
+pipe : Core.Parser ()
+pipe =
+    Core.symbol "|"
+
+
+backSlash : Core.Parser ()
+backSlash =
+    Core.symbol "\\"
+
+
+arrowRight : Core.Parser ()
+arrowRight =
+    Core.symbol "->"
+
+
+equal : Core.Parser ()
+equal =
+    Core.symbol "="
+
+
+comma : Core.Parser ()
+comma =
+    Core.symbol ","
+
+
+parensStart : Core.Parser ()
+parensStart =
+    Core.symbol "("
+
+
+parensEnd : Core.Parser ()
+parensEnd =
+    Core.symbol ")"
+
+
+colon : Core.Parser ()
+colon =
+    Core.symbol ":"
+
+
+cons : Core.Parser ()
+cons =
+    Core.symbol "::"

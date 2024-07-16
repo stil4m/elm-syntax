@@ -27,7 +27,7 @@ typeAnnotation =
                     (\() -> typeRef)
                     (\() ->
                         Combine.oneOf
-                            [ Core.symbol "->"
+                            [ Tokens.arrowRight
                                 |> Combine.continueFromCore (Combine.maybeIgnore Layout.layout)
                                 |> Combine.continueWith typeAnnotation
                                 |> Combine.map (\ta -> Node.combine TypeAnnotation.FunctionTypeAnnotation typeRef ta)
@@ -66,7 +66,7 @@ parensTypeAnnotation =
         commaSep : Parser State (List (Node TypeAnnotation))
         commaSep =
             Combine.many
-                (Core.symbol ","
+                (Tokens.comma
                     |> Combine.continueFromCore (Combine.maybeIgnore Layout.layout)
                     |> Combine.continueWith typeAnnotation
                     |> Combine.ignore (Combine.maybeIgnore Layout.layout)
@@ -80,13 +80,13 @@ parensTypeAnnotation =
                 |> Combine.ignore (Combine.maybeIgnore Layout.layout)
                 |> Combine.keep commaSep
     in
-    Core.symbol "("
+    Tokens.parensStart
         |> Combine.continueFromCore
             (Combine.oneOf
-                [ Core.symbol ")"
+                [ Tokens.parensEnd
                     |> Core.map (always TypeAnnotation.Unit)
                     |> Combine.fromCore
-                , nested |> Combine.ignoreEntirely (Core.symbol ")")
+                , nested |> Combine.ignoreEntirely Tokens.parensEnd
                 ]
             )
         |> Node.parser
@@ -116,36 +116,36 @@ recordFieldsTypeAnnotation =
 
 recordTypeAnnotation : Parser State (Node TypeAnnotation)
 recordTypeAnnotation =
-    Core.symbol "{"
+    Tokens.curlyStart
         |> Combine.continueFromCore (Combine.maybeIgnore Layout.layout)
         |> Combine.continueWith
             (Combine.oneOf
                 [ Combine.succeed (TypeAnnotation.Record [])
-                    |> Combine.ignoreEntirely (Core.symbol "}")
+                    |> Combine.ignoreEntirely Tokens.curlyEnd
                 , Node.parserCore Tokens.functionName
                     |> Combine.ignoreFromCore (Combine.maybeIgnore Layout.layout)
                     |> Combine.andThen
                         (\fname ->
                             Combine.oneOf
                                 [ Combine.succeed (TypeAnnotation.GenericRecord fname)
-                                    |> Combine.ignoreEntirely (Core.symbol "|")
+                                    |> Combine.ignoreEntirely Tokens.pipe
                                     |> Combine.keep (Node.parser recordFieldsTypeAnnotation)
-                                    |> Combine.ignoreEntirely (Core.symbol "}")
+                                    |> Combine.ignoreEntirely Tokens.curlyEnd
                                 , Combine.succeed (\ta -> \rest -> TypeAnnotation.Record <| Node.combine Tuple.pair fname ta :: rest)
-                                    |> Combine.ignoreEntirely (Core.symbol ":")
+                                    |> Combine.ignoreEntirely Tokens.colon
                                     |> Combine.ignore (Combine.maybeIgnore Layout.layout)
                                     |> Combine.keep typeAnnotation
                                     |> Combine.ignore (Combine.maybeIgnore Layout.layout)
                                     |> Combine.keep
                                         (Combine.oneOf
                                             [ -- Skip a comma and then look for at least 1 more field
-                                              Core.symbol ","
+                                              Tokens.comma
                                                 |> Combine.continueFromCore recordFieldsTypeAnnotation
                                             , -- Single field record, so just end with no additional fields
                                               Combine.succeed []
                                             ]
                                         )
-                                    |> Combine.ignoreEntirely (Core.symbol "}")
+                                    |> Combine.ignoreEntirely Tokens.curlyEnd
                                 ]
                         )
                 ]
@@ -159,7 +159,7 @@ recordFieldDefinition =
         |> Combine.ignore (Combine.maybeIgnore Layout.layout)
         |> Combine.keepFromCore (Node.parserCore Tokens.functionName)
         |> Combine.ignore (Combine.maybeIgnore Layout.layout)
-        |> Combine.ignoreEntirely (Core.symbol ":")
+        |> Combine.ignoreEntirely Tokens.colon
         |> Combine.ignore (Combine.maybeIgnore Layout.layout)
         |> Combine.keep typeAnnotation
 

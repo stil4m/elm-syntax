@@ -28,7 +28,7 @@ effectWhereClause : Parser State ( String, Node String )
 effectWhereClause =
     Combine.succeed (\fnName -> \typeName_ -> ( fnName, typeName_ ))
         |> Combine.keepFromCore Tokens.functionName
-        |> Combine.ignore (Layout.maybeAroundBothSides (Combine.symbol "="))
+        |> Combine.ignore (Layout.maybeAroundBothSides (Combine.fromCore Tokens.equal))
         |> Combine.keepFromCore (Node.parserCore Tokens.typeName)
 
 
@@ -50,7 +50,7 @@ whereBlock =
 
 effectWhereClauses : Parser State { command : Maybe (Node String), subscription : Maybe (Node String) }
 effectWhereClauses =
-    Core.symbol "where"
+    Tokens.whereToken
         |> Combine.ignoreFromCore Layout.layout
         |> Combine.continueWith whereBlock
 

@@ -78,7 +78,7 @@ functionWithNameNode pointer =
                     }
                 )
                 |> Combine.keep (Combine.many (pattern |> Combine.ignore (Combine.maybeIgnore Layout.layout)))
-                |> Combine.ignoreEntirely (Core.symbol "=")
+                |> Combine.ignoreEntirely Tokens.equal
                 |> Combine.ignore (Combine.maybeIgnore Layout.layout)
                 |> Combine.keep expression
 
@@ -124,7 +124,7 @@ infixDeclaration =
         |> Combine.ignore Layout.layout
         |> Combine.keep operatorWithParens
         |> Combine.ignore Layout.layout
-        |> Combine.ignoreEntirely (Core.symbol "=")
+        |> Combine.ignoreEntirely Tokens.equal
         |> Combine.ignore Layout.layout
         |> Combine.keepFromCore (Node.parserCore Tokens.functionName)
         |> Combine.map Declaration.InfixDeclaration
@@ -134,9 +134,9 @@ infixDeclaration =
 operatorWithParens : Parser state (Node String)
 operatorWithParens =
     Core.succeed identity
-        |. Core.symbol "("
+        |. Tokens.parensStart
         |= Tokens.prefixOperatorToken
-        |. Core.symbol ")"
+        |. Tokens.parensEnd
         |> Node.parserCore
         |> Combine.fromCore
 

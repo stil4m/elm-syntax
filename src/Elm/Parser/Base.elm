@@ -21,7 +21,7 @@ typeIndicator =
         helper moduleNameSoFar typeOrSegment =
             Core.oneOf
                 [ Core.succeed identity
-                    |. Core.symbol "."
+                    |. Tokens.dot
                     |= Tokens.typeName
                     |> Core.andThen (\t -> helper (typeOrSegment :: moduleNameSoFar) t)
                 , Core.succeed ()
