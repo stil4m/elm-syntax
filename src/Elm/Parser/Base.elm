@@ -1,16 +1,16 @@
 module Elm.Parser.Base exposing (moduleName, typeIndicator)
 
-import Combine
 import Elm.Parser.Node as Node
 import Elm.Parser.Tokens as Tokens
 import Elm.Syntax.ModuleName exposing (ModuleName)
 import Elm.Syntax.Node exposing (Node)
 import Parser as Core exposing ((|.), (|=))
+import Parser.Extra
 
 
 moduleName : Core.Parser (Node ModuleName)
 moduleName =
-    Combine.sepBy1Core "." Tokens.typeName
+    Parser.Extra.sepBy1 "." Tokens.typeName
         |> Node.parserCore
 
 
