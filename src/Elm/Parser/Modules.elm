@@ -26,7 +26,7 @@ moduleDefinition =
 effectWhereClause : Parser State ( String, Node String )
 effectWhereClause =
     Combine.succeed (\fnName -> \typeName_ -> ( fnName, typeName_ ))
-        |> Combine.keep Tokens.functionName
+        |> Combine.keep (Combine.fromCore Tokens.functionName)
         |> Combine.ignore (Layout.maybeAroundBothSides (Combine.symbol "="))
         |> Combine.keep (Node.parserFromCore Tokens.typeName)
 

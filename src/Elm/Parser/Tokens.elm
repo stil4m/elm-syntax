@@ -5,7 +5,6 @@ module Elm.Parser.Tokens exposing
     , elseToken
     , exposingToken
     , functionName
-    , functionNameCore
     , ifToken
     , importToken
     , inToken
@@ -240,13 +239,8 @@ multiLineStringLiteral =
         |= Core.loop { escaped = False, parts = [], counter = 0 } helper
 
 
-functionName : Parser state String
+functionName : Core.Parser String
 functionName =
-    Combine.fromCore functionNameCore
-
-
-functionNameCore : Core.Parser String
-functionNameCore =
     Core.variable
         { start = Unicode.isLower
         , inner = \c -> Unicode.isAlphaNum c || c == '_'

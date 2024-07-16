@@ -45,7 +45,7 @@ maybeDocumentation =
 
 function : Maybe (Node Documentation) -> Parser State (Node Declaration)
 function maybeDoc =
-    Node.parserFromCore Tokens.functionNameCore
+    Node.parserFromCore Tokens.functionName
         |> Combine.ignore (Combine.maybeIgnore Layout.layout)
         |> Combine.andThen functionWithNameNode
         |> Combine.map
@@ -88,7 +88,7 @@ functionWithNameNode pointer =
                 |> Combine.ignore (Combine.maybeIgnore Layout.layoutStrict)
                 |> Combine.andThen
                     (\sig ->
-                        Node.parserFromCore Tokens.functionNameCore
+                        Node.parserFromCore Tokens.functionName
                             |> Combine.andThen (\fnName -> failIfDifferentFrom varPointer fnName)
                             |> Combine.ignore (Combine.maybeIgnore Layout.layout)
                             |> Combine.andThen (\body -> functionImplementationFromVarPointer (Just sig) body)
@@ -107,7 +107,7 @@ functionWithNameNode pointer =
 signature : Parser State Signature
 signature =
     Combine.succeed Signature
-        |> Combine.keep (Node.parserFromCore Tokens.functionNameCore)
+        |> Combine.keep (Node.parserFromCore Tokens.functionName)
         |> Combine.ignore (Layout.maybeAroundBothSides (Combine.symbol ":"))
         |> Combine.ignore (Combine.maybeIgnore Layout.layout)
         |> Combine.keep typeAnnotation
@@ -126,7 +126,7 @@ infixDeclaration =
         |> Combine.ignore Layout.layout
         |> Combine.ignore (Combine.symbol "=")
         |> Combine.ignore Layout.layout
-        |> Combine.keep (Node.parserFromCore Tokens.functionNameCore)
+        |> Combine.keep (Node.parserFromCore Tokens.functionName)
         |> Combine.map Declaration.InfixDeclaration
         |> Node.parser
 

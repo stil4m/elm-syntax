@@ -165,7 +165,7 @@ recordAccessParser =
                 else
                     Core.succeed identity
                         |. dot
-                        |= Node.parserCore Tokens.functionNameCore
+                        |= Node.parserCore Tokens.functionName
             )
         |> Combine.fromCore
 
@@ -239,7 +239,7 @@ recordExpression config =
 
 recordContents : Config State (Node Expression) -> Parser State Expression
 recordContents config =
-    Node.parserCore Tokens.functionNameCore
+    Node.parserCore Tokens.functionName
         |> Combine.fromCore
         |> Combine.ignore (Combine.maybeIgnore Layout.layout)
         |> Combine.andThen
@@ -311,7 +311,7 @@ recordField config =
 
 recordFieldWithoutValue : Parser State (Node String)
 recordFieldWithoutValue =
-    Node.parserFromCore Tokens.functionNameCore
+    Node.parserFromCore Tokens.functionName
         |> Combine.ignore (Combine.maybeIgnore Layout.layout)
         |> Combine.ignore equal
 
@@ -521,7 +521,7 @@ referenceExpression =
                     |= Core.oneOf
                         [ Tokens.typeName
                             |> Core.andThen (\t -> helper (nameOrSegment :: moduleNameSoFar) t)
-                        , Tokens.functionNameCore
+                        , Tokens.functionName
                             |> Core.map
                                 (\name ->
                                     FunctionOrValue
@@ -536,7 +536,7 @@ referenceExpression =
     Core.oneOf
         [ Tokens.typeName
             |> Core.andThen (\t -> helper [] t)
-        , Tokens.functionNameCore
+        , Tokens.functionName
             |> Core.map (\v -> FunctionOrValue [] v)
         ]
         |> Node.parserCore
@@ -547,7 +547,7 @@ recordAccessFunctionExpression : Parser state (Node Expression)
 recordAccessFunctionExpression =
     Core.succeed (\field -> RecordAccessFunction ("." ++ field))
         |. dot
-        |= Tokens.functionNameCore
+        |= Tokens.functionName
         |> Node.parserCore
         |> Combine.fromCore
 
@@ -623,7 +623,7 @@ functionWithSignature config varPointer =
         |> Combine.ignore (Combine.maybeIgnore Layout.layoutStrict)
         |> Combine.andThen
             (\sig ->
-                Node.parserFromCore Tokens.functionNameCore
+                Node.parserFromCore Tokens.functionName
                     |> Combine.andThen (\fnName -> failIfDifferentFrom varPointer fnName)
                     |> Combine.ignore (Combine.maybeIgnore Layout.layout)
                     |> Combine.andThen (\newPointer -> functionImplementationFromVarPointer config newPointer)

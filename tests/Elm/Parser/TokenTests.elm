@@ -22,39 +22,39 @@ all =
     describe "TokenTests"
         [ test "functionName" <|
             \() ->
-                parse "foo" Parser.functionName
+                parse "foo" (Combine.fromCore Parser.functionName)
                     |> Expect.equal (Just "foo")
         , test "functionName may not be a keyword" <|
             \() ->
-                parse "type" Parser.functionName
+                parse "type" (Combine.fromCore Parser.functionName)
                     |> Expect.equal Nothing
         , test "functionName may be a keyword suffixed with an underscore" <|
             \() ->
-                parse "type_" Parser.functionName
+                parse "type_" (Combine.fromCore Parser.functionName)
                     |> Expect.equal (Just "type_")
         , test "functionName not empty" <|
             \() ->
-                parse "" Parser.functionName
+                parse "" (Combine.fromCore Parser.functionName)
                     |> Expect.equal Nothing
         , test "functionName with number" <|
             \() ->
-                parse "n1" Parser.functionName
+                parse "n1" (Combine.fromCore Parser.functionName)
                     |> Expect.equal (Just "n1")
         , test "alias can be a functionName (it is not reserved)" <|
             \() ->
-                parse "alias" Parser.functionName
+                parse "alias" (Combine.fromCore Parser.functionName)
                     |> Expect.equal (Just "alias")
         , test "infix can be a functionName (it is not reserved)" <|
             \() ->
-                parse "infix" Parser.functionName
+                parse "infix" (Combine.fromCore Parser.functionName)
                     |> Expect.equal (Just "infix")
         , test "functionName is not matched with 'if'" <|
             \() ->
-                parse "if" Parser.functionName
+                parse "if" (Combine.fromCore Parser.functionName)
                     |> Expect.equal Nothing
         , test "functionName with _" <|
             \() ->
-                parse "foo_" Parser.functionName
+                parse "foo_" (Combine.fromCore Parser.functionName)
                     |> Expect.equal (Just "foo_")
         , test "typeName" <|
             \() ->
@@ -134,23 +134,23 @@ all =
                     |> Expect.notEqual Nothing
         , test "ρ function" <|
             \() ->
-                parse "ρ" Parser.functionName
+                parse "ρ" (Combine.fromCore Parser.functionName)
                     |> Expect.notEqual Nothing
         , test "ε2 function" <|
             \() ->
-                parse "ε2" Parser.functionName
+                parse "ε2" (Combine.fromCore Parser.functionName)
                     |> Expect.notEqual Nothing
         , test "εε function" <|
             \() ->
-                parse "εε" Parser.functionName
+                parse "εε" (Combine.fromCore Parser.functionName)
                     |> Expect.notEqual Nothing
         , test "ρ uppercase function" <|
             \() ->
-                parse (String.toUpper "ρ") Parser.functionName
+                parse (String.toUpper "ρ") (Combine.fromCore Parser.functionName)
                     |> Expect.equal Nothing
         , test "ε uppercase function" <|
             \() ->
-                parse (String.toUpper "ε") Parser.functionName
+                parse (String.toUpper "ε") (Combine.fromCore Parser.functionName)
                     |> Expect.equal Nothing
         , test "ρ type name" <|
             \() ->

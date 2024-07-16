@@ -80,4 +80,4 @@ typeExpose =
 
 functionExpose : Parser state (Node TopLevelExpose)
 functionExpose =
-    Node.parserFromCore (Core.map FunctionExpose Tokens.functionNameCore)
+    Node.parserFromCore (Core.map FunctionExpose Tokens.functionName)

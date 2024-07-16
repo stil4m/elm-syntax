@@ -138,7 +138,7 @@ valueConstructor =
 
 genericList : Parser State (List (Node String))
 genericList =
-    Combine.many (Node.parserFromCore Tokens.functionNameCore |> Combine.ignore (Combine.maybeIgnore Layout.layout))
+    Combine.many (Node.parserFromCore Tokens.functionName |> Combine.ignore (Combine.maybeIgnore Layout.layout))
 
 
 typePrefix : Parser State ()

@@ -20,7 +20,7 @@ tryToCompose x =
                 [ Combine.succeed (\y -> Node.combine AsPattern x y)
                     |> Combine.ignore (Combine.fromCore (Core.keyword "as"))
                     |> Combine.ignore Layout.layout
-                    |> Combine.keep (Node.parserFromCore Tokens.functionNameCore)
+                    |> Combine.keep (Node.parserFromCore Tokens.functionName)
                 , Combine.succeed (\y -> Node.combine UnConsPattern x y)
                     |> Combine.ignore (Combine.fromCore (Core.symbol "::"))
                     |> Combine.ignore (Combine.maybeIgnore Layout.layout)
@@ -56,7 +56,7 @@ parensPattern =
 
 variablePart : Parser state (Node Pattern)
 variablePart =
-    Node.parserCore (Core.map VarPattern Tokens.functionNameCore)
+    Node.parserCore (Core.map VarPattern Tokens.functionName)
         |> Combine.fromCore
 
 
@@ -171,5 +171,5 @@ recordPattern =
             Combine.between
                 (Combine.symbol "{" |> Combine.continueWith (Combine.maybeIgnore Layout.layout))
                 (Combine.symbol "}")
-                (Combine.sepBy (Combine.symbol ",") (Layout.maybeAroundBothSides (Node.parserFromCore Tokens.functionNameCore)))
+                (Combine.sepBy (Combine.symbol ",") (Layout.maybeAroundBothSides (Node.parserFromCore Tokens.functionName)))
         )

@@ -102,7 +102,7 @@ asTypeAnnotation ((Node _ value) as x) xs =
 
 genericTypeAnnotation : Parser state (Node TypeAnnotation)
 genericTypeAnnotation =
-    Tokens.functionNameCore
+    Tokens.functionName
         |> Core.map TypeAnnotation.GenericType
         |> Node.parserFromCore
 
@@ -120,7 +120,7 @@ recordTypeAnnotation =
             (Combine.oneOf
                 [ Combine.succeed (TypeAnnotation.Record [])
                     |> Combine.ignore (Combine.symbol "}")
-                , Node.parserFromCore Tokens.functionNameCore
+                , Node.parserFromCore Tokens.functionName
                     |> Combine.ignore (Combine.maybeIgnore Layout.layout)
                     |> Combine.andThen
                         (\fname ->
@@ -155,7 +155,7 @@ recordFieldDefinition : Parser State TypeAnnotation.RecordField
 recordFieldDefinition =
     Combine.succeed (\functionName -> \value -> ( functionName, value ))
         |> Combine.ignore (Combine.maybeIgnore Layout.layout)
-        |> Combine.keep (Node.parserFromCore Tokens.functionNameCore)
+        |> Combine.keep (Node.parserFromCore Tokens.functionName)
         |> Combine.ignore (Combine.maybeIgnore Layout.layout)
         |> Combine.ignore (Combine.symbol ":")
         |> Combine.ignore (Combine.maybeIgnore Layout.layout)
