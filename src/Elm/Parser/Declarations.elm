@@ -13,7 +13,7 @@ import Elm.Parser.Typings exposing (typeDefinition)
 import Elm.Syntax.Declaration as Declaration exposing (Declaration)
 import Elm.Syntax.Documentation exposing (Documentation)
 import Elm.Syntax.Expression as Expression exposing (Function, FunctionImplementation)
-import Elm.Syntax.Infix as Infix exposing (Infix)
+import Elm.Syntax.Infix as Infix
 import Elm.Syntax.Node as Node exposing (Node(..))
 import Elm.Syntax.Signature exposing (Signature)
 import Parser as Core exposing ((|.), (|=))
@@ -106,7 +106,7 @@ functionWithNameNode pointer =
 
 signature : Parser State Signature
 signature =
-    Combine.succeed Signature
+    Combine.succeed (\name -> \typeAnnotation -> { name = name, typeAnnotation = typeAnnotation })
         |> Combine.keep (Node.parserFromCore Tokens.functionName)
         |> Combine.ignore (Layout.maybeAroundBothSides (Combine.symbol ":"))
         |> Combine.ignore (Combine.maybeIgnore Layout.layout)
@@ -115,7 +115,7 @@ signature =
 
 infixDeclaration : Parser State (Node Declaration)
 infixDeclaration =
-    Combine.succeed Infix
+    Combine.succeed (\direction -> \precedence -> \operator -> \fn -> { direction = direction, precedence = precedence, operator = operator, function = fn })
         |> Combine.ignoreEntirely (Core.keyword "infix")
         |> Combine.ignore Layout.layout
         |> Combine.keep (Node.parser infixDirection)
