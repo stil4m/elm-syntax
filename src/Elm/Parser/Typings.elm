@@ -50,7 +50,7 @@ typeDefinition maybeDoc =
                         )
                         |> Combine.ignoreEntirely (Core.symbol "alias")
                         |> Combine.ignore Layout.layout
-                        |> Combine.keep (Node.parserFromCore Tokens.typeName)
+                        |> Combine.keepFromCore (Node.parserCore Tokens.typeName)
                         |> Combine.ignore (Combine.maybeIgnore Layout.layout)
                         |> Combine.keep genericList
                         |> Combine.ignoreEntirely (Core.symbol "=")
@@ -82,7 +82,7 @@ typeDefinition maybeDoc =
                                             }
                                         )
                         )
-                        |> Combine.keep (Node.parserFromCore Tokens.typeName)
+                        |> Combine.keepFromCore (Node.parserCore Tokens.typeName)
                         |> Combine.ignore (Combine.maybeIgnore Layout.layout)
                         |> Combine.keep genericList
                         |> Combine.ignore (Combine.maybeIgnore Layout.layout)

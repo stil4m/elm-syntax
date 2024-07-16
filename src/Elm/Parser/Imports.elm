@@ -20,7 +20,7 @@ importDefinition =
         asDefinition =
             Tokens.asToken
                 |> Combine.ignoreFromCore Layout.layout
-                |> Combine.continueWith moduleName
+                |> Combine.continueWithCore moduleName
 
         parseExposingDefinition : Node ModuleName -> Maybe (Node ModuleName) -> Parser State Import
         parseExposingDefinition mod asDef =
@@ -45,7 +45,7 @@ importDefinition =
         |> Combine.keep Combine.location
         |> Combine.ignoreEntirely Tokens.importToken
         |> Combine.ignore Layout.layout
-        |> Combine.keep moduleName
+        |> Combine.keepFromCore moduleName
         |> Combine.ignore Layout.optimisticLayout
         |> Combine.andThen identity
         |> Combine.ignore Layout.optimisticLayout

@@ -106,7 +106,7 @@ functionWithNameNode pointer =
 signature : Parser State Signature
 signature =
     Combine.succeed (\name -> \typeAnnotation -> { name = name, typeAnnotation = typeAnnotation })
-        |> Combine.keep (Node.parserFromCore Tokens.functionName)
+        |> Combine.keepFromCore (Node.parserCore Tokens.functionName)
         |> Combine.ignore (Layout.maybeAroundBothSides (Combine.symbol ":"))
         |> Combine.ignore (Combine.maybeIgnore Layout.layout)
         |> Combine.keep typeAnnotation
@@ -119,13 +119,13 @@ infixDeclaration =
         |> Combine.ignore Layout.layout
         |> Combine.keep infixDirection
         |> Combine.ignore Layout.layout
-        |> Combine.keep (Node.parserFromCore Core.int)
+        |> Combine.keepFromCore (Node.parserCore Core.int)
         |> Combine.ignore Layout.layout
         |> Combine.keep operatorWithParens
         |> Combine.ignore Layout.layout
         |> Combine.ignoreEntirely (Core.symbol "=")
         |> Combine.ignore Layout.layout
-        |> Combine.keep (Node.parserFromCore Tokens.functionName)
+        |> Combine.keepFromCore (Node.parserCore Tokens.functionName)
         |> Combine.map Declaration.InfixDeclaration
         |> Node.parser
 

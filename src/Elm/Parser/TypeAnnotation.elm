@@ -157,7 +157,7 @@ recordFieldDefinition : Parser State TypeAnnotation.RecordField
 recordFieldDefinition =
     Combine.succeed (\functionName -> \value -> ( functionName, value ))
         |> Combine.ignore (Combine.maybeIgnore Layout.layout)
-        |> Combine.keep (Node.parserFromCore Tokens.functionName)
+        |> Combine.keepFromCore (Node.parserCore Tokens.functionName)
         |> Combine.ignore (Combine.maybeIgnore Layout.layout)
         |> Combine.ignoreEntirely (Core.symbol ":")
         |> Combine.ignore (Combine.maybeIgnore Layout.layout)

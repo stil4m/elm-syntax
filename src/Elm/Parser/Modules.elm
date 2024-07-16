@@ -27,9 +27,9 @@ moduleDefinition =
 effectWhereClause : Parser State ( String, Node String )
 effectWhereClause =
     Combine.succeed (\fnName -> \typeName_ -> ( fnName, typeName_ ))
-        |> Combine.keep (Combine.fromCore Tokens.functionName)
+        |> Combine.keepFromCore Tokens.functionName
         |> Combine.ignore (Layout.maybeAroundBothSides (Combine.symbol "="))
-        |> Combine.keep (Node.parserFromCore Tokens.typeName)
+        |> Combine.keepFromCore (Node.parserCore Tokens.typeName)
 
 
 whereBlock : Parser State { command : Maybe (Node String), subscription : Maybe (Node String) }
@@ -72,7 +72,7 @@ effectModuleDefinition =
         |> Combine.ignore Layout.layout
         |> Combine.ignoreEntirely Tokens.moduleToken
         |> Combine.ignore Layout.layout
-        |> Combine.keep moduleName
+        |> Combine.keepFromCore moduleName
         |> Combine.ignore Layout.layout
         |> Combine.keep effectWhereClauses
         |> Combine.ignore Layout.layout
@@ -84,7 +84,7 @@ normalModuleDefinition =
     Combine.succeed (\moduleName -> \exposingList -> NormalModule (DefaultModuleData moduleName exposingList))
         |> Combine.ignoreEntirely Tokens.moduleToken
         |> Combine.ignore Layout.layout
-        |> Combine.keep moduleName
+        |> Combine.keepFromCore moduleName
         |> Combine.ignore Layout.layout
         |> Combine.keep (Node.parser exposeDefinition)
 
@@ -96,6 +96,6 @@ portModuleDefinition =
         |> Combine.ignore Layout.layout
         |> Combine.ignoreEntirely Tokens.moduleToken
         |> Combine.ignore Layout.layout
-        |> Combine.keep moduleName
+        |> Combine.keepFromCore moduleName
         |> Combine.ignore Layout.layout
         |> Combine.keep (Node.parser exposeDefinition)

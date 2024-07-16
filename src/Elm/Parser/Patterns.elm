@@ -22,7 +22,7 @@ tryToCompose x =
                         (Core.keyword "as"
                             |> Combine.ignoreFromCore Layout.layout
                         )
-                    |> Combine.keep (Node.parserFromCore Tokens.functionName)
+                    |> Combine.keepFromCore (Node.parserCore Tokens.functionName)
                 , Combine.succeed (\y -> Node.combine UnConsPattern x y)
                     |> Combine.ignoreEntirely (Core.symbol "::")
                     |> Combine.ignore (Combine.maybeIgnore Layout.layout)

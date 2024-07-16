@@ -5,12 +5,14 @@ module Combine exposing
     , between
     , continueFromCore
     , continueWith
+    , continueWithCore
     , end
     , fromCore
     , ignore
     , ignoreEntirely
     , ignoreFromCore
     , keep
+    , keepFromCore
     , lazy
     , location
     , loop
@@ -147,6 +149,14 @@ keep (Parser rp) (Parser lp) =
         \state ->
             lp state
                 |> Core.andThen (\( newState, aToB ) -> Core.map (\( s, a ) -> ( s, aToB a )) (rp newState))
+
+
+keepFromCore : Core.Parser a -> Parser state (a -> b) -> Parser state b
+keepFromCore rp (Parser lp) =
+    Parser <|
+        \state ->
+            lp state
+                |> Core.andThen (\( newState, aToB ) -> Core.map (\a -> ( newState, aToB a )) rp)
 
 
 problem : String -> Parser state a
@@ -433,7 +443,19 @@ ignoreEntirely dropped (Parser target) =
 continueWith : Parser state a -> Parser state () -> Parser state a
 continueWith target dropped =
     dropped
-        |> andThen (\_ -> target)
+        |> andThen (\() -> target)
+
+
+continueWithCore : Core.Parser a -> Parser state () -> Parser state a
+continueWithCore target (Parser dropped) =
+    Parser <|
+        \state ->
+            dropped state
+                |> Core.andThen
+                    (\( newState, () ) ->
+                        target
+                            |> Core.map (\a -> ( newState, a ))
+                    )
 
 
 continueFromCore : Parser state a -> Core.Parser () -> Parser state a
