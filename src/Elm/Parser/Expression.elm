@@ -208,10 +208,10 @@ glslExpression =
 listExpression : Config State (Node Expression) -> Parser State (Node Expression)
 listExpression config =
     Combine.succeed ListExpr
-        |> Combine.ignore squareStart
+        |> Combine.ignoreEntirely squareStart
         |> Combine.ignore (Combine.maybeIgnore Layout.layout)
         |> Combine.keep (Combine.sepBy "," (Pratt.subExpression 0 config))
-        |> Combine.ignore squareEnd
+        |> Combine.ignoreEntirely squareEnd
         |> Node.parser
 
 
@@ -221,11 +221,13 @@ listExpression config =
 
 recordExpression : Config State (Node Expression) -> Parser State (Node Expression)
 recordExpression config =
-    curlyStart
+    Combine.fromCore curlyStart
         |> Combine.ignore (Combine.maybeIgnore Layout.layout)
         |> Combine.continueWith
             (Combine.oneOf
-                [ curlyEnd |> Combine.map (\() -> RecordExpr [])
+                [ curlyEnd
+                    |> Core.map (\() -> RecordExpr [])
+                    |> Combine.fromCore
                 , recordContents config
                 ]
             )
@@ -253,19 +255,16 @@ recordContents config =
                                     toRecordExpr : List (Node RecordSetter) -> Expression
                                     toRecordExpr fieldUpdates =
                                         RecordExpr (fieldUpdate :: fieldUpdates)
-
-                                    endSymbol : Parser state ()
-                                    endSymbol =
-                                        curlyEnd
                                 in
                                 Combine.oneOf
-                                    [ endSymbol
-                                        |> Combine.map (\() -> toRecordExpr [])
+                                    [ curlyEnd
+                                        |> Core.map (\() -> toRecordExpr [])
+                                        |> Combine.fromCore
                                     , Combine.succeed toRecordExpr
                                         |> Combine.ignoreEntirely comma
                                         |> Combine.ignore (Combine.maybeIgnore Layout.layout)
                                         |> Combine.keep (recordFields config)
-                                        |> Combine.ignore endSymbol
+                                        |> Combine.ignoreEntirely curlyEnd
                                     ]
                             )
                     ]
@@ -275,10 +274,10 @@ recordContents config =
 recordUpdateSyntaxParser : Config State (Node Expression) -> Node String -> Parser State Expression
 recordUpdateSyntaxParser config fname =
     Combine.succeed (\e -> RecordUpdateExpression fname e)
-        |> Combine.ignore pipe
+        |> Combine.ignoreEntirely pipe
         |> Combine.ignore (Combine.maybeIgnore Layout.layout)
         |> Combine.keep (recordFields config)
-        |> Combine.ignore curlyEnd
+        |> Combine.ignoreEntirely curlyEnd
 
 
 recordFields : Config State (Node Expression) -> Parser State (List (Node RecordSetter))
@@ -345,11 +344,11 @@ lambdaExpression config =
                         |> Node { start = start, end = end }
         )
         |> Combine.keep Combine.location
-        |> Combine.ignore backSlash
+        |> Combine.ignoreEntirely backSlash
         |> Combine.ignore (Combine.maybeIgnore Layout.layout)
         |> Combine.keep (Combine.sepBy1WithState (Combine.maybeIgnore Layout.layout) Patterns.pattern)
         |> Combine.ignore (Combine.maybeIgnore Layout.layout)
-        |> Combine.ignore arrowRight
+        |> Combine.ignoreEntirely arrowRight
         |> Combine.keep (Pratt.subExpression 0 config)
 
 
@@ -387,7 +386,7 @@ caseStatement config =
         |> Combine.ignore Layout.onTopIndentation
         |> Combine.keep Patterns.pattern
         |> Combine.ignore (Combine.maybeIgnore Layout.layout)
-        |> Combine.ignore arrowRight
+        |> Combine.ignoreEntirely arrowRight
         |> Combine.ignore (Combine.maybeIgnore Layout.layout)
         |> Combine.keep (Pratt.subExpression 0 config)
 
@@ -562,12 +561,12 @@ tupledExpression config =
                 |> Combine.keep (Pratt.subExpression 0 config)
                 |> Combine.keep commaSep
     in
-    parensStart
+    Combine.fromCore parensStart
         |> Combine.continueWith
             (Combine.oneOf
-                [ parensEnd |> Combine.map (always UnitExpr)
+                [ parensEnd |> Core.map (always UnitExpr) |> Combine.fromCore
                 , closingPrefixOperator
-                , nested |> Combine.ignore parensEnd
+                , nested |> Combine.ignoreEntirely parensEnd
                 ]
             )
         |> Node.parser
@@ -664,7 +663,7 @@ failIfDifferentFrom (Node _ expectedName) ((Node _ actualName) as actual) =
 functionSignatureFromVarPointer : Node String -> Parser State (Node Signature)
 functionSignatureFromVarPointer varPointer =
     Combine.succeed (\ta -> Node.combine Signature varPointer ta)
-        |> Combine.ignore colon
+        |> Combine.ignoreEntirely colon
         |> Combine.ignore (Combine.maybeIgnore Layout.layout)
         |> Combine.keep TypeAnnotation.typeAnnotation
 
@@ -688,39 +687,39 @@ dot =
     Core.symbol "."
 
 
-squareStart : Parser state ()
+squareStart : Core.Parser ()
 squareStart =
-    Combine.symbol "["
+    Core.symbol "["
 
 
-squareEnd : Parser state ()
+squareEnd : Core.Parser ()
 squareEnd =
-    Combine.symbol "]"
+    Core.symbol "]"
 
 
-curlyStart : Parser state ()
+curlyStart : Core.Parser ()
 curlyStart =
-    Combine.symbol "{"
+    Core.symbol "{"
 
 
-curlyEnd : Parser state ()
+curlyEnd : Core.Parser ()
 curlyEnd =
-    Combine.symbol "}"
+    Core.symbol "}"
 
 
-pipe : Parser state ()
+pipe : Core.Parser ()
 pipe =
-    Combine.symbol "|"
+    Core.symbol "|"
 
 
-backSlash : Parser state ()
+backSlash : Core.Parser ()
 backSlash =
-    Combine.symbol "\\"
+    Core.symbol "\\"
 
 
-arrowRight : Parser state ()
+arrowRight : Core.Parser ()
 arrowRight =
-    Combine.symbol "->"
+    Core.symbol "->"
 
 
 equal : Core.Parser ()
@@ -733,16 +732,16 @@ comma =
     Core.symbol ","
 
 
-parensStart : Parser state ()
+parensStart : Core.Parser ()
 parensStart =
-    Combine.symbol "("
+    Core.symbol "("
 
 
-parensEnd : Parser state ()
+parensEnd : Core.Parser ()
 parensEnd =
-    Combine.symbol ")"
+    Core.symbol ")"
 
 
-colon : Parser state ()
+colon : Core.Parser ()
 colon =
-    Combine.symbol ":"
+    Core.symbol ":"
