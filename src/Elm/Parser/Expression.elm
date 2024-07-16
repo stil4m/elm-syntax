@@ -419,13 +419,14 @@ ifBlockExpression =
 
 negationOperation : Parser State (Node Expression)
 negationOperation =
-    prefix 95
-        minusNotFollowedBySpace
+    Combine.succeed
         (\((Node { start, end } _) as subExpr) ->
             Node
                 { start = { row = start.row, column = start.column - 1 }, end = end }
                 (Negation subExpr)
         )
+        |> Combine.ignoreEntirely minusNotFollowedBySpace
+        |> Combine.keep (subExpression 95)
 
 
 minusNotFollowedBySpace : Core.Parser ()
@@ -732,13 +733,6 @@ operation currentPrecedence leftExpression =
                     Nothing
             )
         |> Combine.oneOf
-
-
-prefix : Int -> Core.Parser () -> (Node Expression -> Node Expression) -> Parser State (Node Expression)
-prefix precedence operator apply =
-    Combine.succeed apply
-        |> Combine.ignoreEntirely operator
-        |> Combine.keep (subExpression precedence)
 
 
 infixLeft : Int -> String -> ( Int, Node Expression -> Parser State (Node Expression) )
