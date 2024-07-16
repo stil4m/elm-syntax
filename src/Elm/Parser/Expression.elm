@@ -246,7 +246,7 @@ recordContents =
         |> Combine.andThen
             (\fname ->
                 Combine.oneOf
-                    [ recordUpdateSyntaxParser config fname
+                    [ recordUpdateSyntaxParser fname
                     , Combine.fromCore equal
                         |> Combine.continueWith (Pratt.subExpression 0 config)
                         |> Combine.andThen
@@ -267,7 +267,7 @@ recordContents =
                                     , Combine.succeed toRecordExpr
                                         |> Combine.ignoreEntirely comma
                                         |> Combine.ignore (Combine.maybeIgnore Layout.layout)
-                                        |> Combine.keep (recordFields config)
+                                        |> Combine.keep recordFields
                                         |> Combine.ignoreEntirely curlyEnd
                                     ]
                             )
@@ -293,7 +293,7 @@ recordFields =
             (Combine.many
                 (Combine.fromCore comma
                     |> Combine.ignore (Combine.maybeIgnore Layout.layout)
-                    |> Combine.continueWith (recordField config)
+                    |> Combine.continueWith recordField
                     |> Combine.ignore (Combine.maybeIgnore Layout.layout)
                 )
             )
@@ -376,12 +376,12 @@ caseExpression =
         |> Combine.ignore Layout.positivelyIndented
         |> Combine.ignoreEntirely Tokens.ofToken
         |> Combine.ignore Layout.layout
-        |> Combine.keep (withIndentedState (caseStatements config))
+        |> Combine.keep (withIndentedState caseStatements)
 
 
 caseStatements : Parser State ( Location, Cases )
 caseStatements =
-    Combine.many1WithEndLocationForLastElement (\( _, Node range _ ) -> range) (caseStatement config)
+    Combine.many1WithEndLocationForLastElement (\( _, Node range _ ) -> range) caseStatement
 
 
 caseStatement : Parser State Case
@@ -412,7 +412,7 @@ letExpression =
             |> Combine.keepFromCore Parser.Extra.location
             |> Combine.ignoreEntirely Tokens.letToken
             |> Combine.ignore Layout.layout
-            |> Combine.keep (withIndentedState (letDeclarations config))
+            |> Combine.keep (withIndentedState letDeclarations)
             |> Combine.ignore Layout.optimisticLayout
             |> Combine.ignoreEntirely Tokens.inToken
         )
@@ -421,7 +421,7 @@ letExpression =
 
 letDeclarations : Parser State (List (Node LetDeclaration))
 letDeclarations =
-    Combine.many1 (blockElement config)
+    Combine.many1 blockElement
 
 
 blockElement : Parser State (Node LetDeclaration)
@@ -432,11 +432,11 @@ blockElement =
             (\(Node r p) ->
                 case p of
                     Pattern.VarPattern v ->
-                        functionWithNameNode config (Node r v)
+                        functionWithNameNode (Node r v)
                             |> Combine.map (\fn -> Node (Expression.functionRange fn) (LetFunction fn))
 
                     _ ->
-                        letDestructuringDeclarationWithPattern config (Node r p)
+                        letDestructuringDeclarationWithPattern (Node r p)
             )
 
 
