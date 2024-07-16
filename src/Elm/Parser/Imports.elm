@@ -18,8 +18,8 @@ importDefinition =
     let
         asDefinition : Parser State (Node ModuleName)
         asDefinition =
-            Combine.fromCore Tokens.asToken
-                |> Combine.continueWith Layout.layout
+            Tokens.asToken
+                |> Combine.ignoreFromCore Layout.layout
                 |> Combine.continueWith moduleName
 
         parseExposingDefinition : Node ModuleName -> Maybe (Node ModuleName) -> Parser State Import

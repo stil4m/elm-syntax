@@ -14,7 +14,7 @@ moduleName =
         |> Node.parserFromCore
 
 
-typeIndicator : Parser state (Node ( ModuleName, String ))
+typeIndicator : Core.Parser (Node ( ModuleName, String ))
 typeIndicator =
     let
         helper : ModuleName -> String -> Core.Parser ( ModuleName, String )
@@ -30,4 +30,4 @@ typeIndicator =
     in
     Tokens.typeName
         |> Core.andThen (\typeOrSegment -> helper [] typeOrSegment)
-        |> Node.parserFromCore
+        |> Node.parserCore

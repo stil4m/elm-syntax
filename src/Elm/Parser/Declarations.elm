@@ -38,15 +38,14 @@ declaration =
 maybeDocumentation : Parser State (Maybe (Node Documentation))
 maybeDocumentation =
     Comments.declarationDocumentation
-        |> Combine.fromCore
-        |> Combine.ignore Layout.layoutStrict
+        |> Combine.ignoreFromCore Layout.layoutStrict
         |> Combine.maybe
 
 
 function : Maybe (Node Documentation) -> Parser State (Node Declaration)
 function maybeDoc =
-    Node.parserFromCore Tokens.functionName
-        |> Combine.ignore (Combine.maybeIgnore Layout.layout)
+    Node.parserCore Tokens.functionName
+        |> Combine.ignoreFromCore (Combine.maybeIgnore Layout.layout)
         |> Combine.andThen functionWithNameNode
         |> Combine.map
             (\f ->

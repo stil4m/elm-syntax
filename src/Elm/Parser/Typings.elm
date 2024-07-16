@@ -141,10 +141,13 @@ valueConstructor =
 
 genericList : Parser State (List (Node String))
 genericList =
-    Combine.many (Node.parserFromCore Tokens.functionName |> Combine.ignore (Combine.maybeIgnore Layout.layout))
+    Combine.many
+        (Node.parserCore Tokens.functionName
+            |> Combine.ignoreFromCore (Combine.maybeIgnore Layout.layout)
+        )
 
 
 typePrefix : Parser State ()
 typePrefix =
     Core.symbol "type"
-        |> Combine.continueFromCore Layout.layout
+        |> Combine.ignoreFromCore Layout.layout

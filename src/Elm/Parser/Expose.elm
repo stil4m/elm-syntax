@@ -60,8 +60,8 @@ infixExpose =
 
 typeExpose : Parser State (Node TopLevelExpose)
 typeExpose =
-    Node.parserFromCore Tokens.typeName
-        |> Combine.ignore (Combine.maybeIgnore Layout.layout)
+    Node.parserCore Tokens.typeName
+        |> Combine.ignoreFromCore (Combine.maybeIgnore Layout.layout)
         |> Combine.andThen
             (\((Node typeRange typeValue) as tipe) ->
                 Combine.oneOf

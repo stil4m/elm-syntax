@@ -9,6 +9,7 @@ module Combine exposing
     , fromCore
     , ignore
     , ignoreEntirely
+    , ignoreFromCore
     , keep
     , lazy
     , location
@@ -406,6 +407,18 @@ ignore (Parser dropped) (Parser target) =
                     (\( newState, a ) ->
                         dropped newState
                             |> Core.map (\( finalState, () ) -> ( finalState, a ))
+                    )
+
+
+ignoreFromCore : Parser state () -> Core.Parser a -> Parser state a
+ignoreFromCore (Parser dropped) target =
+    Parser <|
+        \state ->
+            target
+                |> Core.andThen
+                    (\a ->
+                        dropped state
+                            |> Core.map (\( newState, () ) -> ( newState, a ))
                     )
 
 

@@ -122,8 +122,8 @@ recordTypeAnnotation =
             (Combine.oneOf
                 [ Combine.succeed (TypeAnnotation.Record [])
                     |> Combine.ignoreEntirely (Core.symbol "}")
-                , Node.parserFromCore Tokens.functionName
-                    |> Combine.ignore (Combine.maybeIgnore Layout.layout)
+                , Node.parserCore Tokens.functionName
+                    |> Combine.ignoreFromCore (Combine.maybeIgnore Layout.layout)
                     |> Combine.andThen
                         (\fname ->
                             Combine.oneOf
@@ -167,6 +167,7 @@ recordFieldDefinition =
 typedTypeAnnotation : Mode -> Parser State (Node TypeAnnotation)
 typedTypeAnnotation mode =
     typeIndicator
+        |> Combine.fromCore
         |> Combine.andThen
             (\((Node tir _) as original) ->
                 Layout.optimisticLayoutWith

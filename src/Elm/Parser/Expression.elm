@@ -221,8 +221,8 @@ listExpression config =
 
 recordExpression : Config State (Node Expression) -> Parser State (Node Expression)
 recordExpression config =
-    Combine.fromCore curlyStart
-        |> Combine.ignore (Combine.maybeIgnore Layout.layout)
+    curlyStart
+        |> Combine.ignoreFromCore (Combine.maybeIgnore Layout.layout)
         |> Combine.continueWith
             (Combine.oneOf
                 [ curlyEnd
@@ -237,8 +237,7 @@ recordExpression config =
 recordContents : Config State (Node Expression) -> Parser State Expression
 recordContents config =
     Node.parserCore Tokens.functionName
-        |> Combine.fromCore
-        |> Combine.ignore (Combine.maybeIgnore Layout.layout)
+        |> Combine.ignoreFromCore (Combine.maybeIgnore Layout.layout)
         |> Combine.andThen
             (\fname ->
                 Combine.oneOf
@@ -305,8 +304,8 @@ recordField config =
 
 recordFieldWithoutValue : Parser State (Node String)
 recordFieldWithoutValue =
-    Node.parserFromCore Tokens.functionName
-        |> Combine.ignore (Combine.maybeIgnore Layout.layout)
+    Node.parserCore Tokens.functionName
+        |> Combine.ignoreFromCore (Combine.maybeIgnore Layout.layout)
         |> Combine.ignoreEntirely equal
 
 

@@ -18,8 +18,10 @@ tryToCompose x =
         |> Combine.continueWith
             (Combine.oneOf
                 [ Combine.succeed (\y -> Node.combine AsPattern x y)
-                    |> Combine.ignoreEntirely (Core.keyword "as")
-                    |> Combine.ignore Layout.layout
+                    |> Combine.ignore
+                        (Core.keyword "as"
+                            |> Combine.ignoreFromCore Layout.layout
+                        )
                     |> Combine.keep (Node.parserFromCore Tokens.functionName)
                 , Combine.succeed (\y -> Node.combine UnConsPattern x y)
                     |> Combine.ignoreEntirely (Core.symbol "::")
@@ -149,7 +151,7 @@ stringPattern =
 qualifiedPattern : ConsumeArgs -> Parser State (Node Pattern)
 qualifiedPattern consumeArgs =
     Base.typeIndicator
-        |> Combine.ignore (Combine.maybeIgnore Layout.layout)
+        |> Combine.ignoreFromCore (Combine.maybeIgnore Layout.layout)
         |> Combine.andThen
             (\(Node range ( mod, name )) ->
                 (if consumeArgs then
