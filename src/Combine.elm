@@ -387,14 +387,14 @@ parens =
 ignore : Parser state () -> Parser state a -> Parser state a
 ignore dropped target =
     target
-        |> map always
+        |> map (\a -> \() -> a)
         |> keep dropped
 
 
 continueWith : Parser state a -> Parser state x -> Parser state a
 continueWith target dropped =
     dropped
-        |> map (\_ a -> a)
+        |> map (\_ -> \a -> a)
         |> keep target
 
 
