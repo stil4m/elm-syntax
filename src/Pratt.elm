@@ -191,7 +191,7 @@ A parser for sub-expressions between parentheses like this:
 
 -}
 subExpression : Int -> Config state expr -> Parser state expr
-subExpression precedence ((Config conf) as config) =
+subExpression currentPrecedence ((Config conf) as config) =
     conf.spaces
         |> Combine.continueWith
             (Combine.lazy
@@ -200,7 +200,7 @@ subExpression precedence ((Config conf) as config) =
                 )
             )
         |> Combine.andThen
-            (\leftExpression -> Combine.loop leftExpression (expressionHelp config precedence))
+            (\leftExpression -> Combine.loop leftExpression (expressionHelp config currentPrecedence))
 
 
 {-| This is the core of the Pratt parser algorithm.
@@ -215,11 +215,11 @@ Also note that `oneOf` and `andThenOneOf` parsers may call recursively
 
 -}
 expressionHelp : Config state e -> Int -> e -> Parser state (Step e e)
-expressionHelp ((Config conf) as config) precedence leftExpression =
+expressionHelp ((Config conf) as config) currentPrecedence leftExpression =
     conf.spaces
         |> Combine.continueWith
             (Combine.oneOf
-                [ operation config precedence leftExpression
+                [ operation config currentPrecedence leftExpression
                     |> Combine.map Loop
                 , Combine.succeed (Done leftExpression)
                 ]
@@ -227,9 +227,9 @@ expressionHelp ((Config conf) as config) precedence leftExpression =
 
 
 operation : Config state e -> Int -> e -> Parser state e
-operation ((Config conf) as config) precedence leftExpression =
+operation ((Config conf) as config) currentPrecedence leftExpression =
     conf.andThenOneOf
-        |> List.filterMap (\toOperation -> filter (toOperation config) precedence leftExpression)
+        |> List.filterMap (\toOperation -> filter (toOperation config) currentPrecedence leftExpression)
         |> Combine.oneOf
 
 
