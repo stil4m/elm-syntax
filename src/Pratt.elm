@@ -27,7 +27,7 @@ import Parser as Core
 type Config state expr
     = Config
         { oneOf : List (Config state expr -> Parser state expr)
-        , andThenOneOf : List (Config state expr -> ( Int, expr -> Parser state expr ))
+        , andThenOneOf : List ( Int, Config state expr -> expr -> Parser state expr )
         , spaces : Parser state ()
         }
 
@@ -131,7 +131,7 @@ For example, a basic calculator could be configured like this:
 -}
 expression :
     { oneOf : List (Config State expr -> Parser State expr)
-    , andThenOneOf : List (Config State expr -> ( Int, expr -> Parser State expr ))
+    , andThenOneOf : List ( Int, Config State expr -> expr -> Parser State expr )
     , spaces : Parser State ()
     }
     -> Parser State expr
@@ -229,14 +229,14 @@ expressionHelp ((Config conf) as config) currentPrecedence leftExpression =
 operation : Config state e -> Int -> e -> Parser state e
 operation ((Config conf) as config) currentPrecedence leftExpression =
     conf.andThenOneOf
-        |> List.filterMap (\toOperation -> filter (toOperation config) currentPrecedence leftExpression)
+        |> List.filterMap (\toOperation -> filter config toOperation currentPrecedence leftExpression)
         |> Combine.oneOf
 
 
-filter : ( Int, e -> Parser state e ) -> Int -> e -> Maybe (Parser state e)
-filter ( precedence, parser ) currentPrecedence leftExpression =
+filter : Config state e -> ( Int, Config state e -> e -> Parser state e ) -> Int -> e -> Maybe (Parser state e)
+filter config ( precedence, parser ) currentPrecedence leftExpression =
     if precedence > currentPrecedence then
-        Just (parser leftExpression)
+        Just (parser config leftExpression)
 
     else
         Nothing
@@ -365,15 +365,15 @@ The `Config` argument is passed automatically by the parser.
     run expression "5+4-3*2/1" --> Ok 3
 
 -}
-infixLeft : Int -> Core.Parser () -> (expr -> expr -> expr) -> Config state expr -> ( Int, expr -> Parser state expr )
-infixLeft precedence p apply config =
-    infixHelp precedence precedence p apply config
+infixLeft : Int -> Core.Parser () -> (expr -> expr -> expr) -> ( Int, Config state expr -> expr -> Parser state expr )
+infixLeft precedence p apply =
+    infixHelp precedence precedence p apply
 
 
-infixLeftWithState : Int -> Parser state () -> (expr -> expr -> expr) -> Config state expr -> ( Int, expr -> Parser state expr )
-infixLeftWithState precedence operator apply config =
+infixLeftWithState : Int -> Parser state () -> (expr -> expr -> expr) -> ( Int, Config state expr -> expr -> Parser state expr )
+infixLeftWithState precedence operator apply =
     ( precedence
-    , \left ->
+    , \config left ->
         Combine.succeed (\e -> apply left e)
             |> Combine.ignore operator
             |> Combine.keep (subExpression precedence config)
@@ -404,17 +404,17 @@ The `Config` argument is passed automatically by the parser.
 expression with the _precedence_ of the infix operator minus 1.
 
 -}
-infixRight : Int -> Core.Parser () -> (expr -> expr -> expr) -> Config state expr -> ( Int, expr -> Parser state expr )
-infixRight precedence p apply config =
+infixRight : Int -> Core.Parser () -> (expr -> expr -> expr) -> ( Int, Config state expr -> expr -> Parser state expr )
+infixRight precedence p apply =
     -- To get right associativity, we use (precedence - 1) for the
     -- right precedence.
-    infixHelp precedence (precedence - 1) p apply config
+    infixHelp precedence (precedence - 1) p apply
 
 
-infixHelp : Int -> Int -> Core.Parser () -> (expr -> expr -> expr) -> Config state expr -> ( Int, expr -> Parser state expr )
-infixHelp leftPrecedence rightPrecedence operator apply config =
+infixHelp : Int -> Int -> Core.Parser () -> (expr -> expr -> expr) -> ( Int, Config state expr -> expr -> Parser state expr )
+infixHelp leftPrecedence rightPrecedence operator apply =
     ( leftPrecedence
-    , \left ->
+    , \config left ->
         Combine.succeed (\e -> apply left e)
             |> Combine.ignoreEntirely operator
             |> Combine.keep (subExpression rightPrecedence config)
@@ -441,8 +441,8 @@ The `Config` argument is passed automatically by the parser.
     run expression "360°" --> Ok (2*pi)
 
 -}
-postfix : Int -> Parser state a -> (expr -> a -> expr) -> Config state expr -> ( Int, expr -> Parser state expr )
-postfix precedence operator apply _ =
+postfix : Int -> Parser state a -> (expr -> a -> expr) -> ( Int, Config state expr -> expr -> Parser state expr )
+postfix precedence operator apply =
     ( precedence
-    , \left -> Combine.map (\right -> apply left right) operator
+    , \_ left -> Combine.map (\right -> apply left right) operator
     )

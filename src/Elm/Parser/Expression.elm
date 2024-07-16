@@ -85,7 +85,7 @@ expression =
         }
 
 
-infixLeft : Int -> String -> Config state (Node Expression) -> ( Int, Node Expression -> Parser state (Node Expression) )
+infixLeft : Int -> String -> ( Int, Config state (Node Expression) -> Node Expression -> Parser state (Node Expression) )
 infixLeft precedence symbol =
     Pratt.infixLeft precedence
         (Core.symbol symbol)
@@ -96,7 +96,7 @@ infixLeft precedence symbol =
         )
 
 
-infixNonAssociative : Int -> String -> Config state (Node Expression) -> ( Int, Node Expression -> Parser state (Node Expression) )
+infixNonAssociative : Int -> String -> ( Int, Config state (Node Expression) -> Node Expression -> Parser state (Node Expression) )
 infixNonAssociative precedence symbol =
     Pratt.infixLeft precedence
         (Core.symbol symbol)
@@ -107,7 +107,7 @@ infixNonAssociative precedence symbol =
         )
 
 
-infixRight : Int -> String -> Config state (Node Expression) -> ( Int, Node Expression -> Parser state (Node Expression) )
+infixRight : Int -> String -> ( Int, Config state (Node Expression) -> Node Expression -> Parser state (Node Expression) )
 infixRight precedence symbol =
     Pratt.infixRight precedence
         (Core.symbol symbol)
@@ -118,7 +118,7 @@ infixRight precedence symbol =
         )
 
 
-infixLeftSubtraction : Int -> Config State (Node Expression) -> ( Int, Node Expression -> Parser State (Node Expression) )
+infixLeftSubtraction : Int -> ( Int, Config State (Node Expression) -> Node Expression -> Parser State (Node Expression) )
 infixLeftSubtraction precedence =
     Pratt.infixLeft precedence
         (Core.succeed (\offset -> \source -> String.slice (offset - 1) offset source)
@@ -141,7 +141,7 @@ infixLeftSubtraction precedence =
         )
 
 
-recordAccess : Config State (Node Expression) -> ( Int, Node Expression -> Parser State (Node Expression) )
+recordAccess : ( Int, Config State (Node Expression) -> Node Expression -> Parser State (Node Expression) )
 recordAccess =
     Pratt.postfix 100
         recordAccessParser
@@ -170,7 +170,7 @@ recordAccessParser =
         |> Combine.fromCore
 
 
-functionCall : Pratt.Config State (Node Expression) -> ( Int, Node Expression -> Parser State (Node Expression) )
+functionCall : ( Int, Pratt.Config State (Node Expression) -> Node Expression -> Parser State (Node Expression) )
 functionCall =
     Pratt.infixLeftWithState 90
         Layout.positivelyIndented
