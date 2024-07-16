@@ -397,10 +397,15 @@ parens p =
 
 
 ignore : Parser state () -> Parser state a -> Parser state a
-ignore dropped target =
-    target
-        |> map (\a -> \() -> a)
-        |> keep dropped
+ignore (Parser dropped) (Parser target) =
+    Parser <|
+        \state ->
+            target state
+                |> Core.andThen
+                    (\( newState, a ) ->
+                        dropped newState
+                            |> Core.map (\( finalState, () ) -> ( finalState, a ))
+                    )
 
 
 ignoreEntirely : Core.Parser () -> Parser state a -> Parser state a
