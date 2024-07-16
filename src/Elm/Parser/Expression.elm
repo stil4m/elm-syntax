@@ -87,7 +87,7 @@ expression =
 infixLeft : Int -> String -> Config state (Node Expression) -> ( Int, Node Expression -> Parser state (Node Expression) )
 infixLeft precedence symbol =
     Pratt.infixLeft precedence
-        (Combine.symbol symbol)
+        (Core.symbol symbol)
         (\((Node { start } _) as left) ((Node { end } _) as right) ->
             Node
                 { start = start, end = end }
@@ -98,7 +98,7 @@ infixLeft precedence symbol =
 infixNonAssociative : Int -> String -> Config state (Node Expression) -> ( Int, Node Expression -> Parser state (Node Expression) )
 infixNonAssociative precedence symbol =
     Pratt.infixLeft precedence
-        (Combine.symbol symbol)
+        (Core.symbol symbol)
         (\((Node { start } _) as left) ((Node { end } _) as right) ->
             Node
                 { start = start, end = end }
@@ -109,7 +109,7 @@ infixNonAssociative precedence symbol =
 infixRight : Int -> String -> Config state (Node Expression) -> ( Int, Node Expression -> Parser state (Node Expression) )
 infixRight precedence symbol =
     Pratt.infixRight precedence
-        (Combine.symbol symbol)
+        (Core.symbol symbol)
         (\((Node { start } _) as left) ((Node { end } _) as right) ->
             Node
                 { start = start, end = end }
@@ -132,7 +132,6 @@ infixLeftSubtraction precedence =
                     else
                         minus
                 )
-            |> Combine.fromCore
         )
         (\((Node { start } _) as left) ((Node { end } _) as right) ->
             Node
@@ -172,7 +171,7 @@ recordAccessParser =
 
 functionCall : Pratt.Config State (Node Expression) -> ( Int, Node Expression -> Parser State (Node Expression) )
 functionCall =
-    Pratt.infixLeft 90
+    Pratt.infixLeftWithState 90
         Layout.positivelyIndented
         (\((Node { start } leftValue) as left) ((Node { end } _) as right) ->
             Node
@@ -548,8 +547,7 @@ recordAccessFunctionExpression =
     Core.succeed (\field -> RecordAccessFunction ("." ++ field))
         |. dot
         |= Tokens.functionName
-        |> Node.parserCore
-        |> Combine.fromCore
+        |> Node.parserFromCore
 
 
 tupledExpression : Config State (Node Expression) -> Parser State (Node Expression)

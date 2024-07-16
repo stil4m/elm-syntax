@@ -2,6 +2,7 @@ module Pratt exposing
     ( Config
     , expression
     , infixLeft
+    , infixLeftWithState
     , infixRight
     , literal
     , postfix
@@ -14,6 +15,7 @@ module Pratt exposing
 
 import Combine exposing (Parser, Step(..))
 import Elm.Parser.State exposing (State)
+import Parser as Core
 
 
 
@@ -363,9 +365,19 @@ The `Config` argument is passed automatically by the parser.
     run expression "5+4-3*2/1" --> Ok 3
 
 -}
-infixLeft : Int -> Parser state () -> (expr -> expr -> expr) -> Config state expr -> ( Int, expr -> Parser state expr )
+infixLeft : Int -> Core.Parser () -> (expr -> expr -> expr) -> Config state expr -> ( Int, expr -> Parser state expr )
 infixLeft precedence p apply config =
     infixHelp precedence precedence p apply config
+
+
+infixLeftWithState : Int -> Parser state () -> (expr -> expr -> expr) -> Config state expr -> ( Int, expr -> Parser state expr )
+infixLeftWithState precedence operator apply config =
+    ( precedence
+    , \left ->
+        Combine.succeed (\e -> apply left e)
+            |> Combine.ignore operator
+            |> Combine.keep (subExpression precedence config)
+    )
 
 
 {-| Build a parser for an _infix_ expression with a right-associative operator
@@ -392,19 +404,19 @@ The `Config` argument is passed automatically by the parser.
 expression with the _precedence_ of the infix operator minus 1.
 
 -}
-infixRight : Int -> Parser state () -> (expr -> expr -> expr) -> Config state expr -> ( Int, expr -> Parser state expr )
+infixRight : Int -> Core.Parser () -> (expr -> expr -> expr) -> Config state expr -> ( Int, expr -> Parser state expr )
 infixRight precedence p apply config =
     -- To get right associativity, we use (precedence - 1) for the
     -- right precedence.
     infixHelp precedence (precedence - 1) p apply config
 
 
-infixHelp : Int -> Int -> Parser state () -> (expr -> expr -> expr) -> Config state expr -> ( Int, expr -> Parser state expr )
+infixHelp : Int -> Int -> Core.Parser () -> (expr -> expr -> expr) -> Config state expr -> ( Int, expr -> Parser state expr )
 infixHelp leftPrecedence rightPrecedence operator apply config =
     ( leftPrecedence
     , \left ->
         Combine.succeed (\e -> apply left e)
-            |> Combine.ignore operator
+            |> Combine.ignoreEntirely operator
             |> Combine.keep (subExpression rightPrecedence config)
     )
 
