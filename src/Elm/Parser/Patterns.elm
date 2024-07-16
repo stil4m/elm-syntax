@@ -6,7 +6,7 @@ import Elm.Parser.Layout as Layout
 import Elm.Parser.Node as Node
 import Elm.Parser.Numbers
 import Elm.Parser.State exposing (State)
-import Elm.Parser.Tokens exposing (characterLiteral, functionName, functionNameCore, stringLiteral)
+import Elm.Parser.Tokens as Tokens
 import Elm.Syntax.Node as Node exposing (Node(..))
 import Elm.Syntax.Pattern exposing (Pattern(..), QualifiedNameRef)
 import Parser as Core exposing ((|.))
@@ -20,7 +20,7 @@ tryToCompose x =
                 [ Combine.succeed (\y -> Node.combine AsPattern x y)
                     |> Combine.ignore (Combine.fromCore (Core.keyword "as"))
                     |> Combine.ignore Layout.layout
-                    |> Combine.keep (Node.parser functionName)
+                    |> Combine.keep (Node.parser Tokens.functionName)
                 , Combine.succeed (\y -> Node.combine UnConsPattern x y)
                     |> Combine.ignore (Combine.fromCore (Core.symbol "::"))
                     |> Combine.ignore (Combine.maybeIgnore Layout.layout)
@@ -56,7 +56,7 @@ parensPattern =
 
 variablePart : Parser state (Node Pattern)
 variablePart =
-    Node.parserCore (Core.map VarPattern functionNameCore)
+    Node.parserCore (Core.map VarPattern Tokens.functionNameCore)
         |> Combine.fromCore
 
 
@@ -68,7 +68,7 @@ numberPart =
 
 charPattern : Parser state (Node Pattern)
 charPattern =
-    characterLiteral
+    Tokens.characterLiteral
         |> Core.map CharPattern
         |> Node.parserCore
         |> Combine.fromCore
@@ -137,7 +137,7 @@ unitPattern =
 
 stringPattern : Parser state (Node Pattern)
 stringPattern =
-    stringLiteral
+    Tokens.stringLiteral
         |> Core.map StringPattern
         |> Node.parserCore
         |> Combine.fromCore
@@ -171,5 +171,5 @@ recordPattern =
             Combine.between
                 (Combine.symbol "{" |> Combine.continueWith (Combine.maybeIgnore Layout.layout))
                 (Combine.symbol "}")
-                (Combine.sepBy (Combine.symbol ",") (Layout.maybeAroundBothSides (Node.parserFromCore functionNameCore)))
+                (Combine.sepBy (Combine.symbol ",") (Layout.maybeAroundBothSides (Node.parserFromCore Tokens.functionNameCore)))
         )

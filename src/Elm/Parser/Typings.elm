@@ -4,7 +4,7 @@ import Combine exposing (Parser)
 import Elm.Parser.Layout as Layout
 import Elm.Parser.Node as Node
 import Elm.Parser.State exposing (State)
-import Elm.Parser.Tokens exposing (functionNameCore, typeName)
+import Elm.Parser.Tokens as Tokens
 import Elm.Parser.TypeAnnotation exposing (typeAnnotation, typeAnnotationNonGreedy)
 import Elm.Syntax.Declaration as Declaration
 import Elm.Syntax.Documentation exposing (Documentation)
@@ -49,7 +49,7 @@ typeDefinition maybeDoc =
                         )
                         |> Combine.ignore (Combine.symbol "alias")
                         |> Combine.ignore Layout.layout
-                        |> Combine.keep (Node.parserFromCore typeName)
+                        |> Combine.keep (Node.parserFromCore Tokens.typeName)
                         |> Combine.ignore (Combine.maybeIgnore Layout.layout)
                         |> Combine.keep genericList
                         |> Combine.ignore (Combine.symbol "=")
@@ -81,7 +81,7 @@ typeDefinition maybeDoc =
                                             }
                                         )
                         )
-                        |> Combine.keep (Node.parserFromCore typeName)
+                        |> Combine.keep (Node.parserFromCore Tokens.typeName)
                         |> Combine.ignore (Combine.maybeIgnore Layout.layout)
                         |> Combine.keep genericList
                         |> Combine.ignore (Combine.maybeIgnore Layout.layout)
@@ -101,7 +101,7 @@ valueConstructors =
 
 valueConstructor : Parser State (Node ValueConstructor)
 valueConstructor =
-    Node.parserFromCore typeName
+    Node.parserFromCore Tokens.typeName
         |> Combine.andThen
             (\((Node range _) as tnn) ->
                 let
@@ -138,7 +138,7 @@ valueConstructor =
 
 genericList : Parser State (List (Node String))
 genericList =
-    Combine.many (Node.parserFromCore functionNameCore |> Combine.ignore (Combine.maybeIgnore Layout.layout))
+    Combine.many (Node.parserFromCore Tokens.functionNameCore |> Combine.ignore (Combine.maybeIgnore Layout.layout))
 
 
 typePrefix : Parser State ()

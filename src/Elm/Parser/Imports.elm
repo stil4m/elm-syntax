@@ -6,7 +6,7 @@ import Elm.Parser.Expose exposing (exposeDefinition)
 import Elm.Parser.Layout as Layout
 import Elm.Parser.Node as Node
 import Elm.Parser.State exposing (State)
-import Elm.Parser.Tokens exposing (asToken, importToken)
+import Elm.Parser.Tokens as Tokens
 import Elm.Syntax.Import exposing (Import)
 import Elm.Syntax.ModuleName exposing (ModuleName)
 import Elm.Syntax.Node as Node exposing (Node(..))
@@ -18,7 +18,7 @@ importDefinition =
     let
         asDefinition : Parser State (Node ModuleName)
         asDefinition =
-            asToken
+            Tokens.asToken
                 |> Combine.continueWith Layout.layout
                 |> Combine.continueWith moduleName
 
@@ -43,7 +43,7 @@ importDefinition =
     in
     Combine.succeed (\start -> \mod -> parseAsDefinition start mod)
         |> Combine.keep Combine.location
-        |> Combine.ignore importToken
+        |> Combine.ignore Tokens.importToken
         |> Combine.ignore Layout.layout
         |> Combine.keep moduleName
         |> Combine.ignore Layout.optimisticLayout

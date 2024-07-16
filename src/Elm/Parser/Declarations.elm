@@ -7,7 +7,7 @@ import Elm.Parser.Layout as Layout
 import Elm.Parser.Node as Node
 import Elm.Parser.Patterns exposing (pattern)
 import Elm.Parser.State as State exposing (State)
-import Elm.Parser.Tokens exposing (functionName, portToken, prefixOperatorToken)
+import Elm.Parser.Tokens as Tokens
 import Elm.Parser.TypeAnnotation exposing (typeAnnotation)
 import Elm.Parser.Typings exposing (typeDefinition)
 import Elm.Syntax.Declaration as Declaration exposing (Declaration)
@@ -45,7 +45,7 @@ maybeDocumentation =
 
 function : Maybe (Node Documentation) -> Parser State (Node Declaration)
 function maybeDoc =
-    Node.parser functionName
+    Node.parser Tokens.functionName
         |> Combine.ignore (Combine.maybeIgnore Layout.layout)
         |> Combine.andThen functionWithNameNode
         |> Combine.map
@@ -88,7 +88,7 @@ functionWithNameNode pointer =
                 |> Combine.ignore (Combine.maybeIgnore Layout.layoutStrict)
                 |> Combine.andThen
                     (\sig ->
-                        Node.parser functionName
+                        Node.parser Tokens.functionName
                             |> Combine.andThen (\fnName -> failIfDifferentFrom varPointer fnName)
                             |> Combine.ignore (Combine.maybeIgnore Layout.layout)
                             |> Combine.andThen (\body -> functionImplementationFromVarPointer (Just sig) body)
@@ -107,7 +107,7 @@ functionWithNameNode pointer =
 signature : Parser State Signature
 signature =
     Combine.succeed Signature
-        |> Combine.keep (Node.parser functionName)
+        |> Combine.keep (Node.parser Tokens.functionName)
         |> Combine.ignore (Layout.maybeAroundBothSides (Combine.symbol ":"))
         |> Combine.ignore (Combine.maybeIgnore Layout.layout)
         |> Combine.keep typeAnnotation
@@ -126,7 +126,7 @@ infixDeclaration =
         |> Combine.ignore Layout.layout
         |> Combine.ignore (Combine.symbol "=")
         |> Combine.ignore Layout.layout
-        |> Combine.keep (Node.parser functionName)
+        |> Combine.keep (Node.parser Tokens.functionName)
         |> Combine.map Declaration.InfixDeclaration
         |> Node.parser
 
@@ -135,7 +135,7 @@ operatorWithParens : Parser state (Node String)
 operatorWithParens =
     Core.succeed identity
         |. Core.symbol "("
-        |= prefixOperatorToken
+        |= Tokens.prefixOperatorToken
         |. Core.symbol ")"
         |> Node.parserCore
         |> Combine.fromCore
@@ -172,6 +172,6 @@ portDeclaration maybeDoc =
                     Combine.modifyState (State.addComment doc)
             )
         |> Combine.keep Combine.location
-        |> Combine.ignore portToken
+        |> Combine.ignore Tokens.portToken
         |> Combine.ignore Layout.layout
         |> Combine.keep signature

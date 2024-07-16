@@ -6,7 +6,7 @@ import Elm.Parser.Expose exposing (exposeDefinition)
 import Elm.Parser.Layout as Layout
 import Elm.Parser.Node as Node
 import Elm.Parser.State exposing (State)
-import Elm.Parser.Tokens exposing (functionName, moduleToken, portToken, typeName)
+import Elm.Parser.Tokens as Tokens
 import Elm.Syntax.Exposing exposing (Exposing)
 import Elm.Syntax.Module exposing (DefaultModuleData, Module(..))
 import Elm.Syntax.ModuleName exposing (ModuleName)
@@ -26,9 +26,9 @@ moduleDefinition =
 effectWhereClause : Parser State ( String, Node String )
 effectWhereClause =
     Combine.succeed (\fnName -> \typeName_ -> ( fnName, typeName_ ))
-        |> Combine.keep functionName
+        |> Combine.keep Tokens.functionName
         |> Combine.ignore (Layout.maybeAroundBothSides (Combine.symbol "="))
-        |> Combine.keep (Node.parserFromCore typeName)
+        |> Combine.keep (Node.parserFromCore Tokens.typeName)
 
 
 whereBlock : Parser State { command : Maybe (Node String), subscription : Maybe (Node String) }
@@ -69,7 +69,7 @@ effectModuleDefinition =
     Combine.succeed (\name -> \whereClauses -> \exp -> createEffectModule name whereClauses exp)
         |> Combine.ignore (Combine.symbol "effect")
         |> Combine.ignore Layout.layout
-        |> Combine.ignore moduleToken
+        |> Combine.ignore Tokens.moduleToken
         |> Combine.ignore Layout.layout
         |> Combine.keep moduleName
         |> Combine.ignore Layout.layout
@@ -81,7 +81,7 @@ effectModuleDefinition =
 normalModuleDefinition : Parser State Module
 normalModuleDefinition =
     Combine.succeed (\moduleName -> \exposingList -> NormalModule (DefaultModuleData moduleName exposingList))
-        |> Combine.ignore moduleToken
+        |> Combine.ignore Tokens.moduleToken
         |> Combine.ignore Layout.layout
         |> Combine.keep moduleName
         |> Combine.ignore Layout.layout
@@ -91,9 +91,9 @@ normalModuleDefinition =
 portModuleDefinition : Parser State Module
 portModuleDefinition =
     Combine.succeed (\moduleName -> \exposingList -> PortModule (DefaultModuleData moduleName exposingList))
-        |> Combine.ignore portToken
+        |> Combine.ignore Tokens.portToken
         |> Combine.ignore Layout.layout
-        |> Combine.ignore moduleToken
+        |> Combine.ignore Tokens.moduleToken
         |> Combine.ignore Layout.layout
         |> Combine.keep moduleName
         |> Combine.ignore Layout.layout
