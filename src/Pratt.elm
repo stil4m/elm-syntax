@@ -1,5 +1,6 @@
 module Pratt exposing
     ( Config
+    , c
     , expression
     , infixLeft
     , infixLeftWithState
@@ -137,6 +138,10 @@ expression :
     -> Parser State expr
 expression config =
     subExpression 0 (Config config)
+
+
+c =
+    Config
 
 
 {-| Build an expression parser based on the _precedence_ and

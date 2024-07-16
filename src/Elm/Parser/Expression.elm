@@ -21,68 +21,75 @@ import Parser.Extra
 import Pratt exposing (Config)
 
 
+config :
+    { oneOf : List (Config State (Node Expression) -> Parser State (Node Expression))
+    , andThenOneOf : List ( Int, Config State (Node Expression) -> Node Expression -> Parser State (Node Expression) )
+    , spaces : Parser State ()
+    }
+config =
+    { oneOf =
+        [ referenceExpression
+            |> Pratt.literal
+        , literalExpression
+            |> Pratt.literal
+        , numberExpression
+            |> Pratt.literal
+        , tupledExpression
+        , glslExpression
+            |> Pratt.literal
+        , listExpression
+        , recordExpression
+        , caseExpression
+        , lambdaExpression
+        , letExpression
+        , ifBlockExpression
+        , recordAccessFunctionExpression
+            |> Pratt.literal
+        , negationOperation
+        , charLiteralExpression
+            |> Pratt.literal
+        ]
+    , andThenOneOf =
+        -- TODO Add tests for all operators
+        -- TODO Report a syntax error when encountering multiple of the comparison operators
+        -- `a < b < c` is not valid Elm syntax
+        [ recordAccess
+        , infixLeft 1 "|>"
+        , infixRight 5 "++"
+        , infixRight 1 "<|"
+        , infixRight 9 ">>"
+        , infixNonAssociative 4 "=="
+        , infixLeft 7 "*"
+        , infixRight 5 "::"
+        , infixLeft 6 "+"
+        , infixLeftSubtraction 6
+        , infixLeft 6 "|."
+        , infixRight 3 "&&"
+        , infixLeft 5 "|="
+        , infixLeft 9 "<<"
+        , infixNonAssociative 4 "/="
+        , infixLeft 7 "//"
+        , infixLeft 7 "/"
+        , infixRight 7 "</>"
+        , infixRight 2 "||"
+        , infixNonAssociative 4 "<="
+        , infixNonAssociative 4 ">="
+        , infixNonAssociative 4 ">"
+        , infixLeft 8 "<?>"
+        , infixNonAssociative 4 "<"
+        , infixRight 8 "^"
+
+        -- function application must be last
+        -- TODO validate function application arguments (issue #209)
+        , functionCall
+        ]
+    , spaces = Layout.optimisticLayout
+    }
+
+
 expression : Parser State (Node Expression)
 expression =
-    Pratt.expression
-        -- TODO make sure that operators and expressions are indented properly
-        { oneOf =
-            [ referenceExpression
-                |> Pratt.literal
-            , literalExpression
-                |> Pratt.literal
-            , numberExpression
-                |> Pratt.literal
-            , tupledExpression
-            , glslExpression
-                |> Pratt.literal
-            , listExpression
-            , recordExpression
-            , caseExpression
-            , lambdaExpression
-            , letExpression
-            , ifBlockExpression
-            , recordAccessFunctionExpression
-                |> Pratt.literal
-            , negationOperation
-            , charLiteralExpression
-                |> Pratt.literal
-            ]
-        , andThenOneOf =
-            -- TODO Add tests for all operators
-            -- TODO Report a syntax error when encountering multiple of the comparison operators
-            -- `a < b < c` is not valid Elm syntax
-            [ recordAccess
-            , infixLeft 1 "|>"
-            , infixRight 5 "++"
-            , infixRight 1 "<|"
-            , infixRight 9 ">>"
-            , infixNonAssociative 4 "=="
-            , infixLeft 7 "*"
-            , infixRight 5 "::"
-            , infixLeft 6 "+"
-            , infixLeftSubtraction 6
-            , infixLeft 6 "|."
-            , infixRight 3 "&&"
-            , infixLeft 5 "|="
-            , infixLeft 9 "<<"
-            , infixNonAssociative 4 "/="
-            , infixLeft 7 "//"
-            , infixLeft 7 "/"
-            , infixRight 7 "</>"
-            , infixRight 2 "||"
-            , infixNonAssociative 4 "<="
-            , infixNonAssociative 4 ">="
-            , infixNonAssociative 4 ">"
-            , infixLeft 8 "<?>"
-            , infixNonAssociative 4 "<"
-            , infixRight 8 "^"
-
-            -- function application must be last
-            -- TODO validate function application arguments (issue #209)
-            , functionCall
-            ]
-        , spaces = Layout.optimisticLayout
-        }
+    Pratt.expression config
 
 
 infixLeft : Int -> String -> ( Int, Config state (Node Expression) -> Node Expression -> Parser state (Node Expression) )
@@ -206,8 +213,8 @@ glslExpression =
         |> Combine.fromCore
 
 
-listExpression : Config State (Node Expression) -> Parser State (Node Expression)
-listExpression config =
+listExpression : Parser State (Node Expression)
+listExpression =
     Combine.succeed ListExpr
         |> Combine.ignoreEntirely squareStart
         |> Combine.ignore (Combine.maybeIgnore Layout.layout)
@@ -220,8 +227,8 @@ listExpression config =
 -- recordExpression
 
 
-recordExpression : Config State (Node Expression) -> Parser State (Node Expression)
-recordExpression config =
+recordExpression : Parser State (Node Expression)
+recordExpression =
     curlyStart
         |> Combine.ignoreFromCore (Combine.maybeIgnore Layout.layout)
         |> Combine.continueWith
@@ -229,14 +236,14 @@ recordExpression config =
                 [ curlyEnd
                     |> Core.map (\() -> RecordExpr [])
                     |> Combine.fromCore
-                , recordContents config
+                , recordContents
                 ]
             )
         |> Node.parser
 
 
-recordContents : Config State (Node Expression) -> Parser State Expression
-recordContents config =
+recordContents : Parser State Expression
+recordContents =
     Node.parserCore Tokens.functionName
         |> Combine.ignoreFromCore (Combine.maybeIgnore Layout.layout)
         |> Combine.andThen
@@ -271,19 +278,19 @@ recordContents config =
             )
 
 
-recordUpdateSyntaxParser : Config State (Node Expression) -> Node String -> Parser State Expression
-recordUpdateSyntaxParser config fname =
+recordUpdateSyntaxParser : Node String -> Parser State Expression
+recordUpdateSyntaxParser fname =
     Combine.succeed (\e -> RecordUpdateExpression fname e)
         |> Combine.ignoreEntirely pipe
         |> Combine.ignore (Combine.maybeIgnore Layout.layout)
-        |> Combine.keep (recordFields config)
+        |> Combine.keep recordFields
         |> Combine.ignoreEntirely curlyEnd
 
 
-recordFields : Config State (Node Expression) -> Parser State (List (Node RecordSetter))
-recordFields config =
+recordFields : Parser State (List (Node RecordSetter))
+recordFields =
     Combine.succeed (\first -> \rest -> first :: rest)
-        |> Combine.keep (recordField config)
+        |> Combine.keep recordField
         |> Combine.ignore (Combine.maybeIgnore Layout.layout)
         |> Combine.keep
             (Combine.many
@@ -295,8 +302,8 @@ recordFields config =
             )
 
 
-recordField : Config State (Node Expression) -> Parser State (Node RecordSetter)
-recordField config =
+recordField : Parser State (Node RecordSetter)
+recordField =
     Combine.succeed (\fnName -> \expr -> ( fnName, expr ))
         |> Combine.keep recordFieldWithoutValue
         |> Combine.keep (Pratt.subExpression 0 config)
@@ -333,8 +340,8 @@ charLiteralExpression =
 -- lambda
 
 
-lambdaExpression : Config State (Node Expression) -> Parser State (Node Expression)
-lambdaExpression config =
+lambdaExpression : Parser State (Node Expression)
+lambdaExpression =
     Combine.succeed
         (\start ->
             \args ->
@@ -356,8 +363,8 @@ lambdaExpression config =
 -- Case Expression
 
 
-caseExpression : Config State (Node Expression) -> Parser State (Node Expression)
-caseExpression config =
+caseExpression : Parser State (Node Expression)
+caseExpression =
     Combine.succeed
         (\start ->
             \caseBlock_ ->
@@ -375,13 +382,13 @@ caseExpression config =
         |> Combine.keep (withIndentedState (caseStatements config))
 
 
-caseStatements : Config State (Node Expression) -> Parser State ( Location, Cases )
-caseStatements config =
+caseStatements : Parser State ( Location, Cases )
+caseStatements =
     Combine.many1WithEndLocationForLastElement (\( _, Node range _ ) -> range) (caseStatement config)
 
 
-caseStatement : Config State (Node Expression) -> Parser State Case
-caseStatement config =
+caseStatement : Parser State Case
+caseStatement =
     Combine.succeed (\pattern -> \expr -> ( pattern, expr ))
         |> Combine.ignore Layout.onTopIndentation
         |> Combine.keep Patterns.pattern
@@ -395,8 +402,8 @@ caseStatement config =
 -- Let Expression
 
 
-letExpression : Config State (Node Expression) -> Parser State (Node Expression)
-letExpression config =
+letExpression : Parser State (Node Expression)
+letExpression =
     withIndentedState
         (Combine.succeed
             (\start ->
@@ -415,13 +422,13 @@ letExpression config =
         |> Combine.keep (Pratt.subExpression 0 config)
 
 
-letDeclarations : Config State (Node Expression) -> Parser State (List (Node LetDeclaration))
-letDeclarations config =
+letDeclarations : Parser State (List (Node LetDeclaration))
+letDeclarations =
     Combine.many1 (blockElement config)
 
 
-blockElement : Config State (Node Expression) -> Parser State (Node LetDeclaration)
-blockElement config =
+blockElement : Parser State (Node LetDeclaration)
+blockElement =
     Layout.onTopIndentation
         |> Combine.continueWith Patterns.pattern
         |> Combine.andThen
@@ -436,8 +443,8 @@ blockElement config =
             )
 
 
-letDestructuringDeclarationWithPattern : Config State (Node Expression) -> Node Pattern -> Parser State (Node LetDeclaration)
-letDestructuringDeclarationWithPattern config ((Node { start } _) as pattern) =
+letDestructuringDeclarationWithPattern : Node Pattern -> Parser State (Node LetDeclaration)
+letDestructuringDeclarationWithPattern ((Node { start } _) as pattern) =
     Combine.succeed
         (\((Node { end } _) as expr) ->
             Node { start = start, end = end } (LetDestructuring pattern expr)
@@ -452,8 +459,8 @@ numberExpression =
         |> Combine.fromCore
 
 
-ifBlockExpression : Config State (Node Expression) -> Parser State (Node Expression)
-ifBlockExpression config =
+ifBlockExpression : Parser State (Node Expression)
+ifBlockExpression =
     Combine.succeed
         (\start ->
             \condition ->
@@ -473,7 +480,7 @@ ifBlockExpression config =
         |> Combine.keep (Pratt.subExpression 0 config)
 
 
-negationOperation : Config state (Node Expression) -> Parser state (Node Expression)
+negationOperation : Parser state (Node Expression)
 negationOperation =
     Pratt.prefix 95
         minusNotFollowedBySpace
@@ -545,8 +552,8 @@ recordAccessFunctionExpression =
         |> Node.parserFromCore
 
 
-tupledExpression : Config State (Node Expression) -> Parser State (Node Expression)
-tupledExpression config =
+tupledExpression : Parser State (Node Expression)
+tupledExpression =
     let
         commaSep : Parser State (List (Node Expression))
         commaSep =
@@ -602,16 +609,16 @@ withIndentedState p =
         )
 
 
-functionWithNameNode : Config State (Node Expression) -> Node String -> Parser State Function
-functionWithNameNode config pointer =
+functionWithNameNode : Node String -> Parser State Function
+functionWithNameNode pointer =
     Combine.oneOf
-        [ functionWithSignature config pointer
-        , functionWithoutSignature config pointer
+        [ functionWithSignature pointer
+        , functionWithoutSignature pointer
         ]
 
 
-functionWithSignature : Config State (Node Expression) -> Node String -> Parser State Function
-functionWithSignature config varPointer =
+functionWithSignature : Node String -> Parser State Function
+functionWithSignature varPointer =
     functionSignatureFromVarPointer varPointer
         |> Combine.ignore (Combine.maybeIgnore Layout.layoutStrict)
         |> Combine.andThen
@@ -619,19 +626,19 @@ functionWithSignature config varPointer =
                 Node.parserFromCore Tokens.functionName
                     |> Combine.andThen (\fnName -> failIfDifferentFrom varPointer fnName)
                     |> Combine.ignore (Combine.maybeIgnore Layout.layout)
-                    |> Combine.andThen (\newPointer -> functionImplementationFromVarPointer config newPointer)
+                    |> Combine.andThen (\newPointer -> functionImplementationFromVarPointer newPointer)
                     |> Combine.map (\decl -> fromParts sig decl)
             )
 
 
-functionWithoutSignature : Config State (Node Expression) -> Node String -> Parser State Function
-functionWithoutSignature config varPointer =
-    functionImplementationFromVarPointer config varPointer
+functionWithoutSignature : Node String -> Parser State Function
+functionWithoutSignature varPointer =
+    functionImplementationFromVarPointer varPointer
         |> Combine.map (\decl -> Function Nothing Nothing decl)
 
 
-functionImplementationFromVarPointer : Config State (Node Expression) -> Node String -> Parser State (Node FunctionImplementation)
-functionImplementationFromVarPointer config ((Node { start } _) as varPointer) =
+functionImplementationFromVarPointer : Node String -> Parser State (Node FunctionImplementation)
+functionImplementationFromVarPointer ((Node { start } _) as varPointer) =
     Combine.succeed
         (\args ->
             \((Node { end } _) as expr) ->
