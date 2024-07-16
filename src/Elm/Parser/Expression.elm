@@ -212,12 +212,15 @@ glslExpression =
 
 listExpression : Parser State (Node Expression)
 listExpression =
-    Combine.succeed ListExpr
-        |> Combine.ignoreEntirely squareStart
-        |> Combine.ignore (Combine.maybeIgnore Layout.layout)
-        |> Combine.keep (Combine.sepBy "," (Pratt.subExpression 0 config))
-        |> Combine.ignoreEntirely squareEnd
-        |> Node.parser
+    Combine.lazy
+        (\() ->
+            Combine.succeed ListExpr
+                |> Combine.ignoreEntirely squareStart
+                |> Combine.ignore (Combine.maybeIgnore Layout.layout)
+                |> Combine.keep (Combine.sepBy "," (Pratt.subExpression 0 config))
+                |> Combine.ignoreEntirely squareEnd
+                |> Node.parser
+        )
 
 
 
@@ -339,21 +342,24 @@ charLiteralExpression =
 
 lambdaExpression : Parser State (Node Expression)
 lambdaExpression =
-    Combine.succeed
-        (\start ->
-            \args ->
-                \((Node { end } _) as expr) ->
-                    Lambda args expr
-                        |> LambdaExpression
-                        |> Node { start = start, end = end }
+    Combine.lazy
+        (\() ->
+            Combine.succeed
+                (\start ->
+                    \args ->
+                        \((Node { end } _) as expr) ->
+                            Lambda args expr
+                                |> LambdaExpression
+                                |> Node { start = start, end = end }
+                )
+                |> Combine.keepFromCore Parser.Extra.location
+                |> Combine.ignoreEntirely backSlash
+                |> Combine.ignore (Combine.maybeIgnore Layout.layout)
+                |> Combine.keep (Combine.sepBy1WithState (Combine.maybeIgnore Layout.layout) Patterns.pattern)
+                |> Combine.ignore (Combine.maybeIgnore Layout.layout)
+                |> Combine.ignoreEntirely arrowRight
+                |> Combine.keep (Pratt.subExpression 0 config)
         )
-        |> Combine.keepFromCore Parser.Extra.location
-        |> Combine.ignoreEntirely backSlash
-        |> Combine.ignore (Combine.maybeIgnore Layout.layout)
-        |> Combine.keep (Combine.sepBy1WithState (Combine.maybeIgnore Layout.layout) Patterns.pattern)
-        |> Combine.ignore (Combine.maybeIgnore Layout.layout)
-        |> Combine.ignoreEntirely arrowRight
-        |> Combine.keep (Pratt.subExpression 0 config)
 
 
 
@@ -362,21 +368,24 @@ lambdaExpression =
 
 caseExpression : Parser State (Node Expression)
 caseExpression =
-    Combine.succeed
-        (\start ->
-            \caseBlock_ ->
-                \( end, cases ) ->
-                    Node { start = start, end = end }
-                        (CaseExpression (CaseBlock caseBlock_ cases))
+    Combine.lazy
+        (\() ->
+            Combine.succeed
+                (\start ->
+                    \caseBlock_ ->
+                        \( end, cases ) ->
+                            Node { start = start, end = end }
+                                (CaseExpression (CaseBlock caseBlock_ cases))
+                )
+                |> Combine.keepFromCore Parser.Extra.location
+                |> Combine.ignoreEntirely Tokens.caseToken
+                |> Combine.ignore Layout.layout
+                |> Combine.keep (Pratt.subExpression 0 config)
+                |> Combine.ignore Layout.positivelyIndented
+                |> Combine.ignoreEntirely Tokens.ofToken
+                |> Combine.ignore Layout.layout
+                |> Combine.keep (withIndentedState caseStatements)
         )
-        |> Combine.keepFromCore Parser.Extra.location
-        |> Combine.ignoreEntirely Tokens.caseToken
-        |> Combine.ignore Layout.layout
-        |> Combine.keep (Pratt.subExpression 0 config)
-        |> Combine.ignore Layout.positivelyIndented
-        |> Combine.ignoreEntirely Tokens.ofToken
-        |> Combine.ignore Layout.layout
-        |> Combine.keep (withIndentedState caseStatements)
 
 
 caseStatements : Parser State ( Location, Cases )
@@ -401,22 +410,25 @@ caseStatement =
 
 letExpression : Parser State (Node Expression)
 letExpression =
-    withIndentedState
-        (Combine.succeed
-            (\start ->
-                \declarations ->
-                    \((Node { end } _) as expr) ->
-                        Node { start = start, end = end }
-                            (LetExpression (LetBlock declarations expr))
-            )
-            |> Combine.keepFromCore Parser.Extra.location
-            |> Combine.ignoreEntirely Tokens.letToken
-            |> Combine.ignore Layout.layout
-            |> Combine.keep (withIndentedState letDeclarations)
-            |> Combine.ignore Layout.optimisticLayout
-            |> Combine.ignoreEntirely Tokens.inToken
+    Combine.lazy
+        (\() ->
+            withIndentedState
+                (Combine.succeed
+                    (\start ->
+                        \declarations ->
+                            \((Node { end } _) as expr) ->
+                                Node { start = start, end = end }
+                                    (LetExpression (LetBlock declarations expr))
+                    )
+                    |> Combine.keepFromCore Parser.Extra.location
+                    |> Combine.ignoreEntirely Tokens.letToken
+                    |> Combine.ignore Layout.layout
+                    |> Combine.keep (withIndentedState letDeclarations)
+                    |> Combine.ignore Layout.optimisticLayout
+                    |> Combine.ignoreEntirely Tokens.inToken
+                )
+                |> Combine.keep (Pratt.subExpression 0 config)
         )
-        |> Combine.keep (Pratt.subExpression 0 config)
 
 
 letDeclarations : Parser State (List (Node LetDeclaration))
@@ -458,33 +470,40 @@ numberExpression =
 
 ifBlockExpression : Parser State (Node Expression)
 ifBlockExpression =
-    Combine.succeed
-        (\start ->
-            \condition ->
-                \ifTrue ->
-                    \((Node { end } _) as ifFalse) ->
-                        Node
-                            { start = start, end = end }
-                            (IfBlock condition ifTrue ifFalse)
+    Combine.lazy
+        (\() ->
+            Combine.succeed
+                (\start ->
+                    \condition ->
+                        \ifTrue ->
+                            \((Node { end } _) as ifFalse) ->
+                                Node
+                                    { start = start, end = end }
+                                    (IfBlock condition ifTrue ifFalse)
+                )
+                |> Combine.keepFromCore Parser.Extra.location
+                |> Combine.ignoreEntirely Tokens.ifToken
+                |> Combine.keep (Pratt.subExpression 0 config)
+                |> Combine.ignoreEntirely Tokens.thenToken
+                |> Combine.keep (Pratt.subExpression 0 config)
+                |> Combine.ignoreEntirely Tokens.elseToken
+                |> Combine.ignore Layout.layout
+                |> Combine.keep (Pratt.subExpression 0 config)
         )
-        |> Combine.keepFromCore Parser.Extra.location
-        |> Combine.ignoreEntirely Tokens.ifToken
-        |> Combine.keep (Pratt.subExpression 0 config)
-        |> Combine.ignoreEntirely Tokens.thenToken
-        |> Combine.keep (Pratt.subExpression 0 config)
-        |> Combine.ignoreEntirely Tokens.elseToken
-        |> Combine.ignore Layout.layout
-        |> Combine.keep (Pratt.subExpression 0 config)
 
 
-negationOperation : Parser state (Node Expression)
+negationOperation : Parser State (Node Expression)
 negationOperation =
-    Pratt.prefix 95
-        minusNotFollowedBySpace
-        (\((Node { start, end } _) as subExpr) ->
-            Node
-                { start = { row = start.row, column = start.column - 1 }, end = end }
-                (Negation subExpr)
+    Combine.lazy
+        (\() ->
+            Pratt.prefix 95
+                minusNotFollowedBySpace
+                (\((Node { start, end } _) as subExpr) ->
+                    Node
+                        { start = { row = start.row, column = start.column - 1 }, end = end }
+                        (Negation subExpr)
+                )
+                config
         )
 
 
@@ -551,29 +570,32 @@ recordAccessFunctionExpression =
 
 tupledExpression : Parser State (Node Expression)
 tupledExpression =
-    let
-        commaSep : Parser State (List (Node Expression))
-        commaSep =
-            Combine.many
-                (comma
-                    |> Combine.continueFromCore (Pratt.subExpression 0 config)
-                )
+    Combine.lazy
+        (\() ->
+            let
+                commaSep : Parser State (List (Node Expression))
+                commaSep =
+                    Combine.many
+                        (comma
+                            |> Combine.continueFromCore (Pratt.subExpression 0 config)
+                        )
 
-        nested : Parser State Expression
-        nested =
-            Combine.succeed asExpression
-                |> Combine.keep (Pratt.subExpression 0 config)
-                |> Combine.keep commaSep
-    in
-    parensStart
-        |> Combine.continueFromCore
-            (Combine.oneOf
-                [ parensEnd |> Core.map (always UnitExpr) |> Combine.fromCore
-                , closingPrefixOperator
-                , nested |> Combine.ignoreEntirely parensEnd
-                ]
-            )
-        |> Node.parser
+                nested : Parser State Expression
+                nested =
+                    Combine.succeed asExpression
+                        |> Combine.keep (Pratt.subExpression 0 config)
+                        |> Combine.keep commaSep
+            in
+            parensStart
+                |> Combine.continueFromCore
+                    (Combine.oneOf
+                        [ parensEnd |> Core.map (always UnitExpr) |> Combine.fromCore
+                        , closingPrefixOperator
+                        , nested |> Combine.ignoreEntirely parensEnd
+                        ]
+                    )
+                |> Node.parser
+        )
 
 
 closingPrefixOperator : Parser state Expression

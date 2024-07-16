@@ -27,7 +27,7 @@ import Parser as Core
 -}
 type Config state expr
     = Config
-        { oneOf : List (Config state expr -> Parser state expr)
+        { oneOf : List (Parser state expr)
         , andThenOneOf : List ( Int, Config state expr -> expr -> Parser state expr )
         , spaces : Parser state ()
         }
@@ -137,7 +137,7 @@ expression config =
     subExpression 0 config
 
 
-c : { oneOf : List (Config state expr -> Parser state expr), andThenOneOf : List ( Int, Config state expr -> expr -> Parser state expr ), spaces : Parser state () } -> Config state expr
+c : { oneOf : List (Parser state expr), andThenOneOf : List ( Int, Config state expr -> expr -> Parser state expr ), spaces : Parser state () } -> Config state expr
 c =
     Config
 
@@ -199,7 +199,7 @@ subExpression currentPrecedence ((Config conf) as config) =
         |> Combine.continueWith
             (Combine.lazy
                 (\() ->
-                    Combine.oneOf <| List.map (\e -> e config) conf.oneOf
+                    Combine.oneOf conf.oneOf
                 )
             )
         |> Combine.andThen
@@ -286,9 +286,9 @@ you could have a negation _prefix_ parser like `prefix 3 (-) Neg` declared
 before the `literal digits` and let `digits` only handle positive numbers.
 
 -}
-literal : Parser state expr -> Config state expr -> Parser state expr
+literal : Parser state expr -> Parser state expr
 literal =
-    always
+    identity
 
 
 {-| Build a parser for a _prefix_ expression with a given _precedence_.
