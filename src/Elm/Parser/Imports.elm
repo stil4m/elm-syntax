@@ -11,6 +11,7 @@ import Elm.Syntax.Import exposing (Import)
 import Elm.Syntax.ModuleName exposing (ModuleName)
 import Elm.Syntax.Node as Node exposing (Node(..))
 import Elm.Syntax.Range exposing (Location, Range)
+import Parser.Extra
 
 
 importDefinition : Parser State (Node Import)
@@ -42,7 +43,7 @@ importDefinition =
                 |> Combine.map (\imp -> setupNode start imp)
     in
     Combine.succeed (\start -> \mod -> parseAsDefinition start mod)
-        |> Combine.keepFromCore Combine.location
+        |> Combine.keepFromCore Parser.Extra.location
         |> Combine.ignoreEntirely Tokens.importToken
         |> Combine.ignore Layout.layout
         |> Combine.keepFromCore moduleName

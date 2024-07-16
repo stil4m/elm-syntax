@@ -17,6 +17,7 @@ import Elm.Syntax.Infix as Infix
 import Elm.Syntax.Node as Node exposing (Node(..))
 import Elm.Syntax.Signature exposing (Signature)
 import Parser as Core exposing ((|.), (|=))
+import Parser.Extra
 
 
 declaration : Parser State (Node Declaration)
@@ -171,7 +172,7 @@ portDeclaration maybeDoc =
                 Just doc ->
                     Combine.modifyState (State.addComment doc)
             )
-        |> Combine.keepFromCore Combine.location
+        |> Combine.keepFromCore Parser.Extra.location
         |> Combine.ignoreEntirely Tokens.portToken
         |> Combine.ignore Layout.layout
         |> Combine.keep signature

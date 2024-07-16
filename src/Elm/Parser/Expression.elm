@@ -17,6 +17,7 @@ import Elm.Syntax.Pattern as Pattern exposing (Pattern)
 import Elm.Syntax.Range exposing (Location)
 import Elm.Syntax.Signature exposing (Signature)
 import Parser as Core exposing ((|.), (|=), Nestable(..))
+import Parser.Extra
 import Pratt exposing (Config)
 
 
@@ -342,7 +343,7 @@ lambdaExpression config =
                         |> LambdaExpression
                         |> Node { start = start, end = end }
         )
-        |> Combine.keepFromCore Combine.location
+        |> Combine.keepFromCore Parser.Extra.location
         |> Combine.ignoreEntirely backSlash
         |> Combine.ignore (Combine.maybeIgnore Layout.layout)
         |> Combine.keep (Combine.sepBy1WithState (Combine.maybeIgnore Layout.layout) Patterns.pattern)
@@ -364,7 +365,7 @@ caseExpression config =
                     Node { start = start, end = end }
                         (CaseExpression (CaseBlock caseBlock_ cases))
         )
-        |> Combine.keepFromCore Combine.location
+        |> Combine.keepFromCore Parser.Extra.location
         |> Combine.ignoreEntirely Tokens.caseToken
         |> Combine.ignore Layout.layout
         |> Combine.keep (Pratt.subExpression 0 config)
@@ -404,7 +405,7 @@ letExpression config =
                         Node { start = start, end = end }
                             (LetExpression (LetBlock declarations expr))
             )
-            |> Combine.keepFromCore Combine.location
+            |> Combine.keepFromCore Parser.Extra.location
             |> Combine.ignoreEntirely Tokens.letToken
             |> Combine.ignore Layout.layout
             |> Combine.keep (withIndentedState (letDeclarations config))
@@ -462,7 +463,7 @@ ifBlockExpression config =
                             { start = start, end = end }
                             (IfBlock condition ifTrue ifFalse)
         )
-        |> Combine.keepFromCore Combine.location
+        |> Combine.keepFromCore Parser.Extra.location
         |> Combine.ignoreEntirely Tokens.ifToken
         |> Combine.keep (Pratt.subExpression 0 config)
         |> Combine.ignoreEntirely Tokens.thenToken

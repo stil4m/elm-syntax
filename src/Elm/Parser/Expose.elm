@@ -8,6 +8,7 @@ import Elm.Parser.Tokens as Tokens
 import Elm.Syntax.Exposing exposing (ExposedType, Exposing(..), TopLevelExpose(..))
 import Elm.Syntax.Node as Node exposing (Node(..))
 import Parser as Core exposing ((|.), (|=))
+import Parser.Extra
 
 
 exposeDefinition : Parser State Exposing
@@ -30,9 +31,9 @@ exposingListInner : Parser State Exposing
 exposingListInner =
     Combine.oneOf
         [ Combine.succeed (\start -> \end -> All { start = start, end = end })
-            |> Combine.keepFromCore Combine.location
+            |> Combine.keepFromCore Parser.Extra.location
             |> Combine.ignore (Layout.maybeAroundBothSides (Combine.symbol ".."))
-            |> Combine.keepFromCore Combine.location
+            |> Combine.keepFromCore Parser.Extra.location
         , Combine.sepBy1 "," (Layout.maybeAroundBothSides exposable)
             |> Combine.map Explicit
         ]

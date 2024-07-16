@@ -13,6 +13,7 @@ import Elm.Syntax.Range exposing (Location, Range)
 import Elm.Syntax.Type exposing (ValueConstructor)
 import Elm.Syntax.TypeAnnotation exposing (TypeAnnotation)
 import Parser as Core
+import Parser.Extra
 
 
 typeDefinition : Maybe (Node Documentation) -> Parser State (Node Declaration.Declaration)
@@ -25,7 +26,7 @@ typeDefinition maybeDoc =
                     Core.succeed start
 
                 Nothing ->
-                    Combine.location
+                    Parser.Extra.location
     in
     startParser
         |> Combine.ignoreFromCore typePrefix

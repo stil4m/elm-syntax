@@ -1,6 +1,16 @@
-module Parser.Extra exposing (anyChar)
+module Parser.Extra exposing (anyChar, location)
 
+import Elm.Syntax.Range exposing (Location)
 import Parser as Core
+
+
+location : Core.Parser Location
+location =
+    Core.getPosition
+        |> Core.map
+            (\( row, col ) ->
+                { row = row, column = col }
+            )
 
 
 anyChar : Core.Parser Char

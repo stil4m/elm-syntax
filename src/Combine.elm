@@ -14,7 +14,6 @@ module Combine exposing
     , keep
     , keepFromCore
     , lazy
-    , location
     , loop
     , many
     , many1
@@ -107,15 +106,6 @@ withLocation f =
                         in
                         p state
                     )
-
-
-location : Core.Parser Location
-location =
-    Core.getPosition
-        |> Core.map
-            (\( row, col ) ->
-                { row = row, column = col }
-            )
 
 
 map : (a -> b) -> Parser state a -> Parser state b
