@@ -382,10 +382,13 @@ sepBy1WithoutReverse sep p =
 
 
 between : String -> String -> Parser state a -> Parser state a
-between lp rp p =
-    symbol lp
-        |> andThen (\() -> p)
-        |> ignore (symbol rp)
+between lp rp (Parser p) =
+    Parser <|
+        \state ->
+            Core.succeed identity
+                |. Core.symbol lp
+                |= p state
+                |. Core.symbol rp
 
 
 parens : Parser state a -> Parser state a
