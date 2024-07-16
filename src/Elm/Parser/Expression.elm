@@ -20,9 +20,9 @@ import Parser as Core exposing ((|.), (|=), Nestable(..))
 import Parser.Extra
 
 
-config : Config (Node Expression)
-config =
-    { oneOf =
+subExpressions : Parser State (Node Expression)
+subExpressions =
+    Combine.oneOf
         [ referenceExpression
         , literalExpression
         , numberExpression
@@ -38,7 +38,11 @@ config =
         , negationOperation
         , charLiteralExpression
         ]
-    , andThenOneOf =
+
+
+config : Config (Node Expression)
+config =
+    { andThenOneOf =
         -- TODO Add tests for all operators
         -- TODO Report a syntax error when encountering multiple of the comparison operators
         -- `a < b < c` is not valid Elm syntax
@@ -770,8 +774,7 @@ colon =
 {-| Elm implementation for Pratt parsers. Adapted from dmy/elm-pratt-parser.
 -}
 type alias Config expr =
-    { oneOf : List (Parser State expr)
-    , andThenOneOf : List ( Int, expr -> Parser State expr )
+    { andThenOneOf : List ( Int, expr -> Parser State expr )
     }
 
 
@@ -781,7 +784,7 @@ subExpression =
         spacesAndOneOf : Parser State (Node Expression)
         spacesAndOneOf =
             Layout.optimisticLayout
-                |> Combine.continueWith (Combine.oneOf config.oneOf)
+                |> Combine.continueWith subExpressions
     in
     \currentPrecedence ->
         spacesAndOneOf
