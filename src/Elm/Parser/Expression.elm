@@ -85,62 +85,6 @@ expression =
     subExpression 0
 
 
-infixLeft : Int -> String -> ( Int, Node Expression -> Parser State (Node Expression) )
-infixLeft precedence symbol =
-    infixLeftHelp precedence
-        (Core.symbol symbol)
-        (\((Node { start } _) as left) ((Node { end } _) as right) ->
-            Node
-                { start = start, end = end }
-                (OperatorApplication symbol Infix.Left left right)
-        )
-
-
-infixNonAssociative : Int -> String -> ( Int, Node Expression -> Parser State (Node Expression) )
-infixNonAssociative precedence symbol =
-    infixLeftHelp precedence
-        (Core.symbol symbol)
-        (\((Node { start } _) as left) ((Node { end } _) as right) ->
-            Node
-                { start = start, end = end }
-                (OperatorApplication symbol Infix.Non left right)
-        )
-
-
-infixRight : Int -> String -> ( Int, Node Expression -> Parser State (Node Expression) )
-infixRight precedence symbol =
-    infixRightHelp precedence
-        (Core.symbol symbol)
-        (\((Node { start } _) as left) ((Node { end } _) as right) ->
-            Node
-                { start = start, end = end }
-                (OperatorApplication symbol Infix.Right left right)
-        )
-
-
-infixLeftSubtraction : Int -> ( Int, Node Expression -> Parser State (Node Expression) )
-infixLeftSubtraction precedence =
-    infixLeftHelp precedence
-        (Core.succeed (\offset -> \source -> String.slice (offset - 1) offset source)
-            |= Core.getOffset
-            |= Core.getSource
-            |> Core.andThen
-                (\c ->
-                    -- 'a-b', 'a - b' and 'a- b' are subtractions, but 'a -b' is an application on a negation
-                    if c == " " || c == "\n" || c == "\u{000D}" then
-                        minusSymbols
-
-                    else
-                        minus
-                )
-        )
-        (\((Node { start } _) as left) ((Node { end } _) as right) ->
-            Node
-                { start = start, end = end }
-                (OperatorApplication "-" Infix.Left left right)
-        )
-
-
 recordAccess : ( Int, Node Expression -> Parser State (Node Expression) )
 recordAccess =
     postfix 100
@@ -796,6 +740,62 @@ prefix precedence operator apply =
     Combine.succeed apply
         |> Combine.ignore operator
         |> Combine.keep (subExpression precedence)
+
+
+infixLeft : Int -> String -> ( Int, Node Expression -> Parser State (Node Expression) )
+infixLeft precedence symbol =
+    infixLeftHelp precedence
+        (Core.symbol symbol)
+        (\((Node { start } _) as left) ((Node { end } _) as right) ->
+            Node
+                { start = start, end = end }
+                (OperatorApplication symbol Infix.Left left right)
+        )
+
+
+infixNonAssociative : Int -> String -> ( Int, Node Expression -> Parser State (Node Expression) )
+infixNonAssociative precedence symbol =
+    infixLeftHelp precedence
+        (Core.symbol symbol)
+        (\((Node { start } _) as left) ((Node { end } _) as right) ->
+            Node
+                { start = start, end = end }
+                (OperatorApplication symbol Infix.Non left right)
+        )
+
+
+infixRight : Int -> String -> ( Int, Node Expression -> Parser State (Node Expression) )
+infixRight precedence symbol =
+    infixRightHelp precedence
+        (Core.symbol symbol)
+        (\((Node { start } _) as left) ((Node { end } _) as right) ->
+            Node
+                { start = start, end = end }
+                (OperatorApplication symbol Infix.Right left right)
+        )
+
+
+infixLeftSubtraction : Int -> ( Int, Node Expression -> Parser State (Node Expression) )
+infixLeftSubtraction precedence =
+    infixLeftHelp precedence
+        (Core.succeed (\offset -> \source -> String.slice (offset - 1) offset source)
+            |= Core.getOffset
+            |= Core.getSource
+            |> Core.andThen
+                (\c ->
+                    -- 'a-b', 'a - b' and 'a- b' are subtractions, but 'a -b' is an application on a negation
+                    if c == " " || c == "\n" || c == "\u{000D}" then
+                        minusSymbols
+
+                    else
+                        minus
+                )
+        )
+        (\((Node { start } _) as left) ((Node { end } _) as right) ->
+            Node
+                { start = start, end = end }
+                (OperatorApplication "-" Infix.Left left right)
+        )
 
 
 infixLeftHelp : Int -> Core.Parser () -> (Node Expression -> Node Expression -> Node Expression) -> ( Int, Node Expression -> Parser State (Node Expression) )
