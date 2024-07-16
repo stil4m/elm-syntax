@@ -21,70 +21,67 @@ import Parser.Extra
 import Pratt exposing (Config)
 
 
-config :
-    { oneOf : List (Config State (Node Expression) -> Parser State (Node Expression))
-    , andThenOneOf : List ( Int, Config State (Node Expression) -> Node Expression -> Parser State (Node Expression) )
-    , spaces : Parser State ()
-    }
+config : Config State (Node Expression)
 config =
-    { oneOf =
-        [ referenceExpression
-            |> Pratt.literal
-        , literalExpression
-            |> Pratt.literal
-        , numberExpression
-            |> Pratt.literal
-        , tupledExpression
-        , glslExpression
-            |> Pratt.literal
-        , listExpression
-        , recordExpression
-        , caseExpression
-        , lambdaExpression
-        , letExpression
-        , ifBlockExpression
-        , recordAccessFunctionExpression
-            |> Pratt.literal
-        , negationOperation
-        , charLiteralExpression
-            |> Pratt.literal
-        ]
-    , andThenOneOf =
-        -- TODO Add tests for all operators
-        -- TODO Report a syntax error when encountering multiple of the comparison operators
-        -- `a < b < c` is not valid Elm syntax
-        [ recordAccess
-        , infixLeft 1 "|>"
-        , infixRight 5 "++"
-        , infixRight 1 "<|"
-        , infixRight 9 ">>"
-        , infixNonAssociative 4 "=="
-        , infixLeft 7 "*"
-        , infixRight 5 "::"
-        , infixLeft 6 "+"
-        , infixLeftSubtraction 6
-        , infixLeft 6 "|."
-        , infixRight 3 "&&"
-        , infixLeft 5 "|="
-        , infixLeft 9 "<<"
-        , infixNonAssociative 4 "/="
-        , infixLeft 7 "//"
-        , infixLeft 7 "/"
-        , infixRight 7 "</>"
-        , infixRight 2 "||"
-        , infixNonAssociative 4 "<="
-        , infixNonAssociative 4 ">="
-        , infixNonAssociative 4 ">"
-        , infixLeft 8 "<?>"
-        , infixNonAssociative 4 "<"
-        , infixRight 8 "^"
+    Pratt.c
+        { oneOf =
+            [ referenceExpression
+                |> Pratt.literal
+            , literalExpression
+                |> Pratt.literal
+            , numberExpression
+                |> Pratt.literal
+            , tupledExpression
+            , glslExpression
+                |> Pratt.literal
+            , listExpression
+            , recordExpression
+            , caseExpression
+            , lambdaExpression
+            , letExpression
+            , ifBlockExpression
+            , recordAccessFunctionExpression
+                |> Pratt.literal
+            , negationOperation
+            , charLiteralExpression
+                |> Pratt.literal
+            ]
+        , andThenOneOf =
+            -- TODO Add tests for all operators
+            -- TODO Report a syntax error when encountering multiple of the comparison operators
+            -- `a < b < c` is not valid Elm syntax
+            [ recordAccess
+            , infixLeft 1 "|>"
+            , infixRight 5 "++"
+            , infixRight 1 "<|"
+            , infixRight 9 ">>"
+            , infixNonAssociative 4 "=="
+            , infixLeft 7 "*"
+            , infixRight 5 "::"
+            , infixLeft 6 "+"
+            , infixLeftSubtraction 6
+            , infixLeft 6 "|."
+            , infixRight 3 "&&"
+            , infixLeft 5 "|="
+            , infixLeft 9 "<<"
+            , infixNonAssociative 4 "/="
+            , infixLeft 7 "//"
+            , infixLeft 7 "/"
+            , infixRight 7 "</>"
+            , infixRight 2 "||"
+            , infixNonAssociative 4 "<="
+            , infixNonAssociative 4 ">="
+            , infixNonAssociative 4 ">"
+            , infixLeft 8 "<?>"
+            , infixNonAssociative 4 "<"
+            , infixRight 8 "^"
 
-        -- function application must be last
-        -- TODO validate function application arguments (issue #209)
-        , functionCall
-        ]
-    , spaces = Layout.optimisticLayout
-    }
+            -- function application must be last
+            -- TODO validate function application arguments (issue #209)
+            , functionCall
+            ]
+        , spaces = Layout.optimisticLayout
+        }
 
 
 expression : Parser State (Node Expression)

@@ -140,6 +140,7 @@ expression config =
     subExpression 0 (Config config)
 
 
+c : { oneOf : List (Config state expr -> Parser state expr), andThenOneOf : List ( Int, Config state expr -> expr -> Parser state expr ), spaces : Parser state () } -> Config state expr
 c =
     Config
 
