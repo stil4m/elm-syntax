@@ -384,7 +384,7 @@ sepBy1WithoutReverse sep p =
 between : Parser state () -> String -> Parser state a -> Parser state a
 between lp rp p =
     lp
-        |> continueWith p
+        |> andThen (\() -> p)
         |> ignore (symbol rp)
 
 
