@@ -22,22 +22,25 @@ import Parser.Extra
 
 subExpressions : Parser State (Node Expression)
 subExpressions =
-    Combine.oneOf
-        [ referenceExpression
-        , literalExpression
-        , numberExpression
-        , tupledExpression
-        , glslExpression
-        , listExpression
-        , recordExpression
-        , caseExpression
-        , lambdaExpression
-        , letExpression
-        , ifBlockExpression
-        , recordAccessFunctionExpression
-        , negationOperation
-        , charLiteralExpression
-        ]
+    Combine.lazy
+        (\() ->
+            Combine.oneOf
+                [ referenceExpression
+                , literalExpression
+                , numberExpression
+                , tupledExpression
+                , glslExpression
+                , listExpression
+                , recordExpression
+                , caseExpression
+                , lambdaExpression
+                , letExpression
+                , ifBlockExpression
+                , recordAccessFunctionExpression
+                , negationOperation
+                , charLiteralExpression
+                ]
+        )
 
 
 andThenOneOf : List ( Int, Node Expression -> Parser State (Node Expression) )
@@ -205,15 +208,12 @@ glslExpression =
 
 listExpression : Parser State (Node Expression)
 listExpression =
-    Combine.lazy
-        (\() ->
-            Combine.succeed ListExpr
-                |> Combine.ignoreEntirely squareStart
-                |> Combine.ignore (Combine.maybeIgnore Layout.layout)
-                |> Combine.keep (Combine.sepBy "," (subExpression 0))
-                |> Combine.ignoreEntirely squareEnd
-                |> Node.parser
-        )
+    Combine.succeed ListExpr
+        |> Combine.ignoreEntirely squareStart
+        |> Combine.ignore (Combine.maybeIgnore Layout.layout)
+        |> Combine.keep (Combine.sepBy "," (subExpression 0))
+        |> Combine.ignoreEntirely squareEnd
+        |> Node.parser
 
 
 
@@ -335,24 +335,21 @@ charLiteralExpression =
 
 lambdaExpression : Parser State (Node Expression)
 lambdaExpression =
-    Combine.lazy
-        (\() ->
-            Combine.succeed
-                (\start ->
-                    \args ->
-                        \((Node { end } _) as expr) ->
-                            Lambda args expr
-                                |> LambdaExpression
-                                |> Node { start = start, end = end }
-                )
-                |> Combine.keepFromCore Parser.Extra.location
-                |> Combine.ignoreEntirely backSlash
-                |> Combine.ignore (Combine.maybeIgnore Layout.layout)
-                |> Combine.keep (Combine.sepBy1WithState (Combine.maybeIgnore Layout.layout) Patterns.pattern)
-                |> Combine.ignore (Combine.maybeIgnore Layout.layout)
-                |> Combine.ignoreEntirely arrowRight
-                |> Combine.keep (subExpression 0)
+    Combine.succeed
+        (\start ->
+            \args ->
+                \((Node { end } _) as expr) ->
+                    Lambda args expr
+                        |> LambdaExpression
+                        |> Node { start = start, end = end }
         )
+        |> Combine.keepFromCore Parser.Extra.location
+        |> Combine.ignoreEntirely backSlash
+        |> Combine.ignore (Combine.maybeIgnore Layout.layout)
+        |> Combine.keep (Combine.sepBy1WithState (Combine.maybeIgnore Layout.layout) Patterns.pattern)
+        |> Combine.ignore (Combine.maybeIgnore Layout.layout)
+        |> Combine.ignoreEntirely arrowRight
+        |> Combine.keep (subExpression 0)
 
 
 
@@ -361,24 +358,21 @@ lambdaExpression =
 
 caseExpression : Parser State (Node Expression)
 caseExpression =
-    Combine.lazy
-        (\() ->
-            Combine.succeed
-                (\start ->
-                    \caseBlock_ ->
-                        \( end, cases ) ->
-                            Node { start = start, end = end }
-                                (CaseExpression (CaseBlock caseBlock_ cases))
-                )
-                |> Combine.keepFromCore Parser.Extra.location
-                |> Combine.ignoreEntirely Tokens.caseToken
-                |> Combine.ignore Layout.layout
-                |> Combine.keep (subExpression 0)
-                |> Combine.ignore Layout.positivelyIndented
-                |> Combine.ignoreEntirely Tokens.ofToken
-                |> Combine.ignore Layout.layout
-                |> Combine.keep (withIndentedState caseStatements)
+    Combine.succeed
+        (\start ->
+            \caseBlock_ ->
+                \( end, cases ) ->
+                    Node { start = start, end = end }
+                        (CaseExpression (CaseBlock caseBlock_ cases))
         )
+        |> Combine.keepFromCore Parser.Extra.location
+        |> Combine.ignoreEntirely Tokens.caseToken
+        |> Combine.ignore Layout.layout
+        |> Combine.keep (subExpression 0)
+        |> Combine.ignore Layout.positivelyIndented
+        |> Combine.ignoreEntirely Tokens.ofToken
+        |> Combine.ignore Layout.layout
+        |> Combine.keep (withIndentedState caseStatements)
 
 
 caseStatements : Parser State ( Location, Cases )
@@ -403,25 +397,22 @@ caseStatement =
 
 letExpression : Parser State (Node Expression)
 letExpression =
-    Combine.lazy
-        (\() ->
-            withIndentedState
-                (Combine.succeed
-                    (\start ->
-                        \declarations ->
-                            \((Node { end } _) as expr) ->
-                                Node { start = start, end = end }
-                                    (LetExpression (LetBlock declarations expr))
-                    )
-                    |> Combine.keepFromCore Parser.Extra.location
-                    |> Combine.ignoreEntirely Tokens.letToken
-                    |> Combine.ignore Layout.layout
-                    |> Combine.keep (withIndentedState letDeclarations)
-                    |> Combine.ignore Layout.optimisticLayout
-                    |> Combine.ignoreEntirely Tokens.inToken
-                )
-                |> Combine.keep (subExpression 0)
+    withIndentedState
+        (Combine.succeed
+            (\start ->
+                \declarations ->
+                    \((Node { end } _) as expr) ->
+                        Node { start = start, end = end }
+                            (LetExpression (LetBlock declarations expr))
+            )
+            |> Combine.keepFromCore Parser.Extra.location
+            |> Combine.ignoreEntirely Tokens.letToken
+            |> Combine.ignore Layout.layout
+            |> Combine.keep (withIndentedState letDeclarations)
+            |> Combine.ignore Layout.optimisticLayout
+            |> Combine.ignoreEntirely Tokens.inToken
         )
+        |> Combine.keep (subExpression 0)
 
 
 letDeclarations : Parser State (List (Node LetDeclaration))
@@ -463,39 +454,33 @@ numberExpression =
 
 ifBlockExpression : Parser State (Node Expression)
 ifBlockExpression =
-    Combine.lazy
-        (\() ->
-            Combine.succeed
-                (\start ->
-                    \condition ->
-                        \ifTrue ->
-                            \((Node { end } _) as ifFalse) ->
-                                Node
-                                    { start = start, end = end }
-                                    (IfBlock condition ifTrue ifFalse)
-                )
-                |> Combine.keepFromCore Parser.Extra.location
-                |> Combine.ignoreEntirely Tokens.ifToken
-                |> Combine.keep (subExpression 0)
-                |> Combine.ignoreEntirely Tokens.thenToken
-                |> Combine.keep (subExpression 0)
-                |> Combine.ignoreEntirely Tokens.elseToken
-                |> Combine.ignore Layout.layout
-                |> Combine.keep (subExpression 0)
+    Combine.succeed
+        (\start ->
+            \condition ->
+                \ifTrue ->
+                    \((Node { end } _) as ifFalse) ->
+                        Node
+                            { start = start, end = end }
+                            (IfBlock condition ifTrue ifFalse)
         )
+        |> Combine.keepFromCore Parser.Extra.location
+        |> Combine.ignoreEntirely Tokens.ifToken
+        |> Combine.keep (subExpression 0)
+        |> Combine.ignoreEntirely Tokens.thenToken
+        |> Combine.keep (subExpression 0)
+        |> Combine.ignoreEntirely Tokens.elseToken
+        |> Combine.ignore Layout.layout
+        |> Combine.keep (subExpression 0)
 
 
 negationOperation : Parser State (Node Expression)
 negationOperation =
-    Combine.lazy
-        (\() ->
-            prefix 95
-                minusNotFollowedBySpace
-                (\((Node { start, end } _) as subExpr) ->
-                    Node
-                        { start = { row = start.row, column = start.column - 1 }, end = end }
-                        (Negation subExpr)
-                )
+    prefix 95
+        minusNotFollowedBySpace
+        (\((Node { start, end } _) as subExpr) ->
+            Node
+                { start = { row = start.row, column = start.column - 1 }, end = end }
+                (Negation subExpr)
         )
 
 
@@ -562,32 +547,29 @@ recordAccessFunctionExpression =
 
 tupledExpression : Parser State (Node Expression)
 tupledExpression =
-    Combine.lazy
-        (\() ->
-            let
-                commaSep : Parser State (List (Node Expression))
-                commaSep =
-                    Combine.many
-                        (comma
-                            |> Combine.continueFromCore (subExpression 0)
-                        )
+    let
+        commaSep : Parser State (List (Node Expression))
+        commaSep =
+            Combine.many
+                (comma
+                    |> Combine.continueFromCore (subExpression 0)
+                )
 
-                nested : Parser State Expression
-                nested =
-                    Combine.succeed asExpression
-                        |> Combine.keep (subExpression 0)
-                        |> Combine.keep commaSep
-            in
-            parensStart
-                |> Combine.continueFromCore
-                    (Combine.oneOf
-                        [ parensEnd |> Core.map (always UnitExpr) |> Combine.fromCore
-                        , closingPrefixOperator
-                        , nested |> Combine.ignoreEntirely parensEnd
-                        ]
-                    )
-                |> Node.parser
-        )
+        nested : Parser State Expression
+        nested =
+            Combine.succeed asExpression
+                |> Combine.keep (subExpression 0)
+                |> Combine.keep commaSep
+    in
+    parensStart
+        |> Combine.continueFromCore
+            (Combine.oneOf
+                [ parensEnd |> Core.map (always UnitExpr) |> Combine.fromCore
+                , closingPrefixOperator
+                , nested |> Combine.ignoreEntirely parensEnd
+                ]
+            )
+        |> Node.parser
 
 
 closingPrefixOperator : Parser state Expression
