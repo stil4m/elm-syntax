@@ -72,7 +72,6 @@ config =
         -- TODO validate function application arguments (issue #209)
         , functionCall
         ]
-    , spaces = Layout.optimisticLayout
     }
 
 
@@ -773,7 +772,6 @@ colon =
 type alias Config expr =
     { oneOf : List (Parser State expr)
     , andThenOneOf : List ( Int, expr -> Parser State expr )
-    , spaces : Parser State ()
     }
 
 
@@ -782,7 +780,7 @@ subExpression =
     let
         spacesAndOneOf : Parser State (Node Expression)
         spacesAndOneOf =
-            config.spaces
+            Layout.optimisticLayout
                 |> Combine.continueWith (Combine.oneOf config.oneOf)
     in
     \currentPrecedence ->
@@ -793,7 +791,7 @@ subExpression =
 
 expressionHelp : Int -> Node Expression -> Parser State (Step (Node Expression) (Node Expression))
 expressionHelp currentPrecedence leftExpression =
-    config.spaces
+    Layout.optimisticLayout
         |> Combine.continueWith
             (Combine.oneOf
                 [ operation currentPrecedence leftExpression
