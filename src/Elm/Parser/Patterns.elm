@@ -169,12 +169,11 @@ qualifiedPattern consumeArgs =
 
 recordPattern : Parser State (Node Pattern)
 recordPattern =
-    Node.parser
-        (Combine.map RecordPattern <|
-            Combine.between
-                "{"
-                "}"
-                (Combine.maybeIgnore Layout.layout
-                    |> Combine.continueWith (Combine.sepBy "," (Layout.maybeAroundBothSides (Node.parserFromCore Tokens.functionName)))
-                )
+    Combine.between
+        "{"
+        "}"
+        (Combine.maybeIgnore Layout.layout
+            |> Combine.continueWith (Combine.sepBy "," (Layout.maybeAroundBothSides (Node.parserFromCore Tokens.functionName)))
         )
+        |> Combine.map RecordPattern
+        |> Node.parser
