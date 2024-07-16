@@ -5,7 +5,7 @@ import Elm.Parser.Base exposing (typeIndicator)
 import Elm.Parser.Layout as Layout
 import Elm.Parser.Node as Node
 import Elm.Parser.State exposing (State)
-import Elm.Parser.Tokens exposing (functionName, functionNameCore)
+import Elm.Parser.Tokens as Tokens
 import Elm.Syntax.ModuleName exposing (ModuleName)
 import Elm.Syntax.Node as Node exposing (Node(..))
 import Elm.Syntax.Range exposing (Range)
@@ -102,8 +102,9 @@ asTypeAnnotation ((Node _ value) as x) xs =
 
 genericTypeAnnotation : Parser state (Node TypeAnnotation)
 genericTypeAnnotation =
-    Node.parserCore (Core.map TypeAnnotation.GenericType functionNameCore)
-        |> Combine.fromCore
+    Tokens.functionNameCore
+        |> Core.map TypeAnnotation.GenericType
+        |> Node.parserFromCore
 
 
 recordFieldsTypeAnnotation : Parser State TypeAnnotation.RecordDefinition
@@ -119,7 +120,7 @@ recordTypeAnnotation =
             (Combine.oneOf
                 [ Combine.succeed (TypeAnnotation.Record [])
                     |> Combine.ignore (Combine.symbol "}")
-                , Node.parser functionName
+                , Node.parserFromCore Tokens.functionNameCore
                     |> Combine.ignore (Combine.maybeIgnore Layout.layout)
                     |> Combine.andThen
                         (\fname ->
@@ -154,7 +155,7 @@ recordFieldDefinition : Parser State TypeAnnotation.RecordField
 recordFieldDefinition =
     Combine.succeed (\functionName -> \value -> ( functionName, value ))
         |> Combine.ignore (Combine.maybeIgnore Layout.layout)
-        |> Combine.keep (Node.parserFromCore functionNameCore)
+        |> Combine.keep (Node.parserFromCore Tokens.functionNameCore)
         |> Combine.ignore (Combine.maybeIgnore Layout.layout)
         |> Combine.ignore (Combine.symbol ":")
         |> Combine.ignore (Combine.maybeIgnore Layout.layout)
