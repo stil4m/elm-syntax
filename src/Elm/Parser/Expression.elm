@@ -704,13 +704,13 @@ subExpression currentPrecedence =
         parser =
             expressionHelp currentPrecedence
     in
-    spacesAndOneOf
+    spacesAndSubExpressions
         |> Combine.andThen
             (\leftExpression -> Combine.loop leftExpression parser)
 
 
-spacesAndOneOf : Parser State (Node Expression)
-spacesAndOneOf =
+spacesAndSubExpressions : Parser State (Node Expression)
+spacesAndSubExpressions =
     Layout.optimisticLayout
         |> Combine.continueWith subExpressions
 
