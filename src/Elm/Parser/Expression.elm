@@ -428,7 +428,7 @@ negationOperation =
         )
 
 
-minusNotFollowedBySpace : Parser state ()
+minusNotFollowedBySpace : Core.Parser ()
 minusNotFollowedBySpace =
     Core.succeed identity
         |. Core.backtrackable minus
@@ -445,7 +445,6 @@ minusNotFollowedBySpace =
                 else
                     Core.commit ()
             )
-        |> Combine.fromCore
 
 
 referenceExpression : Parser State (Node Expression)
@@ -735,10 +734,10 @@ operation currentPrecedence leftExpression =
         |> Combine.oneOf
 
 
-prefix : Int -> Parser State () -> (Node Expression -> Node Expression) -> Parser State (Node Expression)
+prefix : Int -> Core.Parser () -> (Node Expression -> Node Expression) -> Parser State (Node Expression)
 prefix precedence operator apply =
     Combine.succeed apply
-        |> Combine.ignore operator
+        |> Combine.ignoreEntirely operator
         |> Combine.keep (subExpression precedence)
 
 
