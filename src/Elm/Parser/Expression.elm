@@ -199,7 +199,7 @@ glslExpression =
             "|]"
     in
     Core.mapChompedString
-        (\s _ -> s |> String.dropLeft (String.length start) |> GLSLExpression)
+        (\s () -> s |> String.dropLeft (String.length start) |> GLSLExpression)
         (Core.multiComment start end NotNestable)
         |. Core.symbol end
         |> Node.parserCore

@@ -228,7 +228,7 @@ multiLineStringLiteral =
                     [ Core.symbol "\"\"\""
                         |> Core.map (\_ -> Done (String.concat (List.reverse s.parts)))
                     , Core.symbol "\""
-                        |> Core.mapChompedString (\v _ -> Loop { counter = s.counter + 1, escaped = s.escaped, parts = v :: s.parts })
+                        |> Core.mapChompedString (\v () -> Loop { counter = s.counter + 1, escaped = s.escaped, parts = v :: s.parts })
                     , Core.symbol "\\"
                         |> Core.map (\_ -> Loop { counter = s.counter + 1, escaped = True, parts = s.parts })
                     , Core.succeed
