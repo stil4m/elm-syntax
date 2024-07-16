@@ -79,7 +79,7 @@ listPattern =
     Node.parser <|
         Combine.between
             (Combine.symbol "[" |> Combine.ignore (Combine.maybeIgnore Layout.layout))
-            (Combine.symbol "]")
+            "]"
             (Combine.map ListPattern (Combine.sepBy "," (Layout.maybeAroundBothSides pattern)))
 
 
@@ -170,6 +170,6 @@ recordPattern =
         (Combine.map RecordPattern <|
             Combine.between
                 (Combine.symbol "{" |> Combine.continueWith (Combine.maybeIgnore Layout.layout))
-                (Combine.symbol "}")
+                "}"
                 (Combine.sepBy "," (Layout.maybeAroundBothSides (Node.parserFromCore Tokens.functionName)))
         )

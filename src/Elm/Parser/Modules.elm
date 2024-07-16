@@ -36,7 +36,7 @@ whereBlock : Parser State { command : Maybe (Node String), subscription : Maybe 
 whereBlock =
     Combine.between
         (Combine.symbol "{")
-        (Combine.symbol "}")
+        "}"
         (Combine.sepBy1 ","
             (Layout.maybeAroundBothSides effectWhereClause)
         )

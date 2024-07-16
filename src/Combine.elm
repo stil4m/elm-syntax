@@ -381,16 +381,16 @@ sepBy1WithoutReverse sep p =
         |> andThen (\first -> manyWithoutReverse [ first ] (sep |> continueWith p))
 
 
-between : Parser state () -> Parser state () -> Parser state a -> Parser state a
+between : Parser state () -> String -> Parser state a -> Parser state a
 between lp rp p =
     lp
         |> continueWith p
-        |> ignore rp
+        |> ignore (symbol rp)
 
 
 parens : Parser state a -> Parser state a
 parens =
-    between (symbol "(") (symbol ")")
+    between (symbol "(") ")"
 
 
 ignore : Parser state () -> Parser state a -> Parser state a
