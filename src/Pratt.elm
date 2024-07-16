@@ -229,17 +229,15 @@ expressionHelp ((Config conf) as config) currentPrecedence leftExpression =
 operation : Config state e -> Int -> e -> Parser state e
 operation ((Config conf) as config) currentPrecedence leftExpression =
     conf.andThenOneOf
-        |> List.filterMap (\toOperation -> filter config toOperation currentPrecedence leftExpression)
+        |> List.filterMap
+            (\( precedence, parser ) ->
+                if precedence > currentPrecedence then
+                    Just (parser config leftExpression)
+
+                else
+                    Nothing
+            )
         |> Combine.oneOf
-
-
-filter : Config state e -> ( Int, Config state e -> e -> Parser state e ) -> Int -> e -> Maybe (Parser state e)
-filter config ( precedence, parser ) currentPrecedence leftExpression =
-    if precedence > currentPrecedence then
-        Just (parser config leftExpression)
-
-    else
-        Nothing
 
 
 
