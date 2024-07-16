@@ -696,17 +696,16 @@ colon =
 
 
 subExpression : Int -> Parser State (Node Expression)
-subExpression =
-    let
-        spacesAndOneOf : Parser State (Node Expression)
-        spacesAndOneOf =
-            Layout.optimisticLayout
-                |> Combine.continueWith subExpressions
-    in
-    \currentPrecedence ->
-        spacesAndOneOf
-            |> Combine.andThen
-                (\leftExpression -> Combine.loop leftExpression (\expr -> expressionHelp currentPrecedence expr))
+subExpression currentPrecedence =
+    spacesAndOneOf
+        |> Combine.andThen
+            (\leftExpression -> Combine.loop leftExpression (\expr -> expressionHelp currentPrecedence expr))
+
+
+spacesAndOneOf : Parser State (Node Expression)
+spacesAndOneOf =
+    Layout.optimisticLayout
+        |> Combine.continueWith subExpressions
 
 
 expressionHelp : Int -> Node Expression -> Parser State (Step (Node Expression) (Node Expression))
