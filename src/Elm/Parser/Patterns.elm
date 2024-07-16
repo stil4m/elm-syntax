@@ -171,5 +171,5 @@ recordPattern =
             between
                 (Combine.symbol "{" |> Combine.continueWith (Combine.maybeIgnore Layout.layout))
                 (Combine.symbol "}")
-                (sepBy (Combine.symbol ",") (Layout.maybeAroundBothSides (Node.parser functionName)))
+                (sepBy (Combine.symbol ",") (Layout.maybeAroundBothSides (Node.parserFromCore functionNameCore)))
         )
