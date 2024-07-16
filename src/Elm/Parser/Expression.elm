@@ -1,6 +1,7 @@
 module Elm.Parser.Expression exposing (expression, failIfDifferentFrom, functionSignatureFromVarPointer)
 
 import Combine exposing (Parser, Step(..))
+import Dict exposing (Dict)
 import Elm.Parser.Layout as Layout
 import Elm.Parser.Node as Node
 import Elm.Parser.Numbers
@@ -16,6 +17,7 @@ import Elm.Syntax.Node as Node exposing (Node(..))
 import Elm.Syntax.Pattern as Pattern exposing (Pattern)
 import Elm.Syntax.Range exposing (Location)
 import Elm.Syntax.Signature exposing (Signature)
+import List.Extra
 import Parser as Core exposing ((|.), (|=), Nestable(..))
 import Parser.Extra
 
@@ -710,14 +712,19 @@ spacesAndOneOf =
 
 expressionHelp : Int -> Node Expression -> Parser State (Step (Node Expression) (Node Expression))
 expressionHelp currentPrecedence leftExpression =
-    Layout.optimisticLayout
-        |> Combine.continueWith
-            (Combine.oneOf
-                [ operation currentPrecedence leftExpression
-                    |> Combine.map Loop
-                , Combine.succeed (Done leftExpression)
-                ]
-            )
+    case Dict.get currentPrecedence operations of
+        Just parser ->
+            Layout.optimisticLayout
+                |> Combine.continueWith
+                    (Combine.oneOf
+                        [ parser leftExpression
+                            |> Combine.map Loop
+                        , Combine.succeed (Done leftExpression)
+                        ]
+                    )
+
+        Nothing ->
+            Combine.problem ("Could not find operators related to precedence " ++ String.fromInt currentPrecedence)
 
 
 operation : Int -> Node Expression -> Parser State (Node Expression)
@@ -732,6 +739,18 @@ operation currentPrecedence leftExpression =
                     Nothing
             )
         |> Combine.oneOf
+
+
+operations : Dict Int (Node Expression -> Parser State (Node Expression))
+operations =
+    andThenOneOf
+        |> List.map Tuple.first
+        |> List.Extra.unique
+        |> (::) 0
+        |> (::) 95
+        |> List.foldl
+            (\precedence dict -> Dict.insert precedence (operation precedence) dict)
+            Dict.empty
 
 
 infixLeft : Int -> String -> ( Int, Node Expression -> Parser State (Node Expression) )
