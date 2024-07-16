@@ -217,7 +217,7 @@ listExpression =
             Combine.succeed ListExpr
                 |> Combine.ignoreEntirely squareStart
                 |> Combine.ignore (Combine.maybeIgnore Layout.layout)
-                |> Combine.keep (Combine.sepBy "," (Pratt.subExpression 0 config))
+                |> Combine.keep (Combine.sepBy "," (Pratt.subExpression config 0))
                 |> Combine.ignoreEntirely squareEnd
                 |> Node.parser
         )
@@ -251,7 +251,7 @@ recordContents =
                 Combine.oneOf
                     [ recordUpdateSyntaxParser fname
                     , Combine.fromCore equal
-                        |> Combine.continueWith (Pratt.subExpression 0 config)
+                        |> Combine.continueWith (Pratt.subExpression config 0)
                         |> Combine.andThen
                             (\e ->
                                 let
@@ -306,7 +306,7 @@ recordField : Parser State (Node RecordSetter)
 recordField =
     Combine.succeed (\fnName -> \expr -> ( fnName, expr ))
         |> Combine.keep recordFieldWithoutValue
-        |> Combine.keep (Pratt.subExpression 0 config)
+        |> Combine.keep (Pratt.subExpression config 0)
         |> Node.parser
 
 
@@ -358,7 +358,7 @@ lambdaExpression =
                 |> Combine.keep (Combine.sepBy1WithState (Combine.maybeIgnore Layout.layout) Patterns.pattern)
                 |> Combine.ignore (Combine.maybeIgnore Layout.layout)
                 |> Combine.ignoreEntirely arrowRight
-                |> Combine.keep (Pratt.subExpression 0 config)
+                |> Combine.keep (Pratt.subExpression config 0)
         )
 
 
@@ -380,7 +380,7 @@ caseExpression =
                 |> Combine.keepFromCore Parser.Extra.location
                 |> Combine.ignoreEntirely Tokens.caseToken
                 |> Combine.ignore Layout.layout
-                |> Combine.keep (Pratt.subExpression 0 config)
+                |> Combine.keep (Pratt.subExpression config 0)
                 |> Combine.ignore Layout.positivelyIndented
                 |> Combine.ignoreEntirely Tokens.ofToken
                 |> Combine.ignore Layout.layout
@@ -401,7 +401,7 @@ caseStatement =
         |> Combine.ignore (Combine.maybeIgnore Layout.layout)
         |> Combine.ignoreEntirely arrowRight
         |> Combine.ignore (Combine.maybeIgnore Layout.layout)
-        |> Combine.keep (Pratt.subExpression 0 config)
+        |> Combine.keep (Pratt.subExpression config 0)
 
 
 
@@ -427,7 +427,7 @@ letExpression =
                     |> Combine.ignore Layout.optimisticLayout
                     |> Combine.ignoreEntirely Tokens.inToken
                 )
-                |> Combine.keep (Pratt.subExpression 0 config)
+                |> Combine.keep (Pratt.subExpression config 0)
         )
 
 
@@ -459,7 +459,7 @@ letDestructuringDeclarationWithPattern ((Node { start } _) as pattern) =
             Node { start = start, end = end } (LetDestructuring pattern expr)
         )
         |> Combine.ignoreEntirely equal
-        |> Combine.keep (Pratt.subExpression 0 config)
+        |> Combine.keep (Pratt.subExpression config 0)
 
 
 numberExpression : Parser state (Node Expression)
@@ -483,12 +483,12 @@ ifBlockExpression =
                 )
                 |> Combine.keepFromCore Parser.Extra.location
                 |> Combine.ignoreEntirely Tokens.ifToken
-                |> Combine.keep (Pratt.subExpression 0 config)
+                |> Combine.keep (Pratt.subExpression config 0)
                 |> Combine.ignoreEntirely Tokens.thenToken
-                |> Combine.keep (Pratt.subExpression 0 config)
+                |> Combine.keep (Pratt.subExpression config 0)
                 |> Combine.ignoreEntirely Tokens.elseToken
                 |> Combine.ignore Layout.layout
-                |> Combine.keep (Pratt.subExpression 0 config)
+                |> Combine.keep (Pratt.subExpression config 0)
         )
 
 
@@ -577,13 +577,13 @@ tupledExpression =
                 commaSep =
                     Combine.many
                         (comma
-                            |> Combine.continueFromCore (Pratt.subExpression 0 config)
+                            |> Combine.continueFromCore (Pratt.subExpression config 0)
                         )
 
                 nested : Parser State Expression
                 nested =
                     Combine.succeed asExpression
-                        |> Combine.keep (Pratt.subExpression 0 config)
+                        |> Combine.keep (Pratt.subExpression config 0)
                         |> Combine.keep commaSep
             in
             parensStart
@@ -666,7 +666,7 @@ functionImplementationFromVarPointer ((Node { start } _) as varPointer) =
         )
         |> Combine.keep (Combine.many (Patterns.pattern |> Combine.ignore (Combine.maybeIgnore Layout.layout)))
         |> Combine.ignoreEntirely equal
-        |> Combine.keep (Pratt.subExpression 0 config)
+        |> Combine.keep (Pratt.subExpression config 0)
 
 
 fromParts : Node Signature -> Node FunctionImplementation -> Function

@@ -134,7 +134,12 @@ expression :
     Config State expr
     -> Parser State expr
 expression config =
-    subExpression 0 config
+    let
+        sub : Int -> Parser State expr
+        sub =
+            subExpression config
+    in
+    sub 0
 
 
 c : { oneOf : List (Parser state expr), andThenOneOf : List ( Int, Config state expr -> expr -> Parser state expr ), spaces : Parser state () } -> Config state expr
@@ -157,7 +162,7 @@ For example [`prefix`](#prefix) can be implemented like this:
     prefix precedence operator apply config =
         succeed apply
             |. operator
-            |= subExpression precedence config
+            |= subExpression config precedence
 
 A parser for sub-expressions between parentheses like this:
 
@@ -193,12 +198,18 @@ A parser for sub-expressions between parentheses like this:
         expression.
 
 -}
-subExpression : Int -> Config state expr -> Parser state expr
-subExpression currentPrecedence ((Config conf) as config) =
-    conf.spaces
-        |> Combine.continueWith (Combine.oneOf conf.oneOf)
-        |> Combine.andThen
-            (\leftExpression -> Combine.loop leftExpression (\expr -> expressionHelp config currentPrecedence expr))
+subExpression : Config state expr -> Int -> Parser state expr
+subExpression ((Config conf) as config) =
+    let
+        spacesAndOneOf : Parser state expr
+        spacesAndOneOf =
+            conf.spaces
+                |> Combine.continueWith (Combine.oneOf conf.oneOf)
+    in
+    \currentPrecedence ->
+        spacesAndOneOf
+            |> Combine.andThen
+                (\leftExpression -> Combine.loop leftExpression (\expr -> expressionHelp config currentPrecedence expr))
 
 
 {-| This is the core of the Pratt parser algorithm.
@@ -328,7 +339,7 @@ prefix : Int -> Parser state () -> (expr -> expr) -> Config state expr -> Parser
 prefix precedence operator apply config =
     Combine.succeed apply
         |> Combine.ignore operator
-        |> Combine.keep (subExpression precedence config)
+        |> Combine.keep (subExpression config precedence)
 
 
 
@@ -372,7 +383,7 @@ infixLeftWithState precedence operator apply =
     , \config left ->
         Combine.succeed (\e -> apply left e)
             |> Combine.ignore operator
-            |> Combine.keep (subExpression precedence config)
+            |> Combine.keep (subExpression config precedence)
     )
 
 
@@ -413,7 +424,7 @@ infixHelp leftPrecedence rightPrecedence operator apply =
     , \config left ->
         Combine.succeed (\e -> apply left e)
             |> Combine.ignoreEntirely operator
-            |> Combine.keep (subExpression rightPrecedence config)
+            |> Combine.keep (subExpression config rightPrecedence)
     )
 
 
