@@ -13,7 +13,7 @@ addCommentToState : Core.Parser (Node String) -> Parser State ()
 addCommentToState p =
     p
         |> Combine.fromCore
-        |> Combine.andThen (\pair -> modifyState (addComment pair))
+        |> Combine.andThen (\pair -> modifyState (\state -> addComment pair state))
 
 
 parseComment : Core.Parser String -> Parser State ()

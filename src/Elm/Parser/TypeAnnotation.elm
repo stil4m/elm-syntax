@@ -128,7 +128,7 @@ recordTypeAnnotation =
                                     |> Combine.ignore (Combine.symbol "|")
                                     |> Combine.keep (Node.parser recordFieldsTypeAnnotation)
                                     |> Combine.ignore (Combine.symbol "}")
-                                , Combine.succeed (\ta rest -> TypeAnnotation.Record <| Node.combine Tuple.pair fname ta :: rest)
+                                , Combine.succeed (\ta -> \rest -> TypeAnnotation.Record <| Node.combine Tuple.pair fname ta :: rest)
                                     |> Combine.ignore (Combine.symbol ":")
                                     |> Combine.ignore (Combine.maybeIgnore Layout.layout)
                                     |> Combine.keep typeAnnotation
@@ -152,7 +152,7 @@ recordTypeAnnotation =
 
 recordFieldDefinition : Parser State TypeAnnotation.RecordField
 recordFieldDefinition =
-    succeed Tuple.pair
+    Combine.succeed (\functionName -> \value -> ( functionName, value ))
         |> Combine.ignore (Combine.maybeIgnore Layout.layout)
         |> Combine.keep (Node.parserFromCore functionNameCore)
         |> Combine.ignore (Combine.maybeIgnore Layout.layout)
