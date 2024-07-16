@@ -196,12 +196,7 @@ A parser for sub-expressions between parentheses like this:
 subExpression : Int -> Config state expr -> Parser state expr
 subExpression currentPrecedence ((Config conf) as config) =
     conf.spaces
-        |> Combine.continueWith
-            (Combine.lazy
-                (\() ->
-                    Combine.oneOf conf.oneOf
-                )
-            )
+        |> Combine.continueWith (Combine.oneOf conf.oneOf)
         |> Combine.andThen
             (\leftExpression -> Combine.loop leftExpression (\expr -> expressionHelp config currentPrecedence expr))
 
