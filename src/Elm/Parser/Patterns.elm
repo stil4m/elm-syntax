@@ -72,8 +72,7 @@ charPattern : Parser state (Node Pattern)
 charPattern =
     Tokens.characterLiteral
         |> Core.map CharPattern
-        |> Node.parserCore
-        |> Combine.fromCore
+        |> Node.parserFromCore
 
 
 listPattern : Parser State (Node Pattern)
