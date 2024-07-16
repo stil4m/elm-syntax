@@ -1,6 +1,6 @@
 module Elm.Parser.Patterns exposing (pattern)
 
-import Combine exposing (Parser, between, maybe, parens, sepBy, string)
+import Combine exposing (Parser, between, maybe, parens, sepBy)
 import Elm.Parser.Base as Base
 import Elm.Parser.Layout as Layout
 import Elm.Parser.Node as Node
@@ -41,7 +41,7 @@ pattern =
 parensPattern : Parser State (Node Pattern)
 parensPattern =
     Node.parser
-        (parens (sepBy (string ",") (Layout.maybeAroundBothSides pattern))
+        (parens (sepBy (Combine.symbol ",") (Layout.maybeAroundBothSides pattern))
             |> Combine.map
                 (\c ->
                     case c of
@@ -78,9 +78,9 @@ listPattern : Parser State (Node Pattern)
 listPattern =
     Node.parser <|
         between
-            (string "[" |> Combine.ignore (Combine.maybeIgnore Layout.layout))
-            (string "]")
-            (Combine.map ListPattern (sepBy (string ",") (Layout.maybeAroundBothSides pattern)))
+            (Combine.symbol "[" |> Combine.ignore (Combine.maybeIgnore Layout.layout))
+            (Combine.symbol "]")
+            (Combine.map ListPattern (sepBy (Combine.symbol ",") (Layout.maybeAroundBothSides pattern)))
 
 
 type alias ConsumeArgs =
@@ -169,7 +169,7 @@ recordPattern =
     Node.parser
         (Combine.map RecordPattern <|
             between
-                (string "{" |> Combine.continueWith (Combine.maybeIgnore Layout.layout))
-                (string "}")
-                (sepBy (string ",") (Layout.maybeAroundBothSides (Node.parser functionName)))
+                (Combine.symbol "{" |> Combine.continueWith (Combine.maybeIgnore Layout.layout))
+                (Combine.symbol "}")
+                (sepBy (Combine.symbol ",") (Layout.maybeAroundBothSides (Node.parser functionName)))
         )

@@ -1,6 +1,6 @@
 module Elm.Parser.Typings exposing (typeDefinition)
 
-import Combine exposing (Parser, many, string)
+import Combine exposing (Parser, many)
 import Elm.Parser.Layout as Layout
 import Elm.Parser.Node as Node
 import Elm.Parser.State exposing (State)
@@ -47,12 +47,12 @@ typeDefinition maybeDoc =
                                             }
                                         )
                         )
-                        |> Combine.ignore (string "alias")
+                        |> Combine.ignore (Combine.symbol "alias")
                         |> Combine.ignore Layout.layout
                         |> Combine.keep (Node.parserFromCore typeName)
                         |> Combine.ignore (Combine.maybeIgnore Layout.layout)
                         |> Combine.keep genericList
-                        |> Combine.ignore (string "=")
+                        |> Combine.ignore (Combine.symbol "=")
                         |> Combine.ignore (Combine.maybeIgnore Layout.layout)
                         |> Combine.keep typeAnnotation
                     , Combine.succeed
@@ -85,7 +85,7 @@ typeDefinition maybeDoc =
                         |> Combine.ignore (Combine.maybeIgnore Layout.layout)
                         |> Combine.keep genericList
                         |> Combine.ignore (Combine.maybeIgnore Layout.layout)
-                        |> Combine.ignore (string "=")
+                        |> Combine.ignore (Combine.symbol "=")
                         |> Combine.ignore (Combine.maybeIgnore Layout.layout)
                         |> Combine.keep valueConstructors
                     ]
@@ -95,7 +95,7 @@ typeDefinition maybeDoc =
 valueConstructors : Parser State (List (Node ValueConstructor))
 valueConstructors =
     Combine.sepBy1WithoutReverse
-        (Combine.ignore (Combine.maybeIgnore Layout.layout) (string "|"))
+        (Combine.ignore (Combine.maybeIgnore Layout.layout) (Combine.symbol "|"))
         valueConstructor
 
 

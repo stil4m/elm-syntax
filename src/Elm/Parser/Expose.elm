@@ -1,6 +1,6 @@
 module Elm.Parser.Expose exposing (exposeDefinition)
 
-import Combine exposing (Parser, maybe, oneOf, parens, sepBy1, string, symbol)
+import Combine exposing (Parser, maybe, oneOf, parens, sepBy1, symbol)
 import Combine.Char exposing (char)
 import Elm.Parser.Layout as Layout
 import Elm.Parser.Node as Node
@@ -66,7 +66,7 @@ typeExpose =
         |> Combine.andThen
             (\((Node typeRange typeValue) as tipe) ->
                 Combine.oneOf
-                    [ Node.parser (parens (Layout.maybeAroundBothSides (string "..")))
+                    [ Node.parser (parens (Layout.maybeAroundBothSides (Combine.symbol "..")))
                         |> Combine.map
                             (\(Node openRange _) ->
                                 Node

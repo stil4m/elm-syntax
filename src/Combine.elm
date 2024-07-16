@@ -29,7 +29,6 @@ module Combine exposing
     , sepBy1
     , sepBy1Core
     , sepBy1WithoutReverse
-    , string
     , succeed
     , symbol
     , withLocation
@@ -156,13 +155,6 @@ problem m =
 succeed : a -> Parser state a
 succeed res =
     Parser <| \state -> Core.succeed ( state, res )
-
-
-string : String -> Parser state String
-string s =
-    Parser <|
-        \state ->
-            Core.mapChompedString (\x _ -> ( state, x )) (Core.token s)
 
 
 symbol : String -> Parser state ()
@@ -389,7 +381,7 @@ between lp rp p =
 
 parens : Parser state a -> Parser state a
 parens =
-    between (string "(") (string ")")
+    between (symbol "(") (symbol ")")
 
 
 ignore : Parser state x -> Parser state a -> Parser state a

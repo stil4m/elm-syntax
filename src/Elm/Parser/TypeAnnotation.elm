@@ -27,7 +27,7 @@ typeAnnotation =
                     (\() -> typeRef)
                     (\() ->
                         Combine.oneOf
-                            [ string "->"
+                            [ Combine.symbol "->"
                                 |> Combine.ignore (Combine.maybeIgnore Layout.layout)
                                 |> Combine.continueWith typeAnnotation
                                 |> Combine.map (\ta -> Node.combine TypeAnnotation.FunctionTypeAnnotation typeRef ta)
@@ -108,12 +108,12 @@ genericTypeAnnotation =
 
 recordFieldsTypeAnnotation : Parser State TypeAnnotation.RecordDefinition
 recordFieldsTypeAnnotation =
-    sepBy1 (string ",") (Layout.maybeAroundBothSides <| Node.parser recordFieldDefinition)
+    sepBy1 (Combine.symbol ",") (Layout.maybeAroundBothSides <| Node.parser recordFieldDefinition)
 
 
 recordTypeAnnotation : Parser State (Node TypeAnnotation)
 recordTypeAnnotation =
-    string "{"
+    Combine.symbol "{"
         |> Combine.ignore (Combine.maybeIgnore Layout.layout)
         |> Combine.continueWith
             (Combine.oneOf
@@ -136,7 +136,7 @@ recordTypeAnnotation =
                                     |> Combine.keep
                                         (Combine.oneOf
                                             [ -- Skip a comma and then look for at least 1 more field
-                                              string ","
+                                              Combine.symbol ","
                                                 |> Combine.continueWith recordFieldsTypeAnnotation
                                             , -- Single field record, so just end with no additional fields
                                               Combine.succeed []
@@ -156,7 +156,7 @@ recordFieldDefinition =
         |> Combine.ignore (Combine.maybeIgnore Layout.layout)
         |> Combine.keep (Node.parserFromCore functionNameCore)
         |> Combine.ignore (Combine.maybeIgnore Layout.layout)
-        |> Combine.ignore (string ":")
+        |> Combine.ignore (Combine.symbol ":")
         |> Combine.ignore (Combine.maybeIgnore Layout.layout)
         |> Combine.keep typeAnnotation
 
