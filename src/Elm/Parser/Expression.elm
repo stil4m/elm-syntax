@@ -40,43 +40,41 @@ subExpressions =
         ]
 
 
-config : Config (Node Expression)
-config =
-    { andThenOneOf =
-        -- TODO Add tests for all operators
-        -- TODO Report a syntax error when encountering multiple of the comparison operators
-        -- `a < b < c` is not valid Elm syntax
-        [ recordAccess
-        , infixLeft 1 "|>"
-        , infixRight 5 "++"
-        , infixRight 1 "<|"
-        , infixRight 9 ">>"
-        , infixNonAssociative 4 "=="
-        , infixLeft 7 "*"
-        , infixRight 5 "::"
-        , infixLeft 6 "+"
-        , infixLeftSubtraction 6
-        , infixLeft 6 "|."
-        , infixRight 3 "&&"
-        , infixLeft 5 "|="
-        , infixLeft 9 "<<"
-        , infixNonAssociative 4 "/="
-        , infixLeft 7 "//"
-        , infixLeft 7 "/"
-        , infixRight 7 "</>"
-        , infixRight 2 "||"
-        , infixNonAssociative 4 "<="
-        , infixNonAssociative 4 ">="
-        , infixNonAssociative 4 ">"
-        , infixLeft 8 "<?>"
-        , infixNonAssociative 4 "<"
-        , infixRight 8 "^"
+andThenOneOf : List ( Int, Node Expression -> Parser State (Node Expression) )
+andThenOneOf =
+    -- TODO Add tests for all operators
+    -- TODO Report a syntax error when encountering multiple of the comparison operators
+    -- `a < b < c` is not valid Elm syntax
+    [ recordAccess
+    , infixLeft 1 "|>"
+    , infixRight 5 "++"
+    , infixRight 1 "<|"
+    , infixRight 9 ">>"
+    , infixNonAssociative 4 "=="
+    , infixLeft 7 "*"
+    , infixRight 5 "::"
+    , infixLeft 6 "+"
+    , infixLeftSubtraction 6
+    , infixLeft 6 "|."
+    , infixRight 3 "&&"
+    , infixLeft 5 "|="
+    , infixLeft 9 "<<"
+    , infixNonAssociative 4 "/="
+    , infixLeft 7 "//"
+    , infixLeft 7 "/"
+    , infixRight 7 "</>"
+    , infixRight 2 "||"
+    , infixNonAssociative 4 "<="
+    , infixNonAssociative 4 ">="
+    , infixNonAssociative 4 ">"
+    , infixLeft 8 "<?>"
+    , infixNonAssociative 4 "<"
+    , infixRight 8 "^"
 
-        -- function application must be last
-        -- TODO validate function application arguments (issue #209)
-        , functionCall
-        ]
-    }
+    -- function application must be last
+    -- TODO validate function application arguments (issue #209)
+    , functionCall
+    ]
 
 
 expression : Parser State (Node Expression)
@@ -771,13 +769,6 @@ colon =
 ---
 
 
-{-| Elm implementation for Pratt parsers. Adapted from dmy/elm-pratt-parser.
--}
-type alias Config expr =
-    { andThenOneOf : List ( Int, expr -> Parser State expr )
-    }
-
-
 subExpression : Int -> Parser State (Node Expression)
 subExpression =
     let
@@ -806,7 +797,7 @@ expressionHelp currentPrecedence leftExpression =
 
 operation : Int -> Node Expression -> Parser State (Node Expression)
 operation currentPrecedence leftExpression =
-    config.andThenOneOf
+    andThenOneOf
         |> List.filterMap
             (\( precedence, parser ) ->
                 if precedence > currentPrecedence then
