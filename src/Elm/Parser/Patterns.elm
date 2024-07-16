@@ -18,11 +18,11 @@ tryToCompose x =
         |> Combine.continueWith
             (Combine.oneOf
                 [ Combine.succeed (\y -> Node.combine AsPattern x y)
-                    |> Combine.ignore (Combine.fromCore (Core.keyword "as"))
+                    |> Combine.ignoreEntirely (Core.keyword "as")
                     |> Combine.ignore Layout.layout
                     |> Combine.keep (Node.parserFromCore Tokens.functionName)
                 , Combine.succeed (\y -> Node.combine UnConsPattern x y)
-                    |> Combine.ignore (Combine.fromCore (Core.symbol "::"))
+                    |> Combine.ignoreEntirely (Core.symbol "::")
                     |> Combine.ignore (Combine.maybeIgnore Layout.layout)
                     |> Combine.keep pattern
                 , Combine.succeed x

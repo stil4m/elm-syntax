@@ -7,6 +7,7 @@ module Combine exposing
     , end
     , fromCore
     , ignore
+    , ignoreEntirely
     , keep
     , lazy
     , location
@@ -389,6 +390,14 @@ ignore dropped target =
     target
         |> map (\a -> \() -> a)
         |> keep dropped
+
+
+ignoreEntirely : Core.Parser () -> Parser state a -> Parser state a
+ignoreEntirely dropped (Parser target) =
+    Parser <|
+        \state ->
+            target state
+                |. dropped
 
 
 continueWith : Parser state a -> Parser state () -> Parser state a

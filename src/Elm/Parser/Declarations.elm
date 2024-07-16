@@ -78,7 +78,7 @@ functionWithNameNode pointer =
                     }
                 )
                 |> Combine.keep (Combine.many (pattern |> Combine.ignore (Combine.maybeIgnore Layout.layout)))
-                |> Combine.ignore (Combine.symbol "=")
+                |> Combine.ignoreEntirely (Core.symbol "=")
                 |> Combine.ignore (Combine.maybeIgnore Layout.layout)
                 |> Combine.keep expression
 
@@ -116,7 +116,7 @@ signature =
 infixDeclaration : Parser State (Node Declaration)
 infixDeclaration =
     Combine.succeed Infix
-        |> Combine.ignore (Combine.fromCore (Core.keyword "infix"))
+        |> Combine.ignoreEntirely (Core.keyword "infix")
         |> Combine.ignore Layout.layout
         |> Combine.keep (Node.parser infixDirection)
         |> Combine.ignore Layout.layout
@@ -124,7 +124,7 @@ infixDeclaration =
         |> Combine.ignore Layout.layout
         |> Combine.keep operatorWithParens
         |> Combine.ignore Layout.layout
-        |> Combine.ignore (Combine.symbol "=")
+        |> Combine.ignoreEntirely (Core.symbol "=")
         |> Combine.ignore Layout.layout
         |> Combine.keep (Node.parserFromCore Tokens.functionName)
         |> Combine.map Declaration.InfixDeclaration
@@ -172,6 +172,6 @@ portDeclaration maybeDoc =
                     Combine.modifyState (State.addComment doc)
             )
         |> Combine.keep Combine.location
-        |> Combine.ignore Tokens.portToken
+        |> Combine.ignoreEntirely Tokens.portToken
         |> Combine.ignore Layout.layout
         |> Combine.keep signature

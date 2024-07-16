@@ -12,6 +12,7 @@ import Elm.Syntax.Node as Node exposing (Node(..))
 import Elm.Syntax.Range exposing (Location, Range)
 import Elm.Syntax.Type exposing (ValueConstructor)
 import Elm.Syntax.TypeAnnotation exposing (TypeAnnotation)
+import Parser as Core
 
 
 typeDefinition : Maybe (Node Documentation) -> Parser State (Node Declaration.Declaration)
@@ -47,12 +48,12 @@ typeDefinition maybeDoc =
                                             }
                                         )
                         )
-                        |> Combine.ignore (Combine.symbol "alias")
+                        |> Combine.ignoreEntirely (Core.symbol "alias")
                         |> Combine.ignore Layout.layout
                         |> Combine.keep (Node.parserFromCore Tokens.typeName)
                         |> Combine.ignore (Combine.maybeIgnore Layout.layout)
                         |> Combine.keep genericList
-                        |> Combine.ignore (Combine.symbol "=")
+                        |> Combine.ignoreEntirely (Core.symbol "=")
                         |> Combine.ignore (Combine.maybeIgnore Layout.layout)
                         |> Combine.keep typeAnnotation
                     , Combine.succeed
@@ -85,7 +86,7 @@ typeDefinition maybeDoc =
                         |> Combine.ignore (Combine.maybeIgnore Layout.layout)
                         |> Combine.keep genericList
                         |> Combine.ignore (Combine.maybeIgnore Layout.layout)
-                        |> Combine.ignore (Combine.symbol "=")
+                        |> Combine.ignoreEntirely (Core.symbol "=")
                         |> Combine.ignore (Combine.maybeIgnore Layout.layout)
                         |> Combine.keep valueConstructors
                     ]

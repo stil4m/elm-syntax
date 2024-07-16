@@ -18,7 +18,7 @@ importDefinition =
     let
         asDefinition : Parser State (Node ModuleName)
         asDefinition =
-            Tokens.asToken
+            Combine.fromCore Tokens.asToken
                 |> Combine.continueWith Layout.layout
                 |> Combine.continueWith moduleName
 
@@ -43,7 +43,7 @@ importDefinition =
     in
     Combine.succeed (\start -> \mod -> parseAsDefinition start mod)
         |> Combine.keep Combine.location
-        |> Combine.ignore Tokens.importToken
+        |> Combine.ignoreEntirely Tokens.importToken
         |> Combine.ignore Layout.layout
         |> Combine.keep moduleName
         |> Combine.ignore Layout.optimisticLayout

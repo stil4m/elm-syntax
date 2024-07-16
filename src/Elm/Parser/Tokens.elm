@@ -20,7 +20,6 @@ module Elm.Parser.Tokens exposing
     )
 
 import Char
-import Combine exposing (Parser)
 import Combine.Char exposing (anyChar)
 import Hex
 import Parser as Core exposing ((|.), (|=), Step(..))
@@ -54,64 +53,64 @@ reservedList =
         |> Set.fromList
 
 
-portToken : Parser state ()
+portToken : Core.Parser ()
 portToken =
-    Combine.symbol "port"
+    Core.symbol "port"
 
 
-moduleToken : Parser state ()
+moduleToken : Core.Parser ()
 moduleToken =
-    Combine.symbol "module"
+    Core.symbol "module"
 
 
-exposingToken : Parser state ()
+exposingToken : Core.Parser ()
 exposingToken =
-    Combine.symbol "exposing"
+    Core.symbol "exposing"
 
 
-importToken : Parser state ()
+importToken : Core.Parser ()
 importToken =
-    Combine.fromCore (Core.keyword "import")
+    Core.keyword "import"
 
 
-asToken : Parser state ()
+asToken : Core.Parser ()
 asToken =
-    Combine.fromCore (Core.keyword "as")
+    Core.keyword "as"
 
 
-ifToken : Parser state ()
+ifToken : Core.Parser ()
 ifToken =
-    Combine.symbol "if"
+    Core.symbol "if"
 
 
-thenToken : Parser state ()
+thenToken : Core.Parser ()
 thenToken =
-    Combine.symbol "then"
+    Core.symbol "then"
 
 
-elseToken : Parser state ()
+elseToken : Core.Parser ()
 elseToken =
-    Combine.symbol "else"
+    Core.symbol "else"
 
 
-caseToken : Parser state ()
+caseToken : Core.Parser ()
 caseToken =
-    Combine.symbol "case"
+    Core.symbol "case"
 
 
-ofToken : Parser state ()
+ofToken : Core.Parser ()
 ofToken =
-    Combine.symbol "of"
+    Core.symbol "of"
 
 
-letToken : Parser state ()
+letToken : Core.Parser ()
 letToken =
-    Combine.symbol "let"
+    Core.symbol "let"
 
 
-inToken : Parser state ()
+inToken : Core.Parser ()
 inToken =
-    Combine.symbol "in"
+    Core.symbol "in"
 
 
 escapedCharValue : Core.Parser Char

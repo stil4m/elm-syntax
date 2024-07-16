@@ -70,11 +70,11 @@ all =
                     |> Expect.equal (Just "T1")
         , test "moduleToken" <|
             \() ->
-                parse "module" Parser.moduleToken
+                parse "module" (Combine.fromCore Parser.moduleToken)
                     |> Expect.equal (Just ())
         , test "exposingToken" <|
             \() ->
-                parse "exposing" Parser.exposingToken
+                parse "exposing" (Combine.fromCore Parser.exposingToken)
                     |> Expect.equal (Just ())
         , test "operatorToken 11 -- is not an operator" <|
             \() ->

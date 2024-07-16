@@ -84,7 +84,7 @@ parensTypeAnnotation =
         |> Combine.continueWith
             (Combine.oneOf
                 [ Combine.symbol ")" |> Combine.map (always TypeAnnotation.Unit)
-                , nested |> Combine.ignore (Combine.symbol ")")
+                , nested |> Combine.ignoreEntirely (Core.symbol ")")
                 ]
             )
         |> Node.parser
@@ -119,18 +119,18 @@ recordTypeAnnotation =
         |> Combine.continueWith
             (Combine.oneOf
                 [ Combine.succeed (TypeAnnotation.Record [])
-                    |> Combine.ignore (Combine.symbol "}")
+                    |> Combine.ignoreEntirely (Core.symbol "}")
                 , Node.parserFromCore Tokens.functionName
                     |> Combine.ignore (Combine.maybeIgnore Layout.layout)
                     |> Combine.andThen
                         (\fname ->
                             Combine.oneOf
                                 [ Combine.succeed (TypeAnnotation.GenericRecord fname)
-                                    |> Combine.ignore (Combine.symbol "|")
+                                    |> Combine.ignoreEntirely (Core.symbol "|")
                                     |> Combine.keep (Node.parser recordFieldsTypeAnnotation)
-                                    |> Combine.ignore (Combine.symbol "}")
+                                    |> Combine.ignoreEntirely (Core.symbol "}")
                                 , Combine.succeed (\ta -> \rest -> TypeAnnotation.Record <| Node.combine Tuple.pair fname ta :: rest)
-                                    |> Combine.ignore (Combine.symbol ":")
+                                    |> Combine.ignoreEntirely (Core.symbol ":")
                                     |> Combine.ignore (Combine.maybeIgnore Layout.layout)
                                     |> Combine.keep typeAnnotation
                                     |> Combine.ignore (Combine.maybeIgnore Layout.layout)
@@ -143,7 +143,7 @@ recordTypeAnnotation =
                                               Combine.succeed []
                                             ]
                                         )
-                                    |> Combine.ignore (Combine.symbol "}")
+                                    |> Combine.ignoreEntirely (Core.symbol "}")
                                 ]
                         )
                 ]
@@ -157,7 +157,7 @@ recordFieldDefinition =
         |> Combine.ignore (Combine.maybeIgnore Layout.layout)
         |> Combine.keep (Node.parserFromCore Tokens.functionName)
         |> Combine.ignore (Combine.maybeIgnore Layout.layout)
-        |> Combine.ignore (Combine.symbol ":")
+        |> Combine.ignoreEntirely (Core.symbol ":")
         |> Combine.ignore (Combine.maybeIgnore Layout.layout)
         |> Combine.keep typeAnnotation
 

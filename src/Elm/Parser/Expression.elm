@@ -246,7 +246,7 @@ recordContents config =
             (\fname ->
                 Combine.oneOf
                     [ recordUpdateSyntaxParser config fname
-                    , equal
+                    , Combine.fromCore equal
                         |> Combine.continueWith (Pratt.subExpression 0 config)
                         |> Combine.andThen
                             (\e ->
@@ -313,7 +313,7 @@ recordFieldWithoutValue : Parser State (Node String)
 recordFieldWithoutValue =
     Node.parserFromCore Tokens.functionName
         |> Combine.ignore (Combine.maybeIgnore Layout.layout)
-        |> Combine.ignore equal
+        |> Combine.ignoreEntirely equal
 
 
 literalExpression : Parser state (Node Expression)
@@ -372,11 +372,11 @@ caseExpression config =
                         (CaseExpression (CaseBlock caseBlock_ cases))
         )
         |> Combine.keep Combine.location
-        |> Combine.ignore Tokens.caseToken
+        |> Combine.ignoreEntirely Tokens.caseToken
         |> Combine.ignore Layout.layout
         |> Combine.keep (Pratt.subExpression 0 config)
         |> Combine.ignore Layout.positivelyIndented
-        |> Combine.ignore Tokens.ofToken
+        |> Combine.ignoreEntirely Tokens.ofToken
         |> Combine.ignore Layout.layout
         |> Combine.keep (withIndentedState (caseStatements config))
 
@@ -412,11 +412,11 @@ letExpression config =
                             (LetExpression (LetBlock declarations expr))
             )
             |> Combine.keep Combine.location
-            |> Combine.ignore Tokens.letToken
+            |> Combine.ignoreEntirely Tokens.letToken
             |> Combine.ignore Layout.layout
             |> Combine.keep (withIndentedState (letDeclarations config))
             |> Combine.ignore Layout.optimisticLayout
-            |> Combine.ignore Tokens.inToken
+            |> Combine.ignoreEntirely Tokens.inToken
         )
         |> Combine.keep (Pratt.subExpression 0 config)
 
@@ -448,7 +448,7 @@ letDestructuringDeclarationWithPattern config ((Node { start } _) as pattern) =
         (\((Node { end } _) as expr) ->
             Node { start = start, end = end } (LetDestructuring pattern expr)
         )
-        |> Combine.ignore equal
+        |> Combine.ignoreEntirely equal
         |> Combine.keep (Pratt.subExpression 0 config)
 
 
@@ -470,11 +470,11 @@ ifBlockExpression config =
                             (IfBlock condition ifTrue ifFalse)
         )
         |> Combine.keep Combine.location
-        |> Combine.ignore Tokens.ifToken
+        |> Combine.ignoreEntirely Tokens.ifToken
         |> Combine.keep (Pratt.subExpression 0 config)
-        |> Combine.ignore Tokens.thenToken
+        |> Combine.ignoreEntirely Tokens.thenToken
         |> Combine.keep (Pratt.subExpression 0 config)
-        |> Combine.ignore Tokens.elseToken
+        |> Combine.ignoreEntirely Tokens.elseToken
         |> Combine.ignore Layout.layout
         |> Combine.keep (Pratt.subExpression 0 config)
 
@@ -646,7 +646,7 @@ functionImplementationFromVarPointer config ((Node { start } _) as varPointer) =
                     (FunctionImplementation varPointer args expr)
         )
         |> Combine.keep (Combine.many (Patterns.pattern |> Combine.ignore (Combine.maybeIgnore Layout.layout)))
-        |> Combine.ignore equal
+        |> Combine.ignoreEntirely equal
         |> Combine.keep (Pratt.subExpression 0 config)
 
 
@@ -729,9 +729,9 @@ arrowRight =
     Combine.symbol "->"
 
 
-equal : Parser state ()
+equal : Core.Parser ()
 equal =
-    Combine.symbol "="
+    Core.symbol "="
 
 
 comma : Parser state ()

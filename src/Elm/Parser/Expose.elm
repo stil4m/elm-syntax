@@ -12,7 +12,7 @@ import Parser as Core exposing ((|.), (|=))
 
 exposeDefinition : Parser State Exposing
 exposeDefinition =
-    Tokens.exposingToken
+    Combine.fromCore Tokens.exposingToken
         |> Combine.continueWith (Combine.maybeIgnore Layout.layout)
         |> Combine.continueWith exposeListWith
 

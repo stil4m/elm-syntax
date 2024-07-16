@@ -12,6 +12,7 @@ import Elm.Syntax.Module exposing (DefaultModuleData, Module(..))
 import Elm.Syntax.ModuleName exposing (ModuleName)
 import Elm.Syntax.Node exposing (Node)
 import List.Extra
+import Parser as Core
 
 
 moduleDefinition : Parser State Module
@@ -67,9 +68,9 @@ effectModuleDefinition =
                 }
     in
     Combine.succeed (\name -> \whereClauses -> \exp -> createEffectModule name whereClauses exp)
-        |> Combine.ignore (Combine.symbol "effect")
+        |> Combine.ignoreEntirely (Core.symbol "effect")
         |> Combine.ignore Layout.layout
-        |> Combine.ignore Tokens.moduleToken
+        |> Combine.ignoreEntirely Tokens.moduleToken
         |> Combine.ignore Layout.layout
         |> Combine.keep moduleName
         |> Combine.ignore Layout.layout
@@ -81,7 +82,7 @@ effectModuleDefinition =
 normalModuleDefinition : Parser State Module
 normalModuleDefinition =
     Combine.succeed (\moduleName -> \exposingList -> NormalModule (DefaultModuleData moduleName exposingList))
-        |> Combine.ignore Tokens.moduleToken
+        |> Combine.ignoreEntirely Tokens.moduleToken
         |> Combine.ignore Layout.layout
         |> Combine.keep moduleName
         |> Combine.ignore Layout.layout
@@ -91,9 +92,9 @@ normalModuleDefinition =
 portModuleDefinition : Parser State Module
 portModuleDefinition =
     Combine.succeed (\moduleName -> \exposingList -> PortModule (DefaultModuleData moduleName exposingList))
-        |> Combine.ignore Tokens.portToken
+        |> Combine.ignoreEntirely Tokens.portToken
         |> Combine.ignore Layout.layout
-        |> Combine.ignore Tokens.moduleToken
+        |> Combine.ignoreEntirely Tokens.moduleToken
         |> Combine.ignore Layout.layout
         |> Combine.keep moduleName
         |> Combine.ignore Layout.layout
