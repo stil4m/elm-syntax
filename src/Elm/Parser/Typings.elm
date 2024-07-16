@@ -18,17 +18,17 @@ import Parser as Core
 typeDefinition : Maybe (Node Documentation) -> Parser State (Node Declaration.Declaration)
 typeDefinition maybeDoc =
     let
-        startParser : Parser state Location
+        startParser : Core.Parser Location
         startParser =
             case maybeDoc of
                 Just (Node { start } _) ->
-                    Combine.succeed start
+                    Core.succeed start
 
                 Nothing ->
                     Combine.location
     in
     startParser
-        |> Combine.ignore typePrefix
+        |> Combine.ignoreFromCore typePrefix
         |> Combine.andThen
             (\start ->
                 Combine.oneOf

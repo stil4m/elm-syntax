@@ -30,9 +30,9 @@ exposingListInner : Parser State Exposing
 exposingListInner =
     Combine.oneOf
         [ Combine.succeed (\start -> \end -> All { start = start, end = end })
-            |> Combine.keep Combine.location
+            |> Combine.keepFromCore Combine.location
             |> Combine.ignore (Layout.maybeAroundBothSides (Combine.symbol ".."))
-            |> Combine.keep Combine.location
+            |> Combine.keepFromCore Combine.location
         , Combine.sepBy1 "," (Layout.maybeAroundBothSides exposable)
             |> Combine.map Explicit
         ]

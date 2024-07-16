@@ -42,7 +42,7 @@ importDefinition =
                 |> Combine.map (\imp -> setupNode start imp)
     in
     Combine.succeed (\start -> \mod -> parseAsDefinition start mod)
-        |> Combine.keep Combine.location
+        |> Combine.keepFromCore Combine.location
         |> Combine.ignoreEntirely Tokens.importToken
         |> Combine.ignore Layout.layout
         |> Combine.keepFromCore moduleName

@@ -109,15 +109,13 @@ withLocation f =
                     )
 
 
-location : Parser state Location
+location : Core.Parser Location
 location =
-    Parser <|
-        \state ->
-            Core.getPosition
-                |> Core.map
-                    (\( row, col ) ->
-                        ( state, { row = row, column = col } )
-                    )
+    Core.getPosition
+        |> Core.map
+            (\( row, col ) ->
+                { row = row, column = col }
+            )
 
 
 map : (a -> b) -> Parser state a -> Parser state b

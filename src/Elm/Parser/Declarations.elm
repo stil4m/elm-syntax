@@ -171,7 +171,7 @@ portDeclaration maybeDoc =
                 Just doc ->
                     Combine.modifyState (State.addComment doc)
             )
-        |> Combine.keep Combine.location
+        |> Combine.keepFromCore Combine.location
         |> Combine.ignoreEntirely Tokens.portToken
         |> Combine.ignore Layout.layout
         |> Combine.keep signature

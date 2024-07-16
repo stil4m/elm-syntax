@@ -342,7 +342,7 @@ lambdaExpression config =
                         |> LambdaExpression
                         |> Node { start = start, end = end }
         )
-        |> Combine.keep Combine.location
+        |> Combine.keepFromCore Combine.location
         |> Combine.ignoreEntirely backSlash
         |> Combine.ignore (Combine.maybeIgnore Layout.layout)
         |> Combine.keep (Combine.sepBy1WithState (Combine.maybeIgnore Layout.layout) Patterns.pattern)
@@ -364,7 +364,7 @@ caseExpression config =
                     Node { start = start, end = end }
                         (CaseExpression (CaseBlock caseBlock_ cases))
         )
-        |> Combine.keep Combine.location
+        |> Combine.keepFromCore Combine.location
         |> Combine.ignoreEntirely Tokens.caseToken
         |> Combine.ignore Layout.layout
         |> Combine.keep (Pratt.subExpression 0 config)
@@ -404,7 +404,7 @@ letExpression config =
                         Node { start = start, end = end }
                             (LetExpression (LetBlock declarations expr))
             )
-            |> Combine.keep Combine.location
+            |> Combine.keepFromCore Combine.location
             |> Combine.ignoreEntirely Tokens.letToken
             |> Combine.ignore Layout.layout
             |> Combine.keep (withIndentedState (letDeclarations config))
@@ -462,7 +462,7 @@ ifBlockExpression config =
                             { start = start, end = end }
                             (IfBlock condition ifTrue ifFalse)
         )
-        |> Combine.keep Combine.location
+        |> Combine.keepFromCore Combine.location
         |> Combine.ignoreEntirely Tokens.ifToken
         |> Combine.keep (Pratt.subExpression 0 config)
         |> Combine.ignoreEntirely Tokens.thenToken
