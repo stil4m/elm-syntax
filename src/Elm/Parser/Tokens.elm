@@ -186,18 +186,20 @@ stringLiteral =
                 Core.oneOf
                     [ Core.symbol "\"" |> Core.map (\_ -> Done (s.parts |> List.reverse |> String.concat))
                     , Core.symbol "\\" |> Core.map (\_ -> Loop { escaped = True, parts = s.parts })
-                    , Core.succeed (\start value end -> ( start, value, end ))
+                    , Core.succeed
+                        (\start ->
+                            \value ->
+                                \end ->
+                                    if start == end then
+                                        Core.problem "Expected a string character or a double quote"
+
+                                    else
+                                        Core.succeed (Loop { escaped = s.escaped, parts = value :: s.parts })
+                        )
                         |= Core.getOffset
                         |= Core.getChompedString (Core.chompWhile (\c -> c /= '"' && c /= '\\'))
                         |= Core.getOffset
-                        |> Core.andThen
-                            (\( start, value, end ) ->
-                                if start == end then
-                                    Core.problem "Expected a string character or a double quote"
-
-                                else
-                                    Core.succeed (Loop { escaped = s.escaped, parts = value :: s.parts })
-                            )
+                        |> Core.andThen identity
                     ]
     in
     Core.succeed identity
@@ -229,18 +231,20 @@ multiLineStringLiteral =
                         |> Core.mapChompedString (\v _ -> Loop { counter = s.counter + 1, escaped = s.escaped, parts = v :: s.parts })
                     , Core.symbol "\\"
                         |> Core.map (\_ -> Loop { counter = s.counter + 1, escaped = True, parts = s.parts })
-                    , Core.succeed (\start value end -> ( start, value, end ))
+                    , Core.succeed
+                        (\start ->
+                            \value ->
+                                \end ->
+                                    if start == end then
+                                        Core.problem "Expected a string character or a triple double quote"
+
+                                    else
+                                        Core.succeed (Loop { counter = s.counter + 1, escaped = s.escaped, parts = value :: s.parts })
+                        )
                         |= Core.getOffset
                         |= Core.getChompedString (Core.chompWhile (\c -> c /= '"' && c /= '\\'))
                         |= Core.getOffset
-                        |> Core.andThen
-                            (\( start, value, end ) ->
-                                if start == end then
-                                    Core.problem "Expected a string character or a triple double quote"
-
-                                else
-                                    Core.succeed (Loop { counter = s.counter + 1, escaped = s.escaped, parts = value :: s.parts })
-                            )
+                        |> Core.andThen identity
                     ]
     in
     Core.succeed identity
