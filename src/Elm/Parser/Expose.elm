@@ -1,7 +1,6 @@
 module Elm.Parser.Expose exposing (exposeDefinition)
 
 import Combine exposing (Parser)
-import Combine.Char exposing (char)
 import Elm.Parser.Layout as Layout
 import Elm.Parser.Node as Node
 import Elm.Parser.State exposing (State)
@@ -34,7 +33,7 @@ exposingListInner =
             |> Combine.keep Combine.location
             |> Combine.ignore (Layout.maybeAroundBothSides (Combine.symbol ".."))
             |> Combine.keep Combine.location
-        , Combine.sepBy1 (Combine.fromCore (char ',')) (Layout.maybeAroundBothSides exposable)
+        , Combine.sepBy1 (Combine.symbol ",") (Layout.maybeAroundBothSides exposable)
             |> Combine.map Explicit
         ]
 
