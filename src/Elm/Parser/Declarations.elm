@@ -45,7 +45,7 @@ maybeDocumentation =
 
 function : Maybe (Node Documentation) -> Parser State (Node Declaration)
 function maybeDoc =
-    Node.parser Tokens.functionName
+    Node.parserFromCore Tokens.functionNameCore
         |> Combine.ignore (Combine.maybeIgnore Layout.layout)
         |> Combine.andThen functionWithNameNode
         |> Combine.map
@@ -88,7 +88,7 @@ functionWithNameNode pointer =
                 |> Combine.ignore (Combine.maybeIgnore Layout.layoutStrict)
                 |> Combine.andThen
                     (\sig ->
-                        Node.parser Tokens.functionName
+                        Node.parserFromCore Tokens.functionNameCore
                             |> Combine.andThen (\fnName -> failIfDifferentFrom varPointer fnName)
                             |> Combine.ignore (Combine.maybeIgnore Layout.layout)
                             |> Combine.andThen (\body -> functionImplementationFromVarPointer (Just sig) body)
@@ -107,7 +107,7 @@ functionWithNameNode pointer =
 signature : Parser State Signature
 signature =
     Combine.succeed Signature
-        |> Combine.keep (Node.parser Tokens.functionName)
+        |> Combine.keep (Node.parserFromCore Tokens.functionNameCore)
         |> Combine.ignore (Layout.maybeAroundBothSides (Combine.symbol ":"))
         |> Combine.ignore (Combine.maybeIgnore Layout.layout)
         |> Combine.keep typeAnnotation
@@ -120,13 +120,13 @@ infixDeclaration =
         |> Combine.ignore Layout.layout
         |> Combine.keep (Node.parser infixDirection)
         |> Combine.ignore Layout.layout
-        |> Combine.keep (Node.parser (Combine.fromCore Core.int))
+        |> Combine.keep (Node.parserFromCore Core.int)
         |> Combine.ignore Layout.layout
         |> Combine.keep operatorWithParens
         |> Combine.ignore Layout.layout
         |> Combine.ignore (Combine.symbol "=")
         |> Combine.ignore Layout.layout
-        |> Combine.keep (Node.parser Tokens.functionName)
+        |> Combine.keep (Node.parserFromCore Tokens.functionNameCore)
         |> Combine.map Declaration.InfixDeclaration
         |> Node.parser
 

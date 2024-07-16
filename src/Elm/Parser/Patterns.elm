@@ -20,7 +20,7 @@ tryToCompose x =
                 [ Combine.succeed (\y -> Node.combine AsPattern x y)
                     |> Combine.ignore (Combine.fromCore (Core.keyword "as"))
                     |> Combine.ignore Layout.layout
-                    |> Combine.keep (Node.parser Tokens.functionName)
+                    |> Combine.keep (Node.parserFromCore Tokens.functionNameCore)
                 , Combine.succeed (\y -> Node.combine UnConsPattern x y)
                     |> Combine.ignore (Combine.fromCore (Core.symbol "::"))
                     |> Combine.ignore (Combine.maybeIgnore Layout.layout)
@@ -63,7 +63,7 @@ variablePart =
 numberPart : Parser state (Node Pattern)
 numberPart =
     Elm.Parser.Numbers.number IntPattern HexPattern
-        |> Node.parser
+        |> Node.parserFromCore
 
 
 charPattern : Parser state (Node Pattern)

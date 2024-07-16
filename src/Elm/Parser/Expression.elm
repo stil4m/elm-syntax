@@ -623,7 +623,7 @@ functionWithSignature config varPointer =
         |> Combine.ignore (Combine.maybeIgnore Layout.layoutStrict)
         |> Combine.andThen
             (\sig ->
-                Node.parser Tokens.functionName
+                Node.parserFromCore Tokens.functionNameCore
                     |> Combine.andThen (\fnName -> failIfDifferentFrom varPointer fnName)
                     |> Combine.ignore (Combine.maybeIgnore Layout.layout)
                     |> Combine.andThen (\newPointer -> functionImplementationFromVarPointer config newPointer)
