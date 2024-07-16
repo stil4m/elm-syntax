@@ -114,9 +114,9 @@ location =
     Parser <|
         \state ->
             Core.getPosition
-                |> Core.andThen
+                |> Core.map
                     (\( row, col ) ->
-                        Core.succeed ( state, { row = row, column = col } )
+                        ( state, { row = row, column = col } )
                     )
 
 
