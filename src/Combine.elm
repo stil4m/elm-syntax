@@ -337,7 +337,7 @@ many1 p =
         |> keep (many p)
 
 
-sepBy : Parser state x -> Parser state a -> Parser state (List a)
+sepBy : Parser state () -> Parser state a -> Parser state (List a)
 sepBy sep p =
     oneOf
         [ sepBy1 sep p
@@ -345,7 +345,7 @@ sepBy sep p =
         ]
 
 
-sepBy1 : Parser state x -> Parser state a -> Parser state (List a)
+sepBy1 : Parser state () -> Parser state a -> Parser state (List a)
 sepBy1 sep p =
     succeed cons
         |> keep p
@@ -391,7 +391,7 @@ ignore dropped target =
         |> keep dropped
 
 
-continueWith : Parser state a -> Parser state x -> Parser state a
+continueWith : Parser state a -> Parser state () -> Parser state a
 continueWith target dropped =
     dropped
         |> map (\_ -> \a -> a)

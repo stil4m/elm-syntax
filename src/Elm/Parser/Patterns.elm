@@ -14,7 +14,7 @@ import Parser as Core exposing ((|.))
 
 tryToCompose : Node Pattern -> Parser State (Node Pattern)
 tryToCompose x =
-    Combine.maybe Layout.layout
+    Combine.maybeIgnore Layout.layout
         |> Combine.continueWith
             (Combine.oneOf
                 [ Combine.succeed (\y -> Node.combine AsPattern x y)
