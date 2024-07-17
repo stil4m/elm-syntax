@@ -30,11 +30,11 @@ EOF
 
     echo "Checking $FILE"
 
-    git checkout $PRATT_BRANCH > /dev/null 2>&1
-    npx elm-test | grep __RESULT__ > pratt_result.tmp
-
     git checkout master > /dev/null 2>&1
     npx elm-test | grep __RESULT__ > master_result.tmp
+
+    git checkout $PRATT_BRANCH > /dev/null 2>&1
+    npx elm-test | grep __RESULT__ > pratt_result.tmp
 
     diff master_result.tmp pratt_result.tmp > /dev/null
     if [ $? -ne 0 ] ;then
