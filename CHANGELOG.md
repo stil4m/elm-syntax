@@ -6,6 +6,9 @@
 
 - Removed APIs:
   - `Elm.Writer` module
+  - `Elm.Interface` module
+  - `Elm.Dependency` module
+  - `Elm.Processing` and `Elm.RawFile` modules
 
 ## [7.3.4] - 2024-07-26
 
