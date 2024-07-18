@@ -53,8 +53,8 @@ main =
 
 Used in:
 
-* [elm-review](https://elm-review.com/)
-* [elm-codegen](https://package.elm-lang.org/packages/mdgriffith/elm-codegen/latest/)
-* [elm-analyse](https://github.com/stil4m/elm-analyse)
-* [elm-xref](https://github.com/zwilias/elm-xref)
-* [elm-lens](https://github.com/mbuscemi/elm-lens)
+* [`elm-review`](https://elm-review.com/)
+* [`elm-codegen`](https://package.elm-lang.org/packages/mdgriffith/elm-codegen/latest/)
+* [`elm-analyse`](https://github.com/stil4m/elm-analyse)
+* [`elm-xref`](https://github.com/zwilias/elm-xref)
+* [`elm-lens`](https://github.com/mbuscemi/elm-lens)
