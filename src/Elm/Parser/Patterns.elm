@@ -141,7 +141,10 @@ unitPattern =
 
 stringPattern : Parser state (Node Pattern)
 stringPattern =
-    Tokens.stringLiteral
+    Core.oneOf
+        [ Tokens.multiLineStringLiteral
+        , Tokens.stringLiteral
+        ]
         |> Core.map StringPattern
         |> Node.parserCore
         |> Combine.fromCore
