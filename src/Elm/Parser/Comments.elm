@@ -59,5 +59,16 @@ moduleDocumentation =
 
 declarationDocumentation : Core.Parser (Node Documentation)
 declarationDocumentation =
-    Core.getChompedString (Core.multiComment "{-|" "-}" Nestable)
+    Core.succeed (\offset -> \source -> String.slice offset (offset + 3) source)
+        |= Core.getOffset
+        |= Core.getSource
+        |> Core.andThen
+            (\opening ->
+                if opening == "{-|" then
+                    Core.multiComment "{-" "-}" Nestable
+
+                else
+                    Core.problem "not a documentation comment"
+            )
+        |> Core.getChompedString
         |> Node.parserCore
