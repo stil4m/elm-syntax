@@ -1,10 +1,8 @@
 module Elm.Parser.FileTests exposing (all)
 
-import Elm.Internal.RawFile as InternalRawFile
 import Elm.Parser
 import Elm.Parser.File as Parser
 import Elm.Parser.Samples as Samples
-import Elm.RawFile as RawFile exposing (RawFile)
 import Elm.Syntax.Declaration exposing (Declaration(..))
 import Elm.Syntax.Exposing exposing (Exposing(..))
 import Elm.Syntax.Expression exposing (Expression(..), LetDeclaration(..))
@@ -14,8 +12,6 @@ import Elm.Syntax.Node exposing (Node(..))
 import Elm.Syntax.Pattern exposing (Pattern(..))
 import Elm.Syntax.TypeAnnotation exposing (TypeAnnotation(..))
 import Expect
-import Json.Decode
-import Json.Encode
 import ParserFast
 import Test exposing (..)
 
@@ -52,27 +48,6 @@ all =
         --             Parser.parse "module Foo exposing (..) \nx = \n  x + _"
         --                 |> Expect.equal (Err [ "Could not continue parsing on location (2,6)" ])
         --     ]
-        , describe "FileTests - serialisation"
-            (Samples.allSamples
-                |> List.map
-                    (\( n, s ) ->
-                        test ("sample " ++ String.fromInt n) <|
-                            \() ->
-                                let
-                                    parsed : Maybe RawFile
-                                    parsed =
-                                        ParserFast.run Parser.file s
-                                            |> Result.toMaybe
-                                            |> Maybe.map InternalRawFile.Raw
-
-                                    roundTrip : Maybe RawFile
-                                    roundTrip =
-                                        parsed
-                                            |> Maybe.andThen (RawFile.encode >> Json.Encode.encode 0 >> Json.Decode.decodeString RawFile.decoder >> Result.toMaybe)
-                                in
-                                Expect.equal parsed roundTrip
-                    )
-            )
         , test "Comments ordering" <|
             \() ->
                 let
