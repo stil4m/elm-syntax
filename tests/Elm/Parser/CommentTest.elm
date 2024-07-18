@@ -60,6 +60,12 @@ all =
                     |> Maybe.map toIndentAndComments
                     |> Expect.equal
                         (Just [ Node { start = { row = 1, column = 1 }, end = { row = 2, column = 6 } } "{-|foo\nbar-}" ])
+        , test "module documentation can handle nested comments" <|
+            \() ->
+                parseWithState "{-| {- hello -} -}" Parser.moduleDocumentation
+                    |> Maybe.map toIndentAndComments
+                    |> Expect.equal
+                        (Just [ Node { start = { row = 1, column = 1 }, end = { row = 1, column = 19 } } "{-| {- hello -} -}" ])
         ]
 
 
