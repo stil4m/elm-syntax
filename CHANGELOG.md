@@ -2,6 +2,8 @@
 
 ## [Unreleased]
 
+- Removed the deprecated `Elm.Parser.parse` function, and renamed `Elm.Parser.parseToFile` to `Elm.Parser.parse` (in other words, `Elm.Parser.parse`'s type changed to be the same as `parseToFile`)
+
 ## [7.3.4] - 2024-07-26
 
 Parsing is faster by ~90%. A big thank you to [@lue-bird](https://github.com/lue-bird) for finding and introducing a huge amount of performance improvements.
