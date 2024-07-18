@@ -70,6 +70,7 @@ config =
             , exceptionsAre = []
             }
         |> NoUnused.Exports.toRule
+        |> Rule.ignoreErrorsForDirectories [ "src/Benchmarks" ]
     , NoUnused.Parameters.rule
     , NoUnused.Patterns.rule
     , NoUnused.Variables.rule
