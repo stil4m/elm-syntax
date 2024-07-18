@@ -5,6 +5,9 @@ module Elm.Processing exposing
 
 {-| Processing raw files with the context of other files and dependencies.
 
+Since v7.3.3, post-processing is unnecessary.
+Use [`Elm.Parser.parseToFile`](Elm-Parser#parseToFile) instead.
+
 
 ## Types
 

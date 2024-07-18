@@ -21,6 +21,7 @@ import Parser exposing (DeadEnd)
 
 
 {-| **@deprecated** Use [`parseToFile`](#parseToFile) instead, which is simpler and doesn't require post-processing.
+Since v7.3.3, post-processing is unnecessary.
 
 Parse some text as if it is an Elm source file.
 When parsing fails, the result will contain a list of errors indicating what went wrong (and/or where).
