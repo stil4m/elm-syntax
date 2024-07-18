@@ -28,24 +28,27 @@ That's where the "tree" part of AST comes from.
 
 ```elm
 import Elm.Parser
-import Html
+import Html exposing (Html)
 
-src = """module Foo exposing(foo)
+src : String
+src =
+    """module Foo exposing (foo)
 
 foo = 1
 """
 
 parse : String -> String
 parse input =
-  case Elm.Parser.parseToFile input of
-    Err e ->
-      "Failed: " ++ Debug.toString e
-    Ok v ->
-      "Success: " ++ Debug.toString v
+    case Elm.Parser.parseToFile input of
+        Err e ->
+            "Failed: " ++ Debug.toString e
 
+        Ok v ->
+            "Success: " ++ Debug.toString v
 
+main : Html msg
 main =
-  Html.text (parse src)
+    Html.text (parse src)
 ```
 
 Used in:
