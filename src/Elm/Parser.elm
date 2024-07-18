@@ -14,7 +14,6 @@ import Combine exposing (Parser, end)
 import Elm.Internal.RawFile as InternalRawFile
 import Elm.Parser.File exposing (file)
 import Elm.Parser.State exposing (State, emptyState)
-import Elm.Processing as Processing
 import Elm.RawFile exposing (RawFile)
 import Elm.Syntax.File exposing (File)
 import Parser exposing (DeadEnd)
@@ -42,8 +41,8 @@ When parsing fails, the result will contain a list of errors indicating what wen
 parseToFile : String -> Result (List DeadEnd) File
 parseToFile input =
     case Combine.runParser (withEnd file) emptyState input of
-        Ok ( _, r ) ->
-            Ok (Processing.process Processing.init (InternalRawFile.fromFile r))
+        Ok ( _, fileContents ) ->
+            Ok fileContents
 
         Err s ->
             Err s
