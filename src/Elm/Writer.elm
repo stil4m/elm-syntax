@@ -2,6 +2,9 @@ module Elm.Writer exposing (write, writeFile, writePattern, writeExpression, wri
 
 {-| Write a file to a string.
 
+**DEPRECATED:** In practice the writer is not very good, and this functionality will very likely be removed in the next major version.
+We highly recommend using [the-sett/elm-syntax-dsl](https://package.elm-lang.org/packages/the-sett/elm-syntax-dsl/latest/) instead.
+
 @docs write, writeFile, writePattern, writeExpression, writeTypeAnnotation, writeDeclaration
 
 -}
