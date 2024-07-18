@@ -2,7 +2,7 @@
 
 FILES=$@
 TARGET="tests/RegressionTests.elm"
-PRATT_BRANCH="pratt-parser"
+BRANCH="pratt-parser"
 
 mkdir -p regressions
 
@@ -33,12 +33,14 @@ EOF
     git checkout master > /dev/null 2>&1
     npx elm-test | grep __RESULT__ > master_result.tmp
 
-    git checkout $PRATT_BRANCH > /dev/null 2>&1
-    npx elm-test | grep __RESULT__ > pratt_result.tmp
+    git checkout $BRANCH > /dev/null 2>&1
+    npx elm-test | grep __RESULT__ > branch_result.tmp
 
-    diff master_result.tmp pratt_result.tmp > /dev/null
+    diff master_result.tmp branch_result.tmp > /dev/null
     if [ $? -ne 0 ] ;then
         echo "❌❌❌ Found a parsing difference in $FILE"
         cp $FILE regressions
+    else
+       echo "✅✅✅ No problem"
     fi
 done
