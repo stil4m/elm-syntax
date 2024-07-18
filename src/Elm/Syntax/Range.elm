@@ -2,7 +2,6 @@ module Elm.Syntax.Range exposing
     ( Range, Location
     , empty, combine
     , compare, compareLocations
-    , encode, decoder
     , emptyRange
     )
 
@@ -26,19 +25,11 @@ See also [Basics.compare](https://package.elm-lang.org/packages/elm/core/latest/
 @docs compare, compareLocations
 
 
-## Serialization
-
-@docs encode, decoder
-
-
 ## Deprecated
 
 @docs emptyRange
 
 -}
-
-import Json.Decode as JD exposing (Decoder)
-import Json.Encode as JE exposing (Value)
 
 
 {-| Source location
@@ -74,39 +65,6 @@ Construct an empty range
 emptyRange : Range
 emptyRange =
     empty
-
-
-{-| Encode a range
--}
-encode : Range -> Value
-encode { start, end } =
-    JE.list JE.int
-        [ start.row
-        , start.column
-        , end.row
-        , end.column
-        ]
-
-
-{-| Decode a range
--}
-decoder : Decoder Range
-decoder =
-    JD.list JD.int
-        |> JD.andThen fromList
-
-
-fromList : List Int -> Decoder Range
-fromList input =
-    case input of
-        [ a, b, c, d ] ->
-            JD.succeed
-                { start = { row = a, column = b }
-                , end = { row = c, column = d }
-                }
-
-        _ ->
-            JD.fail "Invalid input list"
 
 
 {-| Compute the largest area of a list of ranges.
