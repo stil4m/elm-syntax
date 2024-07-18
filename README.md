@@ -37,7 +37,7 @@ foo = 1
 
 parse : String -> String
 parse input =
-  case Elm.Parser.parse input of
+  case Elm.Parser.parseToFile input of
     Err e ->
       "Failed: " ++ Debug.toString e
     Ok v ->
