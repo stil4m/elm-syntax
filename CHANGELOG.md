@@ -9,6 +9,7 @@
   - `Elm.Interface` module
   - `Elm.Dependency` module
   - `Elm.Processing` and `Elm.RawFile` modules
+  - All `encode` and `decode` functions
 
 ## [7.3.4] - 2024-07-26
 
