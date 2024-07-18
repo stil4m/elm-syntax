@@ -5,11 +5,7 @@
     "license": "MIT",
     "version": "7.3.3",
     "exposed-modules": [
-        "Elm.Dependency",
-        "Elm.Interface",
         "Elm.Parser",
-        "Elm.Processing",
-        "Elm.RawFile",
         "Elm.Syntax.Comments",
         "Elm.Syntax.Declaration",
         "Elm.Syntax.Documentation",
