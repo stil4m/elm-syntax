@@ -101,7 +101,7 @@ f =
 {- 6 -}
 """
                 in
-                Elm.Parser.parseToFile input
+                Elm.Parser.parse input
                     |> Result.map .comments
                     |> Expect.equal
                         (Ok
@@ -132,7 +132,7 @@ caseWhitespace f = case f   of
 
     
     """
-                    |> Elm.Parser.parseToFile
+                    |> Elm.Parser.parse
                     |> Expect.equal
                         (Ok
                             { moduleDefinition =
@@ -190,7 +190,7 @@ lambdaWhitespace =   \\ a b ->    a
 --some comment
 
     """
-                    |> Elm.Parser.parseToFile
+                    |> Elm.Parser.parse
                     |> Expect.equal
                         (Ok
                             { moduleDefinition =
@@ -250,7 +250,7 @@ letWhitespace = let
 --some comment
 
     """
-                    |> Elm.Parser.parseToFile
+                    |> Elm.Parser.parse
                     |> Expect.equal
                         (Ok
                             { moduleDefinition =
@@ -311,7 +311,7 @@ import Dict
 type Configuration
     = Configuration
 """
-                    |> Elm.Parser.parseToFile
+                    |> Elm.Parser.parse
                     |> Expect.equal
                         (Ok
                             { moduleDefinition =
@@ -358,7 +358,7 @@ module Foo exposing (..)
 type Configuration
     = Configuration
 """
-                    |> Elm.Parser.parseToFile
+                    |> Elm.Parser.parse
                     |> Expect.equal
                         (Ok
                             { moduleDefinition =
@@ -400,7 +400,7 @@ import String
 -}
 port sendResponse : String -> Cmd msg
 """
-                    |> Elm.Parser.parseToFile
+                    |> Elm.Parser.parse
                     |> Expect.equal
                         (Ok
                             { moduleDefinition =
