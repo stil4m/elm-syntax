@@ -64,11 +64,11 @@ typeDefinition maybeDoc =
                                     let
                                         end : Location
                                         end =
-                                            case List.head constructors of
-                                                Just (Node range _) ->
+                                            case constructors of
+                                                (Node range _) :: _ ->
                                                     range.end
 
-                                                Nothing ->
+                                                [] ->
                                                     start
                                     in
                                     Node
