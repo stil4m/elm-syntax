@@ -24,8 +24,7 @@ typeIndicator =
                     |. Tokens.dot
                     |= Tokens.typeName
                     |> Core.andThen (\t -> helper (typeOrSegment :: moduleNameSoFar) t)
-                , Core.succeed ()
-                    |> Core.map (\() -> ( List.reverse moduleNameSoFar, typeOrSegment ))
+                , Core.lazy (\() -> Core.succeed ( List.reverse moduleNameSoFar, typeOrSegment ))
                 ]
     in
     Tokens.typeName

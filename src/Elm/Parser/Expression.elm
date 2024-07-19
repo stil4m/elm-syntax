@@ -469,8 +469,8 @@ referenceExpression =
                                         name
                                 )
                         ]
-                , Core.succeed ()
-                    |> Core.map (\() -> FunctionOrValue (List.reverse moduleNameSoFar) nameOrSegment)
+                , Core.lazy
+                    (\() -> Core.succeed (FunctionOrValue (List.reverse moduleNameSoFar) nameOrSegment))
                 ]
     in
     Core.oneOf
