@@ -207,7 +207,10 @@ functionName : Core.Parser String
 functionName =
     Core.variable
         { start = Unicode.isLower
-        , inner = \c -> Unicode.isAlphaNum c || c == '_'
+        , inner =
+            \c ->
+                -- checking for Char.isAlphaNum early is much faster
+                Char.isAlphaNum c || c == '_' || Unicode.isAlphaNum c
         , reserved = reservedList
         }
 
@@ -216,7 +219,10 @@ typeName : Core.Parser String
 typeName =
     Core.variable
         { start = Unicode.isUpper
-        , inner = \c -> Unicode.isAlphaNum c || c == '_'
+        , inner =
+            \c ->
+                -- checking for Char.isAlphaNum early is much faster
+                Char.isAlphaNum c || c == '_' || Unicode.isAlphaNum c
         , reserved = Set.empty
         }
 
