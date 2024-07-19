@@ -172,7 +172,7 @@ stringLiteralHelper : String -> Core.Parser (Step String String)
 stringLiteralHelper stringSoFar =
     Core.oneOf
         [ Core.symbol "\"" |> Core.map (\() -> Done stringSoFar)
-        , Core.succeed (\v -> Loop (stringSoFar ++ String.fromChar v))
+        , Core.succeed (\v -> Loop (stringSoFar ++ String.fromChar v ++ ""))
             |. Core.symbol "\\"
             |= escapedCharValue
         , Core.mapChompedString
@@ -194,7 +194,7 @@ multiLineStringLiteralStep stringSoFar =
         [ Core.symbol "\"\"\""
             |> Core.map (\() -> Done stringSoFar)
         , Core.symbol "\""
-            |> Core.mapChompedString (\v () -> Loop (stringSoFar ++ v))
+            |> Core.map (\() -> Loop (stringSoFar ++ "\""))
         , Core.succeed (\v -> Loop (stringSoFar ++ String.fromChar v))
             |. Core.symbol "\\"
             |= escapedCharValue
