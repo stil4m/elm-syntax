@@ -1,7 +1,6 @@
 module Elm.Parser.Expression exposing (expression, failIfDifferentFrom, functionSignatureFromVarPointer)
 
 import Combine exposing (Parser, Step(..))
-import Dict exposing (Dict)
 import Elm.Parser.Layout as Layout
 import Elm.Parser.Node as Node
 import Elm.Parser.Numbers
@@ -17,7 +16,6 @@ import Elm.Syntax.Node as Node exposing (Node(..))
 import Elm.Syntax.Pattern as Pattern exposing (Pattern)
 import Elm.Syntax.Range exposing (Location)
 import Elm.Syntax.Signature exposing (Signature)
-import List.Extra
 import Parser as Core exposing ((|.), (|=), Nestable(..))
 import Parser.Extra
 
@@ -640,7 +638,7 @@ spacesAndSubExpressions =
 
 expressionHelp : Int -> Node Expression -> Parser State (Step (Node Expression) (Node Expression))
 expressionHelp currentPrecedence leftExpression =
-    case Dict.get currentPrecedence operations of
+    case getOperation currentPrecedence of
         Just parser ->
             Layout.optimisticLayout
                 |> Combine.continueWith
@@ -669,16 +667,115 @@ operation currentPrecedence leftExpression =
         |> Combine.oneOf
 
 
-operations : Dict Int (Node Expression -> Parser State (Node Expression))
-operations =
-    andThenOneOf
-        |> List.map Tuple.first
-        |> List.Extra.unique
-        |> (::) 0
-        |> (::) 95
-        |> List.foldl
-            (\precedence dict -> Dict.insert precedence (operation precedence) dict)
-            Dict.empty
+getOperation : Int -> Maybe (Node Expression -> Parser State (Node Expression))
+getOperation precedence =
+    case precedence of
+        0 ->
+            Just operation0
+
+        1 ->
+            Just operation1
+
+        2 ->
+            Just operation2
+
+        3 ->
+            Just operation3
+
+        4 ->
+            Just operation4
+
+        5 ->
+            Just operation5
+
+        6 ->
+            Just operation6
+
+        7 ->
+            Just operation7
+
+        8 ->
+            Just operation8
+
+        9 ->
+            Just operation9
+
+        90 ->
+            Just operation90
+
+        95 ->
+            Just operation95
+
+        100 ->
+            Just operation100
+
+        _ ->
+            Nothing
+
+
+operation0 : Node Expression -> Parser State (Node Expression)
+operation0 leftExpression =
+    operation 0 leftExpression
+
+
+operation1 : Node Expression -> Parser State (Node Expression)
+operation1 leftExpression =
+    operation 1 leftExpression
+
+
+operation2 : Node Expression -> Parser State (Node Expression)
+operation2 leftExpression =
+    operation 2 leftExpression
+
+
+operation3 : Node Expression -> Parser State (Node Expression)
+operation3 leftExpression =
+    operation 3 leftExpression
+
+
+operation4 : Node Expression -> Parser State (Node Expression)
+operation4 leftExpression =
+    operation 4 leftExpression
+
+
+operation5 : Node Expression -> Parser State (Node Expression)
+operation5 leftExpression =
+    operation 5 leftExpression
+
+
+operation6 : Node Expression -> Parser State (Node Expression)
+operation6 leftExpression =
+    operation 6 leftExpression
+
+
+operation7 : Node Expression -> Parser State (Node Expression)
+operation7 leftExpression =
+    operation 7 leftExpression
+
+
+operation8 : Node Expression -> Parser State (Node Expression)
+operation8 leftExpression =
+    operation 8 leftExpression
+
+
+operation9 : Node Expression -> Parser State (Node Expression)
+operation9 leftExpression =
+    operation 9 leftExpression
+
+
+operation90 : Node Expression -> Parser State (Node Expression)
+operation90 leftExpression =
+    operation 90 leftExpression
+
+
+operation95 : Node Expression -> Parser State (Node Expression)
+operation95 leftExpression =
+    operation 95 leftExpression
+
+
+operation100 : Node Expression -> Parser State (Node Expression)
+operation100 leftExpression =
+    operation 100 leftExpression
 
 
 infixLeft : Int -> String -> ( Int, Node Expression -> Parser State (Node Expression) )
