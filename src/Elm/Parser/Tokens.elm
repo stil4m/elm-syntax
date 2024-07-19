@@ -120,13 +120,13 @@ inToken =
 escapedCharValue : Core.Parser Char
 escapedCharValue =
     Core.oneOf
-        [ Core.succeed '\'' |. Core.symbol "'"
-        , Core.succeed '"' |. Core.symbol "\""
-        , Core.succeed '\n' |. Core.symbol "n"
-        , Core.succeed '\t' |. Core.symbol "t"
+        [ Core.map (\() -> '\'') (Core.symbol "'")
+        , Core.map (\() -> '"') (Core.symbol "\"")
+        , Core.map (\() -> '\n') (Core.symbol "n")
+        , Core.map (\() -> '\t') (Core.symbol "t")
         , -- Eventhough Elm-format will change \r to a unicode version. When you dont use elm-format, this will not happen.
-          Core.succeed '\u{000D}' |. Core.symbol "r"
-        , Core.succeed '\\' |. Core.symbol "\\"
+          Core.map (\() -> '\u{000D}') (Core.symbol "r")
+        , Core.map (\() -> '\\') (Core.symbol "\\")
         , Core.succeed
             (\hex ->
                 case String.toLower hex |> Hex.fromString of
@@ -136,8 +136,7 @@ escapedCharValue =
                     Err _ ->
                         '\u{0000}'
             )
-            |. Core.symbol "u"
-            |. Core.symbol "{"
+            |. Core.symbol "u{"
             |= (Core.chompWhile Char.isHexDigit |> Core.getChompedString)
             |. Core.symbol "}"
         ]

@@ -9,7 +9,7 @@ import Elm.Parser.State exposing (State)
 import Elm.Parser.Tokens as Tokens
 import Elm.Syntax.Node as Node exposing (Node(..))
 import Elm.Syntax.Pattern exposing (Pattern(..), QualifiedNameRef)
-import Parser as Core exposing ((|.))
+import Parser as Core
 
 
 tryToCompose : Node Pattern -> Parser State (Node Pattern)
@@ -125,16 +125,14 @@ qualifiedPatternArg =
 
 allPattern : Parser state (Node Pattern)
 allPattern =
-    Core.succeed AllPattern
-        |. Core.symbol "_"
+    Core.map (\() -> AllPattern) (Core.symbol "_")
         |> Node.parserCore
         |> Combine.fromCore
 
 
 unitPattern : Parser state (Node Pattern)
 unitPattern =
-    Core.succeed UnitPattern
-        |. Core.symbol "()"
+    Core.map (\() -> UnitPattern) (Core.symbol "()")
         |> Node.parserCore
         |> Combine.fromCore
 
