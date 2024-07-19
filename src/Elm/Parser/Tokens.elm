@@ -20,6 +20,7 @@ module Elm.Parser.Tokens exposing
 
 import Char
 import Hex
+import List.Extra
 import Parser as Core exposing ((|.), (|=), Step(..))
 import Parser.Extra
 import Set exposing (Set)
@@ -185,7 +186,7 @@ stringLiteralHelper s =
 
     else
         Core.oneOf
-            [ Core.symbol "\"" |> Core.map (\() -> Done (s.parts |> List.reverse |> String.concat))
+            [ Core.symbol "\"" |> Core.map (\() -> Done (s.parts |> List.Extra.listReverseThenStringConcatFast))
             , Core.symbol "\\" |> Core.map (\() -> Loop { escaped = True, parts = s.parts })
             , Core.succeed
                 (\start ->

@@ -55,7 +55,16 @@ pushIndent col (State s) =
 
 popIndent : State -> State
 popIndent (State s) =
-    State { s | indents = List.drop 1 s.indents }
+    State
+        { s
+            | indents =
+                case s.indents of
+                    [] ->
+                        []
+
+                    _ :: restIndents ->
+                        restIndents
+        }
 
 
 addComment : Node String -> State -> State
