@@ -175,20 +175,9 @@ stringLiteralHelper stringSoFar =
         , Core.succeed (\v -> Loop (stringSoFar ++ String.fromChar v))
             |. Core.symbol "\\"
             |= escapedCharValue
-        , Core.succeed
-            (\start ->
-                \value ->
-                    \end ->
-                        if start == end then
-                            Core.problem "Expected a string character or a double quote"
-
-                        else
-                            Core.succeed (Loop (stringSoFar ++ value))
-            )
-            |= Core.getOffset
-            |= Core.getChompedString (Core.chompWhile (\c -> c /= '"' && c /= '\\'))
-            |= Core.getOffset
-            |> Core.andThen identity
+        , Core.mapChompedString
+            (\value () -> Loop (stringSoFar ++ value))
+            (Core.chompWhile (\c -> c /= '"' && c /= '\\'))
         ]
 
 
@@ -209,20 +198,9 @@ multiLineStringLiteralStep stringSoFar =
         , Core.succeed (\v -> Loop (stringSoFar ++ String.fromChar v))
             |. Core.symbol "\\"
             |= escapedCharValue
-        , Core.succeed
-            (\start ->
-                \value ->
-                    \end ->
-                        if start == end then
-                            Core.problem "Expected a string character or a triple double quote"
-
-                        else
-                            Core.succeed (Loop (stringSoFar ++ value))
-            )
-            |= Core.getOffset
-            |= Core.getChompedString (Core.chompWhile (\c -> c /= '"' && c /= '\\'))
-            |= Core.getOffset
-            |> Core.andThen identity
+        , Core.mapChompedString
+            (\value () -> Loop (stringSoFar ++ value))
+            (Core.chompWhile (\c -> c /= '"' && c /= '\\'))
         ]
 
 
