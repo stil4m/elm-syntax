@@ -77,7 +77,7 @@ manyIgnore p =
         helper () =
             Core.oneOf
                 [ p
-                    |> Core.map (\() -> Core.Loop ())
+                    |> Core.map Core.Loop
                 , Core.succeed (Core.Done ())
                 ]
     in
