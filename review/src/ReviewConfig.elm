@@ -11,6 +11,7 @@ when inside the directory containing this file.
 
 -}
 
+import AstFormatting
 import Docs.NoMissing exposing (exposedModules, onlyExposed)
 import Docs.ReviewAtDocs
 import Docs.ReviewLinksAndSections
@@ -34,7 +35,6 @@ import NoUnused.Exports exposing (annotatedBy)
 import NoUnused.Parameters
 import NoUnused.Patterns
 import NoUnused.Variables
-import AstFormatting
 import Review.Rule as Rule exposing (Rule)
 import Simplify
 
