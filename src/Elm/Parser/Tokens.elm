@@ -20,7 +20,6 @@ module Elm.Parser.Tokens exposing
 
 import Char
 import Hex
-import List.Extra
 import Parser as Core exposing ((|.), (|=), Step(..))
 import Parser.Extra
 import Set exposing (Set)
@@ -166,14 +165,14 @@ stringLiteral : Core.Parser String
 stringLiteral =
     Core.succeed identity
         |. Core.symbol "\""
-        |= Core.loop [] stringLiteralHelper
+        |= Core.loop "" stringLiteralHelper
 
 
-stringLiteralHelper : List String -> Core.Parser (Step (List String) String)
-stringLiteralHelper partsSoFarReverse =
+stringLiteralHelper : String -> Core.Parser (Step String String)
+stringLiteralHelper stringSoFar =
     Core.oneOf
-        [ Core.symbol "\"" |> Core.map (\() -> Done (partsSoFarReverse |> List.Extra.listReverseThenStringConcatFast))
-        , Core.succeed (\v -> Loop (String.fromChar v :: partsSoFarReverse))
+        [ Core.symbol "\"" |> Core.map (\() -> Done stringSoFar)
+        , Core.succeed (\v -> Loop (stringSoFar ++ String.fromChar v))
             |. Core.symbol "\\"
             |= escapedCharValue
         , Core.succeed
@@ -184,7 +183,7 @@ stringLiteralHelper partsSoFarReverse =
                             Core.problem "Expected a string character or a double quote"
 
                         else
-                            Core.succeed (Loop (value :: partsSoFarReverse))
+                            Core.succeed (Loop (stringSoFar ++ value))
             )
             |= Core.getOffset
             |= Core.getChompedString (Core.chompWhile (\c -> c /= '"' && c /= '\\'))
@@ -197,17 +196,17 @@ multiLineStringLiteral : Core.Parser String
 multiLineStringLiteral =
     Core.succeed identity
         |. Core.symbol "\"\"\""
-        |= Core.loop [] multiLineStringLiteralStep
+        |= Core.loop "" multiLineStringLiteralStep
 
 
-multiLineStringLiteralStep : List String -> Core.Parser (Step (List String) String)
-multiLineStringLiteralStep partsSoFarReverse =
+multiLineStringLiteralStep : String -> Core.Parser (Step String String)
+multiLineStringLiteralStep stringSoFar =
     Core.oneOf
         [ Core.symbol "\"\"\""
-            |> Core.map (\() -> Done (List.Extra.listReverseThenStringConcatFast partsSoFarReverse))
+            |> Core.map (\() -> Done stringSoFar)
         , Core.symbol "\""
-            |> Core.mapChompedString (\v () -> Loop (v :: partsSoFarReverse))
-        , Core.succeed (\v -> Loop (String.fromChar v :: partsSoFarReverse))
+            |> Core.mapChompedString (\v () -> Loop (stringSoFar ++ v))
+        , Core.succeed (\v -> Loop (stringSoFar ++ String.fromChar v))
             |. Core.symbol "\\"
             |= escapedCharValue
         , Core.succeed
@@ -218,7 +217,7 @@ multiLineStringLiteralStep partsSoFarReverse =
                             Core.problem "Expected a string character or a triple double quote"
 
                         else
-                            Core.succeed (Loop (value :: partsSoFarReverse))
+                            Core.succeed (Loop (stringSoFar ++ value))
             )
             |= Core.getOffset
             |= Core.getChompedString (Core.chompWhile (\c -> c /= '"' && c /= '\\'))

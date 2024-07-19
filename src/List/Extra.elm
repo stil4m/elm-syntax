@@ -1,14 +1,12 @@
 module List.Extra exposing
     ( find
     , unique
-    , listReverseThenStringConcatFast
     )
 
 {-| Helper for List functions. find and unique taken from elm-community/list-extra.
 
 @docs find
 @docs unique
-@docs listReverseThenStringConcatFast
 
 -}
 
@@ -50,18 +48,3 @@ find predicate list =
 
             else
                 find predicate xs
-
-
-listReverseThenStringConcatFast : List String -> String
-listReverseThenStringConcatFast list =
-    listReverseThenStringConcatFastOnto "" list
-
-
-listReverseThenStringConcatFastOnto : String -> List String -> String
-listReverseThenStringConcatFastOnto soFar list =
-    case list of
-        [] ->
-            soFar
-
-        head :: tail ->
-            listReverseThenStringConcatFastOnto (head ++ soFar) tail
