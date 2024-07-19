@@ -27,7 +27,7 @@ file =
 
 collectComments : Parser State (List (Node String))
 collectComments =
-    Combine.withState (State.getComments >> Combine.succeed)
+    Combine.withState (\state -> Combine.succeed (State.getComments state))
 
 
 fileDeclarations : Parser State (List (Node Declaration))
