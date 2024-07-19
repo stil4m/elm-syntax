@@ -62,34 +62,35 @@ typeAnnotationNoFn mode =
 
 parensTypeAnnotation : Parser State (Node TypeAnnotation)
 parensTypeAnnotation =
-    let
-        commaSep : Parser State (List (Node TypeAnnotation))
-        commaSep =
-            Combine.many
-                (Tokens.comma
-                    |> Combine.continueFromCore (Combine.maybeIgnore Layout.layout)
-                    |> Combine.continueWith typeAnnotation
-                    |> Combine.ignore (Combine.maybeIgnore Layout.layout)
-                )
-
-        nested : Parser State TypeAnnotation
-        nested =
-            Combine.succeed (\x -> \xs -> asTypeAnnotation x xs)
-                |> Combine.ignore (Combine.maybeIgnore Layout.layout)
-                |> Combine.keep typeAnnotation
-                |> Combine.ignore (Combine.maybeIgnore Layout.layout)
-                |> Combine.keep commaSep
-    in
     Tokens.parensStart
         |> Combine.continueFromCore
             (Combine.oneOf
                 [ Tokens.parensEnd
                     |> Core.map (\() -> TypeAnnotation.Unit)
                     |> Combine.fromCore
-                , nested |> Combine.ignoreEntirely Tokens.parensEnd
+                , parensTypeAnnotationInnerNested |> Combine.ignoreEntirely Tokens.parensEnd
                 ]
             )
         |> Node.parser
+
+
+parensTypeAnnotationInnerCommaSep : Parser State (List (Node TypeAnnotation))
+parensTypeAnnotationInnerCommaSep =
+    Combine.many
+        (Tokens.comma
+            |> Combine.continueFromCore (Combine.maybeIgnore Layout.layout)
+            |> Combine.continueWith typeAnnotation
+            |> Combine.ignore (Combine.maybeIgnore Layout.layout)
+        )
+
+
+parensTypeAnnotationInnerNested : Parser State TypeAnnotation
+parensTypeAnnotationInnerNested =
+    Combine.succeed (\x -> \xs -> asTypeAnnotation x xs)
+        |> Combine.ignore (Combine.maybeIgnore Layout.layout)
+        |> Combine.keep typeAnnotation
+        |> Combine.ignore (Combine.maybeIgnore Layout.layout)
+        |> Combine.keep parensTypeAnnotationInnerCommaSep
 
 
 asTypeAnnotation : Node TypeAnnotation -> List (Node TypeAnnotation) -> TypeAnnotation
@@ -185,22 +186,7 @@ typedTypeAnnotation mode =
 
 eagerTypedTypeAnnotation : Node ( ModuleName, String ) -> Parser State (Node TypeAnnotation)
 eagerTypedTypeAnnotation ((Node range _) as original) =
-    let
-        genericHelper : List (Node TypeAnnotation) -> Parser State (List (Node TypeAnnotation))
-        genericHelper items =
-            Combine.oneOf
-                [ typeAnnotationNoFn Lazy
-                    |> Combine.andThen
-                        (\next ->
-                            Layout.optimisticLayoutWith
-                                (\() -> next :: items)
-                                (\() -> genericHelper (next :: items))
-                                |> Combine.ignore (Combine.maybeIgnore Layout.layout)
-                        )
-                , Combine.succeed items
-                ]
-    in
-    genericHelper []
+    eagerTypedTypeAnnotationInnerGenericHelper []
         |> Combine.map
             (\args ->
                 let
@@ -217,3 +203,18 @@ eagerTypedTypeAnnotation ((Node range _) as original) =
                     { start = range.start, end = endRange.end }
                     (TypeAnnotation.Typed original (List.reverse args))
             )
+
+
+eagerTypedTypeAnnotationInnerGenericHelper : List (Node TypeAnnotation) -> Parser State (List (Node TypeAnnotation))
+eagerTypedTypeAnnotationInnerGenericHelper items =
+    Combine.oneOf
+        [ typeAnnotationNoFn Lazy
+            |> Combine.andThen
+                (\next ->
+                    Layout.optimisticLayoutWith
+                        (\() -> next :: items)
+                        (\() -> eagerTypedTypeAnnotationInnerGenericHelper (next :: items))
+                        |> Combine.ignore (Combine.maybeIgnore Layout.layout)
+                )
+        , Combine.succeed items
+        ]

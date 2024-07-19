@@ -133,21 +133,22 @@ functionCall =
         )
 
 
+glslStart : String
+glslStart =
+    "[glsl|"
+
+
+glslEnd : String
+glslEnd =
+    "|]"
+
+
 glslExpression : Parser State (Node Expression)
 glslExpression =
-    let
-        start : String
-        start =
-            "[glsl|"
-
-        end : String
-        end =
-            "|]"
-    in
     Core.mapChompedString
-        (\s () -> s |> String.dropLeft (String.length start) |> GLSLExpression)
-        (Core.multiComment start end NotNestable)
-        |. Core.symbol end
+        (\s () -> s |> String.dropLeft (String.length glslStart) |> GLSLExpression)
+        (Core.multiComment glslStart glslEnd NotNestable)
+        |. Core.symbol glslEnd
         |> Node.parserCore
         |> Combine.fromCore
 
@@ -452,35 +453,35 @@ minusNotFollowedBySpace =
 
 referenceExpression : Parser State (Node Expression)
 referenceExpression =
-    let
-        helper : ModuleName -> String -> Core.Parser Expression
-        helper moduleNameSoFar nameOrSegment =
-            Core.oneOf
-                [ Core.succeed identity
-                    |. Tokens.dot
-                    |= Core.oneOf
-                        [ Tokens.typeName
-                            |> Core.andThen (\t -> helper (nameOrSegment :: moduleNameSoFar) t)
-                        , Tokens.functionName
-                            |> Core.map
-                                (\name ->
-                                    FunctionOrValue
-                                        (List.reverse (nameOrSegment :: moduleNameSoFar))
-                                        name
-                                )
-                        ]
-                , Core.lazy
-                    (\() -> Core.succeed (FunctionOrValue (List.reverse moduleNameSoFar) nameOrSegment))
-                ]
-    in
     Core.oneOf
         [ Tokens.typeName
-            |> Core.andThen (\t -> helper [] t)
+            |> Core.andThen (\t -> referenceExpressionHelper [] t)
         , Tokens.functionName
             |> Core.map (\v -> FunctionOrValue [] v)
         ]
         |> Node.parserCore
         |> Combine.fromCore
+
+
+referenceExpressionHelper : ModuleName -> String -> Core.Parser Expression
+referenceExpressionHelper moduleNameSoFar nameOrSegment =
+    Core.oneOf
+        [ Core.succeed identity
+            |. Tokens.dot
+            |= Core.oneOf
+                [ Tokens.typeName
+                    |> Core.andThen (\t -> referenceExpressionHelper (nameOrSegment :: moduleNameSoFar) t)
+                , Tokens.functionName
+                    |> Core.map
+                        (\name ->
+                            FunctionOrValue
+                                (List.reverse (nameOrSegment :: moduleNameSoFar))
+                                name
+                        )
+                ]
+        , Core.lazy
+            (\() -> Core.succeed (FunctionOrValue (List.reverse moduleNameSoFar) nameOrSegment))
+        ]
 
 
 recordAccessFunctionExpression : Parser State (Node Expression)
@@ -493,29 +494,30 @@ recordAccessFunctionExpression =
 
 tupledExpression : Parser State (Node Expression)
 tupledExpression =
-    let
-        commaSep : Parser State (List (Node Expression))
-        commaSep =
-            Combine.many
-                (Tokens.comma
-                    |> Combine.continueFromCore expression
-                )
-
-        nested : Parser State Expression
-        nested =
-            Combine.succeed asExpression
-                |> Combine.keep expression
-                |> Combine.keep commaSep
-    in
     Tokens.parensStart
         |> Combine.continueFromCore
             (Combine.oneOf
                 [ Tokens.parensEnd |> Core.map (\() -> UnitExpr) |> Combine.fromCore
                 , closingPrefixOperator
-                , nested |> Combine.ignoreEntirely Tokens.parensEnd
+                , tupledExpressionInnerNested |> Combine.ignoreEntirely Tokens.parensEnd
                 ]
             )
         |> Node.parser
+
+
+tupledExpressionInnerCommaSep : Parser State (List (Node Expression))
+tupledExpressionInnerCommaSep =
+    Combine.many
+        (Tokens.comma
+            |> Combine.continueFromCore expression
+        )
+
+
+tupledExpressionInnerNested : Parser State Expression
+tupledExpressionInnerNested =
+    Combine.succeed asExpression
+        |> Combine.keep expression
+        |> Combine.keep tupledExpressionInnerCommaSep
 
 
 closingPrefixOperator : Parser state Expression

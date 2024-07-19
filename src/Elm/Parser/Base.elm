@@ -16,17 +16,17 @@ moduleName =
 
 typeIndicator : Core.Parser (Node ( ModuleName, String ))
 typeIndicator =
-    let
-        helper : ModuleName -> String -> Core.Parser ( ModuleName, String )
-        helper moduleNameSoFar typeOrSegment =
-            Core.oneOf
-                [ Core.succeed identity
-                    |. Tokens.dot
-                    |= Tokens.typeName
-                    |> Core.andThen (\t -> helper (typeOrSegment :: moduleNameSoFar) t)
-                , Core.lazy (\() -> Core.succeed ( List.reverse moduleNameSoFar, typeOrSegment ))
-                ]
-    in
     Tokens.typeName
-        |> Core.andThen (\typeOrSegment -> helper [] typeOrSegment)
+        |> Core.andThen (\typeOrSegment -> typeIndicatorHelper [] typeOrSegment)
         |> Node.parserCore
+
+
+typeIndicatorHelper : ModuleName -> String -> Core.Parser ( ModuleName, String )
+typeIndicatorHelper moduleNameSoFar typeOrSegment =
+    Core.oneOf
+        [ Core.succeed identity
+            |. Tokens.dot
+            |= Tokens.typeName
+            |> Core.andThen (\t -> typeIndicatorHelper (typeOrSegment :: moduleNameSoFar) t)
+        , Core.lazy (\() -> Core.succeed ( List.reverse moduleNameSoFar, typeOrSegment ))
+        ]

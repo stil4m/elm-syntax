@@ -120,15 +120,15 @@ valueConstructor =
                             { start = range.start, end = endRange.end }
                             (ValueConstructor tnn (List.reverse args))
 
-                    argHelper : List (Node TypeAnnotation) -> Parser State (Node ValueConstructor)
-                    argHelper xs =
+                    valueConstructorInnerArgHelper : List (Node TypeAnnotation) -> Parser State (Node ValueConstructor)
+                    valueConstructorInnerArgHelper xs =
                         Combine.oneOf
                             [ typeAnnotationNonGreedy
                                 |> Combine.andThen
                                     (\ta ->
                                         Layout.optimisticLayoutWith
                                             (\() -> complete (ta :: xs))
-                                            (\() -> argHelper (ta :: xs))
+                                            (\() -> valueConstructorInnerArgHelper (ta :: xs))
                                     )
                             , Combine.succeed xs
                                 |> Combine.map complete
@@ -136,7 +136,7 @@ valueConstructor =
                 in
                 Layout.optimisticLayoutWith
                     (\() -> complete [])
-                    (\() -> argHelper [])
+                    (\() -> valueConstructorInnerArgHelper [])
             )
 
 

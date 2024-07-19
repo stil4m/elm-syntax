@@ -16,33 +16,7 @@ import Parser.Extra
 
 importDefinition : Parser State (Node Import)
 importDefinition =
-    let
-        asDefinition : Parser State (Node ModuleName)
-        asDefinition =
-            Tokens.asToken
-                |> Combine.ignoreFromCore Layout.layout
-                |> Combine.continueWithCore moduleName
-
-        parseExposingDefinition : Node ModuleName -> Maybe (Node ModuleName) -> Parser State Import
-        parseExposingDefinition mod asDef =
-            Combine.oneOf
-                [ Node.parser exposeDefinition
-                    |> Combine.map Just
-                , Combine.succeed Nothing
-                ]
-                |> Combine.map (\exposing_ -> Import mod asDef exposing_)
-
-        parseAsDefinition : Location -> Node ModuleName -> Parser State (Node Import)
-        parseAsDefinition start mod =
-            Combine.oneOf
-                [ asDefinition
-                    |> Combine.ignore Layout.optimisticLayout
-                    |> Combine.andThen (\alias_ -> parseExposingDefinition mod (Just alias_))
-                , parseExposingDefinition mod Nothing
-                ]
-                |> Combine.map (\imp -> setupNode start imp)
-    in
-    Combine.succeed (\start -> \mod -> parseAsDefinition start mod)
+    Combine.succeed (\start -> \mod -> importInnerParseAsDefinition start mod)
         |> Combine.keepFromCore Parser.Extra.location
         |> Combine.ignoreEntirely Tokens.importToken
         |> Combine.ignore Layout.layout
@@ -50,6 +24,34 @@ importDefinition =
         |> Combine.ignore Layout.optimisticLayout
         |> Combine.andThen identity
         |> Combine.ignore Layout.optimisticLayout
+
+
+importInnerAsDefinition : Parser State (Node ModuleName)
+importInnerAsDefinition =
+    Tokens.asToken
+        |> Combine.ignoreFromCore Layout.layout
+        |> Combine.continueWithCore moduleName
+
+
+importInnerParseExposingDefinition : Node ModuleName -> Maybe (Node ModuleName) -> Parser State Import
+importInnerParseExposingDefinition mod asDef =
+    Combine.oneOf
+        [ Node.parser exposeDefinition
+            |> Combine.map Just
+        , Combine.succeed Nothing
+        ]
+        |> Combine.map (\exposing_ -> Import mod asDef exposing_)
+
+
+importInnerParseAsDefinition : Location -> Node ModuleName -> Parser State (Node Import)
+importInnerParseAsDefinition start mod =
+    Combine.oneOf
+        [ importInnerAsDefinition
+            |> Combine.ignore Layout.optimisticLayout
+            |> Combine.andThen (\alias_ -> importInnerParseExposingDefinition mod (Just alias_))
+        , importInnerParseExposingDefinition mod Nothing
+        ]
+        |> Combine.map (\imp -> setupNode start imp)
 
 
 setupNode : Location -> Import -> Node Import

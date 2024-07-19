@@ -205,8 +205,8 @@ This can be useful if you need to access the range of the last item.
 manyWithoutReverse : List a -> Parser state a -> Parser state (List a)
 manyWithoutReverse initList (Parser p) =
     let
-        helper : ( state, List a ) -> Core.Parser (Core.Step ( state, List a ) ( state, List a ))
-        helper (( oldState, items ) as acc) =
+        manyWithoutReverseStep : ( state, List a ) -> Core.Parser (Core.Step ( state, List a ) ( state, List a ))
+        manyWithoutReverseStep (( oldState, items ) as acc) =
             Core.oneOf
                 [ p oldState
                     |> Core.map (\( newState, item ) -> Core.Loop ( newState, item :: items ))
@@ -215,7 +215,7 @@ manyWithoutReverse initList (Parser p) =
     in
     Parser <|
         \state ->
-            Core.loop ( state, initList ) helper
+            Core.loop ( state, initList ) manyWithoutReverseStep
 
 
 manyIgnore : Parser state () -> Parser state ()

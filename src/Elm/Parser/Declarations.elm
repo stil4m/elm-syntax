@@ -65,43 +65,45 @@ function maybeDoc =
 
 functionWithNameNode : Node String -> Parser State Function
 functionWithNameNode pointer =
-    let
-        functionImplementationFromVarPointer : Maybe (Node Signature) -> Node String -> Parser State Function
-        functionImplementationFromVarPointer signature_ ((Node { start } _) as varPointer) =
-            Combine.succeed
-                (\args ((Node { end } _) as expr) ->
-                    { documentation = Nothing
-                    , signature = signature_
-                    , declaration =
-                        Node { start = start, end = end }
-                            (FunctionImplementation varPointer args expr)
-                    }
-                )
-                |> Combine.keep (Combine.many (pattern |> Combine.ignore (Combine.maybeIgnore Layout.layout)))
-                |> Combine.ignoreEntirely Tokens.equal
-                |> Combine.ignore (Combine.maybeIgnore Layout.layout)
-                |> Combine.keep expression
-
-        functionWithSignature : Node String -> Parser State Function
-        functionWithSignature varPointer =
-            functionSignatureFromVarPointer varPointer
-                |> Combine.ignore (Combine.maybeIgnore Layout.layoutStrict)
-                |> Combine.andThen
-                    (\sig ->
-                        Node.parserFromCore Tokens.functionName
-                            |> Combine.andThen (\fnName -> failIfDifferentFrom varPointer fnName)
-                            |> Combine.ignore (Combine.maybeIgnore Layout.layout)
-                            |> Combine.andThen (\body -> functionImplementationFromVarPointer (Just sig) body)
-                    )
-
-        functionWithoutSignature : Node String -> Parser State Function
-        functionWithoutSignature varPointer =
-            functionImplementationFromVarPointer Nothing varPointer
-    in
     Combine.oneOf
         [ functionWithSignature pointer
         , functionWithoutSignature pointer
         ]
+
+
+functionWithSignature : Node String -> Parser State Function
+functionWithSignature varPointer =
+    functionSignatureFromVarPointer varPointer
+        |> Combine.ignore (Combine.maybeIgnore Layout.layoutStrict)
+        |> Combine.andThen
+            (\sig ->
+                Node.parserFromCore Tokens.functionName
+                    |> Combine.andThen (\fnName -> failIfDifferentFrom varPointer fnName)
+                    |> Combine.ignore (Combine.maybeIgnore Layout.layout)
+                    |> Combine.andThen (\body -> functionImplementationFromVarPointer (Just sig) body)
+            )
+
+
+functionWithoutSignature : Node String -> Parser State Function
+functionWithoutSignature varPointer =
+    functionImplementationFromVarPointer Nothing varPointer
+
+
+functionImplementationFromVarPointer : Maybe (Node Signature) -> Node String -> Parser State Function
+functionImplementationFromVarPointer signature_ ((Node { start } _) as varPointer) =
+    Combine.succeed
+        (\args ((Node { end } _) as expr) ->
+            { documentation = Nothing
+            , signature = signature_
+            , declaration =
+                Node { start = start, end = end }
+                    (FunctionImplementation varPointer args expr)
+            }
+        )
+        |> Combine.keep (Combine.many (pattern |> Combine.ignore (Combine.maybeIgnore Layout.layout)))
+        |> Combine.ignoreEntirely Tokens.equal
+        |> Combine.ignore (Combine.maybeIgnore Layout.layout)
+        |> Combine.keep expression
 
 
 signature : Parser State Signature
