@@ -194,7 +194,7 @@ multiLineStringLiteralStep stringSoFar =
             |> Core.map (\() -> Done stringSoFar)
         , Core.symbol "\""
             |> Core.map (\() -> Loop (stringSoFar ++ "\""))
-        , Core.succeed (\v -> Loop (stringSoFar ++ String.fromChar v))
+        , Core.succeed (\v -> Loop (stringSoFar ++ String.fromChar v ++ ""))
             |. Core.symbol "\\"
             |= escapedCharValue
         , Core.mapChompedString
