@@ -228,7 +228,7 @@ multiLineStringLiteralStep s =
     else
         Core.oneOf
             [ Core.symbol "\"\"\""
-                |> Core.map (\() -> Done (String.concat (List.reverse s.parts)))
+                |> Core.map (\() -> Done (List.Extra.listReverseThenStringConcatFast s.parts))
             , Core.symbol "\""
                 |> Core.mapChompedString (\v () -> Loop { counter = s.counter + 1, escaped = s.escaped, parts = v :: s.parts })
             , Core.symbol "\\"
