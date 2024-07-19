@@ -436,8 +436,8 @@ minusNotFollowedBySpace =
     Core.succeed identity
         |. Core.backtrackable Tokens.minus
         |= Core.oneOf
-            [ Core.map (always True) (Core.backtrackable Whitespace.realNewLine)
-            , Core.map (always True) (Core.backtrackable (Core.symbol " "))
+            [ Core.map (\() -> True) (Core.backtrackable Whitespace.realNewLine)
+            , Core.map (\() -> True) (Core.backtrackable (Core.symbol " "))
             , Core.succeed False
             ]
         |> Core.andThen
@@ -510,7 +510,7 @@ tupledExpression =
     Tokens.parensStart
         |> Combine.continueFromCore
             (Combine.oneOf
-                [ Tokens.parensEnd |> Core.map (always UnitExpr) |> Combine.fromCore
+                [ Tokens.parensEnd |> Core.map (\() -> UnitExpr) |> Combine.fromCore
                 , closingPrefixOperator
                 , nested |> Combine.ignoreEntirely Tokens.parensEnd
                 ]

@@ -84,7 +84,7 @@ parensTypeAnnotation =
         |> Combine.continueFromCore
             (Combine.oneOf
                 [ Tokens.parensEnd
-                    |> Core.map (always TypeAnnotation.Unit)
+                    |> Core.map (\() -> TypeAnnotation.Unit)
                     |> Combine.fromCore
                 , nested |> Combine.ignoreEntirely Tokens.parensEnd
                 ]
