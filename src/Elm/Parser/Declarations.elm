@@ -6,7 +6,7 @@ import Elm.Parser.Expression exposing (expression, failIfDifferentFrom, function
 import Elm.Parser.Layout as Layout
 import Elm.Parser.Node as Node
 import Elm.Parser.Patterns exposing (pattern)
-import Elm.Parser.State as State exposing (State)
+import Elm.Parser.State exposing (State)
 import Elm.Parser.Tokens as Tokens
 import Elm.Parser.TypeAnnotation exposing (typeAnnotation)
 import Elm.Parser.Typings exposing (typeDefinition)
@@ -15,6 +15,8 @@ import Elm.Syntax.Documentation exposing (Documentation)
 import Elm.Syntax.Expression as Expression exposing (Function, FunctionImplementation)
 import Elm.Syntax.Infix as Infix
 import Elm.Syntax.Node as Node exposing (Node(..))
+import Elm.Syntax.Port exposing (Port)
+import Elm.Syntax.Range exposing (Location)
 import Elm.Syntax.Signature exposing (Signature)
 import Parser as Core exposing ((|.), (|=))
 import Parser.Extra
@@ -104,9 +106,13 @@ functionWithNameNode pointer =
         ]
 
 
-signature : Parser State Signature
+signature : Parser State (Node Signature)
 signature =
-    Combine.succeed (\name -> \typeAnnotation -> { name = name, typeAnnotation = typeAnnotation })
+    Combine.succeed
+        (\((Node { start } _) as name) ->
+            \((Node { end } _) as typeAnnotation) ->
+                Node { start = start, end = end } { name = name, typeAnnotation = typeAnnotation }
+        )
         |> Combine.keepFromCore (Node.parserCore Tokens.functionName)
         |> Combine.ignore (Layout.maybeAroundBothSides (Combine.symbol ":"))
         |> Combine.ignore (Combine.maybeIgnore Layout.layout)
@@ -157,22 +163,22 @@ infixDirection =
 
 portDeclaration : Maybe (Node Documentation) -> Parser State (Node Declaration)
 portDeclaration maybeDoc =
+    let
+        startParser : Core.Parser Location
+        startParser =
+            case maybeDoc of
+                Just (Node { start } _) ->
+                    Core.succeed start
+
+                Nothing ->
+                    Parser.Extra.location
+    in
     Combine.succeed
         (\start ->
-            \sig ->
-                Node
-                    { start = start, end = (Node.range sig.typeAnnotation).end }
-                    (Declaration.PortDeclaration sig)
+            \((Node { end } _) as sign) ->
+                Node { start = start, end = end } (Declaration.PortDeclaration (Port maybeDoc sign))
         )
-        |> Combine.ignore
-            (case maybeDoc of
-                Nothing ->
-                    Combine.succeed ()
-
-                Just doc ->
-                    Combine.modifyState (State.addComment doc)
-            )
-        |> Combine.keepFromCore Parser.Extra.location
+        |> Combine.keepFromCore startParser
         |> Combine.ignoreEntirely Tokens.portToken
         |> Combine.ignore Layout.layout
         |> Combine.keep signature

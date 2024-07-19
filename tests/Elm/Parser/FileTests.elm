@@ -13,6 +13,7 @@ import Elm.Syntax.Infix exposing (InfixDirection(..))
 import Elm.Syntax.Module exposing (Module(..))
 import Elm.Syntax.Node exposing (Node(..))
 import Elm.Syntax.Pattern exposing (Pattern(..))
+import Elm.Syntax.Range as Range
 import Elm.Syntax.TypeAnnotation exposing (TypeAnnotation(..))
 import Expect
 import Json.Decode
@@ -383,7 +384,7 @@ type Configuration
                                     )
                             }
                         )
-        , test "documentation on a port declaration is treated as a normal comment" <|
+        , test "documentation on a port declaration" <|
             \() ->
                 """
 port module Foo exposing (..)
@@ -397,23 +398,27 @@ port sendResponse : String -> Cmd msg
                     |> Elm.Parser.parseToFile
                     |> Expect.equal
                         (Ok
-                            { comments = [ Node { start = { row = 6, column = 1 }, end = { row = 7, column = 3 } } "{-| foo\n-}" ]
+                            { comments = []
                             , declarations =
-                                [ Node { start = { row = 8, column = 1 }, end = { row = 8, column = 38 } }
+                                [ Node { start = { row = 6, column = 1 }, end = { row = 8, column = 38 } }
                                     (PortDeclaration
-                                        { name = Node { start = { row = 8, column = 6 }, end = { row = 8, column = 18 } } "sendResponse"
-                                        , typeAnnotation =
-                                            Node { start = { row = 8, column = 21 }, end = { row = 8, column = 38 } }
-                                                (FunctionTypeAnnotation
-                                                    (Node { start = { row = 8, column = 21 }, end = { row = 8, column = 27 } }
-                                                        (Type (Node { start = { row = 8, column = 21 }, end = { row = 8, column = 27 } } ( [], "String" )) [])
-                                                    )
-                                                    (Node { start = { row = 8, column = 31 }, end = { row = 8, column = 38 } }
-                                                        (Type (Node { start = { row = 8, column = 31 }, end = { row = 8, column = 34 } } ( [], "Cmd" ))
-                                                            [ Node { start = { row = 8, column = 35 }, end = { row = 8, column = 38 } } (Var "msg") ]
+                                        { documentation = Just (Node { start = { row = 6, column = 1 }, end = { row = 7, column = 3 } } "{-| foo\n-}")
+                                        , signature =
+                                            Node { start = { row = 8, column = 6 }, end = { row = 8, column = 38 } }
+                                                { name = Node { start = { row = 8, column = 6 }, end = { row = 8, column = 18 } } "sendResponse"
+                                                , typeAnnotation =
+                                                    Node { start = { row = 8, column = 21 }, end = { row = 8, column = 38 } }
+                                                        (FunctionTypeAnnotation
+                                                            (Node { start = { row = 8, column = 21 }, end = { row = 8, column = 27 } }
+                                                                (Type (Node { start = { row = 8, column = 21 }, end = { row = 8, column = 27 } } ( [], "String" )) [])
+                                                            )
+                                                            (Node { start = { row = 8, column = 31 }, end = { row = 8, column = 38 } }
+                                                                (Type (Node { start = { row = 8, column = 31 }, end = { row = 8, column = 34 } } ( [], "Cmd" ))
+                                                                    [ Node { start = { row = 8, column = 35 }, end = { row = 8, column = 38 } } (Var "msg") ]
+                                                                )
+                                                            )
                                                         )
-                                                    )
-                                                )
+                                                }
                                         }
                                     )
                                 ]
