@@ -162,92 +162,69 @@ characterLiteral =
         |. Core.symbol "'"
 
 
-type alias StringLiteralLoopState =
-    { escaped : Bool
-    , parts : List String
-    }
-
-
 stringLiteral : Core.Parser String
 stringLiteral =
     Core.succeed identity
         |. Core.symbol "\""
-        |= Core.loop { escaped = False, parts = [] } stringLiteralHelper
+        |= Core.loop [] stringLiteralHelper
 
 
-stringLiteralHelper : StringLiteralLoopState -> Core.Parser (Step StringLiteralLoopState String)
-stringLiteralHelper s =
-    if s.escaped then
-        escapedCharValue
-            |> Core.map
-                (\v ->
-                    Loop { escaped = False, parts = String.fromChar v :: s.parts }
-                )
+stringLiteralHelper : List String -> Core.Parser (Step (List String) String)
+stringLiteralHelper partsSoFarReverse =
+    Core.oneOf
+        [ Core.symbol "\"" |> Core.map (\() -> Done (partsSoFarReverse |> List.Extra.listReverseThenStringConcatFast))
+        , Core.succeed (\v -> Loop (String.fromChar v :: partsSoFarReverse))
+            |. Core.symbol "\\"
+            |= escapedCharValue
+        , Core.succeed
+            (\start ->
+                \value ->
+                    \end ->
+                        if start == end then
+                            Core.problem "Expected a string character or a double quote"
 
-    else
-        Core.oneOf
-            [ Core.symbol "\"" |> Core.map (\() -> Done (s.parts |> List.Extra.listReverseThenStringConcatFast))
-            , Core.symbol "\\" |> Core.map (\() -> Loop { escaped = True, parts = s.parts })
-            , Core.succeed
-                (\start ->
-                    \value ->
-                        \end ->
-                            if start == end then
-                                Core.problem "Expected a string character or a double quote"
-
-                            else
-                                Core.succeed (Loop { escaped = s.escaped, parts = value :: s.parts })
-                )
-                |= Core.getOffset
-                |= Core.getChompedString (Core.chompWhile (\c -> c /= '"' && c /= '\\'))
-                |= Core.getOffset
-                |> Core.andThen identity
-            ]
-
-
-type alias MultilineStringLiteralLoopState =
-    { escaped : Bool
-    , parts : List String
-    , counter : Int
-    }
+                        else
+                            Core.succeed (Loop (value :: partsSoFarReverse))
+            )
+            |= Core.getOffset
+            |= Core.getChompedString (Core.chompWhile (\c -> c /= '"' && c /= '\\'))
+            |= Core.getOffset
+            |> Core.andThen identity
+        ]
 
 
 multiLineStringLiteral : Core.Parser String
 multiLineStringLiteral =
     Core.succeed identity
         |. Core.symbol "\"\"\""
-        |= Core.loop { escaped = False, parts = [], counter = 0 } multiLineStringLiteralStep
+        |= Core.loop [] multiLineStringLiteralStep
 
 
-multiLineStringLiteralStep : MultilineStringLiteralLoopState -> Core.Parser (Step MultilineStringLiteralLoopState String)
-multiLineStringLiteralStep s =
-    if s.escaped then
-        escapedCharValue
-            |> Core.map (\v -> Loop { counter = s.counter, escaped = False, parts = String.fromChar v :: s.parts })
+multiLineStringLiteralStep : List String -> Core.Parser (Step (List String) String)
+multiLineStringLiteralStep partsSoFarReverse =
+    Core.oneOf
+        [ Core.symbol "\"\"\""
+            |> Core.map (\() -> Done (List.Extra.listReverseThenStringConcatFast partsSoFarReverse))
+        , Core.symbol "\""
+            |> Core.mapChompedString (\v () -> Loop (v :: partsSoFarReverse))
+        , Core.succeed (\v -> Loop (String.fromChar v :: partsSoFarReverse))
+            |. Core.symbol "\\"
+            |= escapedCharValue
+        , Core.succeed
+            (\start ->
+                \value ->
+                    \end ->
+                        if start == end then
+                            Core.problem "Expected a string character or a triple double quote"
 
-    else
-        Core.oneOf
-            [ Core.symbol "\"\"\""
-                |> Core.map (\() -> Done (List.Extra.listReverseThenStringConcatFast s.parts))
-            , Core.symbol "\""
-                |> Core.mapChompedString (\v () -> Loop { counter = s.counter + 1, escaped = s.escaped, parts = v :: s.parts })
-            , Core.symbol "\\"
-                |> Core.map (\() -> Loop { counter = s.counter + 1, escaped = True, parts = s.parts })
-            , Core.succeed
-                (\start ->
-                    \value ->
-                        \end ->
-                            if start == end then
-                                Core.problem "Expected a string character or a triple double quote"
-
-                            else
-                                Core.succeed (Loop { counter = s.counter + 1, escaped = s.escaped, parts = value :: s.parts })
-                )
-                |= Core.getOffset
-                |= Core.getChompedString (Core.chompWhile (\c -> c /= '"' && c /= '\\'))
-                |= Core.getOffset
-                |> Core.andThen identity
-            ]
+                        else
+                            Core.succeed (Loop (value :: partsSoFarReverse))
+            )
+            |= Core.getOffset
+            |= Core.getChompedString (Core.chompWhile (\c -> c /= '"' && c /= '\\'))
+            |= Core.getOffset
+            |> Core.andThen identity
+        ]
 
 
 functionName : Core.Parser String
