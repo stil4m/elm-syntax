@@ -218,7 +218,7 @@ typeName =
     Core.variable
         { start = Unicode.isUpper
         , inner = \c -> Unicode.isAlphaNum c || c == '_'
-        , reserved = reservedList
+        , reserved = Set.empty
         }
 
 
