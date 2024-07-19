@@ -143,28 +143,22 @@ escapedCharValue =
         ]
 
 
-quotedSingleQuote : Core.Parser Char
-quotedSingleQuote =
-    Core.succeed (String.toList >> List.head >> Maybe.withDefault ' ')
-        |. Core.symbol "'"
-        |= Core.oneOf
-            [ Core.succeed String.fromChar
-                |. Core.symbol "\\"
-                |= escapedCharValue
-            , Core.getChompedString (Core.chompIf (always True))
-            ]
-        |. Core.symbol "'"
+slashEscapedCharValue : Core.Parser Char
+slashEscapedCharValue =
+    Core.succeed identity
+        |. Core.symbol "\\"
+        |= escapedCharValue
 
 
 characterLiteral : Core.Parser Char
 characterLiteral =
-    Core.oneOf
-        [ quotedSingleQuote
-        , Core.succeed identity
-            |. Core.symbol "'"
-            |= Parser.Extra.anyChar
-            |. Core.symbol "'"
-        ]
+    Core.succeed identity
+        |. Core.symbol "'"
+        |= Core.oneOf
+            [ slashEscapedCharValue
+            , Parser.Extra.anyChar
+            ]
+        |. Core.symbol "'"
 
 
 type alias StringLiteralLoopState =
