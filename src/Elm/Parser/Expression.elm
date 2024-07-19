@@ -136,6 +136,11 @@ glslStart =
     "[glsl|"
 
 
+glslStartLength : Int
+glslStartLength =
+    String.length glslStart
+
+
 glslEnd : String
 glslEnd =
     "|]"
@@ -144,7 +149,7 @@ glslEnd =
 glslExpression : Parser State (Node Expression)
 glslExpression =
     Core.mapChompedString
-        (\s () -> s |> String.dropLeft (String.length glslStart) |> GLSLExpression)
+        (\s () -> s |> String.dropLeft glslStartLength |> GLSLExpression)
         (Core.multiComment glslStart glslEnd NotNestable)
         |. Core.symbol glslEnd
         |> Node.parserCore
