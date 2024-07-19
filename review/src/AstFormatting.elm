@@ -1,4 +1,4 @@
-module OrderedRanges exposing (rule)
+module AstFormatting exposing (rule)
 
 import Elm.Syntax.Expression as Expression exposing (Expression, RecordSetter)
 import Elm.Syntax.Node as Node exposing (Node(..))
@@ -10,7 +10,7 @@ import Review.Rule as Rule exposing (Error, Rule)
 
 rule : Rule
 rule =
-    Rule.newModuleRuleSchema "OrderedRanges" ()
+    Rule.newModuleRuleSchema "AstFormatting" ()
         |> Rule.withSimpleExpressionVisitor expressionVisitor
         |> Rule.fromModuleRuleSchema
 
