@@ -64,6 +64,20 @@ all =
                             , moduleName = Node { start = { row = 1, column = 8 }, end = { row = 1, column = 11 } } [ "Foo" ]
                             }
                         )
+        , test "import with alias and exposing all" <|
+            \() ->
+                "import Foo as Bar exposing (..)"
+                    |> expectAst
+                        (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 18 } }
+                            { exposingList =
+                                Just
+                                    (Node { start = { row = 1, column = 19 }, end = { row = 1, column = 32 } }
+                                        (All { start = { row = 1, column = 29 }, end = { row = 1, column = 31 } })
+                                    )
+                            , moduleAlias = Just (Node { start = { row = 1, column = 15 }, end = { row = 1, column = 18 } } [ "Bar" ])
+                            , moduleName = Node { start = { row = 1, column = 8 }, end = { row = 1, column = 11 } } [ "Foo" ]
+                            }
+                        )
         ]
 
 
