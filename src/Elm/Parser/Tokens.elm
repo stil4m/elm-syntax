@@ -259,7 +259,7 @@ allowedOperatorTokens =
 prefixOperatorToken : Core.Parser String
 prefixOperatorToken =
     allowedOperatorTokens
-        |> List.map (\token -> Core.token token |> Core.getChompedString)
+        |> List.map (\token -> Core.token token |> Core.map (\() -> token))
         |> Core.oneOf
 
 
