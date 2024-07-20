@@ -2,6 +2,26 @@
 
 ## [Unreleased]
 
+## [7.3.3] - 2024-07-18
+
+### Parser rewrite using a Pratt parser
+
+This patch is a major rewrite of the parser, which now uses a Pratt parser under the hood (see https://martin.janiczek.cz/2023/07/03/demystifying-pratt-parsers.html for an explanation).
+
+Prior to this version, the source code was parsed and then post-processed - to rebalance the tree around operator precedence and to attach documentation comments. This is now all done in a single pass.
+
+This rewrite includes a few additional changes:
+- a few bug fixes where code that was incorrect Elm code (according to the Elm compiler) was successfully parsed
+- better performance, parsing should now be faster
+- support for multiline strings in patterns
+
+A big thank you to [@jiegillet](https://github.com/jiegillet) and [@janiczek](https://github.com/janiczek) for their help.
+
+### Deprecation of Elm.Writer
+
+The `Elm.Writer` module has never been very good and tended to, and we do not desire maintaining it, and it will therefore likely be removed in a future major version.
+We highly recommend using [the-sett/elm-syntax-dsl](https://package.elm-lang.org/packages/the-sett/elm-syntax-dsl/latest/) instead, which is much better anyways.
+
 ## [7.3.2] - 2022-09-03
 
 - Stop parsing `FloatPattern` (this is an invalid pattern in Elm 0.19)
