@@ -37,10 +37,9 @@ importInnerParseExposingDefinition : Node ModuleName -> Maybe (Node ModuleName) 
 importInnerParseExposingDefinition mod asDef =
     Combine.oneOf
         [ Node.parser exposeDefinition
-            |> Combine.map Just
-        , Combine.succeed Nothing
+            |> Combine.map (\exposing_ -> { moduleName = mod, moduleAlias = asDef, exposingList = Just exposing_ })
+        , Combine.succeed { moduleName = mod, moduleAlias = asDef, exposingList = Nothing }
         ]
-        |> Combine.map (\exposing_ -> Import mod asDef exposing_)
 
 
 importInnerParseAsDefinition : Location -> Node ModuleName -> Parser State (Node Import)
