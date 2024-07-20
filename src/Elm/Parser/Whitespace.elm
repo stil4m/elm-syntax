@@ -14,10 +14,9 @@ many1Spaces =
 realNewLine : Core.Parser ()
 realNewLine =
     Core.oneOf
-        [ Core.chompIf (\c -> c == '\u{000D}')
-        , Core.succeed ()
+        [ Core.symbol "\u{000D}\n"
+        , Core.symbol "\n"
         ]
-        |. Core.symbol "\n"
 
 
 untilNewlineToken : Core.Parser ()
