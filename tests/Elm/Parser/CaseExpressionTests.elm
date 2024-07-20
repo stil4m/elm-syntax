@@ -134,22 +134,23 @@ True -> 1"""
         _ -> 3"""
                     |> expectAst
                         (Node { start = { row = 1, column = 1 }, end = { row = 7, column = 15 } }
-                            (CaseExpression
+                            (Case
                                 { expression =
                                     Node
                                         { start = { row = 1, column = 6 }
                                         , end = { row = 1, column = 7 }
                                         }
                                         (FunctionOrValue [] "x")
-                                , cases =
-                                    [ ( Node { start = { row = 2, column = 9 }, end = { row = 2, column = 39 } } (StringPattern "single line triple quote")
-                                      , Node { start = { row = 3, column = 13 }, end = { row = 3, column = 14 } } (Integer 1)
-                                      )
-                                    , ( Node { start = { row = 4, column = 9 }, end = { row = 5, column = 28 } } (StringPattern "multi line\n            triple quote")
-                                      , Node { start = { row = 6, column = 13 }, end = { row = 6, column = 14 } } (Integer 2)
+                                , firstCase =
+                                    ( Node { start = { row = 2, column = 9 }, end = { row = 2, column = 39 } } (StringPattern "single line triple quote")
+                                    , Node { start = { row = 3, column = 13 }, end = { row = 3, column = 14 } } (IntegerLiteral 1)
+                                    )
+                                , restOfCases =
+                                    [ ( Node { start = { row = 4, column = 9 }, end = { row = 5, column = 28 } } (StringPattern "multi line\n            triple quote")
+                                      , Node { start = { row = 6, column = 13 }, end = { row = 6, column = 14 } } (IntegerLiteral 2)
                                       )
                                     , ( Node { start = { row = 7, column = 9 }, end = { row = 7, column = 10 } } AllPattern
-                                      , Node { start = { row = 7, column = 14 }, end = { row = 7, column = 15 } } (Integer 3)
+                                      , Node { start = { row = 7, column = 14 }, end = { row = 7, column = 15 } } (IntegerLiteral 3)
                                       )
                                     ]
                                 }
