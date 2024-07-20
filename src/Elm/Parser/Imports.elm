@@ -11,6 +11,7 @@ import Elm.Syntax.Import exposing (Import)
 import Elm.Syntax.ModuleName exposing (ModuleName)
 import Elm.Syntax.Node as Node exposing (Node(..))
 import Elm.Syntax.Range exposing (Location, Range)
+import Parser as Core
 import Parser.Extra
 
 
@@ -30,7 +31,7 @@ importInnerAsDefinition : Parser State (Node ModuleName)
 importInnerAsDefinition =
     Tokens.asToken
         |> Combine.ignoreFromCore Layout.layout
-        |> Combine.continueWithCore moduleName
+        |> Combine.continueWithCore (Tokens.typeName |> Core.map List.singleton |> Node.parserCore)
 
 
 importInnerParseExposingDefinition : Node ModuleName -> Maybe (Node ModuleName) -> Parser State Import

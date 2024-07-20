@@ -78,6 +78,10 @@ all =
                             , moduleName = Node { start = { row = 1, column = 8 }, end = { row = 1, column = 11 } } [ "Foo" ]
                             }
                         )
+        , test "import with invalid alias containing ." <|
+            \() ->
+                "import Foo as Bar.Buzz"
+                    |> CombineTestUtil.expectInvalid Parser.importDefinition
         ]
 
 
