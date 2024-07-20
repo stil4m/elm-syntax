@@ -643,12 +643,12 @@ spacesAndSubExpressions =
 
 expressionHelp : Int -> Node Expression -> Parser State (Step (Node Expression) (Node Expression))
 expressionHelp currentPrecedence leftExpression =
-    case getOperation currentPrecedence of
+    case getAndThenOneOfAbovePrecedence currentPrecedence of
         Just parser ->
             Layout.optimisticLayout
                 |> Combine.continueWith
                     (Combine.oneOf
-                        [ parser leftExpression
+                        [ combineOneOfApply parser leftExpression
                             |> Combine.map Loop
                         , Combine.succeed (Done leftExpression)
                         ]
@@ -658,64 +658,148 @@ expressionHelp currentPrecedence leftExpression =
             Combine.problem ("Could not find operators related to precedence " ++ String.fromInt currentPrecedence)
 
 
-operation : Int -> Node Expression -> Parser State (Node Expression)
-operation currentPrecedence leftExpression =
+combineOneOfApply :
+    List (arg -> Combine.Parser State arg)
+    -> arg
+    -> Combine.Parser State arg
+combineOneOfApply possibilitiesForCurrentPrecedence leftExpression =
+    Combine.Parser <|
+        \state ->
+            Core.oneOf
+                (List.map
+                    (\parser ->
+                        let
+                            (Combine.Parser x) =
+                                parser leftExpression
+                        in
+                        x state
+                    )
+                    possibilitiesForCurrentPrecedence
+                )
+
+
+getAndThenOneOfAbovePrecedence : Int -> Maybe (List (Node Expression -> Combine.Parser State (Node Expression)))
+getAndThenOneOfAbovePrecedence precedence =
+    case precedence of
+        0 ->
+            Just andThenOneOfAbovePrecedence0
+
+        1 ->
+            Just andThenOneOfAbovePrecedence1
+
+        2 ->
+            Just andThenOneOfAbovePrecedence2
+
+        3 ->
+            Just andThenOneOfAbovePrecedence3
+
+        4 ->
+            Just andThenOneOfAbovePrecedence4
+
+        5 ->
+            Just andThenOneOfAbovePrecedence5
+
+        6 ->
+            Just andThenOneOfAbovePrecedence6
+
+        7 ->
+            Just andThenOneOfAbovePrecedence7
+
+        8 ->
+            Just andThenOneOfAbovePrecedence8
+
+        9 ->
+            Just andThenOneOfAbovePrecedence9
+
+        90 ->
+            Just andThenOneOfAbovePrecedence90
+
+        95 ->
+            Just andThenOneOfAbovePrecedence95
+
+        100 ->
+            Just andThenOneOfAbovePrecedence100
+
+        _ ->
+            Nothing
+
+
+andThenOneOfAbovePrecedence0 : List (Node Expression -> Combine.Parser State (Node Expression))
+andThenOneOfAbovePrecedence0 =
+    computeAndThenOneOfAbovePrecedence 0
+
+
+andThenOneOfAbovePrecedence1 : List (Node Expression -> Combine.Parser State (Node Expression))
+andThenOneOfAbovePrecedence1 =
+    computeAndThenOneOfAbovePrecedence 1
+
+
+andThenOneOfAbovePrecedence2 : List (Node Expression -> Combine.Parser State (Node Expression))
+andThenOneOfAbovePrecedence2 =
+    computeAndThenOneOfAbovePrecedence 2
+
+
+andThenOneOfAbovePrecedence3 : List (Node Expression -> Combine.Parser State (Node Expression))
+andThenOneOfAbovePrecedence3 =
+    computeAndThenOneOfAbovePrecedence 3
+
+
+andThenOneOfAbovePrecedence4 : List (Node Expression -> Combine.Parser State (Node Expression))
+andThenOneOfAbovePrecedence4 =
+    computeAndThenOneOfAbovePrecedence 4
+
+
+andThenOneOfAbovePrecedence5 : List (Node Expression -> Combine.Parser State (Node Expression))
+andThenOneOfAbovePrecedence5 =
+    computeAndThenOneOfAbovePrecedence 5
+
+
+andThenOneOfAbovePrecedence6 : List (Node Expression -> Combine.Parser State (Node Expression))
+andThenOneOfAbovePrecedence6 =
+    computeAndThenOneOfAbovePrecedence 6
+
+
+andThenOneOfAbovePrecedence7 : List (Node Expression -> Combine.Parser State (Node Expression))
+andThenOneOfAbovePrecedence7 =
+    computeAndThenOneOfAbovePrecedence 7
+
+
+andThenOneOfAbovePrecedence8 : List (Node Expression -> Combine.Parser State (Node Expression))
+andThenOneOfAbovePrecedence8 =
+    computeAndThenOneOfAbovePrecedence 8
+
+
+andThenOneOfAbovePrecedence9 : List (Node Expression -> Combine.Parser State (Node Expression))
+andThenOneOfAbovePrecedence9 =
+    computeAndThenOneOfAbovePrecedence 9
+
+
+andThenOneOfAbovePrecedence90 : List (Node Expression -> Combine.Parser State (Node Expression))
+andThenOneOfAbovePrecedence90 =
+    computeAndThenOneOfAbovePrecedence 90
+
+
+andThenOneOfAbovePrecedence95 : List (Node Expression -> Combine.Parser State (Node Expression))
+andThenOneOfAbovePrecedence95 =
+    computeAndThenOneOfAbovePrecedence 95
+
+
+andThenOneOfAbovePrecedence100 : List (Node Expression -> Combine.Parser State (Node Expression))
+andThenOneOfAbovePrecedence100 =
+    computeAndThenOneOfAbovePrecedence 100
+
+
+computeAndThenOneOfAbovePrecedence : Int -> List (Node Expression -> Combine.Parser State (Node Expression))
+computeAndThenOneOfAbovePrecedence currentPrecedence =
     andThenOneOf
         |> List.filterMap
             (\( precedence, parser ) ->
                 if precedence > currentPrecedence then
-                    Just (parser leftExpression)
+                    Just parser
 
                 else
                     Nothing
             )
-        |> Combine.oneOf
-
-
-getOperation : Int -> Maybe (Node Expression -> Parser State (Node Expression))
-getOperation precedence =
-    case precedence of
-        0 ->
-            Just (\leftExpression -> leftExpression |> operation 0)
-
-        1 ->
-            Just (\leftExpression -> leftExpression |> operation 1)
-
-        2 ->
-            Just (\leftExpression -> leftExpression |> operation 2)
-
-        3 ->
-            Just (\leftExpression -> leftExpression |> operation 3)
-
-        4 ->
-            Just (\leftExpression -> leftExpression |> operation 4)
-
-        5 ->
-            Just (\leftExpression -> leftExpression |> operation 5)
-
-        6 ->
-            Just (\leftExpression -> leftExpression |> operation 6)
-
-        7 ->
-            Just (\leftExpression -> leftExpression |> operation 7)
-
-        8 ->
-            Just (\leftExpression -> leftExpression |> operation 8)
-
-        9 ->
-            Just (\leftExpression -> leftExpression |> operation 9)
-
-        90 ->
-            Just (\leftExpression -> leftExpression |> operation 90)
-
-        95 ->
-            Just (\leftExpression -> leftExpression |> operation 95)
-
-        100 ->
-            Just (\leftExpression -> leftExpression |> operation 100)
-
-        _ ->
-            Nothing
 
 
 infixLeft : Int -> String -> ( Int, Node Expression -> Parser State (Node Expression) )
