@@ -8,7 +8,7 @@ import Elm.Parser.Numbers
 import Elm.Parser.State exposing (State)
 import Elm.Parser.Tokens as Tokens
 import Elm.Syntax.Node as Node exposing (Node(..))
-import Elm.Syntax.Pattern exposing (Pattern(..), QualifiedNameRef)
+import Elm.Syntax.Pattern exposing (Pattern(..))
 import Parser as Core
 
 
@@ -87,15 +87,11 @@ listPattern =
             )
 
 
-type alias ConsumeArgs =
-    Bool
-
-
 composablePattern : Parser State (Node Pattern)
 composablePattern =
     Combine.oneOf
         [ variablePart
-        , qualifiedPattern True
+        , qualifiedPatternWithConsumeArgs
         , allPattern
         , unitPattern
         , parensPattern
@@ -111,7 +107,7 @@ qualifiedPatternArg : Parser State (Node Pattern)
 qualifiedPatternArg =
     Combine.oneOf
         [ variablePart
-        , qualifiedPattern False
+        , qualifiedPatternWithoutConsumeArgs
         , allPattern
         , unitPattern
         , parensPattern
@@ -148,24 +144,30 @@ stringPattern =
         |> Combine.fromCore
 
 
-qualifiedPattern : ConsumeArgs -> Parser State (Node Pattern)
-qualifiedPattern consumeArgs =
+qualifiedPatternWithConsumeArgs : Parser State (Node Pattern)
+qualifiedPatternWithConsumeArgs =
     Base.typeIndicator
         |> Combine.ignoreFromCore (Combine.maybeIgnore Layout.layout)
         |> Combine.andThen
             (\(Node range ( mod, name )) ->
-                (if consumeArgs then
-                    Combine.manyWithEndLocationForLastElement range Node.range (qualifiedPatternArg |> Combine.ignore (Combine.maybeIgnore Layout.layout))
-
-                 else
-                    Combine.succeed ( range.end, [] )
-                )
+                Combine.manyWithEndLocationForLastElement range
+                    Node.range
+                    (qualifiedPatternArg |> Combine.ignore (Combine.maybeIgnore Layout.layout))
                     |> Combine.map
                         (\( end, args ) ->
-                            Node
-                                { start = range.start, end = end }
-                                (NamedPattern (QualifiedNameRef mod name) args)
+                            Node { start = range.start, end = end }
+                                (NamedPattern { moduleName = mod, name = name } args)
                         )
+            )
+
+
+qualifiedPatternWithoutConsumeArgs : Parser State (Node Pattern)
+qualifiedPatternWithoutConsumeArgs =
+    Base.typeIndicator
+        |> Combine.ignoreFromCore (Combine.maybeIgnore Layout.layout)
+        |> Combine.map
+            (\(Node range ( mod, name )) ->
+                Node range (NamedPattern { moduleName = mod, name = name } [])
             )
 
 
