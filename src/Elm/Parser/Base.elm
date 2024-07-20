@@ -27,7 +27,7 @@ moduleNameOrEmpty =
             |. Tokens.dot
             |= Tokens.typeName
             |= Core.lazy (\() -> moduleNameOrEmpty)
-        , Core.lazy (\() -> Core.succeed [])
+        , Core.succeed []
         ]
 
 
