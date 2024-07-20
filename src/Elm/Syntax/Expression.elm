@@ -1,6 +1,6 @@
 module Elm.Syntax.Expression exposing
     ( Expression(..), StringLiteralType(..), Lambda, LetBlock, LetDeclaration(..), RecordSetter, CaseBlock, Case, Function, FunctionImplementation
-    , functionRange, isLambda, isLet, isIfElse, isCase, isOperatorApplication
+    , functionRange, isLambda, isLet, isIfElse, isCase, isOperation
     )
 
 {-| This syntax represents all that you can express in Elm.
@@ -14,7 +14,7 @@ Although it is a easy and simple language, you can express a lot! See the `Expre
 
 ## Functions
 
-@docs functionRange, isLambda, isLet, isIfElse, isCase, isOperatorApplication
+@docs functionRange, isLambda, isLet, isIfElse, isCase, isOperation
 
 -}
 
@@ -227,8 +227,8 @@ isCase e =
 
 {-| Check whether an expression is an operator application expression
 -}
-isOperatorApplication : Expression -> Bool
-isOperatorApplication e =
+isOperation : Expression -> Bool
+isOperation e =
     case e of
         Operation _ _ _ _ ->
             True
