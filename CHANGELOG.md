@@ -38,6 +38,7 @@
   - Renamed `Hex` to `HexLiteral`
   - Renamed `ListExpr` to `ListLiteral`
   - Renamed `OperatorApplication` to `Operation`
+  - Renamed `isOperatorApplication` to `isOperation`
   - Renamed `RecordExpr` to `Record`
   - Renamed `CaseExpression` to `Case`
   - Renamed `LetExpression` to `Let`
