@@ -36,19 +36,13 @@ singleLineComment =
 multilineCommentInner : Core.Parser String
 multilineCommentInner =
     Core.oneOf
-        [ Core.symbol "{-|" |> Core.backtrackable |> Core.map (\() -> Nothing)
+        [ Core.symbol "{-|"
+            |> Core.backtrackable
+            |> Core.map (\() -> Core.problem "unexpected multiline comment")
         , Core.multiComment "{-" "-}" Nestable
-            |> Core.mapChompedString (\comment () -> Just comment)
+            |> Core.mapChompedString (\comment () -> Core.succeed comment)
         ]
-        |> Core.andThen
-            (\result ->
-                case result of
-                    Nothing ->
-                        Core.problem "unexpected multiline comment"
-
-                    Just string ->
-                        Core.succeed string
-            )
+        |> Core.andThen identity
 
 
 multilineComment : Parser State ()
