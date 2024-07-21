@@ -58,8 +58,7 @@ parensPattern =
 
 variablePart : Parser state (Node Pattern)
 variablePart =
-    Node.parserCore (Core.map VarPattern Tokens.functionName)
-        |> Combine.fromCore
+    Node.parserFromCore (Core.map VarPattern Tokens.functionName)
 
 
 numberPart : Parser state (Node Pattern)
@@ -122,15 +121,13 @@ qualifiedPatternArg =
 allPattern : Parser state (Node Pattern)
 allPattern =
     Core.map (\() -> AllPattern) (Core.symbol "_")
-        |> Node.parserCore
-        |> Combine.fromCore
+        |> Node.parserFromCore
 
 
 unitPattern : Parser state (Node Pattern)
 unitPattern =
     Core.map (\() -> UnitPattern) (Core.symbol "()")
-        |> Node.parserCore
-        |> Combine.fromCore
+        |> Node.parserFromCore
 
 
 stringPattern : Parser state (Node Pattern)
@@ -140,8 +137,7 @@ stringPattern =
         , Tokens.stringLiteral
         ]
         |> Core.map StringPattern
-        |> Node.parserCore
-        |> Combine.fromCore
+        |> Node.parserFromCore
 
 
 qualifiedPatternWithConsumeArgs : Parser State (Node Pattern)

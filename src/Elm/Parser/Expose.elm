@@ -13,8 +13,8 @@ import Parser.Extra
 
 exposeDefinition : Parser State Exposing
 exposeDefinition =
-    Combine.fromCore Tokens.exposingToken
-        |> Combine.continueWith (Combine.maybeIgnore Layout.layout)
+    Tokens.exposingToken
+        |> Combine.continueWithFromCore (Combine.maybeIgnore Layout.layout)
         |> Combine.continueWith exposeListWith
 
 

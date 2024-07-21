@@ -13,8 +13,7 @@ many1Spaces =
         , inner = \c -> c == ' '
         , reserved = Set.empty
         }
-        |> Core.map (\_ -> ())
-        |> Combine.fromCore
+        |> Combine.fromCoreMap (\_ -> ())
 
 
 realNewLine : Core.Parser ()

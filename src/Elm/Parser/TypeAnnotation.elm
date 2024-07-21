@@ -66,8 +66,7 @@ parensTypeAnnotation =
         |> Combine.continueFromCore
             (Combine.oneOf
                 [ Tokens.parensEnd
-                    |> Core.map (\() -> TypeAnnotation.Unit)
-                    |> Combine.fromCore
+                    |> Combine.fromCoreMap (\() -> TypeAnnotation.Unit)
                 , parensTypeAnnotationInnerNested |> Combine.ignoreEntirely Tokens.parensEnd
                 ]
             )
@@ -167,8 +166,7 @@ recordFieldDefinition =
 typedTypeAnnotation : Mode -> Parser State (Node TypeAnnotation)
 typedTypeAnnotation mode =
     typeIndicator
-        |> Combine.fromCore
-        |> Combine.andThen
+        |> Combine.andThenFromCore
             (\((Node tir _) as original) ->
                 Layout.optimisticLayoutWith
                     (\() -> Node tir (TypeAnnotation.Typed original []))

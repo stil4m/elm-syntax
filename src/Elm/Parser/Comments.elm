@@ -12,8 +12,10 @@ import Parser as Core exposing ((|.), (|=), Nestable(..))
 addCommentToState : Core.Parser (Node String) -> Parser State ()
 addCommentToState p =
     p
-        |> Combine.fromCore
-        |> Combine.andThen (\pair -> Combine.modifyState (\state -> addComment pair state))
+        |> Combine.andThenFromCore
+            (\pair ->
+                Combine.modifyState (\state -> addComment pair state)
+            )
 
 
 parseComment : Core.Parser String -> Parser State ()

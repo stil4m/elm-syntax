@@ -2,12 +2,15 @@ module Combine exposing
     ( Parser(..)
     , Step(..)
     , andThen
+    , andThenFromCore
     , between
     , continueFromCore
     , continueWith
     , continueWithCore
+    , continueWithFromCore
     , end
     , fromCore
+    , fromCoreMap
     , ignore
     , ignoreEntirely
     , ignoreFromCore
@@ -45,6 +48,14 @@ import Parser as Core exposing ((|.), (|=))
 
 type Parser state res
     = Parser (state -> Core.Parser ( state, res ))
+
+
+fromCoreMap : (res -> changedRes) -> Core.Parser res -> Parser state changedRes
+fromCoreMap resChange p =
+    Parser
+        (\state ->
+            Core.map (\v -> ( state, resChange v )) p
+        )
 
 
 fromCore : Core.Parser res -> Parser state res
@@ -110,6 +121,21 @@ map f (Parser p) =
         \state ->
             p state
                 |> Core.map (\( s, a ) -> ( s, f a ))
+
+
+andThenFromCore : (a -> Parser state b) -> Core.Parser a -> Parser state b
+andThenFromCore f p =
+    Parser <|
+        \state ->
+            p
+                |> Core.andThen
+                    (\a ->
+                        let
+                            (Parser x) =
+                                f a
+                        in
+                        x state
+                    )
 
 
 andThen : (a -> Parser state b) -> Parser state a -> Parser state b
@@ -397,6 +423,12 @@ continueWith : Parser state a -> Parser state () -> Parser state a
 continueWith target dropped =
     dropped
         |> andThen (\() -> target)
+
+
+continueWithFromCore : Parser state a -> Core.Parser () -> Parser state a
+continueWithFromCore target dropped =
+    dropped
+        |> andThenFromCore (\() -> target)
 
 
 continueWithCore : Core.Parser a -> Parser state () -> Parser state a
