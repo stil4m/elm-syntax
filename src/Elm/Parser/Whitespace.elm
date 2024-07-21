@@ -7,7 +7,6 @@ import Set
 
 many1Spaces : Parser state ()
 many1Spaces =
-    -- yes, this is faster than  symbol/chompIf |. chompWhile
     Core.variable
         { start = \c -> c == ' '
         , inner = \c -> c == ' '

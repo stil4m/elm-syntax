@@ -9,6 +9,7 @@ import Elm.Syntax.Exposing exposing (ExposedType, Exposing(..), TopLevelExpose(.
 import Elm.Syntax.Node as Node exposing (Node(..))
 import Parser as Core exposing ((|.), (|=))
 import Parser.Extra
+import Set
 
 
 exposeDefinition : Parser State Exposing
@@ -52,9 +53,11 @@ infixExpose : Parser state (Node TopLevelExpose)
 infixExpose =
     Core.succeed InfixExpose
         |. Tokens.parensStart
-        |= (Core.chompWhile (\c -> c /= ')')
-                |> Core.getChompedString
-           )
+        |= Core.variable
+            { start = \c -> c /= ')'
+            , inner = \c -> c /= ')'
+            , reserved = Set.empty
+            }
         |. Tokens.parensEnd
         |> Node.parserFromCore
 
