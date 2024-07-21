@@ -137,7 +137,11 @@ escapedCharValue =
                         '\u{0000}'
             )
             |. Core.symbol "u{"
-            |= (Core.chompWhile Char.isHexDigit |> Core.getChompedString)
+            |= Core.variable
+                { start = Char.isHexDigit
+                , inner = Char.isHexDigit
+                , reserved = Set.empty
+                }
             |. Core.symbol "}"
         ]
 
