@@ -15,28 +15,28 @@ import Elm.Parser.Whitespace as Whitespace
 import Parser.Extra
 
 
-anyComment : Combine.Parser State ()
-anyComment =
-    Combine.oneOf
-        [ Comments.singleLineComment
-        , Comments.multilineComment
-        ]
+oneOfAnyComment : List (Combine.Parser State ())
+oneOfAnyComment =
+    [ Comments.singleLineComment
+    , Comments.multilineComment
+    ]
 
 
 layout : Parser State ()
 layout =
     Combine.many1Ignore
         (Combine.oneOf
-            [ anyComment
-            , Parser.Extra.many1Ignore Whitespace.realNewLine
-                |> Combine.ignoreFromCore
-                    (Combine.oneOf
-                        [ Whitespace.many1Spaces
-                        , anyComment
-                        ]
-                    )
-            , Whitespace.many1Spaces
-            ]
+            (oneOfAnyComment
+                ++ [ Parser.Extra.many1Ignore Whitespace.realNewLine
+                        |> Combine.ignoreFromCore
+                            (Combine.oneOf
+                                (Whitespace.many1Spaces
+                                    :: oneOfAnyComment
+                                )
+                            )
+                   , Whitespace.many1Spaces
+                   ]
+            )
         )
         |> Combine.continueWith
             (verifyIndent (\stateIndent current -> stateIndent < current)
@@ -54,17 +54,19 @@ optimisticLayout : Parser State ()
 optimisticLayout =
     Combine.manyIgnore
         (Combine.oneOf
-            [ anyComment
-            , Parser.Extra.many1Ignore Whitespace.realNewLine
-                |> Combine.ignoreFromCore
-                    (Combine.oneOf
-                        [ Whitespace.many1Spaces
-                        , anyComment
-                        , Combine.succeed ()
-                        ]
-                    )
-            , Whitespace.many1Spaces
-            ]
+            (oneOfAnyComment
+                ++ [ Parser.Extra.many1Ignore Whitespace.realNewLine
+                        |> Combine.ignoreFromCore
+                            (Combine.oneOf
+                                (Whitespace.many1Spaces
+                                    :: oneOfAnyComment
+                                    ++ [ Combine.succeed ()
+                                       ]
+                                )
+                            )
+                   , Whitespace.many1Spaces
+                   ]
+            )
         )
 
 
@@ -91,11 +93,12 @@ layoutStrict : Parser State ()
 layoutStrict =
     Combine.many1Ignore
         (Combine.oneOf
-            [ anyComment
-            , Parser.Extra.many1Ignore Whitespace.realNewLine
-                |> Combine.fromCore
-            , Whitespace.many1Spaces
-            ]
+            (oneOfAnyComment
+                ++ [ Parser.Extra.many1Ignore Whitespace.realNewLine
+                        |> Combine.fromCore
+                   , Whitespace.many1Spaces
+                   ]
+            )
         )
         |> Combine.continueWith
             (verifyIndent (\stateIndent current -> stateIndent == current)
