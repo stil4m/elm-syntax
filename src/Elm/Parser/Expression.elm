@@ -8,7 +8,6 @@ import Elm.Parser.Patterns as Patterns
 import Elm.Parser.State as State exposing (State)
 import Elm.Parser.Tokens as Tokens
 import Elm.Parser.TypeAnnotation as TypeAnnotation
-import Elm.Parser.Whitespace as Whitespace
 import Elm.Syntax.Expression as Expression exposing (Case, CaseBlock, Cases, Expression(..), Function, FunctionImplementation, Lambda, LetBlock, LetDeclaration(..), RecordSetter)
 import Elm.Syntax.Infix as Infix
 import Elm.Syntax.ModuleName exposing (ModuleName)
@@ -434,18 +433,12 @@ minusNotFollowedBySpace =
     Core.succeed identity
         |. Core.backtrackable Tokens.minus
         |= Core.oneOf
-            [ Core.map (\() -> True) (Core.backtrackable Whitespace.realNewLine)
-            , Core.map (\() -> True) (Core.backtrackable (Core.symbol " "))
-            , Core.succeed False
+            [ Core.chompIf (\next -> next == '\u{000D}' || next == '\n' || next == ' ')
+                |> Core.backtrackable
+                |> Core.map (\() -> Core.problem "negation sign cannot be followed by a space")
+            , Core.succeed (Core.commit ())
             ]
-        |> Core.andThen
-            (\isSpaceOrComment ->
-                if isSpaceOrComment then
-                    Core.problem "negation sign cannot be followed by a space"
-
-                else
-                    Core.commit ()
-            )
+        |> Core.andThen identity
 
 
 referenceExpression : Parser State (Node Expression)
