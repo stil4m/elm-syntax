@@ -35,18 +35,20 @@ singleLineComment =
 
 multilineCommentInner : Core.Parser String
 multilineCommentInner =
-    Core.succeed (\offset -> \source -> String.slice offset (offset + 3) source)
-        |= Core.getOffset
-        |= Core.getSource
+    Core.oneOf
+        [ Core.symbol "{-|" |> Core.backtrackable |> Core.map (\() -> Nothing)
+        , Core.multiComment "{-" "-}" Nestable
+            |> Core.mapChompedString (\comment () -> Just comment)
+        ]
         |> Core.andThen
-            (\opening ->
-                if String.startsWith "{-" opening && opening /= "{-|" then
-                    Core.multiComment "{-" "-}" Nestable
+            (\result ->
+                case result of
+                    Nothing ->
+                        Core.problem "unexpected multiline comment"
 
-                else
-                    Core.problem "unexpected documentation comment"
+                    Just string ->
+                        Core.succeed string
             )
-        |> Core.getChompedString
 
 
 multilineComment : Parser State ()
