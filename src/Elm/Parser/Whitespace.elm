@@ -1,13 +1,19 @@
 module Elm.Parser.Whitespace exposing (many1Spaces, realNewLine, untilNewlineToken)
 
 import Combine exposing (Parser)
-import Parser as Core exposing ((|.))
+import Parser as Core
+import Set
 
 
 many1Spaces : Parser state ()
 many1Spaces =
-    Core.token " "
-        |. Core.chompWhile (\c -> c == ' ')
+    -- yes, this is faster than  symbol/chompIf |. chompWhile
+    Core.variable
+        { start = \c -> c == ' '
+        , inner = \c -> c == ' '
+        , reserved = Set.empty
+        }
+        |> Core.map (\_ -> ())
         |> Combine.fromCore
 
 
