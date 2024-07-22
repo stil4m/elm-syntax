@@ -24,8 +24,8 @@ all : Test
 all =
     Test.concat
         [ describe "FileTests" <|
-            List.indexedMap
-                (\n s ->
+            List.map
+                (\( n, s ) ->
                     test ("sample " ++ String.fromInt (n + 1)) <|
                         \() ->
                             parse s Parser.file |> Expect.notEqual Nothing
@@ -49,8 +49,8 @@ all =
         --     ]
         , describe "FileTests - serialisation"
             (Samples.allSamples
-                |> List.indexedMap
-                    (\n s ->
+                |> List.map
+                    (\( n, s ) ->
                         test ("sample " ++ String.fromInt (n + 1)) <|
                             \() ->
                                 let
