@@ -23,8 +23,7 @@ import Parser as Core exposing ((|.), (|=))
 declaration : Parser State (Node Declaration)
 declaration =
     Combine.oneOf
-        [ infixDeclaration
-        , documentationCommentAndLayout
+        [ documentationCommentAndLayout
             |> Combine.andThen
                 (\documentation ->
                     Combine.oneOf
@@ -33,6 +32,7 @@ declaration =
                         , portDeclaration documentation
                         ]
                 )
+        , infixDeclaration
         , functionWithoutDocumentation
         , typeDefinitionWithoutDocumentation
         , portDeclarationWithoutDocumentation
