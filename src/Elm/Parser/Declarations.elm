@@ -41,8 +41,7 @@ declaration =
         -- this will parse the name + maybe layout twice.
         -- However, this allows us to pre-define this parser without needing `andThen`,
         -- which does make up for it (if you don't have very long function names or big comments between the name and the `:`)
-        , letFunctionWithoutDocumentationWithSignatureWithNameAndMaybeLayoutBacktrackable
-        , letFunctionWithoutDocumentationWithoutSignature
+        , functionDeclarationWithoutDocumentationWithSignatureWithNameAndMaybeLayoutBacktrackable
 
         -- Unlike typeDefinitionAfterDocumentation, we _need_ the position before the `type` token,
         -- so without using backtrackable, we would need an `andThen` to construct the rest of the parser
@@ -51,6 +50,9 @@ declaration =
         -- However, this seems incredibly rare in practice.
         , typeAliasDefinitionWithoutDocumentationWithBacktrackableTypePrefix
         , customTypeDefinitionWithoutDocumentation
+
+        --
+        , functionDeclarationWithoutDocumentationWithoutSignature
         , portDeclarationWithoutDocumentation
         ]
 
@@ -126,8 +128,8 @@ functionWithNameNode start ((Node _ startName) as startNameNode) maybeDocumentat
         ]
 
 
-letFunctionWithoutDocumentationWithSignatureWithNameAndMaybeLayoutBacktrackable : Parser State (Node Declaration)
-letFunctionWithoutDocumentationWithSignatureWithNameAndMaybeLayoutBacktrackable =
+functionDeclarationWithoutDocumentationWithSignatureWithNameAndMaybeLayoutBacktrackable : Parser State (Node Declaration)
+functionDeclarationWithoutDocumentationWithSignatureWithNameAndMaybeLayoutBacktrackable =
     Combine.succeed
         (\startNameNode ->
             \typeAnnotation ->
@@ -168,8 +170,8 @@ letFunctionWithoutDocumentationWithSignatureWithNameAndMaybeLayoutBacktrackable 
         |> Combine.andThen identity
 
 
-letFunctionWithoutDocumentationWithoutSignature : Parser State (Node Declaration)
-letFunctionWithoutDocumentationWithoutSignature =
+functionDeclarationWithoutDocumentationWithoutSignature : Parser State (Node Declaration)
+functionDeclarationWithoutDocumentationWithoutSignature =
     Combine.succeed
         (\startNameNode ->
             \args ->
