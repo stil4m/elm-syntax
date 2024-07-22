@@ -8,13 +8,14 @@ import Elm.Parser.Patterns as Patterns
 import Elm.Parser.State as State exposing (State)
 import Elm.Parser.Tokens as Tokens
 import Elm.Parser.TypeAnnotation as TypeAnnotation
-import Elm.Syntax.Expression as Expression exposing (Case, CaseBlock, Cases, Expression(..), Function, FunctionImplementation, Lambda, LetBlock, LetDeclaration(..), RecordSetter)
+import Elm.Syntax.Expression as Expression exposing (Case, CaseBlock, Cases, Expression(..), FunctionImplementation, Lambda, LetBlock, LetDeclaration(..), RecordSetter)
 import Elm.Syntax.Infix as Infix
 import Elm.Syntax.ModuleName exposing (ModuleName)
 import Elm.Syntax.Node as Node exposing (Node(..))
-import Elm.Syntax.Pattern as Pattern exposing (Pattern)
+import Elm.Syntax.Pattern exposing (Pattern)
 import Elm.Syntax.Range exposing (Location)
 import Elm.Syntax.Signature exposing (Signature)
+import Elm.Syntax.TypeAnnotation exposing (TypeAnnotation)
 import Parser as Core exposing ((|.), (|=), Nestable(..))
 
 
@@ -391,27 +392,126 @@ letDeclarations =
 blockElement : Parser State (Node LetDeclaration)
 blockElement =
     Layout.onTopIndentation
-        |> Combine.continueWith Patterns.pattern
-        |> Combine.andThen
-            (\(Node r p) ->
-                case p of
-                    Pattern.VarPattern v ->
-                        functionWithNameNode (Node r v)
-                            |> Combine.map (\fn -> Node (Expression.functionRange fn) (LetFunction fn))
-
-                    _ ->
-                        letDestructuringDeclarationWithPattern (Node r p)
+        |> Combine.continueWith
+            (Combine.oneOf
+                [ -- if there is no type annotation, this will parse the name + maybe layout twice.
+                  -- However, this allows us to pre-define this parser without needing `andThen`,
+                  -- which does make up for it (if you don't have very long let names or big comments between the name and the `:`)
+                  letFunctionWithSignatureWithNameAndMaybeLayoutBacktrackable
+                , letFunctionWithoutSignature
+                , letDestructuringDeclaration
+                ]
             )
 
 
-letDestructuringDeclarationWithPattern : Node Pattern -> Parser State (Node LetDeclaration)
-letDestructuringDeclarationWithPattern ((Node { start } _) as pattern) =
+letDestructuringDeclaration : Parser State (Node LetDeclaration)
+letDestructuringDeclaration =
     Combine.succeed
-        (\((Node { end } _) as expr) ->
-            Node { start = start, end = end } (LetDestructuring pattern expr)
+        (\pattern ->
+            \((Node { end } _) as expr) ->
+                Node { start = (Node.range pattern).start, end = end } (LetDestructuring pattern expr)
         )
+        |> Combine.keep Patterns.pattern
         |> Combine.ignoreEntirely Tokens.equal
         |> Combine.keep expression
+
+
+letFunctionWithSignatureWithNameAndMaybeLayoutBacktrackable : Parser State (Node LetDeclaration)
+letFunctionWithSignatureWithNameAndMaybeLayoutBacktrackable =
+    Combine.succeed
+        (\startNameNode ->
+            \typeAnnotation ->
+                \implementationName ->
+                    \arguments ->
+                        \result ->
+                            if Node.value implementationName == Node.value startNameNode then
+                                let
+                                    end : Location
+                                    end =
+                                        (Node.range result).end
+                                in
+                                Combine.succeed
+                                    (Node { start = (Node.range startNameNode).start, end = end }
+                                        (LetFunction
+                                            { documentation = Nothing
+                                            , signature = Just (Node.combine Signature startNameNode typeAnnotation)
+                                            , declaration =
+                                                Node { start = (Node.range implementationName).start, end = end }
+                                                    (FunctionImplementation implementationName arguments result)
+                                            }
+                                        )
+                                    )
+
+                            else
+                                Combine.problem
+                                    ("Expected to find the declaration for " ++ Node.value startNameNode ++ " but found " ++ Node.value implementationName)
+        )
+        |> Combine.keep
+            (functionNameMaybeLayout
+                |> Combine.backtrackable
+            )
+        |> Combine.ignore colonMaybeLayout
+        |> Combine.keep typeAnnotationLayout
+        |> Combine.keep functionNameMaybeLayout
+        |> Combine.keep patternListEqualsMaybeLayout
+        |> Combine.keep expression
+        |> Combine.andThen identity
+
+
+letFunctionWithoutSignature : Parser State (Node LetDeclaration)
+letFunctionWithoutSignature =
+    Combine.succeed
+        (\startNameNode ->
+            \args ->
+                \result ->
+                    let
+                        end : Location
+                        end =
+                            (Node.range result).end
+
+                        start : Location
+                        start =
+                            (Node.range startNameNode).start
+                    in
+                    Node { start = start, end = end }
+                        (LetFunction
+                            { documentation = Nothing
+                            , signature = Nothing
+                            , declaration =
+                                Node { start = start, end = end }
+                                    (FunctionImplementation startNameNode args result)
+                            }
+                        )
+        )
+        |> Combine.keep functionNameMaybeLayout
+        |> Combine.keep patternListEqualsMaybeLayout
+        |> Combine.keep expression
+
+
+functionNameMaybeLayout : Parser State (Node String)
+functionNameMaybeLayout =
+    Tokens.functionName
+        |> Node.parserCore
+        |> Combine.ignoreFromCore (Combine.maybeIgnore Layout.layout)
+
+
+colonMaybeLayout : Parser State ()
+colonMaybeLayout =
+    Tokens.colon
+        |> Combine.ignoreFromCore (Combine.maybeIgnore Layout.layout)
+
+
+typeAnnotationLayout : Parser State (Node TypeAnnotation)
+typeAnnotationLayout =
+    TypeAnnotation.typeAnnotation
+        |> Combine.ignore (Combine.maybeIgnore Layout.layoutStrict)
+
+
+patternListEqualsMaybeLayout : Parser State (List (Node Pattern))
+patternListEqualsMaybeLayout =
+    Combine.many (Patterns.pattern |> Combine.ignore (Combine.maybeIgnore Layout.layout))
+        |> Combine.ignoreEntirely Tokens.equal
+        |> Combine.ignore (Combine.maybeIgnore Layout.layout)
 
 
 numberExpression : Parser State (Node Expression)
@@ -560,72 +660,6 @@ withIndentedState p =
                 |> Combine.continueWith p
                 |> Combine.ignore (Combine.modifyState State.popIndent)
         )
-
-
-functionWithNameNode : Node String -> Parser State Function
-functionWithNameNode pointer =
-    Combine.oneOf
-        [ functionWithSignature pointer
-        , functionWithoutSignature pointer
-        ]
-
-
-functionWithSignature : Node String -> Parser State Function
-functionWithSignature varPointer =
-    functionSignatureFromVarPointer varPointer
-        |> Combine.ignore (Combine.maybeIgnore Layout.layoutStrict)
-        |> Combine.andThen
-            (\sig ->
-                Node.parserFromCore Tokens.functionName
-                    |> Combine.andThen (\fnName -> failIfDifferentFrom varPointer fnName)
-                    |> Combine.ignore (Combine.maybeIgnore Layout.layout)
-                    |> Combine.andThen (\newPointer -> functionImplementationFromVarPointer newPointer)
-                    |> Combine.map (\decl -> fromParts sig decl)
-            )
-
-
-functionWithoutSignature : Node String -> Parser State Function
-functionWithoutSignature varPointer =
-    functionImplementationFromVarPointer varPointer
-        |> Combine.map (\decl -> Function Nothing Nothing decl)
-
-
-functionImplementationFromVarPointer : Node String -> Parser State (Node FunctionImplementation)
-functionImplementationFromVarPointer ((Node { start } _) as varPointer) =
-    Combine.succeed
-        (\args ->
-            \((Node { end } _) as expr) ->
-                Node { start = start, end = end }
-                    (FunctionImplementation varPointer args expr)
-        )
-        |> Combine.keep (Combine.many (Patterns.pattern |> Combine.ignore (Combine.maybeIgnore Layout.layout)))
-        |> Combine.ignoreEntirely Tokens.equal
-        |> Combine.keep expression
-
-
-fromParts : Node Signature -> Node FunctionImplementation -> Function
-fromParts sig decl =
-    { documentation = Nothing
-    , signature = Just sig
-    , declaration = decl
-    }
-
-
-failIfDifferentFrom : Node String -> Node String -> Parser State (Node String)
-failIfDifferentFrom (Node _ expectedName) ((Node _ actualName) as actual) =
-    if expectedName == actualName then
-        Combine.succeed actual
-
-    else
-        Combine.problem <| "Expected to find the declaration for " ++ expectedName ++ " but found " ++ actualName
-
-
-functionSignatureFromVarPointer : Node String -> Parser State (Node Signature)
-functionSignatureFromVarPointer varPointer =
-    Combine.succeed (\ta -> Node.combine Signature varPointer ta)
-        |> Combine.ignoreEntirely Tokens.colon
-        |> Combine.ignore (Combine.maybeIgnore Layout.layout)
-        |> Combine.keep TypeAnnotation.typeAnnotation
 
 
 

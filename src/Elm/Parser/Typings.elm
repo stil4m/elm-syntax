@@ -1,4 +1,4 @@
-module Elm.Parser.Typings exposing (customTypeDefinitionWithoutDocumentationWithBacktrackableTypePrefix, typeAliasDefinitionWithoutDocumentationWithBacktrackableTypePrefix, typeDefinitionAfterDocumentation)
+module Elm.Parser.Typings exposing (customTypeDefinitionWithoutDocumentation, typeAliasDefinitionWithoutDocumentationWithBacktrackableTypePrefix, typeDefinitionAfterDocumentation)
 
 import Combine exposing (Parser)
 import Elm.Parser.Layout as Layout
@@ -110,8 +110,8 @@ typeAliasDefinitionWithoutDocumentationWithBacktrackableTypePrefix =
         |> Combine.keep typeAnnotation
 
 
-customTypeDefinitionWithoutDocumentationWithBacktrackableTypePrefix : Parser State (Node Declaration.Declaration)
-customTypeDefinitionWithoutDocumentationWithBacktrackableTypePrefix =
+customTypeDefinitionWithoutDocumentation : Parser State (Node Declaration.Declaration)
+customTypeDefinitionWithoutDocumentation =
     Combine.succeed
         (\( startRow, startColumn ) ->
             \name ->
@@ -138,7 +138,7 @@ customTypeDefinitionWithoutDocumentationWithBacktrackableTypePrefix =
                             )
         )
         |> Combine.keepFromCore Core.getPosition
-        |> Combine.ignore typePrefixBacktrackable
+        |> Combine.ignore typePrefix
         |> Combine.keep typeNameLayout
         |> Combine.keep genericListEquals
         |> Combine.keep valueConstructors

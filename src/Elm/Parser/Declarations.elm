@@ -9,8 +9,8 @@ import Elm.Parser.Patterns exposing (pattern)
 import Elm.Parser.State as State exposing (State)
 import Elm.Parser.Tokens as Tokens
 import Elm.Parser.TypeAnnotation as TypeAnnotation exposing (typeAnnotation)
-import Elm.Parser.Typings exposing (customTypeDefinitionWithoutDocumentationWithBacktrackableTypePrefix, typeAliasDefinitionWithoutDocumentationWithBacktrackableTypePrefix, typeDefinitionAfterDocumentation)
-import Elm.Syntax.Declaration as Declaration exposing (Declaration)
+import Elm.Parser.Typings exposing (customTypeDefinitionWithoutDocumentation, typeAliasDefinitionWithoutDocumentationWithBacktrackableTypePrefix, typeDefinitionAfterDocumentation)
+import Elm.Syntax.Declaration as Declaration exposing (Declaration(..))
 import Elm.Syntax.Documentation exposing (Documentation)
 import Elm.Syntax.Expression exposing (FunctionImplementation)
 import Elm.Syntax.Infix as Infix
@@ -36,7 +36,13 @@ declaration =
                         ]
                 )
         , infixDeclaration
-        , functionWithoutDocumentation
+
+        -- if there is no type annotation (which should be rather rare in practice),
+        -- this will parse the name + maybe layout twice.
+        -- However, this allows us to pre-define this parser without needing `andThen`,
+        -- which does make up for it (if you don't have very long function names or big comments between the name and the `:`)
+        , letFunctionWithoutDocumentationWithSignatureWithNameAndMaybeLayoutBacktrackable
+        , letFunctionWithoutDocumentationWithoutSignature
 
         -- Unlike typeDefinitionAfterDocumentation, we _need_ the position before the `type` token,
         -- so without using backtrackable, we would need an `andThen` to construct the rest of the parser
@@ -44,7 +50,7 @@ declaration =
         -- The current tradeoff does indeed perform worse when there's a big comment between `type` and `alias`.
         -- However, this seems incredibly rare in practice.
         , typeAliasDefinitionWithoutDocumentationWithBacktrackableTypePrefix
-        , customTypeDefinitionWithoutDocumentationWithBacktrackableTypePrefix
+        , customTypeDefinitionWithoutDocumentation
         , portDeclarationWithoutDocumentation
         ]
 
@@ -55,15 +61,6 @@ functionAfterDocumentation documentation =
         |> Combine.andThen
             (\startName ->
                 functionWithNameNode (Node.range documentation).start startName (Just documentation)
-            )
-
-
-functionWithoutDocumentation : Parser State (Node Declaration)
-functionWithoutDocumentation =
-    functionNameMaybeLayout
-        |> Combine.andThen
-            (\startName ->
-                functionWithNameNode (Node.range startName).start startName Nothing
             )
 
 
@@ -127,6 +124,78 @@ functionWithNameNode start ((Node _ startName) as startNameNode) maybeDocumentat
             |> Combine.keep patternListEqualsMaybeLayout
             |> Combine.keep expression
         ]
+
+
+letFunctionWithoutDocumentationWithSignatureWithNameAndMaybeLayoutBacktrackable : Parser State (Node Declaration)
+letFunctionWithoutDocumentationWithSignatureWithNameAndMaybeLayoutBacktrackable =
+    Combine.succeed
+        (\startNameNode ->
+            \typeAnnotation ->
+                \implementationName ->
+                    \arguments ->
+                        \result ->
+                            if Node.value implementationName == Node.value startNameNode then
+                                let
+                                    end : Location
+                                    end =
+                                        (Node.range result).end
+                                in
+                                Combine.succeed
+                                    (Node { start = (Node.range startNameNode).start, end = end }
+                                        (FunctionDeclaration
+                                            { documentation = Nothing
+                                            , signature = Just (Node.combine Signature startNameNode typeAnnotation)
+                                            , declaration =
+                                                Node { start = (Node.range implementationName).start, end = end }
+                                                    (FunctionImplementation implementationName arguments result)
+                                            }
+                                        )
+                                    )
+
+                            else
+                                Combine.problem
+                                    ("Expected to find the declaration for " ++ Node.value startNameNode ++ " but found " ++ Node.value implementationName)
+        )
+        |> Combine.keep
+            (functionNameMaybeLayout
+                |> Combine.backtrackable
+            )
+        |> Combine.ignore colonMaybeLayout
+        |> Combine.keep typeAnnotationLayout
+        |> Combine.keep functionNameMaybeLayout
+        |> Combine.keep patternListEqualsMaybeLayout
+        |> Combine.keep expression
+        |> Combine.andThen identity
+
+
+letFunctionWithoutDocumentationWithoutSignature : Parser State (Node Declaration)
+letFunctionWithoutDocumentationWithoutSignature =
+    Combine.succeed
+        (\startNameNode ->
+            \args ->
+                \result ->
+                    let
+                        end : Location
+                        end =
+                            (Node.range result).end
+
+                        start : Location
+                        start =
+                            (Node.range startNameNode).start
+                    in
+                    Node { start = start, end = end }
+                        (FunctionDeclaration
+                            { documentation = Nothing
+                            , signature = Nothing
+                            , declaration =
+                                Node { start = start, end = end }
+                                    (FunctionImplementation startNameNode args result)
+                            }
+                        )
+        )
+        |> Combine.keep functionNameMaybeLayout
+        |> Combine.keep patternListEqualsMaybeLayout
+        |> Combine.keep expression
 
 
 functionNameMaybeLayout : Parser State (Node String)

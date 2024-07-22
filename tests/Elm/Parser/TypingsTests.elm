@@ -272,5 +272,5 @@ typeDefinitionWithoutDocumentation : Combine.Parser State (Node Declaration)
 typeDefinitionWithoutDocumentation =
     Combine.oneOf
         [ Parser.typeAliasDefinitionWithoutDocumentationWithBacktrackableTypePrefix
-        , Parser.customTypeDefinitionWithoutDocumentationWithBacktrackableTypePrefix
+        , Parser.customTypeDefinitionWithoutDocumentation
         ]
