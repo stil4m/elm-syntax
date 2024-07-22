@@ -134,7 +134,14 @@ signature =
 
 infixDeclaration : Parser State (Node Declaration)
 infixDeclaration =
-    Combine.succeed (\direction -> \precedence -> \operator -> \fn -> { direction = direction, precedence = precedence, operator = operator, function = fn })
+    Combine.succeed
+        (\direction ->
+            \precedence ->
+                \operator ->
+                    \fn ->
+                        Declaration.InfixDeclaration
+                            { direction = direction, precedence = precedence, operator = operator, function = fn }
+        )
         |> Combine.ignoreEntirely (Core.keyword "infix")
         |> Combine.ignore Layout.layout
         |> Combine.keep infixDirection
@@ -146,7 +153,6 @@ infixDeclaration =
         |> Combine.ignoreEntirely Tokens.equal
         |> Combine.ignore Layout.layout
         |> Combine.keepFromCore (Node.parserCore Tokens.functionName)
-        |> Combine.map Declaration.InfixDeclaration
         |> Node.parser
 
 

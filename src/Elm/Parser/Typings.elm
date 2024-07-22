@@ -135,8 +135,7 @@ valueConstructor =
                                             (\() -> complete (ta :: xs))
                                             (\() -> valueConstructorInnerArgHelper (ta :: xs))
                                     )
-                            , Combine.succeed xs
-                                |> Combine.map complete
+                            , Combine.lazy (\() -> Combine.succeed (complete xs))
                             ]
                 in
                 Layout.optimisticLayoutWith
