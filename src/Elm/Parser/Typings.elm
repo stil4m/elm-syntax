@@ -56,11 +56,8 @@ typeDefinition maybeDoc =
                         )
                         |> Combine.ignoreEntirely Tokens.aliasToken
                         |> Combine.ignore Layout.layout
-                        |> Combine.keepFromCore (Node.parserCore Tokens.typeName)
-                        |> Combine.ignore (Combine.maybeIgnore Layout.layout)
-                        |> Combine.keep genericList
-                        |> Combine.ignoreEntirely Tokens.equal
-                        |> Combine.ignore (Combine.maybeIgnore Layout.layout)
+                        |> Combine.keep typeNameLayout
+                        |> Combine.keep genericListEquals
                         |> Combine.keep typeAnnotation
                     , Combine.succeed
                         (\name ->
@@ -88,15 +85,24 @@ typeDefinition maybeDoc =
                                             }
                                         )
                         )
-                        |> Combine.keepFromCore (Node.parserCore Tokens.typeName)
-                        |> Combine.ignore (Combine.maybeIgnore Layout.layout)
-                        |> Combine.keep genericList
-                        |> Combine.ignore (Combine.maybeIgnore Layout.layout)
-                        |> Combine.ignoreEntirely Tokens.equal
-                        |> Combine.ignore (Combine.maybeIgnore Layout.layout)
+                        |> Combine.keep typeNameLayout
+                        |> Combine.keep genericListEquals
                         |> Combine.keep valueConstructors
                     ]
             )
+
+
+typeNameLayout : Parser State (Node String)
+typeNameLayout =
+    Node.parserCore Tokens.typeName
+        |> Combine.ignoreFromCore (Combine.maybeIgnore Layout.layout)
+
+
+genericListEquals : Parser State (List (Node String))
+genericListEquals =
+    genericList
+        |> Combine.ignoreEntirely Tokens.equal
+        |> Combine.ignore (Combine.maybeIgnore Layout.layout)
 
 
 valueConstructors : Parser State (List (Node ValueConstructor))
