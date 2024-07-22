@@ -9,7 +9,7 @@ import Elm.Parser.Patterns exposing (pattern)
 import Elm.Parser.State as State exposing (State)
 import Elm.Parser.Tokens as Tokens
 import Elm.Parser.TypeAnnotation exposing (typeAnnotation)
-import Elm.Parser.Typings exposing (typeDefinition)
+import Elm.Parser.Typings exposing (typeDefinitionAfterDocumentation, typeDefinitionWithoutDocumentation)
 import Elm.Syntax.Declaration as Declaration exposing (Declaration)
 import Elm.Syntax.Documentation exposing (Documentation)
 import Elm.Syntax.Expression exposing (Function, FunctionImplementation)
@@ -24,27 +24,29 @@ declaration : Parser State (Node Declaration)
 declaration =
     Combine.oneOf
         [ infixDeclaration
-        , maybeDocumentation
+        , documentationCommentAndLayout
             |> Combine.andThen
-                (\maybeDoc ->
+                (\documentation ->
                     Combine.oneOf
-                        [ function maybeDoc
-                        , typeDefinition maybeDoc
-                        , portDeclaration maybeDoc
+                        [ functionAfterDocumentation documentation
+                        , typeDefinitionAfterDocumentation documentation
+                        , portDeclaration documentation
                         ]
                 )
+        , functionWithoutDocumentation
+        , typeDefinitionWithoutDocumentation
+        , portDeclarationWithoutDocumentation
         ]
 
 
-maybeDocumentation : Parser State (Maybe (Node Documentation))
-maybeDocumentation =
+documentationCommentAndLayout : Parser State (Node Documentation)
+documentationCommentAndLayout =
     Comments.declarationDocumentation
         |> Combine.ignoreFromCore Layout.layoutStrict
-        |> Combine.maybe
 
 
-function : Maybe (Node Documentation) -> Parser State (Node Declaration)
-function maybeDoc =
+functionAfterDocumentation : Node Documentation -> Parser State (Node Declaration)
+functionAfterDocumentation documentation =
     Node.parserCore Tokens.functionName
         |> Combine.ignoreFromCore (Combine.maybeIgnore Layout.layout)
         |> Combine.andThen functionWithNameNode
@@ -59,23 +61,38 @@ function maybeDoc =
                     expressionRangeEnd =
                         (Node.range functionImplementation.expression).end
                 in
-                case maybeDoc of
-                    Just (Node documentationRange _) ->
-                        Node { start = documentationRange.start, end = expressionRangeEnd } (Declaration.FunctionDeclaration { f | documentation = maybeDoc })
+                Node { start = (Node.range documentation).start, end = expressionRangeEnd }
+                    (Declaration.FunctionDeclaration { f | documentation = Just documentation })
+            )
 
-                    Nothing ->
-                        let
-                            rangeStart : Location
-                            rangeStart =
-                                case f.signature of
-                                    Just (Node _ sig) ->
-                                        (Node.range sig.name).start
 
-                                    Nothing ->
-                                        (Node.range functionImplementation.name).start
-                        in
-                        Node { start = rangeStart, end = expressionRangeEnd }
-                            (Declaration.FunctionDeclaration f)
+functionWithoutDocumentation : Parser State (Node Declaration)
+functionWithoutDocumentation =
+    Node.parserCore Tokens.functionName
+        |> Combine.ignoreFromCore (Combine.maybeIgnore Layout.layout)
+        |> Combine.andThen functionWithNameNode
+        |> Combine.map
+            (\f ->
+                let
+                    functionImplementation : FunctionImplementation
+                    functionImplementation =
+                        Node.value f.declaration
+
+                    expressionRangeEnd : Location
+                    expressionRangeEnd =
+                        (Node.range functionImplementation.expression).end
+
+                    rangeStart : Location
+                    rangeStart =
+                        case f.signature of
+                            Just (Node _ sig) ->
+                                (Node.range sig.name).start
+
+                            Nothing ->
+                                (Node.range functionImplementation.name).start
+                in
+                Node { start = rangeStart, end = expressionRangeEnd }
+                    (Declaration.FunctionDeclaration f)
             )
 
 
@@ -177,8 +194,8 @@ infixDirection =
         |> Node.parserFromCore
 
 
-portDeclaration : Maybe (Node Documentation) -> Parser State (Node Declaration)
-portDeclaration maybeDoc =
+portDeclaration : Node Documentation -> Parser State (Node Declaration)
+portDeclaration documentation =
     Combine.succeed
         (\( startRow, startColumn ) ->
             \sig ->
@@ -189,13 +206,24 @@ portDeclaration maybeDoc =
                     (Declaration.PortDeclaration sig)
         )
         |> Combine.ignore
-            (case maybeDoc of
-                Nothing ->
-                    Combine.succeed ()
+            (Combine.modifyState (State.addComment documentation))
+        |> Combine.keepFromCore Core.getPosition
+        |> Combine.ignoreEntirely Tokens.portToken
+        |> Combine.ignore Layout.layout
+        |> Combine.keep signature
 
-                Just doc ->
-                    Combine.modifyState (State.addComment doc)
-            )
+
+portDeclarationWithoutDocumentation : Parser State (Node Declaration)
+portDeclarationWithoutDocumentation =
+    Combine.succeed
+        (\( startRow, startColumn ) ->
+            \sig ->
+                Node
+                    { start = { row = startRow, column = startColumn }
+                    , end = (Node.range sig.typeAnnotation).end
+                    }
+                    (Declaration.PortDeclaration sig)
+        )
         |> Combine.keepFromCore Core.getPosition
         |> Combine.ignoreEntirely Tokens.portToken
         |> Combine.ignore Layout.layout

@@ -1,4 +1,4 @@
-module Elm.Parser.Typings exposing (typeDefinition)
+module Elm.Parser.Typings exposing (typeDefinitionAfterDocumentation, typeDefinitionWithoutDocumentation)
 
 import Combine exposing (Parser)
 import Elm.Parser.Layout as Layout
@@ -8,7 +8,7 @@ import Elm.Parser.Tokens as Tokens
 import Elm.Parser.TypeAnnotation exposing (typeAnnotation, typeAnnotationNonGreedy)
 import Elm.Syntax.Declaration as Declaration
 import Elm.Syntax.Documentation exposing (Documentation)
-import Elm.Syntax.Node exposing (Node(..))
+import Elm.Syntax.Node as Node exposing (Node(..))
 import Elm.Syntax.Range exposing (Location, Range)
 import Elm.Syntax.Type exposing (ValueConstructor)
 import Elm.Syntax.TypeAnnotation exposing (TypeAnnotation)
@@ -21,19 +21,69 @@ getLocation =
         |> Core.map (\( row, column ) -> { row = row, column = column })
 
 
-typeDefinition : Maybe (Node Documentation) -> Parser State (Node Declaration.Declaration)
-typeDefinition maybeDoc =
-    let
-        startParser : Core.Parser Location
-        startParser =
-            case maybeDoc of
-                Just (Node { start } _) ->
-                    Core.succeed start
+typeDefinitionAfterDocumentation : Node Documentation -> Parser State (Node Declaration.Declaration)
+typeDefinitionAfterDocumentation documentation =
+    typePrefix
+        |> Combine.andThen
+            (\() ->
+                Combine.oneOf
+                    [ Combine.succeed
+                        (\name ->
+                            \generics ->
+                                \((Node { end } _) as typeAnnotation) ->
+                                    Node
+                                        { start = (Node.range documentation).start
+                                        , end = end
+                                        }
+                                        (Declaration.AliasDeclaration
+                                            { documentation = Just documentation
+                                            , name = name
+                                            , generics = generics
+                                            , typeAnnotation = typeAnnotation
+                                            }
+                                        )
+                        )
+                        |> Combine.ignoreEntirely Tokens.aliasToken
+                        |> Combine.ignore Layout.layout
+                        |> Combine.keep typeNameLayout
+                        |> Combine.keep genericListEquals
+                        |> Combine.keep typeAnnotation
+                    , Combine.succeed
+                        (\name ->
+                            \generics ->
+                                \constructors ->
+                                    let
+                                        end : Location
+                                        end =
+                                            case constructors of
+                                                (Node range _) :: _ ->
+                                                    range.end
 
-                Nothing ->
-                    getLocation
-    in
-    startParser
+                                                [] ->
+                                                    (Node.range documentation).start
+                                    in
+                                    Node
+                                        { start = (Node.range documentation).start
+                                        , end = end
+                                        }
+                                        (Declaration.CustomTypeDeclaration
+                                            { documentation = Just documentation
+                                            , name = name
+                                            , generics = generics
+                                            , constructors = List.reverse constructors
+                                            }
+                                        )
+                        )
+                        |> Combine.keep typeNameLayout
+                        |> Combine.keep genericListEquals
+                        |> Combine.keep valueConstructors
+                    ]
+            )
+
+
+typeDefinitionWithoutDocumentation : Parser State (Node Declaration.Declaration)
+typeDefinitionWithoutDocumentation =
+    getLocation
         |> Combine.ignoreFromCore typePrefix
         |> Combine.andThen
             (\start ->
@@ -42,12 +92,9 @@ typeDefinition maybeDoc =
                         (\name ->
                             \generics ->
                                 \((Node { end } _) as typeAnnotation) ->
-                                    Node
-                                        { start = start
-                                        , end = end
-                                        }
+                                    Node { start = start, end = end }
                                         (Declaration.AliasDeclaration
-                                            { documentation = maybeDoc
+                                            { documentation = Nothing
                                             , name = name
                                             , generics = generics
                                             , typeAnnotation = typeAnnotation
@@ -73,12 +120,9 @@ typeDefinition maybeDoc =
                                                 [] ->
                                                     start
                                     in
-                                    Node
-                                        { start = start
-                                        , end = end
-                                        }
+                                    Node { start = start, end = end }
                                         (Declaration.CustomTypeDeclaration
-                                            { documentation = maybeDoc
+                                            { documentation = Nothing
                                             , name = name
                                             , generics = generics
                                             , constructors = List.reverse constructors

@@ -230,7 +230,7 @@ all =
                         )
         , test "type with value on next line " <|
             \() ->
-                parse "type Maybe a = Just a |\nNothing" (Parser.typeDefinition Nothing)
+                parse "type Maybe a = Just a |\nNothing" Parser.typeDefinitionWithoutDocumentation
                     |> Expect.equal Nothing
         , test "type with spacing after " <|
             \() ->
@@ -253,14 +253,14 @@ all =
 
 expectAst : Node Declaration -> String -> Expect.Expectation
 expectAst =
-    CombineTestUtil.expectAst (Parser.typeDefinition Nothing)
+    CombineTestUtil.expectAst Parser.typeDefinitionWithoutDocumentation
 
 
 expectAstWithDocs : Node Documentation -> Node Declaration -> String -> Expect.Expectation
 expectAstWithDocs documentation =
-    CombineTestUtil.expectAst (Parser.typeDefinition (Just documentation))
+    CombineTestUtil.expectAst (Parser.typeDefinitionAfterDocumentation documentation)
 
 
 expectInvalid : String -> Expect.Expectation
 expectInvalid =
-    CombineTestUtil.expectInvalid (Parser.typeDefinition Nothing)
+    CombineTestUtil.expectInvalid Parser.typeDefinitionWithoutDocumentation

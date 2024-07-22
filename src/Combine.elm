@@ -24,7 +24,6 @@ module Combine exposing
     , manyIgnore
     , manyWithEndLocationForLastElement
     , map
-    , maybe
     , maybeIgnore
     , modifyState
     , oneOf
@@ -205,16 +204,6 @@ end =
 oneOf : List (Parser state a) -> Parser state a
 oneOf xs =
     Parser <| \state -> Core.oneOf (List.map (\(Parser x) -> x state) xs)
-
-
-maybe : Parser state a -> Parser state (Maybe a)
-maybe (Parser p) =
-    Parser <|
-        \state ->
-            Core.oneOf
-                [ p state |> Core.map (\( c, v ) -> ( c, Just v ))
-                , Core.succeed ( state, Nothing )
-                ]
 
 
 maybeIgnore : Parser state () -> Parser state ()
