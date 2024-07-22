@@ -530,9 +530,9 @@ asExpression x =
 
 withIndentedState : Parser State a -> Parser State a
 withIndentedState p =
-    Combine.withLocation
-        (\location ->
-            Combine.modifyState (State.pushIndent location.column)
+    Combine.withColumn
+        (\column ->
+            Combine.modifyState (State.pushIndent column)
                 |> Combine.continueWith p
                 |> Combine.ignore (Combine.modifyState State.popIndent)
         )

@@ -66,15 +66,15 @@ optimisticLayout =
 
 compute : (() -> a) -> (() -> Parser State a) -> Parser State a
 compute onStrict onIndented =
-    Combine.withLocation
-        (\l ->
-            if l.column == 1 then
+    Combine.withColumn
+        (\column ->
+            if column == 1 then
                 Combine.succeed (onStrict ())
 
             else
                 Combine.withState
                     (\state ->
-                        if List.member l.column (State.storedColumns state) then
+                        if List.member column (State.storedColumns state) then
                             Combine.succeed (onStrict ())
 
                         else
@@ -107,8 +107,8 @@ onTopIndentation : Parser State ()
 onTopIndentation =
     Combine.withState
         (\state ->
-            Combine.withLocation
-                (\{ column } ->
+            Combine.withColumn
+                (\column ->
                     if State.currentIndent state == Just column then
                         Combine.succeed ()
 

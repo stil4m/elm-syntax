@@ -39,7 +39,6 @@ module Combine exposing
     , succeed
     , symbol
     , withColumn
-    , withLocation
     , withState
     )
 
@@ -99,21 +98,6 @@ modifyState : (state -> state) -> Parser state ()
 modifyState f =
     Parser <|
         \state -> Core.succeed ( f state, () )
-
-
-withLocation : (Location -> Parser state a) -> Parser state a
-withLocation f =
-    Parser <|
-        \state ->
-            Core.getPosition
-                |> Core.andThen
-                    (\( row, col ) ->
-                        let
-                            (Parser p) =
-                                f { row = row, column = col }
-                        in
-                        p state
-                    )
 
 
 withColumn : (Int -> Parser state a) -> Parser state a
