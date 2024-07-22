@@ -470,7 +470,7 @@ type alias Post = {
   id: Int,
   title: String,
   text: Maybe String
-}
+  }
 
 """
 
