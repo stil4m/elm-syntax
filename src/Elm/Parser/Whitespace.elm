@@ -1,26 +1,6 @@
-module Elm.Parser.Whitespace exposing (many1Spaces, realNewLine, untilNewlineToken)
+module Elm.Parser.Whitespace exposing (untilNewlineToken)
 
-import Combine exposing (Parser)
 import Parser as Core
-import Set
-
-
-many1Spaces : Parser state ()
-many1Spaces =
-    Core.variable
-        { start = \c -> c == ' '
-        , inner = \c -> c == ' '
-        , reserved = Set.empty
-        }
-        |> Combine.fromCoreMap (\_ -> ())
-
-
-realNewLine : Core.Parser ()
-realNewLine =
-    Core.oneOf
-        [ Core.symbol "\u{000D}\n"
-        , Core.symbol "\n"
-        ]
 
 
 untilNewlineToken : Core.Parser ()

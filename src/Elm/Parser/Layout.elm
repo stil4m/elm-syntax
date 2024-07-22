@@ -11,8 +11,8 @@ module Elm.Parser.Layout exposing
 import Combine exposing (Parser)
 import Elm.Parser.Comments as Comments
 import Elm.Parser.State as State exposing (State)
-import Elm.Parser.Whitespace as Whitespace
-import Parser.Extra
+import Parser as Core
+import Set
 
 
 oneOfAnyComment : List (Combine.Parser State ())
@@ -26,16 +26,14 @@ layout : Parser State ()
 layout =
     Combine.many1Ignore
         (Combine.oneOf
-            (oneOfAnyComment
-                ++ [ Parser.Extra.many1Ignore Whitespace.realNewLine
-                        |> Combine.ignoreFromCore
-                            (Combine.oneOf
-                                (Whitespace.many1Spaces
-                                    :: oneOfAnyComment
-                                )
-                            )
-                   , Whitespace.many1Spaces
-                   ]
+            ((Core.variable
+                { start = \c -> c == ' ' || c == '\n' || c == '\u{000D}'
+                , inner = \c -> c == ' ' || c == '\n' || c == '\u{000D}'
+                , reserved = Set.empty
+                }
+                |> Combine.fromCoreMap (\_ -> ())
+             )
+                :: oneOfAnyComment
             )
         )
         |> Combine.continueWith
@@ -54,18 +52,14 @@ optimisticLayout : Parser State ()
 optimisticLayout =
     Combine.manyIgnore
         (Combine.oneOf
-            (oneOfAnyComment
-                ++ [ Parser.Extra.many1Ignore Whitespace.realNewLine
-                        |> Combine.ignoreFromCore
-                            (Combine.oneOf
-                                (Whitespace.many1Spaces
-                                    :: oneOfAnyComment
-                                    ++ [ Combine.succeed ()
-                                       ]
-                                )
-                            )
-                   , Whitespace.many1Spaces
-                   ]
+            ((Core.variable
+                { start = \c -> c == ' ' || c == '\n' || c == '\u{000D}'
+                , inner = \c -> c == ' ' || c == '\n' || c == '\u{000D}'
+                , reserved = Set.empty
+                }
+                |> Combine.fromCoreMap (\_ -> ())
+             )
+                :: oneOfAnyComment
             )
         )
 
@@ -93,11 +87,14 @@ layoutStrict : Parser State ()
 layoutStrict =
     Combine.many1Ignore
         (Combine.oneOf
-            (oneOfAnyComment
-                ++ [ Parser.Extra.many1Ignore Whitespace.realNewLine
-                        |> Combine.fromCore
-                   , Whitespace.many1Spaces
-                   ]
+            ((Core.variable
+                { start = \c -> c == ' ' || c == '\n' || c == '\u{000D}'
+                , inner = \c -> c == ' ' || c == '\n' || c == '\u{000D}'
+                , reserved = Set.empty
+                }
+                |> Combine.fromCoreMap (\_ -> ())
+             )
+                :: oneOfAnyComment
             )
         )
         |> Combine.continueWith

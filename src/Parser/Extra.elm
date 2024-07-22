@@ -1,7 +1,7 @@
-module Parser.Extra exposing (anyChar, location, many1Ignore)
+module Parser.Extra exposing (anyChar, location)
 
 import Elm.Syntax.Range exposing (Location)
-import Parser as Core exposing ((|.))
+import Parser as Core
 
 
 location : Core.Parser Location
@@ -26,23 +26,3 @@ anyChar =
                     c :: _ ->
                         Core.succeed c
             )
-
-
-many1Ignore : Core.Parser () -> Core.Parser ()
-many1Ignore p =
-    p
-        |. manyIgnore p
-
-
-manyIgnore : Core.Parser () -> Core.Parser ()
-manyIgnore p =
-    let
-        helper : () -> Core.Parser (Core.Step () ())
-        helper () =
-            Core.oneOf
-                [ p
-                    |> Core.map Core.Loop
-                , Core.succeed (Core.Done ())
-                ]
-    in
-    Core.loop () helper
