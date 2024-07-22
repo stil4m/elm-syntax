@@ -9,6 +9,7 @@ import Elm.Parser.Tokens as Tokens
 import Elm.Syntax.ModuleName exposing (ModuleName)
 import Elm.Syntax.Node as Node exposing (Node(..))
 import Elm.Syntax.Pattern exposing (Pattern(..), QualifiedNameRef)
+import Elm.Syntax.Range as Range
 import Parser as Core exposing ((|.), (|=))
 
 
@@ -162,15 +163,28 @@ qualifiedPatternWithConsumeArgs =
         |> Combine.ignoreFromCore (Combine.maybeIgnore Layout.layout)
         |> Combine.andThen
             (\(Node range qualified) ->
-                Combine.manyWithEndLocationForLastElement range
-                    Node.range
-                    (qualifiedPatternArg |> Combine.ignore (Combine.maybeIgnore Layout.layout))
+                qualifiedPatternArgumentList
                     |> Combine.map
                         (\( end, args ) ->
-                            Node { start = range.start, end = end }
+                            Node
+                                { start = range.start
+                                , end =
+                                    if end.row == 0 then
+                                        range.end
+
+                                    else
+                                        end
+                                }
                                 (NamedPattern qualified args)
                         )
             )
+
+
+qualifiedPatternArgumentList : Parser State ( Range.Location, List (Node Pattern) )
+qualifiedPatternArgumentList =
+    Combine.manyWithEndLocationForLastElement
+        Node.range
+        (qualifiedPatternArg |> Combine.ignore (Combine.maybeIgnore Layout.layout))
 
 
 qualifiedPatternWithoutConsumeArgs : Parser State (Node Pattern)

@@ -331,7 +331,22 @@ caseExpression =
 
 caseStatements : Parser State ( Location, Cases )
 caseStatements =
-    Combine.many1WithEndLocationForLastElement (\( _, Node range _ ) -> range) caseStatement
+    Combine.map
+        (\a ->
+            \( location_, list ) ->
+                ( if location_.row == 0 then
+                    (Node.range (Tuple.second a)).end
+
+                  else
+                    location_
+                , a :: list
+                )
+        )
+        caseStatement
+        |> Combine.keep
+            (Combine.manyWithEndLocationForLastElement (\( _, Node range _ ) -> range)
+                caseStatement
+            )
 
 
 caseStatement : Parser State Case

@@ -21,7 +21,6 @@ module Combine exposing
     , many
     , many1
     , many1Ignore
-    , many1WithEndLocationForLastElement
     , manyIgnore
     , manyWithEndLocationForLastElement
     , map
@@ -275,8 +274,10 @@ many1Ignore p =
         |> continueWith (manyIgnore p)
 
 
-manyWithEndLocationForLastElement : Range -> (a -> Range) -> Parser state a -> Parser state ( Location, List a )
-manyWithEndLocationForLastElement defaultRange getRange (Parser p) =
+{-| Attention: This will return `{ row = 0, column = 0 }` as the end location if the resulting list is empty!
+-}
+manyWithEndLocationForLastElement : (a -> Range) -> Parser state a -> Parser state ( Location, List a )
+manyWithEndLocationForLastElement getRange (Parser p) =
     let
         helper : ( state, List a ) -> Core.Parser (Core.Step ( state, List a ) ( state, ( Location, List a ) ))
         helper ( oldState, items ) =
@@ -286,7 +287,7 @@ manyWithEndLocationForLastElement defaultRange getRange (Parser p) =
                 , Core.lazy
                     (\() ->
                         Core.succeed
-                            (Core.Done ( oldState, ( endLocationForList defaultRange getRange items, List.reverse items ) ))
+                            (Core.Done ( oldState, ( endLocationForList getRange items, List.reverse items ) ))
                     )
                 ]
     in
@@ -295,24 +296,19 @@ manyWithEndLocationForLastElement defaultRange getRange (Parser p) =
             Core.loop ( state, [] ) helper
 
 
-many1WithEndLocationForLastElement : (a -> Range) -> Parser state a -> Parser state ( Location, List a )
-many1WithEndLocationForLastElement getRange p =
-    p
-        |> andThen
-            (\a ->
-                manyWithEndLocationForLastElement (getRange a) getRange p
-                    |> map (\( location_, list ) -> ( location_, a :: list ))
-            )
-
-
-endLocationForList : Range -> (a -> Range) -> List a -> Location
-endLocationForList defaultRange getRange list =
+endLocationForList : (a -> Range) -> List a -> Location
+endLocationForList getRange list =
     case list of
         [] ->
-            defaultRange.end
+            emptyLocation
 
         a :: _ ->
             (getRange a).end
+
+
+emptyLocation : Location
+emptyLocation =
+    { row = 0, column = 0 }
 
 
 type Step a b
