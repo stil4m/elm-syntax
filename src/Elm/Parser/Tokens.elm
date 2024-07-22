@@ -1,5 +1,5 @@
 module Elm.Parser.Tokens exposing
-    ( asToken, caseToken, elseToken, exposingToken, ifToken, importToken, inToken, letToken, moduleToken, whereToken, ofToken, portToken, prefixOperatorToken, thenToken
+    ( asToken, caseToken, elseToken, exposingToken, ifToken, importToken, inToken, letToken, moduleToken, whereToken, ofToken, portToken, prefixOperatorToken, thenToken, aliasToken
     , dot, dotDot, squareStart, squareEnd, curlyStart, curlyEnd, pipe, backSlash, arrowRight, equal, comma, parensStart, parensEnd, colon, cons
     , minus, minusSymbols
     , characterLiteral, stringLiteral, multiLineStringLiteral
@@ -8,7 +8,7 @@ module Elm.Parser.Tokens exposing
 
 {-|
 
-@docs asToken, caseToken, elseToken, exposingToken, ifToken, importToken, inToken, letToken, moduleToken, whereToken, ofToken, portToken, prefixOperatorToken, thenToken
+@docs asToken, caseToken, elseToken, exposingToken, ifToken, importToken, inToken, letToken, moduleToken, whereToken, ofToken, portToken, prefixOperatorToken, thenToken, aliasToken
 
 @docs dot, dotDot, squareStart, squareEnd, curlyStart, curlyEnd, pipe, backSlash, arrowRight, equal, comma, parensStart, parensEnd, colon, cons
 @docs minus, minusSymbols
@@ -115,6 +115,11 @@ letToken =
 inToken : Core.Parser ()
 inToken =
     Core.symbol "in"
+
+
+aliasToken : Core.Parser ()
+aliasToken =
+    Core.symbol "alias"
 
 
 escapedCharValue : Core.Parser Char

@@ -54,7 +54,7 @@ typeDefinition maybeDoc =
                                             }
                                         )
                         )
-                        |> Combine.ignoreEntirely (Core.symbol "alias")
+                        |> Combine.ignoreEntirely Tokens.aliasToken
                         |> Combine.ignore Layout.layout
                         |> Combine.keepFromCore (Node.parserCore Tokens.typeName)
                         |> Combine.ignore (Combine.maybeIgnore Layout.layout)
