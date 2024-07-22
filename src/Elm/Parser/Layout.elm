@@ -130,8 +130,8 @@ verifyIndent : (Int -> Int -> Bool) -> (Int -> Int -> String) -> Parser State ()
 verifyIndent verify failMessage =
     Combine.withState
         (\state ->
-            Combine.withLocation
-                (\{ column } ->
+            Combine.withColumn
+                (\column ->
                     let
                         expectedColumn : Int
                         expectedColumn =
