@@ -420,9 +420,9 @@ blockElement =
 letDestructuringDeclaration : Parser State (Node LetDeclaration)
 letDestructuringDeclaration =
     Combine.succeed
-        (\pattern ->
+        (\((Node { start } _) as pattern) ->
             \((Node { end } _) as expr) ->
-                Node { start = (Node.range pattern).start, end = end } (LetDestructuring pattern expr)
+                Node { start = start, end = end } (LetDestructuring pattern expr)
         )
         |> Combine.keep Patterns.pattern
         |> Combine.ignoreEntirely Tokens.equal
@@ -432,24 +432,19 @@ letDestructuringDeclaration =
 letFunctionWithSignatureWithNameAndMaybeLayoutBacktrackable : Parser State (Node LetDeclaration)
 letFunctionWithSignatureWithNameAndMaybeLayoutBacktrackable =
     Combine.succeed
-        (\startNameNode ->
+        (\((Node { start } startName) as startNameNode) ->
             \typeAnnotation ->
-                \implementationName ->
+                \((Node implementationNameRange _) as implementationName) ->
                     \arguments ->
-                        \result ->
-                            if Node.value implementationName == Node.value startNameNode then
-                                let
-                                    end : Location
-                                    end =
-                                        (Node.range result).end
-                                in
+                        \((Node { end } _) as result) ->
+                            if Node.value implementationName == startName then
                                 Combine.succeed
-                                    (Node { start = (Node.range startNameNode).start, end = end }
+                                    (Node { start = start, end = end }
                                         (LetFunction
                                             { documentation = Nothing
                                             , signature = Just (Node.combine Signature startNameNode typeAnnotation)
                                             , declaration =
-                                                Node { start = (Node.range implementationName).start, end = end }
+                                                Node { start = implementationNameRange.start, end = end }
                                                     (FunctionImplementation implementationName arguments result)
                                             }
                                         )
@@ -474,18 +469,9 @@ letFunctionWithSignatureWithNameAndMaybeLayoutBacktrackable =
 letFunctionWithoutSignature : Parser State (Node LetDeclaration)
 letFunctionWithoutSignature =
     Combine.succeed
-        (\startNameNode ->
+        (\((Node { start } _) as startNameNode) ->
             \args ->
-                \result ->
-                    let
-                        end : Location
-                        end =
-                            (Node.range result).end
-
-                        start : Location
-                        start =
-                            (Node.range startNameNode).start
-                    in
+                \((Node { end } _) as result) ->
                     Node { start = start, end = end }
                         (LetFunction
                             { documentation = Nothing

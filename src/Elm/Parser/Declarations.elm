@@ -71,20 +71,15 @@ functionWithNameNode start ((Node _ startName) as startNameNode) maybeDocumentat
     Combine.oneOf
         [ Combine.succeed
             (\typeAnnotation ->
-                \implementationName ->
+                \((Node implementationNameRange _) as implementationName) ->
                     \arguments ->
-                        \expression ->
-                            let
-                                end : Location
-                                end =
-                                    (Node.range expression).end
-                            in
+                        \((Node { end } _) as expression) ->
                             Node { start = start, end = end }
                                 (Declaration.FunctionDeclaration
                                     { documentation = maybeDocumentation
                                     , signature = Just (Node.combine Signature startNameNode typeAnnotation)
                                     , declaration =
-                                        Node { start = (Node.range implementationName).start, end = end }
+                                        Node { start = implementationNameRange.start, end = end }
                                             (FunctionImplementation implementationName arguments expression)
                                     }
                                 )
@@ -107,12 +102,7 @@ functionWithNameNode start ((Node _ startName) as startNameNode) maybeDocumentat
             |> Combine.keep expression
         , Combine.succeed
             (\args ->
-                \expression ->
-                    let
-                        end : Location
-                        end =
-                            (Node.range expression).end
-                    in
+                \((Node { end } _) as expression) ->
                     Node { start = start, end = end }
                         (Declaration.FunctionDeclaration
                             { documentation = maybeDocumentation
@@ -131,24 +121,19 @@ functionWithNameNode start ((Node _ startName) as startNameNode) maybeDocumentat
 functionDeclarationWithoutDocumentationWithSignatureWithNameAndMaybeLayoutBacktrackable : Parser State (Node Declaration)
 functionDeclarationWithoutDocumentationWithSignatureWithNameAndMaybeLayoutBacktrackable =
     Combine.succeed
-        (\startNameNode ->
+        (\((Node { start } _) as startNameNode) ->
             \typeAnnotation ->
-                \implementationName ->
+                \((Node implementationNameRange _) as implementationName) ->
                     \arguments ->
-                        \result ->
+                        \((Node { end } _) as result) ->
                             if Node.value implementationName == Node.value startNameNode then
-                                let
-                                    end : Location
-                                    end =
-                                        (Node.range result).end
-                                in
                                 Combine.succeed
-                                    (Node { start = (Node.range startNameNode).start, end = end }
+                                    (Node { start = start, end = end }
                                         (FunctionDeclaration
                                             { documentation = Nothing
                                             , signature = Just (Node.combine Signature startNameNode typeAnnotation)
                                             , declaration =
-                                                Node { start = (Node.range implementationName).start, end = end }
+                                                Node { start = implementationNameRange.start, end = end }
                                                     (FunctionImplementation implementationName arguments result)
                                             }
                                         )
@@ -173,18 +158,9 @@ functionDeclarationWithoutDocumentationWithSignatureWithNameAndMaybeLayoutBacktr
 functionDeclarationWithoutDocumentationWithoutSignature : Parser State (Node Declaration)
 functionDeclarationWithoutDocumentationWithoutSignature =
     Combine.succeed
-        (\startNameNode ->
+        (\((Node { start } _) as startNameNode) ->
             \args ->
-                \result ->
-                    let
-                        end : Location
-                        end =
-                            (Node.range result).end
-
-                        start : Location
-                        start =
-                            (Node.range startNameNode).start
-                    in
+                \((Node { end } _) as result) ->
                     Node { start = start, end = end }
                         (FunctionDeclaration
                             { documentation = Nothing
@@ -277,10 +253,10 @@ portDeclaration documentation =
     Combine.succeed
         (\( startRow, startColumn ) ->
             \name ->
-                \typeAnnotation ->
+                \((Node { end } _) as typeAnnotation) ->
                     Node
                         { start = { row = startRow, column = startColumn }
-                        , end = (Node.range typeAnnotation).end
+                        , end = end
                         }
                         (Declaration.PortDeclaration { name = name, typeAnnotation = typeAnnotation })
         )
@@ -309,10 +285,10 @@ portDeclarationWithoutDocumentation =
     Combine.succeed
         (\( startRow, startColumn ) ->
             \name ->
-                \typeAnnotation ->
+                \((Node { end } _) as typeAnnotation) ->
                     Node
                         { start = { row = startRow, column = startColumn }
-                        , end = (Node.range typeAnnotation).end
+                        , end = end
                         }
                         (Declaration.PortDeclaration { name = name, typeAnnotation = typeAnnotation })
         )
