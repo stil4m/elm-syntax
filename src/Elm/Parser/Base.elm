@@ -1,4 +1,4 @@
-module Elm.Parser.Base exposing (moduleName, typeIndicator)
+module Elm.Parser.Base exposing (moduleName)
 
 import Elm.Parser.Node as Node
 import Elm.Parser.Tokens as Tokens
@@ -28,22 +28,4 @@ moduleNameOrEmpty =
             |= Tokens.typeName
             |= Core.lazy (\() -> moduleNameOrEmpty)
         , Core.succeed []
-        ]
-
-
-typeIndicator : Core.Parser (Node ( ModuleName, String ))
-typeIndicator =
-    Tokens.typeName
-        |> Core.andThen (\typeOrSegment -> typeIndicatorHelper [] typeOrSegment)
-        |> Node.parserCore
-
-
-typeIndicatorHelper : ModuleName -> String -> Core.Parser ( ModuleName, String )
-typeIndicatorHelper moduleNameSoFar typeOrSegment =
-    Core.oneOf
-        [ Core.succeed identity
-            |. Tokens.dot
-            |= Tokens.typeName
-            |> Core.andThen (\t -> typeIndicatorHelper (typeOrSegment :: moduleNameSoFar) t)
-        , Core.lazy (\() -> Core.succeed ( List.reverse moduleNameSoFar, typeOrSegment ))
         ]

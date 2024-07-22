@@ -1,7 +1,6 @@
 module Elm.Parser.TypeAnnotation exposing (typeAnnotation, typeAnnotationNonGreedy)
 
 import Combine exposing (Parser)
-import Elm.Parser.Base exposing (typeIndicator)
 import Elm.Parser.Layout as Layout
 import Elm.Parser.Node as Node
 import Elm.Parser.State exposing (State)
@@ -10,7 +9,7 @@ import Elm.Syntax.ModuleName exposing (ModuleName)
 import Elm.Syntax.Node as Node exposing (Node(..))
 import Elm.Syntax.Range exposing (Range)
 import Elm.Syntax.TypeAnnotation as TypeAnnotation exposing (TypeAnnotation)
-import Parser as Core
+import Parser as Core exposing ((|.), (|=))
 
 
 type Mode
@@ -184,6 +183,24 @@ typedTypeAnnotation mode =
                                 Combine.succeed (Node tir (TypeAnnotation.Typed original []))
                     )
             )
+
+
+typeIndicator : Core.Parser (Node ( ModuleName, String ))
+typeIndicator =
+    Tokens.typeName
+        |> Core.andThen (\typeOrSegment -> typeIndicatorHelper [] typeOrSegment)
+        |> Node.parserCore
+
+
+typeIndicatorHelper : ModuleName -> String -> Core.Parser ( ModuleName, String )
+typeIndicatorHelper moduleNameSoFar typeOrSegment =
+    Core.oneOf
+        [ Core.succeed identity
+            |. Tokens.dot
+            |= Tokens.typeName
+            |> Core.andThen (\t -> typeIndicatorHelper (typeOrSegment :: moduleNameSoFar) t)
+        , Core.lazy (\() -> Core.succeed ( List.reverse moduleNameSoFar, typeOrSegment ))
+        ]
 
 
 eagerTypedTypeAnnotation : Node ( ModuleName, String ) -> Parser State (Node TypeAnnotation)
