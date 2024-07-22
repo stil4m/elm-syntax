@@ -1,10 +1,12 @@
 module Elm.Parser.FileTests exposing (all)
 
+import Combine
 import Elm.Internal.RawFile as InternalRawFile
 import Elm.Parser
 import Elm.Parser.CombineTestUtil exposing (..)
 import Elm.Parser.File as Parser
 import Elm.Parser.Samples as Samples
+import Elm.Parser.State exposing (emptyState)
 import Elm.RawFile as RawFile exposing (RawFile)
 import Elm.Syntax.Declaration exposing (Declaration(..))
 import Elm.Syntax.Exposing exposing (Exposing(..))
@@ -28,7 +30,12 @@ all =
                 (\( n, s ) ->
                     test ("sample " ++ String.fromInt (n + 1)) <|
                         \() ->
-                            parse s Parser.file |> Expect.notEqual Nothing
+                            case Combine.runParser (Parser.file |> Combine.ignore Combine.end) emptyState s of
+                                Err error ->
+                                    Expect.fail (error |> Debug.toString)
+
+                                Ok _ ->
+                                    Expect.pass
                 )
                 Samples.allSamples
 
