@@ -654,11 +654,18 @@ asExpression x =
 
 withIndentedState : Parser State a -> Parser State a
 withIndentedState p =
-    Combine.withColumn
-        (\column ->
-            Combine.modifyState (State.pushIndent column)
-                |> Combine.continueWith p
-                |> Combine.ignore (Combine.modifyState State.popIndent)
+    let
+        (Combine.Parser pFromState) =
+            p
+    in
+    Combine.Parser
+        (\state ->
+            Core.getCol
+                |> Core.andThen
+                    (\column ->
+                        pFromState (state |> State.pushIndent column)
+                    )
+                |> Core.map (\( finalState, pValue ) -> ( finalState |> State.popIndent, pValue ))
         )
 
 
