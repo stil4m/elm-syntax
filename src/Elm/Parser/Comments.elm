@@ -3,7 +3,6 @@ module Elm.Parser.Comments exposing (declarationDocumentation, moduleDocumentati
 import Combine exposing (Parser)
 import Elm.Parser.Node as Node
 import Elm.Parser.State exposing (State, addComment)
-import Elm.Parser.Whitespace exposing (untilNewlineToken)
 import Elm.Syntax.Documentation exposing (Documentation)
 import Elm.Syntax.Node exposing (Node)
 import Parser as Core exposing ((|.), (|=), Nestable(..))
@@ -28,9 +27,14 @@ singleLineComment : Parser State ()
 singleLineComment =
     parseComment
         (Core.symbol "--"
-            |. untilNewlineToken
+            |. untilNewline
             |> Core.getChompedString
         )
+
+
+untilNewline : Core.Parser ()
+untilNewline =
+    Core.chompWhile (\c -> c /= '\u{000D}' && c /= '\n')
 
 
 multilineCommentInner : Core.Parser String
