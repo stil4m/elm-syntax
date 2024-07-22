@@ -89,13 +89,13 @@ functionWithNameNode start ((Node _ startName) as startNameNode) maybeDocumentat
             |> Combine.keep
                 (functionNameMaybeLayout
                     |> Combine.andThen
-                        (\implementationName ->
-                            if Node.value implementationName == startName then
-                                Combine.succeed implementationName
+                        (\((Node _ implementationName) as implementationNameNode) ->
+                            if implementationName == startName then
+                                Combine.succeed implementationNameNode
 
                             else
                                 Combine.problem
-                                    ("Expected to find the declaration for " ++ startName ++ " but found " ++ Node.value implementationName)
+                                    ("Expected to find the declaration for " ++ startName ++ " but found " ++ implementationName)
                         )
                 )
             |> Combine.keep patternListEqualsMaybeLayout
@@ -121,12 +121,12 @@ functionWithNameNode start ((Node _ startName) as startNameNode) maybeDocumentat
 functionDeclarationWithoutDocumentationWithSignatureWithNameAndMaybeLayoutBacktrackable : Parser State (Node Declaration)
 functionDeclarationWithoutDocumentationWithSignatureWithNameAndMaybeLayoutBacktrackable =
     Combine.succeed
-        (\((Node { start } _) as startNameNode) ->
+        (\((Node { start } startName) as startNameNode) ->
             \typeAnnotation ->
-                \((Node implementationNameRange _) as implementationName) ->
+                \((Node implementationNameRange implementationName) as implementationNameNode) ->
                     \arguments ->
                         \((Node { end } _) as result) ->
-                            if Node.value implementationName == Node.value startNameNode then
+                            if implementationName == startName then
                                 Combine.succeed
                                     (Node { start = start, end = end }
                                         (FunctionDeclaration
@@ -134,14 +134,14 @@ functionDeclarationWithoutDocumentationWithSignatureWithNameAndMaybeLayoutBacktr
                                             , signature = Just (Node.combine Signature startNameNode typeAnnotation)
                                             , declaration =
                                                 Node { start = implementationNameRange.start, end = end }
-                                                    (FunctionImplementation implementationName arguments result)
+                                                    (FunctionImplementation implementationNameNode arguments result)
                                             }
                                         )
                                     )
 
                             else
                                 Combine.problem
-                                    ("Expected to find the declaration for " ++ Node.value startNameNode ++ " but found " ++ Node.value implementationName)
+                                    ("Expected to find the declaration for " ++ startName ++ " but found " ++ implementationName)
         )
         |> Combine.keep
             (functionNameMaybeLayout

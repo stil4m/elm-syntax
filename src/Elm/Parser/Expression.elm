@@ -434,10 +434,10 @@ letFunctionWithSignatureWithNameAndMaybeLayoutBacktrackable =
     Combine.succeed
         (\((Node { start } startName) as startNameNode) ->
             \typeAnnotation ->
-                \((Node implementationNameRange _) as implementationName) ->
+                \((Node implementationNameRange implementationName) as implementationNameNode) ->
                     \arguments ->
                         \((Node { end } _) as result) ->
-                            if Node.value implementationName == startName then
+                            if implementationName == startName then
                                 Combine.succeed
                                     (Node { start = start, end = end }
                                         (LetFunction
@@ -445,14 +445,14 @@ letFunctionWithSignatureWithNameAndMaybeLayoutBacktrackable =
                                             , signature = Just (Node.combine Signature startNameNode typeAnnotation)
                                             , declaration =
                                                 Node { start = implementationNameRange.start, end = end }
-                                                    (FunctionImplementation implementationName arguments result)
+                                                    (FunctionImplementation implementationNameNode arguments result)
                                             }
                                         )
                                     )
 
                             else
                                 Combine.problem
-                                    ("Expected to find the declaration for " ++ Node.value startNameNode ++ " but found " ++ Node.value implementationName)
+                                    ("Expected to find the declaration for " ++ startName ++ " but found " ++ implementationName)
         )
         |> Combine.keep
             (functionNameMaybeLayout
