@@ -13,7 +13,12 @@ import Elm.Syntax.Range exposing (Location, Range)
 import Elm.Syntax.Type exposing (ValueConstructor)
 import Elm.Syntax.TypeAnnotation exposing (TypeAnnotation)
 import Parser as Core
-import Parser.Extra
+
+
+getLocation : Core.Parser Location
+getLocation =
+    Core.getPosition
+        |> Core.map (\( row, column ) -> { row = row, column = column })
 
 
 typeDefinition : Maybe (Node Documentation) -> Parser State (Node Declaration.Declaration)
@@ -26,7 +31,7 @@ typeDefinition maybeDoc =
                     Core.succeed start
 
                 Nothing ->
-                    Parser.Extra.location
+                    getLocation
     in
     startParser
         |> Combine.ignoreFromCore typePrefix

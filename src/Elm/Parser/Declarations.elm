@@ -18,7 +18,6 @@ import Elm.Syntax.Node as Node exposing (Node(..))
 import Elm.Syntax.Range exposing (Location)
 import Elm.Syntax.Signature exposing (Signature)
 import Parser as Core exposing ((|.), (|=))
-import Parser.Extra
 
 
 declaration : Parser State (Node Declaration)
@@ -181,10 +180,12 @@ infixDirection =
 portDeclaration : Maybe (Node Documentation) -> Parser State (Node Declaration)
 portDeclaration maybeDoc =
     Combine.succeed
-        (\start ->
+        (\( startRow, startColumn ) ->
             \sig ->
                 Node
-                    { start = start, end = (Node.range sig.typeAnnotation).end }
+                    { start = { row = startRow, column = startColumn }
+                    , end = (Node.range sig.typeAnnotation).end
+                    }
                     (Declaration.PortDeclaration sig)
         )
         |> Combine.ignore
@@ -195,7 +196,7 @@ portDeclaration maybeDoc =
                 Just doc ->
                     Combine.modifyState (State.addComment doc)
             )
-        |> Combine.keepFromCore Parser.Extra.location
+        |> Combine.keepFromCore Core.getPosition
         |> Combine.ignoreEntirely Tokens.portToken
         |> Combine.ignore Layout.layout
         |> Combine.keep signature

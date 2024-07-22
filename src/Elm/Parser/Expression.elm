@@ -16,7 +16,6 @@ import Elm.Syntax.Pattern as Pattern exposing (Pattern)
 import Elm.Syntax.Range exposing (Location)
 import Elm.Syntax.Signature exposing (Signature)
 import Parser as Core exposing ((|.), (|=), Nestable(..))
-import Parser.Extra
 
 
 subExpressions : Parser State (Node Expression)
@@ -290,14 +289,14 @@ charLiteralExpression =
 lambdaExpression : Parser State (Node Expression)
 lambdaExpression =
     Combine.succeed
-        (\start ->
+        (\( startRow, startColumn ) ->
             \args ->
                 \((Node { end } _) as expr) ->
                     Lambda args expr
                         |> LambdaExpression
-                        |> Node { start = start, end = end }
+                        |> Node { start = { row = startRow, column = startColumn }, end = end }
         )
-        |> Combine.keepFromCore Parser.Extra.location
+        |> Combine.keepFromCore Core.getPosition
         |> Combine.ignoreEntirely Tokens.backSlash
         |> Combine.ignore (Combine.maybeIgnore Layout.layout)
         |> Combine.keep (Combine.sepBy1WithState (Combine.maybeIgnore Layout.layout) Patterns.pattern)
@@ -313,13 +312,13 @@ lambdaExpression =
 caseExpression : Parser State (Node Expression)
 caseExpression =
     Combine.succeed
-        (\start ->
+        (\( startRow, startColumn ) ->
             \caseBlock_ ->
                 \( end, cases ) ->
-                    Node { start = start, end = end }
+                    Node { start = { row = startRow, column = startColumn }, end = end }
                         (CaseExpression (CaseBlock caseBlock_ cases))
         )
-        |> Combine.keepFromCore Parser.Extra.location
+        |> Combine.keepFromCore Core.getPosition
         |> Combine.ignoreEntirely Tokens.caseToken
         |> Combine.ignore Layout.layout
         |> Combine.keep expression
@@ -368,13 +367,13 @@ letExpression : Parser State (Node Expression)
 letExpression =
     withIndentedState
         (Combine.succeed
-            (\start ->
+            (\( startRow, startColumn ) ->
                 \declarations ->
                     \((Node { end } _) as expr) ->
-                        Node { start = start, end = end }
+                        Node { start = { row = startRow, column = startColumn }, end = end }
                             (LetExpression (LetBlock declarations expr))
             )
-            |> Combine.keepFromCore Parser.Extra.location
+            |> Combine.keepFromCore Core.getPosition
             |> Combine.ignoreEntirely Tokens.letToken
             |> Combine.ignore Layout.layout
             |> Combine.keep (withIndentedState letDeclarations)
@@ -423,15 +422,15 @@ numberExpression =
 ifBlockExpression : Parser State (Node Expression)
 ifBlockExpression =
     Combine.succeed
-        (\start ->
+        (\( startRow, startColumn ) ->
             \condition ->
                 \ifTrue ->
                     \((Node { end } _) as ifFalse) ->
                         Node
-                            { start = start, end = end }
+                            { start = { row = startRow, column = startColumn }, end = end }
                             (IfBlock condition ifTrue ifFalse)
         )
-        |> Combine.keepFromCore Parser.Extra.location
+        |> Combine.keepFromCore Core.getPosition
         |> Combine.ignoreEntirely Tokens.ifToken
         |> Combine.keep expression
         |> Combine.ignoreEntirely Tokens.thenToken

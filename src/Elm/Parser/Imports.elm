@@ -12,13 +12,16 @@ import Elm.Syntax.ModuleName exposing (ModuleName)
 import Elm.Syntax.Node as Node exposing (Node(..))
 import Elm.Syntax.Range exposing (Location, Range)
 import Parser as Core
-import Parser.Extra
 
 
 importDefinition : Parser State (Node Import)
 importDefinition =
-    Combine.succeed (\start -> \mod -> importInnerParseAsDefinition start mod)
-        |> Combine.keepFromCore Parser.Extra.location
+    Combine.succeed
+        (\( startRow, startColumn ) ->
+            \mod ->
+                importInnerParseAsDefinition { row = startRow, column = startColumn } mod
+        )
+        |> Combine.keepFromCore Core.getPosition
         |> Combine.ignoreEntirely Tokens.importToken
         |> Combine.ignore Layout.layout
         |> Combine.keepFromCore moduleName

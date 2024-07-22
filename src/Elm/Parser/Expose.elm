@@ -8,7 +8,6 @@ import Elm.Parser.Tokens as Tokens
 import Elm.Syntax.Exposing exposing (ExposedType, Exposing(..), TopLevelExpose(..))
 import Elm.Syntax.Node as Node exposing (Node(..))
 import Parser as Core exposing ((|.), (|=))
-import Parser.Extra
 import Set
 
 
@@ -31,10 +30,17 @@ exposeListWith =
 exposingListInner : Parser State Exposing
 exposingListInner =
     Combine.oneOf
-        [ Combine.succeed (\start -> \end -> All { start = start, end = end })
-            |> Combine.keepFromCore Parser.Extra.location
+        [ Combine.succeed
+            (\( startRow, startColumn ) ->
+                \( endRow, endColumn ) ->
+                    All
+                        { start = { row = startRow, column = startColumn }
+                        , end = { row = endRow, column = endColumn }
+                        }
+            )
+            |> Combine.keepFromCore Core.getPosition
             |> Combine.ignore (Layout.maybeAroundBothSides (Combine.fromCore Tokens.dotDot))
-            |> Combine.keepFromCore Parser.Extra.location
+            |> Combine.keepFromCore Core.getPosition
         , Combine.sepBy1 "," (Layout.maybeAroundBothSides exposable)
             |> Combine.map Explicit
         ]
