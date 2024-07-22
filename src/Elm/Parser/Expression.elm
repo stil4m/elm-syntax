@@ -1,4 +1,4 @@
-module Elm.Parser.Expression exposing (expression, failIfDifferentFrom, functionSignatureFromVarPointer)
+module Elm.Parser.Expression exposing (expression)
 
 import Combine exposing (Parser, Step(..))
 import Elm.Parser.Layout as Layout

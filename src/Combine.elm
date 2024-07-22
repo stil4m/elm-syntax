@@ -3,6 +3,7 @@ module Combine exposing
     , Step(..)
     , andThen
     , andThenFromCore
+    , backtrackable
     , between
     , continueFromCore
     , continueWith
@@ -417,6 +418,11 @@ continueWith : Parser state a -> Parser state () -> Parser state a
 continueWith target dropped =
     dropped
         |> andThen (\() -> target)
+
+
+backtrackable : Parser state a -> Parser state a
+backtrackable (Parser p) =
+    Parser (\state -> p state |> Core.backtrackable)
 
 
 continueWithFromCore : Parser state a -> Core.Parser () -> Parser state a
