@@ -1,57 +1,57 @@
 module Elm.Parser.Samples exposing (allSamples)
 
 
-allSamples : List String
+allSamples : List ( Int, String )
 allSamples =
-    [ sample1
-    , sample2
-    , sample3
-    , sample4
-    , sample5
-    , sample6
-    , sample7
-    , sample8
-    , sample9
-    , sample11
-    , sample12
-    , sample14
-    , sample15
-    , sample16
-    , sample17
-    , sample18
-    , sample19
-    , sample20
-    , sample21
-    , sample22
-    , sample23
-    , sample24
-    , sample25
-    , sample26
-    , sample27
-    , sample28
-    , sample29
-    , sample30
-    , sample31
-    , sample32
-    , sample33
-    , sample34
-    , sample35
-    , sample36
-    , sample37
-    , sample38
-    , sample39
-    , sample40
-    , sample41
-    , sample42
-    , sample43
-    , sample44
-    , sample45
-    , sample46
-    , sample47
-    , sample48
-    , sample49
-    , sample50
-    , sample51
+    [ ( 1, sample1 )
+    , ( 2, sample2 )
+    , ( 3, sample3 )
+    , ( 4, sample4 )
+    , ( 5, sample5 )
+    , ( 6, sample6 )
+    , ( 7, sample7 )
+    , ( 8, sample8 )
+    , ( 9, sample9 )
+    , ( 11, sample11 )
+    , ( 12, sample12 )
+    , ( 14, sample14 )
+    , ( 15, sample15 )
+    , ( 16, sample16 )
+    , ( 17, sample17 )
+    , ( 18, sample18 )
+    , ( 19, sample19 )
+    , ( 20, sample20 )
+    , ( 21, sample21 )
+    , ( 22, sample22 )
+    , ( 23, sample23 )
+    , ( 24, sample24 )
+    , ( 25, sample25 )
+    , ( 26, sample26 )
+    , ( 27, sample27 )
+    , ( 28, sample28 )
+    , ( 29, sample29 )
+    , ( 30, sample30 )
+    , ( 31, sample31 )
+    , ( 32, sample32 )
+    , ( 33, sample33 )
+    , ( 34, sample34 )
+    , ( 35, sample35 )
+    , ( 36, sample36 )
+    , ( 37, sample37 )
+    , ( 38, sample38 )
+    , ( 39, sample39 )
+    , ( 40, sample40 )
+    , ( 41, sample41 )
+    , ( 42, sample42 )
+    , ( 43, sample43 )
+    , ( 44, sample44 )
+    , ( 45, sample45 )
+    , ( 46, sample46 )
+    , ( 47, sample47 )
+    , ( 48, sample48 )
+    , ( 49, sample49 )
+    , ( 50, sample50 )
+    , ( 51, sample51 )
     ]
 
 
