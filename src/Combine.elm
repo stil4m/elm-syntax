@@ -37,6 +37,7 @@ module Combine exposing
     , sepBy1WithState
     , sepBy1WithoutReverse
     , succeed
+    , succeedLazy
     , symbol
     , withColumn
     , withState
@@ -179,6 +180,14 @@ problem m =
 succeed : a -> Parser state a
 succeed res =
     Parser <| \state -> Core.succeed ( state, res )
+
+
+succeedLazy : (() -> a) -> Parser state a
+succeedLazy createRes =
+    Parser
+        (\state ->
+            Core.succeed ( state, createRes () )
+        )
 
 
 symbol : String -> Parser state ()

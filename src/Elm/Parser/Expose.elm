@@ -76,7 +76,7 @@ typeExpose =
                                     { start = typeRange.start, end = openRange.end }
                                     (TypeExpose (ExposedType typeValue (Just openRange)))
                             )
-                    , Combine.lazy (\() -> Combine.succeed (Node.map TypeOrAliasExpose tipe))
+                    , Combine.succeedLazy (\() -> Node.map TypeOrAliasExpose tipe)
                     ]
             )
 

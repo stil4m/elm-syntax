@@ -42,10 +42,9 @@ importInnerParseExposingDefinition start mod asDef =
                 (\exposing_ ->
                     setupNode start { moduleName = mod, moduleAlias = asDef, exposingList = Just exposing_ }
                 )
-        , Combine.lazy
+        , Combine.succeedLazy
             (\() ->
-                Combine.succeed
-                    (setupNode start { moduleName = mod, moduleAlias = asDef, exposingList = Nothing })
+                setupNode start { moduleName = mod, moduleAlias = asDef, exposingList = Nothing }
             )
         ]
 
