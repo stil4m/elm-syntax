@@ -106,11 +106,16 @@ recordAccessParser =
                     Core.problem "Record access can't start with a space"
 
                 else
-                    Core.succeed identity
-                        |. Tokens.dot
-                        |= Node.parserCore Tokens.functionName
+                    dotField
             )
         |> Combine.fromCore
+
+
+dotField : Core.Parser (Node String)
+dotField =
+    Core.succeed identity
+        |. Tokens.dot
+        |= Node.parserCore Tokens.functionName
 
 
 functionCall : ( Int, Node Expression -> Parser State (Node Expression) )
@@ -190,8 +195,7 @@ recordContents =
             (\fname ->
                 Combine.oneOf
                     [ recordUpdateSyntaxParser fname
-                    , Tokens.equal
-                        |> Combine.continueWithFromCore expression
+                    , equalsExpression
                         |> Combine.andThen
                             (\e ->
                                 let
@@ -215,6 +219,12 @@ recordContents =
                             )
                     ]
             )
+
+
+equalsExpression : Parser State (Node Expression)
+equalsExpression =
+    Tokens.equal
+        |> Combine.continueWithFromCore expression
 
 
 recordUpdateSyntaxParser : Node String -> Parser State Expression

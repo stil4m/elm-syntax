@@ -27,14 +27,19 @@ typeAnnotation =
                     (\() -> typeRef)
                     (\() ->
                         Combine.oneOf
-                            [ Tokens.arrowRight
-                                |> Combine.continueFromCore (Combine.maybeIgnore Layout.layout)
-                                |> Combine.continueWith typeAnnotation
+                            [ arrowRightToTypeAnnotation
                                 |> Combine.map (\ta -> Node.combine TypeAnnotation.FunctionTypeAnnotation typeRef ta)
                             , Combine.succeed typeRef
                             ]
                     )
             )
+
+
+arrowRightToTypeAnnotation : Parser State (Node TypeAnnotation)
+arrowRightToTypeAnnotation =
+    Tokens.arrowRight
+        |> Combine.continueFromCore (Combine.maybeIgnore Layout.layout)
+        |> Combine.continueWith typeAnnotation
 
 
 typeAnnotationNonGreedy : Parser State (Node TypeAnnotation)

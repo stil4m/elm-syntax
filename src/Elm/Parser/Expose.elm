@@ -69,7 +69,7 @@ typeExpose =
         |> Combine.andThen
             (\((Node typeRange typeValue) as tipe) ->
                 Combine.oneOf
-                    [ Node.parser (Combine.parens (Layout.maybeAroundBothSides (Combine.symbol "..")))
+                    [ exposingVariants
                         |> Combine.map
                             (\(Node openRange _) ->
                                 Node
@@ -79,6 +79,11 @@ typeExpose =
                     , Combine.lazy (\() -> Combine.succeed (Node.map TypeOrAliasExpose tipe))
                     ]
             )
+
+
+exposingVariants : Parser State (Node ())
+exposingVariants =
+    Node.parser (Combine.parens (Layout.maybeAroundBothSides (Combine.symbol "..")))
 
 
 functionExpose : Parser state (Node TopLevelExpose)
