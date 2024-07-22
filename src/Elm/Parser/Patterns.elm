@@ -1,15 +1,15 @@
 module Elm.Parser.Patterns exposing (pattern)
 
 import Combine exposing (Parser)
-import Elm.Parser.Base as Base
 import Elm.Parser.Layout as Layout
 import Elm.Parser.Node as Node
 import Elm.Parser.Numbers
 import Elm.Parser.State exposing (State)
 import Elm.Parser.Tokens as Tokens
+import Elm.Syntax.ModuleName exposing (ModuleName)
 import Elm.Syntax.Node as Node exposing (Node(..))
-import Elm.Syntax.Pattern exposing (Pattern(..))
-import Parser as Core
+import Elm.Syntax.Pattern exposing (Pattern(..), QualifiedNameRef)
+import Parser as Core exposing ((|.), (|=))
 
 
 tryToCompose : Node Pattern -> Parser State (Node Pattern)
@@ -138,30 +138,48 @@ stringPattern =
         |> Node.parserFromCore
 
 
+qualifiedNameRef : Core.Parser (Node QualifiedNameRef)
+qualifiedNameRef =
+    Tokens.typeName
+        |> Core.andThen (\typeOrSegment -> qualifiedNameRefHelper [] typeOrSegment)
+        |> Node.parserCore
+
+
+qualifiedNameRefHelper : ModuleName -> String -> Core.Parser QualifiedNameRef
+qualifiedNameRefHelper moduleNameSoFar typeOrSegment =
+    Core.oneOf
+        [ Core.succeed identity
+            |. Tokens.dot
+            |= Tokens.typeName
+            |> Core.andThen (\t -> qualifiedNameRefHelper (typeOrSegment :: moduleNameSoFar) t)
+        , Core.lazy (\() -> Core.succeed { moduleName = List.reverse moduleNameSoFar, name = typeOrSegment })
+        ]
+
+
 qualifiedPatternWithConsumeArgs : Parser State (Node Pattern)
 qualifiedPatternWithConsumeArgs =
-    Base.typeIndicator
+    qualifiedNameRef
         |> Combine.ignoreFromCore (Combine.maybeIgnore Layout.layout)
         |> Combine.andThen
-            (\(Node range ( mod, name )) ->
+            (\(Node range qualified) ->
                 Combine.manyWithEndLocationForLastElement range
                     Node.range
                     (qualifiedPatternArg |> Combine.ignore (Combine.maybeIgnore Layout.layout))
                     |> Combine.map
                         (\( end, args ) ->
                             Node { start = range.start, end = end }
-                                (NamedPattern { moduleName = mod, name = name } args)
+                                (NamedPattern qualified args)
                         )
             )
 
 
 qualifiedPatternWithoutConsumeArgs : Parser State (Node Pattern)
 qualifiedPatternWithoutConsumeArgs =
-    Base.typeIndicator
+    qualifiedNameRef
         |> Combine.ignoreFromCore (Combine.maybeIgnore Layout.layout)
         |> Combine.map
-            (\(Node range ( mod, name )) ->
-                Node range (NamedPattern { moduleName = mod, name = name } [])
+            (\(Node range qualified) ->
+                Node range (NamedPattern qualified [])
             )
 
 
