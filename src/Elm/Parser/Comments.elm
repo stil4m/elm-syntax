@@ -5,7 +5,7 @@ import Elm.Parser.Node as Node
 import Elm.Parser.State exposing (State, addComment)
 import Elm.Syntax.Documentation exposing (Documentation)
 import Elm.Syntax.Node exposing (Node)
-import Parser as Core exposing ((|.), (|=), Nestable(..))
+import Parser as Core exposing ((|.), Nestable(..))
 
 
 addCommentToState : Core.Parser (Node String) -> Parser State ()
@@ -61,16 +61,21 @@ moduleDocumentation =
 
 declarationDocumentation : Core.Parser (Node Documentation)
 declarationDocumentation =
-    Core.succeed (\offset -> \source -> String.slice offset (offset + 3) source)
-        |= Core.getOffset
-        |= Core.getSource
-        |> Core.andThen
-            (\opening ->
-                if opening == "{-|" then
-                    Core.multiComment "{-" "-}" Nestable
-
-                else
-                    Core.problem "not a documentation comment"
-            )
-        |> Core.getChompedString
+    Core.oneOf
+        [ Core.oneOf
+            [ Core.symbol "{-|"
+                |> Core.backtrackable
+                |> Core.map (\() -> coreTemporaryProblem {- "falls back" to multiComment from the start -})
+            , Core.succeed (Core.succeed (Core.problem "not a documentation comment"))
+            ]
+            |> Core.andThen identity
+        , Core.multiComment "{-" "-}" Nestable
+            |> Core.mapChompedString (\comment () -> Core.succeed comment)
+        ]
+        |> Core.andThen identity
         |> Node.parserCore
+
+
+coreTemporaryProblem : Core.Parser a
+coreTemporaryProblem =
+    Core.problem ""
