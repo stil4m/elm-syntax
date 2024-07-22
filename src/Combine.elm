@@ -38,6 +38,7 @@ module Combine exposing
     , sepBy1WithoutReverse
     , succeed
     , symbol
+    , withColumn
     , withLocation
     , withState
     )
@@ -110,6 +111,21 @@ withLocation f =
                         let
                             (Parser p) =
                                 f { row = row, column = col }
+                        in
+                        p state
+                    )
+
+
+withColumn : (Int -> Parser state a) -> Parser state a
+withColumn f =
+    Parser <|
+        \state ->
+            Core.getCol
+                |> Core.andThen
+                    (\col ->
+                        let
+                            (Parser p) =
+                                f col
                         in
                         p state
                     )
