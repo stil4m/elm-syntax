@@ -173,7 +173,9 @@ valueConstructors =
 
 valueConstructor : Parser State (Node ValueConstructor)
 valueConstructor =
-    Node.parserFromCore Tokens.typeName
+    Tokens.typeName
+        |> Node.parserCore
+        |> Combine.fromCore
         |> Combine.andThen
             (\((Node range _) as tnn) ->
                 let

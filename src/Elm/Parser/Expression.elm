@@ -21,25 +21,40 @@ import Parser as Core exposing ((|.), (|=), Nestable(..))
 
 subExpressions : Parser State (Node Expression)
 subExpressions =
-    Combine.lazy
-        (\() ->
-            Combine.oneOf
-                [ referenceExpression
-                , literalExpression
-                , numberExpression
-                , tupledExpression
-                , glslExpression
-                , listExpression
-                , recordExpression
-                , caseExpression
-                , lambdaExpression
-                , letExpression
-                , ifBlockExpression
-                , recordAccessFunctionExpression
-                , negationOperation
-                , charLiteralExpression
-                ]
-        )
+    Combine.lazy (\() -> subExpressionsOneOf)
+
+
+subExpressionsOneOf : Parser State (Node Expression)
+subExpressionsOneOf =
+    Combine.oneOf
+        [ Combine.oneOf
+            [ referenceExpression
+            , literalExpression
+            , numberExpression
+            , tupledExpression
+            , glslExpression
+            , listExpression
+            , recordExpression
+            , recordAccessFunctionExpression
+            , charLiteralExpression
+            ]
+            |> Node.parser
+        , subExpressionEndingInExpressionOneOf
+        ]
+
+
+subExpressionEndingInExpressionOneOf : Parser State (Node Expression)
+subExpressionEndingInExpressionOneOf =
+    Combine.oneOf
+        -- some possibilities like negate, if (and case?) have weird sub-expression end locations.
+        -- Therefore, any expressions with an inner expression at the end likely can't reuse the same outer node range
+        -- (note by author of this block: I don't understand where the extra column comes from in negation for example, help appreciated)
+        [ caseExpression
+        , lambdaExpression
+        , letExpression
+        , ifBlockExpression
+        , negationOperation
+        ]
 
 
 andThenOneOf : List ( Int, Node Expression -> Parser State (Node Expression) )
@@ -150,30 +165,29 @@ glslEnd =
     "|]"
 
 
-glslExpression : Parser State (Node Expression)
+glslExpression : Parser State Expression
 glslExpression =
     Core.mapChompedString
         (\s () -> s |> String.dropLeft glslStartLength |> GLSLExpression)
         (Core.multiComment glslStart glslEnd NotNestable)
         |. Core.symbol glslEnd
-        |> Node.parserFromCore
+        |> Combine.fromCore
 
 
-listExpression : Parser State (Node Expression)
+listExpression : Parser State Expression
 listExpression =
     Combine.succeed ListExpr
         |> Combine.ignoreEntirely Tokens.squareStart
         |> Combine.ignore (Combine.maybeIgnore Layout.layout)
         |> Combine.keep (Combine.sepBy "," expression)
         |> Combine.ignoreEntirely Tokens.squareEnd
-        |> Node.parser
 
 
 
 -- recordExpression
 
 
-recordExpression : Parser State (Node Expression)
+recordExpression : Parser State Expression
 recordExpression =
     Tokens.curlyStart
         |> Combine.ignoreFromCore (Combine.maybeIgnore Layout.layout)
@@ -184,7 +198,6 @@ recordExpression =
                 , recordContents
                 ]
             )
-        |> Node.parser
 
 
 recordContents : Parser State Expression
@@ -266,21 +279,21 @@ recordFieldWithoutValue =
         |> Combine.ignoreEntirely Tokens.equal
 
 
-literalExpression : Parser State (Node Expression)
+literalExpression : Parser State Expression
 literalExpression =
     Core.oneOf
         [ Tokens.multiLineStringLiteral
         , Tokens.stringLiteral
         ]
         |> Core.map Literal
-        |> Node.parserFromCore
+        |> Combine.fromCore
 
 
-charLiteralExpression : Parser State (Node Expression)
+charLiteralExpression : Parser State Expression
 charLiteralExpression =
     Tokens.characterLiteral
         |> Core.map CharLiteral
-        |> Node.parserFromCore
+        |> Combine.fromCore
 
 
 
@@ -514,9 +527,10 @@ patternListEqualsMaybeLayout =
         |> Combine.ignore (Combine.maybeIgnore Layout.layout)
 
 
-numberExpression : Parser State (Node Expression)
+numberExpression : Parser State Expression
 numberExpression =
-    Node.parserFromCore (Elm.Parser.Numbers.forgivingNumber Floatable Integer Hex)
+    Elm.Parser.Numbers.forgivingNumber Floatable Integer Hex
+        |> Combine.fromCore
 
 
 ifBlockExpression : Parser State (Node Expression)
@@ -565,7 +579,7 @@ minusNotFollowedBySpace =
         |> Core.andThen identity
 
 
-referenceExpression : Parser State (Node Expression)
+referenceExpression : Parser State Expression
 referenceExpression =
     Core.oneOf
         [ Tokens.typeName
@@ -573,7 +587,7 @@ referenceExpression =
         , Tokens.functionName
             |> Core.map (\v -> FunctionOrValue [] v)
         ]
-        |> Node.parserFromCore
+        |> Combine.fromCore
 
 
 referenceExpressionHelper : ModuleName -> String -> Core.Parser Expression
@@ -597,15 +611,15 @@ referenceExpressionHelper moduleNameSoFar nameOrSegment =
         ]
 
 
-recordAccessFunctionExpression : Parser State (Node Expression)
+recordAccessFunctionExpression : Parser State Expression
 recordAccessFunctionExpression =
     Core.succeed (\field -> RecordAccessFunction ("." ++ field))
         |. Tokens.dot
         |= Tokens.functionName
-        |> Node.parserFromCore
+        |> Combine.fromCore
 
 
-tupledExpression : Parser State (Node Expression)
+tupledExpression : Parser State Expression
 tupledExpression =
     Tokens.parensStart
         |> Combine.continueFromCore
@@ -615,7 +629,6 @@ tupledExpression =
                 , tupledExpressionInnerNested |> Combine.ignoreEntirely Tokens.parensEnd
                 ]
             )
-        |> Node.parser
 
 
 tupledExpressionInnerCommaSep : Parser State (List (Node Expression))
@@ -680,15 +693,10 @@ subExpression currentPrecedence =
         parser =
             expressionHelp currentPrecedence
     in
-    spacesAndSubExpressions
-        |> Combine.andThen
-            (\leftExpression -> Combine.loop leftExpression parser)
-
-
-spacesAndSubExpressions : Parser State (Node Expression)
-spacesAndSubExpressions =
     Layout.optimisticLayout
         |> Combine.continueWith subExpressions
+        |> Combine.andThen
+            (\leftExpression -> Combine.loop leftExpression parser)
 
 
 expressionHelp : Int -> Node Expression -> Parser State (Step (Node Expression) (Node Expression))

@@ -1,4 +1,4 @@
-module Elm.Parser.Node exposing (parser, parserCore, parserFromCore)
+module Elm.Parser.Node exposing (parser, parserCore)
 
 import Combine exposing (Parser)
 import Elm.Syntax.Node exposing (Node(..))
@@ -20,12 +20,6 @@ parser p =
         |> Combine.keepFromCore Core.getPosition
         |> Combine.keep p
         |> Combine.keepFromCore Core.getPosition
-
-
-parserFromCore : Core.Parser a -> Parser state (Node a)
-parserFromCore p =
-    parserCore p
-        |> Combine.fromCore
 
 
 parserCore : Core.Parser a -> Core.Parser (Node a)

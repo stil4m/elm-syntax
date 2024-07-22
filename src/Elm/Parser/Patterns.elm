@@ -7,9 +7,8 @@ import Elm.Parser.Numbers
 import Elm.Parser.State exposing (State)
 import Elm.Parser.Tokens as Tokens
 import Elm.Syntax.ModuleName exposing (ModuleName)
-import Elm.Syntax.Node as Node exposing (Node(..))
+import Elm.Syntax.Node as Node exposing (Node)
 import Elm.Syntax.Pattern exposing (Pattern(..), QualifiedNameRef)
-import Elm.Syntax.Range as Range
 import Parser as Core exposing ((|.), (|=))
 
 
@@ -39,50 +38,48 @@ pattern =
         )
 
 
-parensPattern : Parser State (Node Pattern)
+parensPattern : Parser State Pattern
 parensPattern =
-    Node.parser
-        (Combine.parens (Combine.sepBy "," (Layout.maybeAroundBothSides pattern))
-            |> Combine.map
-                (\c ->
-                    case c of
-                        [ x ] ->
-                            ParenthesizedPattern x
+    Combine.parens (Combine.sepBy "," (Layout.maybeAroundBothSides pattern))
+        |> Combine.map
+            (\c ->
+                case c of
+                    [ x ] ->
+                        ParenthesizedPattern x
 
-                        _ ->
-                            TuplePattern c
-                )
-        )
+                    _ ->
+                        TuplePattern c
+            )
 
 
-variablePart : Parser state (Node Pattern)
+variablePart : Parser state Pattern
 variablePart =
-    Node.parserFromCore (Core.map VarPattern Tokens.functionName)
+    Core.map VarPattern Tokens.functionName
+        |> Combine.fromCore
 
 
-numberPart : Parser state (Node Pattern)
+numberPart : Parser state Pattern
 numberPart =
     Elm.Parser.Numbers.number IntPattern HexPattern
-        |> Node.parserFromCore
+        |> Combine.fromCore
 
 
-charPattern : Parser state (Node Pattern)
+charPattern : Parser state Pattern
 charPattern =
     Tokens.characterLiteral
         |> Core.map CharPattern
-        |> Node.parserFromCore
+        |> Combine.fromCore
 
 
-listPattern : Parser State (Node Pattern)
+listPattern : Parser State Pattern
 listPattern =
-    Node.parser <|
-        Combine.between
-            "["
-            "]"
-            (Combine.maybeIgnore Layout.layout
-                |> Combine.continueWith (Combine.sepBy "," (Layout.maybeAroundBothSides pattern))
-                |> Combine.map ListPattern
-            )
+    Combine.between
+        "["
+        "]"
+        (Combine.maybeIgnore Layout.layout
+            |> Combine.continueWith (Combine.sepBy "," (Layout.maybeAroundBothSides pattern))
+            |> Combine.map ListPattern
+        )
 
 
 composablePattern : Parser State (Node Pattern)
@@ -99,6 +96,7 @@ composablePattern =
         , numberPart
         , charPattern
         ]
+        |> Node.parser
 
 
 qualifiedPatternArg : Parser State (Node Pattern)
@@ -115,35 +113,35 @@ qualifiedPatternArg =
         , numberPart
         , charPattern
         ]
+        |> Node.parser
 
 
-allPattern : Parser state (Node Pattern)
+allPattern : Parser state Pattern
 allPattern =
     Core.map (\() -> AllPattern) (Core.symbol "_")
-        |> Node.parserFromCore
+        |> Combine.fromCore
 
 
-unitPattern : Parser state (Node Pattern)
+unitPattern : Parser state Pattern
 unitPattern =
     Core.map (\() -> UnitPattern) (Core.symbol "()")
-        |> Node.parserFromCore
+        |> Combine.fromCore
 
 
-stringPattern : Parser state (Node Pattern)
+stringPattern : Parser state Pattern
 stringPattern =
     Core.oneOf
         [ Tokens.multiLineStringLiteral
         , Tokens.stringLiteral
         ]
         |> Core.map StringPattern
-        |> Node.parserFromCore
+        |> Combine.fromCore
 
 
-qualifiedNameRef : Core.Parser (Node QualifiedNameRef)
+qualifiedNameRef : Core.Parser QualifiedNameRef
 qualifiedNameRef =
     Tokens.typeName
         |> Core.andThen (\typeOrSegment -> qualifiedNameRefHelper [] typeOrSegment)
-        |> Node.parserCore
 
 
 qualifiedNameRefHelper : ModuleName -> String -> Core.Parser QualifiedNameRef
@@ -157,53 +155,59 @@ qualifiedNameRefHelper moduleNameSoFar typeOrSegment =
         ]
 
 
-qualifiedPatternWithConsumeArgs : Parser State (Node Pattern)
+qualifiedPatternWithConsumeArgs : Parser State Pattern
 qualifiedPatternWithConsumeArgs =
-    qualifiedNameRef
-        |> Combine.ignoreFromCore (Combine.maybeIgnore Layout.layout)
-        |> Combine.andThen
-            (\(Node range qualified) ->
-                qualifiedPatternArgumentList
-                    |> Combine.map
-                        (\( end, args ) ->
-                            Node
-                                { start = range.start
-                                , end =
-                                    if end.row == 0 then
-                                        range.end
+    Core.succeed (\qualified -> \args -> NamedPattern qualified args)
+        |= qualifiedNameRef
+        |> Combine.fromCore
+        |> Combine.keep emptyOrFilledArgumentPatterns
 
-                                    else
-                                        end
-                                }
-                                (NamedPattern qualified args)
-                        )
+
+emptyOrFilledArgumentPatterns : Parser State (List (Node Pattern))
+emptyOrFilledArgumentPatterns =
+    Combine.oneOf
+        [ Core.succeed identity
+            |> Combine.ignoreFromCore (Combine.maybeIgnore Layout.layout |> Combine.backtrackable)
+            |> Combine.keep qualifiedPatternArgumentList
+        , Combine.succeed []
+        ]
+
+
+qualifiedPatternArgumentList : Parser State (List (Node Pattern))
+qualifiedPatternArgumentList =
+    Combine.succeed (\head -> \tail -> head :: tail)
+        |> Combine.keep qualifiedPatternArg
+        |> Combine.keep
+            -- TODO remove end
+            (Combine.many
+                (Combine.maybeIgnore Layout.layout
+                    |> Combine.backtrackable
+                    |> Combine.continueWith qualifiedPatternArg
+                )
             )
 
 
-qualifiedPatternArgumentList : Parser State ( Range.Location, List (Node Pattern) )
-qualifiedPatternArgumentList =
-    Combine.manyWithEndLocationForLastElement
-        Node.range
-        (qualifiedPatternArg |> Combine.ignore (Combine.maybeIgnore Layout.layout))
-
-
-qualifiedPatternWithoutConsumeArgs : Parser State (Node Pattern)
+qualifiedPatternWithoutConsumeArgs : Parser State Pattern
 qualifiedPatternWithoutConsumeArgs =
     qualifiedNameRef
-        |> Combine.ignoreFromCore (Combine.maybeIgnore Layout.layout)
-        |> Combine.map
-            (\(Node range qualified) ->
-                Node range (NamedPattern qualified [])
-            )
+        |> Combine.fromCoreMap
+            (\qualified -> NamedPattern qualified [])
 
 
-recordPattern : Parser State (Node Pattern)
+recordPattern : Parser State Pattern
 recordPattern =
     Combine.between
         "{"
         "}"
         (Combine.maybeIgnore Layout.layout
-            |> Combine.continueWith (Combine.sepBy "," (Layout.maybeAroundBothSides (Node.parserFromCore Tokens.functionName)))
+            |> Combine.continueWith
+                (Combine.sepBy ","
+                    (Layout.maybeAroundBothSides
+                        (Tokens.functionName
+                            |> Node.parserCore
+                            |> Combine.fromCore
+                        )
+                    )
+                )
         )
         |> Combine.map RecordPattern
-        |> Node.parser

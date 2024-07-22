@@ -6,7 +6,7 @@ import Elm.Parser.Node as Node
 import Elm.Parser.State exposing (State)
 import Elm.Parser.Tokens as Tokens
 import Elm.Syntax.Exposing exposing (ExposedType, Exposing(..), TopLevelExpose(..))
-import Elm.Syntax.Node as Node exposing (Node(..))
+import Elm.Syntax.Node exposing (Node(..))
 import Parser as Core exposing ((|.), (|=))
 import Set
 
@@ -50,12 +50,13 @@ exposable : Parser State (Node TopLevelExpose)
 exposable =
     Combine.oneOf
         [ typeExpose
-        , infixExpose
-        , functionExpose
+        , infixExpose |> Combine.fromCore
+        , functionExpose |> Combine.fromCore
         ]
+        |> Node.parser
 
 
-infixExpose : Parser state (Node TopLevelExpose)
+infixExpose : Core.Parser TopLevelExpose
 infixExpose =
     Core.succeed InfixExpose
         |. Tokens.parensStart
@@ -65,24 +66,21 @@ infixExpose =
             , reserved = Set.empty
             }
         |. Tokens.parensEnd
-        |> Node.parserFromCore
 
 
-typeExpose : Parser State (Node TopLevelExpose)
+typeExpose : Parser State TopLevelExpose
 typeExpose =
-    Node.parserCore Tokens.typeName
-        |> Combine.ignoreFromCore (Combine.maybeIgnore Layout.layout)
-        |> Combine.andThen
-            (\((Node typeRange typeValue) as tipe) ->
+    Tokens.typeName
+        |> Combine.andThenFromCore
+            (\typeValue ->
                 Combine.oneOf
-                    [ exposingVariants
-                        |> Combine.map
-                            (\(Node openRange _) ->
-                                Node
-                                    { start = typeRange.start, end = openRange.end }
-                                    (TypeExpose (ExposedType typeValue (Just openRange)))
-                            )
-                    , Combine.succeedLazy (\() -> Node.map TypeOrAliasExpose tipe)
+                    [ Combine.succeed
+                        (\(Node openRange ()) ->
+                            TypeExpose (ExposedType typeValue (Just openRange))
+                        )
+                        |> Combine.ignore (Combine.maybeIgnore Layout.layout |> Combine.backtrackable)
+                        |> Combine.keep exposingVariants
+                    , Combine.succeedLazy (\() -> TypeOrAliasExpose typeValue)
                     ]
             )
 
@@ -92,6 +90,6 @@ exposingVariants =
     Node.parser (Combine.parens (Layout.maybeAroundBothSides (Combine.symbol "..")))
 
 
-functionExpose : Parser state (Node TopLevelExpose)
+functionExpose : Core.Parser TopLevelExpose
 functionExpose =
-    Node.parserFromCore (Core.map FunctionExpose Tokens.functionName)
+    Core.map FunctionExpose Tokens.functionName

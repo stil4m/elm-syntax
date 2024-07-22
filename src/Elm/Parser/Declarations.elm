@@ -238,11 +238,11 @@ infixDeclaration =
         )
         |> Combine.ignoreEntirely (Core.keyword "infix")
         |> Combine.ignore Layout.layout
-        |> Combine.keep infixDirection
+        |> Combine.keepFromCore infixDirection
         |> Combine.ignore Layout.layout
         |> Combine.keepFromCore (Node.parserCore Core.int)
         |> Combine.ignore Layout.layout
-        |> Combine.keep operatorWithParens
+        |> Combine.keepFromCore operatorWithParens
         |> Combine.ignore Layout.layout
         |> Combine.ignoreEntirely Tokens.equal
         |> Combine.ignore Layout.layout
@@ -250,16 +250,16 @@ infixDeclaration =
         |> Node.parser
 
 
-operatorWithParens : Parser state (Node String)
+operatorWithParens : Core.Parser (Node String)
 operatorWithParens =
     Core.succeed identity
         |. Tokens.parensStart
         |= Tokens.prefixOperatorToken
         |. Tokens.parensEnd
-        |> Node.parserFromCore
+        |> Node.parserCore
 
 
-infixDirection : Parser State (Node Infix.InfixDirection)
+infixDirection : Core.Parser (Node Infix.InfixDirection)
 infixDirection =
     Core.oneOf
         [ Core.keyword "right"
@@ -269,7 +269,7 @@ infixDirection =
         , Core.keyword "non"
             |> Core.map (\() -> Infix.Non)
         ]
-        |> Node.parserFromCore
+        |> Node.parserCore
 
 
 portDeclaration : Node Documentation -> Parser State (Node Declaration)

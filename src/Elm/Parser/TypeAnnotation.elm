@@ -110,7 +110,8 @@ genericTypeAnnotation : Parser state (Node TypeAnnotation)
 genericTypeAnnotation =
     Tokens.functionName
         |> Core.map TypeAnnotation.GenericType
-        |> Node.parserFromCore
+        |> Node.parserCore
+        |> Combine.fromCore
 
 
 recordFieldsTypeAnnotation : Parser State TypeAnnotation.RecordDefinition
