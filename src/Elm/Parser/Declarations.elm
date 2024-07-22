@@ -12,9 +12,10 @@ import Elm.Parser.TypeAnnotation exposing (typeAnnotation)
 import Elm.Parser.Typings exposing (typeDefinition)
 import Elm.Syntax.Declaration as Declaration exposing (Declaration)
 import Elm.Syntax.Documentation exposing (Documentation)
-import Elm.Syntax.Expression as Expression exposing (Function, FunctionImplementation)
+import Elm.Syntax.Expression exposing (Function, FunctionImplementation)
 import Elm.Syntax.Infix as Infix
 import Elm.Syntax.Node as Node exposing (Node(..))
+import Elm.Syntax.Range exposing (Location)
 import Elm.Syntax.Signature exposing (Signature)
 import Parser as Core exposing ((|.), (|=))
 import Parser.Extra
@@ -51,15 +52,31 @@ function maybeDoc =
         |> Combine.map
             (\f ->
                 let
-                    ({ end } as functionRange) =
-                        Expression.functionRange f
+                    functionImplementation : FunctionImplementation
+                    functionImplementation =
+                        Node.value f.declaration
+
+                    expressionRangeEnd : Location
+                    expressionRangeEnd =
+                        (Node.range functionImplementation.expression).end
                 in
                 case maybeDoc of
-                    Just (Node { start } _) ->
-                        Node { start = start, end = end } (Declaration.FunctionDeclaration { f | documentation = maybeDoc })
+                    Just (Node documentationRange _) ->
+                        Node { start = documentationRange.start, end = expressionRangeEnd } (Declaration.FunctionDeclaration { f | documentation = maybeDoc })
 
                     Nothing ->
-                        Node functionRange (Declaration.FunctionDeclaration f)
+                        let
+                            rangeStart : Location
+                            rangeStart =
+                                case f.signature of
+                                    Just (Node _ sig) ->
+                                        (Node.range sig.name).start
+
+                                    Nothing ->
+                                        (Node.range functionImplementation.name).start
+                        in
+                        Node { start = rangeStart, end = expressionRangeEnd }
+                            (Declaration.FunctionDeclaration f)
             )
 
 
