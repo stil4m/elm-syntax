@@ -10,7 +10,6 @@ import Elm.Parser.Tokens as Tokens
 import Elm.Parser.TypeAnnotation as TypeAnnotation
 import Elm.Syntax.Expression as Expression exposing (Case, Cases, Expression(..), LetDeclaration(..), RecordSetter)
 import Elm.Syntax.Infix as Infix
-import Elm.Syntax.ModuleName exposing (ModuleName)
 import Elm.Syntax.Node as Node exposing (Node(..))
 import Elm.Syntax.Range exposing (Location)
 import Elm.Syntax.Signature exposing (Signature)
@@ -37,17 +36,11 @@ subExpressionsOneOf =
             , charLiteralExpression
             ]
             |> Node.parser
-        , subExpressionEndingInExpressionOneOf
-        ]
 
-
-subExpressionEndingInExpressionOneOf : Parser State (Node Expression)
-subExpressionEndingInExpressionOneOf =
-    Combine.oneOf
         -- some possibilities like negate, if (and case?) have weird sub-expression end locations.
         -- Therefore, any expressions with an inner expression at the end likely can't reuse the same outer node range
         -- (note by author of this block: I don't understand where the extra column comes from in negation for example, help appreciated)
-        [ caseExpression
+        , caseExpression
         , lambdaExpression
         , letExpression
         , ifBlockExpression
