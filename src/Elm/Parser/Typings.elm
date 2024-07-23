@@ -1,4 +1,4 @@
-module Elm.Parser.Typings exposing (customTypeDefinitionWithoutDocumentation, typeAliasDefinitionWithoutDocumentationWithBacktrackableTypePrefix, typeDefinitionAfterDocumentation)
+module Elm.Parser.Typings exposing (typeOrTypeAliasDefinitionAfterDocumentation, typeOrTypeAliasDefinitionWithoutDocumentation)
 
 import Combine exposing (Parser)
 import Elm.Parser.Layout as Layout
@@ -8,141 +8,91 @@ import Elm.Parser.Tokens as Tokens
 import Elm.Parser.TypeAnnotation exposing (typeAnnotation, typeAnnotationNoFnExcludingTypedWithArguments)
 import Elm.Syntax.Declaration as Declaration
 import Elm.Syntax.Documentation exposing (Documentation)
-import Elm.Syntax.Node as Node exposing (Node(..))
+import Elm.Syntax.Node exposing (Node(..))
 import Elm.Syntax.Range exposing (Location, Range)
 import Elm.Syntax.Type exposing (ValueConstructor)
 import Elm.Syntax.TypeAnnotation exposing (TypeAnnotation)
-import Parser as Core
+import Parser as Core exposing ((|.))
 
 
-typeDefinitionAfterDocumentation : Node Documentation -> Parser State (Node Declaration.Declaration)
-typeDefinitionAfterDocumentation documentation =
-    typePrefix
-        |> Combine.continueWith
-            (Combine.oneOf
-                [ Core.map
-                    (\() ->
-                        \name ->
-                            \generics ->
-                                \((Node { end } _) as typeAnnotation) ->
-                                    Node
-                                        { start = (Node.range documentation).start
-                                        , end = end
-                                        }
-                                        (Declaration.AliasDeclaration
-                                            { documentation = Just documentation
-                                            , name = name
-                                            , generics = generics
-                                            , typeAnnotation = typeAnnotation
-                                            }
-                                        )
-                    )
-                    Tokens.aliasToken
-                    |> Combine.fromCoreIgnore Layout.layout
-                    |> Combine.keep typeNameLayout
-                    |> Combine.keep genericListEquals
-                    |> Combine.keep typeAnnotation
-                , Combine.map
-                    (\name ->
-                        \generics ->
-                            \constructors ->
-                                let
-                                    end : Location
-                                    end =
-                                        case constructors of
-                                            (Node range _) :: _ ->
-                                                range.end
+typeOrTypeAliasDefinitionAfterDocumentation : Parser State (Node Documentation -> Parser State (Node Declaration.Declaration))
+typeOrTypeAliasDefinitionAfterDocumentation =
+    Core.map
+        (\() ->
+            \with ->
+                \((Node documentationRange _) as documentation) ->
+                    Combine.succeed (with documentationRange.start (Just documentation))
+        )
+        (Core.symbol "type")
+        |> Combine.fromCoreIgnore Layout.layout
+        |> Combine.keep typeOrTypeAliasDefinitionWith
 
-                                            [] ->
-                                                (Node.range documentation).start
-                                in
-                                Node
-                                    { start = (Node.range documentation).start
-                                    , end = end
-                                    }
-                                    (Declaration.CustomTypeDeclaration
-                                        { documentation = Just documentation
+
+typeOrTypeAliasDefinitionWithoutDocumentation : Parser State (Node Declaration.Declaration)
+typeOrTypeAliasDefinitionWithoutDocumentation =
+    Core.map
+        (\( row, column ) ->
+            \with ->
+                with { row = row, column = column } Nothing
+        )
+        Core.getPosition
+        |. Core.symbol "type"
+        |> Combine.fromCoreIgnore Layout.layout
+        |> Combine.keep typeOrTypeAliasDefinitionWith
+
+
+typeOrTypeAliasDefinitionWith : Parser State (Location -> Maybe (Node String) -> Node Declaration.Declaration)
+typeOrTypeAliasDefinitionWith =
+    Combine.oneOf
+        [ Core.map
+            (\() ->
+                \name ->
+                    \generics ->
+                        \((Node { end } _) as typeAnnotation) ->
+                            \start documentation ->
+                                Node { start = start, end = end }
+                                    (Declaration.AliasDeclaration
+                                        { documentation = documentation
                                         , name = name
                                         , generics = generics
-                                        , constructors = List.reverse constructors
+                                        , typeAnnotation = typeAnnotation
                                         }
                                     )
-                    )
-                    typeNameLayout
-                    |> Combine.keep genericListEquals
-                    |> Combine.keep valueConstructors
-                ]
             )
-
-
-typePrefix : Parser State ()
-typePrefix =
-    Core.symbol "type"
-        |> Combine.fromCoreIgnore Layout.layout
-
-
-typePrefixBacktrackable : Parser State ()
-typePrefixBacktrackable =
-    typePrefix |> Combine.backtrackable
-
-
-typeAliasDefinitionWithoutDocumentationWithBacktrackableTypePrefix : Parser State (Node Declaration.Declaration)
-typeAliasDefinitionWithoutDocumentationWithBacktrackableTypePrefix =
-    Core.map
-        (\( startRow, startColumn ) ->
-            \name ->
-                \generics ->
-                    \((Node { end } _) as typeAnnotation) ->
-                        Node { start = { row = startRow, column = startColumn }, end = end }
-                            (Declaration.AliasDeclaration
-                                { documentation = Nothing
-                                , name = name
-                                , generics = generics
-                                , typeAnnotation = typeAnnotation
-                                }
-                            )
-        )
-        Core.getPosition
-        |> Combine.fromCoreIgnore typePrefixBacktrackable
-        |> Combine.ignoreEntirely Tokens.aliasToken
-        |> Combine.ignore Layout.layout
-        |> Combine.keep typeNameLayout
-        |> Combine.keep genericListEquals
-        |> Combine.keep typeAnnotation
-
-
-customTypeDefinitionWithoutDocumentation : Parser State (Node Declaration.Declaration)
-customTypeDefinitionWithoutDocumentation =
-    Core.map
-        (\( startRow, startColumn ) ->
-            \name ->
+            Tokens.aliasToken
+            |> Combine.fromCoreIgnore Layout.layout
+            |> Combine.keep typeNameLayout
+            |> Combine.keep genericListEquals
+            |> Combine.keep typeAnnotation
+        , Combine.map
+            (\name ->
                 \generics ->
                     \constructors ->
-                        let
-                            end : Location
-                            end =
-                                case constructors of
-                                    (Node range _) :: _ ->
-                                        range.end
+                        \start documentation ->
+                            let
+                                end : Location
+                                end =
+                                    case constructors of
+                                        (Node range _) :: _ ->
+                                            range.end
 
-                                    -- should not happen
-                                    [] ->
-                                        locationEmpty
-                        in
-                        Node { start = { row = startRow, column = startColumn }, end = end }
-                            (Declaration.CustomTypeDeclaration
-                                { documentation = Nothing
-                                , name = name
-                                , generics = generics
-                                , constructors = List.reverse constructors
-                                }
-                            )
-        )
-        Core.getPosition
-        |> Combine.fromCoreIgnore typePrefix
-        |> Combine.keep typeNameLayout
-        |> Combine.keep genericListEquals
-        |> Combine.keep valueConstructors
+                                        -- should not happen
+                                        [] ->
+                                            locationEmpty
+                            in
+                            Node { start = start, end = end }
+                                (Declaration.CustomTypeDeclaration
+                                    { documentation = documentation
+                                    , name = name
+                                    , generics = generics
+                                    , constructors = List.reverse constructors
+                                    }
+                                )
+            )
+            typeNameLayout
+            |> Combine.keep genericListEquals
+            |> Combine.keep valueConstructors
+        ]
 
 
 locationEmpty : Location

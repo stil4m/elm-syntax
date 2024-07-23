@@ -2,7 +2,6 @@ module Elm.Parser.TypingsTests exposing (all)
 
 import Combine
 import Elm.Parser.CombineTestUtil as CombineTestUtil exposing (..)
-import Elm.Parser.State exposing (State)
 import Elm.Parser.Typings as Parser
 import Elm.Syntax.Declaration as Declaration exposing (Declaration(..))
 import Elm.Syntax.Documentation exposing (Documentation)
@@ -232,7 +231,7 @@ all =
                         )
         , test "type with value on next line " <|
             \() ->
-                parse "type Maybe a = Just a |\nNothing" typeDefinitionWithoutDocumentation
+                parse "type Maybe a = Just a |\nNothing" Parser.typeOrTypeAliasDefinitionWithoutDocumentation
                     |> Expect.equal Nothing
         , test "type with spacing after " <|
             \() ->
@@ -255,22 +254,20 @@ all =
 
 expectAst : Node Declaration -> String -> Expect.Expectation
 expectAst =
-    CombineTestUtil.expectAst typeDefinitionWithoutDocumentation
+    CombineTestUtil.expectAst Parser.typeOrTypeAliasDefinitionWithoutDocumentation
 
 
 expectAstWithDocs : Node Documentation -> Node Declaration -> String -> Expect.Expectation
 expectAstWithDocs documentation =
-    CombineTestUtil.expectAst (Parser.typeDefinitionAfterDocumentation documentation)
+    CombineTestUtil.expectAst
+        (Parser.typeOrTypeAliasDefinitionAfterDocumentation
+            |> Combine.andThen
+                (\fromDocumentation ->
+                    fromDocumentation documentation
+                )
+        )
 
 
 expectInvalid : String -> Expect.Expectation
 expectInvalid =
-    CombineTestUtil.expectInvalid typeDefinitionWithoutDocumentation
-
-
-typeDefinitionWithoutDocumentation : Combine.Parser State (Node Declaration)
-typeDefinitionWithoutDocumentation =
-    Combine.oneOf
-        [ Parser.typeAliasDefinitionWithoutDocumentationWithBacktrackableTypePrefix
-        , Parser.customTypeDefinitionWithoutDocumentation
-        ]
+    CombineTestUtil.expectInvalid Parser.typeOrTypeAliasDefinitionWithoutDocumentation

@@ -9,8 +9,8 @@ import Elm.Parser.Patterns exposing (pattern)
 import Elm.Parser.State as State exposing (State)
 import Elm.Parser.Tokens as Tokens
 import Elm.Parser.TypeAnnotation as TypeAnnotation exposing (typeAnnotation)
-import Elm.Parser.Typings exposing (customTypeDefinitionWithoutDocumentation, typeAliasDefinitionWithoutDocumentationWithBacktrackableTypePrefix, typeDefinitionAfterDocumentation)
-import Elm.Syntax.Declaration as Declaration exposing (Declaration(..))
+import Elm.Parser.Typings exposing (typeOrTypeAliasDefinitionAfterDocumentation, typeOrTypeAliasDefinitionWithoutDocumentation)
+import Elm.Syntax.Declaration as Declaration exposing (Declaration)
 import Elm.Syntax.Documentation exposing (Documentation)
 import Elm.Syntax.Infix as Infix
 import Elm.Syntax.Node as Node exposing (Node(..))
@@ -24,152 +24,96 @@ import Parser as Core exposing ((|.), (|=))
 declaration : Parser State (Node Declaration)
 declaration =
     Combine.oneOf
-        [ Comments.declarationDocumentation
+        [ Core.map (\documentation -> \withDocumentation -> withDocumentation documentation)
+            Comments.declarationDocumentation
             |> Combine.fromCoreIgnore Layout.layoutStrict
-            |> Combine.andThen
-                (\documentation ->
-                    Combine.oneOf
-                        [ functionAfterDocumentation documentation
-                        , typeDefinitionAfterDocumentation documentation
-                        , portDeclaration documentation
-                        ]
+            |> Combine.keep
+                (Combine.oneOf
+                    [ functionAfterDocumentation
+                    , typeOrTypeAliasDefinitionAfterDocumentation
+                    , portDeclaration
+                    ]
                 )
+            |> Combine.andThen identity
         , infixDeclaration
-
-        -- if there is no type annotation (which should be rather rare in practice),
-        -- this will parse the name + maybe layout twice.
-        -- However, this allows us to pre-define this parser without needing `andThen`,
-        -- which does make up for it (if you don't have very long function names or big comments between the name and the `:`)
-        , functionDeclarationWithoutDocumentationWithSignatureWithNameAndMaybeLayoutBacktrackable
-
-        -- Unlike typeDefinitionAfterDocumentation, we _need_ the position before the `type` token,
-        -- so without using backtrackable, we would need an `andThen` to construct the rest of the parser
-        -- which is bad for performance.
-        -- The current tradeoff does indeed perform worse when there's a big comment between `type` and `alias`.
-        -- However, this seems incredibly rare in practice.
-        , typeAliasDefinitionWithoutDocumentationWithBacktrackableTypePrefix
-        , customTypeDefinitionWithoutDocumentation
-
-        --
-        , functionDeclarationWithoutDocumentationWithoutSignature
+        , functionDeclarationWithoutDocumentation
+        , typeOrTypeAliasDefinitionWithoutDocumentation
         , portDeclarationWithoutDocumentation
         ]
 
 
-functionAfterDocumentation : Node Documentation -> Parser State (Node Declaration)
-functionAfterDocumentation documentation =
-    functionNameMaybeLayout
-        |> Combine.andThen
-            (\startName ->
-                functionWithNameNode (Node.range documentation).start startName (Just documentation)
-            )
+functionAfterDocumentation : Parser State (Node Documentation -> Parser State (Node Declaration))
+functionAfterDocumentation =
+    Combine.map
+        (\startName ->
+            \fromStartStartNameDocumentation ->
+                \documentation ->
+                    fromStartStartNameDocumentation (Node.range documentation).start startName (Just documentation)
+        )
+        functionNameMaybeLayout
+        |> Combine.keep functionDeclarationWith
 
 
-functionWithNameNode : Location -> Node String -> Maybe (Node String) -> Parser State (Node Declaration)
-functionWithNameNode start ((Node _ startName) as startNameNode) maybeDocumentation =
+functionDeclarationWith : Parser State (Location -> Node String -> Maybe (Node String) -> Parser State (Node Declaration))
+functionDeclarationWith =
     Combine.oneOf
         [ Combine.map
             (\typeAnnotation ->
-                \((Node implementationNameRange _) as implementationName) ->
+                \((Node implementationNameRange implementationName) as implementationNameNode) ->
                     \arguments ->
                         \((Node { end } _) as expression) ->
-                            Node { start = start, end = end }
-                                (Declaration.FunctionDeclaration
-                                    { documentation = maybeDocumentation
-                                    , signature = Just (Node.combine Signature startNameNode typeAnnotation)
-                                    , declaration =
-                                        Node { start = implementationNameRange.start, end = end }
-                                            { name = implementationName, arguments = arguments, expression = expression }
-                                    }
-                                )
+                            \start ((Node _ startName) as startNameNode) maybeDocumentation ->
+                                if implementationName == startName then
+                                    Combine.succeed
+                                        (Node { start = start, end = end }
+                                            (Declaration.FunctionDeclaration
+                                                { documentation = maybeDocumentation
+                                                , signature = Just (Node.combine Signature startNameNode typeAnnotation)
+                                                , declaration =
+                                                    Node { start = implementationNameRange.start, end = end }
+                                                        { name = implementationNameNode, arguments = arguments, expression = expression }
+                                                }
+                                            )
+                                        )
+
+                                else
+                                    Combine.problem
+                                        ("Expected to find the declaration for " ++ startName ++ " but found " ++ implementationName)
             )
             colonMaybeLayoutTypeAnnotationLayout
-            |> Combine.keep
-                (functionNameMaybeLayout
-                    |> Combine.andThen
-                        (\((Node _ implementationName) as implementationNameNode) ->
-                            if implementationName == startName then
-                                Combine.succeed implementationNameNode
-
-                            else
-                                Combine.problem
-                                    ("Expected to find the declaration for " ++ startName ++ " but found " ++ implementationName)
-                        )
-                )
+            |> Combine.keep functionNameMaybeLayout
             |> Combine.keep patternListEqualsMaybeLayout
             |> Combine.keep expression
         , Combine.map
             (\args ->
                 \((Node { end } _) as expression) ->
-                    Node { start = start, end = end }
-                        (Declaration.FunctionDeclaration
-                            { documentation = maybeDocumentation
-                            , signature = Nothing
-                            , declaration =
-                                Node { start = (Node.range startNameNode).start, end = end }
-                                    { name = startNameNode, arguments = args, expression = expression }
-                            }
-                        )
+                    \start startNameNode maybeDocumentation ->
+                        Node { start = start, end = end }
+                            (Declaration.FunctionDeclaration
+                                { documentation = maybeDocumentation
+                                , signature = Nothing
+                                , declaration =
+                                    Node { start = (Node.range startNameNode).start, end = end }
+                                        { name = startNameNode, arguments = args, expression = expression }
+                                }
+                            )
+                            |> Combine.succeed
             )
             patternListEqualsMaybeLayout
             |> Combine.keep expression
         ]
 
 
-functionDeclarationWithoutDocumentationWithSignatureWithNameAndMaybeLayoutBacktrackable : Parser State (Node Declaration)
-functionDeclarationWithoutDocumentationWithSignatureWithNameAndMaybeLayoutBacktrackable =
+functionDeclarationWithoutDocumentation : Parser State (Node Declaration)
+functionDeclarationWithoutDocumentation =
     Combine.map
-        (\((Node { start } startName) as startNameNode) ->
-            \typeAnnotation ->
-                \((Node implementationNameRange implementationName) as implementationNameNode) ->
-                    \arguments ->
-                        \((Node { end } _) as result) ->
-                            if implementationName == startName then
-                                Combine.succeed
-                                    (Node { start = start, end = end }
-                                        (FunctionDeclaration
-                                            { documentation = Nothing
-                                            , signature = Just (Node.combine Signature startNameNode typeAnnotation)
-                                            , declaration =
-                                                Node { start = implementationNameRange.start, end = end }
-                                                    { name = implementationNameNode, arguments = arguments, expression = result }
-                                            }
-                                        )
-                                    )
-
-                            else
-                                Combine.problem
-                                    ("Expected to find the declaration for " ++ startName ++ " but found " ++ implementationName)
-        )
-        (functionNameMaybeLayout
-            |> Combine.backtrackable
-        )
-        |> Combine.keep colonMaybeLayoutTypeAnnotationLayout
-        |> Combine.keep functionNameMaybeLayout
-        |> Combine.keep patternListEqualsMaybeLayout
-        |> Combine.keep expression
-        |> Combine.andThen identity
-
-
-functionDeclarationWithoutDocumentationWithoutSignature : Parser State (Node Declaration)
-functionDeclarationWithoutDocumentationWithoutSignature =
-    Combine.map
-        (\((Node { start } _) as startNameNode) ->
-            \args ->
-                \((Node { end } _) as result) ->
-                    Node { start = start, end = end }
-                        (FunctionDeclaration
-                            { documentation = Nothing
-                            , signature = Nothing
-                            , declaration =
-                                Node { start = start, end = end }
-                                    { name = startNameNode, arguments = args, expression = result }
-                            }
-                        )
+        (\((Node startNameRange _) as startName) ->
+            \fromStartStartNameDocumentation ->
+                fromStartStartNameDocumentation startNameRange.start startName Nothing
         )
         functionNameMaybeLayout
-        |> Combine.keep patternListEqualsMaybeLayout
-        |> Combine.keep expression
+        |> Combine.keep functionDeclarationWith
+        |> Combine.andThen identity
 
 
 functionNameMaybeLayout : Parser State (Node String)
@@ -242,23 +186,28 @@ infixDirection =
         |> Node.parserCore
 
 
-portDeclaration : Node Documentation -> Parser State (Node Declaration)
-portDeclaration documentation =
-    Combine.map
-        (\() ->
-            \( startRow, startColumn ) ->
-                \name ->
-                    \((Node { end } _) as typeAnnotation) ->
-                        Node
-                            { start = { row = startRow, column = startColumn }
-                            , end = end
-                            }
-                            (Declaration.PortDeclaration { name = name, typeAnnotation = typeAnnotation })
+portDeclaration : Parser State (Node Documentation -> Parser State (Node Declaration))
+portDeclaration =
+    -- we have to construct the whole parser inside succeed because we need to guarantee that the comment
+    -- order is preserved
+    Combine.succeed
+        (\documentation ->
+            Combine.map
+                (\() ->
+                    \( startRow, startColumn ) ->
+                        \name ->
+                            \((Node { end } _) as typeAnnotation) ->
+                                Node
+                                    { start = { row = startRow, column = startColumn }
+                                    , end = end
+                                    }
+                                    (Declaration.PortDeclaration { name = name, typeAnnotation = typeAnnotation })
+                )
+                (Combine.modifyState (State.addComment documentation))
+                |> Combine.keep getPositionPortTokenLayout
+                |> Combine.keep functionNameLayoutColonLayout
+                |> Combine.keep typeAnnotation
         )
-        (Combine.modifyState (State.addComment documentation))
-        |> Combine.keep getPositionPortTokenLayout
-        |> Combine.keep functionNameLayoutColonLayout
-        |> Combine.keep typeAnnotation
 
 
 functionNameLayoutColonLayout : Parser State (Node String)
