@@ -27,7 +27,23 @@ layout =
 optimisticLayoutWith : (() -> a) -> (() -> Parser State a) -> Parser State a
 optimisticLayoutWith onStrict onIndented =
     optimisticLayout
-        |> Combine.continueWith (compute onStrict onIndented)
+        |> Combine.continueWith
+            (Combine.withColumn
+                (\column ->
+                    if column == 1 then
+                        Combine.succeed (onStrict ())
+
+                    else
+                        Combine.withState
+                            (\state ->
+                                if List.member column (State.storedColumns state) then
+                                    Combine.succeed (onStrict ())
+
+                                else
+                                    onIndented ()
+                            )
+                )
+            )
 
 
 optimisticLayout : Parser State ()
@@ -43,25 +59,6 @@ optimisticLayout =
             , Comments.singleLineComment
             , Comments.multilineComment
             ]
-        )
-
-
-compute : (() -> a) -> (() -> Parser State a) -> Parser State a
-compute onStrict onIndented =
-    Combine.withColumn
-        (\column ->
-            if column == 1 then
-                Combine.succeed (onStrict ())
-
-            else
-                Combine.withState
-                    (\state ->
-                        if List.member column (State.storedColumns state) then
-                            Combine.succeed (onStrict ())
-
-                        else
-                            onIndented ()
-                    )
         )
 
 
