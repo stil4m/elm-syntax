@@ -11,8 +11,13 @@ anyChar =
             (\s ->
                 case String.toList s of
                     [] ->
-                        Core.problem "expected any character"
+                        problemAnyCharacter
 
                     c :: _ ->
                         Core.succeed c
             )
+
+
+problemAnyCharacter : Core.Parser a
+problemAnyCharacter =
+    Core.problem "expected any character"

@@ -42,11 +42,16 @@ multilineCommentInner =
     Core.oneOf
         [ Core.symbol "{-|"
             |> Core.backtrackable
-            |> Core.map (\() -> Core.problem "unexpected multiline comment")
+            |> Core.map (\() -> problemUnexpected)
         , Core.multiComment "{-" "-}" Nestable
             |> Core.mapChompedString (\comment () -> Core.succeed comment)
         ]
         |> Core.andThen identity
+
+
+problemUnexpected : Core.Parser a
+problemUnexpected =
+    Core.problem "unexpected documentation comment"
 
 
 multilineComment : Parser State ()

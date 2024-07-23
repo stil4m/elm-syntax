@@ -113,9 +113,14 @@ onTopIndentation =
                         Combine.succeed ()
 
                     else
-                        Combine.problem "must be on top indentation"
+                        problemTopIndentation
                 )
         )
+
+
+problemTopIndentation : Combine.Parser state a
+problemTopIndentation =
+    Combine.problem "must be on top indentation"
 
 
 positivelyIndented : Parser State ()

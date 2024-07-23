@@ -118,12 +118,17 @@ recordAccessParser =
         |> Core.andThen
             (\c ->
                 if c == " " || c == "\n" || c == "\u{000D}" then
-                    Core.problem "Record access can't start with a space"
+                    problemRecordAccessStartingWithSpace
 
                 else
                     dotField
             )
         |> Combine.fromCore
+
+
+problemRecordAccessStartingWithSpace : Core.Parser a
+problemRecordAccessStartingWithSpace =
+    Core.problem "Record access can't start with a space"
 
 
 dotField : Core.Parser (Node String)
@@ -559,10 +564,15 @@ minusNotFollowedBySpace =
         |= Core.oneOf
             [ Core.chompIf (\next -> next == '\u{000D}' || next == '\n' || next == ' ')
                 |> Core.backtrackable
-                |> Core.map (\() -> Core.problem "negation sign cannot be followed by a space")
+                |> Core.map (\() -> problemNegationThenSpace)
             , Core.succeed (Core.commit ())
             ]
         |> Core.andThen identity
+
+
+problemNegationThenSpace : Core.Parser a
+problemNegationThenSpace =
+    Core.problem "negation sign cannot be followed by a space"
 
 
 referenceExpression : Parser State Expression
