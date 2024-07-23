@@ -7,7 +7,6 @@ import Elm.Parser.State exposing (State)
 import Elm.Parser.Tokens as Tokens
 import Elm.Syntax.ModuleName exposing (ModuleName)
 import Elm.Syntax.Node as Node exposing (Node(..))
-import Elm.Syntax.Range exposing (Range)
 import Elm.Syntax.TypeAnnotation as TypeAnnotation exposing (TypeAnnotation)
 import Parser as Core exposing ((|=))
 
@@ -44,6 +43,7 @@ typeAnnotationNoFnExcludingTypedWithArguments =
         , genericTypeAnnotation
         , recordTypeAnnotation
         ]
+        |> Node.parser
 
 
 typeAnnotationNoFnIncludingTypedWithArguments : Parser State (Node TypeAnnotation)
@@ -54,6 +54,7 @@ typeAnnotationNoFnIncludingTypedWithArguments =
         , genericTypeAnnotation
         , recordTypeAnnotation
         ]
+        |> Node.parser
 
 
 typeAnnotationNoFnIncludingTypedWithArgumentsLazy : Parser State (Node TypeAnnotation)
@@ -61,12 +62,7 @@ typeAnnotationNoFnIncludingTypedWithArgumentsLazy =
     Combine.lazy (\() -> typeAnnotationNoFnIncludingTypedWithArguments)
 
 
-typeAnnotationNoFnExcludingTypedWithArgumentsLazy : Parser State (Node TypeAnnotation)
-typeAnnotationNoFnExcludingTypedWithArgumentsLazy =
-    Combine.lazy (\() -> typeAnnotationNoFnExcludingTypedWithArguments)
-
-
-parensTypeAnnotation : Parser State (Node TypeAnnotation)
+parensTypeAnnotation : Parser State TypeAnnotation
 parensTypeAnnotation =
     Tokens.parensStart
         |> Combine.continueFromCore
@@ -76,7 +72,6 @@ parensTypeAnnotation =
                 , parensTypeAnnotationInnerNested |> Combine.ignoreEntirely Tokens.parensEnd
                 ]
             )
-        |> Node.parser
 
 
 parensTypeAnnotationInnerCommaSep : Parser State (List (Node TypeAnnotation))
@@ -108,11 +103,10 @@ asTypeAnnotation ((Node _ value) as x) xs =
             TypeAnnotation.Tupled (x :: xs)
 
 
-genericTypeAnnotation : Parser state (Node TypeAnnotation)
+genericTypeAnnotation : Parser state TypeAnnotation
 genericTypeAnnotation =
     Tokens.functionName
         |> Core.map TypeAnnotation.GenericType
-        |> Node.parserCore
         |> Combine.fromCore
 
 
@@ -121,7 +115,7 @@ recordFieldsTypeAnnotation =
     Combine.sepBy1 "," (Layout.maybeAroundBothSides <| Node.parser recordFieldDefinition)
 
 
-recordTypeAnnotation : Parser State (Node TypeAnnotation)
+recordTypeAnnotation : Parser State TypeAnnotation
 recordTypeAnnotation =
     Tokens.curlyStart
         |> Combine.continueFromCore (Combine.maybeIgnore Layout.layout)
@@ -142,7 +136,6 @@ recordTypeAnnotation =
                         )
                 ]
             )
-        |> Node.parser
 
 
 pipeRecordFieldsTypeAnnotationNodeCurlyEnd : Parser State (Node TypeAnnotation.RecordDefinition)
@@ -187,23 +180,10 @@ recordFieldDefinition =
         |> Combine.keep typeAnnotation
 
 
-typedTypeAnnotationWithArguments : Parser State (Node TypeAnnotation)
-typedTypeAnnotationWithArguments =
-    typeIndicator
-        |> Combine.andThenFromCore
-            (\((Node tir _) as original) ->
-                Layout.optimisticLayoutWith
-                    (\() -> Node tir (TypeAnnotation.Typed original []))
-                    (\() -> eagerTypedTypeAnnotation original)
-            )
-
-
-typedTypeAnnotationWithoutArguments : Parser State (Node TypeAnnotation)
+typedTypeAnnotationWithoutArguments : Parser State TypeAnnotation
 typedTypeAnnotationWithoutArguments =
     Combine.fromCoreMap
-        (\((Node tir _) as original) ->
-            Node tir (TypeAnnotation.Typed original [])
-        )
+        (\original -> TypeAnnotation.Typed original [])
         typeIndicator
 
 
@@ -229,37 +209,14 @@ dotTypeName =
         |= Tokens.typeName
 
 
-eagerTypedTypeAnnotation : Node ( ModuleName, String ) -> Parser State (Node TypeAnnotation)
-eagerTypedTypeAnnotation ((Node range _) as original) =
-    eagerTypedTypeAnnotationInnerGenericHelper []
-        |> Combine.map
-            (\args ->
-                let
-                    endRange : Range
-                    endRange =
-                        case args of
-                            (Node argRange _) :: _ ->
-                                argRange
-
-                            [] ->
-                                range
-                in
-                Node
-                    { start = range.start, end = endRange.end }
-                    (TypeAnnotation.Typed original (List.reverse args))
-            )
-
-
-eagerTypedTypeAnnotationInnerGenericHelper : List (Node TypeAnnotation) -> Parser State (List (Node TypeAnnotation))
-eagerTypedTypeAnnotationInnerGenericHelper items =
-    Combine.oneOf
-        [ typeAnnotationNoFnExcludingTypedWithArgumentsLazy
-            |> Combine.andThen
-                (\next ->
-                    Layout.optimisticLayoutWith
-                        (\() -> next :: items)
-                        (\() -> eagerTypedTypeAnnotationInnerGenericHelper (next :: items))
-                        |> Combine.ignore (Combine.maybeIgnore Layout.layout)
+typedTypeAnnotationWithArguments : Parser State TypeAnnotation
+typedTypeAnnotationWithArguments =
+    Core.map (\qualified -> \args -> TypeAnnotation.Typed qualified args)
+        typeIndicator
+        |> Combine.fromCoreKeep
+            (Combine.many
+                (Combine.maybeIgnore Layout.layout
+                    |> Combine.backtrackable
+                    |> Combine.continueWith typeAnnotationNoFnExcludingTypedWithArguments
                 )
-        , Combine.succeed items
-        ]
+            )

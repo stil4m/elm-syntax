@@ -510,7 +510,7 @@ colonMaybeLayout =
 typeAnnotationLayout : Parser State (Node TypeAnnotation)
 typeAnnotationLayout =
     TypeAnnotation.typeAnnotation
-        |> Combine.ignore (Combine.maybeIgnore Layout.layoutStrict)
+        |> Combine.ignore Layout.layoutStrict
 
 
 patternListEqualsMaybeLayout : Parser State (List (Node Pattern))
