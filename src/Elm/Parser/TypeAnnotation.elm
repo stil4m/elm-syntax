@@ -127,7 +127,7 @@ recordTypeAnnotation =
         |> Combine.continueFromCore (Combine.maybeIgnore Layout.layout)
         |> Combine.continueWith
             (Combine.oneOf
-                [ Core.map (\() -> TypeAnnotation.Record []) Tokens.curlyEnd |> Combine.fromCore
+                [ Combine.fromCoreMap (\() -> TypeAnnotation.Record []) Tokens.curlyEnd
                 , Node.parserCore Tokens.functionName
                     |> Combine.fromCoreIgnore (Combine.maybeIgnore Layout.layout)
                     |> Combine.andThen

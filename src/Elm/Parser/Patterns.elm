@@ -120,14 +120,12 @@ qualifiedPatternArg =
 
 allPattern : Parser state Pattern
 allPattern =
-    Core.map (\() -> AllPattern) (Core.symbol "_")
-        |> Combine.fromCore
+    Combine.fromCoreMap (\() -> AllPattern) (Core.symbol "_")
 
 
 unitPattern : Parser state Pattern
 unitPattern =
-    Core.map (\() -> UnitPattern) (Core.symbol "()")
-        |> Combine.fromCore
+    Combine.fromCoreMap (\() -> UnitPattern) (Core.symbol "()")
 
 
 stringPattern : Parser state Pattern
@@ -165,8 +163,7 @@ qualifiedPatternWithConsumeArgs : Parser State Pattern
 qualifiedPatternWithConsumeArgs =
     Core.map (\qualified -> \args -> NamedPattern qualified args)
         qualifiedNameRef
-        |> Combine.fromCore
-        |> Combine.keep emptyOrFilledArgumentPatterns
+        |> Combine.fromCoreKeep emptyOrFilledArgumentPatterns
 
 
 emptyOrFilledArgumentPatterns : Parser State (List (Node Pattern))
@@ -207,11 +204,10 @@ recordPattern =
         (Combine.maybeIgnore Layout.layout
             |> Combine.continueWith
                 (Combine.sepBy ","
-                    (Layout.maybeAroundBothSides
-                        (Tokens.functionName
-                            |> Node.parserCore
-                            |> Combine.fromCore
-                        )
+                    (Combine.maybeIgnore Layout.layout
+                        |> Combine.continueWithCore
+                            (Tokens.functionName |> Node.parserCore)
+                        |> Combine.ignore (Combine.maybeIgnore Layout.layout)
                     )
                 )
         )
