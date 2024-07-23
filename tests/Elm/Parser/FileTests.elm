@@ -28,7 +28,7 @@ all =
         [ describe "FileTests" <|
             List.map
                 (\( n, s ) ->
-                    test ("sample " ++ String.fromInt (n + 1)) <|
+                    test ("sample " ++ String.fromInt n) <|
                         \() ->
                             case Combine.runParser (Parser.file |> Combine.ignore Combine.end) emptyState s of
                                 Err error ->
@@ -58,7 +58,7 @@ all =
             (Samples.allSamples
                 |> List.map
                     (\( n, s ) ->
-                        test ("sample " ++ String.fromInt (n + 1)) <|
+                        test ("sample " ++ String.fromInt n) <|
                             \() ->
                                 let
                                     parsed : Maybe RawFile
