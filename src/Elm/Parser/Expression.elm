@@ -12,10 +12,8 @@ import Elm.Syntax.Expression as Expression exposing (Case, Cases, Expression(..)
 import Elm.Syntax.Infix as Infix
 import Elm.Syntax.ModuleName exposing (ModuleName)
 import Elm.Syntax.Node as Node exposing (Node(..))
-import Elm.Syntax.Pattern exposing (Pattern)
 import Elm.Syntax.Range exposing (Location)
 import Elm.Syntax.Signature exposing (Signature)
-import Elm.Syntax.TypeAnnotation exposing (TypeAnnotation)
 import Parser as Core exposing ((|.), (|=), Nestable(..))
 
 
