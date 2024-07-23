@@ -395,11 +395,7 @@ blockElement =
     Layout.onTopIndentation ()
         |> Combine.continueWith
             (Combine.oneOf
-                [ -- if there is no type annotation, this will parse the name + maybe layout twice.
-                  -- However, this allows us to pre-define this parser without needing `andThen`,
-                  -- which does make up for it (if you don't have very long let names or big comments between the name and the `:`)
-                  letFunctionWithSignatureWithNameAndMaybeLayoutBacktrackable
-                , letFunctionWithoutSignature
+                [ letFunction
                 , letDestructuringDeclaration
                 ]
             )
@@ -417,87 +413,72 @@ letDestructuringDeclaration =
         |> Combine.keep expression
 
 
-letFunctionWithSignatureWithNameAndMaybeLayoutBacktrackable : Parser State (Node LetDeclaration)
-letFunctionWithSignatureWithNameAndMaybeLayoutBacktrackable =
-    Combine.map
-        (\((Node { start } startName) as startNameNode) ->
-            \typeAnnotation ->
-                \((Node implementationNameRange implementationName) as implementationNameNode) ->
-                    \arguments ->
-                        \((Node { end } _) as result) ->
-                            if implementationName == startName then
-                                Combine.succeed
-                                    (Node { start = start, end = end }
-                                        (LetFunction
-                                            { documentation = Nothing
-                                            , signature = Just (Node.combine Signature startNameNode typeAnnotation)
-                                            , declaration =
-                                                Node { start = implementationNameRange.start, end = end }
-                                                    { name = implementationNameNode, arguments = arguments, expression = result }
-                                            }
-                                        )
-                                    )
+letFunction : Parser State (Node LetDeclaration)
+letFunction =
+    Core.map
+        (\startNameNode -> \with -> with startNameNode)
+        (Tokens.functionName |> Node.parserCore)
+        |> Combine.fromCoreIgnore (Combine.maybeIgnore Layout.layout)
+        |> Combine.keep
+            (Combine.oneOf
+                [ Core.map
+                    (\() ->
+                        \typeAnnotation ->
+                            \((Node implementationNameRange implementationName) as implementationNameNode) ->
+                                \arguments ->
+                                    \((Node { end } _) as result) ->
+                                        \((Node { start } startName) as startNameNode) ->
+                                            if implementationName == startName then
+                                                Core.succeed
+                                                    (Node { start = start, end = end }
+                                                        (LetFunction
+                                                            { documentation = Nothing
+                                                            , signature = Just (Node.combine Signature startNameNode typeAnnotation)
+                                                            , declaration =
+                                                                Node { start = implementationNameRange.start, end = end }
+                                                                    { name = implementationNameNode, arguments = arguments, expression = result }
+                                                            }
+                                                        )
+                                                    )
 
-                            else
-                                Combine.problem
-                                    ("Expected to find the declaration for " ++ startName ++ " but found " ++ implementationName)
-        )
-        (functionNameMaybeLayout
-            |> Combine.backtrackable
-        )
-        |> Combine.ignore colonMaybeLayout
-        |> Combine.keep typeAnnotationLayout
-        |> Combine.keep functionNameMaybeLayout
-        |> Combine.keep patternListEqualsMaybeLayout
-        |> Combine.keep expression
-        |> Combine.andThen identity
-
-
-letFunctionWithoutSignature : Parser State (Node LetDeclaration)
-letFunctionWithoutSignature =
-    Combine.map
-        (\((Node { start } _) as startNameNode) ->
-            \args ->
-                \((Node { end } _) as result) ->
-                    Node { start = start, end = end }
-                        (LetFunction
-                            { documentation = Nothing
-                            , signature = Nothing
-                            , declaration =
-                                Node { start = start, end = end }
-                                    { name = startNameNode, arguments = args, expression = result }
-                            }
+                                            else
+                                                Core.problem
+                                                    ("Expected to find the declaration for " ++ startName ++ " but found " ++ implementationName)
+                    )
+                    Tokens.colon
+                    |> Combine.fromCoreIgnore (Combine.maybeIgnore Layout.layout)
+                    |> Combine.keep
+                        (TypeAnnotation.typeAnnotation
+                            |> Combine.ignore Layout.layoutStrict
                         )
-        )
-        functionNameMaybeLayout
-        |> Combine.keep patternListEqualsMaybeLayout
-        |> Combine.keep expression
-
-
-functionNameMaybeLayout : Parser State (Node String)
-functionNameMaybeLayout =
-    Tokens.functionName
-        |> Node.parserCore
-        |> Combine.fromCoreIgnore (Combine.maybeIgnore Layout.layout)
-
-
-colonMaybeLayout : Parser State ()
-colonMaybeLayout =
-    Tokens.colon
-        |> Combine.fromCoreIgnore (Combine.maybeIgnore Layout.layout)
-
-
-typeAnnotationLayout : Parser State (Node TypeAnnotation)
-typeAnnotationLayout =
-    TypeAnnotation.typeAnnotation
-        |> Combine.ignore Layout.layoutStrict
-
-
-patternListEqualsMaybeLayout : Parser State (List (Node Pattern))
-patternListEqualsMaybeLayout =
-    Combine.many (Patterns.pattern |> Combine.ignore (Combine.maybeIgnore Layout.layout))
-        |> Combine.ignoreEntirely Tokens.equal
-        |> Combine.ignore (Combine.maybeIgnore Layout.layout)
+                    |> Combine.keepFromCore (Tokens.functionName |> Node.parserCore)
+                    |> Combine.ignore (Combine.maybeIgnore Layout.layout)
+                    |> Combine.keep (Combine.many (Patterns.pattern |> Combine.ignore (Combine.maybeIgnore Layout.layout)))
+                    |> Combine.ignoreEntirely Tokens.equal
+                    |> Combine.ignore (Combine.maybeIgnore Layout.layout)
+                    |> Combine.keep expression
+                , Combine.map
+                    (\args ->
+                        \((Node { end } _) as result) ->
+                            \((Node { start } _) as startNameNode) ->
+                                Node { start = start, end = end }
+                                    (LetFunction
+                                        { documentation = Nothing
+                                        , signature = Nothing
+                                        , declaration =
+                                            Node { start = start, end = end }
+                                                { name = startNameNode, arguments = args, expression = result }
+                                        }
+                                    )
+                                    |> Core.succeed
+                    )
+                    (Combine.many (Patterns.pattern |> Combine.ignore (Combine.maybeIgnore Layout.layout)))
+                    |> Combine.ignoreEntirely Tokens.equal
+                    |> Combine.ignore (Combine.maybeIgnore Layout.layout)
+                    |> Combine.keep expression
+                ]
+            )
+        |> Combine.andThen Combine.fromCore
 
 
 numberExpression : Parser State Expression
