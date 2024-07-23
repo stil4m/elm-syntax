@@ -1,4 +1,4 @@
-module Elm.Parser.TypeAnnotation exposing (typeAnnotation, typeAnnotationNonGreedy)
+module Elm.Parser.TypeAnnotation exposing (typeAnnotation, typeAnnotationNoFnExcludingTypedWithArguments)
 
 import Combine exposing (Parser)
 import Elm.Parser.Layout as Layout
@@ -12,14 +12,9 @@ import Elm.Syntax.TypeAnnotation as TypeAnnotation exposing (TypeAnnotation)
 import Parser as Core exposing ((|.), (|=))
 
 
-type Mode
-    = Eager
-    | Lazy
-
-
 typeAnnotation : Parser State (Node TypeAnnotation)
 typeAnnotation =
-    typeAnnotationNoFn Eager
+    typeAnnotationNoFnIncludingTypedWithArgumentsLazy
         |> Combine.andThen
             (\typeRef ->
                 Layout.optimisticLayoutWith
@@ -41,27 +36,34 @@ arrowRightToTypeAnnotation =
         |> Combine.continueWith typeAnnotation
 
 
-typeAnnotationNonGreedy : Parser State (Node TypeAnnotation)
-typeAnnotationNonGreedy =
+typeAnnotationNoFnExcludingTypedWithArguments : Parser State (Node TypeAnnotation)
+typeAnnotationNoFnExcludingTypedWithArguments =
     Combine.oneOf
         [ parensTypeAnnotation
-        , typedTypeAnnotation Lazy
+        , typedTypeAnnotationWithoutArguments
         , genericTypeAnnotation
         , recordTypeAnnotation
         ]
 
 
-typeAnnotationNoFn : Mode -> Parser State (Node TypeAnnotation)
-typeAnnotationNoFn mode =
-    Combine.lazy
-        (\() ->
-            Combine.oneOf
-                [ parensTypeAnnotation
-                , typedTypeAnnotation mode
-                , genericTypeAnnotation
-                , recordTypeAnnotation
-                ]
-        )
+typeAnnotationNoFnIncludingTypedWithArguments : Parser State (Node TypeAnnotation)
+typeAnnotationNoFnIncludingTypedWithArguments =
+    Combine.oneOf
+        [ parensTypeAnnotation
+        , typedTypeAnnotationWithArguments
+        , genericTypeAnnotation
+        , recordTypeAnnotation
+        ]
+
+
+typeAnnotationNoFnIncludingTypedWithArgumentsLazy : Parser State (Node TypeAnnotation)
+typeAnnotationNoFnIncludingTypedWithArgumentsLazy =
+    Combine.lazy (\() -> typeAnnotationNoFnIncludingTypedWithArguments)
+
+
+typeAnnotationNoFnExcludingTypedWithArgumentsLazy : Parser State (Node TypeAnnotation)
+typeAnnotationNoFnExcludingTypedWithArgumentsLazy =
+    Combine.lazy (\() -> typeAnnotationNoFnExcludingTypedWithArguments)
 
 
 parensTypeAnnotation : Parser State (Node TypeAnnotation)
@@ -185,22 +187,24 @@ recordFieldDefinition =
         |> Combine.keep typeAnnotation
 
 
-typedTypeAnnotation : Mode -> Parser State (Node TypeAnnotation)
-typedTypeAnnotation mode =
+typedTypeAnnotationWithArguments : Parser State (Node TypeAnnotation)
+typedTypeAnnotationWithArguments =
     typeIndicator
         |> Combine.andThenFromCore
             (\((Node tir _) as original) ->
                 Layout.optimisticLayoutWith
                     (\() -> Node tir (TypeAnnotation.Typed original []))
-                    (\() ->
-                        case mode of
-                            Eager ->
-                                eagerTypedTypeAnnotation original
-
-                            Lazy ->
-                                Combine.succeed (Node tir (TypeAnnotation.Typed original []))
-                    )
+                    (\() -> eagerTypedTypeAnnotation original)
             )
+
+
+typedTypeAnnotationWithoutArguments : Parser State (Node TypeAnnotation)
+typedTypeAnnotationWithoutArguments =
+    Combine.fromCoreMap
+        (\((Node tir _) as original) ->
+            Node tir (TypeAnnotation.Typed original [])
+        )
+        typeIndicator
 
 
 typeIndicator : Core.Parser (Node ( ModuleName, String ))
@@ -250,7 +254,7 @@ eagerTypedTypeAnnotation ((Node range _) as original) =
 eagerTypedTypeAnnotationInnerGenericHelper : List (Node TypeAnnotation) -> Parser State (List (Node TypeAnnotation))
 eagerTypedTypeAnnotationInnerGenericHelper items =
     Combine.oneOf
-        [ typeAnnotationNoFn Lazy
+        [ typeAnnotationNoFnExcludingTypedWithArgumentsLazy
             |> Combine.andThen
                 (\next ->
                     Layout.optimisticLayoutWith

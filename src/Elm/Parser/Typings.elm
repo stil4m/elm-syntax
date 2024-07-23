@@ -5,7 +5,7 @@ import Elm.Parser.Layout as Layout
 import Elm.Parser.Node as Node
 import Elm.Parser.State exposing (State)
 import Elm.Parser.Tokens as Tokens
-import Elm.Parser.TypeAnnotation exposing (typeAnnotation, typeAnnotationNonGreedy)
+import Elm.Parser.TypeAnnotation exposing (typeAnnotation, typeAnnotationNoFnExcludingTypedWithArguments)
 import Elm.Syntax.Declaration as Declaration
 import Elm.Syntax.Documentation exposing (Documentation)
 import Elm.Syntax.Node as Node exposing (Node(..))
@@ -198,7 +198,7 @@ valueConstructor =
                     valueConstructorInnerArgHelper : List (Node TypeAnnotation) -> Parser State (Node ValueConstructor)
                     valueConstructorInnerArgHelper xs =
                         Combine.oneOf
-                            [ typeAnnotationNonGreedy
+                            [ typeAnnotationNoFnExcludingTypedWithArguments
                                 |> Combine.andThen
                                     (\ta ->
                                         Layout.optimisticLayoutWith
