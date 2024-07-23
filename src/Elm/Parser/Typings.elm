@@ -194,7 +194,7 @@ valueConstructor =
                         in
                         Node
                             { start = range.start, end = endRange.end }
-                            (ValueConstructor tnn (List.reverse args))
+                            { name = tnn, arguments = List.reverse args }
 
                     valueConstructorInnerArgHelper : List (Node TypeAnnotation) -> Parser State (Node ValueConstructor)
                     valueConstructorInnerArgHelper xs =

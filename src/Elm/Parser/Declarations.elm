@@ -80,7 +80,7 @@ functionWithNameNode start ((Node _ startName) as startNameNode) maybeDocumentat
                                     , signature = Just (Node.combine Signature startNameNode typeAnnotation)
                                     , declaration =
                                         Node { start = implementationNameRange.start, end = end }
-                                            (FunctionImplementation implementationName arguments expression)
+                                            { name = implementationName, arguments = arguments, expression = expression }
                                     }
                                 )
             )
@@ -108,7 +108,7 @@ functionWithNameNode start ((Node _ startName) as startNameNode) maybeDocumentat
                             , signature = Nothing
                             , declaration =
                                 Node { start = (Node.range startNameNode).start, end = end }
-                                    (FunctionImplementation startNameNode args expression)
+                                    { name = startNameNode, arguments = args, expression = expression }
                             }
                         )
             )
@@ -133,7 +133,7 @@ functionDeclarationWithoutDocumentationWithSignatureWithNameAndMaybeLayoutBacktr
                                             , signature = Just (Node.combine Signature startNameNode typeAnnotation)
                                             , declaration =
                                                 Node { start = implementationNameRange.start, end = end }
-                                                    (FunctionImplementation implementationNameNode arguments result)
+                                                    { name = implementationNameNode, arguments = arguments, expression = result }
                                             }
                                         )
                                     )
@@ -164,7 +164,7 @@ functionDeclarationWithoutDocumentationWithoutSignature =
                             , signature = Nothing
                             , declaration =
                                 Node { start = start, end = end }
-                                    (FunctionImplementation startNameNode args result)
+                                    { name = startNameNode, arguments = args, expression = result }
                             }
                         )
         )

@@ -5,7 +5,7 @@ import Elm.Parser.Layout as Layout
 import Elm.Parser.Node as Node
 import Elm.Parser.State exposing (State)
 import Elm.Parser.Tokens as Tokens
-import Elm.Syntax.Exposing exposing (ExposedType, Exposing(..), TopLevelExpose(..))
+import Elm.Syntax.Exposing exposing (Exposing(..), TopLevelExpose(..))
 import Elm.Syntax.Node exposing (Node(..))
 import Parser as Core exposing ((|.), (|=))
 import Set
@@ -81,7 +81,7 @@ typeExpose =
                     [ Combine.map
                         (\() ->
                             \(Node openRange ()) ->
-                                TypeExpose (ExposedType typeValue (Just openRange))
+                                TypeExpose { name = typeValue, open = Just openRange }
                         )
                         (Combine.maybeIgnore Layout.layout |> Combine.backtrackable)
                         |> Combine.keep exposingVariants

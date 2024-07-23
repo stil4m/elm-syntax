@@ -87,7 +87,7 @@ normalModuleDefinition =
         (\() ->
             \moduleName ->
                 \exposingList ->
-                    NormalModule (DefaultModuleData moduleName exposingList)
+                    NormalModule { moduleName = moduleName, exposingList = exposingList }
         )
         Tokens.moduleToken
         |> Combine.fromCoreIgnore Layout.layout
@@ -98,7 +98,7 @@ normalModuleDefinition =
 
 portModuleDefinition : Parser State Module
 portModuleDefinition =
-    Core.map (\() -> \moduleName -> \exposingList -> PortModule (DefaultModuleData moduleName exposingList))
+    Core.map (\() -> \moduleName -> \exposingList -> PortModule { moduleName = moduleName, exposingList = exposingList })
         Tokens.portToken
         |> Combine.fromCoreIgnore Layout.layout
         |> Combine.ignoreEntirely Tokens.moduleToken

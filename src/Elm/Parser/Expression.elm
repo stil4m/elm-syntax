@@ -315,7 +315,7 @@ lambdaExpression =
         (\( startRow, startColumn ) ->
             \args ->
                 \((Node { end } _) as expr) ->
-                    Lambda args expr
+                    { args = args, expression = expr }
                         |> LambdaExpression
                         |> Node { start = { row = startRow, column = startColumn }, end = end }
         )
@@ -339,7 +339,7 @@ caseExpression =
             \caseBlock_ ->
                 \( end, cases ) ->
                     Node { start = { row = startRow, column = startColumn }, end = end }
-                        (CaseExpression (CaseBlock caseBlock_ cases))
+                        (CaseExpression { expression = caseBlock_, cases = cases })
         )
         Core.getPosition
         |. Tokens.caseToken
@@ -393,7 +393,7 @@ letExpression =
                 \declarations ->
                     \((Node { end } _) as expr) ->
                         Node { start = { row = startRow, column = startColumn }, end = end }
-                            (LetExpression (LetBlock declarations expr))
+                            (LetExpression { declarations = declarations, expression = expr })
             )
             Core.getPosition
             |. Tokens.letToken
@@ -453,7 +453,7 @@ letFunctionWithSignatureWithNameAndMaybeLayoutBacktrackable =
                                             , signature = Just (Node.combine Signature startNameNode typeAnnotation)
                                             , declaration =
                                                 Node { start = implementationNameRange.start, end = end }
-                                                    (FunctionImplementation implementationNameNode arguments result)
+                                                    { name = implementationNameNode, arguments = arguments, expression = result }
                                             }
                                         )
                                     )
@@ -485,7 +485,7 @@ letFunctionWithoutSignature =
                             , signature = Nothing
                             , declaration =
                                 Node { start = start, end = end }
-                                    (FunctionImplementation startNameNode args result)
+                                    { name = startNameNode, arguments = args, expression = result }
                             }
                         )
         )
