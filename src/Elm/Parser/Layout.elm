@@ -103,24 +103,25 @@ layoutStrict =
             )
 
 
-onTopIndentation : Parser State ()
-onTopIndentation =
-    Combine.withState
+onTopIndentation : res -> Parser State res
+onTopIndentation res =
+    Combine.withStateFromCore
         (\state ->
-            Combine.withColumn
-                (\column ->
-                    if State.currentIndent state == Just column then
-                        Combine.succeed ()
+            Core.getCol
+                |> Core.andThen
+                    (\column ->
+                        if State.currentIndent state == Just column then
+                            Core.succeed ( state, res )
 
-                    else
-                        problemTopIndentation
-                )
+                        else
+                            problemTopIndentation
+                    )
         )
 
 
-problemTopIndentation : Combine.Parser state a
+problemTopIndentation : Core.Parser a
 problemTopIndentation =
-    Combine.problem "must be on top indentation"
+    Core.problem "must be on top indentation"
 
 
 positivelyIndented : Parser State ()
@@ -130,21 +131,22 @@ positivelyIndented =
 
 verifyIndent : (Int -> Int -> Bool) -> (Int -> Int -> String) -> Parser State ()
 verifyIndent verify failMessage =
-    Combine.withState
+    Combine.withStateFromCore
         (\state ->
-            Combine.withColumn
-                (\column ->
-                    let
-                        expectedColumn : Int
-                        expectedColumn =
-                            State.expectedColumn state
-                    in
-                    if verify expectedColumn column then
-                        Combine.succeed ()
+            Core.getCol
+                |> Core.andThen
+                    (\column ->
+                        let
+                            expectedColumn : Int
+                            expectedColumn =
+                                State.expectedColumn state
+                        in
+                        if verify expectedColumn column then
+                            Core.succeed ( state, () )
 
-                    else
-                        Combine.problem (failMessage expectedColumn column)
-                )
+                        else
+                            Core.problem (failMessage expectedColumn column)
+                    )
         )
 
 

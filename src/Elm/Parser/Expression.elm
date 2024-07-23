@@ -369,8 +369,7 @@ caseStatements =
 
 caseStatement : Parser State Case
 caseStatement =
-    Combine.succeed (\pattern -> \expr -> ( pattern, expr ))
-        |> Combine.ignore Layout.onTopIndentation
+    Layout.onTopIndentation (\pattern -> \expr -> ( pattern, expr ))
         |> Combine.keep Patterns.pattern
         |> Combine.ignore (Combine.maybeIgnore Layout.layout)
         |> Combine.ignoreEntirely Tokens.arrowRight
@@ -409,7 +408,7 @@ letDeclarations =
 
 blockElement : Parser State (Node LetDeclaration)
 blockElement =
-    Layout.onTopIndentation
+    Layout.onTopIndentation ()
         |> Combine.continueWith
             (Combine.oneOf
                 [ -- if there is no type annotation, this will parse the name + maybe layout twice.

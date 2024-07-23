@@ -40,6 +40,7 @@ module Combine exposing
     , symbol
     , withColumn
     , withState
+    , withStateFromCore
     )
 
 import Elm.Syntax.Range exposing (Location, Range)
@@ -92,6 +93,12 @@ withState f =
                     f state
             in
             p state
+
+
+withStateFromCore : (state -> Core.Parser ( state, a )) -> Parser state a
+withStateFromCore f =
+    Parser <|
+        \state -> f state
 
 
 modifyState : (state -> state) -> Parser state ()
