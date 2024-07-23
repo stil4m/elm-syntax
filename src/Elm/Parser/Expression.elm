@@ -112,9 +112,7 @@ recordAccess =
 
 recordAccessParser : Parser State (Node String)
 recordAccessParser =
-    Core.succeed (\offset -> \source -> String.slice (offset - 1) offset source)
-        |= Core.getOffset
-        |= Core.getSource
+    lookBehindOneCharacter
         |> Core.andThen
             (\c ->
                 if c == " " || c == "\n" || c == "\u{000D}" then
