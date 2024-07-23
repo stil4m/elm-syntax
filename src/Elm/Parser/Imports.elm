@@ -7,6 +7,7 @@ import Elm.Parser.Layout as Layout
 import Elm.Parser.Node as Node
 import Elm.Parser.State exposing (State)
 import Elm.Parser.Tokens as Tokens
+import Elm.Syntax.Exposing exposing (Exposing)
 import Elm.Syntax.Import exposing (Import)
 import Elm.Syntax.ModuleName exposing (ModuleName)
 import Elm.Syntax.Node as Node exposing (Node(..))
@@ -30,17 +31,18 @@ importDefinition =
         |> Combine.ignore Layout.optimisticLayout
 
 
-importInnerAsDefinition : Parser State (Node ModuleName)
-importInnerAsDefinition =
+importInnerAsDefinitionOptimisticLayout : Parser State (Node ModuleName)
+importInnerAsDefinitionOptimisticLayout =
     Tokens.asToken
         |> Combine.ignoreFromCore Layout.layout
         |> Combine.continueWithCore (Tokens.typeName |> Core.map List.singleton |> Node.parserCore)
+        |> Combine.ignore Layout.optimisticLayout
 
 
 importInnerParseExposingDefinition : Location -> Node ModuleName -> Maybe (Node ModuleName) -> Parser State (Node Import)
 importInnerParseExposingDefinition start mod asDef =
     Combine.oneOf
-        [ Node.parser exposeDefinition
+        [ exposeDefinitionNode
             |> Combine.map
                 (\exposing_ ->
                     setupNode start { moduleName = mod, moduleAlias = asDef, exposingList = Just exposing_ }
@@ -52,11 +54,15 @@ importInnerParseExposingDefinition start mod asDef =
         ]
 
 
+exposeDefinitionNode : Parser State (Node Exposing)
+exposeDefinitionNode =
+    Node.parser exposeDefinition
+
+
 importInnerParseAsDefinition : Location -> Node ModuleName -> Parser State (Node Import)
 importInnerParseAsDefinition start mod =
     Combine.oneOf
-        [ importInnerAsDefinition
-            |> Combine.ignore Layout.optimisticLayout
+        [ importInnerAsDefinitionOptimisticLayout
             |> Combine.andThen (\alias_ -> importInnerParseExposingDefinition start mod (Just alias_))
         , importInnerParseExposingDefinition start mod Nothing
         ]

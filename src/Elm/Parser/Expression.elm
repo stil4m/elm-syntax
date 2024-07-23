@@ -228,14 +228,21 @@ recordContents =
                                 Combine.oneOf
                                     [ Tokens.curlyEnd
                                         |> Combine.fromCoreMap (\() -> toRecordExpr [])
-                                    , Combine.succeed toRecordExpr
-                                        |> Combine.ignoreEntirely Tokens.comma
-                                        |> Combine.ignore (Combine.maybeIgnore Layout.layout)
-                                        |> Combine.keep recordFields
-                                        |> Combine.ignoreEntirely Tokens.curlyEnd
+                                    , Combine.map toRecordExpr
+                                        commaMaybeLayoutRecordFieldsCurlyEnd
                                     ]
                             )
                     ]
+            )
+
+
+commaMaybeLayoutRecordFieldsCurlyEnd : Parser State (List (Node RecordSetter))
+commaMaybeLayoutRecordFieldsCurlyEnd =
+    Tokens.comma
+        |> Combine.ignoreFromCore (Combine.maybeIgnore Layout.layout)
+        |> Combine.continueWith
+            (recordFields
+                |> Combine.ignoreEntirely Tokens.curlyEnd
             )
 
 
@@ -688,10 +695,15 @@ subExpression currentPrecedence =
         parser =
             expressionHelp currentPrecedence
     in
-    Layout.optimisticLayout
-        |> Combine.continueWith subExpressions
+    optimisticLayoutSubExpressions
         |> Combine.andThen
             (\leftExpression -> Combine.loop leftExpression parser)
+
+
+optimisticLayoutSubExpressions : Parser State (Node Expression)
+optimisticLayoutSubExpressions =
+    Layout.optimisticLayout
+        |> Combine.continueWith subExpressions
 
 
 expressionHelp : Int -> Node Expression -> Parser State (Step (Node Expression) (Node Expression))
@@ -888,12 +900,17 @@ infixRight precedence symbol =
         )
 
 
+lookBehindOneCharacter : Core.Parser String
+lookBehindOneCharacter =
+    Core.succeed (\offset -> \source -> String.slice (offset - 1) offset source)
+        |= Core.getOffset
+        |= Core.getSource
+
+
 infixLeftSubtraction : Int -> ( Int, Node Expression -> Parser State (Node Expression) )
 infixLeftSubtraction precedence =
     infixLeftHelp precedence
-        (Core.succeed (\offset -> \source -> String.slice (offset - 1) offset source)
-            |= Core.getOffset
-            |= Core.getSource
+        (lookBehindOneCharacter
             |> Core.andThen
                 (\c ->
                     -- 'a-b', 'a - b' and 'a- b' are subtractions, but 'a -b' is an application on a negation

@@ -15,9 +15,27 @@ import Parser as Core
 import Set
 
 
+oneOfAnyComment : List (Combine.Parser State ())
+oneOfAnyComment =
+    [ Comments.singleLineComment
+    , Comments.multilineComment
+    ]
+
+
 layout : Parser State ()
 layout =
-    optimisticLayout
+    Combine.many1Ignore
+        (Combine.oneOf
+            ((Core.variable
+                { inner = \c -> c == ' ' || c == '\n' || c == '\u{000D}'
+                , reserved = Set.empty
+                , start = \c -> c == ' ' || c == '\n' || c == '\u{000D}'
+                }
+                |> Combine.fromCoreMap (\_ -> ())
+             )
+                :: oneOfAnyComment
+            )
+        )
         |> Combine.continueWith
             (verifyIndent (\stateIndent current -> stateIndent < current)
                 (\stateIndent current -> "Expected indent larger than " ++ String.fromInt stateIndent ++ ", got " ++ String.fromInt current)
@@ -50,15 +68,15 @@ optimisticLayout : Parser State ()
 optimisticLayout =
     Combine.manyIgnore
         (Combine.oneOf
-            [ Core.variable
+            ((Core.variable
                 { inner = \c -> c == ' ' || c == '\n' || c == '\u{000D}'
                 , reserved = Set.empty
                 , start = \c -> c == ' ' || c == '\n' || c == '\u{000D}'
                 }
                 |> Combine.fromCoreMap (\_ -> ())
-            , Comments.singleLineComment
-            , Comments.multilineComment
-            ]
+             )
+                :: oneOfAnyComment
+            )
         )
 
 

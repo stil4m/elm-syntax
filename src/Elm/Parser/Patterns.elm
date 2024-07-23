@@ -32,10 +32,12 @@ tryToCompose x =
 
 pattern : Parser State (Node Pattern)
 pattern =
-    Combine.lazy
-        (\() ->
-            composablePattern |> Combine.andThen tryToCompose
-        )
+    Combine.lazy (\() -> composablePatternTryToCompose)
+
+
+composablePatternTryToCompose : Parser State (Node Pattern)
+composablePatternTryToCompose =
+    composablePattern |> Combine.andThen tryToCompose
 
 
 parensPattern : Parser State Pattern
@@ -147,12 +149,17 @@ qualifiedNameRef =
 qualifiedNameRefHelper : ModuleName -> String -> Core.Parser QualifiedNameRef
 qualifiedNameRefHelper moduleNameSoFar typeOrSegment =
     Core.oneOf
-        [ Core.succeed identity
-            |. Tokens.dot
-            |= Tokens.typeName
+        [ dotTypeName
             |> Core.andThen (\t -> qualifiedNameRefHelper (typeOrSegment :: moduleNameSoFar) t)
         , Core.lazy (\() -> Core.succeed { moduleName = List.reverse moduleNameSoFar, name = typeOrSegment })
         ]
+
+
+dotTypeName : Core.Parser String
+dotTypeName =
+    Core.succeed identity
+        |. Tokens.dot
+        |= Tokens.typeName
 
 
 qualifiedPatternWithConsumeArgs : Parser State Pattern

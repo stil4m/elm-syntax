@@ -131,30 +131,47 @@ recordTypeAnnotation =
                     |> Combine.andThen
                         (\fname ->
                             Combine.oneOf
-                                [ Combine.succeed (TypeAnnotation.GenericRecord fname)
-                                    |> Combine.ignoreEntirely Tokens.pipe
-                                    |> Combine.keep (Node.parser recordFieldsTypeAnnotation)
-                                    |> Combine.ignoreEntirely Tokens.curlyEnd
+                                [ Combine.map (\fields -> TypeAnnotation.GenericRecord fname fields)
+                                    pipeRecordFieldsTypeAnnotationNodeCurlyEnd
                                 , Combine.succeed (\ta -> \rest -> TypeAnnotation.Record <| Node.combine Tuple.pair fname ta :: rest)
-                                    |> Combine.ignoreEntirely Tokens.colon
-                                    |> Combine.ignore (Combine.maybeIgnore Layout.layout)
-                                    |> Combine.keep typeAnnotation
-                                    |> Combine.ignore (Combine.maybeIgnore Layout.layout)
-                                    |> Combine.keep
-                                        (Combine.oneOf
-                                            [ -- Skip a comma and then look for at least 1 more field
-                                              Tokens.comma
-                                                |> Combine.continueFromCore recordFieldsTypeAnnotation
-                                            , -- Single field record, so just end with no additional fields
-                                              Combine.succeed []
-                                            ]
-                                        )
-                                    |> Combine.ignoreEntirely Tokens.curlyEnd
+                                    |> Combine.keep colonTypeAnnotationMaybeLayout
+                                    |> Combine.keep maybeCommaRecordFieldsTypeAnnotationCurlyEnd
                                 ]
                         )
                 ]
             )
         |> Node.parser
+
+
+pipeRecordFieldsTypeAnnotationNodeCurlyEnd : Parser State (Node TypeAnnotation.RecordDefinition)
+pipeRecordFieldsTypeAnnotationNodeCurlyEnd =
+    Tokens.pipe
+        |> Combine.continueWithFromCore
+            (Node.parser recordFieldsTypeAnnotation
+                |> Combine.ignoreEntirely Tokens.curlyEnd
+            )
+
+
+colonTypeAnnotationMaybeLayout : Parser State (Node TypeAnnotation)
+colonTypeAnnotationMaybeLayout =
+    Tokens.colon
+        |> Combine.ignoreFromCore (Combine.maybeIgnore Layout.layout)
+        |> Combine.continueWith
+            (typeAnnotation
+                |> Combine.ignore (Combine.maybeIgnore Layout.layout)
+            )
+
+
+maybeCommaRecordFieldsTypeAnnotationCurlyEnd : Parser State TypeAnnotation.RecordDefinition
+maybeCommaRecordFieldsTypeAnnotationCurlyEnd =
+    Combine.oneOf
+        [ -- Skip a comma and then look for at least 1 more field
+          Tokens.comma
+            |> Combine.continueFromCore recordFieldsTypeAnnotation
+        , -- Single field record, so just end with no additional fields
+          Combine.succeed []
+        ]
+        |> Combine.ignoreEntirely Tokens.curlyEnd
 
 
 recordFieldDefinition : Parser State TypeAnnotation.RecordField
@@ -196,12 +213,17 @@ typeIndicator =
 typeIndicatorHelper : ModuleName -> String -> Core.Parser ( ModuleName, String )
 typeIndicatorHelper moduleNameSoFar typeOrSegment =
     Core.oneOf
-        [ Core.succeed identity
-            |. Tokens.dot
-            |= Tokens.typeName
+        [ dotTypeName
             |> Core.andThen (\t -> typeIndicatorHelper (typeOrSegment :: moduleNameSoFar) t)
         , Core.lazy (\() -> Core.succeed ( List.reverse moduleNameSoFar, typeOrSegment ))
         ]
+
+
+dotTypeName : Core.Parser String
+dotTypeName =
+    Core.succeed identity
+        |. Tokens.dot
+        |= Tokens.typeName
 
 
 eagerTypedTypeAnnotation : Node ( ModuleName, String ) -> Parser State (Node TypeAnnotation)

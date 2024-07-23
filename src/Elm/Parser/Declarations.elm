@@ -84,8 +84,7 @@ functionWithNameNode start ((Node _ startName) as startNameNode) maybeDocumentat
                                     }
                                 )
             )
-            |> Combine.ignore colonMaybeLayout
-            |> Combine.keep typeAnnotationLayout
+            |> Combine.keep colonMaybeLayoutTypeAnnotationLayout
             |> Combine.keep
                 (functionNameMaybeLayout
                     |> Combine.andThen
@@ -147,8 +146,7 @@ functionDeclarationWithoutDocumentationWithSignatureWithNameAndMaybeLayoutBacktr
             (functionNameMaybeLayout
                 |> Combine.backtrackable
             )
-        |> Combine.ignore colonMaybeLayout
-        |> Combine.keep typeAnnotationLayout
+        |> Combine.keep colonMaybeLayoutTypeAnnotationLayout
         |> Combine.keep functionNameMaybeLayout
         |> Combine.keep patternListEqualsMaybeLayout
         |> Combine.keep expression
@@ -183,16 +181,14 @@ functionNameMaybeLayout =
         |> Combine.ignoreFromCore (Combine.maybeIgnore Layout.layout)
 
 
-colonMaybeLayout : Parser State ()
-colonMaybeLayout =
+colonMaybeLayoutTypeAnnotationLayout : Parser State (Node TypeAnnotation)
+colonMaybeLayoutTypeAnnotationLayout =
     Tokens.colon
         |> Combine.ignoreFromCore (Combine.maybeIgnore Layout.layout)
-
-
-typeAnnotationLayout : Parser State (Node TypeAnnotation)
-typeAnnotationLayout =
-    TypeAnnotation.typeAnnotation
-        |> Combine.ignore (Combine.maybeIgnore Layout.layoutStrict)
+        |> Combine.continueWith
+            (TypeAnnotation.typeAnnotation
+                |> Combine.ignore (Combine.maybeIgnore Layout.layoutStrict)
+            )
 
 
 patternListEqualsMaybeLayout : Parser State (List (Node Pattern))
