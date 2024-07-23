@@ -12,7 +12,6 @@ import Elm.Parser.TypeAnnotation as TypeAnnotation exposing (typeAnnotation)
 import Elm.Parser.Typings exposing (customTypeDefinitionWithoutDocumentation, typeAliasDefinitionWithoutDocumentationWithBacktrackableTypePrefix, typeDefinitionAfterDocumentation)
 import Elm.Syntax.Declaration as Declaration exposing (Declaration(..))
 import Elm.Syntax.Documentation exposing (Documentation)
-import Elm.Syntax.Expression exposing (FunctionImplementation)
 import Elm.Syntax.Infix as Infix
 import Elm.Syntax.Node as Node exposing (Node(..))
 import Elm.Syntax.Pattern exposing (Pattern)

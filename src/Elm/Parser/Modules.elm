@@ -8,7 +8,7 @@ import Elm.Parser.Node as Node
 import Elm.Parser.State exposing (State)
 import Elm.Parser.Tokens as Tokens
 import Elm.Syntax.Exposing exposing (Exposing)
-import Elm.Syntax.Module exposing (DefaultModuleData, Module(..))
+import Elm.Syntax.Module exposing (Module(..))
 import Elm.Syntax.ModuleName exposing (ModuleName)
 import Elm.Syntax.Node exposing (Node)
 import List.Extra
