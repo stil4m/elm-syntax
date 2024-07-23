@@ -36,18 +36,17 @@ effectWhereClause =
 
 whereBlock : Parser State { command : Maybe (Node String), subscription : Maybe (Node String) }
 whereBlock =
-    Combine.between
+    Combine.betweenMap
+        (\pairs ->
+            { command = pairs |> List.Extra.find (\( fnName, _ ) -> fnName == "command") |> Maybe.map Tuple.second
+            , subscription = pairs |> List.Extra.find (\( fnName, _ ) -> fnName == "subscription") |> Maybe.map Tuple.second
+            }
+        )
         Tokens.curlyStart
         Tokens.curlyEnd
         (Combine.sepBy1 ","
             (Layout.maybeAroundBothSides effectWhereClause)
         )
-        |> Combine.map
-            (\pairs ->
-                { command = pairs |> List.Extra.find (\( fnName, _ ) -> fnName == "command") |> Maybe.map Tuple.second
-                , subscription = pairs |> List.Extra.find (\( fnName, _ ) -> fnName == "subscription") |> Maybe.map Tuple.second
-                }
-            )
 
 
 effectWhereClauses : Parser State { command : Maybe (Node String), subscription : Maybe (Node String) }

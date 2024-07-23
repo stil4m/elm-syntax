@@ -5,6 +5,7 @@ module Combine exposing
     , andThenFromCore
     , backtrackable
     , between
+    , betweenMap
     , continueFromCore
     , continueWith
     , continueWithCore
@@ -383,6 +384,20 @@ between lp rp (Parser p) =
         succeedIdentityIgnoreLp : Core.Parser (( state, a ) -> ( state, a ))
         succeedIdentityIgnoreLp =
             Core.map (\() -> identity) lp
+    in
+    Parser <|
+        \state ->
+            succeedIdentityIgnoreLp
+                |= p state
+                |. rp
+
+
+betweenMap : (a -> b) -> Core.Parser () -> Core.Parser () -> Parser state a -> Parser state b
+betweenMap resultChange lp rp (Parser p) =
+    let
+        succeedIdentityIgnoreLp : Core.Parser (( state, a ) -> ( state, b ))
+        succeedIdentityIgnoreLp =
+            Core.map (\() -> \( newState, a ) -> ( newState, resultChange a )) lp
     in
     Parser <|
         \state ->

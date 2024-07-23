@@ -42,19 +42,18 @@ composablePatternTryToCompose =
 
 parensPattern : Parser State Pattern
 parensPattern =
-    Combine.between
+    Combine.betweenMap
+        (\c ->
+            case c of
+                [ x ] ->
+                    ParenthesizedPattern x
+
+                _ ->
+                    TuplePattern c
+        )
         Tokens.parensStart
         Tokens.parensEnd
         (Combine.sepBy "," (Layout.maybeAroundBothSides pattern))
-        |> Combine.map
-            (\c ->
-                case c of
-                    [ x ] ->
-                        ParenthesizedPattern x
-
-                    _ ->
-                        TuplePattern c
-            )
 
 
 variablePart : Parser state Pattern
@@ -78,12 +77,11 @@ charPattern =
 
 listPattern : Parser State Pattern
 listPattern =
-    Combine.between
+    Combine.betweenMap ListPattern
         Tokens.squareStart
         Tokens.squareEnd
         (Combine.maybeIgnore Layout.layout
             |> Combine.continueWith (Combine.sepBy "," (Layout.maybeAroundBothSides pattern))
-            |> Combine.map ListPattern
         )
 
 
@@ -184,7 +182,7 @@ qualifiedPatternWithoutConsumeArgs =
 
 recordPattern : Parser State Pattern
 recordPattern =
-    Combine.between
+    Combine.betweenMap RecordPattern
         Tokens.curlyStart
         Tokens.curlyEnd
         (Combine.maybeIgnore Layout.layout
@@ -197,4 +195,3 @@ recordPattern =
                     )
                 )
         )
-        |> Combine.map RecordPattern
