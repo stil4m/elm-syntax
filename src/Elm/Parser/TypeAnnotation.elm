@@ -14,7 +14,7 @@ import Parser as Core exposing ((|=))
 typeAnnotation : Parser State (Node TypeAnnotation)
 typeAnnotation =
     Combine.map (\ta -> \fromTa -> fromTa ta)
-        typeAnnotationNoFnIncludingTypedWithArgumentsLazy
+        (Combine.lazy (\() -> typeAnnotationNoFnIncludingTypedWithArguments))
         |> Combine.keep
             (Combine.oneOf
                 [ arrowRightToTypeAnnotation
@@ -53,11 +53,6 @@ typeAnnotationNoFnIncludingTypedWithArguments =
         , recordTypeAnnotation
         ]
         |> Node.parser
-
-
-typeAnnotationNoFnIncludingTypedWithArgumentsLazy : Parser State (Node TypeAnnotation)
-typeAnnotationNoFnIncludingTypedWithArgumentsLazy =
-    Combine.lazy (\() -> typeAnnotationNoFnIncludingTypedWithArguments)
 
 
 parensTypeAnnotation : Parser State TypeAnnotation
