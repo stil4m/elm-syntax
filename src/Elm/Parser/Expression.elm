@@ -537,34 +537,35 @@ problemNegationThenSpace =
     Core.problem "negation sign cannot be followed by a space"
 
 
-referenceExpression : Parser State Expression
+referenceExpression : Combine.Parser State Expression
 referenceExpression =
-    Core.oneOf
-        [ Tokens.typeName
-            |> Core.andThen (\t -> referenceExpressionHelper [] t)
-        , Tokens.functionName
-            |> Core.map (\v -> FunctionOrValue [] v)
-        ]
-        |> Combine.fromCore
+    Combine.fromCoreMap
+        (\( qualification, unqualified ) ->
+            FunctionOrValue qualification unqualified
+        )
+        referenceExpressionTuple
 
 
-referenceExpressionHelper : ModuleName -> String -> Core.Parser Expression
-referenceExpressionHelper moduleNameSoFar nameOrSegment =
+referenceExpressionTuple : Core.Parser ( List String, String )
+referenceExpressionTuple =
     Core.oneOf
-        [ Core.map (\() -> identity) Tokens.dot
+        [ Core.map
+            (\firstName ->
+                \after ->
+                    case after of
+                        Nothing ->
+                            ( [], firstName )
+
+                        Just ( qualificationAfter, unqualified ) ->
+                            ( firstName :: qualificationAfter, unqualified )
+            )
+            Tokens.typeName
             |= Core.oneOf
-                [ Tokens.typeName
-                    |> Core.andThen (\t -> referenceExpressionHelper (nameOrSegment :: moduleNameSoFar) t)
-                , Tokens.functionName
-                    |> Core.map
-                        (\name ->
-                            FunctionOrValue
-                                (List.reverse (nameOrSegment :: moduleNameSoFar))
-                                name
-                        )
+                [ Core.map (\() -> Just) Tokens.dot
+                    |= Core.lazy (\() -> referenceExpressionTuple)
+                , Core.succeed Nothing
                 ]
-        , Core.lazy
-            (\() -> Core.succeed (FunctionOrValue (List.reverse moduleNameSoFar) nameOrSegment))
+        , Core.map (\unqualified -> ( [], unqualified )) Tokens.functionName
         ]
 
 
