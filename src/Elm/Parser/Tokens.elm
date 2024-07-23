@@ -171,43 +171,58 @@ characterLiteral =
 stringLiteral : Core.Parser String
 stringLiteral =
     Core.map (\() -> identity)
-        (Core.symbol "\"")
+        doubleQuote
         |= Core.loop "" stringLiteralHelper
+
+
+doubleQuote : Core.Parser ()
+doubleQuote =
+    Core.symbol "\""
 
 
 stringLiteralHelper : String -> Core.Parser (Step String String)
 stringLiteralHelper stringSoFar =
     Core.oneOf
-        [ Core.symbol "\"" |> Core.map (\() -> Done stringSoFar)
+        [ doubleQuote |> Core.map (\() -> Done stringSoFar)
         , Core.map (\() -> \v -> Loop (stringSoFar ++ String.fromChar v ++ ""))
-            (Core.symbol "\\")
+            backSlash
             |= escapedCharValue
         , Core.mapChompedString
             (\value () -> Loop (stringSoFar ++ value))
-            (Core.chompWhile (\c -> c /= '"' && c /= '\\'))
+            chompWhileIsInsideString
         ]
+
+
+chompWhileIsInsideString : Core.Parser ()
+chompWhileIsInsideString =
+    Core.chompWhile (\c -> c /= '"' && c /= '\\')
 
 
 multiLineStringLiteral : Core.Parser String
 multiLineStringLiteral =
     Core.map (\() -> identity)
-        (Core.symbol "\"\"\"")
+        tripleDoubleQuote
         |= Core.loop "" multiLineStringLiteralStep
+
+
+tripleDoubleQuote : Core.Parser ()
+tripleDoubleQuote =
+    Core.symbol "\"\"\""
 
 
 multiLineStringLiteralStep : String -> Core.Parser (Step String String)
 multiLineStringLiteralStep stringSoFar =
     Core.oneOf
-        [ Core.symbol "\"\"\""
+        [ tripleDoubleQuote
             |> Core.map (\() -> Done stringSoFar)
-        , Core.symbol "\""
+        , doubleQuote
             |> Core.map (\() -> Loop (stringSoFar ++ "\""))
         , Core.map (\() -> \v -> Loop (stringSoFar ++ String.fromChar v ++ ""))
-            (Core.symbol "\\")
+            backSlash
             |= escapedCharValue
         , Core.mapChompedString
             (\value () -> Loop (stringSoFar ++ value))
-            (Core.chompWhile (\c -> c /= '"' && c /= '\\'))
+            chompWhileIsInsideString
         ]
 
 
