@@ -4,7 +4,6 @@ module Elm.Parser.Layout exposing
     , maybeAroundBothSides
     , onTopIndentation
     , optimisticLayout
-    , optimisticLayoutWith
     , positivelyIndented
     )
 
@@ -39,28 +38,6 @@ layout =
         |> Combine.continueWith
             (verifyIndent (\stateIndent current -> stateIndent < current)
                 (\stateIndent current -> "Expected indent larger than " ++ String.fromInt stateIndent ++ ", got " ++ String.fromInt current)
-            )
-
-
-optimisticLayoutWith : (() -> a) -> (() -> Parser State a) -> Parser State a
-optimisticLayoutWith onStrict onIndented =
-    optimisticLayout
-        |> Combine.continueWith
-            (Combine.withColumn
-                (\column ->
-                    if column == 1 then
-                        Combine.succeed (onStrict ())
-
-                    else
-                        Combine.withState
-                            (\state ->
-                                if List.member column (State.storedColumns state) then
-                                    Combine.succeed (onStrict ())
-
-                                else
-                                    onIndented ()
-                            )
-                )
             )
 
 

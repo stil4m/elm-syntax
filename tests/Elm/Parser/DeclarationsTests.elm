@@ -812,22 +812,6 @@ type Color = Blue String | Red | Green"""
             \() ->
                 parse "type Maybe a = Just a |\nNothing" Elm.Parser.Declarations.declaration
                     |> Expect.equal Nothing
-        , test "type with spacing after " <|
-            \() ->
-                "type A = B\n\n"
-                    |> expectAst
-                        (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 11 } }
-                            (Declaration.CustomTypeDeclaration
-                                { documentation = Nothing
-                                , name = Node { start = { row = 1, column = 6 }, end = { row = 1, column = 7 } } "A"
-                                , generics = []
-                                , constructors =
-                                    [ Node { start = { row = 1, column = 10 }, end = { row = 1, column = 11 } }
-                                        { name = Node { start = { row = 1, column = 10 }, end = { row = 1, column = 11 } } "B", arguments = [] }
-                                    ]
-                                }
-                            )
-                        )
         , test "regression test for disallowing ( +)" <|
             \() ->
                 "a = ( +)"

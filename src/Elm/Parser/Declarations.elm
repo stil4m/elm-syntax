@@ -14,7 +14,7 @@ import Elm.Syntax.Documentation exposing (Documentation)
 import Elm.Syntax.Infix as Infix
 import Elm.Syntax.Node as Node exposing (Node(..))
 import Elm.Syntax.Pattern exposing (Pattern)
-import Elm.Syntax.Range exposing (Location, Range)
+import Elm.Syntax.Range exposing (Location)
 import Elm.Syntax.Signature exposing (Signature)
 import Elm.Syntax.Type exposing (ValueConstructor)
 import Elm.Syntax.TypeAnnotation exposing (TypeAnnotation)
@@ -257,7 +257,7 @@ typeOrTypeAliasDefinitionAfterDocumentation =
         )
         (Core.symbol "type")
         |> Combine.fromCoreIgnore Layout.layout
-        |> Combine.keep typeOrTypeAliasDefinitionWith
+        |> Combine.keep typeOrTypeAliasDefinitionWithAfterTypePrefix
 
 
 typeOrTypeAliasDefinitionWithoutDocumentation : Parser State (Node Declaration.Declaration)
@@ -270,130 +270,115 @@ typeOrTypeAliasDefinitionWithoutDocumentation =
         Core.getPosition
         |. Core.symbol "type"
         |> Combine.fromCoreIgnore Layout.layout
-        |> Combine.keep typeOrTypeAliasDefinitionWith
+        |> Combine.keep typeOrTypeAliasDefinitionWithAfterTypePrefix
 
 
-typeOrTypeAliasDefinitionWith : Parser State (Location -> Maybe (Node String) -> Node Declaration.Declaration)
-typeOrTypeAliasDefinitionWith =
+typeOrTypeAliasDefinitionWithAfterTypePrefix : Parser State (Location -> Maybe (Node String) -> Node Declaration.Declaration)
+typeOrTypeAliasDefinitionWithAfterTypePrefix =
     Combine.oneOf
-        [ Core.map
-            (\() ->
-                \name ->
-                    \generics ->
-                        \((Node { end } _) as typeAnnotation) ->
-                            \start documentation ->
-                                Node { start = start, end = end }
-                                    (Declaration.AliasDeclaration
-                                        { documentation = documentation
-                                        , name = name
-                                        , generics = generics
-                                        , typeAnnotation = typeAnnotation
-                                        }
-                                    )
-            )
-            Tokens.aliasToken
-            |> Combine.fromCoreIgnore Layout.layout
-            |> Combine.keep typeNameLayout
-            |> Combine.keep typeGenericListEquals
-            |> Combine.keep typeAnnotation
-        , Combine.map
-            (\name ->
+        [ typeAliasDefinitionAfterTypePrefix
+        , customTypeDefinitionAfterTypePrefix
+        ]
+
+
+typeAliasDefinitionAfterTypePrefix : Parser State (Location -> Maybe (Node Documentation) -> Node Declaration)
+typeAliasDefinitionAfterTypePrefix =
+    Core.map
+        (\() ->
+            \name ->
                 \generics ->
-                    \constructors ->
+                    \((Node { end } _) as typeAnnotation) ->
+                        \start documentation ->
+                            Node { start = start, end = end }
+                                (Declaration.AliasDeclaration
+                                    { documentation = documentation
+                                    , name = name
+                                    , generics = generics
+                                    , typeAnnotation = typeAnnotation
+                                    }
+                                )
+        )
+        Tokens.aliasToken
+        |> Combine.fromCoreIgnore Layout.layout
+        |> Combine.keepFromCore (Node.parserCore Tokens.typeName)
+        |> Combine.ignore (Combine.maybeIgnore Layout.layout)
+        |> Combine.keep typeGenericList
+        |> Combine.ignoreEntirely Tokens.equal
+        |> Combine.ignore (Combine.maybeIgnore Layout.layout)
+        |> Combine.keep typeAnnotation
+
+
+customTypeDefinitionAfterTypePrefix : Parser State (Location -> Maybe (Node Documentation) -> Node Declaration)
+customTypeDefinitionAfterTypePrefix =
+    Core.map
+        (\name ->
+            \generics ->
+                \((Node headVariantRange _) as headVariant) ->
+                    \tailVariantsReverse ->
                         \start documentation ->
                             let
                                 end : Location
                                 end =
-                                    case constructors of
+                                    case tailVariantsReverse of
                                         (Node range _) :: _ ->
                                             range.end
 
-                                        -- should not happen
                                         [] ->
-                                            locationEmpty
+                                            headVariantRange.end
                             in
                             Node { start = start, end = end }
                                 (Declaration.CustomTypeDeclaration
                                     { documentation = documentation
                                     , name = name
                                     , generics = generics
-                                    , constructors = List.reverse constructors
+                                    , constructors = headVariant :: List.reverse tailVariantsReverse
                                     }
                                 )
-            )
-            typeNameLayout
-            |> Combine.keep typeGenericListEquals
-            |> Combine.keep valueConstructors
-        ]
-
-
-locationEmpty : Location
-locationEmpty =
-    { row = 0, column = 0 }
-
-
-typeNameLayout : Parser State (Node String)
-typeNameLayout =
-    Node.parserCore Tokens.typeName
+        )
+        (Node.parserCore Tokens.typeName)
         |> Combine.fromCoreIgnore (Combine.maybeIgnore Layout.layout)
-
-
-typeGenericListEquals : Parser State (List (Node String))
-typeGenericListEquals =
-    typeGenericList
+        |> Combine.keep typeGenericList
         |> Combine.ignoreEntirely Tokens.equal
         |> Combine.ignore (Combine.maybeIgnore Layout.layout)
-
-
-valueConstructors : Parser State (List (Node ValueConstructor))
-valueConstructors =
-    Combine.sepBy1WithoutReverse
-        (Tokens.pipe
-            |> Combine.continueFromCore (Combine.maybeIgnore Layout.layout)
-        )
-        valueConstructor
+        |> Combine.ignore (Combine.maybeIgnore Layout.layout)
+        |> Combine.keep valueConstructor
+        |> Combine.keep
+            (Combine.manyWithoutReverse
+                (Combine.maybeIgnore Layout.layout
+                    |> Combine.backtrackable
+                    |> Combine.ignoreEntirely Tokens.pipe
+                    |> Combine.ignore (Combine.maybeIgnore Layout.layout)
+                    |> Combine.continueWith valueConstructor
+                )
+            )
 
 
 valueConstructor : Parser State (Node ValueConstructor)
 valueConstructor =
-    Tokens.typeName
-        |> Node.parserCore
-        |> Combine.fromCore
-        |> Combine.andThen
-            (\((Node range _) as tnn) ->
+    Core.map
+        (\((Node variantNameRange _) as variantNameNode) ->
+            \argumentsReverse ->
                 let
-                    complete : List (Node TypeAnnotation) -> Node ValueConstructor
-                    complete args =
-                        let
-                            endRange : Range
-                            endRange =
-                                case args of
-                                    (Node lastArgRange _) :: _ ->
-                                        lastArgRange
+                    fullEnd : Location
+                    fullEnd =
+                        case argumentsReverse of
+                            (Node lastArgRange _) :: _ ->
+                                lastArgRange.end
 
-                                    [] ->
-                                        range
-                        in
-                        Node
-                            { start = range.start, end = endRange.end }
-                            { name = tnn, arguments = List.reverse args }
-
-                    valueConstructorInnerArgHelper : List (Node TypeAnnotation) -> Parser State (Node ValueConstructor)
-                    valueConstructorInnerArgHelper xs =
-                        Combine.oneOf
-                            [ typeAnnotationNoFnExcludingTypedWithArguments
-                                |> Combine.andThen
-                                    (\ta ->
-                                        Layout.optimisticLayoutWith
-                                            (\() -> complete (ta :: xs))
-                                            (\() -> valueConstructorInnerArgHelper (ta :: xs))
-                                    )
-                            , Combine.succeedLazy (\() -> complete xs)
-                            ]
+                            [] ->
+                                variantNameRange.end
                 in
-                Layout.optimisticLayoutWith
-                    (\() -> complete [])
-                    (\() -> valueConstructorInnerArgHelper [])
+                Node
+                    { start = variantNameRange.start, end = fullEnd }
+                    { name = variantNameNode, arguments = List.reverse argumentsReverse }
+        )
+        (Tokens.typeName |> Node.parserCore)
+        |> Combine.fromCoreKeep
+            (Combine.manyWithoutReverse
+                (Combine.maybeIgnore Layout.layout
+                    |> Combine.backtrackable
+                    |> Combine.continueWith typeAnnotationNoFnExcludingTypedWithArguments
+                )
             )
 
 

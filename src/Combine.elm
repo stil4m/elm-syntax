@@ -26,6 +26,7 @@ module Combine exposing
     , many1Ignore
     , manyIgnore
     , manyWithEndLocationForLastElement
+    , manyWithoutReverse
     , map
     , maybeIgnore
     , modifyState
@@ -35,10 +36,8 @@ module Combine exposing
     , sepBy
     , sepBy1
     , sepBy1WithState
-    , sepBy1WithoutReverse
     , succeed
     , succeedLazy
-    , withColumn
     , withState
     , withStateFromCore
     )
@@ -105,21 +104,6 @@ modifyState : (state -> state) -> Parser state ()
 modifyState f =
     Parser <|
         \state -> Core.succeed ( f state, () )
-
-
-withColumn : (Int -> Parser state a) -> Parser state a
-withColumn f =
-    Parser <|
-        \state ->
-            Core.getCol
-                |> Core.andThen
-                    (\col ->
-                        let
-                            (Parser p) =
-                                f col
-                        in
-                        p state
-                    )
 
 
 map : (a -> b) -> Parser state a -> Parser state b
@@ -232,15 +216,20 @@ maybeIgnore (Parser p) =
 
 many : Parser state a -> Parser state (List a)
 many p =
-    manyWithoutReverse [] p
+    manyWithoutReverse p
         |> map List.reverse
 
 
 {-| Same as [`many`](#many), except that it doesn't reverse the list.
 This can be useful if you need to access the range of the last item.
 -}
-manyWithoutReverse : List a -> Parser state a -> Parser state (List a)
-manyWithoutReverse initList (Parser p) =
+manyWithoutReverse : Parser state a -> Parser state (List a)
+manyWithoutReverse p =
+    manyWithoutReverseFrom [] p
+
+
+manyWithoutReverseFrom : List a -> Parser state a -> Parser state (List a)
+manyWithoutReverseFrom initList (Parser p) =
     let
         manyWithoutReverseStep : ( state, List a ) -> Core.Parser (Core.Step ( state, List a ) ( state, List a ))
         manyWithoutReverseStep (( oldState, items ) as acc) =
@@ -367,15 +356,6 @@ sepBy1WithState : Parser state () -> Parser state a -> Parser state (List a)
 sepBy1WithState sep p =
     map cons p
         |> keep (many (sep |> continueWith p))
-
-
-{-| Same as [`sepBy1`](#sepBy1), except that it doesn't reverse the list.
-This can be useful if you need to access the range of the last item.
--}
-sepBy1WithoutReverse : Parser state () -> Parser state a -> Parser state (List a)
-sepBy1WithoutReverse sep p =
-    p
-        |> andThen (\first -> manyWithoutReverse [ first ] (sep |> continueWith p))
 
 
 between : Core.Parser () -> Core.Parser () -> Parser state a -> Parser state a
