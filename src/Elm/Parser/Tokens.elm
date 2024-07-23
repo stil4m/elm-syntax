@@ -132,16 +132,17 @@ escapedCharValue =
         , -- Eventhough Elm-format will change \r to a unicode version. When you dont use elm-format, this will not happen.
           Core.map (\() -> '\u{000D}') (Core.symbol "r")
         , Core.map (\() -> '\\') (Core.symbol "\\")
-        , Core.succeed
-            (\hex ->
-                case String.toLower hex |> Hex.fromString of
-                    Ok n ->
-                        Char.fromCode n
+        , Core.map
+            (\() ->
+                \hex ->
+                    case String.toLower hex |> Hex.fromString of
+                        Ok n ->
+                            Char.fromCode n
 
-                    Err _ ->
-                        '\u{0000}'
+                        Err _ ->
+                            '\u{0000}'
             )
-            |. Core.symbol "u{"
+            (Core.symbol "u{")
             |= Core.variable
                 { inner = Char.isHexDigit
                 , reserved = Set.empty
@@ -153,15 +154,13 @@ escapedCharValue =
 
 slashEscapedCharValue : Core.Parser Char
 slashEscapedCharValue =
-    Core.succeed identity
-        |. Core.symbol "\\"
+    Core.map (\() -> identity) (Core.symbol "\\")
         |= escapedCharValue
 
 
 characterLiteral : Core.Parser Char
 characterLiteral =
-    Core.succeed identity
-        |. Core.symbol "'"
+    Core.map (\() -> identity) (Core.symbol "'")
         |= Core.oneOf
             [ slashEscapedCharValue
             , Parser.Extra.anyChar
@@ -171,8 +170,8 @@ characterLiteral =
 
 stringLiteral : Core.Parser String
 stringLiteral =
-    Core.succeed identity
-        |. Core.symbol "\""
+    Core.map (\() -> identity)
+        (Core.symbol "\"")
         |= Core.loop "" stringLiteralHelper
 
 
@@ -180,8 +179,8 @@ stringLiteralHelper : String -> Core.Parser (Step String String)
 stringLiteralHelper stringSoFar =
     Core.oneOf
         [ Core.symbol "\"" |> Core.map (\() -> Done stringSoFar)
-        , Core.succeed (\v -> Loop (stringSoFar ++ String.fromChar v ++ ""))
-            |. Core.symbol "\\"
+        , Core.map (\() -> \v -> Loop (stringSoFar ++ String.fromChar v ++ ""))
+            (Core.symbol "\\")
             |= escapedCharValue
         , Core.mapChompedString
             (\value () -> Loop (stringSoFar ++ value))
@@ -191,8 +190,8 @@ stringLiteralHelper stringSoFar =
 
 multiLineStringLiteral : Core.Parser String
 multiLineStringLiteral =
-    Core.succeed identity
-        |. Core.symbol "\"\"\""
+    Core.map (\() -> identity)
+        (Core.symbol "\"\"\"")
         |= Core.loop "" multiLineStringLiteralStep
 
 
@@ -203,8 +202,8 @@ multiLineStringLiteralStep stringSoFar =
             |> Core.map (\() -> Done stringSoFar)
         , Core.symbol "\""
             |> Core.map (\() -> Loop (stringSoFar ++ "\""))
-        , Core.succeed (\v -> Loop (stringSoFar ++ String.fromChar v ++ ""))
-            |. Core.symbol "\\"
+        , Core.map (\() -> \v -> Loop (stringSoFar ++ String.fromChar v ++ ""))
+            (Core.symbol "\\")
             |= escapedCharValue
         , Core.mapChompedString
             (\value () -> Loop (stringSoFar ++ value))

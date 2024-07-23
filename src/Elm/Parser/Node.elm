@@ -7,7 +7,7 @@ import Parser as Core exposing ((|=))
 
 parser : Parser state a -> Parser state (Node a)
 parser p =
-    Combine.succeed
+    Core.map
         (\( startRow, startColumn ) ->
             \v ->
                 \( endRow, endColumn ) ->
@@ -17,14 +17,14 @@ parser p =
                         }
                         v
         )
-        |> Combine.keepFromCore Core.getPosition
-        |> Combine.keep p
+        Core.getPosition
+        |> Combine.fromCoreKeep p
         |> Combine.keepFromCore Core.getPosition
 
 
 parserCore : Core.Parser a -> Core.Parser (Node a)
 parserCore p =
-    Core.succeed
+    Core.map
         (\( startRow, startColumn ) ->
             \v ->
                 \( endRow, endColumn ) ->
@@ -34,6 +34,6 @@ parserCore p =
                         }
                         v
         )
-        |= Core.getPosition
+        Core.getPosition
         |= p
         |= Core.getPosition

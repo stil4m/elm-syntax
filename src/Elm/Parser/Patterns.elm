@@ -9,7 +9,7 @@ import Elm.Parser.Tokens as Tokens
 import Elm.Syntax.ModuleName exposing (ModuleName)
 import Elm.Syntax.Node as Node exposing (Node)
 import Elm.Syntax.Pattern exposing (Pattern(..), QualifiedNameRef)
-import Parser as Core exposing ((|.), (|=))
+import Parser as Core exposing ((|=))
 
 
 tryToCompose : Node Pattern -> Parser State (Node Pattern)
@@ -17,13 +17,13 @@ tryToCompose x =
     Combine.maybeIgnore Layout.layout
         |> Combine.continueWith
             (Combine.oneOf
-                [ Combine.succeed (\y -> Node.combine AsPattern x y)
-                    |> Combine.ignoreEntirely (Core.keyword "as")
-                    |> Combine.ignore Layout.layout
+                [ Core.map (\() -> \y -> Node.combine AsPattern x y)
+                    (Core.keyword "as")
+                    |> Combine.fromCoreIgnore Layout.layout
                     |> Combine.keepFromCore (Node.parserCore Tokens.functionName)
-                , Combine.succeed (\y -> Node.combine UnConsPattern x y)
-                    |> Combine.ignoreEntirely Tokens.cons
-                    |> Combine.ignore (Combine.maybeIgnore Layout.layout)
+                , Core.map (\() -> \y -> Node.combine UnConsPattern x y)
+                    Tokens.cons
+                    |> Combine.fromCoreIgnore (Combine.maybeIgnore Layout.layout)
                     |> Combine.keep pattern
                 , Combine.succeed x
                 ]
@@ -157,15 +157,14 @@ qualifiedNameRefHelper moduleNameSoFar typeOrSegment =
 
 dotTypeName : Core.Parser String
 dotTypeName =
-    Core.succeed identity
-        |. Tokens.dot
+    Core.map (\() -> identity) Tokens.dot
         |= Tokens.typeName
 
 
 qualifiedPatternWithConsumeArgs : Parser State Pattern
 qualifiedPatternWithConsumeArgs =
-    Core.succeed (\qualified -> \args -> NamedPattern qualified args)
-        |= qualifiedNameRef
+    Core.map (\qualified -> \args -> NamedPattern qualified args)
+        qualifiedNameRef
         |> Combine.fromCore
         |> Combine.keep emptyOrFilledArgumentPatterns
 
@@ -173,8 +172,8 @@ qualifiedPatternWithConsumeArgs =
 emptyOrFilledArgumentPatterns : Parser State (List (Node Pattern))
 emptyOrFilledArgumentPatterns =
     Combine.oneOf
-        [ Core.succeed identity
-            |> Combine.ignoreFromCore (Combine.maybeIgnore Layout.layout |> Combine.backtrackable)
+        [ Combine.map (\() -> identity)
+            (Combine.maybeIgnore Layout.layout |> Combine.backtrackable)
             |> Combine.keep qualifiedPatternArgumentList
         , Combine.succeed []
         ]
@@ -182,10 +181,9 @@ emptyOrFilledArgumentPatterns =
 
 qualifiedPatternArgumentList : Parser State (List (Node Pattern))
 qualifiedPatternArgumentList =
-    Combine.succeed (\head -> \tail -> head :: tail)
-        |> Combine.keep qualifiedPatternArg
+    Combine.map (\head -> \tail -> head :: tail)
+        qualifiedPatternArg
         |> Combine.keep
-            -- TODO remove end
             (Combine.many
                 (Combine.maybeIgnore Layout.layout
                     |> Combine.backtrackable

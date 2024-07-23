@@ -11,10 +11,11 @@ module Combine exposing
     , continueWithFromCore
     , end
     , fromCore
+    , fromCoreIgnore
+    , fromCoreKeep
     , fromCoreMap
     , ignore
     , ignoreEntirely
-    , ignoreFromCore
     , keep
     , keepFromCore
     , lazy
@@ -166,6 +167,18 @@ keep (Parser rp) (Parser lp) =
         \state ->
             lp state
                 |> Core.andThen (\( newState, aToB ) -> Core.map (\( s, a ) -> ( s, aToB a )) (rp newState))
+
+
+fromCoreKeep : Parser state a -> Core.Parser (a -> b) -> Parser state b
+fromCoreKeep (Parser rp) lp =
+    Parser <|
+        \state ->
+            lp
+                |> Core.andThen
+                    (\aToB ->
+                        rp state
+                            |> Core.map (\( newState, a ) -> ( newState, aToB a ))
+                    )
 
 
 keepFromCore : Core.Parser a -> Parser state (a -> b) -> Parser state b
@@ -378,8 +391,7 @@ between : String -> String -> Parser state a -> Parser state a
 between lp rp (Parser p) =
     Parser <|
         \state ->
-            Core.succeed identity
-                |. Core.symbol lp
+            Core.map (\() -> identity) (Core.symbol lp)
                 |= p state
                 |. Core.symbol rp
 
@@ -401,8 +413,8 @@ ignore (Parser dropped) (Parser target) =
                     )
 
 
-ignoreFromCore : Parser state () -> Core.Parser a -> Parser state a
-ignoreFromCore (Parser dropped) target =
+fromCoreIgnore : Parser state () -> Core.Parser a -> Parser state a
+fromCoreIgnore (Parser dropped) target =
     Parser <|
         \state ->
             target

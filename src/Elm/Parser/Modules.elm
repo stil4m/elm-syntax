@@ -26,9 +26,9 @@ moduleDefinition =
 
 effectWhereClause : Parser State ( String, Node String )
 effectWhereClause =
-    Combine.succeed (\fnName -> \typeName_ -> ( fnName, typeName_ ))
-        |> Combine.keepFromCore Tokens.functionName
-        |> Combine.ignore (Layout.maybeAroundBothSides (Combine.fromCore Tokens.equal))
+    Core.map (\fnName -> \typeName_ -> ( fnName, typeName_ ))
+        Tokens.functionName
+        |> Combine.fromCoreIgnore (Layout.maybeAroundBothSides (Combine.fromCore Tokens.equal))
         |> Combine.keepFromCore (Node.parserCore Tokens.typeName)
 
 
@@ -51,7 +51,7 @@ whereBlock =
 effectWhereClauses : Parser State { command : Maybe (Node String), subscription : Maybe (Node String) }
 effectWhereClauses =
     Tokens.whereToken
-        |> Combine.ignoreFromCore Layout.layout
+        |> Combine.fromCoreIgnore Layout.layout
         |> Combine.continueWith whereBlock
 
 
@@ -67,9 +67,9 @@ effectModuleDefinition =
                 , subscription = whereClauses.subscription
                 }
     in
-    Combine.succeed (\name -> \whereClauses -> \exp -> createEffectModule name whereClauses exp)
-        |> Combine.ignoreEntirely (Core.symbol "effect")
-        |> Combine.ignore Layout.layout
+    Core.map (\() -> \name -> \whereClauses -> \exp -> createEffectModule name whereClauses exp)
+        (Core.symbol "effect")
+        |> Combine.fromCoreIgnore Layout.layout
         |> Combine.ignoreEntirely Tokens.moduleToken
         |> Combine.ignore Layout.layout
         |> Combine.keepFromCore moduleName
@@ -81,9 +81,14 @@ effectModuleDefinition =
 
 normalModuleDefinition : Parser State Module
 normalModuleDefinition =
-    Combine.succeed (\moduleName -> \exposingList -> NormalModule (DefaultModuleData moduleName exposingList))
-        |> Combine.ignoreEntirely Tokens.moduleToken
-        |> Combine.ignore Layout.layout
+    Core.map
+        (\() ->
+            \moduleName ->
+                \exposingList ->
+                    NormalModule (DefaultModuleData moduleName exposingList)
+        )
+        Tokens.moduleToken
+        |> Combine.fromCoreIgnore Layout.layout
         |> Combine.keepFromCore moduleName
         |> Combine.ignore Layout.layout
         |> Combine.keep (Node.parser exposeDefinition)
@@ -91,9 +96,9 @@ normalModuleDefinition =
 
 portModuleDefinition : Parser State Module
 portModuleDefinition =
-    Combine.succeed (\moduleName -> \exposingList -> PortModule (DefaultModuleData moduleName exposingList))
-        |> Combine.ignoreEntirely Tokens.portToken
-        |> Combine.ignore Layout.layout
+    Core.map (\() -> \moduleName -> \exposingList -> PortModule (DefaultModuleData moduleName exposingList))
+        Tokens.portToken
+        |> Combine.fromCoreIgnore Layout.layout
         |> Combine.ignoreEntirely Tokens.moduleToken
         |> Combine.ignore Layout.layout
         |> Combine.keepFromCore moduleName

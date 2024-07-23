@@ -12,19 +12,19 @@ import Elm.Syntax.Import exposing (Import)
 import Elm.Syntax.ModuleName exposing (ModuleName)
 import Elm.Syntax.Node as Node exposing (Node(..))
 import Elm.Syntax.Range exposing (Location, Range)
-import Parser as Core
+import Parser as Core exposing ((|.))
 
 
 importDefinition : Parser State (Node Import)
 importDefinition =
-    Combine.succeed
+    Core.map
         (\( startRow, startColumn ) ->
             \mod ->
                 importInnerParseAsDefinition { row = startRow, column = startColumn } mod
         )
-        |> Combine.keepFromCore Core.getPosition
-        |> Combine.ignoreEntirely Tokens.importToken
-        |> Combine.ignore Layout.layout
+        Core.getPosition
+        |. Tokens.importToken
+        |> Combine.fromCoreIgnore Layout.layout
         |> Combine.keepFromCore moduleName
         |> Combine.ignore Layout.optimisticLayout
         |> Combine.andThen identity
@@ -34,7 +34,7 @@ importDefinition =
 importInnerAsDefinitionOptimisticLayout : Parser State (Node ModuleName)
 importInnerAsDefinitionOptimisticLayout =
     Tokens.asToken
-        |> Combine.ignoreFromCore Layout.layout
+        |> Combine.fromCoreIgnore Layout.layout
         |> Combine.continueWithCore (Tokens.typeName |> Core.map List.singleton |> Node.parserCore)
         |> Combine.ignore Layout.optimisticLayout
 

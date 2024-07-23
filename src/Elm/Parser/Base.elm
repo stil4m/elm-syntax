@@ -4,13 +4,13 @@ import Elm.Parser.Node as Node
 import Elm.Parser.Tokens as Tokens
 import Elm.Syntax.ModuleName exposing (ModuleName)
 import Elm.Syntax.Node exposing (Node)
-import Parser as Core exposing ((|.), (|=))
+import Parser as Core exposing ((|=))
 
 
 moduleName : Core.Parser (Node ModuleName)
 moduleName =
-    Core.succeed listCons
-        |= Tokens.typeName
+    Core.map listCons
+        Tokens.typeName
         |= moduleNameOrEmpty
         |> Node.parserCore
 
@@ -23,8 +23,8 @@ listCons head =
 moduleNameOrEmpty : Core.Parser ModuleName
 moduleNameOrEmpty =
     Core.oneOf
-        [ Core.succeed listCons
-            |. Tokens.dot
+        [ Core.map (\() -> listCons)
+            Tokens.dot
             |= Tokens.typeName
             |= Core.lazy (\() -> moduleNameOrEmpty)
         , Core.succeed []

@@ -26,7 +26,7 @@ declaration : Parser State (Node Declaration)
 declaration =
     Combine.oneOf
         [ Comments.declarationDocumentation
-            |> Combine.ignoreFromCore Layout.layoutStrict
+            |> Combine.fromCoreIgnore Layout.layoutStrict
             |> Combine.andThen
                 (\documentation ->
                     Combine.oneOf
@@ -69,7 +69,7 @@ functionAfterDocumentation documentation =
 functionWithNameNode : Location -> Node String -> Maybe (Node String) -> Parser State (Node Declaration)
 functionWithNameNode start ((Node _ startName) as startNameNode) maybeDocumentation =
     Combine.oneOf
-        [ Combine.succeed
+        [ Combine.map
             (\typeAnnotation ->
                 \((Node implementationNameRange _) as implementationName) ->
                     \arguments ->
@@ -84,7 +84,7 @@ functionWithNameNode start ((Node _ startName) as startNameNode) maybeDocumentat
                                     }
                                 )
             )
-            |> Combine.keep colonMaybeLayoutTypeAnnotationLayout
+            colonMaybeLayoutTypeAnnotationLayout
             |> Combine.keep
                 (functionNameMaybeLayout
                     |> Combine.andThen
@@ -99,7 +99,7 @@ functionWithNameNode start ((Node _ startName) as startNameNode) maybeDocumentat
                 )
             |> Combine.keep patternListEqualsMaybeLayout
             |> Combine.keep expression
-        , Combine.succeed
+        , Combine.map
             (\args ->
                 \((Node { end } _) as expression) ->
                     Node { start = start, end = end }
@@ -112,14 +112,14 @@ functionWithNameNode start ((Node _ startName) as startNameNode) maybeDocumentat
                             }
                         )
             )
-            |> Combine.keep patternListEqualsMaybeLayout
+            patternListEqualsMaybeLayout
             |> Combine.keep expression
         ]
 
 
 functionDeclarationWithoutDocumentationWithSignatureWithNameAndMaybeLayoutBacktrackable : Parser State (Node Declaration)
 functionDeclarationWithoutDocumentationWithSignatureWithNameAndMaybeLayoutBacktrackable =
-    Combine.succeed
+    Combine.map
         (\((Node { start } startName) as startNameNode) ->
             \typeAnnotation ->
                 \((Node implementationNameRange implementationName) as implementationNameNode) ->
@@ -142,10 +142,9 @@ functionDeclarationWithoutDocumentationWithSignatureWithNameAndMaybeLayoutBacktr
                                 Combine.problem
                                     ("Expected to find the declaration for " ++ startName ++ " but found " ++ implementationName)
         )
-        |> Combine.keep
-            (functionNameMaybeLayout
-                |> Combine.backtrackable
-            )
+        (functionNameMaybeLayout
+            |> Combine.backtrackable
+        )
         |> Combine.keep colonMaybeLayoutTypeAnnotationLayout
         |> Combine.keep functionNameMaybeLayout
         |> Combine.keep patternListEqualsMaybeLayout
@@ -155,7 +154,7 @@ functionDeclarationWithoutDocumentationWithSignatureWithNameAndMaybeLayoutBacktr
 
 functionDeclarationWithoutDocumentationWithoutSignature : Parser State (Node Declaration)
 functionDeclarationWithoutDocumentationWithoutSignature =
-    Combine.succeed
+    Combine.map
         (\((Node { start } _) as startNameNode) ->
             \args ->
                 \((Node { end } _) as result) ->
@@ -169,7 +168,7 @@ functionDeclarationWithoutDocumentationWithoutSignature =
                             }
                         )
         )
-        |> Combine.keep functionNameMaybeLayout
+        functionNameMaybeLayout
         |> Combine.keep patternListEqualsMaybeLayout
         |> Combine.keep expression
 
@@ -178,13 +177,13 @@ functionNameMaybeLayout : Parser State (Node String)
 functionNameMaybeLayout =
     Tokens.functionName
         |> Node.parserCore
-        |> Combine.ignoreFromCore (Combine.maybeIgnore Layout.layout)
+        |> Combine.fromCoreIgnore (Combine.maybeIgnore Layout.layout)
 
 
 colonMaybeLayoutTypeAnnotationLayout : Parser State (Node TypeAnnotation)
 colonMaybeLayoutTypeAnnotationLayout =
     Tokens.colon
-        |> Combine.ignoreFromCore (Combine.maybeIgnore Layout.layout)
+        |> Combine.fromCoreIgnore (Combine.maybeIgnore Layout.layout)
         |> Combine.continueWith
             (TypeAnnotation.typeAnnotation
                 |> Combine.ignore (Combine.maybeIgnore Layout.layoutStrict)
@@ -200,16 +199,17 @@ patternListEqualsMaybeLayout =
 
 infixDeclaration : Parser State (Node Declaration)
 infixDeclaration =
-    Combine.succeed
-        (\direction ->
-            \precedence ->
-                \operator ->
-                    \fn ->
-                        Declaration.InfixDeclaration
-                            { direction = direction, precedence = precedence, operator = operator, function = fn }
+    Core.map
+        (\() ->
+            \direction ->
+                \precedence ->
+                    \operator ->
+                        \fn ->
+                            Declaration.InfixDeclaration
+                                { direction = direction, precedence = precedence, operator = operator, function = fn }
         )
-        |> Combine.ignoreEntirely (Core.keyword "infix")
-        |> Combine.ignore Layout.layout
+        (Core.keyword "infix")
+        |> Combine.fromCoreIgnore Layout.layout
         |> Combine.keepFromCore infixDirection
         |> Combine.ignore Layout.layout
         |> Combine.keepFromCore (Node.parserCore Core.int)
@@ -224,8 +224,7 @@ infixDeclaration =
 
 operatorWithParens : Core.Parser (Node String)
 operatorWithParens =
-    Core.succeed identity
-        |. Tokens.parensStart
+    Core.map (\() -> identity) Tokens.parensStart
         |= Tokens.prefixOperatorToken
         |. Tokens.parensEnd
         |> Node.parserCore
@@ -246,18 +245,18 @@ infixDirection =
 
 portDeclaration : Node Documentation -> Parser State (Node Declaration)
 portDeclaration documentation =
-    Combine.succeed
-        (\( startRow, startColumn ) ->
-            \name ->
-                \((Node { end } _) as typeAnnotation) ->
-                    Node
-                        { start = { row = startRow, column = startColumn }
-                        , end = end
-                        }
-                        (Declaration.PortDeclaration { name = name, typeAnnotation = typeAnnotation })
+    Combine.map
+        (\() ->
+            \( startRow, startColumn ) ->
+                \name ->
+                    \((Node { end } _) as typeAnnotation) ->
+                        Node
+                            { start = { row = startRow, column = startColumn }
+                            , end = end
+                            }
+                            (Declaration.PortDeclaration { name = name, typeAnnotation = typeAnnotation })
         )
-        |> Combine.ignore
-            (Combine.modifyState (State.addComment documentation))
+        (Combine.modifyState (State.addComment documentation))
         |> Combine.keep getPositionPortTokenLayout
         |> Combine.keep functionNameLayoutColonLayout
         |> Combine.keep typeAnnotation
@@ -266,19 +265,19 @@ portDeclaration documentation =
 functionNameLayoutColonLayout : Parser State (Node String)
 functionNameLayoutColonLayout =
     Node.parserCore Tokens.functionName
-        |> Combine.ignoreFromCore (Layout.maybeAroundBothSides (Combine.symbol ":"))
+        |> Combine.fromCoreIgnore (Layout.maybeAroundBothSides (Combine.symbol ":"))
 
 
 getPositionPortTokenLayout : Parser State ( Int, Int )
 getPositionPortTokenLayout =
     Core.getPosition
         |. Tokens.portToken
-        |> Combine.ignoreFromCore Layout.layout
+        |> Combine.fromCoreIgnore Layout.layout
 
 
 portDeclarationWithoutDocumentation : Parser State (Node Declaration)
 portDeclarationWithoutDocumentation =
-    Combine.succeed
+    Core.map
         (\( startRow, startColumn ) ->
             \name ->
                 \((Node { end } _) as typeAnnotation) ->
@@ -288,9 +287,9 @@ portDeclarationWithoutDocumentation =
                         }
                         (Declaration.PortDeclaration { name = name, typeAnnotation = typeAnnotation })
         )
-        |> Combine.keepFromCore Core.getPosition
-        |> Combine.ignoreEntirely Tokens.portToken
-        |> Combine.ignore Layout.layout
+        Core.getPosition
+        |. Tokens.portToken
+        |> Combine.fromCoreIgnore Layout.layout
         |> Combine.keepFromCore (Node.parserCore Tokens.functionName)
         |> Combine.ignore (Layout.maybeAroundBothSides (Combine.symbol ":"))
         |> Combine.ignore (Combine.maybeIgnore Layout.layout)

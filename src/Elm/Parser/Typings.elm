@@ -20,28 +20,29 @@ typeDefinitionAfterDocumentation documentation =
     typePrefix
         |> Combine.continueWith
             (Combine.oneOf
-                [ Combine.succeed
-                    (\name ->
-                        \generics ->
-                            \((Node { end } _) as typeAnnotation) ->
-                                Node
-                                    { start = (Node.range documentation).start
-                                    , end = end
-                                    }
-                                    (Declaration.AliasDeclaration
-                                        { documentation = Just documentation
-                                        , name = name
-                                        , generics = generics
-                                        , typeAnnotation = typeAnnotation
+                [ Core.map
+                    (\() ->
+                        \name ->
+                            \generics ->
+                                \((Node { end } _) as typeAnnotation) ->
+                                    Node
+                                        { start = (Node.range documentation).start
+                                        , end = end
                                         }
-                                    )
+                                        (Declaration.AliasDeclaration
+                                            { documentation = Just documentation
+                                            , name = name
+                                            , generics = generics
+                                            , typeAnnotation = typeAnnotation
+                                            }
+                                        )
                     )
-                    |> Combine.ignoreEntirely Tokens.aliasToken
-                    |> Combine.ignore Layout.layout
+                    Tokens.aliasToken
+                    |> Combine.fromCoreIgnore Layout.layout
                     |> Combine.keep typeNameLayout
                     |> Combine.keep genericListEquals
                     |> Combine.keep typeAnnotation
-                , Combine.succeed
+                , Combine.map
                     (\name ->
                         \generics ->
                             \constructors ->
@@ -67,7 +68,7 @@ typeDefinitionAfterDocumentation documentation =
                                         }
                                     )
                     )
-                    |> Combine.keep typeNameLayout
+                    typeNameLayout
                     |> Combine.keep genericListEquals
                     |> Combine.keep valueConstructors
                 ]
@@ -77,7 +78,7 @@ typeDefinitionAfterDocumentation documentation =
 typePrefix : Parser State ()
 typePrefix =
     Core.symbol "type"
-        |> Combine.ignoreFromCore Layout.layout
+        |> Combine.fromCoreIgnore Layout.layout
 
 
 typePrefixBacktrackable : Parser State ()
@@ -87,7 +88,7 @@ typePrefixBacktrackable =
 
 typeAliasDefinitionWithoutDocumentationWithBacktrackableTypePrefix : Parser State (Node Declaration.Declaration)
 typeAliasDefinitionWithoutDocumentationWithBacktrackableTypePrefix =
-    Combine.succeed
+    Core.map
         (\( startRow, startColumn ) ->
             \name ->
                 \generics ->
@@ -101,8 +102,8 @@ typeAliasDefinitionWithoutDocumentationWithBacktrackableTypePrefix =
                                 }
                             )
         )
-        |> Combine.keepFromCore Core.getPosition
-        |> Combine.ignore typePrefixBacktrackable
+        Core.getPosition
+        |> Combine.fromCoreIgnore typePrefixBacktrackable
         |> Combine.ignoreEntirely Tokens.aliasToken
         |> Combine.ignore Layout.layout
         |> Combine.keep typeNameLayout
@@ -112,7 +113,7 @@ typeAliasDefinitionWithoutDocumentationWithBacktrackableTypePrefix =
 
 customTypeDefinitionWithoutDocumentation : Parser State (Node Declaration.Declaration)
 customTypeDefinitionWithoutDocumentation =
-    Combine.succeed
+    Core.map
         (\( startRow, startColumn ) ->
             \name ->
                 \generics ->
@@ -137,8 +138,8 @@ customTypeDefinitionWithoutDocumentation =
                                 }
                             )
         )
-        |> Combine.keepFromCore Core.getPosition
-        |> Combine.ignore typePrefix
+        Core.getPosition
+        |> Combine.fromCoreIgnore typePrefix
         |> Combine.keep typeNameLayout
         |> Combine.keep genericListEquals
         |> Combine.keep valueConstructors
@@ -152,7 +153,7 @@ locationEmpty =
 typeNameLayout : Parser State (Node String)
 typeNameLayout =
     Node.parserCore Tokens.typeName
-        |> Combine.ignoreFromCore (Combine.maybeIgnore Layout.layout)
+        |> Combine.fromCoreIgnore (Combine.maybeIgnore Layout.layout)
 
 
 genericListEquals : Parser State (List (Node String))
@@ -218,5 +219,5 @@ genericList : Parser State (List (Node String))
 genericList =
     Combine.many
         (Node.parserCore Tokens.functionName
-            |> Combine.ignoreFromCore (Combine.maybeIgnore Layout.layout)
+            |> Combine.fromCoreIgnore (Combine.maybeIgnore Layout.layout)
         )

@@ -9,7 +9,7 @@ import Elm.Syntax.ModuleName exposing (ModuleName)
 import Elm.Syntax.Node as Node exposing (Node(..))
 import Elm.Syntax.Range exposing (Range)
 import Elm.Syntax.TypeAnnotation as TypeAnnotation exposing (TypeAnnotation)
-import Parser as Core exposing ((|.), (|=))
+import Parser as Core exposing ((|=))
 
 
 typeAnnotation : Parser State (Node TypeAnnotation)
@@ -91,8 +91,8 @@ parensTypeAnnotationInnerCommaSep =
 
 parensTypeAnnotationInnerNested : Parser State TypeAnnotation
 parensTypeAnnotationInnerNested =
-    Combine.succeed (\x -> \xs -> asTypeAnnotation x xs)
-        |> Combine.ignore (Combine.maybeIgnore Layout.layout)
+    Combine.map (\() -> \x -> \xs -> asTypeAnnotation x xs)
+        (Combine.maybeIgnore Layout.layout)
         |> Combine.keep typeAnnotation
         |> Combine.ignore (Combine.maybeIgnore Layout.layout)
         |> Combine.keep parensTypeAnnotationInnerCommaSep
@@ -129,14 +129,14 @@ recordTypeAnnotation =
             (Combine.oneOf
                 [ Core.map (\() -> TypeAnnotation.Record []) Tokens.curlyEnd |> Combine.fromCore
                 , Node.parserCore Tokens.functionName
-                    |> Combine.ignoreFromCore (Combine.maybeIgnore Layout.layout)
+                    |> Combine.fromCoreIgnore (Combine.maybeIgnore Layout.layout)
                     |> Combine.andThen
                         (\fname ->
                             Combine.oneOf
                                 [ Combine.map (\fields -> TypeAnnotation.GenericRecord fname fields)
                                     pipeRecordFieldsTypeAnnotationNodeCurlyEnd
-                                , Combine.succeed (\ta -> \rest -> TypeAnnotation.Record <| Node.combine Tuple.pair fname ta :: rest)
-                                    |> Combine.keep colonTypeAnnotationMaybeLayout
+                                , Combine.map (\ta -> \rest -> TypeAnnotation.Record <| Node.combine Tuple.pair fname ta :: rest)
+                                    colonTypeAnnotationMaybeLayout
                                     |> Combine.keep maybeCommaRecordFieldsTypeAnnotationCurlyEnd
                                 ]
                         )
@@ -157,7 +157,7 @@ pipeRecordFieldsTypeAnnotationNodeCurlyEnd =
 colonTypeAnnotationMaybeLayout : Parser State (Node TypeAnnotation)
 colonTypeAnnotationMaybeLayout =
     Tokens.colon
-        |> Combine.ignoreFromCore (Combine.maybeIgnore Layout.layout)
+        |> Combine.fromCoreIgnore (Combine.maybeIgnore Layout.layout)
         |> Combine.continueWith
             (typeAnnotation
                 |> Combine.ignore (Combine.maybeIgnore Layout.layout)
@@ -178,8 +178,8 @@ maybeCommaRecordFieldsTypeAnnotationCurlyEnd =
 
 recordFieldDefinition : Parser State TypeAnnotation.RecordField
 recordFieldDefinition =
-    Combine.succeed (\functionName -> \value -> ( functionName, value ))
-        |> Combine.ignore (Combine.maybeIgnore Layout.layout)
+    Combine.map (\() -> \functionName -> \value -> ( functionName, value ))
+        (Combine.maybeIgnore Layout.layout)
         |> Combine.keepFromCore (Node.parserCore Tokens.functionName)
         |> Combine.ignore (Combine.maybeIgnore Layout.layout)
         |> Combine.ignoreEntirely Tokens.colon
@@ -225,8 +225,7 @@ typeIndicatorHelper moduleNameSoFar typeOrSegment =
 
 dotTypeName : Core.Parser String
 dotTypeName =
-    Core.succeed identity
-        |. Tokens.dot
+    Core.map (\() -> identity) Tokens.dot
         |= Tokens.typeName
 
 

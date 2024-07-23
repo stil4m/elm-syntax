@@ -15,8 +15,8 @@ import Elm.Syntax.Node exposing (Node)
 
 file : Parser State File
 file =
-    Combine.succeed File
-        |> Combine.ignore (Combine.maybeIgnore Layout.layoutStrict)
+    Combine.map (\() -> File)
+        (Combine.maybeIgnore Layout.layoutStrict)
         |> Combine.keep (Node.parser moduleDefinition)
         |> Combine.ignore (Combine.maybeIgnore Layout.layoutStrict)
         |> Combine.ignore (Combine.maybeIgnore (Comments.moduleDocumentation |> Combine.ignore Layout.layoutStrict))

@@ -30,7 +30,7 @@ exposeListWith =
 exposingListInner : Parser State Exposing
 exposingListInner =
     Combine.oneOf
-        [ Combine.succeed
+        [ Core.map
             (\( startRow, startColumn ) ->
                 \( endRow, endColumn ) ->
                     All
@@ -38,8 +38,9 @@ exposingListInner =
                         , end = { row = endRow, column = endColumn }
                         }
             )
-            |> Combine.keepFromCore Core.getPosition
-            |> Combine.ignore (Layout.maybeAroundBothSides (Combine.fromCore Tokens.dotDot))
+            Core.getPosition
+            |> Combine.fromCoreIgnore
+                (Layout.maybeAroundBothSides (Combine.fromCore Tokens.dotDot))
             |> Combine.keepFromCore Core.getPosition
         , Combine.sepBy1 "," (Layout.maybeAroundBothSides exposable)
             |> Combine.map Explicit
@@ -58,8 +59,8 @@ exposable =
 
 infixExpose : Core.Parser TopLevelExpose
 infixExpose =
-    Core.succeed InfixExpose
-        |. Tokens.parensStart
+    Core.map (\() -> InfixExpose)
+        Tokens.parensStart
         |= Core.variable
             { inner = \c -> c /= ')'
             , reserved = Set.empty
@@ -74,11 +75,12 @@ typeExpose =
         |> Combine.andThenFromCore
             (\typeValue ->
                 Combine.oneOf
-                    [ Combine.succeed
-                        (\(Node openRange ()) ->
-                            TypeExpose (ExposedType typeValue (Just openRange))
+                    [ Combine.map
+                        (\() ->
+                            \(Node openRange ()) ->
+                                TypeExpose (ExposedType typeValue (Just openRange))
                         )
-                        |> Combine.ignore (Combine.maybeIgnore Layout.layout |> Combine.backtrackable)
+                        (Combine.maybeIgnore Layout.layout |> Combine.backtrackable)
                         |> Combine.keep exposingVariants
                     , Combine.succeedLazy (\() -> TypeOrAliasExpose typeValue)
                     ]
