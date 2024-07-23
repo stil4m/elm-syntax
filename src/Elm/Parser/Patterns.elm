@@ -166,24 +166,7 @@ qualifiedPatternWithConsumeArgs : Parser State Pattern
 qualifiedPatternWithConsumeArgs =
     Core.map (\qualified -> \args -> NamedPattern qualified args)
         qualifiedNameRef
-        |> Combine.fromCoreKeep emptyOrFilledArgumentPatterns
-
-
-emptyOrFilledArgumentPatterns : Parser State (List (Node Pattern))
-emptyOrFilledArgumentPatterns =
-    Combine.oneOf
-        [ Combine.map (\() -> identity)
-            (Combine.maybeIgnore Layout.layout |> Combine.backtrackable)
-            |> Combine.keep qualifiedPatternArgumentList
-        , Combine.succeed []
-        ]
-
-
-qualifiedPatternArgumentList : Parser State (List (Node Pattern))
-qualifiedPatternArgumentList =
-    Combine.map (\head -> \tail -> head :: tail)
-        qualifiedPatternArg
-        |> Combine.keep
+        |> Combine.fromCoreKeep
             (Combine.many
                 (Combine.maybeIgnore Layout.layout
                     |> Combine.backtrackable
