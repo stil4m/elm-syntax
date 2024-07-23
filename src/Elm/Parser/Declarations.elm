@@ -265,7 +265,9 @@ portDeclaration documentation =
 functionNameLayoutColonLayout : Parser State (Node String)
 functionNameLayoutColonLayout =
     Node.parserCore Tokens.functionName
-        |> Combine.fromCoreIgnore (Layout.maybeAroundBothSides (Combine.symbol ":"))
+        |> Combine.fromCoreIgnore (Combine.maybeIgnore Layout.layout)
+        |> Combine.ignoreEntirely (Core.symbol ":")
+        |> Combine.ignore (Combine.maybeIgnore Layout.layout)
 
 
 getPositionPortTokenLayout : Parser State ( Int, Int )
@@ -291,6 +293,7 @@ portDeclarationWithoutDocumentation =
         |. Tokens.portToken
         |> Combine.fromCoreIgnore Layout.layout
         |> Combine.keepFromCore (Node.parserCore Tokens.functionName)
-        |> Combine.ignore (Layout.maybeAroundBothSides (Combine.symbol ":"))
+        |> Combine.ignore (Combine.maybeIgnore Layout.layout)
+        |> Combine.ignoreEntirely (Core.symbol ":")
         |> Combine.ignore (Combine.maybeIgnore Layout.layout)
         |> Combine.keep typeAnnotation

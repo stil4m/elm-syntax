@@ -39,8 +39,9 @@ exposingListInner =
                         }
             )
             Core.getPosition
-            |> Combine.fromCoreIgnore
-                (Layout.maybeAroundBothSides (Combine.fromCore Tokens.dotDot))
+            |> Combine.fromCoreIgnore (Combine.maybeIgnore Layout.layout)
+            |> Combine.ignoreEntirely Tokens.dotDot
+            |> Combine.ignore (Combine.maybeIgnore Layout.layout)
             |> Combine.keepFromCore Core.getPosition
         , Combine.sepBy1 "," (Layout.maybeAroundBothSides exposable)
             |> Combine.map Explicit
@@ -89,7 +90,13 @@ typeExpose =
 
 exposingVariants : Parser State (Node ())
 exposingVariants =
-    Node.parser (Combine.parens (Layout.maybeAroundBothSides (Combine.symbol "..")))
+    Node.parser
+        (Combine.parens
+            (Combine.maybeIgnore Layout.layout
+                |> Combine.ignoreEntirely (Core.symbol "..")
+                |> Combine.ignore (Combine.maybeIgnore Layout.layout)
+            )
+        )
 
 
 functionExpose : Core.Parser TopLevelExpose
