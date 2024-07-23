@@ -42,7 +42,10 @@ composablePatternTryToCompose =
 
 parensPattern : Parser State Pattern
 parensPattern =
-    Combine.parens (Combine.sepBy "," (Layout.maybeAroundBothSides pattern))
+    Combine.between
+        Tokens.parensStart
+        Tokens.parensEnd
+        (Combine.sepBy "," (Layout.maybeAroundBothSides pattern))
         |> Combine.map
             (\c ->
                 case c of
@@ -76,8 +79,8 @@ charPattern =
 listPattern : Parser State Pattern
 listPattern =
     Combine.between
-        "["
-        "]"
+        Tokens.squareStart
+        Tokens.squareEnd
         (Combine.maybeIgnore Layout.layout
             |> Combine.continueWith (Combine.sepBy "," (Layout.maybeAroundBothSides pattern))
             |> Combine.map ListPattern
@@ -199,8 +202,8 @@ qualifiedPatternWithoutConsumeArgs =
 recordPattern : Parser State Pattern
 recordPattern =
     Combine.between
-        "{"
-        "}"
+        Tokens.curlyStart
+        Tokens.curlyEnd
         (Combine.maybeIgnore Layout.layout
             |> Combine.continueWith
                 (Combine.sepBy ","

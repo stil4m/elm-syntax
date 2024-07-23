@@ -20,7 +20,9 @@ exposeDefinition =
 
 exposeListWith : Parser State Exposing
 exposeListWith =
-    Combine.parens
+    Combine.between
+        Tokens.parensStart
+        Tokens.parensEnd
         (Layout.optimisticLayout
             |> Combine.continueWith exposingListInner
             |> Combine.ignore Layout.optimisticLayout
@@ -91,7 +93,9 @@ typeExpose =
 exposingVariants : Parser State (Node ())
 exposingVariants =
     Node.parser
-        (Combine.parens
+        (Combine.between
+            Tokens.parensStart
+            Tokens.parensEnd
             (Combine.maybeIgnore Layout.layout
                 |> Combine.ignoreEntirely (Core.symbol "..")
                 |> Combine.ignore (Combine.maybeIgnore Layout.layout)

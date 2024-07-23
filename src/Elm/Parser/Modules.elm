@@ -37,8 +37,8 @@ effectWhereClause =
 whereBlock : Parser State { command : Maybe (Node String), subscription : Maybe (Node String) }
 whereBlock =
     Combine.between
-        "{"
-        "}"
+        Tokens.curlyStart
+        Tokens.curlyEnd
         (Combine.sepBy1 ","
             (Layout.maybeAroundBothSides effectWhereClause)
         )

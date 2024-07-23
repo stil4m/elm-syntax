@@ -29,7 +29,6 @@ module Combine exposing
     , maybeIgnore
     , modifyState
     , oneOf
-    , parens
     , problem
     , runParser
     , sepBy
@@ -378,18 +377,13 @@ sepBy1WithoutReverse sep p =
         |> andThen (\first -> manyWithoutReverse [ first ] (sep |> continueWith p))
 
 
-between : String -> String -> Parser state a -> Parser state a
+between : Core.Parser () -> Core.Parser () -> Parser state a -> Parser state a
 between lp rp (Parser p) =
     Parser <|
         \state ->
-            Core.map (\() -> identity) (Core.symbol lp)
+            Core.map (\() -> identity) lp
                 |= p state
-                |. Core.symbol rp
-
-
-parens : Parser state a -> Parser state a
-parens p =
-    between "(" ")" p
+                |. rp
 
 
 ignore : Parser state () -> Parser state a -> Parser state a
