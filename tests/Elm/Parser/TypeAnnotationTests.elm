@@ -1,6 +1,8 @@
 module Elm.Parser.TypeAnnotationTests exposing (all)
 
+import Combine
 import Elm.Parser.CombineTestUtil as CombineTestUtil exposing (..)
+import Elm.Parser.Layout as Layout
 import Elm.Parser.TypeAnnotation as Parser
 import Elm.Syntax.Node exposing (Node(..))
 import Elm.Syntax.TypeAnnotation exposing (..)
@@ -68,7 +70,7 @@ all =
                         )
         , test "types with and without spacing should parse to the same" <|
             \() ->
-                parse "Bar " Parser.typeAnnotation
+                parse "Bar " (Parser.typeAnnotation |> Combine.ignore (Combine.maybeIgnore Layout.layout))
                     |> Expect.equal (parse "Bar" Parser.typeAnnotation)
         , test "typedTypeReference 1" <|
             \() ->
@@ -257,7 +259,7 @@ all =
                         )
         , test "annotation with parens" <|
             \() ->
-                "Msg -> Model -> (Model, Cmd Msg)\n\n"
+                "Msg -> Model -> (Model, Cmd Msg)"
                     |> expectAst
                         (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 33 } }
                             (FunctionTypeAnnotation

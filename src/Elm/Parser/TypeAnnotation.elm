@@ -13,26 +13,24 @@ import Parser as Core exposing ((|=))
 
 typeAnnotation : Parser State (Node TypeAnnotation)
 typeAnnotation =
-    typeAnnotationNoFnIncludingTypedWithArgumentsLazy
-        |> Combine.andThen
-            (\typeRef ->
-                Layout.optimisticLayoutWith
-                    (\() -> typeRef)
-                    (\() ->
-                        Combine.oneOf
-                            [ arrowRightToTypeAnnotation
-                                |> Combine.map (\ta -> Node.combine TypeAnnotation.FunctionTypeAnnotation typeRef ta)
-                            , Combine.succeed typeRef
-                            ]
-                    )
+    Combine.map (\ta -> \fromTa -> fromTa ta)
+        typeAnnotationNoFnIncludingTypedWithArgumentsLazy
+        |> Combine.keep
+            (Combine.oneOf
+                [ arrowRightToTypeAnnotation
+                    |> Combine.map (\out -> \in_ -> Node.combine TypeAnnotation.FunctionTypeAnnotation in_ out)
+                , Combine.succeed identity
+                ]
             )
 
 
 arrowRightToTypeAnnotation : Parser State (Node TypeAnnotation)
 arrowRightToTypeAnnotation =
-    Tokens.arrowRight
-        |> Combine.continueFromCore (Combine.maybeIgnore Layout.layout)
-        |> Combine.continueWith typeAnnotation
+    Combine.maybeIgnore Layout.layout
+        |> Combine.backtrackable
+        |> Combine.continueWithCore Tokens.arrowRight
+        |> Combine.continueWith (Combine.maybeIgnore Layout.layout)
+        |> Combine.continueWith (Combine.lazy (\() -> typeAnnotation))
 
 
 typeAnnotationNoFnExcludingTypedWithArguments : Parser State (Node TypeAnnotation)
@@ -112,7 +110,10 @@ genericTypeAnnotation =
 
 recordFieldsTypeAnnotation : Parser State TypeAnnotation.RecordDefinition
 recordFieldsTypeAnnotation =
-    Combine.sepBy1 "," (Layout.maybeAroundBothSides <| Node.parser recordFieldDefinition)
+    Combine.sepBy1 ","
+        (Combine.maybeIgnore Layout.layout
+            |> Combine.continueWith (Node.parser recordFieldDefinition)
+        )
 
 
 recordTypeAnnotation : Parser State TypeAnnotation
@@ -122,17 +123,17 @@ recordTypeAnnotation =
         |> Combine.continueWith
             (Combine.oneOf
                 [ Combine.fromCoreMap (\() -> TypeAnnotation.Record []) Tokens.curlyEnd
-                , Node.parserCore Tokens.functionName
+                , Core.map (\fName -> \fromFName -> fromFName fName)
+                    (Node.parserCore Tokens.functionName)
                     |> Combine.fromCoreIgnore (Combine.maybeIgnore Layout.layout)
-                    |> Combine.andThen
-                        (\fname ->
-                            Combine.oneOf
-                                [ Combine.map (\fields -> TypeAnnotation.GenericRecord fname fields)
-                                    pipeRecordFieldsTypeAnnotationNodeCurlyEnd
-                                , Combine.map (\ta -> \rest -> TypeAnnotation.Record <| Node.combine Tuple.pair fname ta :: rest)
-                                    colonTypeAnnotationMaybeLayout
-                                    |> Combine.keep maybeCommaRecordFieldsTypeAnnotationCurlyEnd
-                                ]
+                    |> Combine.keep
+                        (Combine.oneOf
+                            [ Combine.map (\fields -> \fname -> TypeAnnotation.GenericRecord fname fields)
+                                pipeRecordFieldsTypeAnnotationNodeCurlyEnd
+                            , Combine.map (\ta -> \rest -> \fname -> TypeAnnotation.Record (Node.combine Tuple.pair fname ta :: rest))
+                                colonTypeAnnotationMaybeLayout
+                                |> Combine.keep maybeCommaRecordFieldsTypeAnnotationCurlyEnd
+                            ]
                         )
                 ]
             )
@@ -178,6 +179,9 @@ recordFieldDefinition =
         |> Combine.ignoreEntirely Tokens.colon
         |> Combine.ignore (Combine.maybeIgnore Layout.layout)
         |> Combine.keep typeAnnotation
+        -- This extra whitespace is just included for compatibility with earlier version
+        -- TODO for v8: move to recordFieldsTypeAnnotation
+        |> Combine.ignore (Combine.maybeIgnore Layout.layout)
 
 
 typedTypeAnnotationWithoutArguments : Parser State TypeAnnotation
