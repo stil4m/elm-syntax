@@ -1,8 +1,8 @@
 module Elm.Parser.DeclarationsTests exposing (all)
 
-import Elm.Parser.CombineTestUtil as CombineTestUtil
+import Elm.Parser.CombineTestUtil as CombineTestUtil exposing (parse)
 import Elm.Parser.Declarations exposing (..)
-import Elm.Syntax.Declaration exposing (..)
+import Elm.Syntax.Declaration as Declaration exposing (..)
 import Elm.Syntax.Expression exposing (..)
 import Elm.Syntax.Infix as Infix exposing (InfixDirection(..))
 import Elm.Syntax.Node exposing (Node(..))
@@ -585,6 +585,246 @@ update msg model =
                                             ]
                                         , expression = Node { start = { row = 3, column = 5 }, end = { row = 3, column = 8 } } (FunctionOrValue [] "msg")
                                         }
+                                }
+                            )
+                        )
+        , test "type alias" <|
+            \() ->
+                "type alias Foo = {color: String }"
+                    |> expectAst
+                        (Node { end = { column = 34, row = 1 }, start = { column = 1, row = 1 } }
+                            (AliasDeclaration
+                                { documentation = Nothing
+                                , generics = []
+                                , name = Node { end = { column = 15, row = 1 }, start = { column = 12, row = 1 } } "Foo"
+                                , typeAnnotation =
+                                    Node { end = { column = 34, row = 1 }, start = { column = 18, row = 1 } }
+                                        (Record
+                                            [ Node { end = { column = 32, row = 1 }, start = { column = 19, row = 1 } }
+                                                ( Node { end = { column = 24, row = 1 }, start = { column = 19, row = 1 } } "color"
+                                                , Node { end = { column = 32, row = 1 }, start = { column = 26, row = 1 } }
+                                                    (Typed (Node { end = { column = 32, row = 1 }, start = { column = 26, row = 1 } } ( [], "String" )) [])
+                                                )
+                                            ]
+                                        )
+                                }
+                            )
+                        )
+        , test "type alias with documentation" <|
+            \() ->
+                """{-| Foo is colorful -}
+type alias Foo = {color: String }"""
+                    |> expectAst
+                        (Node { end = { column = 34, row = 2 }, start = { column = 1, row = 1 } }
+                            (AliasDeclaration
+                                { documentation = Just (Node { end = { column = 23, row = 1 }, start = { column = 1, row = 1 } } "{-| Foo is colorful -}")
+                                , generics = []
+                                , name = Node { end = { column = 15, row = 2 }, start = { column = 12, row = 2 } } "Foo"
+                                , typeAnnotation =
+                                    Node { end = { column = 34, row = 2 }, start = { column = 18, row = 2 } }
+                                        (Record
+                                            [ Node { end = { column = 32, row = 2 }, start = { column = 19, row = 2 } }
+                                                ( Node { end = { column = 24, row = 2 }, start = { column = 19, row = 2 } } "color"
+                                                , Node { end = { column = 32, row = 2 }, start = { column = 26, row = 2 } }
+                                                    (Typed (Node { end = { column = 32, row = 2 }, start = { column = 26, row = 2 } } ( [], "String" )) [])
+                                                )
+                                            ]
+                                        )
+                                }
+                            )
+                        )
+        , test "type alias without spacings around '='" <|
+            \() ->
+                "type alias Foo={color: String }"
+                    |> expectAst
+                        (Node { end = { column = 32, row = 1 }, start = { column = 1, row = 1 } }
+                            (AliasDeclaration
+                                { documentation = Nothing
+                                , generics = []
+                                , name = Node { end = { column = 15, row = 1 }, start = { column = 12, row = 1 } } "Foo"
+                                , typeAnnotation =
+                                    Node { end = { column = 32, row = 1 }, start = { column = 16, row = 1 } }
+                                        (Record
+                                            [ Node { end = { column = 30, row = 1 }, start = { column = 17, row = 1 } }
+                                                ( Node { end = { column = 22, row = 1 }, start = { column = 17, row = 1 } } "color"
+                                                , Node { end = { column = 30, row = 1 }, start = { column = 24, row = 1 } }
+                                                    (Typed (Node { end = { column = 30, row = 1 }, start = { column = 24, row = 1 } } ( [], "String" )) [])
+                                                )
+                                            ]
+                                        )
+                                }
+                            )
+                        )
+        , test "type alias with GenericType " <|
+            \() ->
+                "type alias Foo a = {some : a }"
+                    |> expectAst
+                        (Node { end = { column = 31, row = 1 }, start = { column = 1, row = 1 } }
+                            (AliasDeclaration
+                                { documentation = Nothing
+                                , generics = [ Node { end = { column = 17, row = 1 }, start = { column = 16, row = 1 } } "a" ]
+                                , name = Node { end = { column = 15, row = 1 }, start = { column = 12, row = 1 } } "Foo"
+                                , typeAnnotation =
+                                    Node { end = { column = 31, row = 1 }, start = { column = 20, row = 1 } }
+                                        (Record
+                                            [ Node { end = { column = 29, row = 1 }, start = { column = 21, row = 1 } }
+                                                ( Node { end = { column = 25, row = 1 }, start = { column = 21, row = 1 } } "some"
+                                                , Node { end = { column = 29, row = 1 }, start = { column = 28, row = 1 } } (GenericType "a")
+                                                )
+                                            ]
+                                        )
+                                }
+                            )
+                        )
+        , test "type" <|
+            \() ->
+                "type Color = Blue String | Red | Green"
+                    |> expectAst
+                        (Node { end = { column = 39, row = 1 }, start = { column = 1, row = 1 } }
+                            (Declaration.CustomTypeDeclaration
+                                { constructors =
+                                    [ Node { end = { column = 25, row = 1 }, start = { column = 14, row = 1 } }
+                                        { arguments =
+                                            [ Node { end = { column = 25, row = 1 }, start = { column = 19, row = 1 } }
+                                                (Typed (Node { end = { column = 25, row = 1 }, start = { column = 19, row = 1 } } ( [], "String" )) [])
+                                            ]
+                                        , name = Node { end = { column = 18, row = 1 }, start = { column = 14, row = 1 } } "Blue"
+                                        }
+                                    , Node { end = { column = 31, row = 1 }, start = { column = 28, row = 1 } }
+                                        { arguments = []
+                                        , name = Node { end = { column = 31, row = 1 }, start = { column = 28, row = 1 } } "Red"
+                                        }
+                                    , Node { end = { column = 39, row = 1 }, start = { column = 34, row = 1 } }
+                                        { arguments = []
+                                        , name = Node { end = { column = 39, row = 1 }, start = { column = 34, row = 1 } } "Green"
+                                        }
+                                    ]
+                                , documentation = Nothing
+                                , generics = []
+                                , name = Node { end = { column = 11, row = 1 }, start = { column = 6, row = 1 } } "Color"
+                                }
+                            )
+                        )
+        , test "type with documentation" <|
+            \() ->
+                """{-| Classic RGB -}
+type Color = Blue String | Red | Green"""
+                    |> expectAst
+                        (Node { end = { column = 39, row = 2 }, start = { column = 1, row = 1 } }
+                            (CustomTypeDeclaration
+                                { constructors =
+                                    [ Node
+                                        { end = { column = 25, row = 2 }
+                                        , start = { column = 14, row = 2 }
+                                        }
+                                        { arguments =
+                                            [ Node { end = { column = 25, row = 2 }, start = { column = 19, row = 2 } }
+                                                (Typed (Node { end = { column = 25, row = 2 }, start = { column = 19, row = 2 } } ( [], "String" )) [])
+                                            ]
+                                        , name = Node { end = { column = 18, row = 2 }, start = { column = 14, row = 2 } } "Blue"
+                                        }
+                                    , Node { end = { column = 31, row = 2 }, start = { column = 28, row = 2 } }
+                                        { arguments = []
+                                        , name = Node { end = { column = 31, row = 2 }, start = { column = 28, row = 2 } } "Red"
+                                        }
+                                    , Node { end = { column = 39, row = 2 }, start = { column = 34, row = 2 } }
+                                        { arguments = []
+                                        , name = Node { end = { column = 39, row = 2 }, start = { column = 34, row = 2 } } "Green"
+                                        }
+                                    ]
+                                , documentation = Just (Node { end = { column = 19, row = 1 }, start = { column = 1, row = 1 } } "{-| Classic RGB -}")
+                                , generics = []
+                                , name = Node { end = { column = 11, row = 2 }, start = { column = 6, row = 2 } } "Color"
+                                }
+                            )
+                        )
+        , test "type with multiple args" <|
+            \() ->
+                "type D = C a B"
+                    |> expectAst
+                        (Node { end = { column = 15, row = 1 }, start = { column = 1, row = 1 } }
+                            (Declaration.CustomTypeDeclaration
+                                { constructors =
+                                    [ Node { end = { column = 15, row = 1 }, start = { column = 10, row = 1 } }
+                                        { arguments =
+                                            [ Node { end = { column = 13, row = 1 }, start = { column = 12, row = 1 } } (GenericType "a")
+                                            , Node { end = { column = 15, row = 1 }, start = { column = 14, row = 1 } }
+                                                (Typed (Node { end = { column = 15, row = 1 }, start = { column = 14, row = 1 } } ( [], "B" )) [])
+                                            ]
+                                        , name = Node { end = { column = 11, row = 1 }, start = { column = 10, row = 1 } } "C"
+                                        }
+                                    ]
+                                , documentation = Nothing
+                                , generics = []
+                                , name = Node { end = { column = 7, row = 1 }, start = { column = 6, row = 1 } } "D"
+                                }
+                            )
+                        )
+        , test "type with multiple args and correct distribution of args" <|
+            \() ->
+                "type D = C B a"
+                    |> expectAst
+                        (Node { end = { column = 15, row = 1 }, start = { column = 1, row = 1 } }
+                            (Declaration.CustomTypeDeclaration
+                                { constructors =
+                                    [ Node { end = { column = 15, row = 1 }, start = { column = 10, row = 1 } }
+                                        { arguments =
+                                            [ Node { end = { column = 13, row = 1 }, start = { column = 12, row = 1 } }
+                                                (Typed (Node { end = { column = 13, row = 1 }, start = { column = 12, row = 1 } } ( [], "B" )) [])
+                                            , Node { end = { column = 15, row = 1 }, start = { column = 14, row = 1 } } (GenericType "a")
+                                            ]
+                                        , name = Node { end = { column = 11, row = 1 }, start = { column = 10, row = 1 } } "C"
+                                        }
+                                    ]
+                                , documentation = Nothing
+                                , generics = []
+                                , name = Node { end = { column = 7, row = 1 }, start = { column = 6, row = 1 } } "D"
+                                }
+                            )
+                        )
+        , test "type args should not continue on next line" <|
+            \() ->
+                "type D = C B\na"
+                    |> expectInvalid
+        , test "type with GenericType" <|
+            \() ->
+                "type Maybe a = Just a | Nothing"
+                    |> expectAst
+                        (Node { end = { column = 32, row = 1 }, start = { column = 1, row = 1 } }
+                            (Declaration.CustomTypeDeclaration
+                                { constructors =
+                                    [ Node { end = { column = 22, row = 1 }, start = { column = 16, row = 1 } }
+                                        { arguments = [ Node { end = { column = 22, row = 1 }, start = { column = 21, row = 1 } } (GenericType "a") ]
+                                        , name = Node { end = { column = 20, row = 1 }, start = { column = 16, row = 1 } } "Just"
+                                        }
+                                    , Node { end = { column = 32, row = 1 }, start = { column = 25, row = 1 } }
+                                        { arguments = []
+                                        , name = Node { end = { column = 32, row = 1 }, start = { column = 25, row = 1 } } "Nothing"
+                                        }
+                                    ]
+                                , documentation = Nothing
+                                , generics = [ Node { end = { column = 13, row = 1 }, start = { column = 12, row = 1 } } "a" ]
+                                , name = Node { end = { column = 11, row = 1 }, start = { column = 6, row = 1 } } "Maybe"
+                                }
+                            )
+                        )
+        , test "type with value on next line " <|
+            \() ->
+                parse "type Maybe a = Just a |\nNothing" Elm.Parser.Declarations.declaration
+                    |> Expect.equal Nothing
+        , test "type with spacing after " <|
+            \() ->
+                "type A = B\n\n"
+                    |> expectAst
+                        (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 11 } }
+                            (Declaration.CustomTypeDeclaration
+                                { documentation = Nothing
+                                , name = Node { start = { row = 1, column = 6 }, end = { row = 1, column = 7 } } "A"
+                                , generics = []
+                                , constructors =
+                                    [ Node { start = { row = 1, column = 10 }, end = { row = 1, column = 11 } }
+                                        { name = Node { start = { row = 1, column = 10 }, end = { row = 1, column = 11 } } "B", arguments = [] }
+                                    ]
                                 }
                             )
                         )
