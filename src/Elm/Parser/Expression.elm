@@ -195,97 +195,77 @@ recordExpression =
         |> Combine.fromCoreIgnore (Combine.maybeIgnore Layout.layout)
         |> Combine.continueWith
             (Combine.oneOf
-                [ Tokens.curlyEnd
-                    |> Combine.fromCoreMap (\() -> RecordExpr [])
-                , recordContents
+                [ recordContents
+                , Combine.succeed (RecordExpr [])
                 ]
             )
+        |> Combine.ignoreEntirely Tokens.curlyEnd
 
 
 recordContents : Parser State Expression
 recordContents =
-    Node.parserCore Tokens.functionName
+    Core.map (\nameNode -> \with -> with nameNode)
+        (Node.parserCore Tokens.functionName)
         |> Combine.fromCoreIgnore (Combine.maybeIgnore Layout.layout)
-        |> Combine.andThen
-            (\fname ->
-                Combine.oneOf
-                    [ recordUpdateSyntaxParser fname
-                    , equalsExpression
-                        |> Combine.andThen
-                            (\e ->
-                                let
-                                    fieldUpdate : Node RecordSetter
-                                    fieldUpdate =
-                                        Node.combine Tuple.pair fname e
-
-                                    toRecordExpr : List (Node RecordSetter) -> Expression
-                                    toRecordExpr fieldUpdates =
-                                        RecordExpr (fieldUpdate :: fieldUpdates)
-                                in
-                                Combine.oneOf
-                                    [ Tokens.curlyEnd
-                                        |> Combine.fromCoreMap (\() -> toRecordExpr [])
-                                    , Combine.map toRecordExpr
-                                        commaMaybeLayoutRecordFieldsCurlyEnd
-                                    ]
-                            )
-                    ]
+        |> Combine.keep
+            (Combine.oneOf
+                [ Core.map
+                    (\() ->
+                        \firstField ->
+                            \tailFields ->
+                                \fName ->
+                                    RecordUpdateExpression fName
+                                        (firstField :: tailFields)
+                    )
+                    Tokens.pipe
+                    |> Combine.fromCoreIgnore (Combine.maybeIgnore Layout.layout)
+                    |> Combine.keep recordSetterNode
+                    |> Combine.keep recordFields
+                , Core.map
+                    (\() ->
+                        \firstFieldValue ->
+                            \tailFields ->
+                                \nameNode ->
+                                    RecordExpr (Node.combine Tuple.pair nameNode firstFieldValue :: tailFields)
+                    )
+                    Tokens.equal
+                    |> Combine.fromCoreIgnore (Combine.maybeIgnore Layout.layout)
+                    |> Combine.keep expression
+                    |> Combine.keep recordFields
+                ]
             )
-
-
-commaMaybeLayoutRecordFieldsCurlyEnd : Parser State (List (Node RecordSetter))
-commaMaybeLayoutRecordFieldsCurlyEnd =
-    Tokens.comma
-        |> Combine.fromCoreIgnore (Combine.maybeIgnore Layout.layout)
-        |> Combine.continueWith
-            (recordFields
-                |> Combine.ignoreEntirely Tokens.curlyEnd
-            )
-
-
-equalsExpression : Parser State (Node Expression)
-equalsExpression =
-    Tokens.equal
-        |> Combine.continueWithFromCore expression
-
-
-recordUpdateSyntaxParser : Node String -> Parser State Expression
-recordUpdateSyntaxParser fname =
-    Core.map (\() -> \e -> RecordUpdateExpression fname e)
-        Tokens.pipe
-        |> Combine.fromCoreIgnore (Combine.maybeIgnore Layout.layout)
-        |> Combine.keep recordFields
-        |> Combine.ignoreEntirely Tokens.curlyEnd
+        |> Combine.ignore (Combine.maybeIgnore Layout.layout)
 
 
 recordFields : Parser State (List (Node RecordSetter))
 recordFields =
-    Combine.map (\first -> \rest -> first :: rest)
-        recordField
-        |> Combine.ignore (Combine.maybeIgnore Layout.layout)
-        |> Combine.keep
-            (Combine.many
-                (Tokens.comma
-                    |> Combine.fromCoreIgnore (Combine.maybeIgnore Layout.layout)
-                    |> Combine.continueWith recordField
-                    |> Combine.ignore (Combine.maybeIgnore Layout.layout)
-                )
-            )
+    Combine.many
+        (Combine.maybeIgnore Layout.layout
+            |> Combine.backtrackable
+            |> Combine.ignoreEntirely Tokens.comma
+            |> Combine.ignore (Combine.maybeIgnore Layout.layout)
+            |> Combine.continueWith recordSetterNode
+        )
 
 
-recordField : Parser State (Node RecordSetter)
-recordField =
-    Combine.map (\fnName -> \expr -> ( fnName, expr ))
-        recordFieldWithoutValue
-        |> Combine.keep expression
-        |> Node.parser
-
-
-recordFieldWithoutValue : Parser State (Node String)
-recordFieldWithoutValue =
-    Node.parserCore Tokens.functionName
+recordSetterNode : Parser State (Node RecordSetter)
+recordSetterNode =
+    Core.map
+        (\((Node fnNameRange _) as fnName) ->
+            \expr ->
+                \( endRow, endColumn ) ->
+                    Node { start = fnNameRange.start, end = { row = endRow, column = endColumn } }
+                        ( fnName, expr )
+        )
+        (Node.parserCore Tokens.functionName)
         |> Combine.fromCoreIgnore (Combine.maybeIgnore Layout.layout)
         |> Combine.ignoreEntirely Tokens.equal
+        |> Combine.ignore (Combine.maybeIgnore Layout.layout)
+        |> Combine.keep expression
+        |> Combine.ignore (Combine.maybeIgnore Layout.layout)
+        -- This extra whitespace is just included for compatibility with earlier version
+        -- TODO for v8: remove and use (Node.range expr).end
+        |> Combine.keepFromCore Core.getPosition
 
 
 literalExpression : Parser State Expression
