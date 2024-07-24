@@ -1,8 +1,24 @@
-module Elm.Parser.Node exposing (parser, parserCore, parserCoreMap, parserCoreValueMap)
+module Elm.Parser.Node exposing (parser, parserCore, parserCoreMap, parserCoreValueMap, parserMap)
 
 import Combine exposing (Parser)
 import Elm.Syntax.Node exposing (Node(..))
 import Parser as Core exposing ((|=))
+
+
+parserMap : (Node a -> b) -> Parser state a -> Parser state b
+parserMap valueNodeChange p =
+    Combine.map3CoreCombineCore
+        (\( startRow, startColumn ) v ( endRow, endColumn ) ->
+            Node
+                { start = { row = startRow, column = startColumn }
+                , end = { row = endRow, column = endColumn }
+                }
+                v
+                |> valueNodeChange
+        )
+        Core.getPosition
+        p
+        Core.getPosition
 
 
 parser : Parser state a -> Parser state (Node a)
