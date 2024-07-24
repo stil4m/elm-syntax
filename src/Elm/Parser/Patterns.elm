@@ -14,7 +14,7 @@ import Parser as Core exposing ((|=))
 
 composedWith : Parser State PatternComposedWith
 composedWith =
-    Combine.maybeIgnore Layout.layout
+    Layout.maybeLayout
         |> Combine.continueWith
             (Combine.oneOf
                 [ Tokens.asToken
@@ -24,7 +24,7 @@ composedWith =
                             Tokens.functionName
                         )
                 , Tokens.cons
-                    |> Combine.fromCoreIgnore (Combine.maybeIgnore Layout.layout)
+                    |> Combine.fromCoreIgnore Layout.maybeLayout
                     |> Combine.continueWith (Combine.map PatternComposedWithCons pattern)
                 , Combine.succeed PatternComposedWithNothing
                 ]
@@ -100,7 +100,7 @@ listPattern =
     Combine.betweenMap ListPattern
         Tokens.squareStart
         Tokens.squareEnd
-        (Combine.maybeIgnore Layout.layout
+        (Layout.maybeLayout
             |> Combine.continueWith (Combine.sepBy "," (Layout.maybeAroundBothSides pattern))
         )
 
@@ -185,7 +185,7 @@ qualifiedPatternWithConsumeArgs =
         qualifiedNameRef
         |> Combine.fromCoreKeep
             (Combine.many
-                (Combine.maybeIgnore Layout.layout
+                (Layout.maybeLayout
                     |> Combine.backtrackable
                     |> Combine.continueWith qualifiedPatternArg
                 )
@@ -204,13 +204,13 @@ recordPattern =
     Combine.betweenMap RecordPattern
         Tokens.curlyStart
         Tokens.curlyEnd
-        (Combine.maybeIgnore Layout.layout
+        (Layout.maybeLayout
             |> Combine.continueWith
                 (Combine.sepBy ","
-                    (Combine.maybeIgnore Layout.layout
+                    (Layout.maybeLayout
                         |> Combine.continueWithCore
                             (Tokens.functionName |> Node.parserCore)
-                        |> Combine.ignore (Combine.maybeIgnore Layout.layout)
+                        |> Combine.ignore Layout.maybeLayout
                     )
                 )
         )

@@ -14,7 +14,7 @@ import Set
 exposeDefinition : Parser State Exposing
 exposeDefinition =
     Tokens.exposingToken
-        |> Combine.continueWithFromCore (Combine.maybeIgnore Layout.layout)
+        |> Combine.continueWithFromCore Layout.maybeLayout
         |> Combine.continueWith exposeListWith
 
 
@@ -41,9 +41,9 @@ exposingListInner =
                         }
             )
             Core.getPosition
-            |> Combine.fromCoreIgnore (Combine.maybeIgnore Layout.layout)
+            |> Combine.fromCoreIgnore Layout.maybeLayout
             |> Combine.ignoreEntirely Tokens.dotDot
-            |> Combine.ignore (Combine.maybeIgnore Layout.layout)
+            |> Combine.ignore Layout.maybeLayout
             |> Combine.keepFromCore Core.getPosition
         , Combine.sepBy1 "," (Layout.maybeAroundBothSides exposable)
             |> Combine.map Explicit
@@ -86,7 +86,7 @@ typeExpose =
         Tokens.typeName
         |> Combine.fromCoreKeep
             (Combine.maybe
-                ((Combine.maybeIgnore Layout.layout |> Combine.backtrackable)
+                ((Layout.maybeLayout |> Combine.backtrackable)
                     |> Combine.continueWith exposingVariants
                 )
             )
@@ -98,9 +98,9 @@ exposingVariants =
         (Combine.between
             Tokens.parensStart
             Tokens.parensEnd
-            (Combine.maybeIgnore Layout.layout
+            (Layout.maybeLayout
                 |> Combine.ignoreEntirely (Core.symbol "..")
-                |> Combine.ignore (Combine.maybeIgnore Layout.layout)
+                |> Combine.ignore Layout.maybeLayout
             )
         )
 

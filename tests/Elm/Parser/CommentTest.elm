@@ -2,9 +2,11 @@ module Elm.Parser.CommentTest exposing (all)
 
 import Elm.Parser.CombineTestUtil exposing (..)
 import Elm.Parser.Comments as Parser
+import Elm.Parser.Node as Node
 import Elm.Parser.State as State exposing (State)
 import Elm.Syntax.Node exposing (Node(..))
 import Expect
+import Parser as Core exposing ((|.))
 import Test exposing (..)
 
 
@@ -13,47 +15,41 @@ all =
     describe "CommentTests"
         [ test "singleLineComment" <|
             \() ->
-                parseWithState "--bar" Parser.singleLineComment
-                    |> Maybe.map toIndentAndComments
+                parseSingleLineComment "--bar"
                     |> Expect.equal
-                        (Just [ Node { start = { row = 1, column = 1 }, end = { row = 1, column = 6 } } "--bar" ])
+                        (Ok (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 6 } } "--bar"))
         , test "singleLineComment state" <|
             \() ->
-                parseWithState "--bar" Parser.singleLineComment
-                    |> Maybe.map toIndentAndComments
+                parseSingleLineComment "--bar"
                     |> Expect.equal
-                        (Just [ Node { start = { row = 1, column = 1 }, end = { row = 1, column = 6 } } "--bar" ])
+                        (Ok (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 6 } } "--bar"))
         , test "singleLineComment does not include new line" <|
             \() ->
-                parse "--bar\n" Parser.singleLineComment
-                    |> Expect.equal Nothing
+                parseSingleLineComment "--bar\n"
+                    |> Expect.err
         , test "multilineComment parse result" <|
             \() ->
-                parseWithState "{-foo\nbar-}" Parser.multilineComment
-                    |> Maybe.map toIndentAndComments
+                parseMultiLineComment "{-foo\nbar-}"
                     |> Expect.equal
-                        (Just [ Node { start = { row = 1, column = 1 }, end = { row = 2, column = 6 } } "{-foo\nbar-}" ])
+                        (Ok (Node { start = { row = 1, column = 1 }, end = { row = 2, column = 6 } } "{-foo\nbar-}"))
         , test "multilineComment range" <|
             \() ->
-                parseWithState "{-foo\nbar-}" Parser.multilineComment
-                    |> Maybe.map toIndentAndComments
+                parseMultiLineComment "{-foo\nbar-}"
                     |> Expect.equal
-                        (Just [ Node { start = { row = 1, column = 1 }, end = { row = 2, column = 6 } } "{-foo\nbar-}" ])
+                        (Ok (Node { start = { row = 1, column = 1 }, end = { row = 2, column = 6 } } "{-foo\nbar-}"))
         , test "nested multilineComment only open" <|
             \() ->
-                parse "{- {- -}" Parser.multilineComment
-                    |> Expect.equal Nothing
+                parseMultiLineComment "{- {- -}"
+                    |> Expect.err
         , test "nested multilineComment open and close" <|
             \() ->
-                parseWithState "{- {- -} -}" Parser.multilineComment
-                    |> Maybe.map toIndentAndComments
+                parseMultiLineComment "{- {- -} -}"
                     |> Expect.equal
-                        (Just [ Node { start = { row = 1, column = 1 }, end = { row = 1, column = 12 } } "{- {- -} -}" ])
+                        (Ok (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 12 } } "{- {- -} -}"))
         , test "multilineComment on module documentation" <|
             \() ->
-                parseWithState "{-|foo\nbar-}" Parser.multilineComment
-                    |> Maybe.map toIndentAndComments
-                    |> Expect.equal Nothing
+                parseMultiLineComment "{-|foo\nbar-}"
+                    |> Expect.err
         , test "module documentation" <|
             \() ->
                 parseWithState "{-|foo\nbar-}" Parser.moduleDocumentation
@@ -67,6 +63,24 @@ all =
                     |> Expect.equal
                         (Just [ Node { start = { row = 1, column = 1 }, end = { row = 1, column = 19 } } "{-| {- hello -} -}" ])
         ]
+
+
+parseSingleLineComment : String -> Result (List Core.DeadEnd) (Node String)
+parseSingleLineComment source =
+    Core.run
+        ((Parser.singleLineCommentCore |> Core.getChompedString |> Node.parserCore)
+            |. Core.end
+        )
+        source
+
+
+parseMultiLineComment : String -> Result (List Core.DeadEnd) (Node String)
+parseMultiLineComment source =
+    Core.run
+        ((Parser.multilineCommentString |> Node.parserCore)
+            |. Core.end
+        )
+        source
 
 
 toIndentAndComments : ( State, () ) -> List (Node String)

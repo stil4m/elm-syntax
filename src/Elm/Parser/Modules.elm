@@ -28,9 +28,9 @@ effectWhereClause : Parser State ( String, Node String )
 effectWhereClause =
     Core.map (\fnName -> \typeName_ -> ( fnName, typeName_ ))
         Tokens.functionName
-        |> Combine.fromCoreIgnore (Combine.maybeIgnore Layout.layout)
+        |> Combine.fromCoreIgnore Layout.maybeLayout
         |> Combine.ignoreEntirely Tokens.equal
-        |> Combine.ignore (Combine.maybeIgnore Layout.layout)
+        |> Combine.ignore Layout.maybeLayout
         |> Combine.keepFromCore (Node.parserCore Tokens.typeName)
 
 

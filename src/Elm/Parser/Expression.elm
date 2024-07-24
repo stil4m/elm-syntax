@@ -170,7 +170,7 @@ listExpression : Parser State Expression
 listExpression =
     Core.map (\() -> ListExpr)
         Tokens.squareStart
-        |> Combine.fromCoreIgnore (Combine.maybeIgnore Layout.layout)
+        |> Combine.fromCoreIgnore Layout.maybeLayout
         |> Combine.keep (Combine.sepBy "," expression)
         |> Combine.ignoreEntirely Tokens.squareEnd
 
@@ -182,7 +182,7 @@ listExpression =
 recordExpression : Parser State Expression
 recordExpression =
     Tokens.curlyStart
-        |> Combine.fromCoreIgnore (Combine.maybeIgnore Layout.layout)
+        |> Combine.fromCoreIgnore Layout.maybeLayout
         |> Combine.continueWith
             (Combine.oneOf
                 [ recordContents
@@ -196,11 +196,11 @@ recordContents : Parser State Expression
 recordContents =
     Node.parserCoreMap (\nameNode -> \with -> with nameNode)
         Tokens.functionName
-        |> Combine.fromCoreIgnore (Combine.maybeIgnore Layout.layout)
+        |> Combine.fromCoreIgnore Layout.maybeLayout
         |> Combine.keep
             (Combine.oneOf
                 [ Tokens.pipe
-                    |> Combine.fromCoreIgnore (Combine.maybeIgnore Layout.layout)
+                    |> Combine.fromCoreIgnore Layout.maybeLayout
                     |> Combine.continueWith
                         (Combine.map
                             (\firstField ->
@@ -213,7 +213,7 @@ recordContents =
                         )
                     |> Combine.keep recordFields
                 , Tokens.equal
-                    |> Combine.fromCoreIgnore (Combine.maybeIgnore Layout.layout)
+                    |> Combine.fromCoreIgnore Layout.maybeLayout
                     |> Combine.continueWith
                         (Combine.map
                             (\firstFieldValue ->
@@ -226,16 +226,16 @@ recordContents =
                     |> Combine.keep recordFields
                 ]
             )
-        |> Combine.ignore (Combine.maybeIgnore Layout.layout)
+        |> Combine.ignore Layout.maybeLayout
 
 
 recordFields : Parser State (List (Node RecordSetter))
 recordFields =
     Combine.many
-        (Combine.maybeIgnore Layout.layout
+        (Layout.maybeLayout
             |> Combine.backtrackable
             |> Combine.ignoreEntirely Tokens.comma
-            |> Combine.ignore (Combine.maybeIgnore Layout.layout)
+            |> Combine.ignore Layout.maybeLayout
             |> Combine.continueWith recordSetterNode
         )
 
@@ -250,11 +250,11 @@ recordSetterNode =
                         ( fnName, expr )
         )
         Tokens.functionName
-        |> Combine.fromCoreIgnore (Combine.maybeIgnore Layout.layout)
+        |> Combine.fromCoreIgnore Layout.maybeLayout
         |> Combine.ignoreEntirely Tokens.equal
-        |> Combine.ignore (Combine.maybeIgnore Layout.layout)
+        |> Combine.ignore Layout.maybeLayout
         |> Combine.keep expression
-        |> Combine.ignore (Combine.maybeIgnore Layout.layout)
+        |> Combine.ignore Layout.maybeLayout
         -- This extra whitespace is just included for compatibility with earlier version
         -- TODO for v8: remove and use (Node.range expr).end
         |> Combine.keepFromCore Core.getPosition
@@ -291,9 +291,9 @@ lambdaExpression =
         )
         Core.getPosition
         |. Tokens.backSlash
-        |> Combine.fromCoreIgnore (Combine.maybeIgnore Layout.layout)
-        |> Combine.keep (Combine.sepBy1WithState (Combine.maybeIgnore Layout.layout) Patterns.pattern)
-        |> Combine.ignore (Combine.maybeIgnore Layout.layout)
+        |> Combine.fromCoreIgnore Layout.maybeLayout
+        |> Combine.keep (Combine.sepBy1WithState Layout.maybeLayout Patterns.pattern)
+        |> Combine.ignore Layout.maybeLayout
         |> Combine.ignoreEntirely Tokens.arrowRight
         |> Combine.keep expression
 
@@ -352,9 +352,9 @@ caseStatement : Parser State Case
 caseStatement =
     Layout.onTopIndentation (\pattern -> \expr -> ( pattern, expr ))
         |> Combine.keep Patterns.pattern
-        |> Combine.ignore (Combine.maybeIgnore Layout.layout)
+        |> Combine.ignore Layout.maybeLayout
         |> Combine.ignoreEntirely Tokens.arrowRight
-        |> Combine.ignore (Combine.maybeIgnore Layout.layout)
+        |> Combine.ignore Layout.maybeLayout
         |> Combine.keep expression
 
 
@@ -416,11 +416,11 @@ letFunction =
     Node.parserCoreMap
         (\startNameNode -> \with -> with startNameNode)
         Tokens.functionName
-        |> Combine.fromCoreIgnore (Combine.maybeIgnore Layout.layout)
+        |> Combine.fromCoreIgnore Layout.maybeLayout
         |> Combine.keep
             (Combine.oneOf
                 [ Tokens.colon
-                    |> Combine.fromCoreIgnore (Combine.maybeIgnore Layout.layout)
+                    |> Combine.fromCoreIgnore Layout.maybeLayout
                     |> Combine.continueWith
                         (Combine.map
                             (\typeAnnotation ->
@@ -449,10 +449,10 @@ letFunction =
                         )
                     |> Combine.ignore Layout.layoutStrict
                     |> Combine.keepFromCore (Tokens.functionName |> Node.parserCore)
-                    |> Combine.ignore (Combine.maybeIgnore Layout.layout)
-                    |> Combine.keep (Combine.many (Patterns.pattern |> Combine.ignore (Combine.maybeIgnore Layout.layout)))
+                    |> Combine.ignore Layout.maybeLayout
+                    |> Combine.keep (Combine.many (Patterns.pattern |> Combine.ignore Layout.maybeLayout))
                     |> Combine.ignoreEntirely Tokens.equal
-                    |> Combine.ignore (Combine.maybeIgnore Layout.layout)
+                    |> Combine.ignore Layout.maybeLayout
                     |> Combine.keep expression
                 , Combine.map
                     (\args ->
@@ -469,9 +469,9 @@ letFunction =
                                     )
                                     |> Core.succeed
                     )
-                    (Combine.many (Patterns.pattern |> Combine.ignore (Combine.maybeIgnore Layout.layout)))
+                    (Combine.many (Patterns.pattern |> Combine.ignore Layout.maybeLayout))
                     |> Combine.ignoreEntirely Tokens.equal
-                    |> Combine.ignore (Combine.maybeIgnore Layout.layout)
+                    |> Combine.ignore Layout.maybeLayout
                     |> Combine.keep expression
                 ]
             )

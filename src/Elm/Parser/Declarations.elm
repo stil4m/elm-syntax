@@ -49,7 +49,7 @@ functionAfterDocumentation =
                     fromStartStartNameDocumentation (Node.range documentation).start startName (Just documentation)
         )
         Tokens.functionName
-        |> Combine.fromCoreIgnore (Combine.maybeIgnore Layout.layout)
+        |> Combine.fromCoreIgnore Layout.maybeLayout
         |> Combine.keep functionDeclarationWith
 
 
@@ -57,7 +57,7 @@ functionDeclarationWith : Parser State (Location -> Node String -> Maybe (Node S
 functionDeclarationWith =
     Combine.oneOf
         [ Tokens.colon
-            |> Combine.fromCoreIgnore (Combine.maybeIgnore Layout.layout)
+            |> Combine.fromCoreIgnore Layout.maybeLayout
             |> Combine.continueWith
                 (Combine.map
                     (\typeAnnotation ->
@@ -86,11 +86,11 @@ functionDeclarationWith =
                 )
             |> Combine.ignore (Combine.maybeIgnore Layout.layoutStrict)
             |> Combine.keepFromCore (Tokens.functionName |> Node.parserCore)
-            |> Combine.ignore (Combine.maybeIgnore Layout.layout)
+            |> Combine.ignore Layout.maybeLayout
             |> Combine.keep
-                (Combine.many (pattern |> Combine.ignore (Combine.maybeIgnore Layout.layout)))
+                (Combine.many (pattern |> Combine.ignore Layout.maybeLayout))
             |> Combine.ignoreEntirely Tokens.equal
-            |> Combine.ignore (Combine.maybeIgnore Layout.layout)
+            |> Combine.ignore Layout.maybeLayout
             |> Combine.keep expression
         , Combine.map
             (\args ->
@@ -107,9 +107,9 @@ functionDeclarationWith =
                             )
                             |> Combine.succeed
             )
-            (Combine.many (pattern |> Combine.ignore (Combine.maybeIgnore Layout.layout)))
+            (Combine.many (pattern |> Combine.ignore Layout.maybeLayout))
             |> Combine.ignoreEntirely Tokens.equal
-            |> Combine.ignore (Combine.maybeIgnore Layout.layout)
+            |> Combine.ignore Layout.maybeLayout
             |> Combine.keep expression
         ]
 
@@ -122,7 +122,7 @@ functionDeclarationWithoutDocumentation =
                 fromStartStartNameDocumentation startNameRange.start startName Nothing
         )
         Tokens.functionName
-        |> Combine.fromCoreIgnore (Combine.maybeIgnore Layout.layout)
+        |> Combine.fromCoreIgnore Layout.maybeLayout
         |> Combine.keep functionDeclarationWith
         |> Combine.andThen identity
 
@@ -205,9 +205,9 @@ portDeclarationAfterDocumentation =
 functionNameLayoutColonLayout : Parser State (Node String)
 functionNameLayoutColonLayout =
     Node.parserCore Tokens.functionName
-        |> Combine.fromCoreIgnore (Combine.maybeIgnore Layout.layout)
+        |> Combine.fromCoreIgnore Layout.maybeLayout
         |> Combine.ignoreEntirely (Core.symbol ":")
-        |> Combine.ignore (Combine.maybeIgnore Layout.layout)
+        |> Combine.ignore Layout.maybeLayout
 
 
 getPositionPortTokenLayout : Parser State ( Int, Int )
@@ -233,9 +233,9 @@ portDeclarationWithoutDocumentation =
         |. Tokens.portToken
         |> Combine.fromCoreIgnore Layout.layout
         |> Combine.keepFromCore (Node.parserCore Tokens.functionName)
-        |> Combine.ignore (Combine.maybeIgnore Layout.layout)
+        |> Combine.ignore Layout.maybeLayout
         |> Combine.ignoreEntirely (Core.symbol ":")
-        |> Combine.ignore (Combine.maybeIgnore Layout.layout)
+        |> Combine.ignore Layout.maybeLayout
         |> Combine.keep typeAnnotation
 
 
@@ -295,10 +295,10 @@ typeAliasDefinitionAfterTypePrefix =
                 )
                 Tokens.typeName
             )
-        |> Combine.ignore (Combine.maybeIgnore Layout.layout)
+        |> Combine.ignore Layout.maybeLayout
         |> Combine.keep typeGenericList
         |> Combine.ignoreEntirely Tokens.equal
-        |> Combine.ignore (Combine.maybeIgnore Layout.layout)
+        |> Combine.ignore Layout.maybeLayout
         |> Combine.keep typeAnnotation
 
 
@@ -330,18 +330,18 @@ customTypeDefinitionAfterTypePrefix =
                                 )
         )
         (Node.parserCore Tokens.typeName)
-        |> Combine.fromCoreIgnore (Combine.maybeIgnore Layout.layout)
+        |> Combine.fromCoreIgnore Layout.maybeLayout
         |> Combine.keep typeGenericList
         |> Combine.ignoreEntirely Tokens.equal
-        |> Combine.ignore (Combine.maybeIgnore Layout.layout)
-        |> Combine.ignore (Combine.maybeIgnore Layout.layout)
+        |> Combine.ignore Layout.maybeLayout
+        |> Combine.ignore Layout.maybeLayout
         |> Combine.keep valueConstructor
         |> Combine.keep
             (Combine.manyWithoutReverse
-                (Combine.maybeIgnore Layout.layout
+                (Layout.maybeLayout
                     |> Combine.backtrackable
                     |> Combine.ignoreEntirely Tokens.pipe
-                    |> Combine.ignore (Combine.maybeIgnore Layout.layout)
+                    |> Combine.ignore Layout.maybeLayout
                     |> Combine.continueWith valueConstructor
                 )
             )
@@ -370,7 +370,7 @@ valueConstructor =
     )
         |> Combine.fromCoreKeep
             (Combine.manyWithoutReverse
-                (Combine.maybeIgnore Layout.layout
+                (Layout.maybeLayout
                     |> Combine.backtrackable
                     |> Combine.continueWith typeAnnotationNoFnExcludingTypedWithArguments
                 )
@@ -381,5 +381,5 @@ typeGenericList : Parser State (List (Node String))
 typeGenericList =
     Combine.many
         (Node.parserCore Tokens.functionName
-            |> Combine.fromCoreIgnore (Combine.maybeIgnore Layout.layout)
+            |> Combine.fromCoreIgnore Layout.maybeLayout
         )

@@ -70,7 +70,7 @@ all =
                         )
         , test "types with and without spacing should parse to the same" <|
             \() ->
-                parse "Bar " (Parser.typeAnnotation |> Combine.ignore (Combine.maybeIgnore Layout.layout))
+                parse "Bar " (Parser.typeAnnotation |> Combine.ignore Layout.maybeLayout)
                     |> Expect.equal (parse "Bar" Parser.typeAnnotation)
         , test "typedTypeReference 1" <|
             \() ->

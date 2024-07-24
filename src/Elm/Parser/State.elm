@@ -1,6 +1,7 @@
 module Elm.Parser.State exposing
     ( State
     , addComment
+    , addComments
     , currentIndent
     , emptyState
     , expectedColumn
@@ -61,9 +62,14 @@ popIndent (State s) =
         }
 
 
+addComments : List (Node String) -> State -> State
+addComments commentsFurthestToEarliest (State s) =
+    State { s | comments = commentsFurthestToEarliest ++ s.comments }
+
+
 addComment : Node String -> State -> State
-addComment pair (State s) =
-    State { s | comments = pair :: s.comments }
+addComment commentToAdd (State s) =
+    State { s | comments = commentToAdd :: s.comments }
 
 
 getComments : State -> List (Node String)

@@ -1,4 +1,4 @@
-module Elm.Parser.Comments exposing (declarationDocumentation, moduleDocumentation, multilineComment, singleLineComment)
+module Elm.Parser.Comments exposing (declarationDocumentation, moduleDocumentation, multilineCommentString, singleLineCommentCore)
 
 import Combine exposing (Parser)
 import Elm.Parser.Node as Node
@@ -17,28 +17,14 @@ addCommentToState p =
             )
 
 
-parseComment : Core.Parser String -> Parser State ()
-parseComment commentParser =
-    Node.parserCore commentParser
-        |> addCommentToState
+singleLineCommentCore : Core.Parser ()
+singleLineCommentCore =
+    Core.symbol "--"
+        |. Core.chompWhile (\c -> c /= '\u{000D}' && c /= '\n')
 
 
-singleLineComment : Parser State ()
-singleLineComment =
-    parseComment
-        (Core.symbol "--"
-            |. untilNewline
-            |> Core.getChompedString
-        )
-
-
-untilNewline : Core.Parser ()
-untilNewline =
-    Core.chompWhile (\c -> c /= '\u{000D}' && c /= '\n')
-
-
-multilineCommentInner : Core.Parser String
-multilineCommentInner =
+multilineCommentString : Core.Parser String
+multilineCommentString =
     Core.oneOf
         [ Core.symbol "{-|"
             |> Core.backtrackable
@@ -52,11 +38,6 @@ multilineCommentInner =
 problemUnexpected : Core.Parser a
 problemUnexpected =
     Core.problem "unexpected documentation comment"
-
-
-multilineComment : Parser State ()
-multilineComment =
-    parseComment multilineCommentInner
 
 
 moduleDocumentation : Parser State ()

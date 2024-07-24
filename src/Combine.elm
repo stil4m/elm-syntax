@@ -22,8 +22,6 @@ module Combine exposing
     , lazy
     , loop
     , many
-    , many1Ignore
-    , manyIgnore
     , manyWithoutReverse
     , map
     , map3CoreCombineCore
@@ -260,28 +258,6 @@ manyWithoutReverse (Parser p) =
     Parser <|
         \state ->
             Core.loop ( state, [] ) manyWithoutReverseStep
-
-
-manyIgnore : Parser state () -> Parser state ()
-manyIgnore (Parser p) =
-    let
-        helper : state -> Core.Parser (Core.Step state ( state, () ))
-        helper state =
-            Core.oneOf
-                [ p state
-                    |> Core.map (\( newState, () ) -> Core.Loop newState)
-                , Core.succeed (Core.Done ( state, () ))
-                ]
-    in
-    Parser <|
-        \state ->
-            Core.loop state helper
-
-
-many1Ignore : Parser state () -> Parser state ()
-many1Ignore p =
-    p
-        |> continueWith (manyIgnore p)
 
 
 type Step a b
