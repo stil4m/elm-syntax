@@ -11,7 +11,9 @@ import Elm.Parser.TypeAnnotation as TypeAnnotation
 import Elm.Syntax.Expression as Expression exposing (Case, Expression(..), LetDeclaration(..), RecordSetter)
 import Elm.Syntax.Infix as Infix
 import Elm.Syntax.Node as Node exposing (Node(..))
+import Elm.Syntax.Pattern exposing (Pattern)
 import Elm.Syntax.Signature exposing (Signature)
+import Elm.Syntax.TypeAnnotation exposing (TypeAnnotation)
 import Parser as Core exposing ((|.), (|=), Nestable(..))
 
 
@@ -424,68 +426,123 @@ letDestructuringDeclaration =
 letFunction : Parser State (Node LetDeclaration)
 letFunction =
     Node.parserCoreMap
-        (\startNameNode -> \with -> with startNameNode)
+        (\((Node { start } startName) as startNameNode) ->
+            \afterName ->
+                case afterName of
+                    LetFunctionWithoutSignatureAfterName withoutSignature ->
+                        let
+                            (Node { end } _) =
+                                withoutSignature.expression
+                        in
+                        Node { start = start, end = end }
+                            (LetFunction
+                                { documentation = Nothing
+                                , signature = Nothing
+                                , declaration =
+                                    Node { start = start, end = end }
+                                        { name = startNameNode
+                                        , arguments = withoutSignature.arguments
+                                        , expression = withoutSignature.expression
+                                        }
+                                }
+                            )
+                            |> Core.succeed
+
+                    LetFunctionWithSignatureAfterName withSignature ->
+                        let
+                            (Node implementationNameRange implementationName) =
+                                withSignature.implementationName
+                        in
+                        if implementationName == startName then
+                            let
+                                (Node expressionRange _) =
+                                    withSignature.expression
+                            in
+                            Core.succeed
+                                (Node { start = start, end = expressionRange.end }
+                                    (LetFunction
+                                        { documentation = Nothing
+                                        , signature = Just (Node.combine Signature startNameNode withSignature.typeAnnotation)
+                                        , declaration =
+                                            Node { start = implementationNameRange.start, end = expressionRange.end }
+                                                { name = withSignature.implementationName
+                                                , arguments = withSignature.arguments
+                                                , expression = withSignature.expression
+                                                }
+                                        }
+                                    )
+                                )
+
+                        else
+                            Core.problem
+                                ("Expected to find the declaration for " ++ startName ++ " but found " ++ implementationName)
+        )
         Tokens.functionName
         |> Combine.fromCoreIgnore Layout.maybeLayout
         |> Combine.keep
             (Combine.oneOf
-                [ Tokens.colon
-                    |> Combine.fromCoreIgnore Layout.maybeLayout
-                    |> Combine.continueWith
-                        (Combine.map
-                            (\typeAnnotation ->
-                                \((Node implementationNameRange implementationName) as implementationNameNode) ->
-                                    \arguments ->
-                                        \((Node { end } _) as result) ->
-                                            \((Node { start } startName) as startNameNode) ->
-                                                if implementationName == startName then
-                                                    Core.succeed
-                                                        (Node { start = start, end = end }
-                                                            (LetFunction
-                                                                { documentation = Nothing
-                                                                , signature = Just (Node.combine Signature startNameNode typeAnnotation)
-                                                                , declaration =
-                                                                    Node { start = implementationNameRange.start, end = end }
-                                                                        { name = implementationNameNode, arguments = arguments, expression = result }
-                                                                }
-                                                            )
-                                                        )
-
-                                                else
-                                                    Core.problem
-                                                        ("Expected to find the declaration for " ++ startName ++ " but found " ++ implementationName)
-                            )
-                            TypeAnnotation.typeAnnotation
-                        )
-                    |> Combine.ignore Layout.layoutStrict
-                    |> Combine.keepFromCore (Tokens.functionName |> Node.parserCore)
-                    |> Combine.ignore Layout.maybeLayout
-                    |> Combine.keep (Combine.many (Patterns.pattern |> Combine.ignore Layout.maybeLayout))
-                    |> Combine.ignoreEntirely Tokens.equal
-                    |> Combine.ignore Layout.maybeLayout
-                    |> Combine.keep expression
-                , Combine.map
-                    (\args ->
-                        \((Node { end } _) as result) ->
-                            \((Node { start } _) as startNameNode) ->
-                                Node { start = start, end = end }
-                                    (LetFunction
-                                        { documentation = Nothing
-                                        , signature = Nothing
-                                        , declaration =
-                                            Node { start = start, end = end }
-                                                { name = startNameNode, arguments = args, expression = result }
-                                        }
-                                    )
-                                    |> Core.succeed
-                    )
-                    (Combine.many (Patterns.pattern |> Combine.ignore Layout.maybeLayout))
-                    |> Combine.ignoreEntirely Tokens.equal
-                    |> Combine.ignore Layout.maybeLayout
-                    |> Combine.keep expression
+                [ letFunctionWithSignatureAfterName
+                , letFunctionWithoutSignatureAfterName
                 ]
             )
         |> Combine.andThen Combine.fromCore
+
+
+type LetFunctionAfterName
+    = LetFunctionWithSignatureAfterName
+        { typeAnnotation : Node TypeAnnotation
+        , implementationName : Node String
+        , arguments : List (Node Pattern)
+        , expression : Node Expression
+        }
+    | LetFunctionWithoutSignatureAfterName
+        { arguments : List (Node Pattern)
+        , expression : Node Expression
+        }
+
+
+letFunctionWithoutSignatureAfterName : Parser State LetFunctionAfterName
+letFunctionWithoutSignatureAfterName =
+    Combine.map
+        (\args ->
+            \result ->
+                LetFunctionWithoutSignatureAfterName
+                    { arguments = args
+                    , expression = result
+                    }
+        )
+        (Combine.many (Patterns.pattern |> Combine.ignore Layout.maybeLayout))
+        |> Combine.ignoreEntirely Tokens.equal
+        |> Combine.ignore Layout.maybeLayout
+        |> Combine.keep expression
+
+
+letFunctionWithSignatureAfterName : Parser State LetFunctionAfterName
+letFunctionWithSignatureAfterName =
+    Tokens.colon
+        |> Combine.fromCoreIgnore Layout.maybeLayout
+        |> Combine.continueWith
+            (Combine.map
+                (\typeAnnotation ->
+                    \implementationNameNode ->
+                        \arguments ->
+                            \result ->
+                                LetFunctionWithSignatureAfterName
+                                    { typeAnnotation = typeAnnotation
+                                    , implementationName = implementationNameNode
+                                    , arguments = arguments
+                                    , expression = result
+                                    }
+                )
+                TypeAnnotation.typeAnnotation
+            )
+        |> Combine.ignore Layout.layoutStrict
+        |> Combine.keepFromCore (Tokens.functionName |> Node.parserCore)
+        |> Combine.ignore Layout.maybeLayout
+        |> Combine.keep (Combine.many (Patterns.pattern |> Combine.ignore Layout.maybeLayout))
+        |> Combine.ignoreEntirely Tokens.equal
+        |> Combine.ignore Layout.maybeLayout
+        |> Combine.keep expression
 
 
 numberExpression : Parser State Expression
