@@ -8,28 +8,33 @@ import Elm.Parser.State exposing (State)
 import Elm.Parser.Tokens as Tokens
 import Elm.Syntax.ModuleName exposing (ModuleName)
 import Elm.Syntax.Node as Node exposing (Node)
-import Elm.Syntax.Pattern exposing (Pattern(..), QualifiedNameRef)
+import Elm.Syntax.Pattern as Pattern exposing (Pattern(..), QualifiedNameRef)
 import Parser as Core exposing ((|=))
 
 
-tryToCompose : Node Pattern -> Parser State (Node Pattern)
-tryToCompose x =
+composedWith : Parser State PatternComposedWith
+composedWith =
     Combine.maybeIgnore Layout.layout
         |> Combine.continueWith
             (Combine.oneOf
-                [ Core.keyword "as"
+                [ Tokens.asToken
                     |> Combine.fromCoreIgnore Layout.layout
                     |> Combine.continueWithCore
-                        (Node.parserCoreMap (\y -> Node.combine AsPattern x y)
+                        (Node.parserCoreMap PatternComposedWithAs
                             Tokens.functionName
                         )
-                , Core.map (\() -> \y -> Node.combine UnConsPattern x y)
-                    Tokens.cons
+                , Tokens.cons
                     |> Combine.fromCoreIgnore (Combine.maybeIgnore Layout.layout)
-                    |> Combine.keep pattern
-                , Combine.succeed x
+                    |> Combine.continueWith (Combine.map PatternComposedWithCons pattern)
+                , Combine.succeed PatternComposedWithNothing
                 ]
             )
+
+
+type PatternComposedWith
+    = PatternComposedWithNothing
+    | PatternComposedWithAs (Node String)
+    | PatternComposedWithCons (Node Pattern)
 
 
 pattern : Parser State (Node Pattern)
@@ -39,7 +44,21 @@ pattern =
 
 composablePatternTryToCompose : Parser State (Node Pattern)
 composablePatternTryToCompose =
-    composablePattern |> Combine.andThen tryToCompose
+    Combine.map
+        (\x ->
+            \maybeComposedWith ->
+                case maybeComposedWith of
+                    PatternComposedWithNothing ->
+                        x
+
+                    PatternComposedWithAs anotherName ->
+                        Node.combine Pattern.AsPattern x anotherName
+
+                    PatternComposedWithCons y ->
+                        Node.combine Pattern.UnConsPattern x y
+        )
+        composablePattern
+        |> Combine.keep composedWith
 
 
 parensPattern : Parser State Pattern
