@@ -115,12 +115,12 @@ functionDeclarationWith =
 
 functionDeclarationWithoutDocumentation : Parser State (Node Declaration)
 functionDeclarationWithoutDocumentation =
-    Core.map
+    Node.parserCoreMap
         (\((Node startNameRange _) as startName) ->
             \fromStartStartNameDocumentation ->
                 fromStartStartNameDocumentation startNameRange.start startName Nothing
         )
-        (Tokens.functionName |> Node.parserCore)
+        Tokens.functionName
         |> Combine.fromCoreIgnore (Combine.maybeIgnore Layout.layout)
         |> Combine.keep functionDeclarationWith
         |> Combine.andThen identity
@@ -129,17 +129,23 @@ functionDeclarationWithoutDocumentation =
 infixDeclaration : Parser State (Node Declaration)
 infixDeclaration =
     Core.map
-        (\() ->
+        (\( startRow, startColumn ) ->
             \direction ->
                 \precedence ->
                     \operator ->
-                        \fn ->
-                            Declaration.InfixDeclaration
-                                { direction = direction, precedence = precedence, operator = operator, function = fn }
+                        \((Node fnRange _) as fn) ->
+                            Node
+                                { start = { row = startRow, column = startColumn }
+                                , end = fnRange.end
+                                }
+                                (Declaration.InfixDeclaration
+                                    { direction = direction, precedence = precedence, operator = operator, function = fn }
+                                )
         )
-        (Core.keyword "infix")
+        Core.getPosition
+        |. Core.keyword "infix"
         |> Combine.fromCoreIgnore Layout.layout
-        |> Combine.keepFromCore infixDirection
+        |> Combine.keepFromCore (Node.parserCore infixDirection)
         |> Combine.ignore Layout.layout
         |> Combine.keepFromCore (Node.parserCore Core.int)
         |> Combine.ignore Layout.layout
@@ -148,7 +154,6 @@ infixDeclaration =
         |> Combine.ignoreEntirely Tokens.equal
         |> Combine.ignore Layout.layout
         |> Combine.keepFromCore (Node.parserCore Tokens.functionName)
-        |> Node.parser
 
 
 operatorWithParens : Core.Parser (Node String)
@@ -159,7 +164,7 @@ operatorWithParens =
         |> Node.parserCore
 
 
-infixDirection : Core.Parser (Node Infix.InfixDirection)
+infixDirection : Core.Parser Infix.InfixDirection
 infixDirection =
     Core.oneOf
         [ Core.keyword "right"
@@ -169,7 +174,6 @@ infixDirection =
         , Core.keyword "non"
             |> Core.map (\() -> Infix.Non)
         ]
-        |> Node.parserCore
 
 
 portDeclaration : Parser State (Node Documentation -> Parser State (Node Declaration))
