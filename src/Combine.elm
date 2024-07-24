@@ -28,7 +28,9 @@ module Combine exposing
     , manyWithoutReverse
     , map
     , map3CoreCombineCore
+    , maybe
     , maybeIgnore
+    , maybeMap
     , modifyState
     , oneOf
     , problem
@@ -202,6 +204,28 @@ end =
 oneOf : List (Parser state a) -> Parser state a
 oneOf xs =
     Parser <| \state -> Core.oneOf (List.map (\(Parser x) -> x state) xs)
+
+
+maybe : Parser state a -> Parser state (Maybe a)
+maybe (Parser p) =
+    Parser
+        (\state ->
+            Core.oneOf
+                [ p state |> Core.map (\( newState, a ) -> ( newState, Just a ))
+                , Core.succeed ( state, Nothing )
+                ]
+        )
+
+
+maybeMap : (a -> b) -> Parser state a -> Parser state (Maybe b)
+maybeMap resultChange (Parser p) =
+    Parser
+        (\state ->
+            Core.oneOf
+                [ p state |> Core.map (\( newState, a ) -> ( newState, Just (resultChange a) ))
+                , Core.succeed ( state, Nothing )
+                ]
+        )
 
 
 maybeIgnore : Parser state () -> Parser state ()

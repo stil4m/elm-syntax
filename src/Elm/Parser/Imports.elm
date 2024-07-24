@@ -7,11 +7,9 @@ import Elm.Parser.Layout as Layout
 import Elm.Parser.Node as Node
 import Elm.Parser.State exposing (State)
 import Elm.Parser.Tokens as Tokens
-import Elm.Syntax.Exposing exposing (Exposing)
 import Elm.Syntax.Import exposing (Import)
-import Elm.Syntax.ModuleName exposing (ModuleName)
-import Elm.Syntax.Node as Node exposing (Node(..))
-import Elm.Syntax.Range exposing (Location, Range)
+import Elm.Syntax.Node exposing (Node(..))
+import Elm.Syntax.Range exposing (Range)
 import Parser as Core exposing ((|.))
 
 
@@ -19,72 +17,40 @@ importDefinition : Parser State (Node Import)
 importDefinition =
     Core.map
         (\( startRow, startColumn ) ->
-            \mod ->
-                importInnerParseAsDefinition { row = startRow, column = startColumn } mod
+            \((Node modRange _) as mod) ->
+                \moduleAlias ->
+                    \exposingList ->
+                        let
+                            endRange : Range
+                            endRange =
+                                case moduleAlias of
+                                    Just (Node range _) ->
+                                        range
+
+                                    Nothing ->
+                                        case exposingList of
+                                            Just (Node range _) ->
+                                                range
+
+                                            Nothing ->
+                                                modRange
+                        in
+                        Node
+                            { start = { row = startRow, column = startColumn }, end = endRange.end }
+                            { moduleName = mod, moduleAlias = moduleAlias, exposingList = exposingList }
         )
         Core.getPosition
         |. Tokens.importToken
         |> Combine.fromCoreIgnore Layout.layout
         |> Combine.keepFromCore moduleName
         |> Combine.ignore Layout.optimisticLayout
-        |> Combine.andThen identity
-        |> Combine.ignore Layout.optimisticLayout
-
-
-importInnerAsDefinitionOptimisticLayout : Parser State (Node ModuleName)
-importInnerAsDefinitionOptimisticLayout =
-    Tokens.asToken
-        |> Combine.fromCoreIgnore Layout.layout
-        |> Combine.continueWithCore (Tokens.typeName |> Node.parserCoreValueMap List.singleton)
-        |> Combine.ignore Layout.optimisticLayout
-
-
-importInnerParseExposingDefinition : Location -> Node ModuleName -> Maybe (Node ModuleName) -> Parser State (Node Import)
-importInnerParseExposingDefinition start mod asDef =
-    Combine.oneOf
-        [ exposeDefinitionNode
-            |> Combine.map
-                (\exposing_ ->
-                    setupNode start { moduleName = mod, moduleAlias = asDef, exposingList = Just exposing_ }
+        |> Combine.keep
+            (Combine.maybe
+                (Tokens.asToken
+                    |> Combine.fromCoreIgnore Layout.layout
+                    |> Combine.continueWithCore (Tokens.typeName |> Node.parserCoreValueMap List.singleton)
+                    |> Combine.ignore (Combine.maybeIgnore Layout.layout)
                 )
-        , Combine.succeedLazy
-            (\() ->
-                setupNode start { moduleName = mod, moduleAlias = asDef, exposingList = Nothing }
             )
-        ]
-
-
-exposeDefinitionNode : Parser State (Node Exposing)
-exposeDefinitionNode =
-    Node.parser exposeDefinition
-
-
-importInnerParseAsDefinition : Location -> Node ModuleName -> Parser State (Node Import)
-importInnerParseAsDefinition start mod =
-    Combine.oneOf
-        [ importInnerAsDefinitionOptimisticLayout
-            |> Combine.andThen (\alias_ -> importInnerParseExposingDefinition start mod (Just alias_))
-        , importInnerParseExposingDefinition start mod Nothing
-        ]
-
-
-setupNode : Location -> Import -> Node Import
-setupNode start imp =
-    let
-        endRange : Range
-        endRange =
-            case imp.moduleAlias of
-                Just (Node range _) ->
-                    range
-
-                Nothing ->
-                    case imp.exposingList of
-                        Just (Node range _) ->
-                            range
-
-                        Nothing ->
-                            Node.range imp.moduleName
-    in
-    Node
-        { start = start, end = endRange.end }
-        imp
+        |> Combine.keep (Combine.maybe (Node.parser exposeDefinition))
+        |> Combine.ignore Layout.optimisticLayout
