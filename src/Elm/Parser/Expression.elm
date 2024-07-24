@@ -216,7 +216,7 @@ recordContents =
                                 \tailFields ->
                                     RecordUpdateExpressionAfterName (firstField :: tailFields)
                             )
-                            recordSetterNode
+                            recordSetterNodeWithLayout
                         )
                     |> Combine.keep recordFields
                 , Tokens.equal
@@ -229,6 +229,7 @@ recordContents =
                             )
                             expression
                         )
+                    |> Combine.ignore Layout.maybeLayout
                     |> Combine.keep recordFields
                 ]
             )
@@ -243,16 +244,14 @@ type RecordFieldsOrUpdateAfterName
 recordFields : Parser State (List (Node RecordSetter))
 recordFields =
     Combine.many
-        (Layout.maybeLayout
-            |> Combine.backtrackable
-            |> Combine.ignoreEntirely Tokens.comma
-            |> Combine.ignore Layout.maybeLayout
-            |> Combine.continueWith recordSetterNode
+        (Tokens.comma
+            |> Combine.fromCoreIgnore Layout.maybeLayout
+            |> Combine.continueWith recordSetterNodeWithLayout
         )
 
 
-recordSetterNode : Parser State (Node RecordSetter)
-recordSetterNode =
+recordSetterNodeWithLayout : Parser State (Node RecordSetter)
+recordSetterNodeWithLayout =
     Node.parserCoreMap
         (\((Node fnNameRange _) as fnName) ->
             \expr ->
