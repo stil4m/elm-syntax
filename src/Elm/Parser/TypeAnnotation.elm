@@ -17,20 +17,15 @@ typeAnnotation =
         (Combine.lazy (\() -> typeAnnotationNoFnIncludingTypedWithArguments))
         |> Combine.keep
             (Combine.oneOf
-                [ arrowRightToTypeAnnotation
+                [ Combine.maybeIgnore Layout.layout
+                    |> Combine.backtrackable
+                    |> Combine.continueWithCore Tokens.arrowRight
+                    |> Combine.continueWith (Combine.maybeIgnore Layout.layout)
+                    |> Combine.continueWith (Combine.lazy (\() -> typeAnnotation))
                     |> Combine.map (\out -> \in_ -> Node.combine TypeAnnotation.FunctionTypeAnnotation in_ out)
                 , Combine.succeed identity
                 ]
             )
-
-
-arrowRightToTypeAnnotation : Parser State (Node TypeAnnotation)
-arrowRightToTypeAnnotation =
-    Combine.maybeIgnore Layout.layout
-        |> Combine.backtrackable
-        |> Combine.continueWithCore Tokens.arrowRight
-        |> Combine.continueWith (Combine.maybeIgnore Layout.layout)
-        |> Combine.continueWith (Combine.lazy (\() -> typeAnnotation))
 
 
 typeAnnotationNoFnExcludingTypedWithArguments : Parser State (Node TypeAnnotation)
@@ -67,23 +62,22 @@ parensTypeAnnotation =
             )
 
 
-parensTypeAnnotationInnerCommaSep : Parser State (List (Node TypeAnnotation))
-parensTypeAnnotationInnerCommaSep =
-    Combine.many
-        (Tokens.comma
-            |> Combine.continueFromCore (Combine.maybeIgnore Layout.layout)
-            |> Combine.continueWith typeAnnotation
-            |> Combine.ignore (Combine.maybeIgnore Layout.layout)
-        )
-
-
 parensTypeAnnotationInnerNested : Parser State TypeAnnotation
 parensTypeAnnotationInnerNested =
-    Combine.map (\() -> \x -> \xs -> asTypeAnnotation x xs)
-        (Combine.maybeIgnore Layout.layout)
-        |> Combine.keep typeAnnotation
+    Combine.maybeIgnore Layout.layout
+        |> Combine.continueWith
+            (Combine.map (\x -> \xs -> asTypeAnnotation x xs)
+                typeAnnotation
+            )
         |> Combine.ignore (Combine.maybeIgnore Layout.layout)
-        |> Combine.keep parensTypeAnnotationInnerCommaSep
+        |> Combine.keep
+            (Combine.many
+                (Tokens.comma
+                    |> Combine.continueFromCore (Combine.maybeIgnore Layout.layout)
+                    |> Combine.continueWith typeAnnotation
+                    |> Combine.ignore (Combine.maybeIgnore Layout.layout)
+                )
+            )
 
 
 asTypeAnnotation : Node TypeAnnotation -> List (Node TypeAnnotation) -> TypeAnnotation
@@ -99,8 +93,7 @@ asTypeAnnotation ((Node _ value) as x) xs =
 genericTypeAnnotation : Parser state TypeAnnotation
 genericTypeAnnotation =
     Tokens.functionName
-        |> Core.map TypeAnnotation.GenericType
-        |> Combine.fromCore
+        |> Combine.fromCoreMap TypeAnnotation.GenericType
 
 
 recordFieldsTypeAnnotation : Parser State TypeAnnotation.RecordDefinition
@@ -118,15 +111,20 @@ recordTypeAnnotation =
         |> Combine.continueWith
             (Combine.oneOf
                 [ Combine.fromCoreMap (\() -> TypeAnnotation.Record []) Tokens.curlyEnd
-                , Core.map (\fName -> \fromFName -> fromFName fName)
-                    (Node.parserCore Tokens.functionName)
+                , Node.parserCoreMap (\fName -> \fromFName -> fromFName fName)
+                    Tokens.functionName
                     |> Combine.fromCoreIgnore (Combine.maybeIgnore Layout.layout)
                     |> Combine.keep
                         (Combine.oneOf
                             [ Combine.map (\fields -> \fname -> TypeAnnotation.GenericRecord fname fields)
                                 pipeRecordFieldsTypeAnnotationNodeCurlyEnd
-                            , Combine.map (\ta -> \rest -> \fname -> TypeAnnotation.Record (Node.combine Tuple.pair fname ta :: rest))
-                                colonTypeAnnotationMaybeLayout
+                            , Core.map (\() -> \ta -> \rest -> \fname -> TypeAnnotation.Record (Node.combine Tuple.pair fname ta :: rest))
+                                Tokens.colon
+                                |> Combine.fromCoreIgnore (Combine.maybeIgnore Layout.layout)
+                                |> Combine.keep
+                                    (typeAnnotation
+                                        |> Combine.ignore (Combine.maybeIgnore Layout.layout)
+                                    )
                                 |> Combine.keep maybeCommaRecordFieldsTypeAnnotationCurlyEnd
                             ]
                         )
@@ -140,16 +138,6 @@ pipeRecordFieldsTypeAnnotationNodeCurlyEnd =
         |> Combine.continueWithFromCore
             (Node.parser recordFieldsTypeAnnotation
                 |> Combine.ignoreEntirely Tokens.curlyEnd
-            )
-
-
-colonTypeAnnotationMaybeLayout : Parser State (Node TypeAnnotation)
-colonTypeAnnotationMaybeLayout =
-    Tokens.colon
-        |> Combine.fromCoreIgnore (Combine.maybeIgnore Layout.layout)
-        |> Combine.continueWith
-            (typeAnnotation
-                |> Combine.ignore (Combine.maybeIgnore Layout.layout)
             )
 
 
@@ -167,9 +155,11 @@ maybeCommaRecordFieldsTypeAnnotationCurlyEnd =
 
 recordFieldDefinition : Parser State TypeAnnotation.RecordField
 recordFieldDefinition =
-    Combine.map (\() -> \functionName -> \value -> ( functionName, value ))
-        (Combine.maybeIgnore Layout.layout)
-        |> Combine.keepFromCore (Node.parserCore Tokens.functionName)
+    Combine.maybeIgnore Layout.layout
+        |> Combine.continueWithCore
+            (Node.parserCoreMap (\functionName -> \value -> ( functionName, value ))
+                Tokens.functionName
+            )
         |> Combine.ignore (Combine.maybeIgnore Layout.layout)
         |> Combine.ignoreEntirely Tokens.colon
         |> Combine.ignore (Combine.maybeIgnore Layout.layout)

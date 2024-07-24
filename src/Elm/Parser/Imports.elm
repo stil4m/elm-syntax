@@ -35,7 +35,7 @@ importInnerAsDefinitionOptimisticLayout : Parser State (Node ModuleName)
 importInnerAsDefinitionOptimisticLayout =
     Tokens.asToken
         |> Combine.fromCoreIgnore Layout.layout
-        |> Combine.continueWithCore (Tokens.typeName |> Core.map List.singleton |> Node.parserCore)
+        |> Combine.continueWithCore (Tokens.typeName |> Node.parserCoreValueMap List.singleton)
         |> Combine.ignore Layout.optimisticLayout
 
 

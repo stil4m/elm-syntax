@@ -17,10 +17,12 @@ tryToCompose x =
     Combine.maybeIgnore Layout.layout
         |> Combine.continueWith
             (Combine.oneOf
-                [ Core.map (\() -> \y -> Node.combine AsPattern x y)
-                    (Core.keyword "as")
+                [ Core.keyword "as"
                     |> Combine.fromCoreIgnore Layout.layout
-                    |> Combine.keepFromCore (Node.parserCore Tokens.functionName)
+                    |> Combine.continueWithCore
+                        (Node.parserCoreMap (\y -> Node.combine AsPattern x y)
+                            Tokens.functionName
+                        )
                 , Core.map (\() -> \y -> Node.combine UnConsPattern x y)
                     Tokens.cons
                     |> Combine.fromCoreIgnore (Combine.maybeIgnore Layout.layout)
@@ -58,8 +60,8 @@ parensPattern =
 
 variablePart : Parser state Pattern
 variablePart =
-    Core.map VarPattern Tokens.functionName
-        |> Combine.fromCore
+    Tokens.functionName
+        |> Combine.fromCoreMap VarPattern
 
 
 numberPart : Parser state Pattern
@@ -71,8 +73,7 @@ numberPart =
 charPattern : Parser state Pattern
 charPattern =
     Tokens.characterLiteral
-        |> Core.map CharPattern
-        |> Combine.fromCore
+        |> Combine.fromCoreMap CharPattern
 
 
 listPattern : Parser State Pattern
@@ -135,8 +136,7 @@ stringPattern =
         [ Tokens.multiLineStringLiteral
         , Tokens.stringLiteral
         ]
-        |> Core.map StringPattern
-        |> Combine.fromCore
+        |> Combine.fromCoreMap StringPattern
 
 
 qualifiedNameRef : Core.Parser QualifiedNameRef

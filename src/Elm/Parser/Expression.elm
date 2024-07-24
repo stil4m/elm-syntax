@@ -195,8 +195,8 @@ recordExpression =
 
 recordContents : Parser State Expression
 recordContents =
-    Core.map (\nameNode -> \with -> with nameNode)
-        (Node.parserCore Tokens.functionName)
+    Node.parserCoreMap (\nameNode -> \with -> with nameNode)
+        Tokens.functionName
         |> Combine.fromCoreIgnore (Combine.maybeIgnore Layout.layout)
         |> Combine.keep
             (Combine.oneOf
@@ -241,14 +241,14 @@ recordFields =
 
 recordSetterNode : Parser State (Node RecordSetter)
 recordSetterNode =
-    Core.map
+    Node.parserCoreMap
         (\((Node fnNameRange _) as fnName) ->
             \expr ->
                 \( endRow, endColumn ) ->
                     Node { start = fnNameRange.start, end = { row = endRow, column = endColumn } }
                         ( fnName, expr )
         )
-        (Node.parserCore Tokens.functionName)
+        Tokens.functionName
         |> Combine.fromCoreIgnore (Combine.maybeIgnore Layout.layout)
         |> Combine.ignoreEntirely Tokens.equal
         |> Combine.ignore (Combine.maybeIgnore Layout.layout)
@@ -265,15 +265,13 @@ literalExpression =
         [ Tokens.multiLineStringLiteral
         , Tokens.stringLiteral
         ]
-        |> Core.map Literal
-        |> Combine.fromCore
+        |> Combine.fromCoreMap Literal
 
 
 charLiteralExpression : Parser State Expression
 charLiteralExpression =
     Tokens.characterLiteral
-        |> Core.map CharLiteral
-        |> Combine.fromCore
+        |> Combine.fromCoreMap CharLiteral
 
 
 
@@ -325,10 +323,10 @@ caseExpression =
 caseStatements : Parser State ( Location, Cases )
 caseStatements =
     Combine.map
-        (\a ->
+        (\(( _, Node aExpressionRange _ ) as a) ->
             \( location_, list ) ->
                 ( if location_.row == 0 then
-                    (Node.range (Tuple.second a)).end
+                    aExpressionRange.end
 
                   else
                     location_
@@ -406,9 +404,9 @@ letDestructuringDeclaration =
 
 letFunction : Parser State (Node LetDeclaration)
 letFunction =
-    Core.map
+    Node.parserCoreMap
         (\startNameNode -> \with -> with startNameNode)
-        (Tokens.functionName |> Node.parserCore)
+        Tokens.functionName
         |> Combine.fromCoreIgnore (Combine.maybeIgnore Layout.layout)
         |> Combine.keep
             (Combine.oneOf
@@ -891,9 +889,8 @@ infixLeftWithState precedence operator apply =
     in
     ( precedence
     , \left ->
-        Combine.map (\() -> \e -> apply left e)
-            operator
-            |> Combine.keep parser
+        operator
+            |> Combine.continueWith (Combine.map (\e -> apply left e) parser)
     )
 
 

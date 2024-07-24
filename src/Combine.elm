@@ -28,6 +28,7 @@ module Combine exposing
     , manyWithEndLocationForLastElement
     , manyWithoutReverse
     , map
+    , map3CoreCombineCore
     , maybeIgnore
     , modifyState
     , oneOf
@@ -333,8 +334,7 @@ loop init stepper =
 
 many1 : Parser state a -> Parser state (List a)
 many1 p =
-    succeed cons
-        |> keep p
+    map cons p
         |> keep (many p)
 
 
@@ -461,3 +461,31 @@ continueFromCore (Parser target) dropped =
 cons : a -> List a -> List a
 cons first =
     \rest -> first :: rest
+
+
+map3CoreCombineCore :
+    (core0Result -> combineResult -> core1Result -> finalResult)
+    -> Core.Parser core0Result
+    -> Parser state combineResult
+    -> Core.Parser core1Result
+    -> Parser state finalResult
+map3CoreCombineCore map3 core0 (Parser combine) core1 =
+    let
+        map3KeepCore0 : Core.Parser (( state, combineResult ) -> core1Result -> ( state, finalResult ))
+        map3KeepCore0 =
+            Core.map
+                (\core0Result ->
+                    \( newState, combineResult ) ->
+                        \core1Result ->
+                            ( newState
+                            , map3 core0Result combineResult core1Result
+                            )
+                )
+                core0
+    in
+    Parser
+        (\state ->
+            map3KeepCore0
+                |= combine state
+                |= core1
+        )

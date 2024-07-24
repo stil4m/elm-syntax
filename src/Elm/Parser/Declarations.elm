@@ -13,11 +13,9 @@ import Elm.Syntax.Declaration as Declaration exposing (Declaration)
 import Elm.Syntax.Documentation exposing (Documentation)
 import Elm.Syntax.Infix as Infix
 import Elm.Syntax.Node as Node exposing (Node(..))
-import Elm.Syntax.Pattern exposing (Pattern)
 import Elm.Syntax.Range exposing (Location)
 import Elm.Syntax.Signature exposing (Signature)
 import Elm.Syntax.Type exposing (ValueConstructor)
-import Elm.Syntax.TypeAnnotation exposing (TypeAnnotation)
 import Parser as Core exposing ((|.), (|=))
 
 
@@ -44,45 +42,54 @@ declaration =
 
 functionAfterDocumentation : Parser State (Node Documentation -> Parser State (Node Declaration))
 functionAfterDocumentation =
-    Combine.map
+    Node.parserCoreMap
         (\startName ->
             \fromStartStartNameDocumentation ->
                 \documentation ->
                     fromStartStartNameDocumentation (Node.range documentation).start startName (Just documentation)
         )
-        functionNameMaybeLayout
+        Tokens.functionName
+        |> Combine.fromCoreIgnore (Combine.maybeIgnore Layout.layout)
         |> Combine.keep functionDeclarationWith
 
 
 functionDeclarationWith : Parser State (Location -> Node String -> Maybe (Node String) -> Parser State (Node Declaration))
 functionDeclarationWith =
     Combine.oneOf
-        [ Combine.map
-            (\typeAnnotation ->
-                \((Node implementationNameRange implementationName) as implementationNameNode) ->
-                    \arguments ->
-                        \((Node { end } _) as expression) ->
-                            \start ((Node _ startName) as startNameNode) maybeDocumentation ->
-                                if implementationName == startName then
-                                    Combine.succeed
-                                        (Node { start = start, end = end }
-                                            (Declaration.FunctionDeclaration
-                                                { documentation = maybeDocumentation
-                                                , signature = Just (Node.combine Signature startNameNode typeAnnotation)
-                                                , declaration =
-                                                    Node { start = implementationNameRange.start, end = end }
-                                                        { name = implementationNameNode, arguments = arguments, expression = expression }
-                                                }
+        [ Core.map
+            (\() ->
+                \typeAnnotation ->
+                    \((Node implementationNameRange implementationName) as implementationNameNode) ->
+                        \arguments ->
+                            \((Node { end } _) as expression) ->
+                                \start ((Node _ startName) as startNameNode) maybeDocumentation ->
+                                    if implementationName == startName then
+                                        Combine.succeed
+                                            (Node { start = start, end = end }
+                                                (Declaration.FunctionDeclaration
+                                                    { documentation = maybeDocumentation
+                                                    , signature = Just (Node.combine Signature startNameNode typeAnnotation)
+                                                    , declaration =
+                                                        Node { start = implementationNameRange.start, end = end }
+                                                            { name = implementationNameNode, arguments = arguments, expression = expression }
+                                                    }
+                                                )
                                             )
-                                        )
 
-                                else
-                                    Combine.problem
-                                        ("Expected to find the declaration for " ++ startName ++ " but found " ++ implementationName)
+                                    else
+                                        Combine.problem
+                                            ("Expected to find the declaration for " ++ startName ++ " but found " ++ implementationName)
             )
-            colonMaybeLayoutTypeAnnotationLayout
-            |> Combine.keep functionNameMaybeLayout
-            |> Combine.keep patternListEqualsMaybeLayout
+            Tokens.colon
+            |> Combine.fromCoreIgnore (Combine.maybeIgnore Layout.layout)
+            |> Combine.keep TypeAnnotation.typeAnnotation
+            |> Combine.ignore (Combine.maybeIgnore Layout.layoutStrict)
+            |> Combine.keepFromCore (Tokens.functionName |> Node.parserCore)
+            |> Combine.ignore (Combine.maybeIgnore Layout.layout)
+            |> Combine.keep
+                (Combine.many (pattern |> Combine.ignore (Combine.maybeIgnore Layout.layout)))
+            |> Combine.ignoreEntirely Tokens.equal
+            |> Combine.ignore (Combine.maybeIgnore Layout.layout)
             |> Combine.keep expression
         , Combine.map
             (\args ->
@@ -99,45 +106,24 @@ functionDeclarationWith =
                             )
                             |> Combine.succeed
             )
-            patternListEqualsMaybeLayout
+            (Combine.many (pattern |> Combine.ignore (Combine.maybeIgnore Layout.layout)))
+            |> Combine.ignoreEntirely Tokens.equal
+            |> Combine.ignore (Combine.maybeIgnore Layout.layout)
             |> Combine.keep expression
         ]
 
 
 functionDeclarationWithoutDocumentation : Parser State (Node Declaration)
 functionDeclarationWithoutDocumentation =
-    Combine.map
+    Core.map
         (\((Node startNameRange _) as startName) ->
             \fromStartStartNameDocumentation ->
                 fromStartStartNameDocumentation startNameRange.start startName Nothing
         )
-        functionNameMaybeLayout
+        (Tokens.functionName |> Node.parserCore)
+        |> Combine.fromCoreIgnore (Combine.maybeIgnore Layout.layout)
         |> Combine.keep functionDeclarationWith
         |> Combine.andThen identity
-
-
-functionNameMaybeLayout : Parser State (Node String)
-functionNameMaybeLayout =
-    Tokens.functionName
-        |> Node.parserCore
-        |> Combine.fromCoreIgnore (Combine.maybeIgnore Layout.layout)
-
-
-colonMaybeLayoutTypeAnnotationLayout : Parser State (Node TypeAnnotation)
-colonMaybeLayoutTypeAnnotationLayout =
-    Tokens.colon
-        |> Combine.fromCoreIgnore (Combine.maybeIgnore Layout.layout)
-        |> Combine.continueWith
-            (TypeAnnotation.typeAnnotation
-                |> Combine.ignore (Combine.maybeIgnore Layout.layoutStrict)
-            )
-
-
-patternListEqualsMaybeLayout : Parser State (List (Node Pattern))
-patternListEqualsMaybeLayout =
-    Combine.many (pattern |> Combine.ignore (Combine.maybeIgnore Layout.layout))
-        |> Combine.ignoreEntirely Tokens.equal
-        |> Combine.ignore (Combine.maybeIgnore Layout.layout)
 
 
 infixDeclaration : Parser State (Node Declaration)
@@ -355,24 +341,25 @@ customTypeDefinitionAfterTypePrefix =
 
 valueConstructor : Parser State (Node ValueConstructor)
 valueConstructor =
-    Core.map
-        (\((Node variantNameRange _) as variantNameNode) ->
-            \argumentsReverse ->
-                let
-                    fullEnd : Location
-                    fullEnd =
-                        case argumentsReverse of
-                            (Node lastArgRange _) :: _ ->
-                                lastArgRange.end
+    (Tokens.typeName
+        |> Node.parserCoreMap
+            (\((Node variantNameRange _) as variantNameNode) ->
+                \argumentsReverse ->
+                    let
+                        fullEnd : Location
+                        fullEnd =
+                            case argumentsReverse of
+                                (Node lastArgRange _) :: _ ->
+                                    lastArgRange.end
 
-                            [] ->
-                                variantNameRange.end
-                in
-                Node
-                    { start = variantNameRange.start, end = fullEnd }
-                    { name = variantNameNode, arguments = List.reverse argumentsReverse }
-        )
-        (Tokens.typeName |> Node.parserCore)
+                                [] ->
+                                    variantNameRange.end
+                    in
+                    Node
+                        { start = variantNameRange.start, end = fullEnd }
+                        { name = variantNameNode, arguments = List.reverse argumentsReverse }
+            )
+    )
         |> Combine.fromCoreKeep
             (Combine.manyWithoutReverse
                 (Combine.maybeIgnore Layout.layout
