@@ -49,7 +49,7 @@ importDefinition =
                 (Tokens.asToken
                     |> Combine.fromCoreIgnore Layout.layout
                     |> Combine.continueWithCore (Tokens.typeName |> Node.parserCoreValueMap List.singleton)
-                    |> Combine.ignore (Combine.maybeIgnore Layout.layout)
+                    |> Combine.ignore Layout.optimisticLayout
                 )
             )
         |> Combine.keep (Combine.maybe (Node.parser exposeDefinition))
