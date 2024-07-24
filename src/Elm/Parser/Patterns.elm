@@ -151,10 +151,7 @@ unitPattern =
 
 stringPattern : Parser state Pattern
 stringPattern =
-    Core.oneOf
-        [ Tokens.multiLineStringLiteral
-        , Tokens.stringLiteral
-        ]
+    Tokens.singleOrTripleQuotedStringLiteral
         |> Combine.fromCoreMap StringPattern
 
 

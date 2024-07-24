@@ -89,11 +89,11 @@ all =
                     |> Expect.equal Nothing
         , test "multiline string" <|
             \() ->
-                parse "\"\"\"Bar foo \n a\"\"\"" Parser.multiLineStringLiteral
+                parse "\"\"\"Bar foo \n a\"\"\"" Parser.singleOrTripleQuotedStringLiteral
                     |> Expect.equal (Just "Bar foo \n a")
         , test "multiline string escape" <|
             \() ->
-                parse """\"\"\" \\\"\"\" \"\"\"""" Parser.multiLineStringLiteral
+                parse """\"\"\" \\\"\"\" \"\"\"""" Parser.singleOrTripleQuotedStringLiteral
                     |> Expect.equal (Just """ \"\"\" """)
         , test "character escaped" <|
             \() ->
@@ -113,11 +113,11 @@ all =
                     |> Expect.equal (Just '\u{000D}')
         , test "string escaped 3" <|
             \() ->
-                parse "\"\\\"\"" Parser.stringLiteral
+                parse "\"\\\"\"" Parser.singleOrTripleQuotedStringLiteral
                     |> Expect.equal (Just "\"")
         , test "string escaped" <|
             \() ->
-                parse "\"foo\\\\\"" Parser.stringLiteral
+                parse "\"foo\\\\\"" Parser.singleOrTripleQuotedStringLiteral
                     |> Expect.equal (Just "foo\\")
         , test "character escaped 3" <|
             \() ->
@@ -125,11 +125,11 @@ all =
                     |> Expect.equal (Just '\n')
         , test "long string" <|
             \() ->
-                parse longString Parser.stringLiteral
+                parse longString Parser.singleOrTripleQuotedStringLiteral
                     |> Expect.notEqual Nothing
         , test "long multi line string" <|
             \() ->
-                parse longMultiLineString Parser.multiLineStringLiteral
+                parse longMultiLineString Parser.singleOrTripleQuotedStringLiteral
                     |> Expect.notEqual Nothing
         , test "ρ function" <|
             \() ->

@@ -1,4 +1,4 @@
-module Parser.Extra exposing (anyChar)
+module Parser.Extra exposing (anyChar, continueWith)
 
 import Parser as Core
 
@@ -21,3 +21,10 @@ anyChar =
 problemAnyCharacter : Core.Parser a
 problemAnyCharacter =
     Core.problem "expected any character"
+
+
+{-| Like `Core.andThen (\() -> ...)` but circumvents laziness
+-}
+continueWith : Core.Parser b -> Core.Parser () -> Core.Parser b
+continueWith b a =
+    a |> Core.andThen (\() -> b)

@@ -2,7 +2,7 @@ module Elm.Parser.Tokens exposing
     ( asToken, caseToken, elseToken, exposingToken, ifToken, importToken, inToken, letToken, moduleToken, whereToken, ofToken, portToken, prefixOperatorToken, thenToken, aliasToken
     , dot, dotDot, squareStart, squareEnd, curlyStart, curlyEnd, pipe, backSlash, arrowRight, equal, comma, parensStart, parensEnd, colon, cons
     , minus, minusSymbols
-    , characterLiteral, stringLiteral, multiLineStringLiteral
+    , characterLiteral, singleOrTripleQuotedStringLiteral
     , functionName, typeName
     )
 
@@ -13,7 +13,7 @@ module Elm.Parser.Tokens exposing
 @docs dot, dotDot, squareStart, squareEnd, curlyStart, curlyEnd, pipe, backSlash, arrowRight, equal, comma, parensStart, parensEnd, colon, cons
 @docs minus, minusSymbols
 
-@docs characterLiteral, stringLiteral, multiLineStringLiteral
+@docs characterLiteral, singleOrTripleQuotedStringLiteral
 @docs functionName, typeName
 
 -}
@@ -168,11 +168,16 @@ characterLiteral =
         |. Core.symbol "'"
 
 
-stringLiteral : Core.Parser String
-stringLiteral =
-    Core.map (\() -> identity)
-        doubleQuote
-        |= Core.loop "" stringLiteralHelper
+singleOrTripleQuotedStringLiteral : Core.Parser String
+singleOrTripleQuotedStringLiteral =
+    doubleQuote
+        |> Parser.Extra.continueWith
+            (Core.oneOf
+                [ twoDoubleQuotes
+                    |> Parser.Extra.continueWith (Core.loop "" tripleQuotedStringLiteralStep)
+                , Core.loop "" stringLiteralHelper
+                ]
+            )
 
 
 doubleQuote : Core.Parser ()
@@ -198,11 +203,9 @@ chompWhileIsInsideString =
     Core.chompWhile (\c -> c /= '"' && c /= '\\')
 
 
-multiLineStringLiteral : Core.Parser String
-multiLineStringLiteral =
-    Core.map (\() -> identity)
-        tripleDoubleQuote
-        |= Core.loop "" multiLineStringLiteralStep
+twoDoubleQuotes : Core.Parser ()
+twoDoubleQuotes =
+    Core.symbol "\"\""
 
 
 tripleDoubleQuote : Core.Parser ()
@@ -210,8 +213,8 @@ tripleDoubleQuote =
     Core.symbol "\"\"\""
 
 
-multiLineStringLiteralStep : String -> Core.Parser (Step String String)
-multiLineStringLiteralStep stringSoFar =
+tripleQuotedStringLiteralStep : String -> Core.Parser (Step String String)
+tripleQuotedStringLiteralStep stringSoFar =
     Core.oneOf
         [ tripleDoubleQuote
             |> Core.map (\() -> Done stringSoFar)
