@@ -68,12 +68,14 @@ effectModuleDefinition =
                 , subscription = whereClauses.subscription
                 }
     in
-    Core.map (\() -> \name -> \whereClauses -> \exp -> createEffectModule name whereClauses exp)
-        (Core.symbol "effect")
+    Core.symbol "effect"
         |> Combine.fromCoreIgnore Layout.layout
         |> Combine.ignoreEntirely Tokens.moduleToken
         |> Combine.ignore Layout.layout
-        |> Combine.keepFromCore moduleName
+        |> Combine.continueWithCore
+            (Core.map (\name -> \whereClauses -> \exp -> createEffectModule name whereClauses exp)
+                moduleName
+            )
         |> Combine.ignore Layout.layout
         |> Combine.keep effectWhereClauses
         |> Combine.ignore Layout.layout
@@ -82,26 +84,29 @@ effectModuleDefinition =
 
 normalModuleDefinition : Parser State Module
 normalModuleDefinition =
-    Core.map
-        (\() ->
-            \moduleName ->
-                \exposingList ->
-                    NormalModule { moduleName = moduleName, exposingList = exposingList }
-        )
-        Tokens.moduleToken
+    Tokens.moduleToken
         |> Combine.fromCoreIgnore Layout.layout
-        |> Combine.keepFromCore moduleName
+        |> Combine.continueWithCore
+            (Core.map
+                (\moduleName ->
+                    \exposingList ->
+                        NormalModule { moduleName = moduleName, exposingList = exposingList }
+                )
+                moduleName
+            )
         |> Combine.ignore Layout.layout
         |> Combine.keep (Node.parser exposeDefinition)
 
 
 portModuleDefinition : Parser State Module
 portModuleDefinition =
-    Core.map (\() -> \moduleName -> \exposingList -> PortModule { moduleName = moduleName, exposingList = exposingList })
-        Tokens.portToken
+    Tokens.portToken
         |> Combine.fromCoreIgnore Layout.layout
         |> Combine.ignoreEntirely Tokens.moduleToken
         |> Combine.ignore Layout.layout
-        |> Combine.keepFromCore moduleName
+        |> Combine.continueWithCore
+            (Core.map (\moduleName -> \exposingList -> PortModule { moduleName = moduleName, exposingList = exposingList })
+                moduleName
+            )
         |> Combine.ignore Layout.layout
         |> Combine.keep (Node.parser exposeDefinition)
