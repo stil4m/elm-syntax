@@ -29,7 +29,7 @@ declaration =
                 (Combine.oneOf
                     [ functionAfterDocumentation
                     , typeOrTypeAliasDefinitionAfterDocumentation
-                    , portDeclaration
+                    , portDeclarationAfterDocumentation
                     ]
                 )
             |> Combine.andThen identity
@@ -177,8 +177,8 @@ infixDirection =
         ]
 
 
-portDeclaration : Parser State (Node Documentation -> Parser State (Node Declaration))
-portDeclaration =
+portDeclarationAfterDocumentation : Parser State (Node Documentation -> Parser State (Node Declaration))
+portDeclarationAfterDocumentation =
     -- we have to construct the whole parser inside succeed because we need to guarantee that the comment
     -- order is preserved
     Combine.succeed
