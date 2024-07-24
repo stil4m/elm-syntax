@@ -22,7 +22,6 @@ module Combine exposing
     , lazy
     , loop
     , many
-    , many1
     , many1Ignore
     , manyIgnore
     , manyWithEndLocationForLastElement
@@ -330,12 +329,6 @@ loop init stepper =
                     )
     in
     Parser <| \state -> Core.loop ( state, init ) wrapper
-
-
-many1 : Parser state a -> Parser state (List a)
-many1 p =
-    map cons p
-        |> keep (many p)
 
 
 sepBy : String -> Parser state a -> Parser state (List a)

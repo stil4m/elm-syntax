@@ -376,7 +376,8 @@ letExpression =
 
 letDeclarations : Parser State (List (Node LetDeclaration))
 letDeclarations =
-    Combine.many1 blockElement
+    Combine.map (\head -> \tail -> head :: tail) blockElement
+        |> Combine.keep (Combine.many blockElement)
 
 
 blockElement : Parser State (Node LetDeclaration)
