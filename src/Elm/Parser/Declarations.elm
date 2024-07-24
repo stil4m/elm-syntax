@@ -56,33 +56,34 @@ functionAfterDocumentation =
 functionDeclarationWith : Parser State (Location -> Node String -> Maybe (Node String) -> Parser State (Node Declaration))
 functionDeclarationWith =
     Combine.oneOf
-        [ Core.map
-            (\() ->
-                \typeAnnotation ->
-                    \((Node implementationNameRange implementationName) as implementationNameNode) ->
-                        \arguments ->
-                            \((Node { end } _) as expression) ->
-                                \start ((Node _ startName) as startNameNode) maybeDocumentation ->
-                                    if implementationName == startName then
-                                        Combine.succeed
-                                            (Node { start = start, end = end }
-                                                (Declaration.FunctionDeclaration
-                                                    { documentation = maybeDocumentation
-                                                    , signature = Just (Node.combine Signature startNameNode typeAnnotation)
-                                                    , declaration =
-                                                        Node { start = implementationNameRange.start, end = end }
-                                                            { name = implementationNameNode, arguments = arguments, expression = expression }
-                                                    }
-                                                )
-                                            )
-
-                                    else
-                                        Combine.problem
-                                            ("Expected to find the declaration for " ++ startName ++ " but found " ++ implementationName)
-            )
-            Tokens.colon
+        [ Tokens.colon
             |> Combine.fromCoreIgnore (Combine.maybeIgnore Layout.layout)
-            |> Combine.keep TypeAnnotation.typeAnnotation
+            |> Combine.continueWith
+                (Combine.map
+                    (\typeAnnotation ->
+                        \((Node implementationNameRange implementationName) as implementationNameNode) ->
+                            \arguments ->
+                                \((Node { end } _) as expression) ->
+                                    \start ((Node _ startName) as startNameNode) maybeDocumentation ->
+                                        if implementationName == startName then
+                                            Combine.succeed
+                                                (Node { start = start, end = end }
+                                                    (Declaration.FunctionDeclaration
+                                                        { documentation = maybeDocumentation
+                                                        , signature = Just (Node.combine Signature startNameNode typeAnnotation)
+                                                        , declaration =
+                                                            Node { start = implementationNameRange.start, end = end }
+                                                                { name = implementationNameNode, arguments = arguments, expression = expression }
+                                                        }
+                                                    )
+                                                )
+
+                                        else
+                                            Combine.problem
+                                                ("Expected to find the declaration for " ++ startName ++ " but found " ++ implementationName)
+                    )
+                    TypeAnnotation.typeAnnotation
+                )
             |> Combine.ignore (Combine.maybeIgnore Layout.layoutStrict)
             |> Combine.keepFromCore (Tokens.functionName |> Node.parserCore)
             |> Combine.ignore (Combine.maybeIgnore Layout.layout)
