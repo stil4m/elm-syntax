@@ -53,9 +53,9 @@ exposingListInner =
 exposable : Parser State (Node TopLevelExpose)
 exposable =
     Combine.oneOf
-        [ typeExpose
+        [ functionExpose |> Combine.fromCore
+        , typeExpose
         , infixExpose |> Combine.fromCore
-        , functionExpose |> Combine.fromCore
         ]
         |> Node.parser
 
