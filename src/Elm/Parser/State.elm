@@ -1,13 +1,14 @@
 module Elm.Parser.State exposing
     ( State
     , addComment
-    , addComments
     , currentIndent
     , emptyState
     , expectedColumn
     , getComments
+    , getCommentsFurthestToEarliest
     , popIndent
     , pushIndent
+    , setComments
     )
 
 import Elm.Syntax.Node exposing (Node)
@@ -62,14 +63,19 @@ popIndent (State s) =
         }
 
 
-addComments : List (Node String) -> State -> State
-addComments commentsFurthestToEarliest (State s) =
-    State { s | comments = commentsFurthestToEarliest ++ s.comments }
+setComments : List (Node String) -> State -> State
+setComments commentsFurthestToEarliest (State s) =
+    State { s | comments = commentsFurthestToEarliest }
 
 
 addComment : Node String -> State -> State
 addComment commentToAdd (State s) =
     State { s | comments = commentToAdd :: s.comments }
+
+
+getCommentsFurthestToEarliest : State -> List (Node String)
+getCommentsFurthestToEarliest (State s) =
+    s.comments
 
 
 getComments : State -> List (Node String)

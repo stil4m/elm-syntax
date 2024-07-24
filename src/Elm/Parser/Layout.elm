@@ -13,7 +13,7 @@ import Elm.Parser.Comments as Comments
 import Elm.Parser.Node as Node
 import Elm.Parser.State as State exposing (State)
 import Elm.Syntax.Node exposing (Node)
-import Parser as Core exposing ((|.), (|=))
+import Parser as Core exposing ((|.))
 import Set
 
 
@@ -34,28 +34,22 @@ nonEmptyWhiteSpaceOrComment =
         ]
 
 
-addAsCommentsToState : Core.Parser (List (Node String)) -> Parser State ()
-addAsCommentsToState parser =
+whiteSpaceAndCommentsAndAddToState : Parser State ()
+whiteSpaceAndCommentsAndAddToState =
     Combine.Parser
         (\state ->
-            parser
+            Core.loop (State.getCommentsFurthestToEarliest state) whiteSpaceAndCommentsFrom
                 |> Core.map
                     (\newComments ->
-                        ( State.addComments newComments state, () )
+                        ( State.setComments newComments state, () )
                     )
         )
 
 
 maybeLayout : Parser State ()
 maybeLayout =
-    coreWhiteSpaceAndComments
-        |> addAsCommentsToState
+    whiteSpaceAndCommentsAndAddToState
         |> verifyLayoutIndent
-
-
-coreWhiteSpaceAndComments : Core.Parser (List (Node String))
-coreWhiteSpaceAndComments =
-    Core.loop [] whiteSpaceAndCommentsFrom
 
 
 whiteSpaceAndCommentsFrom : List (Node String) -> Core.Parser (Core.Step (List (Node String)) (List (Node String)))
@@ -106,26 +100,32 @@ positivelyIndented =
 
 layout : Parser State ()
 layout =
-    Core.map
-        (\head ->
-            \tail ->
-                case head of
-                    Nothing ->
-                        tail
+    Combine.Parser
+        (\state ->
+            nonEmptyWhiteSpaceOrComment
+                |> Core.andThen
+                    (\head ->
+                        Core.loop
+                            (case head of
+                                Nothing ->
+                                    State.getCommentsFurthestToEarliest state
 
-                    Just headValue ->
-                        headValue :: tail
+                                Just headValue ->
+                                    headValue :: State.getCommentsFurthestToEarliest state
+                            )
+                            whiteSpaceAndCommentsFrom
+                    )
+                |> Core.map
+                    (\newComments ->
+                        ( State.setComments newComments state, () )
+                    )
         )
-        nonEmptyWhiteSpaceOrComment
-        |= coreWhiteSpaceAndComments
-        |> addAsCommentsToState
         |> verifyLayoutIndent
 
 
 optimisticLayout : Parser State ()
 optimisticLayout =
-    coreWhiteSpaceAndComments
-        |> addAsCommentsToState
+    whiteSpaceAndCommentsAndAddToState
 
 
 layoutStrict : Parser State ()
@@ -170,7 +170,7 @@ verifyIndent verify failMessage (Combine.Parser toVerify) =
                                         State.expectedColumn state
                                 in
                                 if verify expectedColumn column then
-                                    Core.succeed ( state, () )
+                                    Core.succeed ()
 
                                 else
                                     Core.problem (failMessage expectedColumn column)
