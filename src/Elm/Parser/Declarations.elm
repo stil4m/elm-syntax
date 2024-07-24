@@ -39,16 +39,16 @@ declaration =
                                 (Node startNameRange startName) =
                                     functionDeclarationAfterDocumentation.startName
                             in
-                            case functionDeclarationAfterDocumentation.afterStartName of
-                                FunctionDeclarationWithSignatureAfterName withSignature ->
+                            case functionDeclarationAfterDocumentation.signature of
+                                Just signature ->
                                     let
                                         (Node implementationNameRange implementationName) =
-                                            withSignature.implementationName
+                                            signature.implementationName
                                     in
                                     if implementationName == startName then
                                         let
                                             (Node expressionRange _) =
-                                                withSignature.expression
+                                                functionDeclarationAfterDocumentation.expression
                                         in
                                         Combine.succeed
                                             (Node { start = start, end = expressionRange.end }
@@ -58,13 +58,13 @@ declaration =
                                                         Just
                                                             (Node.combine Signature
                                                                 functionDeclarationAfterDocumentation.startName
-                                                                withSignature.typeAnnotation
+                                                                signature.typeAnnotation
                                                             )
                                                     , declaration =
                                                         Node { start = implementationNameRange.start, end = expressionRange.end }
-                                                            { name = withSignature.implementationName
-                                                            , arguments = withSignature.arguments
-                                                            , expression = withSignature.expression
+                                                            { name = signature.implementationName
+                                                            , arguments = functionDeclarationAfterDocumentation.arguments
+                                                            , expression = functionDeclarationAfterDocumentation.expression
                                                             }
                                                     }
                                                 )
@@ -74,10 +74,10 @@ declaration =
                                         Combine.problem
                                             ("Expected to find the declaration for " ++ startName ++ " but found " ++ implementationName)
 
-                                FunctionDeclarationWithoutSignatureAfterName withoutSignature ->
+                                Nothing ->
                                     let
                                         (Node expressionRange _) =
-                                            withoutSignature.expression
+                                            functionDeclarationAfterDocumentation.expression
                                     in
                                     Node { start = start, end = expressionRange.end }
                                         (Declaration.FunctionDeclaration
@@ -86,8 +86,8 @@ declaration =
                                             , declaration =
                                                 Node { start = startNameRange.start, end = expressionRange.end }
                                                     { name = functionDeclarationAfterDocumentation.startName
-                                                    , arguments = withoutSignature.arguments
-                                                    , expression = withoutSignature.expression
+                                                    , arguments = functionDeclarationAfterDocumentation.arguments
+                                                    , expression = functionDeclarationAfterDocumentation.expression
                                                     }
                                             }
                                         )
@@ -173,7 +173,13 @@ declaration =
 type DeclarationAfterDocumentation
     = FunctionDeclarationAfterDocumentation
         { startName : Node String
-        , afterStartName : FunctionDeclarationAfterName
+        , signature :
+            Maybe
+                { typeAnnotation : Node TypeAnnotation
+                , implementationName : Node String
+                }
+        , arguments : List (Node Pattern)
+        , expression : Node Expression
         }
     | TypeDeclarationAfterDocumentation
         { name : Node String
@@ -210,62 +216,38 @@ type TypeOrTypeAliasDeclarationWithoutDocumentation
 functionAfterDocumentation : Parser State DeclarationAfterDocumentation
 functionAfterDocumentation =
     Node.parserCoreMap
-        (\startNameNode ->
-            \afterStartName ->
-                FunctionDeclarationAfterDocumentation
-                    { startName = startNameNode, afterStartName = afterStartName }
+        (\startName ->
+            \signature ->
+                \arguments ->
+                    \result ->
+                        FunctionDeclarationAfterDocumentation
+                            { startName = startName
+                            , signature = signature
+                            , arguments = arguments
+                            , expression = result
+                            }
         )
         Tokens.functionName
         |> Combine.fromCoreIgnore Layout.maybeLayout
-        |> Combine.keep functionDeclarationAfterName
-
-
-functionDeclarationAfterName : Parser State FunctionDeclarationAfterName
-functionDeclarationAfterName =
-    Combine.oneOf
-        [ letFunctionWithSignatureAfterName
-        , letFunctionWithoutSignatureAfterName
-        ]
-
-
-letFunctionWithoutSignatureAfterName : Parser State FunctionDeclarationAfterName
-letFunctionWithoutSignatureAfterName =
-    Combine.map
-        (\args ->
-            \result ->
-                FunctionDeclarationWithoutSignatureAfterName
-                    { arguments = args
-                    , expression = result
-                    }
-        )
-        (Combine.many (Patterns.pattern |> Combine.ignore Layout.maybeLayout))
-        |> Combine.ignoreEntirely Tokens.equal
-        |> Combine.ignore Layout.maybeLayout
-        |> Combine.keep expression
-
-
-letFunctionWithSignatureAfterName : Parser State FunctionDeclarationAfterName
-letFunctionWithSignatureAfterName =
-    Tokens.colon
-        |> Combine.fromCoreIgnore Layout.maybeLayout
-        |> Combine.continueWith
-            (Combine.map
-                (\typeAnnotation ->
-                    \implementationNameNode ->
-                        \arguments ->
-                            \result ->
-                                FunctionDeclarationWithSignatureAfterName
-                                    { typeAnnotation = typeAnnotation
-                                    , implementationName = implementationNameNode
-                                    , arguments = arguments
-                                    , expression = result
+        |> Combine.keep
+            (Combine.maybe
+                (Tokens.colon
+                    |> Combine.fromCoreIgnore Layout.maybeLayout
+                    |> Combine.continueWith
+                        (Combine.map
+                            (\typeAnnotation ->
+                                \implementationNameNode ->
+                                    { implementationName = implementationNameNode
+                                    , typeAnnotation = typeAnnotation
                                     }
+                            )
+                            TypeAnnotation.typeAnnotation
+                        )
+                    |> Combine.ignore Layout.layoutStrict
+                    |> Combine.keepFromCore (Tokens.functionName |> Node.parserCore)
+                    |> Combine.ignore Layout.maybeLayout
                 )
-                TypeAnnotation.typeAnnotation
             )
-        |> Combine.ignore Layout.layoutStrict
-        |> Combine.keepFromCore (Tokens.functionName |> Node.parserCore)
-        |> Combine.ignore Layout.maybeLayout
         |> Combine.keep (Combine.many (Patterns.pattern |> Combine.ignore Layout.maybeLayout))
         |> Combine.ignoreEntirely Tokens.equal
         |> Combine.ignore Layout.maybeLayout
@@ -275,79 +257,85 @@ letFunctionWithSignatureAfterName =
 functionDeclarationWithoutDocumentation : Parser State (Node Declaration)
 functionDeclarationWithoutDocumentation =
     Node.parserCoreMap
-        (\((Node startNameRange startName) as startNameNode) ->
-            \afterStartStartName ->
-                let
-                    start : Location
-                    start =
-                        startNameRange.start
-                in
-                case afterStartStartName of
-                    FunctionDeclarationWithSignatureAfterName withSignature ->
-                        let
-                            (Node implementationNameRange implementationName) =
-                                withSignature.implementationName
-                        in
-                        if implementationName == startName then
-                            let
-                                (Node expressionRange _) =
-                                    withSignature.expression
-                            in
-                            Core.succeed
-                                (Node { start = start, end = expressionRange.end }
+        (\((Node { start } startName) as startNameNode) ->
+            \maybeSignature ->
+                \arguments ->
+                    \result ->
+                        case maybeSignature of
+                            Nothing ->
+                                let
+                                    (Node expressionRange _) =
+                                        result
+                                in
+                                Node { start = start, end = expressionRange.end }
                                     (Declaration.FunctionDeclaration
                                         { documentation = Nothing
-                                        , signature = Just (Node.combine Signature startNameNode withSignature.typeAnnotation)
+                                        , signature = Nothing
                                         , declaration =
-                                            Node { start = implementationNameRange.start, end = expressionRange.end }
-                                                { name = withSignature.implementationName
-                                                , arguments = withSignature.arguments
-                                                , expression = withSignature.expression
+                                            Node { start = start, end = expressionRange.end }
+                                                { name = startNameNode
+                                                , arguments = arguments
+                                                , expression = result
                                                 }
                                         }
                                     )
-                                )
+                                    |> Core.succeed
 
-                        else
-                            Core.problem
-                                ("Expected to find the declaration for " ++ startName ++ " but found " ++ implementationName)
+                            Just signature ->
+                                let
+                                    (Node implementationNameRange implementationName) =
+                                        signature.implementationName
+                                in
+                                if implementationName == startName then
+                                    let
+                                        (Node expressionRange _) =
+                                            result
+                                    in
+                                    Core.succeed
+                                        (Node { start = start, end = expressionRange.end }
+                                            (Declaration.FunctionDeclaration
+                                                { documentation = Nothing
+                                                , signature = Just (Node.combine Signature startNameNode signature.typeAnnotation)
+                                                , declaration =
+                                                    Node { start = implementationNameRange.start, end = expressionRange.end }
+                                                        { name = signature.implementationName
+                                                        , arguments = arguments
+                                                        , expression = result
+                                                        }
+                                                }
+                                            )
+                                        )
 
-                    FunctionDeclarationWithoutSignatureAfterName withoutSignature ->
-                        let
-                            (Node expressionRange _) =
-                                withoutSignature.expression
-                        in
-                        Node { start = start, end = expressionRange.end }
-                            (Declaration.FunctionDeclaration
-                                { documentation = Nothing
-                                , signature = Nothing
-                                , declaration =
-                                    Node { start = startNameRange.start, end = expressionRange.end }
-                                        { name = startNameNode
-                                        , arguments = withoutSignature.arguments
-                                        , expression = withoutSignature.expression
-                                        }
-                                }
-                            )
-                            |> Core.succeed
+                                else
+                                    Core.problem
+                                        ("Expected to find the declaration for " ++ startName ++ " but found " ++ implementationName)
         )
         Tokens.functionName
         |> Combine.fromCoreIgnore Layout.maybeLayout
-        |> Combine.keep functionDeclarationAfterName
+        |> Combine.keep
+            (Combine.maybe
+                (Tokens.colon
+                    |> Combine.fromCoreIgnore Layout.maybeLayout
+                    |> Combine.continueWith
+                        (Combine.map
+                            (\typeAnnotation ->
+                                \implementationNameNode ->
+                                    { implementationName = implementationNameNode
+                                    , typeAnnotation = typeAnnotation
+                                    }
+                            )
+                            TypeAnnotation.typeAnnotation
+                        )
+                    |> Combine.ignore Layout.layoutStrict
+                    |> Combine.keepFromCore (Tokens.functionName |> Node.parserCore)
+                    |> Combine.ignore Layout.maybeLayout
+                )
+            )
+        |> Combine.keep (Combine.many (Patterns.pattern |> Combine.ignore Layout.maybeLayout))
+        |> Combine.ignoreEntirely Tokens.equal
+        |> Combine.ignore Layout.maybeLayout
+        |> Combine.keep expression
         |> Combine.flattenFromCore
-
-
-type FunctionDeclarationAfterName
-    = FunctionDeclarationWithSignatureAfterName
-        { typeAnnotation : Node TypeAnnotation
-        , implementationName : Node String
-        , arguments : List (Node Pattern)
-        , expression : Node Expression
-        }
-    | FunctionDeclarationWithoutSignatureAfterName
-        { arguments : List (Node Pattern)
-        , expression : Node Expression
-        }
 
 
 infixDeclaration : Parser State (Node Declaration)
