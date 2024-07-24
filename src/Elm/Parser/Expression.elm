@@ -647,21 +647,22 @@ tupledExpression =
     Tokens.parensStart
         |> Combine.fromCoreContinue
             (Combine.oneOf
-                (((Tokens.parensEnd |> Combine.fromCoreMap (\() -> UnitExpr))
-                    :: allowedPrefixOperatorThenClosingParensOneOf
-                 )
-                    ++ List.singleton
-                        (tupledExpressionInnerNested |> Combine.ignoreEntirely Tokens.parensEnd)
+                ((Tokens.parensEnd |> Combine.fromCoreMap (\() -> UnitExpr))
+                    :: -- since `-` alone  could indicate negation or prefix operator,
+                       -- we check for `-)` first
+                       (Core.symbol "-)" |> Combine.fromCoreMap (\() -> PrefixOperator "-"))
+                    :: (tupledExpressionInnerNested |> Combine.ignoreEntirely Tokens.parensEnd)
+                    -- and since prefix operators are much more rare than e.g. parenthesized
+                    -- we check those later
+                    :: allowedPrefixOperatorExceptMinusThenClosingParensOneOf
                 )
             )
 
 
-{-| since `-` alone could also indicate negation, we only consider it
-a prefix operator after `)`
--}
-allowedPrefixOperatorThenClosingParensOneOf : List (Parser state Expression)
-allowedPrefixOperatorThenClosingParensOneOf =
+allowedPrefixOperatorExceptMinusThenClosingParensOneOf : List (Parser state Expression)
+allowedPrefixOperatorExceptMinusThenClosingParensOneOf =
     Tokens.allowedOperatorTokens
+        |> List.filter (\token -> token /= "-")
         |> List.map
             (\allowedOperatorToken ->
                 Core.symbol (allowedOperatorToken ++ ")")
