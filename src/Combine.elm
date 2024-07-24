@@ -2,7 +2,6 @@ module Combine exposing
     ( Parser(..)
     , Step(..)
     , andThen
-    , andThenFromCore
     , backtrackable
     , between
     , betweenMap
@@ -10,7 +9,9 @@ module Combine exposing
     , continueWithCore
     , continueWithFromCore
     , end
+    , flattenFromCore
     , fromCore
+    , fromCoreAndThen
     , fromCoreContinue
     , fromCoreIgnore
     , fromCoreKeep
@@ -111,8 +112,8 @@ map f (Parser p) =
                 |> Core.map (\( s, a ) -> ( s, f a ))
 
 
-andThenFromCore : (a -> Parser state b) -> Core.Parser a -> Parser state b
-andThenFromCore f p =
+fromCoreAndThen : (a -> Parser state b) -> Core.Parser a -> Parser state b
+fromCoreAndThen f p =
     Parser <|
         \state ->
             p
@@ -139,6 +140,21 @@ andThen f (Parser p) =
                         in
                         x s
                     )
+
+
+{-| Equivalent to andThen fromCore (but a tiny bit faster)
+-}
+flattenFromCore : Parser state (Core.Parser b) -> Parser state b
+flattenFromCore (Parser p) =
+    Parser
+        (\state ->
+            p state
+                |> Core.andThen
+                    (\( newState, resultCoreParser ) ->
+                        resultCoreParser
+                            |> Core.map (\result -> ( newState, result ))
+                    )
+        )
 
 
 keep : Parser state a -> Parser state (a -> b) -> Parser state b
@@ -382,7 +398,7 @@ backtrackable (Parser p) =
 continueWithFromCore : Parser state a -> Core.Parser () -> Parser state a
 continueWithFromCore target dropped =
     dropped
-        |> andThenFromCore (\() -> target)
+        |> fromCoreAndThen (\() -> target)
 
 
 continueWithCore : Core.Parser a -> Parser state () -> Parser state a

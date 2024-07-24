@@ -485,7 +485,7 @@ letFunction =
                 , letFunctionWithoutSignatureAfterName
                 ]
             )
-        |> Combine.andThen Combine.fromCore
+        |> Combine.flattenFromCore
 
 
 type LetFunctionAfterName
