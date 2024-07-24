@@ -183,19 +183,20 @@ portDeclarationAfterDocumentation =
     -- order is preserved
     Combine.succeed
         (\documentation ->
-            Combine.map
-                (\() ->
-                    \( startRow, startColumn ) ->
-                        \name ->
-                            \((Node { end } _) as typeAnnotation) ->
-                                Node
-                                    { start = { row = startRow, column = startColumn }
-                                    , end = end
-                                    }
-                                    (Declaration.PortDeclaration { name = name, typeAnnotation = typeAnnotation })
-                )
-                (Combine.modifyState (State.addComment documentation))
-                |> Combine.keep getPositionPortTokenLayout
+            Combine.modifyState (State.addComment documentation)
+                |> Combine.continueWith
+                    (Combine.map
+                        (\( startRow, startColumn ) ->
+                            \name ->
+                                \((Node { end } _) as typeAnnotation) ->
+                                    Node
+                                        { start = { row = startRow, column = startColumn }
+                                        , end = end
+                                        }
+                                        (Declaration.PortDeclaration { name = name, typeAnnotation = typeAnnotation })
+                        )
+                        getPositionPortTokenLayout
+                    )
                 |> Combine.keep functionNameLayoutColonLayout
                 |> Combine.keep typeAnnotation
         )
@@ -240,15 +241,16 @@ portDeclarationWithoutDocumentation =
 
 typeOrTypeAliasDefinitionAfterDocumentation : Parser State (Node Documentation -> Parser State (Node Declaration.Declaration))
 typeOrTypeAliasDefinitionAfterDocumentation =
-    Core.map
-        (\() ->
-            \with ->
-                \((Node documentationRange _) as documentation) ->
-                    Combine.succeed (with documentationRange.start (Just documentation))
-        )
-        (Core.symbol "type")
+    Core.symbol "type"
         |> Combine.fromCoreIgnore Layout.layout
-        |> Combine.keep typeOrTypeAliasDefinitionWithAfterTypePrefix
+        |> Combine.continueWith
+            (Combine.map
+                (\with ->
+                    \((Node documentationRange _) as documentation) ->
+                        Combine.succeed (with documentationRange.start (Just documentation))
+                )
+                typeOrTypeAliasDefinitionWithAfterTypePrefix
+            )
 
 
 typeOrTypeAliasDefinitionWithoutDocumentation : Parser State (Node Declaration.Declaration)
@@ -274,24 +276,25 @@ typeOrTypeAliasDefinitionWithAfterTypePrefix =
 
 typeAliasDefinitionAfterTypePrefix : Parser State (Location -> Maybe (Node Documentation) -> Node Declaration)
 typeAliasDefinitionAfterTypePrefix =
-    Core.map
-        (\() ->
-            \name ->
-                \generics ->
-                    \((Node { end } _) as typeAnnotation) ->
-                        \start documentation ->
-                            Node { start = start, end = end }
-                                (Declaration.AliasDeclaration
-                                    { documentation = documentation
-                                    , name = name
-                                    , generics = generics
-                                    , typeAnnotation = typeAnnotation
-                                    }
-                                )
-        )
-        Tokens.aliasToken
+    Tokens.aliasToken
         |> Combine.fromCoreIgnore Layout.layout
-        |> Combine.keepFromCore (Node.parserCore Tokens.typeName)
+        |> Combine.continueWithCore
+            (Node.parserCoreMap
+                (\name ->
+                    \generics ->
+                        \((Node { end } _) as typeAnnotation) ->
+                            \start documentation ->
+                                Node { start = start, end = end }
+                                    (Declaration.AliasDeclaration
+                                        { documentation = documentation
+                                        , name = name
+                                        , generics = generics
+                                        , typeAnnotation = typeAnnotation
+                                        }
+                                    )
+                )
+                Tokens.typeName
+            )
         |> Combine.ignore (Combine.maybeIgnore Layout.layout)
         |> Combine.keep typeGenericList
         |> Combine.ignoreEntirely Tokens.equal
