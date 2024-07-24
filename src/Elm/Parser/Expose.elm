@@ -74,19 +74,21 @@ infixExpose =
 
 typeExpose : Parser State TopLevelExpose
 typeExpose =
-    Tokens.typeName
-        |> Combine.andThenFromCore
-            (\typeValue ->
-                Combine.oneOf
-                    [ Combine.map
-                        (\() ->
-                            \(Node openRange ()) ->
-                                TypeExpose { name = typeValue, open = Just openRange }
-                        )
-                        (Combine.maybeIgnore Layout.layout |> Combine.backtrackable)
-                        |> Combine.keep exposingVariants
-                    , Combine.succeedLazy (\() -> TypeOrAliasExpose typeValue)
-                    ]
+    Core.map
+        (\typeName open ->
+            case open of
+                Nothing ->
+                    TypeOrAliasExpose typeName
+
+                Just (Node openRange ()) ->
+                    TypeExpose { name = typeName, open = Just openRange }
+        )
+        Tokens.typeName
+        |> Combine.fromCoreKeep
+            (Combine.maybe
+                ((Combine.maybeIgnore Layout.layout |> Combine.backtrackable)
+                    |> Combine.continueWith exposingVariants
+                )
             )
 
 
