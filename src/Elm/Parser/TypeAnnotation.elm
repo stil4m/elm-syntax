@@ -13,18 +13,25 @@ import Parser as Core exposing ((|=))
 
 typeAnnotation : Parser State (Node TypeAnnotation)
 typeAnnotation =
-    Combine.map (\ta -> \fromTa -> fromTa ta)
+    Combine.map
+        (\ta ->
+            \afterTa ->
+                case afterTa of
+                    Nothing ->
+                        ta
+
+                    Just out ->
+                        Node.combine TypeAnnotation.FunctionTypeAnnotation ta out
+        )
         (Combine.lazy (\() -> typeAnnotationNoFnIncludingTypedWithArguments))
         |> Combine.keep
-            (Combine.oneOf
-                [ Combine.maybeIgnore Layout.layout
+            (Combine.maybe
+                (Combine.maybeIgnore Layout.layout
                     |> Combine.backtrackable
-                    |> Combine.continueWithCore Tokens.arrowRight
+                    |> Combine.ignoreEntirely Tokens.arrowRight
                     |> Combine.continueWith (Combine.maybeIgnore Layout.layout)
                     |> Combine.continueWith (Combine.lazy (\() -> typeAnnotation))
-                    |> Combine.map (\out -> \in_ -> Node.combine TypeAnnotation.FunctionTypeAnnotation in_ out)
-                , Combine.succeed identity
-                ]
+                )
             )
 
 
@@ -53,30 +60,26 @@ typeAnnotationNoFnIncludingTypedWithArguments =
 parensTypeAnnotation : Parser State TypeAnnotation
 parensTypeAnnotation =
     Tokens.parensStart
-        |> Combine.continueFromCore
+        |> Combine.fromCoreContinue
             (Combine.oneOf
                 [ Tokens.parensEnd
                     |> Combine.fromCoreMap (\() -> TypeAnnotation.Unit)
-                , parensTypeAnnotationInnerNested |> Combine.ignoreEntirely Tokens.parensEnd
-                ]
-            )
-
-
-parensTypeAnnotationInnerNested : Parser State TypeAnnotation
-parensTypeAnnotationInnerNested =
-    Combine.maybeIgnore Layout.layout
-        |> Combine.continueWith
-            (Combine.map (\x -> \xs -> asTypeAnnotation x xs)
-                typeAnnotation
-            )
-        |> Combine.ignore (Combine.maybeIgnore Layout.layout)
-        |> Combine.keep
-            (Combine.many
-                (Tokens.comma
-                    |> Combine.continueFromCore (Combine.maybeIgnore Layout.layout)
-                    |> Combine.continueWith typeAnnotation
+                , Combine.maybeIgnore Layout.layout
+                    |> Combine.continueWith
+                        (Combine.map (\x -> \xs -> asTypeAnnotation x xs)
+                            typeAnnotation
+                        )
                     |> Combine.ignore (Combine.maybeIgnore Layout.layout)
-                )
+                    |> Combine.keep
+                        (Combine.many
+                            (Tokens.comma
+                                |> Combine.fromCoreContinue (Combine.maybeIgnore Layout.layout)
+                                |> Combine.continueWith typeAnnotation
+                                |> Combine.ignore (Combine.maybeIgnore Layout.layout)
+                            )
+                        )
+                    |> Combine.ignoreEntirely Tokens.parensEnd
+                ]
             )
 
 
@@ -96,18 +99,10 @@ genericTypeAnnotation =
         |> Combine.fromCoreMap TypeAnnotation.GenericType
 
 
-recordFieldsTypeAnnotation : Parser State TypeAnnotation.RecordDefinition
-recordFieldsTypeAnnotation =
-    Combine.sepBy1 ","
-        (Combine.maybeIgnore Layout.layout
-            |> Combine.continueWith (Node.parser recordFieldDefinition)
-        )
-
-
 recordTypeAnnotation : Parser State TypeAnnotation
 recordTypeAnnotation =
     Tokens.curlyStart
-        |> Combine.continueFromCore (Combine.maybeIgnore Layout.layout)
+        |> Combine.fromCoreContinue (Combine.maybeIgnore Layout.layout)
         |> Combine.continueWith
             (Combine.oneOf
                 [ Combine.fromCoreMap (\() -> TypeAnnotation.Record []) Tokens.curlyEnd
@@ -116,41 +111,44 @@ recordTypeAnnotation =
                     |> Combine.fromCoreIgnore (Combine.maybeIgnore Layout.layout)
                     |> Combine.keep
                         (Combine.oneOf
-                            [ Combine.map (\fields -> \fname -> TypeAnnotation.GenericRecord fname fields)
-                                pipeRecordFieldsTypeAnnotationNodeCurlyEnd
-                            , Core.map (\() -> \ta -> \rest -> \fname -> TypeAnnotation.Record (Node.combine Tuple.pair fname ta :: rest))
-                                Tokens.colon
-                                |> Combine.fromCoreIgnore (Combine.maybeIgnore Layout.layout)
-                                |> Combine.keep
-                                    (typeAnnotation
-                                        |> Combine.ignore (Combine.maybeIgnore Layout.layout)
+                            [ Tokens.pipe
+                                |> Combine.continueWithFromCore
+                                    (Node.parserMap
+                                        (\fields -> \fname -> TypeAnnotation.GenericRecord fname fields)
+                                        recordFieldsTypeAnnotation
+                                        |> Combine.ignoreEntirely Tokens.curlyEnd
                                     )
-                                |> Combine.keep maybeCommaRecordFieldsTypeAnnotationCurlyEnd
+                            , Tokens.colon
+                                |> Combine.fromCoreIgnore (Combine.maybeIgnore Layout.layout)
+                                |> Combine.continueWith
+                                    (typeAnnotation
+                                        |> Combine.map
+                                            (\ta ->
+                                                \rest ->
+                                                    \fname ->
+                                                        TypeAnnotation.Record (Node.combine Tuple.pair fname ta :: Maybe.withDefault [] rest)
+                                            )
+                                    )
+                                |> Combine.ignore (Combine.maybeIgnore Layout.layout)
+                                |> Combine.keep
+                                    (Combine.maybe
+                                        (Tokens.comma
+                                            |> Combine.fromCoreContinue recordFieldsTypeAnnotation
+                                        )
+                                    )
+                                |> Combine.ignoreEntirely Tokens.curlyEnd
                             ]
                         )
                 ]
             )
 
 
-pipeRecordFieldsTypeAnnotationNodeCurlyEnd : Parser State (Node TypeAnnotation.RecordDefinition)
-pipeRecordFieldsTypeAnnotationNodeCurlyEnd =
-    Tokens.pipe
-        |> Combine.continueWithFromCore
-            (Node.parser recordFieldsTypeAnnotation
-                |> Combine.ignoreEntirely Tokens.curlyEnd
-            )
-
-
-maybeCommaRecordFieldsTypeAnnotationCurlyEnd : Parser State TypeAnnotation.RecordDefinition
-maybeCommaRecordFieldsTypeAnnotationCurlyEnd =
-    Combine.oneOf
-        [ -- Skip a comma and then look for at least 1 more field
-          Tokens.comma
-            |> Combine.continueFromCore recordFieldsTypeAnnotation
-        , -- Single field record, so just end with no additional fields
-          Combine.succeed []
-        ]
-        |> Combine.ignoreEntirely Tokens.curlyEnd
+recordFieldsTypeAnnotation : Parser State TypeAnnotation.RecordDefinition
+recordFieldsTypeAnnotation =
+    Combine.sepBy1 ","
+        (Combine.maybeIgnore Layout.layout
+            |> Combine.continueWith (Node.parser recordFieldDefinition)
+        )
 
 
 recordFieldDefinition : Parser State TypeAnnotation.RecordField
