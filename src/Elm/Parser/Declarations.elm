@@ -84,7 +84,7 @@ functionDeclarationWith =
                     )
                     TypeAnnotation.typeAnnotation
                 )
-            |> Combine.ignore (Combine.maybeIgnore Layout.layoutStrict)
+            |> Combine.ignore Layout.layoutStrict
             |> Combine.keepFromCore (Tokens.functionName |> Node.parserCore)
             |> Combine.ignore Layout.maybeLayout
             |> Combine.keep

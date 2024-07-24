@@ -15,7 +15,7 @@ import Elm.Syntax.Node exposing (Node)
 
 file : Parser State File
 file =
-    Combine.maybeIgnore Layout.layoutStrict
+    Layout.layoutStrict
         |> Combine.continueWith
             (Node.parserMap
                 (\moduleDefinition ->
@@ -30,7 +30,7 @@ file =
                 )
                 moduleDefinition
             )
-        |> Combine.ignore (Combine.maybeIgnore Layout.layoutStrict)
+        |> Combine.ignore Layout.layoutStrict
         |> Combine.ignore (Combine.maybeIgnore (Comments.moduleDocumentation |> Combine.ignore Layout.layoutStrict))
         |> Combine.keep (Combine.many importDefinition)
         |> Combine.keep fileDeclarations
