@@ -24,7 +24,6 @@ module Combine exposing
     , many
     , many1Ignore
     , manyIgnore
-    , manyWithEndLocationForLastElement
     , manyWithoutReverse
     , map
     , map3CoreCombineCore
@@ -43,7 +42,6 @@ module Combine exposing
     , withStateFromCore
     )
 
-import Elm.Syntax.Range exposing (Location, Range)
 import Parser as Core exposing ((|.), (|=))
 
 
@@ -284,43 +282,6 @@ many1Ignore : Parser state () -> Parser state ()
 many1Ignore p =
     p
         |> continueWith (manyIgnore p)
-
-
-{-| Attention: This will return `{ row = 0, column = 0 }` as the end location if the resulting list is empty!
--}
-manyWithEndLocationForLastElement : (a -> Range) -> Parser state a -> Parser state ( Location, List a )
-manyWithEndLocationForLastElement getRange (Parser p) =
-    let
-        helper : ( state, List a ) -> Core.Parser (Core.Step ( state, List a ) ( state, ( Location, List a ) ))
-        helper ( oldState, items ) =
-            Core.oneOf
-                [ p oldState
-                    |> Core.map (\( newState, item ) -> Core.Loop ( newState, item :: items ))
-                , Core.lazy
-                    (\() ->
-                        Core.succeed
-                            (Core.Done ( oldState, ( endLocationForList getRange items, List.reverse items ) ))
-                    )
-                ]
-    in
-    Parser <|
-        \state ->
-            Core.loop ( state, [] ) helper
-
-
-endLocationForList : (a -> Range) -> List a -> Location
-endLocationForList getRange list =
-    case list of
-        [] ->
-            emptyLocation
-
-        a :: _ ->
-            (getRange a).end
-
-
-emptyLocation : Location
-emptyLocation =
-    { row = 0, column = 0 }
 
 
 type Step a b

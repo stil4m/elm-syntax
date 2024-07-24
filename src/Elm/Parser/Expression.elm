@@ -8,10 +8,9 @@ import Elm.Parser.Patterns as Patterns
 import Elm.Parser.State as State exposing (State)
 import Elm.Parser.Tokens as Tokens
 import Elm.Parser.TypeAnnotation as TypeAnnotation
-import Elm.Syntax.Expression as Expression exposing (Case, Cases, Expression(..), LetDeclaration(..), RecordSetter)
+import Elm.Syntax.Expression as Expression exposing (Case, Expression(..), LetDeclaration(..), RecordSetter)
 import Elm.Syntax.Infix as Infix
 import Elm.Syntax.Node as Node exposing (Node(..))
-import Elm.Syntax.Range exposing (Location)
 import Elm.Syntax.Signature exposing (Signature)
 import Parser as Core exposing ((|.), (|=), Nestable(..))
 
@@ -308,9 +307,22 @@ caseExpression =
     Core.map
         (\( startRow, startColumn ) ->
             \caseBlock_ ->
-                \( end, cases ) ->
-                    Node { start = { row = startRow, column = startColumn }, end = end }
-                        (CaseExpression { expression = caseBlock_, cases = cases })
+                \( ( _, Node firstCaseExpressionRange _ ) as firstCase, lastToSecondCase ) ->
+                    Node
+                        { start = { row = startRow, column = startColumn }
+                        , end =
+                            case lastToSecondCase of
+                                [] ->
+                                    firstCaseExpressionRange.end
+
+                                ( _, Node lastCaseExpressionRange _ ) :: _ ->
+                                    lastCaseExpressionRange.end
+                        }
+                        (CaseExpression
+                            { expression = caseBlock_
+                            , cases = firstCase :: List.reverse lastToSecondCase
+                            }
+                        )
         )
         Core.getPosition
         |. Tokens.caseToken
@@ -322,24 +334,18 @@ caseExpression =
         |> Combine.keep (withIndentedState caseStatements)
 
 
-caseStatements : Parser State ( Location, Cases )
+caseStatements : Parser State ( Case, List Case )
 caseStatements =
     Combine.map
-        (\(( _, Node aExpressionRange _ ) as a) ->
-            \( location_, list ) ->
-                ( if location_.row == 0 then
-                    aExpressionRange.end
-
-                  else
-                    location_
-                , a :: list
+        (\firstCase ->
+            \lastToSecondCase ->
+                ( firstCase
+                , lastToSecondCase
                 )
         )
         caseStatement
         |> Combine.keep
-            (Combine.manyWithEndLocationForLastElement (\( _, Node range _ ) -> range)
-                caseStatement
-            )
+            (Combine.manyWithoutReverse caseStatement)
 
 
 caseStatement : Parser State Case
@@ -501,15 +507,16 @@ ifBlockExpression =
 
 negationOperation : Parser State (Node Expression)
 negationOperation =
-    Combine.fromCoreMap
-        (\() ->
-            \((Node { start, end } _) as subExpr) ->
-                Node
-                    { start = { row = start.row, column = start.column - 1 }, end = end }
-                    (Negation subExpr)
-        )
-        minusNotFollowedBySpace
-        |> Combine.keep (subExpression 95)
+    minusNotFollowedBySpace
+        |> Combine.fromCoreContinue
+            (Combine.map
+                (\((Node { start, end } _) as subExpr) ->
+                    Node
+                        { start = { row = start.row, column = start.column - 1 }, end = end }
+                        (Negation subExpr)
+                )
+                (subExpression 95)
+            )
 
 
 minusNotFollowedBySpace : Core.Parser ()
