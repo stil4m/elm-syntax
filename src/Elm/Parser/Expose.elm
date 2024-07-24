@@ -53,7 +53,7 @@ exposingListInner =
 exposable : Parser State (Node TopLevelExpose)
 exposable =
     Combine.oneOf
-        [ functionExpose |> Combine.fromCore
+        [ functionExpose
         , typeExpose
         , infixExpose |> Combine.fromCore
         ]
@@ -105,6 +105,6 @@ exposingVariants =
         )
 
 
-functionExpose : Core.Parser TopLevelExpose
+functionExpose : Parser state TopLevelExpose
 functionExpose =
-    Core.map FunctionExpose Tokens.functionName
+    Combine.fromCoreMap FunctionExpose Tokens.functionName
