@@ -1,17 +1,19 @@
 module Elm.Parser.Tokens exposing
-    ( asToken, caseToken, elseToken, exposingToken, ifToken, importToken, inToken, letToken, moduleToken, whereToken, ofToken, portToken, prefixOperatorToken, thenToken, aliasToken
+    ( asToken, caseToken, elseToken, exposingToken, ifToken, importToken, inToken, letToken, moduleToken, whereToken, ofToken, portToken, thenToken, aliasToken
     , dot, dotDot, squareStart, squareEnd, curlyStart, curlyEnd, pipe, backSlash, arrowRight, equal, comma, parensStart, parensEnd, colon, cons
     , minus, minusSymbols
+    , prefixOperatorToken, allowedOperatorTokens
     , characterLiteral, singleOrTripleQuotedStringLiteral
     , functionName, typeName
     )
 
 {-|
 
-@docs asToken, caseToken, elseToken, exposingToken, ifToken, importToken, inToken, letToken, moduleToken, whereToken, ofToken, portToken, prefixOperatorToken, thenToken, aliasToken
+@docs asToken, caseToken, elseToken, exposingToken, ifToken, importToken, inToken, letToken, moduleToken, whereToken, ofToken, portToken, thenToken, aliasToken
 
 @docs dot, dotDot, squareStart, squareEnd, curlyStart, curlyEnd, pipe, backSlash, arrowRight, equal, comma, parensStart, parensEnd, colon, cons
 @docs minus, minusSymbols
+@docs prefixOperatorToken, allowedOperatorTokens
 
 @docs characterLiteral, singleOrTripleQuotedStringLiteral
 @docs functionName, typeName

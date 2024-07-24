@@ -647,13 +647,25 @@ tupledExpression =
     Tokens.parensStart
         |> Combine.fromCoreContinue
             (Combine.oneOf
-                [ Tokens.parensEnd |> Combine.fromCoreMap (\() -> UnitExpr)
-                , Core.backtrackable Tokens.prefixOperatorToken
-                    |. Tokens.parensEnd
-                    |. Core.commit ()
-                    |> Combine.fromCoreMap PrefixOperator
-                , tupledExpressionInnerNested |> Combine.ignoreEntirely Tokens.parensEnd
-                ]
+                (((Tokens.parensEnd |> Combine.fromCoreMap (\() -> UnitExpr))
+                    :: allowedPrefixOperatorThenClosingParensOneOf
+                 )
+                    ++ List.singleton
+                        (tupledExpressionInnerNested |> Combine.ignoreEntirely Tokens.parensEnd)
+                )
+            )
+
+
+{-| since `-` alone could also indicate negation, we only consider it
+a prefix operator after `)`
+-}
+allowedPrefixOperatorThenClosingParensOneOf : List (Parser state Expression)
+allowedPrefixOperatorThenClosingParensOneOf =
+    Tokens.allowedOperatorTokens
+        |> List.map
+            (\allowedOperatorToken ->
+                Core.symbol (allowedOperatorToken ++ ")")
+                    |> Combine.fromCoreMap (\() -> PrefixOperator allowedOperatorToken)
             )
 
 
