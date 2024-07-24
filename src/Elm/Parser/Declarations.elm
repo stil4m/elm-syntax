@@ -352,20 +352,20 @@ type FunctionDeclarationAfterName
 infixDeclaration : Parser State (Node Declaration)
 infixDeclaration =
     Core.map
-        (\( startRow, startColumn ) ->
+        (\startRow ->
             \direction ->
                 \precedence ->
                     \operator ->
                         \((Node fnRange _) as fn) ->
                             Node
-                                { start = { row = startRow, column = startColumn }
+                                { start = { row = startRow, column = 1 }
                                 , end = fnRange.end
                                 }
                                 (Declaration.InfixDeclaration
                                     { direction = direction, precedence = precedence, operator = operator, function = fn }
                                 )
         )
-        Core.getPosition
+        Core.getRow
         |. Core.keyword "infix"
         |> Combine.fromCoreIgnore Layout.layout
         |> Combine.keepFromCore (Node.parserCore infixDirection)
@@ -402,16 +402,16 @@ infixDirection =
 portDeclarationAfterDocumentation : Parser State DeclarationAfterDocumentation
 portDeclarationAfterDocumentation =
     Core.map
-        (\( startRow, startColumn ) ->
+        (\startRow ->
             \name ->
                 \typeAnnotation ->
                     PortDeclarationAfterDocumentation
-                        { startLocation = { row = startRow, column = startColumn }
+                        { startLocation = { row = startRow, column = 1 }
                         , name = name
                         , typeAnnotation = typeAnnotation
                         }
         )
-        Core.getPosition
+        Core.getRow
         |. Tokens.portToken
         |> Combine.fromCoreIgnore Layout.layout
         |> Combine.keep
@@ -426,16 +426,16 @@ portDeclarationAfterDocumentation =
 portDeclarationWithoutDocumentation : Parser State (Node Declaration)
 portDeclarationWithoutDocumentation =
     Core.map
-        (\( startRow, startColumn ) ->
+        (\startRow ->
             \name ->
                 \((Node { end } _) as typeAnnotation) ->
                     Node
-                        { start = { row = startRow, column = startColumn }
+                        { start = { row = startRow, column = 1 }
                         , end = end
                         }
                         (Declaration.PortDeclaration { name = name, typeAnnotation = typeAnnotation })
         )
-        Core.getPosition
+        Core.getRow
         |. Tokens.portToken
         |> Combine.fromCoreIgnore Layout.layout
         |> Combine.keepFromCore (Node.parserCore Tokens.functionName)
@@ -516,11 +516,11 @@ customTypeDefinitionAfterDocumentationAfterTypePrefix =
 typeOrTypeAliasDefinitionWithoutDocumentation : Parser State (Node Declaration.Declaration)
 typeOrTypeAliasDefinitionWithoutDocumentation =
     Core.map
-        (\( startRow, startColumn ) ->
+        (\startRow ->
             let
                 start : Location
                 start =
-                    { row = startRow, column = startColumn }
+                    { row = startRow, column = 1 }
             in
             \afterStart ->
                 case afterStart of
@@ -564,7 +564,7 @@ typeOrTypeAliasDefinitionWithoutDocumentation =
                                 }
                             )
         )
-        Core.getPosition
+        Core.getRow
         |. Core.symbol "type"
         |> Combine.fromCoreIgnore Layout.layout
         |> Combine.keep

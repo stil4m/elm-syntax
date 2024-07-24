@@ -16,7 +16,7 @@ import Parser as Core exposing ((|.))
 importDefinition : Parser State (Node Import)
 importDefinition =
     Core.map
-        (\( startRow, startColumn ) ->
+        (\startRow ->
             \((Node modRange _) as mod) ->
                 \moduleAlias ->
                     \exposingList ->
@@ -36,10 +36,10 @@ importDefinition =
                                                 modRange
                         in
                         Node
-                            { start = { row = startRow, column = startColumn }, end = endRange.end }
+                            { start = { row = startRow, column = 1 }, end = endRange.end }
                             { moduleName = mod, moduleAlias = moduleAlias, exposingList = exposingList }
         )
-        Core.getPosition
+        Core.getRow
         |. Tokens.importToken
         |> Combine.fromCoreIgnore Layout.layout
         |> Combine.keepFromCore moduleName
