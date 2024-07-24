@@ -572,7 +572,7 @@ recordAccessFunctionExpression =
 tupledExpression : Parser State Expression
 tupledExpression =
     Tokens.parensStart
-        |> Combine.continueFromCore
+        |> Combine.fromCoreContinue
             (Combine.oneOf
                 [ Tokens.parensEnd |> Combine.fromCoreMap (\() -> UnitExpr)
                 , closingPrefixOperator
@@ -585,7 +585,7 @@ tupledExpressionInnerCommaSep : Parser State (List (Node Expression))
 tupledExpressionInnerCommaSep =
     Combine.many
         (Tokens.comma
-            |> Combine.continueFromCore expression
+            |> Combine.fromCoreContinue expression
         )
 
 

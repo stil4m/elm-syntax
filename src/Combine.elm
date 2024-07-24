@@ -6,12 +6,12 @@ module Combine exposing
     , backtrackable
     , between
     , betweenMap
-    , continueFromCore
     , continueWith
     , continueWithCore
     , continueWithFromCore
     , end
     , fromCore
+    , fromCoreContinue
     , fromCoreIgnore
     , fromCoreKeep
     , fromCoreMap
@@ -464,8 +464,8 @@ continueWithCore target (Parser dropped) =
                     )
 
 
-continueFromCore : Parser state a -> Core.Parser () -> Parser state a
-continueFromCore (Parser target) dropped =
+fromCoreContinue : Parser state a -> Core.Parser () -> Parser state a
+fromCoreContinue (Parser target) dropped =
     Parser <|
         \state ->
             dropped
