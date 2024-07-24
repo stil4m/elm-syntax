@@ -349,7 +349,7 @@ customTypeDefinitionAfterTypePrefix =
 
 valueConstructor : Parser State (Node ValueConstructor)
 valueConstructor =
-    (Tokens.typeName
+    Tokens.typeName
         |> Node.parserCoreMap
             (\((Node variantNameRange _) as variantNameNode) ->
                 \argumentsReverse ->
@@ -367,7 +367,6 @@ valueConstructor =
                         { start = variantNameRange.start, end = fullEnd }
                         { name = variantNameNode, arguments = List.reverse argumentsReverse }
             )
-    )
         |> Combine.fromCoreKeep
             (Combine.manyWithoutReverse
                 (Layout.maybeLayout
