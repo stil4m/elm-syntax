@@ -194,7 +194,16 @@ recordExpression =
 
 recordContents : Parser State Expression
 recordContents =
-    Node.parserCoreMap (\nameNode -> \with -> with nameNode)
+    Node.parserCoreMap
+        (\nameNode ->
+            \afterName ->
+                case afterName of
+                    RecordUpdateExpressionAfterName fields ->
+                        RecordUpdateExpression nameNode fields
+
+                    FieldsAfterName fieldsAfterName ->
+                        RecordExpr (Node.combine Tuple.pair nameNode fieldsAfterName.firstFieldValue :: fieldsAfterName.tailFields)
+        )
         Tokens.functionName
         |> Combine.fromCoreIgnore Layout.maybeLayout
         |> Combine.keep
@@ -205,9 +214,7 @@ recordContents =
                         (Combine.map
                             (\firstField ->
                                 \tailFields ->
-                                    \fName ->
-                                        RecordUpdateExpression fName
-                                            (firstField :: tailFields)
+                                    RecordUpdateExpressionAfterName (firstField :: tailFields)
                             )
                             recordSetterNode
                         )
@@ -218,8 +225,7 @@ recordContents =
                         (Combine.map
                             (\firstFieldValue ->
                                 \tailFields ->
-                                    \nameNode ->
-                                        RecordExpr (Node.combine Tuple.pair nameNode firstFieldValue :: tailFields)
+                                    FieldsAfterName { firstFieldValue = firstFieldValue, tailFields = tailFields }
                             )
                             expression
                         )
@@ -227,6 +233,11 @@ recordContents =
                 ]
             )
         |> Combine.ignore Layout.maybeLayout
+
+
+type RecordFieldsOrUpdateAfterName
+    = RecordUpdateExpressionAfterName (List (Node RecordSetter))
+    | FieldsAfterName { firstFieldValue : Node Expression, tailFields : List (Node RecordSetter) }
 
 
 recordFields : Parser State (List (Node RecordSetter))
