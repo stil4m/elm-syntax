@@ -52,6 +52,7 @@ allSamples =
     , ( 49, sample49 )
     , ( 50, sample50 )
     , ( 51, sample51 )
+    , ( 52, sample52 )
     ]
 
 
@@ -858,4 +859,60 @@ sample24 =
 
 tests =
     \\() -> Expect.equal "'\\\\''" (toString '\\'')
+"""
+
+
+sample52 : String
+sample52 =
+    """
+module Simplify exposing
+    ( rule
+    , Configuration, defaults, expectNaN, ignoreCaseOfForTypes
+    )
+
+{-| Reports when an expression can be simplified.
+
+
+-}
+
+import Dict exposing (Dict)
+import Elm.Docs
+import Elm.Project exposing (Exposed)
+import Elm.Syntax.Declaration as Declaration exposing (Declaration)
+import Elm.Syntax.Exposing as Exposing
+import Elm.Syntax.Expression as Expression exposing (Expression)
+import Elm.Syntax.Import exposing (Import)
+import Elm.Syntax.Module
+import Elm.Syntax.ModuleName exposing (ModuleName)
+import Elm.Syntax.Node as Node exposing (Node(..))
+import Elm.Syntax.Pattern as Pattern exposing (Pattern)
+import Elm.Syntax.Range as Range exposing (Location, Range)
+import Review.Fix as Fix exposing (Fix)
+import Review.ModuleNameLookupTable as ModuleNameLookupTable exposing (ModuleNameLookupTable)
+import Review.Project.Dependency as Dependency exposing (Dependency)
+import Review.Rule as Rule exposing (Error, Rule)
+import Set exposing (Set)
+import Simplify.AstHelpers as AstHelpers exposing (emptyStringAsString, qualifiedToString)
+import Simplify.Evaluate as Evaluate
+import Simplify.Infer as Infer
+import Simplify.Match as Match exposing (Match(..))
+import Simplify.Normalize as Normalize
+import Simplify.RangeDict as RangeDict exposing (RangeDict)
+
+
+{-| Rule to simplify Elm code.
+-}
+rule : Configuration -> Rule
+rule (Configuration config) =
+    Rule.newProjectRuleSchema "Simplify" initialContext
+        |> Rule.withDirectDependenciesProjectVisitor (dependenciesVisitor (Set.fromList config.ignoreConstructors))
+        |> Rule.withModuleVisitor (moduleVisitor config)
+        |> Rule.withContextFromImportedModules
+        |> Rule.withModuleContextUsingContextCreator
+            { fromProjectToModule = fromProjectToModule
+            , fromModuleToProject = fromModuleToProject
+            , foldProjectContexts = foldProjectContexts
+            }
+        |> Rule.providesFixesForProjectRule
+        |> Rule.fromProjectRuleSchema
 """
