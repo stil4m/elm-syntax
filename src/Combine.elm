@@ -326,15 +326,11 @@ sepBy1WithState sep p =
 
 between : Core.Parser () -> Core.Parser () -> Parser state a -> Parser state a
 between lp rp (Parser p) =
-    let
-        succeedIdentityIgnoreLp : Core.Parser (( state, a ) -> ( state, a ))
-        succeedIdentityIgnoreLp =
-            Core.map (\() -> identity) lp
-    in
     Parser <|
         \state ->
-            succeedIdentityIgnoreLp
-                |= p state
+            (lp
+                |> Core.andThen (\() -> p state)
+            )
                 |. rp
 
 

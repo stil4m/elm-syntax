@@ -8,7 +8,8 @@ import Elm.Parser.Tokens as Tokens
 import Elm.Syntax.ModuleName exposing (ModuleName)
 import Elm.Syntax.Node as Node exposing (Node(..))
 import Elm.Syntax.TypeAnnotation as TypeAnnotation exposing (RecordDefinition, RecordField, TypeAnnotation)
-import Parser as Core exposing ((|=))
+import Parser as Core
+import Parser.Extra
 
 
 typeAnnotation : Parser State (Node TypeAnnotation)
@@ -197,16 +198,11 @@ typeIndicator =
 typeIndicatorHelper : ModuleName -> String -> Core.Parser ( ModuleName, String )
 typeIndicatorHelper moduleNameSoFar typeOrSegment =
     Core.oneOf
-        [ dotTypeName
+        [ Tokens.dot
+            |> Parser.Extra.continueWith Tokens.typeName
             |> Core.andThen (\t -> typeIndicatorHelper (typeOrSegment :: moduleNameSoFar) t)
         , Core.lazy (\() -> Core.succeed ( List.reverse moduleNameSoFar, typeOrSegment ))
         ]
-
-
-dotTypeName : Core.Parser String
-dotTypeName =
-    Core.map (\() -> identity) Tokens.dot
-        |= Tokens.typeName
 
 
 typedTypeAnnotationWithArguments : Parser State TypeAnnotation

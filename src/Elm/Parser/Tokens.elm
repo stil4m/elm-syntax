@@ -154,17 +154,20 @@ escapedCharValue =
 
 slashEscapedCharValue : Core.Parser Char
 slashEscapedCharValue =
-    Core.map (\() -> identity) (Core.symbol "\\")
-        |= escapedCharValue
+    Core.symbol "\\"
+        |> Parser.Extra.continueWith escapedCharValue
 
 
 characterLiteral : Core.Parser Char
 characterLiteral =
-    Core.map (\() -> identity) (Core.symbol "'")
-        |= Core.oneOf
-            [ slashEscapedCharValue
-            , Parser.Extra.anyChar
-            ]
+    (Core.symbol "'"
+        |> Parser.Extra.continueWith
+            (Core.oneOf
+                [ slashEscapedCharValue
+                , Parser.Extra.anyChar
+                ]
+            )
+    )
         |. Core.symbol "'"
 
 

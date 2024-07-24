@@ -15,6 +15,7 @@ import Elm.Syntax.Pattern exposing (Pattern)
 import Elm.Syntax.Signature exposing (Signature)
 import Elm.Syntax.TypeAnnotation exposing (TypeAnnotation)
 import Parser as Core exposing ((|.), (|=), Nestable(..))
+import Parser.Extra
 
 
 subExpressions : Parser State (Node Expression)
@@ -123,8 +124,8 @@ problemRecordAccessStartingWithSpace =
 
 dotField : Core.Parser (Node String)
 dotField =
-    Core.map (\() -> identity) Tokens.dot
-        |= Node.parserCore Tokens.functionName
+    Tokens.dot
+        |> Parser.Extra.continueWith (Node.parserCore Tokens.functionName)
 
 
 functionCall : ( Int, Node Expression -> Parser State (Node Expression) )
@@ -585,14 +586,15 @@ negationOperation =
 
 minusNotFollowedBySpace : Core.Parser ()
 minusNotFollowedBySpace =
-    Core.map (\() -> identity)
-        (Core.backtrackable Tokens.minus)
-        |= Core.oneOf
-            [ Core.chompIf (\next -> next == '\u{000D}' || next == '\n' || next == ' ')
-                |> Core.backtrackable
-                |> Core.map (\() -> problemNegationThenSpace)
-            , Core.succeed (Core.commit ())
-            ]
+    Core.backtrackable Tokens.minus
+        |> Parser.Extra.continueWith
+            (Core.oneOf
+                [ Core.chompIf (\next -> next == '\u{000D}' || next == '\n' || next == ' ')
+                    |> Core.backtrackable
+                    |> Core.map (\() -> problemNegationThenSpace)
+                , Core.succeed (Core.commit ())
+                ]
+            )
         |> Core.andThen identity
 
 
@@ -635,10 +637,9 @@ referenceExpressionTuple =
 
 recordAccessFunctionExpression : Parser State Expression
 recordAccessFunctionExpression =
-    Core.map (\() -> \field -> RecordAccessFunction ("." ++ field))
-        Tokens.dot
-        |= Tokens.functionName
-        |> Combine.fromCore
+    Tokens.dot
+        |> Parser.Extra.continueWith Tokens.functionName
+        |> Combine.fromCoreMap (\field -> RecordAccessFunction ("." ++ field))
 
 
 tupledExpression : Parser State Expression

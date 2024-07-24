@@ -18,7 +18,8 @@ import Elm.Syntax.Range exposing (Location)
 import Elm.Syntax.Signature exposing (Signature)
 import Elm.Syntax.Type exposing (ValueConstructor)
 import Elm.Syntax.TypeAnnotation exposing (TypeAnnotation)
-import Parser as Core exposing ((|.), (|=))
+import Parser as Core exposing ((|.))
+import Parser.Extra
 
 
 declaration : Parser State (Node Declaration)
@@ -381,8 +382,9 @@ infixDeclaration =
 
 operatorWithParens : Core.Parser (Node String)
 operatorWithParens =
-    Core.map (\() -> identity) Tokens.parensStart
-        |= Tokens.prefixOperatorToken
+    (Tokens.parensStart
+        |> Parser.Extra.continueWith Tokens.prefixOperatorToken
+    )
         |. Tokens.parensEnd
         |> Node.parserCore
 

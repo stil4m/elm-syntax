@@ -9,7 +9,8 @@ import Elm.Parser.Tokens as Tokens
 import Elm.Syntax.ModuleName exposing (ModuleName)
 import Elm.Syntax.Node as Node exposing (Node)
 import Elm.Syntax.Pattern as Pattern exposing (Pattern(..), QualifiedNameRef)
-import Parser as Core exposing ((|=))
+import Parser as Core
+import Parser.Extra
 
 
 composedWith : Parser State PatternComposedWith
@@ -164,16 +165,11 @@ qualifiedNameRef =
 qualifiedNameRefHelper : ModuleName -> String -> Core.Parser QualifiedNameRef
 qualifiedNameRefHelper moduleNameSoFar typeOrSegment =
     Core.oneOf
-        [ dotTypeName
+        [ Tokens.dot
+            |> Parser.Extra.continueWith Tokens.typeName
             |> Core.andThen (\t -> qualifiedNameRefHelper (typeOrSegment :: moduleNameSoFar) t)
         , Core.lazy (\() -> Core.succeed { moduleName = List.reverse moduleNameSoFar, name = typeOrSegment })
         ]
-
-
-dotTypeName : Core.Parser String
-dotTypeName =
-    Core.map (\() -> identity) Tokens.dot
-        |= Tokens.typeName
 
 
 qualifiedPatternWithConsumeArgs : Parser State Pattern
