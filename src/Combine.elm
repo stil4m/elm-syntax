@@ -217,13 +217,13 @@ maybe (Parser p) =
         )
 
 
-maybeMap : (a -> b) -> Parser state a -> Parser state (Maybe b)
-maybeMap resultChange (Parser p) =
+maybeMap : (a -> b) -> b -> Parser state a -> Parser state b
+maybeMap onJust onNothing (Parser p) =
     Parser
         (\state ->
             Core.oneOf
-                [ p state |> Core.map (\( newState, a ) -> ( newState, Just (resultChange a) ))
-                , Core.succeed ( state, Nothing )
+                [ p state |> Core.map (\( newState, a ) -> ( newState, onJust a ))
+                , Core.succeed ( state, onNothing )
                 ]
         )
 

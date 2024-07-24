@@ -200,28 +200,30 @@ recordContents =
         |> Combine.fromCoreIgnore (Combine.maybeIgnore Layout.layout)
         |> Combine.keep
             (Combine.oneOf
-                [ Core.map
-                    (\() ->
-                        \firstField ->
-                            \tailFields ->
-                                \fName ->
-                                    RecordUpdateExpression fName
-                                        (firstField :: tailFields)
-                    )
-                    Tokens.pipe
+                [ Tokens.pipe
                     |> Combine.fromCoreIgnore (Combine.maybeIgnore Layout.layout)
-                    |> Combine.keep recordSetterNode
+                    |> Combine.continueWith
+                        (Combine.map
+                            (\firstField ->
+                                \tailFields ->
+                                    \fName ->
+                                        RecordUpdateExpression fName
+                                            (firstField :: tailFields)
+                            )
+                            recordSetterNode
+                        )
                     |> Combine.keep recordFields
-                , Core.map
-                    (\() ->
-                        \firstFieldValue ->
-                            \tailFields ->
-                                \nameNode ->
-                                    RecordExpr (Node.combine Tuple.pair nameNode firstFieldValue :: tailFields)
-                    )
-                    Tokens.equal
+                , Tokens.equal
                     |> Combine.fromCoreIgnore (Combine.maybeIgnore Layout.layout)
-                    |> Combine.keep expression
+                    |> Combine.continueWith
+                        (Combine.map
+                            (\firstFieldValue ->
+                                \tailFields ->
+                                    \nameNode ->
+                                        RecordExpr (Node.combine Tuple.pair nameNode firstFieldValue :: tailFields)
+                            )
+                            expression
+                        )
                     |> Combine.keep recordFields
                 ]
             )
@@ -411,36 +413,35 @@ letFunction =
         |> Combine.fromCoreIgnore (Combine.maybeIgnore Layout.layout)
         |> Combine.keep
             (Combine.oneOf
-                [ Core.map
-                    (\() ->
-                        \typeAnnotation ->
-                            \((Node implementationNameRange implementationName) as implementationNameNode) ->
-                                \arguments ->
-                                    \((Node { end } _) as result) ->
-                                        \((Node { start } startName) as startNameNode) ->
-                                            if implementationName == startName then
-                                                Core.succeed
-                                                    (Node { start = start, end = end }
-                                                        (LetFunction
-                                                            { documentation = Nothing
-                                                            , signature = Just (Node.combine Signature startNameNode typeAnnotation)
-                                                            , declaration =
-                                                                Node { start = implementationNameRange.start, end = end }
-                                                                    { name = implementationNameNode, arguments = arguments, expression = result }
-                                                            }
-                                                        )
-                                                    )
-
-                                            else
-                                                Core.problem
-                                                    ("Expected to find the declaration for " ++ startName ++ " but found " ++ implementationName)
-                    )
-                    Tokens.colon
+                [ Tokens.colon
                     |> Combine.fromCoreIgnore (Combine.maybeIgnore Layout.layout)
-                    |> Combine.keep
-                        (TypeAnnotation.typeAnnotation
-                            |> Combine.ignore Layout.layoutStrict
+                    |> Combine.continueWith
+                        (Combine.map
+                            (\typeAnnotation ->
+                                \((Node implementationNameRange implementationName) as implementationNameNode) ->
+                                    \arguments ->
+                                        \((Node { end } _) as result) ->
+                                            \((Node { start } startName) as startNameNode) ->
+                                                if implementationName == startName then
+                                                    Core.succeed
+                                                        (Node { start = start, end = end }
+                                                            (LetFunction
+                                                                { documentation = Nothing
+                                                                , signature = Just (Node.combine Signature startNameNode typeAnnotation)
+                                                                , declaration =
+                                                                    Node { start = implementationNameRange.start, end = end }
+                                                                        { name = implementationNameNode, arguments = arguments, expression = result }
+                                                                }
+                                                            )
+                                                        )
+
+                                                else
+                                                    Core.problem
+                                                        ("Expected to find the declaration for " ++ startName ++ " but found " ++ implementationName)
+                            )
+                            TypeAnnotation.typeAnnotation
                         )
+                    |> Combine.ignore Layout.layoutStrict
                     |> Combine.keepFromCore (Tokens.functionName |> Node.parserCore)
                     |> Combine.ignore (Combine.maybeIgnore Layout.layout)
                     |> Combine.keep (Combine.many (Patterns.pattern |> Combine.ignore (Combine.maybeIgnore Layout.layout)))
@@ -575,7 +576,10 @@ tupledExpression =
         |> Combine.fromCoreContinue
             (Combine.oneOf
                 [ Tokens.parensEnd |> Combine.fromCoreMap (\() -> UnitExpr)
-                , closingPrefixOperator
+                , Core.backtrackable Tokens.prefixOperatorToken
+                    |. Tokens.parensEnd
+                    |. Core.commit ()
+                    |> Combine.fromCoreMap PrefixOperator
                 , tupledExpressionInnerNested |> Combine.ignoreEntirely Tokens.parensEnd
                 ]
             )
@@ -594,14 +598,6 @@ tupledExpressionInnerNested =
     Combine.map asExpression
         expression
         |> Combine.keep tupledExpressionInnerCommaSep
-
-
-closingPrefixOperator : Parser state Expression
-closingPrefixOperator =
-    Core.backtrackable Tokens.prefixOperatorToken
-        |. Tokens.parensEnd
-        |. Core.commit ()
-        |> Combine.fromCoreMap PrefixOperator
 
 
 asExpression : Node Expression -> List (Node Expression) -> Expression
@@ -660,11 +656,9 @@ expressionHelp currentPrecedence leftExpression =
         Just parser ->
             Layout.optimisticLayout
                 |> Combine.continueWith
-                    (Combine.oneOf
-                        [ combineOneOfApply parser leftExpression
-                            |> Combine.map Loop
-                        , Combine.succeed (Done leftExpression)
-                        ]
+                    (Combine.maybeMap Loop
+                        (Done leftExpression)
+                        (combineOneOfApply parser leftExpression)
                     )
 
         Nothing ->

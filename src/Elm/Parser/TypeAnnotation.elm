@@ -104,9 +104,9 @@ recordTypeAnnotation =
     Tokens.curlyStart
         |> Combine.fromCoreContinue (Combine.maybeIgnore Layout.layout)
         |> Combine.continueWith
-            (Combine.oneOf
-                [ Combine.fromCoreMap (\() -> TypeAnnotation.Record []) Tokens.curlyEnd
-                , Node.parserCoreMap (\fName -> \fromFName -> fromFName fName)
+            (Combine.maybeMap identity
+                (TypeAnnotation.Record [])
+                (Node.parserCoreMap (\fName -> \fromFName -> fromFName fName)
                     Tokens.functionName
                     |> Combine.fromCoreIgnore (Combine.maybeIgnore Layout.layout)
                     |> Combine.keep
@@ -116,7 +116,6 @@ recordTypeAnnotation =
                                     (Node.parserMap
                                         (\fields -> \fname -> TypeAnnotation.GenericRecord fname fields)
                                         recordFieldsTypeAnnotation
-                                        |> Combine.ignoreEntirely Tokens.curlyEnd
                                     )
                             , Tokens.colon
                                 |> Combine.fromCoreIgnore (Combine.maybeIgnore Layout.layout)
@@ -136,11 +135,11 @@ recordTypeAnnotation =
                                             |> Combine.fromCoreContinue recordFieldsTypeAnnotation
                                         )
                                     )
-                                |> Combine.ignoreEntirely Tokens.curlyEnd
                             ]
                         )
-                ]
+                )
             )
+        |> Combine.ignoreEntirely Tokens.curlyEnd
 
 
 recordFieldsTypeAnnotation : Parser State TypeAnnotation.RecordDefinition
