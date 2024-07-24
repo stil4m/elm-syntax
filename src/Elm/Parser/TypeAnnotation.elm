@@ -7,7 +7,7 @@ import Elm.Parser.State exposing (State)
 import Elm.Parser.Tokens as Tokens
 import Elm.Syntax.ModuleName exposing (ModuleName)
 import Elm.Syntax.Node as Node exposing (Node(..))
-import Elm.Syntax.TypeAnnotation as TypeAnnotation exposing (TypeAnnotation)
+import Elm.Syntax.TypeAnnotation as TypeAnnotation exposing (RecordDefinition, RecordField, TypeAnnotation)
 import Parser as Core exposing ((|=))
 
 
@@ -106,7 +106,16 @@ recordTypeAnnotation =
         |> Combine.continueWith
             (Combine.maybeMap identity
                 (TypeAnnotation.Record [])
-                (Node.parserCoreMap (\fName -> \fromFName -> fromFName fName)
+                (Node.parserCoreMap
+                    (\firstName ->
+                        \afterFirstName ->
+                            case afterFirstName of
+                                RecordExtensionExpressionAfterName fields ->
+                                    TypeAnnotation.GenericRecord firstName fields
+
+                                FieldsAfterName fieldsAfterName ->
+                                    TypeAnnotation.Record (Node.combine Tuple.pair firstName fieldsAfterName.firstFieldValue :: fieldsAfterName.tailFields)
+                    )
                     Tokens.functionName
                     |> Combine.fromCoreIgnore Layout.maybeLayout
                     |> Combine.keep
@@ -114,7 +123,7 @@ recordTypeAnnotation =
                             [ Tokens.pipe
                                 |> Combine.continueWithFromCore
                                     (Node.parserMap
-                                        (\fields -> \fname -> TypeAnnotation.GenericRecord fname fields)
+                                        RecordExtensionExpressionAfterName
                                         recordFieldsTypeAnnotation
                                     )
                             , Tokens.colon
@@ -122,15 +131,15 @@ recordTypeAnnotation =
                                 |> Combine.continueWith
                                     (typeAnnotation
                                         |> Combine.map
-                                            (\ta ->
-                                                \rest ->
-                                                    \fname ->
-                                                        TypeAnnotation.Record (Node.combine Tuple.pair fname ta :: Maybe.withDefault [] rest)
+                                            (\firstFieldValue ->
+                                                \tailFields ->
+                                                    FieldsAfterName { firstFieldValue = firstFieldValue, tailFields = tailFields }
                                             )
                                     )
                                 |> Combine.ignore Layout.maybeLayout
                                 |> Combine.keep
-                                    (Combine.maybe
+                                    (Combine.maybeMap identity
+                                        []
                                         (Tokens.comma
                                             |> Combine.fromCoreContinue recordFieldsTypeAnnotation
                                         )
@@ -140,6 +149,11 @@ recordTypeAnnotation =
                 )
             )
         |> Combine.ignoreEntirely Tokens.curlyEnd
+
+
+type RecordFieldsOrExtensionAfterName
+    = RecordExtensionExpressionAfterName (Node RecordDefinition)
+    | FieldsAfterName { firstFieldValue : Node TypeAnnotation, tailFields : List (Node RecordField) }
 
 
 recordFieldsTypeAnnotation : Parser State TypeAnnotation.RecordDefinition
