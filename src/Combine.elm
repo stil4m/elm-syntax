@@ -239,21 +239,26 @@ maybeIgnore (Parser p) =
 
 
 many : Parser state a -> Parser state (List a)
-many p =
-    manyWithoutReverse p
-        |> map List.reverse
+many (Parser p) =
+    let
+        manyWithoutReverseStep : ( state, List a ) -> Core.Parser (Core.Step ( state, List a ) ( state, List a ))
+        manyWithoutReverseStep ( oldState, items ) =
+            Core.oneOf
+                [ p oldState
+                    |> Core.map (\( newState, item ) -> Core.Loop ( newState, item :: items ))
+                , Core.succeed (Core.Done ( oldState, List.reverse items ))
+                ]
+    in
+    Parser <|
+        \state ->
+            Core.loop ( state, [] ) manyWithoutReverseStep
 
 
 {-| Same as [`many`](#many), except that it doesn't reverse the list.
 This can be useful if you need to access the range of the last item.
 -}
 manyWithoutReverse : Parser state a -> Parser state (List a)
-manyWithoutReverse p =
-    manyWithoutReverseFrom [] p
-
-
-manyWithoutReverseFrom : List a -> Parser state a -> Parser state (List a)
-manyWithoutReverseFrom initList (Parser p) =
+manyWithoutReverse (Parser p) =
     let
         manyWithoutReverseStep : ( state, List a ) -> Core.Parser (Core.Step ( state, List a ) ( state, List a ))
         manyWithoutReverseStep (( oldState, items ) as acc) =
@@ -265,7 +270,7 @@ manyWithoutReverseFrom initList (Parser p) =
     in
     Parser <|
         \state ->
-            Core.loop ( state, initList ) manyWithoutReverseStep
+            Core.loop ( state, [] ) manyWithoutReverseStep
 
 
 manyIgnore : Parser state () -> Parser state ()
