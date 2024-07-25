@@ -230,7 +230,6 @@ recordContents =
                             )
                             expression
                         )
-                    |> Combine.ignore Layout.maybeLayout
                     |> Combine.keep recordFields
                 ]
             )
