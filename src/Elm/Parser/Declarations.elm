@@ -473,7 +473,7 @@ typeAliasDefinitionAfterDocumentationAfterTypePrefix =
 
 customTypeDefinitionAfterDocumentationAfterTypePrefix : Parser State DeclarationAfterDocumentation
 customTypeDefinitionAfterDocumentationAfterTypePrefix =
-    Core.map
+    Node.parserCoreMap
         (\name ->
             \parameters ->
                 \headVariant ->
@@ -485,7 +485,7 @@ customTypeDefinitionAfterDocumentationAfterTypePrefix =
                             , tailVariantsReverse = tailVariantsReverse
                             }
         )
-        (Node.parserCore Tokens.typeName)
+        Tokens.typeName
         |> Combine.fromCoreIgnore Layout.maybeLayout
         |> Combine.keep typeGenericList
         |> Combine.ignoreEntirely Tokens.equal
