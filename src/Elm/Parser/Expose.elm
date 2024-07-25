@@ -75,13 +75,14 @@ infixExpose =
 typeExpose : Parser State TopLevelExpose
 typeExpose =
     Core.map
-        (\typeName open ->
-            case open of
-                Nothing ->
-                    TypeOrAliasExpose typeName
+        (\typeName ->
+            \open ->
+                case open of
+                    Nothing ->
+                        TypeOrAliasExpose typeName
 
-                Just (Node openRange ()) ->
-                    TypeExpose { name = typeName, open = Just openRange }
+                    Just (Node openRange ()) ->
+                        TypeExpose { name = typeName, open = Just openRange }
         )
         Tokens.typeName
         |> Combine.fromCoreKeep
