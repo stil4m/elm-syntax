@@ -185,10 +185,9 @@ recordExpression =
     Tokens.curlyStart
         |> Combine.fromCoreIgnore Layout.maybeLayout
         |> Combine.continueWith
-            (Combine.oneOf
-                [ recordContents
-                , Combine.succeed (RecordExpr [])
-                ]
+            (Combine.maybeMap identity
+                (RecordExpr [])
+                recordContents
             )
         |> Combine.ignoreEntirely Tokens.curlyEnd
 
