@@ -4,7 +4,6 @@ module Elm.Parser.State exposing
     , addCommentAccordingToRange
     , currentIndent
     , emptyState
-    , expectedColumn
     , getComments
     , getCommentsFurthestToEarliest
     , popIndent
@@ -31,19 +30,14 @@ emptyState =
         }
 
 
-currentIndent : State -> Maybe Int
+currentIndent : State -> Int
 currentIndent (State { indents }) =
-    List.head indents
-
-
-expectedColumn : State -> Int
-expectedColumn (State { indents }) =
     case indents of
         [] ->
             1
 
-        head :: _ ->
-            head
+        topIndent :: _ ->
+            topIndent
 
 
 pushIndent : Int -> State -> State

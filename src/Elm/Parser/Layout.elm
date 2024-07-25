@@ -87,7 +87,7 @@ positivelyIndented =
                         let
                             expectedColumn : Int
                             expectedColumn =
-                                State.expectedColumn state
+                                State.currentIndent state
                         in
                         if expectedColumn < column then
                             Core.succeed ( state, () )
@@ -142,7 +142,7 @@ onTopIndentation res =
             Core.getCol
                 |> Core.andThen
                     (\column ->
-                        if State.currentIndent state == Just column then
+                        if State.currentIndent state == column then
                             Core.succeed ( state, res )
 
                         else
@@ -167,7 +167,7 @@ verifyIndent verify failMessage (Combine.Parser toVerify) =
                                 let
                                     expectedColumn : Int
                                     expectedColumn =
-                                        State.expectedColumn state
+                                        State.currentIndent state
                                 in
                                 if verify expectedColumn column then
                                     Core.succeed ()
