@@ -68,7 +68,7 @@ config =
     , NoUnused.Exports.defaults
         |> NoUnused.Exports.reportUnusedProductionExports
             { isProductionFile = .isInSourceDirectories
-            , exceptionsAre = [ NoUnused.Exports.suffixedBy "_TEST_ONLY" ]
+            , exceptionsAre = []
             }
         |> NoUnused.Exports.toRule
         |> Rule.ignoreErrorsForDirectories [ "src/Benchmarks" ]
