@@ -325,7 +325,7 @@ caseExpression =
         |> Combine.ignore Layout.positivelyIndented
         |> Combine.ignoreEntirely Tokens.ofToken
         |> Combine.ignore Layout.layout
-        |> Combine.keep (withIndentedState caseStatements)
+        |> Combine.keep (State.combineWithIndent caseStatements)
 
 
 caseStatements : Parser State ( Case, List Case )
@@ -358,7 +358,7 @@ caseStatement =
 
 letExpression : Parser State (Node Expression)
 letExpression =
-    withIndentedState
+    State.combineWithIndent
         (Core.map
             (\( startRow, startColumn ) ->
                 \declarations ->
@@ -369,7 +369,7 @@ letExpression =
             Core.getPosition
             |. Tokens.letToken
             |> Combine.fromCoreIgnore Layout.layout
-            |> Combine.keep (withIndentedState letDeclarations)
+            |> Combine.keep (State.combineWithIndent letDeclarations)
             |> Combine.ignore Layout.optimisticLayout
             |> Combine.ignoreEntirely Tokens.inToken
         )
@@ -635,23 +635,6 @@ tupledExpressionInnerNested =
                     |> Combine.fromCoreContinue expression
                 )
             )
-
-
-withIndentedState : Parser State a -> Parser State a
-withIndentedState p =
-    let
-        (Combine.Parser pFromState) =
-            p
-    in
-    Combine.Parser
-        (\state ->
-            Core.getCol
-                |> Core.andThen
-                    (\column ->
-                        pFromState (state |> State.pushIndent column)
-                    )
-                |> Core.map (\( finalState, pValue ) -> ( finalState |> State.popIndent, pValue ))
-        )
 
 
 

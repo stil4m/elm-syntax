@@ -92,5 +92,5 @@ all =
 
 pushIndent : Int -> Parser State b -> Parser State b
 pushIndent x p =
-    Combine.modifyState (Elm.Parser.State.pushIndent (x + 1))
+    Combine.modifyState (Elm.Parser.State.setIndent_TEST_ONLY (x + 1))
         |> Combine.continueWith p
