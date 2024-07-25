@@ -67,12 +67,25 @@ parensTypeAnnotation =
                     |> Combine.fromCoreMap (\() -> TypeAnnotation.Unit)
                 , Layout.maybeLayout
                     |> Combine.continueWith
-                        (Combine.map (\x -> \xs -> asTypeAnnotation x xs)
+                        (Combine.map
+                            (\firstPart ->
+                                \lastToSecondPart ->
+                                    case lastToSecondPart of
+                                        [] ->
+                                            let
+                                                (Node _ firstPartValue) =
+                                                    firstPart
+                                            in
+                                            firstPartValue
+
+                                        _ ->
+                                            TypeAnnotation.Tupled (firstPart :: List.reverse lastToSecondPart)
+                            )
                             typeAnnotation
                         )
                     |> Combine.ignore Layout.maybeLayout
                     |> Combine.keep
-                        (Combine.many
+                        (Combine.manyWithoutReverse
                             (Tokens.comma
                                 |> Combine.fromCoreContinue Layout.maybeLayout
                                 |> Combine.continueWith typeAnnotation
@@ -82,16 +95,6 @@ parensTypeAnnotation =
                     |> Combine.ignoreEntirely Tokens.parensEnd
                 ]
             )
-
-
-asTypeAnnotation : Node TypeAnnotation -> List (Node TypeAnnotation) -> TypeAnnotation
-asTypeAnnotation ((Node _ value) as x) xs =
-    case xs of
-        [] ->
-            value
-
-        _ ->
-            TypeAnnotation.Tupled (x :: xs)
 
 
 genericTypeAnnotation : Parser state TypeAnnotation
