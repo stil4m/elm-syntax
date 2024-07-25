@@ -97,7 +97,6 @@ type alias FunctionImplementation =
   - `RecordAccessFunction`: `.name`
   - `RecordUpdate`: `{ a | name = "text" }`
   - `GLSL`: `[glsl| ... |]`
-  - `Operator`: `+` (not possible to get in practice)
 
 -}
 type Expression
@@ -122,7 +121,6 @@ type Expression
     | RecordAccessFunction String
     | RecordUpdate (Node String) (Node RecordSetter) (List (Node RecordSetter))
     | GLSL String
-    | Operator String
 
 
 {-| Indicates whether a string literal is single (`"abc"`) or triple-quoted (`"""abc"""`).
