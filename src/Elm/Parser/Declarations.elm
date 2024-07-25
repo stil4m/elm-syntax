@@ -161,18 +161,23 @@ declaration =
                                         portDeclarationAfterName.typeAnnotation
                                 in
                                 { comments =
-                                    Rope.one documentation
-                                        |> Rope.filledPrependTo
-                                            commentsAfterDocumentation
+                                    commentsAfterDocumentation
                                         |> Rope.prependTo afterDocumentation.comments
                                 , syntax =
                                     Node
-                                        { start = portDeclarationAfterName.startLocation
+                                        { start = start
                                         , end = typeAnnotationRange.end
                                         }
                                         (Declaration.PortDeclaration
-                                            { name = portDeclarationAfterName.name
-                                            , typeAnnotation = portDeclarationAfterName.typeAnnotation
+                                            { documentation = Just documentation
+                                            , signature =
+                                                Node
+                                                    { start = (Node.range portDeclarationAfterName.name).start
+                                                    , end = typeAnnotationRange.end
+                                                    }
+                                                    { name = portDeclarationAfterName.name
+                                                    , typeAnnotation = portDeclarationAfterName.typeAnnotation
+                                                    }
                                             }
                                         )
                                 }
@@ -578,10 +583,17 @@ portDeclarationWithoutDocumentation =
                                             , end = end
                                             }
                                             (Declaration.PortDeclaration
-                                                { name =
-                                                    Node.singleLineStringFrom { row = nameStartRow, column = nameStartColumn }
-                                                        name
-                                                , typeAnnotation = typeAnnotationResult.syntax
+                                                { documentation = Nothing
+                                                , signature =
+                                                    Node
+                                                        { start = { row = nameStartRow, column = nameStartColumn }
+                                                        , end = end
+                                                        }
+                                                        { name =
+                                                            Node.singleLineStringFrom { row = nameStartRow, column = nameStartColumn }
+                                                                name
+                                                        , typeAnnotation = typeAnnotationResult.syntax
+                                                        }
                                                 }
                                             )
                                     }
