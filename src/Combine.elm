@@ -249,7 +249,7 @@ many (Parser p) =
             Core.oneOf
                 [ p oldState
                     |> Core.map (\( newState, item ) -> Core.Loop ( newState, item :: items ))
-                , Core.succeed (Core.Done ( oldState, List.reverse items ))
+                , Core.lazy (\() -> Core.succeed (Core.Done ( oldState, List.reverse items )))
                 ]
     in
     Parser <|
