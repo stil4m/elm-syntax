@@ -1,7 +1,6 @@
 module Elm.Parser.State exposing
     ( State
     , addComment
-    , addCommentAccordingToRange
     , combineWithIndent
     , currentIndent
     , emptyState
@@ -11,8 +10,7 @@ module Elm.Parser.State exposing
     )
 
 import Combine
-import Elm.Syntax.Node exposing (Node(..))
-import Elm.Syntax.Range exposing (Location)
+import Elm.Syntax.Node exposing (Node)
 import Parser as Core
 
 
@@ -33,38 +31,6 @@ setComments commentsFurthestToEarliest _ =
 addComment : Node String -> State -> State
 addComment commentToAdd (Comments soFarComments) =
     Comments (commentToAdd :: soFarComments)
-
-
-addCommentAccordingToRange : Node String -> State -> State
-addCommentAccordingToRange commentToAdd (Comments soFarComments) =
-    Comments (insertIntoListAccordingToRange commentToAdd soFarComments)
-
-
-insertIntoListAccordingToRange : Node a -> List (Node a) -> List (Node a)
-insertIntoListAccordingToRange ((Node toInsertRange _) as toInsert) list =
-    case list of
-        [] ->
-            List.singleton toInsert
-
-        ((Node headRange _) as head) :: tail ->
-            if toInsertRange.start |> locationIsFurtherThen headRange.start then
-                toInsert :: head :: tail
-
-            else
-                head :: insertIntoListAccordingToRange toInsert (toInsert :: tail)
-
-
-locationIsFurtherThen : Location -> Location -> Bool
-locationIsFurtherThen comparedAgainst base =
-    case compare base.row comparedAgainst.row of
-        GT ->
-            True
-
-        LT ->
-            False
-
-        EQ ->
-            base.column > comparedAgainst.column
 
 
 getCommentsFurthestToEarliest : State -> List (Node String)

@@ -342,28 +342,32 @@ foo = bar"""
                     |> expectAst
                         (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 51 } }
                             (PortDeclaration
-                                { name = Node { start = { row = 1, column = 6 }, end = { row = 1, column = 19 } } "parseResponse"
-                                , typeAnnotation =
-                                    Node { start = { row = 1, column = 22 }, end = { row = 1, column = 51 } }
-                                        (FunctionTypeAnnotation
-                                            (Node { start = { row = 1, column = 22 }, end = { row = 1, column = 40 } }
-                                                (Tuple
-                                                    [ Node { start = { row = 1, column = 24 }, end = { row = 1, column = 30 } } (Type (Node { start = { row = 1, column = 24 }, end = { row = 1, column = 30 } } ( [], "String" )) [])
-                                                    , Node { start = { row = 1, column = 32 }, end = { row = 1, column = 38 } }
-                                                        (Type
-                                                            (Node { start = { row = 1, column = 32 }, end = { row = 1, column = 38 } } ( [], "String" ))
-                                                            []
+                                { documentation = Nothing
+                                , signature =
+                                    Node { start = { row = 1, column = 6 }, end = { row = 1, column = 51 } } <|
+                                        { name = Node { start = { row = 1, column = 6 }, end = { row = 1, column = 19 } } "parseResponse"
+                                        , typeAnnotation =
+                                            Node { start = { row = 1, column = 22 }, end = { row = 1, column = 51 } }
+                                                (FunctionTypeAnnotation
+                                                    (Node { start = { row = 1, column = 22 }, end = { row = 1, column = 40 } }
+                                                        (Tuple
+                                                            [ Node { start = { row = 1, column = 24 }, end = { row = 1, column = 30 } } (Type (Node { start = { row = 1, column = 24 }, end = { row = 1, column = 30 } } ( [], "String" )) [])
+                                                            , Node { start = { row = 1, column = 32 }, end = { row = 1, column = 38 } }
+                                                                (Type
+                                                                    (Node { start = { row = 1, column = 32 }, end = { row = 1, column = 38 } } ( [], "String" ))
+                                                                    []
+                                                                )
+                                                            ]
                                                         )
-                                                    ]
+                                                    )
+                                                    (Node { start = { row = 1, column = 44 }, end = { row = 1, column = 51 } }
+                                                        (Type
+                                                            (Node { start = { row = 1, column = 44 }, end = { row = 1, column = 47 } } ( [], "Cmd" ))
+                                                            [ Node { start = { row = 1, column = 48 }, end = { row = 1, column = 51 } } (Var "msg") ]
+                                                        )
+                                                    )
                                                 )
-                                            )
-                                            (Node { start = { row = 1, column = 44 }, end = { row = 1, column = 51 } }
-                                                (Type
-                                                    (Node { start = { row = 1, column = 44 }, end = { row = 1, column = 47 } } ( [], "Cmd" ))
-                                                    [ Node { start = { row = 1, column = 48 }, end = { row = 1, column = 51 } } (Var "msg") ]
-                                                )
-                                            )
-                                        )
+                                        }
                                 }
                             )
                         )
@@ -373,25 +377,29 @@ foo = bar"""
                     |> expectAst
                         (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 39 } }
                             (PortDeclaration
-                                { name = Node { start = { row = 1, column = 6 }, end = { row = 1, column = 12 } } "scroll"
-                                , typeAnnotation =
-                                    Node { start = { row = 1, column = 15 }, end = { row = 1, column = 39 } }
-                                        (FunctionTypeAnnotation
-                                            (Node { start = { row = 1, column = 15 }, end = { row = 1, column = 28 } }
+                                { documentation = Nothing
+                                , signature =
+                                    Node { start = { row = 1, column = 6 }, end = { row = 1, column = 39 } } <|
+                                        { name = Node { start = { row = 1, column = 6 }, end = { row = 1, column = 12 } } "scroll"
+                                        , typeAnnotation =
+                                            Node { start = { row = 1, column = 15 }, end = { row = 1, column = 39 } }
                                                 (FunctionTypeAnnotation
-                                                    (Node { start = { row = 1, column = 16 }, end = { row = 1, column = 20 } }
-                                                        (Type (Node { start = { row = 1, column = 16 }, end = { row = 1, column = 20 } } ( [], "Move" )) [])
+                                                    (Node { start = { row = 1, column = 15 }, end = { row = 1, column = 28 } }
+                                                        (FunctionTypeAnnotation
+                                                            (Node { start = { row = 1, column = 16 }, end = { row = 1, column = 20 } }
+                                                                (Type (Node { start = { row = 1, column = 16 }, end = { row = 1, column = 20 } } ( [], "Move" )) [])
+                                                            )
+                                                            (Node { start = { row = 1, column = 24 }, end = { row = 1, column = 27 } } (Var "msg"))
+                                                        )
                                                     )
-                                                    (Node { start = { row = 1, column = 24 }, end = { row = 1, column = 27 } } (Var "msg"))
+                                                    (Node { start = { row = 1, column = 32 }, end = { row = 1, column = 39 } }
+                                                        (Type (Node { start = { row = 1, column = 32 }, end = { row = 1, column = 35 } } ( [], "Sub" ))
+                                                            [ Node { start = { row = 1, column = 36 }, end = { row = 1, column = 39 } } (Var "msg")
+                                                            ]
+                                                        )
+                                                    )
                                                 )
-                                            )
-                                            (Node { start = { row = 1, column = 32 }, end = { row = 1, column = 39 } }
-                                                (Type (Node { start = { row = 1, column = 32 }, end = { row = 1, column = 35 } } ( [], "Sub" ))
-                                                    [ Node { start = { row = 1, column = 36 }, end = { row = 1, column = 39 } } (Var "msg")
-                                                    ]
-                                                )
-                                            )
-                                        )
+                                        }
                                 }
                             )
                         )

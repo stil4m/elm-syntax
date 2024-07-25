@@ -18,6 +18,7 @@
         "Elm.Syntax.ModuleName",
         "Elm.Syntax.Node",
         "Elm.Syntax.Pattern",
+        "Elm.Syntax.Port",
         "Elm.Syntax.Range",
         "Elm.Syntax.Signature",
         "Elm.Syntax.TypeAlias",

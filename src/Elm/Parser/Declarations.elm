@@ -6,7 +6,7 @@ import Elm.Parser.Expression exposing (expression)
 import Elm.Parser.Layout as Layout
 import Elm.Parser.Node as Node
 import Elm.Parser.Patterns as Patterns
-import Elm.Parser.State as State exposing (State)
+import Elm.Parser.State exposing (State)
 import Elm.Parser.Tokens as Tokens
 import Elm.Parser.TypeAnnotation as TypeAnnotation exposing (typeAnnotation, typeAnnotationNoFnExcludingTypedWithArguments)
 import Elm.Syntax.Declaration as Declaration exposing (Declaration)
@@ -142,16 +142,22 @@ declaration =
                             in
                             Combine.succeed
                                 (Node
-                                    { start = portDeclarationAfterName.startLocation
+                                    { start = start
                                     , end = typeAnnotationRange.end
                                     }
                                     (Declaration.PortDeclaration
-                                        { name = portDeclarationAfterName.name
-                                        , typeAnnotation = portDeclarationAfterName.typeAnnotation
+                                        { documentation = Just documentation
+                                        , signature =
+                                            Node
+                                                { start = (Node.range portDeclarationAfterName.name).start
+                                                , end = typeAnnotationRange.end
+                                                }
+                                                { name = portDeclarationAfterName.name
+                                                , typeAnnotation = portDeclarationAfterName.typeAnnotation
+                                                }
                                         }
                                     )
                                 )
-                                |> Combine.ignore (Combine.modifyState (State.addCommentAccordingToRange documentation))
             )
             Comments.declarationDocumentation
             |> Combine.fromCoreIgnore Layout.layoutStrict
@@ -423,7 +429,16 @@ portDeclarationWithoutDocumentation =
                         { start = { row = startRow, column = 1 }
                         , end = end
                         }
-                        (Declaration.PortDeclaration { name = name, typeAnnotation = typeAnnotation })
+                        (Declaration.PortDeclaration
+                            { documentation = Nothing
+                            , signature =
+                                Node
+                                    { start = (Node.range name).start
+                                    , end = end
+                                    }
+                                    { name = name, typeAnnotation = typeAnnotation }
+                            }
+                        )
         )
         Core.getRow
         |. Tokens.portToken
