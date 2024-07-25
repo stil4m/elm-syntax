@@ -617,30 +617,25 @@ allowedPrefixOperatorExceptMinusThenClosingParensOneOf =
             )
 
 
-tupledExpressionInnerCommaSep : Parser State (List (Node Expression))
-tupledExpressionInnerCommaSep =
-    Combine.many
-        (Tokens.comma
-            |> Combine.fromCoreContinue expression
-        )
-
-
 tupledExpressionInnerNested : Parser State Expression
 tupledExpressionInnerNested =
-    Combine.map asExpression
+    Combine.map
+        (\firstPart ->
+            \tailPartsReverse ->
+                case tailPartsReverse of
+                    [] ->
+                        ParenthesizedExpression firstPart
+
+                    _ ->
+                        TupledExpression (firstPart :: List.reverse tailPartsReverse)
+        )
         expression
-        |> Combine.keep tupledExpressionInnerCommaSep
-
-
-asExpression : Node Expression -> List (Node Expression) -> Expression
-asExpression x =
-    \xs ->
-        case xs of
-            [] ->
-                ParenthesizedExpression x
-
-            _ ->
-                TupledExpression (x :: xs)
+        |> Combine.keep
+            (Combine.manyWithoutReverse
+                (Tokens.comma
+                    |> Combine.fromCoreContinue expression
+                )
+            )
 
 
 withIndentedState : Parser State a -> Parser State a
