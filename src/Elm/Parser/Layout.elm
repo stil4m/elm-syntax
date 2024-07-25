@@ -12,8 +12,8 @@ module Elm.Parser.Layout exposing
 import Elm.Parser.Comments as Comments
 import Elm.Parser.Node as Node
 import Elm.Syntax.Node exposing (Node)
-import Parser as Core exposing ((|.), (|=))
-import ParserWithComments exposing (ParserWithComments)
+import Parser as Core exposing ((|.), (|=), Parser)
+import ParserWithComments exposing (WithComments)
 import Rope
 import Set
 
@@ -35,7 +35,7 @@ nonEmptyWhiteSpaceOrComment =
         ]
 
 
-whiteSpaceAndCommentsAndAddToState : ParserWithComments ()
+whiteSpaceAndCommentsAndAddToState : Parser (WithComments ())
 whiteSpaceAndCommentsAndAddToState =
     Core.loop [] whiteSpaceAndCommentsFrom
         |> Core.map
@@ -44,7 +44,7 @@ whiteSpaceAndCommentsAndAddToState =
             )
 
 
-maybeLayout : ParserWithComments ()
+maybeLayout : Parser (WithComments ())
 maybeLayout =
     whiteSpaceAndCommentsAndAddToState
         |> verifyLayoutIndent
@@ -69,7 +69,7 @@ whiteSpaceAndCommentsFrom soFar =
         ]
 
 
-verifyLayoutIndent : ParserWithComments () -> ParserWithComments ()
+verifyLayoutIndent : Parser (WithComments ()) -> Parser (WithComments ())
 verifyLayoutIndent =
     verifyIndent (\stateIndent current -> stateIndent < current)
         (\stateIndent current -> "Expected indent larger than " ++ String.fromInt stateIndent ++ ", got " ++ String.fromInt current)
@@ -91,7 +91,7 @@ positivelyIndentedCore =
         |> Core.andThen identity
 
 
-positivelyIndented : ParserWithComments ()
+positivelyIndented : Parser (WithComments ())
 positivelyIndented =
     Core.map
         (\column ->
@@ -107,7 +107,7 @@ positivelyIndented =
         |> Core.andThen identity
 
 
-layout : ParserWithComments ()
+layout : Parser (WithComments ())
 layout =
     nonEmptyWhiteSpaceOrComment
         |> Core.andThen
@@ -129,19 +129,19 @@ layout =
         |> verifyLayoutIndent
 
 
-optimisticLayout : ParserWithComments ()
+optimisticLayout : Parser (WithComments ())
 optimisticLayout =
     whiteSpaceAndCommentsAndAddToState
 
 
-layoutStrict : ParserWithComments ()
+layoutStrict : Parser (WithComments ())
 layoutStrict =
     optimisticLayout
         |> verifyIndent (\stateIndent current -> stateIndent == current)
             (\stateIndent current -> "Expected indent " ++ String.fromInt stateIndent ++ ", got " ++ String.fromInt current)
 
 
-onTopIndentation : res -> ParserWithComments res
+onTopIndentation : res -> Parser (WithComments res)
 onTopIndentation res =
     Core.map
         (\column ->
@@ -162,7 +162,7 @@ problemTopIndentation =
     Core.problem "must be on top indentation"
 
 
-verifyIndent : (Int -> Int -> Bool) -> (Int -> Int -> String) -> ParserWithComments () -> ParserWithComments ()
+verifyIndent : (Int -> Int -> Bool) -> (Int -> Int -> String) -> Parser (WithComments ()) -> Parser (WithComments ())
 verifyIndent verify failMessage toVerify =
     toVerify
         |. (Core.map
@@ -180,7 +180,7 @@ verifyIndent verify failMessage toVerify =
            )
 
 
-maybeAroundBothSides : ParserWithComments b -> ParserWithComments b
+maybeAroundBothSides : Parser (WithComments b) -> Parser (WithComments b)
 maybeAroundBothSides x =
     ParserWithComments.maybeIgnore layout
         |> ParserWithComments.continueWith x

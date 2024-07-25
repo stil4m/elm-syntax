@@ -15,7 +15,6 @@ import Elm.Parser.File exposing (file)
 import Elm.RawFile exposing (RawFile)
 import Elm.Syntax.File exposing (File)
 import Parser as Core exposing ((|.), DeadEnd)
-import ParserWithComments exposing (ParserWithComments)
 
 
 {-| **@deprecated** Use [`parseToFile`](#parseToFile) instead, which is simpler and doesn't require post-processing.

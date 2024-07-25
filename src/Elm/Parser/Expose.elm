@@ -5,20 +5,20 @@ import Elm.Parser.Node as Node
 import Elm.Parser.Tokens as Tokens
 import Elm.Syntax.Exposing exposing (Exposing(..), TopLevelExpose(..))
 import Elm.Syntax.Node exposing (Node(..))
-import Parser as Core exposing ((|.), (|=))
+import Parser as Core exposing ((|.), (|=), Parser)
 import Parser.Extra
-import ParserWithComments exposing (ParserWithComments)
+import ParserWithComments exposing (WithComments)
 import Set
 
 
-exposeDefinition : ParserWithComments Exposing
+exposeDefinition : Parser (WithComments Exposing)
 exposeDefinition =
     Tokens.exposingToken
         |> Parser.Extra.continueWith Layout.maybeLayout
         |> ParserWithComments.continueWith exposeListWith
 
 
-exposeListWith : ParserWithComments Exposing
+exposeListWith : Parser (WithComments Exposing)
 exposeListWith =
     ParserWithComments.between
         Tokens.parensStart
@@ -29,7 +29,7 @@ exposeListWith =
         )
 
 
-exposingListInner : ParserWithComments Exposing
+exposingListInner : Parser (WithComments Exposing)
 exposingListInner =
     Core.oneOf
         [ (Core.map
@@ -51,7 +51,7 @@ exposingListInner =
         ]
 
 
-exposable : ParserWithComments (Node TopLevelExpose)
+exposable : Parser (WithComments (Node TopLevelExpose))
 exposable =
     Core.oneOf
         [ functionExpose
@@ -73,7 +73,7 @@ infixExpose =
         |. Tokens.parensEnd
 
 
-typeExpose : ParserWithComments TopLevelExpose
+typeExpose : Parser (WithComments TopLevelExpose)
 typeExpose =
     Core.map
         (\typeName ->
@@ -94,7 +94,7 @@ typeExpose =
             )
 
 
-exposingVariants : ParserWithComments (Node ())
+exposingVariants : Parser (WithComments (Node ()))
 exposingVariants =
     Node.parser
         (ParserWithComments.between
@@ -107,6 +107,6 @@ exposingVariants =
         )
 
 
-functionExpose : ParserWithComments TopLevelExpose
+functionExpose : Parser (WithComments TopLevelExpose)
 functionExpose =
     ParserWithComments.fromCoreMap FunctionExpose Tokens.functionName

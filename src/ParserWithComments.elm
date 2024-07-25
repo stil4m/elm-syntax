@@ -1,5 +1,5 @@
 module ParserWithComments exposing
-    ( ParserWithComments
+    ( WithComments
     , andThen
     , between
     , continueWith
@@ -26,26 +26,26 @@ module ParserWithComments exposing
     )
 
 import Elm.Syntax.Node exposing (Node)
-import Parser as Core exposing ((|.))
+import Parser as Core exposing ((|.), Parser)
 import Parser.Extra
 import Rope exposing (Rope)
 
 
-type alias ParserWithComments res =
-    Core.Parser { comments : Rope (Node String), syntax : res }
+type alias WithComments res =
+    { comments : Rope (Node String), syntax : res }
 
 
-fromCoreMap : (res -> changedRes) -> Core.Parser res -> ParserWithComments changedRes
+fromCoreMap : (res -> changedRes) -> Core.Parser res -> Parser (WithComments changedRes)
 fromCoreMap resChange p =
     Core.map (\v -> { comments = Rope.empty, syntax = resChange v }) p
 
 
-fromCore : Core.Parser res -> ParserWithComments res
+fromCore : Core.Parser res -> Parser (WithComments res)
 fromCore p =
     Core.map (\v -> { comments = Rope.empty, syntax = v }) p
 
 
-map : (a -> b) -> ParserWithComments a -> ParserWithComments b
+map : (a -> b) -> Parser (WithComments a) -> Parser (WithComments b)
 map f p =
     p
         |> Core.map
@@ -56,7 +56,7 @@ map f p =
             )
 
 
-andThen : (a -> ParserWithComments b) -> ParserWithComments a -> ParserWithComments b
+andThen : (a -> Parser (WithComments b)) -> Parser (WithComments a) -> Parser (WithComments b)
 andThen f p =
     p
         |> Core.andThen
@@ -73,7 +73,7 @@ andThen f p =
             )
 
 
-continueWith : ParserWithComments b -> ParserWithComments () -> ParserWithComments b
+continueWith : Parser (WithComments b) -> Parser (WithComments ()) -> Parser (WithComments b)
 continueWith next p =
     p
         |> Core.andThen
@@ -90,7 +90,7 @@ continueWith next p =
             )
 
 
-fromCoreIgnore : ParserWithComments () -> Core.Parser a -> ParserWithComments a
+fromCoreIgnore : Parser (WithComments ()) -> Core.Parser a -> Parser (WithComments a)
 fromCoreIgnore next p =
     p
         |> Core.andThen
@@ -107,7 +107,7 @@ fromCoreIgnore next p =
 
 {-| Equivalent to andThen fromCore (but a tiny bit faster)
 -}
-flattenFromCore : ParserWithComments (Core.Parser b) -> ParserWithComments b
+flattenFromCore : Parser (WithComments (Core.Parser b)) -> Parser (WithComments b)
 flattenFromCore p =
     p
         |> Core.andThen
@@ -122,7 +122,7 @@ flattenFromCore p =
             )
 
 
-keep : ParserWithComments a -> ParserWithComments (a -> b) -> ParserWithComments b
+keep : Parser (WithComments a) -> Parser (WithComments (a -> b)) -> Parser (WithComments b)
 keep rp lp =
     lp
         |> Core.andThen
@@ -139,7 +139,7 @@ keep rp lp =
             )
 
 
-fromCoreKeep : ParserWithComments a -> Core.Parser (a -> b) -> ParserWithComments b
+fromCoreKeep : Parser (WithComments a) -> Core.Parser (a -> b) -> Parser (WithComments b)
 fromCoreKeep rp lp =
     lp
         |> Core.andThen
@@ -154,7 +154,7 @@ fromCoreKeep rp lp =
             )
 
 
-keepFromCore : Core.Parser a -> ParserWithComments (a -> b) -> ParserWithComments b
+keepFromCore : Core.Parser a -> Parser (WithComments (a -> b)) -> Parser (WithComments b)
 keepFromCore rp lp =
     lp
         |> Core.andThen
@@ -169,12 +169,12 @@ keepFromCore rp lp =
             )
 
 
-succeed : a -> ParserWithComments a
+succeed : a -> Parser (WithComments a)
 succeed res =
     Core.succeed { comments = Rope.empty, syntax = res }
 
 
-maybe : ParserWithComments a -> ParserWithComments (Maybe a)
+maybe : Parser (WithComments a) -> Parser (WithComments (Maybe a))
 maybe p =
     Core.oneOf
         [ p
@@ -188,7 +188,7 @@ maybe p =
         ]
 
 
-maybeMap : (a -> b) -> b -> ParserWithComments a -> ParserWithComments b
+maybeMap : (a -> b) -> b -> Parser (WithComments a) -> Parser (WithComments b)
 maybeMap onJust onNothing p =
     Core.oneOf
         [ p
@@ -202,7 +202,7 @@ maybeMap onJust onNothing p =
         ]
 
 
-maybeIgnore : ParserWithComments () -> ParserWithComments ()
+maybeIgnore : Parser (WithComments ()) -> Parser (WithComments ())
 maybeIgnore p =
     Core.oneOf
         [ p
@@ -210,7 +210,7 @@ maybeIgnore p =
         ]
 
 
-many : ParserWithComments a -> ParserWithComments (List a)
+many : Parser (WithComments a) -> Parser (WithComments (List a))
 many p =
     let
         manyWithoutReverseStep :
@@ -248,7 +248,7 @@ many p =
 {-| Same as [`many`](#many), except that it doesn't reverse the list.
 This can be useful if you need to access the range of the last item.
 -}
-manyWithoutReverse : ParserWithComments a -> ParserWithComments (List a)
+manyWithoutReverse : Parser (WithComments a) -> Parser (WithComments (List a))
 manyWithoutReverse p =
     let
         manyWithoutReverseStep :
@@ -286,7 +286,7 @@ manyWithoutReverse p =
 {-| Same as [`many`](#many), except that it doesn't reverse the list.
 This can be useful if you need to access the range of the last item.
 -}
-loop : a -> (a -> ParserWithComments (Core.Step a b)) -> ParserWithComments b
+loop : a -> (a -> Parser (WithComments (Core.Step a b))) -> Parser (WithComments b)
 loop initialState step =
     let
         stepWithComments :
@@ -318,20 +318,20 @@ loop initialState step =
     Core.loop ( [], initialState ) stepWithComments
 
 
-sepBy : String -> ParserWithComments a -> ParserWithComments (List a)
+sepBy : String -> Parser (WithComments a) -> Parser (WithComments (List a))
 sepBy sep p =
     maybeMap identity
         []
         (sepBy1 sep p)
 
 
-sepBy1 : String -> ParserWithComments a -> ParserWithComments (List a)
+sepBy1 : String -> Parser (WithComments a) -> Parser (WithComments (List a))
 sepBy1 sep p =
     map cons p
         |> keep (many (Core.symbol sep |> Parser.Extra.continueWith p))
 
 
-sepBy1WithState : ParserWithComments () -> ParserWithComments a -> ParserWithComments (List a)
+sepBy1WithState : Parser (WithComments ()) -> Parser (WithComments a) -> Parser (WithComments (List a))
 sepBy1WithState sep p =
     map cons p
         |> keep
@@ -351,7 +351,7 @@ sepBy1WithState sep p =
             )
 
 
-between : Core.Parser () -> Core.Parser () -> ParserWithComments a -> ParserWithComments a
+between : Core.Parser () -> Core.Parser () -> Parser (WithComments a) -> Parser (WithComments a)
 between lp rp p =
     (lp
         |> Parser.Extra.continueWith p
@@ -359,7 +359,7 @@ between lp rp p =
         |. rp
 
 
-ignore : ParserWithComments () -> ParserWithComments a -> ParserWithComments a
+ignore : Parser (WithComments ()) -> Parser (WithComments a) -> Parser (WithComments a)
 ignore dropped target =
     target
         |> Core.andThen
@@ -376,7 +376,7 @@ ignore dropped target =
             )
 
 
-continueWithCore : Core.Parser a -> ParserWithComments () -> ParserWithComments a
+continueWithCore : Core.Parser a -> Parser (WithComments ()) -> Parser (WithComments a)
 continueWithCore target dropped =
     dropped
         |> Core.andThen

@@ -8,11 +8,11 @@ import Elm.Parser.Tokens as Tokens
 import Elm.Syntax.Import exposing (Import)
 import Elm.Syntax.Node exposing (Node(..))
 import Elm.Syntax.Range exposing (Range)
-import Parser as Core exposing ((|.))
-import ParserWithComments exposing (ParserWithComments)
+import Parser as Core exposing ((|.), (|=), Parser)
+import ParserWithComments exposing (WithComments)
 
 
-importDefinition : ParserWithComments (Node Import)
+importDefinition : Parser (WithComments (Node Import))
 importDefinition =
     Core.map
         (\startRow ->

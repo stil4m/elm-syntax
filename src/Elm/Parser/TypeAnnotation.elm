@@ -6,12 +6,12 @@ import Elm.Parser.Tokens as Tokens
 import Elm.Syntax.ModuleName exposing (ModuleName)
 import Elm.Syntax.Node as Node exposing (Node(..))
 import Elm.Syntax.TypeAnnotation as TypeAnnotation exposing (RecordDefinition, RecordField, TypeAnnotation)
-import Parser as Core exposing ((|.))
+import Parser as Core exposing ((|.), (|=), Parser)
 import Parser.Extra
-import ParserWithComments exposing (ParserWithComments)
+import ParserWithComments exposing (WithComments)
 
 
-typeAnnotation : ParserWithComments (Node TypeAnnotation)
+typeAnnotation : Parser (WithComments (Node TypeAnnotation))
 typeAnnotation =
     ParserWithComments.map
         (\ta ->
@@ -36,7 +36,7 @@ typeAnnotation =
             )
 
 
-typeAnnotationNoFnExcludingTypedWithArguments : ParserWithComments (Node TypeAnnotation)
+typeAnnotationNoFnExcludingTypedWithArguments : Parser (WithComments (Node TypeAnnotation))
 typeAnnotationNoFnExcludingTypedWithArguments =
     Core.oneOf
         [ parensTypeAnnotation
@@ -47,7 +47,7 @@ typeAnnotationNoFnExcludingTypedWithArguments =
         |> Node.parser
 
 
-typeAnnotationNoFnIncludingTypedWithArguments : ParserWithComments (Node TypeAnnotation)
+typeAnnotationNoFnIncludingTypedWithArguments : Parser (WithComments (Node TypeAnnotation))
 typeAnnotationNoFnIncludingTypedWithArguments =
     Core.oneOf
         [ parensTypeAnnotation
@@ -58,7 +58,7 @@ typeAnnotationNoFnIncludingTypedWithArguments =
         |> Node.parser
 
 
-parensTypeAnnotation : ParserWithComments TypeAnnotation
+parensTypeAnnotation : Parser (WithComments TypeAnnotation)
 parensTypeAnnotation =
     Tokens.parensStart
         |> Parser.Extra.continueWith
@@ -98,13 +98,13 @@ parensTypeAnnotation =
             )
 
 
-genericTypeAnnotation : ParserWithComments TypeAnnotation
+genericTypeAnnotation : Parser (WithComments TypeAnnotation)
 genericTypeAnnotation =
     Tokens.functionName
         |> ParserWithComments.fromCoreMap TypeAnnotation.GenericType
 
 
-recordTypeAnnotation : ParserWithComments TypeAnnotation
+recordTypeAnnotation : Parser (WithComments TypeAnnotation)
 recordTypeAnnotation =
     (Tokens.curlyStart
         |> Parser.Extra.continueWith Layout.maybeLayout
@@ -162,7 +162,7 @@ type RecordFieldsOrExtensionAfterName
     | FieldsAfterName { firstFieldValue : Node TypeAnnotation, tailFields : List (Node RecordField) }
 
 
-recordFieldsTypeAnnotation : ParserWithComments TypeAnnotation.RecordDefinition
+recordFieldsTypeAnnotation : Parser (WithComments TypeAnnotation.RecordDefinition)
 recordFieldsTypeAnnotation =
     ParserWithComments.sepBy1 ","
         (Layout.maybeLayout
@@ -170,7 +170,7 @@ recordFieldsTypeAnnotation =
         )
 
 
-recordFieldDefinition : ParserWithComments TypeAnnotation.RecordField
+recordFieldDefinition : Parser (WithComments TypeAnnotation.RecordField)
 recordFieldDefinition =
     (Layout.maybeLayout
         |> ParserWithComments.continueWithCore
@@ -187,7 +187,7 @@ recordFieldDefinition =
         |> ParserWithComments.ignore Layout.maybeLayout
 
 
-typedTypeAnnotationWithoutArguments : ParserWithComments TypeAnnotation
+typedTypeAnnotationWithoutArguments : Parser (WithComments TypeAnnotation)
 typedTypeAnnotationWithoutArguments =
     ParserWithComments.fromCoreMap
         (\original -> TypeAnnotation.Typed original [])
@@ -211,7 +211,7 @@ typeIndicatorHelper moduleNameSoFar typeOrSegment =
         ]
 
 
-typedTypeAnnotationWithArguments : ParserWithComments TypeAnnotation
+typedTypeAnnotationWithArguments : Parser (WithComments TypeAnnotation)
 typedTypeAnnotationWithArguments =
     Core.map (\qualified -> \args -> TypeAnnotation.Typed qualified args)
         typeIndicator

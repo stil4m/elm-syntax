@@ -7,12 +7,12 @@ import Elm.Parser.Tokens as Tokens
 import Elm.Syntax.ModuleName exposing (ModuleName)
 import Elm.Syntax.Node as Node exposing (Node)
 import Elm.Syntax.Pattern as Pattern exposing (Pattern(..), QualifiedNameRef)
-import Parser as Core exposing ((|.))
+import Parser as Core exposing ((|.), (|=), Parser)
 import Parser.Extra
-import ParserWithComments exposing (ParserWithComments)
+import ParserWithComments exposing (WithComments)
 
 
-composedWith : ParserWithComments PatternComposedWith
+composedWith : Parser (WithComments PatternComposedWith)
 composedWith =
     Layout.maybeLayout
         |> ParserWithComments.continueWith
@@ -37,12 +37,12 @@ type PatternComposedWith
     | PatternComposedWithCons (Node Pattern)
 
 
-pattern : ParserWithComments (Node Pattern)
+pattern : Parser (WithComments (Node Pattern))
 pattern =
     Core.lazy (\() -> composablePatternTryToCompose)
 
 
-composablePatternTryToCompose : ParserWithComments (Node Pattern)
+composablePatternTryToCompose : Parser (WithComments (Node Pattern))
 composablePatternTryToCompose =
     ParserWithComments.map
         (\x ->
@@ -61,7 +61,7 @@ composablePatternTryToCompose =
         |> ParserWithComments.keep composedWith
 
 
-parensPattern : ParserWithComments Pattern
+parensPattern : Parser (WithComments Pattern)
 parensPattern =
     (Tokens.parensStart
         |> Parser.Extra.continueWith
@@ -80,25 +80,25 @@ parensPattern =
         |. Tokens.parensEnd
 
 
-variablePart : ParserWithComments Pattern
+variablePart : Parser (WithComments Pattern)
 variablePart =
     Tokens.functionName
         |> ParserWithComments.fromCoreMap VarPattern
 
 
-numberPart : ParserWithComments Pattern
+numberPart : Parser (WithComments Pattern)
 numberPart =
     Elm.Parser.Numbers.number IntPattern HexPattern
         |> ParserWithComments.fromCore
 
 
-charPattern : ParserWithComments Pattern
+charPattern : Parser (WithComments Pattern)
 charPattern =
     Tokens.characterLiteral
         |> ParserWithComments.fromCoreMap CharPattern
 
 
-listPattern : ParserWithComments Pattern
+listPattern : Parser (WithComments Pattern)
 listPattern =
     (Tokens.squareStart
         |> Parser.Extra.continueWith
@@ -110,7 +110,7 @@ listPattern =
         |. Tokens.squareEnd
 
 
-composablePattern : ParserWithComments (Node Pattern)
+composablePattern : Parser (WithComments (Node Pattern))
 composablePattern =
     Core.oneOf
         [ variablePart
@@ -127,7 +127,7 @@ composablePattern =
         |> Node.parser
 
 
-qualifiedPatternArg : ParserWithComments (Node Pattern)
+qualifiedPatternArg : Parser (WithComments (Node Pattern))
 qualifiedPatternArg =
     Core.oneOf
         [ variablePart
@@ -144,17 +144,17 @@ qualifiedPatternArg =
         |> Node.parser
 
 
-allPattern : ParserWithComments Pattern
+allPattern : Parser (WithComments Pattern)
 allPattern =
     ParserWithComments.fromCoreMap (\() -> AllPattern) (Core.symbol "_")
 
 
-unitPattern : ParserWithComments Pattern
+unitPattern : Parser (WithComments Pattern)
 unitPattern =
     ParserWithComments.fromCoreMap (\() -> UnitPattern) (Core.symbol "()")
 
 
-stringPattern : ParserWithComments Pattern
+stringPattern : Parser (WithComments Pattern)
 stringPattern =
     Tokens.singleOrTripleQuotedStringLiteral
         |> ParserWithComments.fromCoreMap StringPattern
@@ -176,7 +176,7 @@ qualifiedNameRefHelper moduleNameSoFar typeOrSegment =
         ]
 
 
-qualifiedPatternWithConsumeArgs : ParserWithComments Pattern
+qualifiedPatternWithConsumeArgs : Parser (WithComments Pattern)
 qualifiedPatternWithConsumeArgs =
     Core.map (\qualified -> \args -> NamedPattern qualified args)
         qualifiedNameRef
@@ -189,14 +189,14 @@ qualifiedPatternWithConsumeArgs =
             )
 
 
-qualifiedPatternWithoutConsumeArgs : ParserWithComments Pattern
+qualifiedPatternWithoutConsumeArgs : Parser (WithComments Pattern)
 qualifiedPatternWithoutConsumeArgs =
     qualifiedNameRef
         |> ParserWithComments.fromCoreMap
             (\qualified -> NamedPattern qualified [])
 
 
-recordPattern : ParserWithComments Pattern
+recordPattern : Parser (WithComments Pattern)
 recordPattern =
     (Tokens.curlyStart
         |> Parser.Extra.continueWith

@@ -3,8 +3,8 @@ module Elm.Parser.LayoutTests exposing (all)
 import Elm.Parser.Layout as Layout
 import Elm.Parser.ParserWithCommentsTestUtil exposing (..)
 import Expect
-import Parser as Core
-import ParserWithComments exposing (ParserWithComments)
+import Parser as Core exposing (Parser)
+import ParserWithComments exposing (WithComments)
 import Test exposing (..)
 
 
@@ -90,7 +90,7 @@ all =
         ]
 
 
-setIndent : Int -> ParserWithComments b -> ParserWithComments b
+setIndent : Int -> Parser (WithComments a) -> Parser (WithComments a)
 setIndent x p =
     Core.withIndent (x + 1)
         p

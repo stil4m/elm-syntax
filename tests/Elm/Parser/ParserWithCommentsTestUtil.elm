@@ -2,12 +2,12 @@ module Elm.Parser.ParserWithCommentsTestUtil exposing (expectAst, expectAstWithC
 
 import Elm.Syntax.Node exposing (Node)
 import Expect
-import Parser as Core exposing ((|.), DeadEnd)
-import ParserWithComments exposing (ParserWithComments)
+import Parser as Core exposing ((|.), DeadEnd, Parser)
+import ParserWithComments exposing (WithComments)
 import Rope
 
 
-parseWithState : String -> ParserWithComments a -> Maybe { comments : List (Node String), syntax : a }
+parseWithState : String -> Parser (WithComments a) -> Maybe { comments : List (Node String), syntax : a }
 parseWithState s p =
     case Core.run (p |. Core.end) s of
         Err _ ->
@@ -20,13 +20,13 @@ parseWithState s p =
                 |> Just
 
 
-parse : String -> ParserWithComments a -> Maybe a
+parse : String -> Parser (WithComments a) -> Maybe a
 parse s p =
     parseWithState s p
         |> Maybe.map .syntax
 
 
-parseWithFailure : String -> ParserWithComments a -> Result (List DeadEnd) a
+parseWithFailure : String -> Parser (WithComments a) -> Result (List DeadEnd) a
 parseWithFailure s p =
     case Core.run (p |. Core.end) s of
         Err deadEnds ->
@@ -36,7 +36,7 @@ parseWithFailure s p =
             commentsAndSyntax.syntax |> Ok
 
 
-expectAst : ParserWithComments a -> a -> String -> Expect.Expectation
+expectAst : Parser (WithComments a) -> a -> String -> Expect.Expectation
 expectAst parser =
     \expected source ->
         case Core.run (parser |. Core.end) source of
@@ -55,7 +55,7 @@ expectAst parser =
                     ()
 
 
-expectAstWithComments : ParserWithComments a -> { ast : a, comments : List (Node String) } -> String -> Expect.Expectation
+expectAstWithComments : Parser (WithComments a) -> { ast : a, comments : List (Node String) } -> String -> Expect.Expectation
 expectAstWithComments parser =
     \expected source ->
         case Core.run (parser |. Core.end) source of
@@ -70,7 +70,7 @@ expectAstWithComments parser =
                     ()
 
 
-expectInvalid : ParserWithComments a -> String -> Expect.Expectation
+expectInvalid : Parser (WithComments a) -> String -> Expect.Expectation
 expectInvalid parser =
     \source ->
         case parseWithFailure source parser of

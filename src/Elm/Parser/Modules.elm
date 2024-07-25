@@ -10,12 +10,12 @@ import Elm.Syntax.Module exposing (Module(..))
 import Elm.Syntax.ModuleName exposing (ModuleName)
 import Elm.Syntax.Node exposing (Node)
 import List.Extra
-import Parser as Core exposing ((|.))
+import Parser as Core exposing ((|.), (|=), Parser)
 import Parser.Extra
-import ParserWithComments exposing (ParserWithComments)
+import ParserWithComments exposing (WithComments)
 
 
-moduleDefinition : ParserWithComments Module
+moduleDefinition : Parser (WithComments Module)
 moduleDefinition =
     Core.oneOf
         [ normalModuleDefinition
@@ -24,7 +24,7 @@ moduleDefinition =
         ]
 
 
-effectWhereClause : ParserWithComments ( String, Node String )
+effectWhereClause : Parser (WithComments ( String, Node String ))
 effectWhereClause =
     (Core.map (\fnName -> \typeName_ -> ( fnName, typeName_ ))
         Tokens.functionName
@@ -35,7 +35,7 @@ effectWhereClause =
         |> ParserWithComments.keepFromCore (Node.parserCore Tokens.typeName)
 
 
-whereBlock : ParserWithComments { command : Maybe (Node String), subscription : Maybe (Node String) }
+whereBlock : Parser (WithComments { command : Maybe (Node String), subscription : Maybe (Node String) })
 whereBlock =
     (Tokens.curlyStart
         |> Parser.Extra.continueWith
@@ -52,14 +52,14 @@ whereBlock =
         |. Tokens.curlyEnd
 
 
-effectWhereClauses : ParserWithComments { command : Maybe (Node String), subscription : Maybe (Node String) }
+effectWhereClauses : Parser (WithComments { command : Maybe (Node String), subscription : Maybe (Node String) })
 effectWhereClauses =
     Tokens.whereToken
         |> ParserWithComments.fromCoreIgnore Layout.layout
         |> ParserWithComments.continueWith whereBlock
 
 
-effectModuleDefinition : ParserWithComments Module
+effectModuleDefinition : Parser (WithComments Module)
 effectModuleDefinition =
     let
         createEffectModule : Node ModuleName -> { command : Maybe (Node String), subscription : Maybe (Node String) } -> Node Exposing -> Module
@@ -86,7 +86,7 @@ effectModuleDefinition =
         |> ParserWithComments.keep (Node.parser exposeDefinition)
 
 
-normalModuleDefinition : ParserWithComments Module
+normalModuleDefinition : Parser (WithComments Module)
 normalModuleDefinition =
     Tokens.moduleToken
         |> ParserWithComments.fromCoreIgnore Layout.layout
@@ -102,7 +102,7 @@ normalModuleDefinition =
         |> ParserWithComments.keep (Node.parser exposeDefinition)
 
 
-portModuleDefinition : ParserWithComments Module
+portModuleDefinition : Parser (WithComments Module)
 portModuleDefinition =
     (Tokens.portToken
         |> ParserWithComments.fromCoreIgnore Layout.layout

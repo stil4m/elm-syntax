@@ -16,13 +16,13 @@ import Elm.Syntax.Range exposing (Location)
 import Elm.Syntax.Signature exposing (Signature)
 import Elm.Syntax.Type exposing (ValueConstructor)
 import Elm.Syntax.TypeAnnotation exposing (TypeAnnotation)
-import Parser as Core exposing ((|.))
+import Parser as Core exposing ((|.), Parser)
 import Parser.Extra
-import ParserWithComments exposing (ParserWithComments)
+import ParserWithComments exposing (WithComments)
 import Rope
 
 
-declaration : ParserWithComments (Node Declaration)
+declaration : Parser (WithComments (Node Declaration))
 declaration =
     Core.oneOf
         [ Core.map
@@ -214,7 +214,7 @@ type TypeOrTypeAliasDeclarationWithoutDocumentation
         }
 
 
-functionAfterDocumentation : ParserWithComments DeclarationAfterDocumentation
+functionAfterDocumentation : Parser (WithComments DeclarationAfterDocumentation)
 functionAfterDocumentation =
     (Node.parserCoreMap
         (\startName ->
@@ -259,7 +259,7 @@ functionAfterDocumentation =
         |> ParserWithComments.keep expression
 
 
-functionDeclarationWithoutDocumentation : ParserWithComments (Node Declaration)
+functionDeclarationWithoutDocumentation : Parser (WithComments (Node Declaration))
 functionDeclarationWithoutDocumentation =
     (Node.parserCoreMap
         (\((Node { start } startName) as startNameNode) ->
@@ -347,7 +347,7 @@ functionDeclarationWithoutDocumentation =
         |> ParserWithComments.flattenFromCore
 
 
-infixDeclaration : ParserWithComments (Node Declaration)
+infixDeclaration : Parser (WithComments (Node Declaration))
 infixDeclaration =
     (Core.map
         (\startRow ->
@@ -399,7 +399,7 @@ infixDirection =
         ]
 
 
-portDeclarationAfterDocumentation : ParserWithComments DeclarationAfterDocumentation
+portDeclarationAfterDocumentation : Parser (WithComments DeclarationAfterDocumentation)
 portDeclarationAfterDocumentation =
     Core.map
         (\startRow ->
@@ -424,7 +424,7 @@ portDeclarationAfterDocumentation =
         |> ParserWithComments.keep typeAnnotation
 
 
-portDeclarationWithoutDocumentation : ParserWithComments (Node Declaration)
+portDeclarationWithoutDocumentation : Parser (WithComments (Node Declaration))
 portDeclarationWithoutDocumentation =
     (Core.map
         (\startRow ->
@@ -447,7 +447,7 @@ portDeclarationWithoutDocumentation =
         |> ParserWithComments.keep typeAnnotation
 
 
-typeOrTypeAliasDefinitionAfterDocumentation : ParserWithComments DeclarationAfterDocumentation
+typeOrTypeAliasDefinitionAfterDocumentation : Parser (WithComments DeclarationAfterDocumentation)
 typeOrTypeAliasDefinitionAfterDocumentation =
     Core.symbol "type"
         |> ParserWithComments.fromCoreIgnore Layout.layout
@@ -459,7 +459,7 @@ typeOrTypeAliasDefinitionAfterDocumentation =
             )
 
 
-typeAliasDefinitionAfterDocumentationAfterTypePrefix : ParserWithComments DeclarationAfterDocumentation
+typeAliasDefinitionAfterDocumentationAfterTypePrefix : Parser (WithComments DeclarationAfterDocumentation)
 typeAliasDefinitionAfterDocumentationAfterTypePrefix =
     (Tokens.aliasToken
         |> ParserWithComments.fromCoreIgnore Layout.layout
@@ -484,7 +484,7 @@ typeAliasDefinitionAfterDocumentationAfterTypePrefix =
         |> ParserWithComments.keep typeAnnotation
 
 
-customTypeDefinitionAfterDocumentationAfterTypePrefix : ParserWithComments DeclarationAfterDocumentation
+customTypeDefinitionAfterDocumentationAfterTypePrefix : Parser (WithComments DeclarationAfterDocumentation)
 customTypeDefinitionAfterDocumentationAfterTypePrefix =
     (Node.parserCoreMap
         (\name ->
@@ -517,7 +517,7 @@ customTypeDefinitionAfterDocumentationAfterTypePrefix =
             )
 
 
-typeOrTypeAliasDefinitionWithoutDocumentation : ParserWithComments (Node Declaration.Declaration)
+typeOrTypeAliasDefinitionWithoutDocumentation : Parser (WithComments (Node Declaration.Declaration))
 typeOrTypeAliasDefinitionWithoutDocumentation =
     Core.map
         (\startRow ->
@@ -579,7 +579,7 @@ typeOrTypeAliasDefinitionWithoutDocumentation =
             )
 
 
-typeAliasDefinitionWithoutDocumentationAfterTypePrefix : ParserWithComments TypeOrTypeAliasDeclarationWithoutDocumentation
+typeAliasDefinitionWithoutDocumentationAfterTypePrefix : Parser (WithComments TypeOrTypeAliasDeclarationWithoutDocumentation)
 typeAliasDefinitionWithoutDocumentationAfterTypePrefix =
     (Tokens.aliasToken
         |> ParserWithComments.fromCoreIgnore Layout.layout
@@ -604,7 +604,7 @@ typeAliasDefinitionWithoutDocumentationAfterTypePrefix =
         |> ParserWithComments.keep typeAnnotation
 
 
-customTypeDefinitionWithoutDocumentationAfterTypePrefix : ParserWithComments TypeOrTypeAliasDeclarationWithoutDocumentation
+customTypeDefinitionWithoutDocumentationAfterTypePrefix : Parser (WithComments TypeOrTypeAliasDeclarationWithoutDocumentation)
 customTypeDefinitionWithoutDocumentationAfterTypePrefix =
     (Core.map
         (\name ->
@@ -638,7 +638,7 @@ customTypeDefinitionWithoutDocumentationAfterTypePrefix =
             )
 
 
-valueConstructor : ParserWithComments (Node ValueConstructor)
+valueConstructor : Parser (WithComments (Node ValueConstructor))
 valueConstructor =
     Tokens.typeName
         |> Node.parserCoreMap
@@ -667,7 +667,7 @@ valueConstructor =
             )
 
 
-typeGenericList : ParserWithComments (List (Node String))
+typeGenericList : Parser (WithComments (List (Node String)))
 typeGenericList =
     ParserWithComments.many
         (Node.parserCore Tokens.functionName

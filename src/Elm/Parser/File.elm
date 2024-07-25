@@ -9,8 +9,8 @@ import Elm.Parser.Node as Node
 import Elm.Syntax.Declaration exposing (Declaration)
 import Elm.Syntax.File exposing (File)
 import Elm.Syntax.Node exposing (Node)
-import Parser as Core exposing ((|=))
-import ParserWithComments exposing (ParserWithComments)
+import Parser as Core exposing ((|=), Parser)
+import ParserWithComments exposing (WithComments)
 import Rope
 
 
@@ -49,7 +49,7 @@ file =
         |= fileDeclarations
 
 
-fileDeclarations : ParserWithComments (List (Node Declaration))
+fileDeclarations : Parser (WithComments (List (Node Declaration)))
 fileDeclarations =
     ParserWithComments.many
         (declaration
