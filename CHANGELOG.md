@@ -13,6 +13,9 @@
 
 - Changed `Elm.Syntax.Declaration.Declaration`:
   - Removed `Destructuring` variant (it was not possible to get)
+  - `PortDeclaration` documentation's is now attached to the declaration
+    - `PortDeclaration Signature` -> `PortDeclaration Port` where `type alias Port = { documentation : Maybe (Node Documentation), signature : Signature }`
+    - The comment for the port declaration is now removed from the `Elm.Syntax.File.File.comments` field.
 
 - Changed `Elm.Syntax.Expression.Expression`:
   - `Application (List (Node Expression))` -> `Application (Node Expression) (List (Node Expression))` (takes a non-empty list of arguments)
