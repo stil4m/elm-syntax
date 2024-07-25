@@ -306,10 +306,9 @@ loop init stepper =
 
 sepBy : String -> Parser state a -> Parser state (List a)
 sepBy sep p =
-    oneOf
-        [ sepBy1 sep p
-        , succeed []
-        ]
+    maybeMap identity
+        []
+        (sepBy1 sep p)
 
 
 sepBy1 : String -> Parser state a -> Parser state (List a)

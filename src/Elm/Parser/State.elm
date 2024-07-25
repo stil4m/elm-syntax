@@ -8,7 +8,6 @@ module Elm.Parser.State exposing
     , getComments
     , getCommentsFurthestToEarliest
     , setComments
-    , setIndent_TEST_ONLY
     )
 
 import Combine
@@ -18,45 +17,27 @@ import Parser as Core
 
 
 type State
-    = State
-        { indent : Int
-        , comments : List (Node String)
-        }
+    = Comments (List (Node String))
 
 
 emptyState : State
 emptyState =
-    State
-        { indent = 1
-        , comments = []
-        }
-
-
-currentIndent : State -> Int
-currentIndent (State { indent }) =
-    indent
+    Comments []
 
 
 setComments : List (Node String) -> State -> State
-setComments commentsFurthestToEarliest (State s) =
-    State { s | comments = commentsFurthestToEarliest }
+setComments commentsFurthestToEarliest _ =
+    Comments commentsFurthestToEarliest
 
 
 addComment : Node String -> State -> State
-addComment commentToAdd (State s) =
-    State { s | comments = commentToAdd :: s.comments }
-
-
-{-| Use combineWithIndent instead
--}
-setIndent_TEST_ONLY : Int -> State -> State
-setIndent_TEST_ONLY indent (State s) =
-    State { s | indent = indent }
+addComment commentToAdd (Comments soFarComments) =
+    Comments (commentToAdd :: soFarComments)
 
 
 addCommentAccordingToRange : Node String -> State -> State
-addCommentAccordingToRange commentToAdd (State s) =
-    State { s | comments = insertIntoListAccordingToRange commentToAdd s.comments }
+addCommentAccordingToRange commentToAdd (Comments soFarComments) =
+    Comments (insertIntoListAccordingToRange commentToAdd soFarComments)
 
 
 insertIntoListAccordingToRange : Node a -> List (Node a) -> List (Node a)
@@ -87,13 +68,18 @@ locationIsFurtherThen comparedAgainst base =
 
 
 getCommentsFurthestToEarliest : State -> List (Node String)
-getCommentsFurthestToEarliest (State s) =
-    s.comments
+getCommentsFurthestToEarliest (Comments comments) =
+    comments
 
 
 getComments : State -> List (Node String)
-getComments (State s) =
-    List.reverse s.comments
+getComments (Comments comments) =
+    List.reverse comments
+
+
+currentIndent : Core.Parser Int
+currentIndent =
+    Core.getIndent
 
 
 {-| For a given Combine.Parser, take the current start column as indentation for the whole block
@@ -101,16 +87,7 @@ getComments (State s) =
 combineWithIndent : Combine.Parser State a -> Combine.Parser State a
 combineWithIndent (Combine.Parser pFromState) =
     Combine.Parser
-        (\(State originalState) ->
-            Core.getCol
-                |> Core.andThen
-                    (\column ->
-                        pFromState (State { originalState | indent = column })
-                    )
-                |> Core.map
-                    (\( State finalState, pValue ) ->
-                        ( State { finalState | indent = originalState.indent }
-                        , pValue
-                        )
-                    )
+        (\state ->
+            Core.andThen (\column -> Core.withIndent column (pFromState state))
+                Core.getCol
         )

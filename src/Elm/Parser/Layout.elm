@@ -13,7 +13,7 @@ import Elm.Parser.Comments as Comments
 import Elm.Parser.Node as Node
 import Elm.Parser.State as State exposing (State)
 import Elm.Syntax.Node exposing (Node)
-import Parser as Core exposing ((|.))
+import Parser as Core exposing ((|.), (|=))
 import Set
 
 
@@ -81,20 +81,18 @@ positivelyIndented : Parser State ()
 positivelyIndented =
     Combine.Parser
         (\state ->
-            Core.getCol
-                |> Core.andThen
-                    (\column ->
-                        let
-                            expectedColumn : Int
-                            expectedColumn =
-                                State.currentIndent state
-                        in
-                        if expectedColumn < column then
+            Core.map
+                (\column ->
+                    \indent ->
+                        if indent < column then
                             Core.succeed ( state, () )
 
                         else
                             Core.problem "must be positively indented"
-                    )
+                )
+                Core.getCol
+                |= State.currentIndent
+                |> Core.andThen identity
         )
 
 
@@ -139,15 +137,18 @@ onTopIndentation : res -> Parser State res
 onTopIndentation res =
     Combine.withStateFromCore
         (\state ->
-            Core.getCol
-                |> Core.andThen
-                    (\column ->
-                        if State.currentIndent state == column then
+            Core.map
+                (\column ->
+                    \indent ->
+                        if indent == column then
                             Core.succeed ( state, res )
 
                         else
                             problemTopIndentation
-                    )
+                )
+                Core.getCol
+                |= State.currentIndent
+                |> Core.andThen identity
         )
 
 
@@ -161,20 +162,18 @@ verifyIndent verify failMessage (Combine.Parser toVerify) =
     Combine.Parser
         (\state ->
             toVerify state
-                |. (Core.getCol
-                        |> Core.andThen
-                            (\column ->
-                                let
-                                    expectedColumn : Int
-                                    expectedColumn =
-                                        State.currentIndent state
-                                in
-                                if verify expectedColumn column then
+                |. (Core.map
+                        (\column ->
+                            \indent ->
+                                if verify indent column then
                                     Core.succeed ()
 
                                 else
-                                    Core.problem (failMessage expectedColumn column)
-                            )
+                                    Core.problem (failMessage indent column)
+                        )
+                        Core.getCol
+                        |= State.currentIndent
+                        |> Core.andThen identity
                    )
         )
 

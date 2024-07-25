@@ -3,8 +3,8 @@ module Elm.Parser.LayoutTests exposing (all)
 import Combine exposing (Parser)
 import Elm.Parser.CombineTestUtil exposing (..)
 import Elm.Parser.Layout as Layout
-import Elm.Parser.State exposing (State)
 import Expect
+import Parser as Core
 import Test exposing (..)
 
 
@@ -41,7 +41,7 @@ all =
                     |> Expect.equal Nothing
         , test "with newline and higher indent 4" <|
             \() ->
-                parse " \n  " (pushIndent 1 Layout.layout)
+                parse " \n  " (setIndent 1 Layout.layout)
                     |> Expect.equal (Just ())
         , test "newlines spaces and single line comments" <|
             \() ->
@@ -73,7 +73,7 @@ all =
                     |> Expect.equal Nothing
         , test "layoutStrict some" <|
             \() ->
-                parse "\n  \n  " (pushIndent 2 Layout.layoutStrict)
+                parse "\n  \n  " (setIndent 2 Layout.layoutStrict)
                     |> Expect.equal (Just ())
         , test "layoutStrict with comments multi empty line preceding" <|
             \() ->
@@ -81,7 +81,7 @@ all =
                     |> Expect.equal (Just ())
         , test "layoutStrict with multiple new lines" <|
             \() ->
-                parse "\n  \n    \n\n  " (pushIndent 2 Layout.layoutStrict)
+                parse "\n  \n    \n\n  " (setIndent 2 Layout.layoutStrict)
                     |> Expect.equal (Just ())
         , test "layoutStrict with multiline comment plus trailing whitespace" <|
             \() ->
@@ -90,7 +90,10 @@ all =
         ]
 
 
-pushIndent : Int -> Parser State b -> Parser State b
-pushIndent x p =
-    Combine.modifyState (Elm.Parser.State.setIndent_TEST_ONLY (x + 1))
-        |> Combine.continueWith p
+setIndent : Int -> Parser state b -> Parser state b
+setIndent x (Combine.Parser p) =
+    Combine.Parser
+        (\state ->
+            Core.withIndent (x + 1)
+                (p state)
+        )
