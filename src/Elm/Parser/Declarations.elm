@@ -490,7 +490,6 @@ customTypeDefinitionAfterDocumentationAfterTypePrefix =
         |> Combine.keep typeGenericList
         |> Combine.ignoreEntirely Tokens.equal
         |> Combine.ignore Layout.maybeLayout
-        |> Combine.ignore Layout.maybeLayout
         |> Combine.keep valueConstructor
         |> Combine.keep
             (Combine.manyWithoutReverse
