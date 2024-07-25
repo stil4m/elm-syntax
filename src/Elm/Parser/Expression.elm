@@ -322,7 +322,7 @@ caseExpression =
         |. Tokens.caseToken
         |> Combine.fromCoreIgnore Layout.layout
         |> Combine.keep expression
-        |> Combine.ignore Layout.positivelyIndented
+        |> Combine.ignoreEntirely Layout.positivelyIndentedCore
         |> Combine.ignoreEntirely Tokens.ofToken
         |> Combine.ignore Layout.layout
         |> Combine.keep (State.combineWithIndent caseStatements)

@@ -6,6 +6,7 @@ module Elm.Parser.Layout exposing
     , onTopIndentation
     , optimisticLayout
     , positivelyIndented
+    , positivelyIndentedCore
     )
 
 import Combine exposing (Parser)
@@ -75,6 +76,22 @@ verifyLayoutIndent : Parser State () -> Parser State ()
 verifyLayoutIndent =
     verifyIndent (\stateIndent current -> stateIndent < current)
         (\stateIndent current -> "Expected indent larger than " ++ String.fromInt stateIndent ++ ", got " ++ String.fromInt current)
+
+
+positivelyIndentedCore : Core.Parser ()
+positivelyIndentedCore =
+    Core.map
+        (\column ->
+            \indent ->
+                if indent < column then
+                    Core.succeed ()
+
+                else
+                    Core.problem "must be positively indented"
+        )
+        Core.getCol
+        |= State.currentIndent
+        |> Core.andThen identity
 
 
 positivelyIndented : Parser State ()
