@@ -197,13 +197,14 @@ recordContents : Parser State Expression
 recordContents =
     Node.parserCoreMap
         (\nameNode ->
-            \afterName ->
-                case afterName of
-                    RecordUpdateExpressionAfterName fields ->
-                        RecordUpdateExpression nameNode fields
+            \afterNameBeforeFields ->
+                \tailFields ->
+                    case afterNameBeforeFields of
+                        RecordUpdateFirstSetter firstField ->
+                            RecordUpdateExpression nameNode (firstField :: tailFields)
 
-                    FieldsAfterName fieldsAfterName ->
-                        RecordExpr (Node.combine Tuple.pair nameNode fieldsAfterName.firstFieldValue :: fieldsAfterName.tailFields)
+                        FieldsFirstValue firstFieldValue ->
+                            RecordExpr (Node.combine Tuple.pair nameNode firstFieldValue :: tailFields)
         )
         Tokens.functionName
         |> Combine.fromCoreIgnore Layout.maybeLayout
@@ -212,33 +213,20 @@ recordContents =
                 [ Tokens.pipe
                     |> Combine.fromCoreIgnore Layout.maybeLayout
                     |> Combine.continueWith
-                        (Combine.map
-                            (\firstField ->
-                                \tailFields ->
-                                    RecordUpdateExpressionAfterName (firstField :: tailFields)
-                            )
-                            recordSetterNodeWithLayout
-                        )
-                    |> Combine.keep recordFields
+                        (Combine.map RecordUpdateFirstSetter recordSetterNodeWithLayout)
                 , Tokens.equal
                     |> Combine.fromCoreIgnore Layout.maybeLayout
                     |> Combine.continueWith
-                        (Combine.map
-                            (\firstFieldValue ->
-                                \tailFields ->
-                                    FieldsAfterName { firstFieldValue = firstFieldValue, tailFields = tailFields }
-                            )
-                            expression
-                        )
-                    |> Combine.keep recordFields
+                        (Combine.map FieldsFirstValue expression)
                 ]
             )
+        |> Combine.keep recordFields
         |> Combine.ignore Layout.maybeLayout
 
 
 type RecordFieldsOrUpdateAfterName
-    = RecordUpdateExpressionAfterName (List (Node RecordSetter))
-    | FieldsAfterName { firstFieldValue : Node Expression, tailFields : List (Node RecordSetter) }
+    = RecordUpdateFirstSetter (Node RecordSetter)
+    | FieldsFirstValue (Node Expression)
 
 
 recordFields : Parser State (List (Node RecordSetter))
