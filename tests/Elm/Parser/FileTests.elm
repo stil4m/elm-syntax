@@ -392,7 +392,7 @@ type Configuration
                             , comments = [ Node { start = { row = 4, column = 1 }, end = { row = 5, column = 3 } } "{-| actually module doc\n-}" ]
                             }
                         )
-        , test "documentation on a port declaration is treated as a normal comment" <|
+        , test "documentation on a port declaration" <|
             \() ->
                 """
 port module Foo exposing (..)
@@ -423,25 +423,29 @@ port sendResponse : String -> Cmd msg
                                     }
                                 ]
                             , declarations =
-                                [ Node { start = { row = 8, column = 1 }, end = { row = 8, column = 38 } }
+                                [ Node { start = { row = 6, column = 1 }, end = { row = 8, column = 38 } }
                                     (PortDeclaration
-                                        { name = Node { start = { row = 8, column = 6 }, end = { row = 8, column = 18 } } "sendResponse"
-                                        , typeAnnotation =
-                                            Node { start = { row = 8, column = 21 }, end = { row = 8, column = 38 } }
-                                                (FunctionTypeAnnotation
-                                                    (Node { start = { row = 8, column = 21 }, end = { row = 8, column = 27 } }
-                                                        (Type (Node { start = { row = 8, column = 21 }, end = { row = 8, column = 27 } } ( [], "String" )) [])
-                                                    )
-                                                    (Node { start = { row = 8, column = 31 }, end = { row = 8, column = 38 } }
-                                                        (Type (Node { start = { row = 8, column = 31 }, end = { row = 8, column = 34 } } ( [], "Cmd" ))
-                                                            [ Node { start = { row = 8, column = 35 }, end = { row = 8, column = 38 } } (Var "msg") ]
+                                        { documentation = Just (Node { start = { row = 6, column = 1 }, end = { row = 7, column = 3 } } "{-| foo\n-}")
+                                        , signature =
+                                            Node { start = { row = 8, column = 6 }, end = { row = 8, column = 38 } }
+                                                { name = Node { start = { row = 8, column = 6 }, end = { row = 8, column = 18 } } "sendResponse"
+                                                , typeAnnotation =
+                                                    Node { start = { row = 8, column = 21 }, end = { row = 8, column = 38 } }
+                                                        (FunctionTypeAnnotation
+                                                            (Node { start = { row = 8, column = 21 }, end = { row = 8, column = 27 } }
+                                                                (Type (Node { start = { row = 8, column = 21 }, end = { row = 8, column = 27 } } ( [], "String" )) [])
+                                                            )
+                                                            (Node { start = { row = 8, column = 31 }, end = { row = 8, column = 38 } }
+                                                                (Type (Node { start = { row = 8, column = 31 }, end = { row = 8, column = 34 } } ( [], "Cmd" ))
+                                                                    [ Node { start = { row = 8, column = 35 }, end = { row = 8, column = 38 } } (Var "msg") ]
+                                                                )
+                                                            )
                                                         )
-                                                    )
-                                                )
+                                                }
                                         }
                                     )
                                 ]
-                            , comments = [ Node { start = { row = 6, column = 1 }, end = { row = 7, column = 3 } } "{-| foo\n-}" ]
+                            , comments = []
                             }
                         )
         ]
