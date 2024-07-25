@@ -1,4 +1,4 @@
-module Parser.Extra exposing (anyChar, continueWith)
+module Parser.Extra exposing (anyChar, continueWith, withIndent)
 
 import Parser as Core
 
@@ -28,3 +28,11 @@ problemAnyCharacter =
 continueWith : Core.Parser b -> Core.Parser () -> Core.Parser b
 continueWith b a =
     a |> Core.andThen (\() -> b)
+
+
+{-| For a given ParserWithComments.Parser, take the current start column as indentation for the whole block
+-}
+withIndent : Core.Parser a -> Core.Parser a
+withIndent p =
+    Core.andThen (\column -> Core.withIndent column p)
+        Core.getCol

@@ -1,6 +1,6 @@
 module Elm.Parser.PatternTests exposing (all)
 
-import Elm.Parser.CombineTestUtil as CombineTestUtil exposing (..)
+import Elm.Parser.ParserWithCommentsTestUtil as ParserWithCommentsUtil exposing (..)
 import Elm.Parser.Patterns as Parser
 import Elm.Syntax.Node exposing (Node(..))
 import Elm.Syntax.Pattern exposing (..)
@@ -288,9 +288,9 @@ all =
 
 expectAst : Node Pattern -> String -> Expect.Expectation
 expectAst =
-    CombineTestUtil.expectAst Parser.pattern
+    ParserWithCommentsUtil.expectAst Parser.pattern
 
 
 expectInvalid : String -> Expect.Expectation
 expectInvalid =
-    CombineTestUtil.expectInvalid Parser.pattern
+    ParserWithCommentsUtil.expectInvalid Parser.pattern

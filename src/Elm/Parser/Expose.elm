@@ -1,38 +1,38 @@
 module Elm.Parser.Expose exposing (exposeDefinition)
 
-import Combine exposing (Parser)
 import Elm.Parser.Layout as Layout
 import Elm.Parser.Node as Node
-import Elm.Parser.State exposing (State)
 import Elm.Parser.Tokens as Tokens
 import Elm.Syntax.Exposing exposing (Exposing(..), TopLevelExpose(..))
 import Elm.Syntax.Node exposing (Node(..))
 import Parser as Core exposing ((|.), (|=))
+import Parser.Extra
+import ParserWithComments exposing (ParserWithComments)
 import Set
 
 
-exposeDefinition : Parser State Exposing
+exposeDefinition : ParserWithComments Exposing
 exposeDefinition =
     Tokens.exposingToken
-        |> Combine.continueWithFromCore Layout.maybeLayout
-        |> Combine.continueWith exposeListWith
+        |> Parser.Extra.continueWith Layout.maybeLayout
+        |> ParserWithComments.continueWith exposeListWith
 
 
-exposeListWith : Parser State Exposing
+exposeListWith : ParserWithComments Exposing
 exposeListWith =
-    Combine.between
+    ParserWithComments.between
         Tokens.parensStart
         Tokens.parensEnd
         (Layout.optimisticLayout
-            |> Combine.continueWith exposingListInner
-            |> Combine.ignore Layout.optimisticLayout
+            |> ParserWithComments.continueWith exposingListInner
+            |> ParserWithComments.ignore Layout.optimisticLayout
         )
 
 
-exposingListInner : Parser State Exposing
+exposingListInner : ParserWithComments Exposing
 exposingListInner =
-    Combine.oneOf
-        [ Core.map
+    Core.oneOf
+        [ (Core.map
             (\( startRow, startColumn ) ->
                 \( endRow, endColumn ) ->
                     All
@@ -41,21 +41,22 @@ exposingListInner =
                         }
             )
             Core.getPosition
-            |> Combine.fromCoreIgnore Layout.maybeLayout
-            |> Combine.ignoreEntirely Tokens.dotDot
-            |> Combine.ignore Layout.maybeLayout
-            |> Combine.keepFromCore Core.getPosition
-        , Combine.sepBy1 "," (Layout.maybeAroundBothSides exposable)
-            |> Combine.map Explicit
+            |> ParserWithComments.fromCoreIgnore Layout.maybeLayout
+          )
+            |. Tokens.dotDot
+            |> ParserWithComments.ignore Layout.maybeLayout
+            |> ParserWithComments.keepFromCore Core.getPosition
+        , ParserWithComments.sepBy1 "," (Layout.maybeAroundBothSides exposable)
+            |> ParserWithComments.map Explicit
         ]
 
 
-exposable : Parser State (Node TopLevelExpose)
+exposable : ParserWithComments (Node TopLevelExpose)
 exposable =
-    Combine.oneOf
+    Core.oneOf
         [ functionExpose
         , typeExpose
-        , infixExpose |> Combine.fromCore
+        , infixExpose |> ParserWithComments.fromCore
         ]
         |> Node.parser
 
@@ -72,7 +73,7 @@ infixExpose =
         |. Tokens.parensEnd
 
 
-typeExpose : Parser State TopLevelExpose
+typeExpose : ParserWithComments TopLevelExpose
 typeExpose =
     Core.map
         (\typeName ->
@@ -85,27 +86,27 @@ typeExpose =
                         TypeExpose { name = typeName, open = Just openRange }
         )
         Tokens.typeName
-        |> Combine.fromCoreKeep
-            (Combine.maybe
-                ((Layout.maybeLayout |> Combine.backtrackable)
-                    |> Combine.continueWith exposingVariants
+        |> ParserWithComments.fromCoreKeep
+            (ParserWithComments.maybe
+                ((Layout.maybeLayout |> Core.backtrackable)
+                    |> ParserWithComments.continueWith exposingVariants
                 )
             )
 
 
-exposingVariants : Parser State (Node ())
+exposingVariants : ParserWithComments (Node ())
 exposingVariants =
     Node.parser
-        (Combine.between
+        (ParserWithComments.between
             Tokens.parensStart
             Tokens.parensEnd
             (Layout.maybeLayout
-                |> Combine.ignoreEntirely (Core.symbol "..")
-                |> Combine.ignore Layout.maybeLayout
+                |. Core.symbol ".."
+                |> ParserWithComments.ignore Layout.maybeLayout
             )
         )
 
 
-functionExpose : Parser state TopLevelExpose
+functionExpose : ParserWithComments TopLevelExpose
 functionExpose =
-    Combine.fromCoreMap FunctionExpose Tokens.functionName
+    ParserWithComments.fromCoreMap FunctionExpose Tokens.functionName

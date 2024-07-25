@@ -1,39 +1,45 @@
 module Elm.Parser.Node exposing (parser, parserCore, parserCoreMap, parserCoreValueMap, parserMap)
 
-import Combine exposing (Parser)
 import Elm.Syntax.Node exposing (Node(..))
 import Parser as Core exposing ((|=))
+import ParserWithComments exposing (ParserWithComments)
 
 
-parserMap : (Node a -> b) -> Parser state a -> Parser state b
+parserMap : (Node a -> b) -> ParserWithComments a -> ParserWithComments b
 parserMap valueNodeChange p =
-    Combine.map3CoreCombineCore
+    Core.map
         (\( startRow, startColumn ) v ( endRow, endColumn ) ->
-            Node
-                { start = { row = startRow, column = startColumn }
-                , end = { row = endRow, column = endColumn }
-                }
-                v
-                |> valueNodeChange
+            { comments = v.comments
+            , syntax =
+                Node
+                    { start = { row = startRow, column = startColumn }
+                    , end = { row = endRow, column = endColumn }
+                    }
+                    v.syntax
+                    |> valueNodeChange
+            }
         )
         Core.getPosition
-        p
-        Core.getPosition
+        |= p
+        |= Core.getPosition
 
 
-parser : Parser state a -> Parser state (Node a)
+parser : ParserWithComments a -> ParserWithComments (Node a)
 parser p =
-    Combine.map3CoreCombineCore
+    Core.map
         (\( startRow, startColumn ) v ( endRow, endColumn ) ->
-            Node
-                { start = { row = startRow, column = startColumn }
-                , end = { row = endRow, column = endColumn }
-                }
-                v
+            { comments = v.comments
+            , syntax =
+                Node
+                    { start = { row = startRow, column = startColumn }
+                    , end = { row = endRow, column = endColumn }
+                    }
+                    v.syntax
+            }
         )
         Core.getPosition
-        p
-        Core.getPosition
+        |= p
+        |= Core.getPosition
 
 
 {-| Internally saves 1 Core.map compared to parserCore |> Core.map

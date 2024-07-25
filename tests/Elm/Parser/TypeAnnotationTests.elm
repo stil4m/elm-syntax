@@ -1,12 +1,12 @@
 module Elm.Parser.TypeAnnotationTests exposing (all)
 
-import Combine
-import Elm.Parser.CombineTestUtil as CombineTestUtil exposing (..)
 import Elm.Parser.Layout as Layout
+import Elm.Parser.ParserWithCommentsTestUtil as ParserWithCommentsUtil exposing (..)
 import Elm.Parser.TypeAnnotation as Parser
 import Elm.Syntax.Node exposing (Node(..))
 import Elm.Syntax.TypeAnnotation exposing (..)
 import Expect
+import ParserWithComments
 import Test exposing (..)
 
 
@@ -70,7 +70,7 @@ all =
                         )
         , test "types with and without spacing should parse to the same" <|
             \() ->
-                parse "Bar " (Parser.typeAnnotation |> Combine.ignore Layout.maybeLayout)
+                parse "Bar " (Parser.typeAnnotation |> ParserWithComments.ignore Layout.maybeLayout)
                     |> Expect.equal (parse "Bar" Parser.typeAnnotation)
         , test "typedTypeReference 1" <|
             \() ->
@@ -403,9 +403,9 @@ all =
 
 expectAst : Node TypeAnnotation -> String -> Expect.Expectation
 expectAst =
-    CombineTestUtil.expectAst Parser.typeAnnotation
+    ParserWithCommentsUtil.expectAst Parser.typeAnnotation
 
 
 expectInvalid : String -> Expect.Expectation
 expectInvalid =
-    CombineTestUtil.expectInvalid Parser.typeAnnotation
+    ParserWithCommentsUtil.expectInvalid Parser.typeAnnotation

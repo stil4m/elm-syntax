@@ -1,20 +1,19 @@
 module Elm.Parser.TypeAnnotation exposing (typeAnnotation, typeAnnotationNoFnExcludingTypedWithArguments)
 
-import Combine exposing (Parser)
 import Elm.Parser.Layout as Layout
 import Elm.Parser.Node as Node
-import Elm.Parser.State exposing (State)
 import Elm.Parser.Tokens as Tokens
 import Elm.Syntax.ModuleName exposing (ModuleName)
 import Elm.Syntax.Node as Node exposing (Node(..))
 import Elm.Syntax.TypeAnnotation as TypeAnnotation exposing (RecordDefinition, RecordField, TypeAnnotation)
-import Parser as Core
+import Parser as Core exposing ((|.))
 import Parser.Extra
+import ParserWithComments exposing (ParserWithComments)
 
 
-typeAnnotation : Parser State (Node TypeAnnotation)
+typeAnnotation : ParserWithComments (Node TypeAnnotation)
 typeAnnotation =
-    Combine.map
+    ParserWithComments.map
         (\ta ->
             \afterTa ->
                 case afterTa of
@@ -24,21 +23,22 @@ typeAnnotation =
                     Just out ->
                         Node.combine TypeAnnotation.FunctionTypeAnnotation ta out
         )
-        (Combine.lazy (\() -> typeAnnotationNoFnIncludingTypedWithArguments))
-        |> Combine.keep
-            (Combine.maybe
-                (Layout.maybeLayout
-                    |> Combine.backtrackable
-                    |> Combine.ignoreEntirely Tokens.arrowRight
-                    |> Combine.continueWith Layout.maybeLayout
-                    |> Combine.continueWith (Combine.lazy (\() -> typeAnnotation))
+        (Core.lazy (\() -> typeAnnotationNoFnIncludingTypedWithArguments))
+        |> ParserWithComments.keep
+            (ParserWithComments.maybe
+                ((Layout.maybeLayout
+                    |> Core.backtrackable
+                 )
+                    |. Tokens.arrowRight
+                    |> ParserWithComments.continueWith Layout.maybeLayout
+                    |> ParserWithComments.continueWith (Core.lazy (\() -> typeAnnotation))
                 )
             )
 
 
-typeAnnotationNoFnExcludingTypedWithArguments : Parser State (Node TypeAnnotation)
+typeAnnotationNoFnExcludingTypedWithArguments : ParserWithComments (Node TypeAnnotation)
 typeAnnotationNoFnExcludingTypedWithArguments =
-    Combine.oneOf
+    Core.oneOf
         [ parensTypeAnnotation
         , typedTypeAnnotationWithoutArguments
         , genericTypeAnnotation
@@ -47,9 +47,9 @@ typeAnnotationNoFnExcludingTypedWithArguments =
         |> Node.parser
 
 
-typeAnnotationNoFnIncludingTypedWithArguments : Parser State (Node TypeAnnotation)
+typeAnnotationNoFnIncludingTypedWithArguments : ParserWithComments (Node TypeAnnotation)
 typeAnnotationNoFnIncludingTypedWithArguments =
-    Combine.oneOf
+    Core.oneOf
         [ parensTypeAnnotation
         , typedTypeAnnotationWithArguments
         , genericTypeAnnotation
@@ -58,16 +58,16 @@ typeAnnotationNoFnIncludingTypedWithArguments =
         |> Node.parser
 
 
-parensTypeAnnotation : Parser State TypeAnnotation
+parensTypeAnnotation : ParserWithComments TypeAnnotation
 parensTypeAnnotation =
     Tokens.parensStart
-        |> Combine.fromCoreContinue
-            (Combine.oneOf
+        |> Parser.Extra.continueWith
+            (Core.oneOf
                 [ Tokens.parensEnd
-                    |> Combine.fromCoreMap (\() -> TypeAnnotation.Unit)
-                , Layout.maybeLayout
-                    |> Combine.continueWith
-                        (Combine.map
+                    |> ParserWithComments.fromCoreMap (\() -> TypeAnnotation.Unit)
+                , (Layout.maybeLayout
+                    |> ParserWithComments.continueWith
+                        (ParserWithComments.map
                             (\firstPart ->
                                 \lastToSecondPart ->
                                     case lastToSecondPart of
@@ -83,32 +83,33 @@ parensTypeAnnotation =
                             )
                             typeAnnotation
                         )
-                    |> Combine.ignore Layout.maybeLayout
-                    |> Combine.keep
-                        (Combine.manyWithoutReverse
+                    |> ParserWithComments.ignore Layout.maybeLayout
+                    |> ParserWithComments.keep
+                        (ParserWithComments.manyWithoutReverse
                             (Tokens.comma
-                                |> Combine.fromCoreContinue Layout.maybeLayout
-                                |> Combine.continueWith typeAnnotation
-                                |> Combine.ignore Layout.maybeLayout
+                                |> Parser.Extra.continueWith Layout.maybeLayout
+                                |> ParserWithComments.continueWith typeAnnotation
+                                |> ParserWithComments.ignore Layout.maybeLayout
                             )
                         )
-                    |> Combine.ignoreEntirely Tokens.parensEnd
+                  )
+                    |. Tokens.parensEnd
                 ]
             )
 
 
-genericTypeAnnotation : Parser state TypeAnnotation
+genericTypeAnnotation : ParserWithComments TypeAnnotation
 genericTypeAnnotation =
     Tokens.functionName
-        |> Combine.fromCoreMap TypeAnnotation.GenericType
+        |> ParserWithComments.fromCoreMap TypeAnnotation.GenericType
 
 
-recordTypeAnnotation : Parser State TypeAnnotation
+recordTypeAnnotation : ParserWithComments TypeAnnotation
 recordTypeAnnotation =
-    Tokens.curlyStart
-        |> Combine.fromCoreContinue Layout.maybeLayout
-        |> Combine.continueWith
-            (Combine.maybeMap identity
+    (Tokens.curlyStart
+        |> Parser.Extra.continueWith Layout.maybeLayout
+        |> ParserWithComments.continueWith
+            (ParserWithComments.maybeMap identity
                 (TypeAnnotation.Record [])
                 (Node.parserCoreMap
                     (\firstName ->
@@ -121,38 +122,39 @@ recordTypeAnnotation =
                                     TypeAnnotation.Record (Node.combine Tuple.pair firstName fieldsAfterName.firstFieldValue :: fieldsAfterName.tailFields)
                     )
                     Tokens.functionName
-                    |> Combine.fromCoreIgnore Layout.maybeLayout
-                    |> Combine.keep
-                        (Combine.oneOf
+                    |> ParserWithComments.fromCoreIgnore Layout.maybeLayout
+                    |> ParserWithComments.keep
+                        (Core.oneOf
                             [ Tokens.pipe
-                                |> Combine.continueWithFromCore
+                                |> Parser.Extra.continueWith
                                     (Node.parserMap
                                         RecordExtensionExpressionAfterName
                                         recordFieldsTypeAnnotation
                                     )
                             , Tokens.colon
-                                |> Combine.fromCoreIgnore Layout.maybeLayout
-                                |> Combine.continueWith
+                                |> ParserWithComments.fromCoreIgnore Layout.maybeLayout
+                                |> ParserWithComments.continueWith
                                     (typeAnnotation
-                                        |> Combine.map
+                                        |> ParserWithComments.map
                                             (\firstFieldValue ->
                                                 \tailFields ->
                                                     FieldsAfterName { firstFieldValue = firstFieldValue, tailFields = tailFields }
                                             )
                                     )
-                                |> Combine.ignore Layout.maybeLayout
-                                |> Combine.keep
-                                    (Combine.maybeMap identity
+                                |> ParserWithComments.ignore Layout.maybeLayout
+                                |> ParserWithComments.keep
+                                    (ParserWithComments.maybeMap identity
                                         []
                                         (Tokens.comma
-                                            |> Combine.fromCoreContinue recordFieldsTypeAnnotation
+                                            |> Parser.Extra.continueWith recordFieldsTypeAnnotation
                                         )
                                     )
                             ]
                         )
                 )
             )
-        |> Combine.ignoreEntirely Tokens.curlyEnd
+    )
+        |. Tokens.curlyEnd
 
 
 type RecordFieldsOrExtensionAfterName
@@ -160,33 +162,34 @@ type RecordFieldsOrExtensionAfterName
     | FieldsAfterName { firstFieldValue : Node TypeAnnotation, tailFields : List (Node RecordField) }
 
 
-recordFieldsTypeAnnotation : Parser State TypeAnnotation.RecordDefinition
+recordFieldsTypeAnnotation : ParserWithComments TypeAnnotation.RecordDefinition
 recordFieldsTypeAnnotation =
-    Combine.sepBy1 ","
+    ParserWithComments.sepBy1 ","
         (Layout.maybeLayout
-            |> Combine.continueWith (Node.parser recordFieldDefinition)
+            |> ParserWithComments.continueWith (Node.parser recordFieldDefinition)
         )
 
 
-recordFieldDefinition : Parser State TypeAnnotation.RecordField
+recordFieldDefinition : ParserWithComments TypeAnnotation.RecordField
 recordFieldDefinition =
-    Layout.maybeLayout
-        |> Combine.continueWithCore
+    (Layout.maybeLayout
+        |> ParserWithComments.continueWithCore
             (Node.parserCoreMap (\functionName -> \value -> ( functionName, value ))
                 Tokens.functionName
             )
-        |> Combine.ignore Layout.maybeLayout
-        |> Combine.ignoreEntirely Tokens.colon
-        |> Combine.ignore Layout.maybeLayout
-        |> Combine.keep typeAnnotation
+        |> ParserWithComments.ignore Layout.maybeLayout
+    )
+        |. Tokens.colon
+        |> ParserWithComments.ignore Layout.maybeLayout
+        |> ParserWithComments.keep typeAnnotation
         -- This extra whitespace is just included for compatibility with earlier version
         -- TODO for v8: move to recordFieldsTypeAnnotation
-        |> Combine.ignore Layout.maybeLayout
+        |> ParserWithComments.ignore Layout.maybeLayout
 
 
-typedTypeAnnotationWithoutArguments : Parser State TypeAnnotation
+typedTypeAnnotationWithoutArguments : ParserWithComments TypeAnnotation
 typedTypeAnnotationWithoutArguments =
-    Combine.fromCoreMap
+    ParserWithComments.fromCoreMap
         (\original -> TypeAnnotation.Typed original [])
         typeIndicator
 
@@ -208,14 +211,14 @@ typeIndicatorHelper moduleNameSoFar typeOrSegment =
         ]
 
 
-typedTypeAnnotationWithArguments : Parser State TypeAnnotation
+typedTypeAnnotationWithArguments : ParserWithComments TypeAnnotation
 typedTypeAnnotationWithArguments =
     Core.map (\qualified -> \args -> TypeAnnotation.Typed qualified args)
         typeIndicator
-        |> Combine.fromCoreKeep
-            (Combine.many
+        |> ParserWithComments.fromCoreKeep
+            (ParserWithComments.many
                 (Layout.maybeLayout
-                    |> Combine.backtrackable
-                    |> Combine.continueWith typeAnnotationNoFnExcludingTypedWithArguments
+                    |> Core.backtrackable
+                    |> ParserWithComments.continueWith typeAnnotationNoFnExcludingTypedWithArguments
                 )
             )

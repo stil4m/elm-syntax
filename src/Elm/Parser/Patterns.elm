@@ -1,33 +1,32 @@
 module Elm.Parser.Patterns exposing (pattern)
 
-import Combine exposing (Parser)
 import Elm.Parser.Layout as Layout
 import Elm.Parser.Node as Node
 import Elm.Parser.Numbers
-import Elm.Parser.State exposing (State)
 import Elm.Parser.Tokens as Tokens
 import Elm.Syntax.ModuleName exposing (ModuleName)
 import Elm.Syntax.Node as Node exposing (Node)
 import Elm.Syntax.Pattern as Pattern exposing (Pattern(..), QualifiedNameRef)
-import Parser as Core
+import Parser as Core exposing ((|.))
 import Parser.Extra
+import ParserWithComments exposing (ParserWithComments)
 
 
-composedWith : Parser State PatternComposedWith
+composedWith : ParserWithComments PatternComposedWith
 composedWith =
     Layout.maybeLayout
-        |> Combine.continueWith
-            (Combine.oneOf
+        |> ParserWithComments.continueWith
+            (Core.oneOf
                 [ Tokens.asToken
-                    |> Combine.fromCoreIgnore Layout.layout
-                    |> Combine.continueWithCore
+                    |> ParserWithComments.fromCoreIgnore Layout.layout
+                    |> ParserWithComments.continueWithCore
                         (Node.parserCoreMap PatternComposedWithAs
                             Tokens.functionName
                         )
                 , Tokens.cons
-                    |> Combine.fromCoreIgnore Layout.maybeLayout
-                    |> Combine.continueWith (Combine.map PatternComposedWithCons pattern)
-                , Combine.succeed PatternComposedWithNothing
+                    |> ParserWithComments.fromCoreIgnore Layout.maybeLayout
+                    |> ParserWithComments.continueWith (ParserWithComments.map PatternComposedWithCons pattern)
+                , ParserWithComments.succeed PatternComposedWithNothing
                 ]
             )
 
@@ -38,14 +37,14 @@ type PatternComposedWith
     | PatternComposedWithCons (Node Pattern)
 
 
-pattern : Parser State (Node Pattern)
+pattern : ParserWithComments (Node Pattern)
 pattern =
-    Combine.lazy (\() -> composablePatternTryToCompose)
+    Core.lazy (\() -> composablePatternTryToCompose)
 
 
-composablePatternTryToCompose : Parser State (Node Pattern)
+composablePatternTryToCompose : ParserWithComments (Node Pattern)
 composablePatternTryToCompose =
-    Combine.map
+    ParserWithComments.map
         (\x ->
             \maybeComposedWith ->
                 case maybeComposedWith of
@@ -59,56 +58,61 @@ composablePatternTryToCompose =
                         Node.combine Pattern.UnConsPattern x y
         )
         composablePattern
-        |> Combine.keep composedWith
+        |> ParserWithComments.keep composedWith
 
 
-parensPattern : Parser State Pattern
+parensPattern : ParserWithComments Pattern
 parensPattern =
-    Combine.betweenMap
-        (\c ->
-            case c of
-                [ x ] ->
-                    ParenthesizedPattern x
+    (Tokens.parensStart
+        |> Parser.Extra.continueWith
+            (ParserWithComments.sepBy "," (Layout.maybeAroundBothSides pattern)
+                |> ParserWithComments.map
+                    (\c ->
+                        case c of
+                            [ x ] ->
+                                ParenthesizedPattern x
 
-                _ ->
-                    TuplePattern c
-        )
-        Tokens.parensStart
-        Tokens.parensEnd
-        (Combine.sepBy "," (Layout.maybeAroundBothSides pattern))
+                            _ ->
+                                TuplePattern c
+                    )
+            )
+    )
+        |. Tokens.parensEnd
 
 
-variablePart : Parser state Pattern
+variablePart : ParserWithComments Pattern
 variablePart =
     Tokens.functionName
-        |> Combine.fromCoreMap VarPattern
+        |> ParserWithComments.fromCoreMap VarPattern
 
 
-numberPart : Parser state Pattern
+numberPart : ParserWithComments Pattern
 numberPart =
     Elm.Parser.Numbers.number IntPattern HexPattern
-        |> Combine.fromCore
+        |> ParserWithComments.fromCore
 
 
-charPattern : Parser state Pattern
+charPattern : ParserWithComments Pattern
 charPattern =
     Tokens.characterLiteral
-        |> Combine.fromCoreMap CharPattern
+        |> ParserWithComments.fromCoreMap CharPattern
 
 
-listPattern : Parser State Pattern
+listPattern : ParserWithComments Pattern
 listPattern =
-    Combine.betweenMap ListPattern
-        Tokens.squareStart
-        Tokens.squareEnd
-        (Layout.maybeLayout
-            |> Combine.continueWith (Combine.sepBy "," (Layout.maybeAroundBothSides pattern))
-        )
+    (Tokens.squareStart
+        |> Parser.Extra.continueWith
+            (Layout.maybeLayout
+                |> ParserWithComments.continueWith (ParserWithComments.sepBy "," (Layout.maybeAroundBothSides pattern))
+                |> ParserWithComments.map ListPattern
+            )
+    )
+        |. Tokens.squareEnd
 
 
-composablePattern : Parser State (Node Pattern)
+composablePattern : ParserWithComments (Node Pattern)
 composablePattern =
-    Combine.oneOf
+    Core.oneOf
         [ variablePart
         , qualifiedPatternWithConsumeArgs
         , allPattern
@@ -123,9 +127,9 @@ composablePattern =
         |> Node.parser
 
 
-qualifiedPatternArg : Parser State (Node Pattern)
+qualifiedPatternArg : ParserWithComments (Node Pattern)
 qualifiedPatternArg =
-    Combine.oneOf
+    Core.oneOf
         [ variablePart
         , qualifiedPatternWithoutConsumeArgs
         , allPattern
@@ -140,20 +144,20 @@ qualifiedPatternArg =
         |> Node.parser
 
 
-allPattern : Parser state Pattern
+allPattern : ParserWithComments Pattern
 allPattern =
-    Combine.fromCoreMap (\() -> AllPattern) (Core.symbol "_")
+    ParserWithComments.fromCoreMap (\() -> AllPattern) (Core.symbol "_")
 
 
-unitPattern : Parser state Pattern
+unitPattern : ParserWithComments Pattern
 unitPattern =
-    Combine.fromCoreMap (\() -> UnitPattern) (Core.symbol "()")
+    ParserWithComments.fromCoreMap (\() -> UnitPattern) (Core.symbol "()")
 
 
-stringPattern : Parser state Pattern
+stringPattern : ParserWithComments Pattern
 stringPattern =
     Tokens.singleOrTripleQuotedStringLiteral
-        |> Combine.fromCoreMap StringPattern
+        |> ParserWithComments.fromCoreMap StringPattern
 
 
 qualifiedNameRef : Core.Parser QualifiedNameRef
@@ -172,38 +176,40 @@ qualifiedNameRefHelper moduleNameSoFar typeOrSegment =
         ]
 
 
-qualifiedPatternWithConsumeArgs : Parser State Pattern
+qualifiedPatternWithConsumeArgs : ParserWithComments Pattern
 qualifiedPatternWithConsumeArgs =
     Core.map (\qualified -> \args -> NamedPattern qualified args)
         qualifiedNameRef
-        |> Combine.fromCoreKeep
-            (Combine.many
+        |> ParserWithComments.fromCoreKeep
+            (ParserWithComments.many
                 (Layout.maybeLayout
-                    |> Combine.backtrackable
-                    |> Combine.continueWith qualifiedPatternArg
+                    |> Core.backtrackable
+                    |> ParserWithComments.continueWith qualifiedPatternArg
                 )
             )
 
 
-qualifiedPatternWithoutConsumeArgs : Parser State Pattern
+qualifiedPatternWithoutConsumeArgs : ParserWithComments Pattern
 qualifiedPatternWithoutConsumeArgs =
     qualifiedNameRef
-        |> Combine.fromCoreMap
+        |> ParserWithComments.fromCoreMap
             (\qualified -> NamedPattern qualified [])
 
 
-recordPattern : Parser State Pattern
+recordPattern : ParserWithComments Pattern
 recordPattern =
-    Combine.betweenMap RecordPattern
-        Tokens.curlyStart
-        Tokens.curlyEnd
-        (Layout.maybeLayout
-            |> Combine.continueWith
-                (Combine.sepBy ","
-                    (Layout.maybeLayout
-                        |> Combine.continueWithCore
-                            (Tokens.functionName |> Node.parserCore)
-                        |> Combine.ignore Layout.maybeLayout
+    (Tokens.curlyStart
+        |> Parser.Extra.continueWith
+            (Layout.maybeLayout
+                |> ParserWithComments.continueWith
+                    (ParserWithComments.sepBy ","
+                        (Layout.maybeLayout
+                            |> ParserWithComments.continueWithCore
+                                (Tokens.functionName |> Node.parserCore)
+                            |> ParserWithComments.ignore Layout.maybeLayout
+                        )
                     )
-                )
-        )
+                |> ParserWithComments.map RecordPattern
+            )
+    )
+        |. Tokens.curlyEnd

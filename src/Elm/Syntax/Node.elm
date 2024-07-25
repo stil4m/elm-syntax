@@ -44,7 +44,7 @@ empty a =
     Node Range.empty a
 
 
-{-| Combine two nodes, constructing a new node which will have the outer most range of the child nodes
+{-| ParserWithComments two nodes, constructing a new node which will have the outer most range of the child nodes
 -}
 combine : (Node a -> Node b -> c) -> Node a -> Node b -> Node c
 combine f ((Node { start } _) as a) ((Node { end } _) as b) =

@@ -9,12 +9,12 @@ module Elm.Parser.Layout exposing
     , positivelyIndentedCore
     )
 
-import Combine exposing (Parser)
 import Elm.Parser.Comments as Comments
 import Elm.Parser.Node as Node
-import Elm.Parser.State as State exposing (State)
 import Elm.Syntax.Node exposing (Node)
 import Parser as Core exposing ((|.), (|=))
+import ParserWithComments exposing (ParserWithComments)
+import Rope
 import Set
 
 
@@ -35,19 +35,16 @@ nonEmptyWhiteSpaceOrComment =
         ]
 
 
-whiteSpaceAndCommentsAndAddToState : Parser State ()
+whiteSpaceAndCommentsAndAddToState : ParserWithComments ()
 whiteSpaceAndCommentsAndAddToState =
-    Combine.Parser
-        (\state ->
-            Core.loop (State.getCommentsFurthestToEarliest state) whiteSpaceAndCommentsFrom
-                |> Core.map
-                    (\newComments ->
-                        ( State.setComments newComments state, () )
-                    )
-        )
+    Core.loop [] whiteSpaceAndCommentsFrom
+        |> Core.map
+            (\newComments ->
+                { comments = Rope.fromList (List.reverse newComments), syntax = () }
+            )
 
 
-maybeLayout : Parser State ()
+maybeLayout : ParserWithComments ()
 maybeLayout =
     whiteSpaceAndCommentsAndAddToState
         |> verifyLayoutIndent
@@ -72,7 +69,7 @@ whiteSpaceAndCommentsFrom soFar =
         ]
 
 
-verifyLayoutIndent : Parser State () -> Parser State ()
+verifyLayoutIndent : ParserWithComments () -> ParserWithComments ()
 verifyLayoutIndent =
     verifyIndent (\stateIndent current -> stateIndent < current)
         (\stateIndent current -> "Expected indent larger than " ++ String.fromInt stateIndent ++ ", got " ++ String.fromInt current)
@@ -90,83 +87,74 @@ positivelyIndentedCore =
                     Core.problem "must be positively indented"
         )
         Core.getCol
-        |= State.currentIndent
+        |= Core.getIndent
         |> Core.andThen identity
 
 
-positivelyIndented : Parser State ()
+positivelyIndented : ParserWithComments ()
 positivelyIndented =
-    Combine.Parser
-        (\state ->
-            Core.map
-                (\column ->
-                    \indent ->
-                        if indent < column then
-                            Core.succeed ( state, () )
+    Core.map
+        (\column ->
+            \indent ->
+                if indent < column then
+                    ParserWithComments.succeed ()
 
-                        else
-                            Core.problem "must be positively indented"
-                )
-                Core.getCol
-                |= State.currentIndent
-                |> Core.andThen identity
+                else
+                    Core.problem "must be positively indented"
         )
+        Core.getCol
+        |= Core.getIndent
+        |> Core.andThen identity
 
 
-layout : Parser State ()
+layout : ParserWithComments ()
 layout =
-    Combine.Parser
-        (\state ->
-            nonEmptyWhiteSpaceOrComment
-                |> Core.andThen
-                    (\head ->
-                        Core.loop
-                            (case head of
-                                Nothing ->
-                                    State.getCommentsFurthestToEarliest state
+    nonEmptyWhiteSpaceOrComment
+        |> Core.andThen
+            (\head ->
+                Core.loop
+                    (case head of
+                        Nothing ->
+                            []
 
-                                Just headValue ->
-                                    headValue :: State.getCommentsFurthestToEarliest state
-                            )
-                            whiteSpaceAndCommentsFrom
+                        Just headValue ->
+                            List.singleton headValue
                     )
-                |> Core.map
-                    (\newComments ->
-                        ( State.setComments newComments state, () )
-                    )
-        )
+                    whiteSpaceAndCommentsFrom
+            )
+        |> Core.map
+            (\newComments ->
+                { comments = Rope.fromList newComments, syntax = () }
+            )
         |> verifyLayoutIndent
 
 
-optimisticLayout : Parser State ()
+optimisticLayout : ParserWithComments ()
 optimisticLayout =
     whiteSpaceAndCommentsAndAddToState
 
 
-layoutStrict : Parser State ()
+layoutStrict : ParserWithComments ()
 layoutStrict =
     optimisticLayout
         |> verifyIndent (\stateIndent current -> stateIndent == current)
             (\stateIndent current -> "Expected indent " ++ String.fromInt stateIndent ++ ", got " ++ String.fromInt current)
 
 
-onTopIndentation : res -> Parser State res
+onTopIndentation : res -> ParserWithComments res
 onTopIndentation res =
-    Combine.withStateFromCore
-        (\state ->
-            Core.map
-                (\column ->
-                    \indent ->
-                        if indent == column then
-                            Core.succeed ( state, res )
+    Core.map
+        (\column ->
+            \indent ->
+                if indent == column then
+                    ParserWithComments.succeed res
 
-                        else
-                            problemTopIndentation
-                )
-                Core.getCol
-                |= State.currentIndent
-                |> Core.andThen identity
+                else
+                    problemTopIndentation
         )
+        Core.getCol
+        |= Core.getIndent
+        |> Core.andThen identity
 
 
 problemTopIndentation : Core.Parser a
@@ -174,29 +162,26 @@ problemTopIndentation =
     Core.problem "must be on top indentation"
 
 
-verifyIndent : (Int -> Int -> Bool) -> (Int -> Int -> String) -> Parser State () -> Parser State ()
-verifyIndent verify failMessage (Combine.Parser toVerify) =
-    Combine.Parser
-        (\state ->
-            toVerify state
-                |. (Core.map
-                        (\column ->
-                            \indent ->
-                                if verify indent column then
-                                    Core.succeed ()
+verifyIndent : (Int -> Int -> Bool) -> (Int -> Int -> String) -> ParserWithComments () -> ParserWithComments ()
+verifyIndent verify failMessage toVerify =
+    toVerify
+        |. (Core.map
+                (\column ->
+                    \indent ->
+                        if verify indent column then
+                            Core.succeed ()
 
-                                else
-                                    Core.problem (failMessage indent column)
-                        )
-                        Core.getCol
-                        |= State.currentIndent
-                        |> Core.andThen identity
-                   )
-        )
+                        else
+                            Core.problem (failMessage indent column)
+                )
+                Core.getCol
+                |= Core.getIndent
+                |> Core.andThen identity
+           )
 
 
-maybeAroundBothSides : Parser State b -> Parser State b
+maybeAroundBothSides : ParserWithComments b -> ParserWithComments b
 maybeAroundBothSides x =
-    Combine.maybeIgnore layout
-        |> Combine.continueWith x
-        |> Combine.ignore (Combine.maybeIgnore layout)
+    ParserWithComments.maybeIgnore layout
+        |> ParserWithComments.continueWith x
+        |> ParserWithComments.ignore (ParserWithComments.maybeIgnore layout)

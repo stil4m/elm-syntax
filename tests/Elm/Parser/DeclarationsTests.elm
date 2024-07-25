@@ -1,7 +1,7 @@
 module Elm.Parser.DeclarationsTests exposing (all)
 
-import Elm.Parser.CombineTestUtil as CombineTestUtil exposing (parse)
 import Elm.Parser.Declarations exposing (..)
+import Elm.Parser.ParserWithCommentsTestUtil as ParserWithCommentsUtil exposing (parse)
 import Elm.Syntax.Declaration as Declaration exposing (..)
 import Elm.Syntax.Expression exposing (..)
 import Elm.Syntax.Infix as Infix exposing (InfixDirection(..))
@@ -825,14 +825,14 @@ type Color = Blue String | Red | Green"""
 
 expectAst : Node Declaration -> String -> Expect.Expectation
 expectAst =
-    CombineTestUtil.expectAst declaration
+    ParserWithCommentsUtil.expectAst declaration
 
 
 expectAstWithComments : { ast : Node Declaration, comments : List (Node String) } -> String -> Expect.Expectation
 expectAstWithComments =
-    CombineTestUtil.expectAstWithComments declaration
+    ParserWithCommentsUtil.expectAstWithComments declaration
 
 
 expectInvalid : String -> Expect.Expectation
 expectInvalid =
-    CombineTestUtil.expectInvalid declaration
+    ParserWithCommentsUtil.expectInvalid declaration

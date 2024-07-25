@@ -1,12 +1,10 @@
 module Elm.Parser.Declarations exposing (declaration)
 
-import Combine exposing (Parser)
 import Elm.Parser.Comments as Comments
 import Elm.Parser.Expression exposing (expression)
 import Elm.Parser.Layout as Layout
 import Elm.Parser.Node as Node
 import Elm.Parser.Patterns as Patterns
-import Elm.Parser.State as State exposing (State)
 import Elm.Parser.Tokens as Tokens
 import Elm.Parser.TypeAnnotation as TypeAnnotation exposing (typeAnnotation, typeAnnotationNoFnExcludingTypedWithArguments)
 import Elm.Syntax.Declaration as Declaration exposing (Declaration)
@@ -20,11 +18,13 @@ import Elm.Syntax.Type exposing (ValueConstructor)
 import Elm.Syntax.TypeAnnotation exposing (TypeAnnotation)
 import Parser as Core exposing ((|.))
 import Parser.Extra
+import ParserWithComments exposing (ParserWithComments)
+import Rope
 
 
-declaration : Parser State (Node Declaration)
+declaration : ParserWithComments (Node Declaration)
 declaration =
-    Combine.oneOf
+    Core.oneOf
         [ Core.map
             (\documentation ->
                 \afterDocumentation ->
@@ -50,7 +50,7 @@ declaration =
                                             (Node expressionRange _) =
                                                 functionDeclarationAfterDocumentation.expression
                                         in
-                                        Combine.succeed
+                                        ParserWithComments.succeed
                                             (Node { start = start, end = expressionRange.end }
                                                 (Declaration.FunctionDeclaration
                                                     { documentation = Just documentation
@@ -71,7 +71,7 @@ declaration =
                                             )
 
                                     else
-                                        Combine.problem
+                                        Core.problem
                                             ("Expected to find the declaration for " ++ startName ++ " but found " ++ implementationName)
 
                                 Nothing ->
@@ -91,7 +91,7 @@ declaration =
                                                     }
                                             }
                                         )
-                                        |> Combine.succeed
+                                        |> ParserWithComments.succeed
 
                         TypeDeclarationAfterDocumentation typeDeclarationAfterDocumentation ->
                             let
@@ -118,7 +118,7 @@ declaration =
                                             :: List.reverse typeDeclarationAfterDocumentation.tailVariantsReverse
                                     }
                                 )
-                                |> Combine.succeed
+                                |> ParserWithComments.succeed
 
                         TypeAliasDeclarationAfterDocumentation typeAliasDeclarationAfterDocumentation ->
                             let
@@ -133,36 +133,37 @@ declaration =
                                     , typeAnnotation = typeAliasDeclarationAfterDocumentation.typeAnnotation
                                     }
                                 )
-                                |> Combine.succeed
+                                |> ParserWithComments.succeed
 
                         PortDeclarationAfterDocumentation portDeclarationAfterName ->
                             let
                                 (Node typeAnnotationRange _) =
                                     portDeclarationAfterName.typeAnnotation
                             in
-                            Combine.succeed
-                                (Node
-                                    { start = portDeclarationAfterName.startLocation
-                                    , end = typeAnnotationRange.end
-                                    }
-                                    (Declaration.PortDeclaration
-                                        { name = portDeclarationAfterName.name
-                                        , typeAnnotation = portDeclarationAfterName.typeAnnotation
+                            Core.succeed
+                                { comments = Rope.one documentation
+                                , syntax =
+                                    Node
+                                        { start = portDeclarationAfterName.startLocation
+                                        , end = typeAnnotationRange.end
                                         }
-                                    )
-                                )
-                                |> Combine.ignore (Combine.modifyState (State.addCommentAccordingToRange documentation))
+                                        (Declaration.PortDeclaration
+                                            { name = portDeclarationAfterName.name
+                                            , typeAnnotation = portDeclarationAfterName.typeAnnotation
+                                            }
+                                        )
+                                }
             )
             Comments.declarationDocumentation
-            |> Combine.fromCoreIgnore Layout.layoutStrict
-            |> Combine.keep
-                (Combine.oneOf
+            |> ParserWithComments.fromCoreIgnore Layout.layoutStrict
+            |> ParserWithComments.keep
+                (Core.oneOf
                     [ functionAfterDocumentation
                     , typeOrTypeAliasDefinitionAfterDocumentation
                     , portDeclarationAfterDocumentation
                     ]
                 )
-            |> Combine.andThen identity
+            |> ParserWithComments.andThen identity
         , infixDeclaration
         , functionDeclarationWithoutDocumentation
         , typeOrTypeAliasDefinitionWithoutDocumentation
@@ -213,9 +214,9 @@ type TypeOrTypeAliasDeclarationWithoutDocumentation
         }
 
 
-functionAfterDocumentation : Parser State DeclarationAfterDocumentation
+functionAfterDocumentation : ParserWithComments DeclarationAfterDocumentation
 functionAfterDocumentation =
-    Node.parserCoreMap
+    (Node.parserCoreMap
         (\startName ->
             \signature ->
                 \arguments ->
@@ -228,13 +229,13 @@ functionAfterDocumentation =
                             }
         )
         Tokens.functionName
-        |> Combine.fromCoreIgnore Layout.maybeLayout
-        |> Combine.keep
-            (Combine.maybe
+        |> ParserWithComments.fromCoreIgnore Layout.maybeLayout
+        |> ParserWithComments.keep
+            (ParserWithComments.maybe
                 (Tokens.colon
-                    |> Combine.fromCoreIgnore Layout.maybeLayout
-                    |> Combine.continueWith
-                        (Combine.map
+                    |> ParserWithComments.fromCoreIgnore Layout.maybeLayout
+                    |> ParserWithComments.continueWith
+                        (ParserWithComments.map
                             (\typeAnnotation ->
                                 \implementationNameNode ->
                                     { implementationName = implementationNameNode
@@ -243,20 +244,24 @@ functionAfterDocumentation =
                             )
                             TypeAnnotation.typeAnnotation
                         )
-                    |> Combine.ignore Layout.layoutStrict
-                    |> Combine.keepFromCore (Tokens.functionName |> Node.parserCore)
-                    |> Combine.ignore Layout.maybeLayout
+                    |> ParserWithComments.ignore Layout.layoutStrict
+                    |> ParserWithComments.keepFromCore (Tokens.functionName |> Node.parserCore)
+                    |> ParserWithComments.ignore Layout.maybeLayout
                 )
             )
-        |> Combine.keep (Combine.many (Patterns.pattern |> Combine.ignore Layout.maybeLayout))
-        |> Combine.ignoreEntirely Tokens.equal
-        |> Combine.ignore Layout.maybeLayout
-        |> Combine.keep expression
+        |> ParserWithComments.keep
+            (ParserWithComments.many
+                (Patterns.pattern |> ParserWithComments.ignore Layout.maybeLayout)
+            )
+    )
+        |. Tokens.equal
+        |> ParserWithComments.ignore Layout.maybeLayout
+        |> ParserWithComments.keep expression
 
 
-functionDeclarationWithoutDocumentation : Parser State (Node Declaration)
+functionDeclarationWithoutDocumentation : ParserWithComments (Node Declaration)
 functionDeclarationWithoutDocumentation =
-    Node.parserCoreMap
+    (Node.parserCoreMap
         (\((Node { start } startName) as startNameNode) ->
             \maybeSignature ->
                 \arguments ->
@@ -311,13 +316,13 @@ functionDeclarationWithoutDocumentation =
                                         ("Expected to find the declaration for " ++ startName ++ " but found " ++ implementationName)
         )
         Tokens.functionName
-        |> Combine.fromCoreIgnore Layout.maybeLayout
-        |> Combine.keep
-            (Combine.maybe
+        |> ParserWithComments.fromCoreIgnore Layout.maybeLayout
+        |> ParserWithComments.keep
+            (ParserWithComments.maybe
                 (Tokens.colon
-                    |> Combine.fromCoreIgnore Layout.maybeLayout
-                    |> Combine.continueWith
-                        (Combine.map
+                    |> ParserWithComments.fromCoreIgnore Layout.maybeLayout
+                    |> ParserWithComments.continueWith
+                        (ParserWithComments.map
                             (\typeAnnotation ->
                                 \implementationNameNode ->
                                     { implementationName = implementationNameNode
@@ -326,21 +331,25 @@ functionDeclarationWithoutDocumentation =
                             )
                             TypeAnnotation.typeAnnotation
                         )
-                    |> Combine.ignore Layout.layoutStrict
-                    |> Combine.keepFromCore (Tokens.functionName |> Node.parserCore)
-                    |> Combine.ignore Layout.maybeLayout
+                    |> ParserWithComments.ignore Layout.layoutStrict
+                    |> ParserWithComments.keepFromCore (Tokens.functionName |> Node.parserCore)
+                    |> ParserWithComments.ignore Layout.maybeLayout
                 )
             )
-        |> Combine.keep (Combine.many (Patterns.pattern |> Combine.ignore Layout.maybeLayout))
-        |> Combine.ignoreEntirely Tokens.equal
-        |> Combine.ignore Layout.maybeLayout
-        |> Combine.keep expression
-        |> Combine.flattenFromCore
+        |> ParserWithComments.keep
+            (ParserWithComments.many
+                (Patterns.pattern |> ParserWithComments.ignore Layout.maybeLayout)
+            )
+    )
+        |. Tokens.equal
+        |> ParserWithComments.ignore Layout.maybeLayout
+        |> ParserWithComments.keep expression
+        |> ParserWithComments.flattenFromCore
 
 
-infixDeclaration : Parser State (Node Declaration)
+infixDeclaration : ParserWithComments (Node Declaration)
 infixDeclaration =
-    Core.map
+    (Core.map
         (\startRow ->
             \direction ->
                 \precedence ->
@@ -356,16 +365,17 @@ infixDeclaration =
         )
         Core.getRow
         |. Core.keyword "infix"
-        |> Combine.fromCoreIgnore Layout.layout
-        |> Combine.keepFromCore (Node.parserCore infixDirection)
-        |> Combine.ignore Layout.layout
-        |> Combine.keepFromCore (Node.parserCore Core.int)
-        |> Combine.ignore Layout.layout
-        |> Combine.keepFromCore operatorWithParens
-        |> Combine.ignore Layout.layout
-        |> Combine.ignoreEntirely Tokens.equal
-        |> Combine.ignore Layout.layout
-        |> Combine.keepFromCore (Node.parserCore Tokens.functionName)
+        |> ParserWithComments.fromCoreIgnore Layout.layout
+        |> ParserWithComments.keepFromCore (Node.parserCore infixDirection)
+        |> ParserWithComments.ignore Layout.layout
+        |> ParserWithComments.keepFromCore (Node.parserCore Core.int)
+        |> ParserWithComments.ignore Layout.layout
+        |> ParserWithComments.keepFromCore operatorWithParens
+        |> ParserWithComments.ignore Layout.layout
+    )
+        |. Tokens.equal
+        |> ParserWithComments.ignore Layout.layout
+        |> ParserWithComments.keepFromCore (Node.parserCore Tokens.functionName)
 
 
 operatorWithParens : Core.Parser (Node String)
@@ -389,7 +399,7 @@ infixDirection =
         ]
 
 
-portDeclarationAfterDocumentation : Parser State DeclarationAfterDocumentation
+portDeclarationAfterDocumentation : ParserWithComments DeclarationAfterDocumentation
 portDeclarationAfterDocumentation =
     Core.map
         (\startRow ->
@@ -403,19 +413,20 @@ portDeclarationAfterDocumentation =
         )
         Core.getRow
         |. Tokens.portToken
-        |> Combine.fromCoreIgnore Layout.layout
-        |> Combine.keep
-            (Node.parserCore Tokens.functionName
-                |> Combine.fromCoreIgnore Layout.maybeLayout
-                |> Combine.ignoreEntirely (Core.symbol ":")
-                |> Combine.ignore Layout.maybeLayout
+        |> ParserWithComments.fromCoreIgnore Layout.layout
+        |> ParserWithComments.keep
+            ((Node.parserCore Tokens.functionName
+                |> ParserWithComments.fromCoreIgnore Layout.maybeLayout
+             )
+                |. Core.symbol ":"
+                |> ParserWithComments.ignore Layout.maybeLayout
             )
-        |> Combine.keep typeAnnotation
+        |> ParserWithComments.keep typeAnnotation
 
 
-portDeclarationWithoutDocumentation : Parser State (Node Declaration)
+portDeclarationWithoutDocumentation : ParserWithComments (Node Declaration)
 portDeclarationWithoutDocumentation =
-    Core.map
+    (Core.map
         (\startRow ->
             \name ->
                 \((Node { end } _) as typeAnnotation) ->
@@ -427,31 +438,32 @@ portDeclarationWithoutDocumentation =
         )
         Core.getRow
         |. Tokens.portToken
-        |> Combine.fromCoreIgnore Layout.layout
-        |> Combine.keepFromCore (Node.parserCore Tokens.functionName)
-        |> Combine.ignore Layout.maybeLayout
-        |> Combine.ignoreEntirely (Core.symbol ":")
-        |> Combine.ignore Layout.maybeLayout
-        |> Combine.keep typeAnnotation
+        |> ParserWithComments.fromCoreIgnore Layout.layout
+        |> ParserWithComments.keepFromCore (Node.parserCore Tokens.functionName)
+        |> ParserWithComments.ignore Layout.maybeLayout
+    )
+        |. Core.symbol ":"
+        |> ParserWithComments.ignore Layout.maybeLayout
+        |> ParserWithComments.keep typeAnnotation
 
 
-typeOrTypeAliasDefinitionAfterDocumentation : Parser State DeclarationAfterDocumentation
+typeOrTypeAliasDefinitionAfterDocumentation : ParserWithComments DeclarationAfterDocumentation
 typeOrTypeAliasDefinitionAfterDocumentation =
     Core.symbol "type"
-        |> Combine.fromCoreIgnore Layout.layout
-        |> Combine.continueWith
-            (Combine.oneOf
+        |> ParserWithComments.fromCoreIgnore Layout.layout
+        |> ParserWithComments.continueWith
+            (Core.oneOf
                 [ typeAliasDefinitionAfterDocumentationAfterTypePrefix
                 , customTypeDefinitionAfterDocumentationAfterTypePrefix
                 ]
             )
 
 
-typeAliasDefinitionAfterDocumentationAfterTypePrefix : Parser State DeclarationAfterDocumentation
+typeAliasDefinitionAfterDocumentationAfterTypePrefix : ParserWithComments DeclarationAfterDocumentation
 typeAliasDefinitionAfterDocumentationAfterTypePrefix =
-    Tokens.aliasToken
-        |> Combine.fromCoreIgnore Layout.layout
-        |> Combine.continueWithCore
+    (Tokens.aliasToken
+        |> ParserWithComments.fromCoreIgnore Layout.layout
+        |> ParserWithComments.continueWithCore
             (Node.parserCoreMap
                 (\name ->
                     \parameters ->
@@ -464,16 +476,17 @@ typeAliasDefinitionAfterDocumentationAfterTypePrefix =
                 )
                 Tokens.typeName
             )
-        |> Combine.ignore Layout.maybeLayout
-        |> Combine.keep typeGenericList
-        |> Combine.ignoreEntirely Tokens.equal
-        |> Combine.ignore Layout.maybeLayout
-        |> Combine.keep typeAnnotation
+        |> ParserWithComments.ignore Layout.maybeLayout
+        |> ParserWithComments.keep typeGenericList
+    )
+        |. Tokens.equal
+        |> ParserWithComments.ignore Layout.maybeLayout
+        |> ParserWithComments.keep typeAnnotation
 
 
-customTypeDefinitionAfterDocumentationAfterTypePrefix : Parser State DeclarationAfterDocumentation
+customTypeDefinitionAfterDocumentationAfterTypePrefix : ParserWithComments DeclarationAfterDocumentation
 customTypeDefinitionAfterDocumentationAfterTypePrefix =
-    Node.parserCoreMap
+    (Node.parserCoreMap
         (\name ->
             \parameters ->
                 \headVariant ->
@@ -486,23 +499,25 @@ customTypeDefinitionAfterDocumentationAfterTypePrefix =
                             }
         )
         Tokens.typeName
-        |> Combine.fromCoreIgnore Layout.maybeLayout
-        |> Combine.keep typeGenericList
-        |> Combine.ignoreEntirely Tokens.equal
-        |> Combine.ignore Layout.maybeLayout
-        |> Combine.keep valueConstructor
-        |> Combine.keep
-            (Combine.manyWithoutReverse
-                (Layout.maybeLayout
-                    |> Combine.backtrackable
-                    |> Combine.ignoreEntirely Tokens.pipe
-                    |> Combine.ignore Layout.maybeLayout
-                    |> Combine.continueWith valueConstructor
+        |> ParserWithComments.fromCoreIgnore Layout.maybeLayout
+        |> ParserWithComments.keep typeGenericList
+    )
+        |. Tokens.equal
+        |> ParserWithComments.ignore Layout.maybeLayout
+        |> ParserWithComments.keep valueConstructor
+        |> ParserWithComments.keep
+            (ParserWithComments.manyWithoutReverse
+                ((Layout.maybeLayout
+                    |> Core.backtrackable
+                 )
+                    |. Tokens.pipe
+                    |> ParserWithComments.ignore Layout.maybeLayout
+                    |> ParserWithComments.continueWith valueConstructor
                 )
             )
 
 
-typeOrTypeAliasDefinitionWithoutDocumentation : Parser State (Node Declaration.Declaration)
+typeOrTypeAliasDefinitionWithoutDocumentation : ParserWithComments (Node Declaration.Declaration)
 typeOrTypeAliasDefinitionWithoutDocumentation =
     Core.map
         (\startRow ->
@@ -555,20 +570,20 @@ typeOrTypeAliasDefinitionWithoutDocumentation =
         )
         Core.getRow
         |. Core.symbol "type"
-        |> Combine.fromCoreIgnore Layout.layout
-        |> Combine.keep
-            (Combine.oneOf
+        |> ParserWithComments.fromCoreIgnore Layout.layout
+        |> ParserWithComments.keep
+            (Core.oneOf
                 [ typeAliasDefinitionWithoutDocumentationAfterTypePrefix
                 , customTypeDefinitionWithoutDocumentationAfterTypePrefix
                 ]
             )
 
 
-typeAliasDefinitionWithoutDocumentationAfterTypePrefix : Parser State TypeOrTypeAliasDeclarationWithoutDocumentation
+typeAliasDefinitionWithoutDocumentationAfterTypePrefix : ParserWithComments TypeOrTypeAliasDeclarationWithoutDocumentation
 typeAliasDefinitionWithoutDocumentationAfterTypePrefix =
-    Tokens.aliasToken
-        |> Combine.fromCoreIgnore Layout.layout
-        |> Combine.continueWithCore
+    (Tokens.aliasToken
+        |> ParserWithComments.fromCoreIgnore Layout.layout
+        |> ParserWithComments.continueWithCore
             (Node.parserCoreMap
                 (\name ->
                     \parameters ->
@@ -581,16 +596,17 @@ typeAliasDefinitionWithoutDocumentationAfterTypePrefix =
                 )
                 Tokens.typeName
             )
-        |> Combine.ignore Layout.maybeLayout
-        |> Combine.keep typeGenericList
-        |> Combine.ignoreEntirely Tokens.equal
-        |> Combine.ignore Layout.maybeLayout
-        |> Combine.keep typeAnnotation
+        |> ParserWithComments.ignore Layout.maybeLayout
+        |> ParserWithComments.keep typeGenericList
+    )
+        |. Tokens.equal
+        |> ParserWithComments.ignore Layout.maybeLayout
+        |> ParserWithComments.keep typeAnnotation
 
 
-customTypeDefinitionWithoutDocumentationAfterTypePrefix : Parser State TypeOrTypeAliasDeclarationWithoutDocumentation
+customTypeDefinitionWithoutDocumentationAfterTypePrefix : ParserWithComments TypeOrTypeAliasDeclarationWithoutDocumentation
 customTypeDefinitionWithoutDocumentationAfterTypePrefix =
-    Core.map
+    (Core.map
         (\name ->
             \parameters ->
                 \headVariant ->
@@ -603,24 +619,26 @@ customTypeDefinitionWithoutDocumentationAfterTypePrefix =
                             }
         )
         (Node.parserCore Tokens.typeName)
-        |> Combine.fromCoreIgnore Layout.maybeLayout
-        |> Combine.keep typeGenericList
-        |> Combine.ignoreEntirely Tokens.equal
-        |> Combine.ignore Layout.maybeLayout
-        |> Combine.ignore Layout.maybeLayout
-        |> Combine.keep valueConstructor
-        |> Combine.keep
-            (Combine.manyWithoutReverse
-                (Layout.maybeLayout
-                    |> Combine.backtrackable
-                    |> Combine.ignoreEntirely Tokens.pipe
-                    |> Combine.ignore Layout.maybeLayout
-                    |> Combine.continueWith valueConstructor
+        |> ParserWithComments.fromCoreIgnore Layout.maybeLayout
+        |> ParserWithComments.keep typeGenericList
+    )
+        |. Tokens.equal
+        |> ParserWithComments.ignore Layout.maybeLayout
+        |> ParserWithComments.ignore Layout.maybeLayout
+        |> ParserWithComments.keep valueConstructor
+        |> ParserWithComments.keep
+            (ParserWithComments.manyWithoutReverse
+                ((Layout.maybeLayout
+                    |> Core.backtrackable
+                 )
+                    |. Tokens.pipe
+                    |> ParserWithComments.ignore Layout.maybeLayout
+                    |> ParserWithComments.continueWith valueConstructor
                 )
             )
 
 
-valueConstructor : Parser State (Node ValueConstructor)
+valueConstructor : ParserWithComments (Node ValueConstructor)
 valueConstructor =
     Tokens.typeName
         |> Node.parserCoreMap
@@ -640,18 +658,18 @@ valueConstructor =
                         { start = variantNameRange.start, end = fullEnd }
                         { name = variantNameNode, arguments = List.reverse argumentsReverse }
             )
-        |> Combine.fromCoreKeep
-            (Combine.manyWithoutReverse
+        |> ParserWithComments.fromCoreKeep
+            (ParserWithComments.manyWithoutReverse
                 (Layout.maybeLayout
-                    |> Combine.backtrackable
-                    |> Combine.continueWith typeAnnotationNoFnExcludingTypedWithArguments
+                    |> Core.backtrackable
+                    |> ParserWithComments.continueWith typeAnnotationNoFnExcludingTypedWithArguments
                 )
             )
 
 
-typeGenericList : Parser State (List (Node String))
+typeGenericList : ParserWithComments (List (Node String))
 typeGenericList =
-    Combine.many
+    ParserWithComments.many
         (Node.parserCore Tokens.functionName
-            |> Combine.fromCoreIgnore Layout.maybeLayout
+            |> ParserWithComments.fromCoreIgnore Layout.maybeLayout
         )

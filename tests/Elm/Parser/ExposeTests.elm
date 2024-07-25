@@ -1,7 +1,7 @@
 module Elm.Parser.ExposeTests exposing (all)
 
-import Elm.Parser.CombineTestUtil as CombineTestUtil
 import Elm.Parser.Expose exposing (exposeDefinition)
+import Elm.Parser.ParserWithCommentsTestUtil as ParserWithCommentsUtil
 import Elm.Syntax.Exposing exposing (Exposing(..), TopLevelExpose(..))
 import Elm.Syntax.Node exposing (Node(..))
 import Expect
@@ -129,14 +129,14 @@ all =
 
 expectAst : Exposing -> String -> Expect.Expectation
 expectAst =
-    CombineTestUtil.expectAst exposeDefinition
+    ParserWithCommentsUtil.expectAst exposeDefinition
 
 
 expectAstWithComments : { ast : Exposing, comments : List (Node String) } -> String -> Expect.Expectation
 expectAstWithComments =
-    CombineTestUtil.expectAstWithComments exposeDefinition
+    ParserWithCommentsUtil.expectAstWithComments exposeDefinition
 
 
 expectInvalid : String -> Expect.Expectation
 expectInvalid =
-    CombineTestUtil.expectInvalid exposeDefinition
+    ParserWithCommentsUtil.expectInvalid exposeDefinition

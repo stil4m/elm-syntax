@@ -1,7 +1,7 @@
 module Elm.Parser.ImportsTests exposing (all)
 
-import Elm.Parser.CombineTestUtil as CombineTestUtil
 import Elm.Parser.Imports as Parser
+import Elm.Parser.ParserWithCommentsTestUtil as ParserWithCommentsUtil
 import Elm.Syntax.Exposing exposing (..)
 import Elm.Syntax.Import exposing (Import)
 import Elm.Syntax.Node exposing (Node(..))
@@ -81,10 +81,10 @@ all =
         , test "import with invalid alias containing ." <|
             \() ->
                 "import Foo as Bar.Buzz"
-                    |> CombineTestUtil.expectInvalid Parser.importDefinition
+                    |> ParserWithCommentsUtil.expectInvalid Parser.importDefinition
         ]
 
 
 expectAst : Node Import -> String -> Expect.Expectation
 expectAst =
-    CombineTestUtil.expectAst Parser.importDefinition
+    ParserWithCommentsUtil.expectAst Parser.importDefinition

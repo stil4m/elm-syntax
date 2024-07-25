@@ -1,50 +1,57 @@
 module Elm.Parser.File exposing (file)
 
-import Combine exposing (Parser)
 import Elm.Parser.Comments as Comments
 import Elm.Parser.Declarations exposing (declaration)
 import Elm.Parser.Imports exposing (importDefinition)
 import Elm.Parser.Layout as Layout
 import Elm.Parser.Modules exposing (moduleDefinition)
 import Elm.Parser.Node as Node
-import Elm.Parser.State as State exposing (State)
 import Elm.Syntax.Declaration exposing (Declaration)
 import Elm.Syntax.File exposing (File)
 import Elm.Syntax.Node exposing (Node)
+import Parser as Core exposing ((|=))
+import ParserWithComments exposing (ParserWithComments)
+import Rope
 
 
-file : Parser State File
+file : Core.Parser File
 file =
-    Layout.layoutStrict
-        |> Combine.continueWith
-            (Node.parserMap
-                (\moduleDefinition ->
-                    \imports ->
-                        \declarations ->
-                            \comments ->
-                                { moduleDefinition = moduleDefinition
-                                , imports = imports
-                                , declarations = declarations
-                                , comments = comments
+    Core.map
+        (\commentsBeforeModuleDefinition ->
+            \moduleDefinition ->
+                \commentsAfterModuleDefinition ->
+                    \moduleComments ->
+                        \imports ->
+                            \declarations ->
+                                { moduleDefinition = moduleDefinition.syntax
+                                , imports = imports.syntax
+                                , declarations = declarations.syntax
+                                , comments =
+                                    Rope.flatFromList
+                                        [ commentsBeforeModuleDefinition.comments
+                                        , moduleDefinition.comments
+                                        , commentsAfterModuleDefinition.comments
+                                        , moduleComments.comments
+                                        , imports.comments
+                                        , declarations.comments
+                                        ]
+                                        |> Rope.toList
                                 }
-                )
-                moduleDefinition
+        )
+        Layout.layoutStrict
+        |= Node.parser moduleDefinition
+        |= Layout.layoutStrict
+        |= ParserWithComments.maybeIgnore
+            (Comments.moduleDocumentation
+                |> ParserWithComments.ignore Layout.layoutStrict
             )
-        |> Combine.ignore Layout.layoutStrict
-        |> Combine.ignore (Combine.maybeIgnore (Comments.moduleDocumentation |> Combine.ignore Layout.layoutStrict))
-        |> Combine.keep (Combine.many importDefinition)
-        |> Combine.keep fileDeclarations
-        |> Combine.keep collectComments
+        |= ParserWithComments.many importDefinition
+        |= fileDeclarations
 
 
-collectComments : Parser State (List (Node String))
-collectComments =
-    Combine.withState (\state -> Combine.succeed (State.getComments state))
-
-
-fileDeclarations : Parser State (List (Node Declaration))
+fileDeclarations : ParserWithComments (List (Node Declaration))
 fileDeclarations =
-    Combine.many
+    ParserWithComments.many
         (declaration
-            |> Combine.ignore (Combine.maybeIgnore Layout.layoutStrict)
+            |> ParserWithComments.ignore (ParserWithComments.maybeIgnore Layout.layoutStrict)
         )

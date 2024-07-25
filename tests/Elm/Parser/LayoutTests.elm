@@ -1,10 +1,10 @@
 module Elm.Parser.LayoutTests exposing (all)
 
-import Combine exposing (Parser)
-import Elm.Parser.CombineTestUtil exposing (..)
 import Elm.Parser.Layout as Layout
+import Elm.Parser.ParserWithCommentsTestUtil exposing (..)
 import Expect
 import Parser as Core
+import ParserWithComments exposing (ParserWithComments)
 import Test exposing (..)
 
 
@@ -90,10 +90,7 @@ all =
         ]
 
 
-setIndent : Int -> Parser state b -> Parser state b
-setIndent x (Combine.Parser p) =
-    Combine.Parser
-        (\state ->
-            Core.withIndent (x + 1)
-                (p state)
-        )
+setIndent : Int -> ParserWithComments b -> ParserWithComments b
+setIndent x p =
+    Core.withIndent (x + 1)
+        p

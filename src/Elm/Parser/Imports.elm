@@ -1,19 +1,18 @@
 module Elm.Parser.Imports exposing (importDefinition)
 
-import Combine exposing (Parser)
 import Elm.Parser.Base exposing (moduleName)
 import Elm.Parser.Expose exposing (exposeDefinition)
 import Elm.Parser.Layout as Layout
 import Elm.Parser.Node as Node
-import Elm.Parser.State exposing (State)
 import Elm.Parser.Tokens as Tokens
 import Elm.Syntax.Import exposing (Import)
 import Elm.Syntax.Node exposing (Node(..))
 import Elm.Syntax.Range exposing (Range)
 import Parser as Core exposing ((|.))
+import ParserWithComments exposing (ParserWithComments)
 
 
-importDefinition : Parser State (Node Import)
+importDefinition : ParserWithComments (Node Import)
 importDefinition =
     Core.map
         (\startRow ->
@@ -41,16 +40,16 @@ importDefinition =
         )
         Core.getRow
         |. Tokens.importToken
-        |> Combine.fromCoreIgnore Layout.layout
-        |> Combine.keepFromCore moduleName
-        |> Combine.ignore Layout.optimisticLayout
-        |> Combine.keep
-            (Combine.maybe
+        |> ParserWithComments.fromCoreIgnore Layout.layout
+        |> ParserWithComments.keepFromCore moduleName
+        |> ParserWithComments.ignore Layout.optimisticLayout
+        |> ParserWithComments.keep
+            (ParserWithComments.maybe
                 (Tokens.asToken
-                    |> Combine.fromCoreIgnore Layout.layout
-                    |> Combine.continueWithCore (Tokens.typeName |> Node.parserCoreValueMap List.singleton)
-                    |> Combine.ignore Layout.optimisticLayout
+                    |> ParserWithComments.fromCoreIgnore Layout.layout
+                    |> ParserWithComments.continueWithCore (Tokens.typeName |> Node.parserCoreValueMap List.singleton)
+                    |> ParserWithComments.ignore Layout.optimisticLayout
                 )
             )
-        |> Combine.keep (Combine.maybe (Node.parser exposeDefinition))
-        |> Combine.ignore Layout.optimisticLayout
+        |> ParserWithComments.keep (ParserWithComments.maybe (Node.parser exposeDefinition))
+        |> ParserWithComments.ignore Layout.optimisticLayout

@@ -1,20 +1,11 @@
 module Elm.Parser.Comments exposing (declarationDocumentation, moduleDocumentation, multilineCommentString, singleLineCommentCore)
 
-import Combine exposing (Parser)
 import Elm.Parser.Node as Node
-import Elm.Parser.State exposing (State, addComment)
 import Elm.Syntax.Documentation exposing (Documentation)
 import Elm.Syntax.Node exposing (Node)
 import Parser as Core exposing ((|.), Nestable(..))
-
-
-addCommentToState : Core.Parser (Node String) -> Parser State ()
-addCommentToState p =
-    p
-        |> Combine.fromCoreAndThen
-            (\pair ->
-                Combine.modifyState (\state -> addComment pair state)
-            )
+import ParserWithComments exposing (ParserWithComments)
+import Rope
 
 
 singleLineCommentCore : Core.Parser ()
@@ -40,9 +31,15 @@ problemUnexpected =
     Core.problem "unexpected documentation comment"
 
 
-moduleDocumentation : Parser State ()
+moduleDocumentation : ParserWithComments ()
 moduleDocumentation =
-    addCommentToState declarationDocumentation
+    declarationDocumentation
+        |> Core.map
+            (\comment ->
+                { comments = Rope.one comment
+                , syntax = ()
+                }
+            )
 
 
 declarationDocumentation : Core.Parser (Node Documentation)

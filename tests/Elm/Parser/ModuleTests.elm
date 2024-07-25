@@ -1,8 +1,8 @@
 module Elm.Parser.ModuleTests exposing (all)
 
-import Elm.Parser.CombineTestUtil as CombineTestUtil exposing (..)
 import Elm.Parser.File as File
 import Elm.Parser.Modules as Parser
+import Elm.Parser.ParserWithCommentsTestUtil as ParserWithCommentsUtil exposing (..)
 import Elm.Syntax.Declaration exposing (Declaration(..))
 import Elm.Syntax.Exposing exposing (..)
 import Elm.Syntax.Expression exposing (Expression(..))
@@ -12,6 +12,7 @@ import Elm.Syntax.Node exposing (Node(..))
 import Elm.Syntax.Pattern exposing (Pattern(..))
 import Elm.Syntax.TypeAnnotation exposing (TypeAnnotation(..))
 import Expect
+import Parser as Core exposing ((|.))
 import Test exposing (..)
 
 
@@ -108,7 +109,7 @@ all =
                         )
         , test "Regression test for Incorrect range in if expression" <|
             \() ->
-                parse
+                parseCore
                     (String.filter ((/=) '\u{000D}') """module TestModule exposing (..)
 
 a =
@@ -200,7 +201,7 @@ b = 3
                         )
         , test "Simple module range test" <|
             \() ->
-                parse
+                parseCore
                     (String.filter ((/=) '\u{000D}') """module TestModule exposing (..)
 
 a =
@@ -276,7 +277,7 @@ b = 3
                         )
         , test "File with multiple imports" <|
             \() ->
-                parse
+                parseCore
                     """module TestModule exposing (..)
 import A
 import B
@@ -326,7 +327,7 @@ a = 1
                         )
         , test "File with multiple declarations" <|
             \() ->
-                parse
+                parseCore
                     """module TestModule exposing (..)
 type A = B | C
 a = 1
@@ -424,7 +425,7 @@ b = 2
                     |> expectInvalid
         , test "trailing comments at the end of declarations" <|
             \() ->
-                parse """module A exposing (fun1, fun2)
+                parseCore """module A exposing (fun1, fun2)
 
 fun1 n =
   fun2 n
@@ -496,9 +497,24 @@ fun2 n =
 
 expectAst : Module -> String -> Expect.Expectation
 expectAst =
-    CombineTestUtil.expectAst Parser.moduleDefinition
+    ParserWithCommentsUtil.expectAst Parser.moduleDefinition
+
+
+parseCore : String -> Core.Parser a -> Maybe a
+parseCore source parser =
+    case Core.run (parser |. Core.end) source of
+        Err _ ->
+            Nothing
+
+        Ok parsed ->
+            parsed |> Just
 
 
 expectInvalid : String -> Expect.Expectation
-expectInvalid =
-    CombineTestUtil.expectInvalid File.file
+expectInvalid source =
+    case Core.run (File.file |. Core.end) source of
+        Err _ ->
+            Expect.pass
+
+        Ok actual ->
+            Expect.fail ("This source code is successfully parsed but it shouldn't:\n" ++ Debug.toString actual)

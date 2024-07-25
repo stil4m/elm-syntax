@@ -1,12 +1,9 @@
 module Elm.Parser.FileTests exposing (all)
 
-import Combine
 import Elm.Internal.RawFile as InternalRawFile
 import Elm.Parser
-import Elm.Parser.CombineTestUtil exposing (..)
 import Elm.Parser.File as Parser
 import Elm.Parser.Samples as Samples
-import Elm.Parser.State exposing (emptyState)
 import Elm.RawFile as RawFile exposing (RawFile)
 import Elm.Syntax.Declaration exposing (Declaration(..))
 import Elm.Syntax.Exposing exposing (Exposing(..))
@@ -19,6 +16,7 @@ import Elm.Syntax.TypeAnnotation exposing (TypeAnnotation(..))
 import Expect
 import Json.Decode
 import Json.Encode
+import Parser as Core exposing ((|.))
 import Test exposing (..)
 
 
@@ -30,7 +28,7 @@ all =
                 (\( n, s ) ->
                     test ("sample " ++ String.fromInt n) <|
                         \() ->
-                            case Combine.runParser (Parser.file |> Combine.ignore Combine.end) emptyState s of
+                            case Core.run (Parser.file |. Core.end) s of
                                 Err error ->
                                     Expect.fail (error |> Debug.toString)
 
@@ -63,7 +61,8 @@ all =
                                 let
                                     parsed : Maybe RawFile
                                     parsed =
-                                        parse s Parser.file
+                                        Core.run (Parser.file |. Core.end) s
+                                            |> Result.toMaybe
                                             |> Maybe.map InternalRawFile.Raw
 
                                     roundTrip : Maybe RawFile
