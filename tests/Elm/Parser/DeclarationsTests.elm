@@ -592,18 +592,18 @@ update msg model =
             \() ->
                 "type alias Foo = {color: String }"
                     |> expectAst
-                        (Node { end = { column = 34, row = 1 }, start = { column = 1, row = 1 } }
+                        (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 34 } }
                             (AliasDeclaration
                                 { documentation = Nothing
+                                , name = Node { start = { row = 1, column = 12 }, end = { row = 1, column = 15 } } "Foo"
                                 , generics = []
-                                , name = Node { end = { column = 15, row = 1 }, start = { column = 12, row = 1 } } "Foo"
                                 , typeAnnotation =
-                                    Node { end = { column = 34, row = 1 }, start = { column = 18, row = 1 } }
+                                    Node { start = { row = 1, column = 18 }, end = { row = 1, column = 34 } }
                                         (Record
-                                            [ Node { end = { column = 32, row = 1 }, start = { column = 19, row = 1 } }
-                                                ( Node { end = { column = 24, row = 1 }, start = { column = 19, row = 1 } } "color"
-                                                , Node { end = { column = 32, row = 1 }, start = { column = 26, row = 1 } }
-                                                    (Typed (Node { end = { column = 32, row = 1 }, start = { column = 26, row = 1 } } ( [], "String" )) [])
+                                            [ Node { start = { row = 1, column = 19 }, end = { row = 1, column = 32 } }
+                                                ( Node { start = { row = 1, column = 19 }, end = { row = 1, column = 24 } } "color"
+                                                , Node { start = { row = 1, column = 26 }, end = { row = 1, column = 32 } }
+                                                    (Typed (Node { start = { row = 1, column = 26 }, end = { row = 1, column = 32 } } ( [], "String" )) [])
                                                 )
                                             ]
                                         )
@@ -615,18 +615,18 @@ update msg model =
                 """{-| Foo is colorful -}
 type alias Foo = {color: String }"""
                     |> expectAst
-                        (Node { end = { column = 34, row = 2 }, start = { column = 1, row = 1 } }
+                        (Node { start = { row = 1, column = 1 }, end = { row = 2, column = 34 } }
                             (AliasDeclaration
-                                { documentation = Just (Node { end = { column = 23, row = 1 }, start = { column = 1, row = 1 } } "{-| Foo is colorful -}")
+                                { documentation = Just (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 23 } } "{-| Foo is colorful -}")
+                                , name = Node { start = { row = 2, column = 12 }, end = { row = 2, column = 15 } } "Foo"
                                 , generics = []
-                                , name = Node { end = { column = 15, row = 2 }, start = { column = 12, row = 2 } } "Foo"
                                 , typeAnnotation =
-                                    Node { end = { column = 34, row = 2 }, start = { column = 18, row = 2 } }
+                                    Node { start = { row = 2, column = 18 }, end = { row = 2, column = 34 } }
                                         (Record
-                                            [ Node { end = { column = 32, row = 2 }, start = { column = 19, row = 2 } }
-                                                ( Node { end = { column = 24, row = 2 }, start = { column = 19, row = 2 } } "color"
-                                                , Node { end = { column = 32, row = 2 }, start = { column = 26, row = 2 } }
-                                                    (Typed (Node { end = { column = 32, row = 2 }, start = { column = 26, row = 2 } } ( [], "String" )) [])
+                                            [ Node { start = { row = 2, column = 19 }, end = { row = 2, column = 32 } }
+                                                ( Node { start = { row = 2, column = 19 }, end = { row = 2, column = 24 } } "color"
+                                                , Node { start = { row = 2, column = 26 }, end = { row = 2, column = 32 } }
+                                                    (Typed (Node { start = { row = 2, column = 26 }, end = { row = 2, column = 32 } } ( [], "String" )) [])
                                                 )
                                             ]
                                         )
@@ -637,18 +637,18 @@ type alias Foo = {color: String }"""
             \() ->
                 "type alias Foo={color: String }"
                     |> expectAst
-                        (Node { end = { column = 32, row = 1 }, start = { column = 1, row = 1 } }
+                        (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 32 } }
                             (AliasDeclaration
                                 { documentation = Nothing
+                                , name = Node { start = { row = 1, column = 12 }, end = { row = 1, column = 15 } } "Foo"
                                 , generics = []
-                                , name = Node { end = { column = 15, row = 1 }, start = { column = 12, row = 1 } } "Foo"
                                 , typeAnnotation =
-                                    Node { end = { column = 32, row = 1 }, start = { column = 16, row = 1 } }
+                                    Node { start = { row = 1, column = 16 }, end = { row = 1, column = 32 } }
                                         (Record
-                                            [ Node { end = { column = 30, row = 1 }, start = { column = 17, row = 1 } }
-                                                ( Node { end = { column = 22, row = 1 }, start = { column = 17, row = 1 } } "color"
-                                                , Node { end = { column = 30, row = 1 }, start = { column = 24, row = 1 } }
-                                                    (Typed (Node { end = { column = 30, row = 1 }, start = { column = 24, row = 1 } } ( [], "String" )) [])
+                                            [ Node { start = { row = 1, column = 17 }, end = { row = 1, column = 30 } }
+                                                ( Node { start = { row = 1, column = 17 }, end = { row = 1, column = 22 } } "color"
+                                                , Node { start = { row = 1, column = 24 }, end = { row = 1, column = 30 } }
+                                                    (Typed (Node { start = { row = 1, column = 24 }, end = { row = 1, column = 30 } } ( [], "String" )) [])
                                                 )
                                             ]
                                         )
@@ -659,17 +659,17 @@ type alias Foo = {color: String }"""
             \() ->
                 "type alias Foo a = {some : a }"
                     |> expectAst
-                        (Node { end = { column = 31, row = 1 }, start = { column = 1, row = 1 } }
+                        (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 31 } }
                             (AliasDeclaration
                                 { documentation = Nothing
-                                , generics = [ Node { end = { column = 17, row = 1 }, start = { column = 16, row = 1 } } "a" ]
-                                , name = Node { end = { column = 15, row = 1 }, start = { column = 12, row = 1 } } "Foo"
+                                , name = Node { start = { row = 1, column = 12 }, end = { row = 1, column = 15 } } "Foo"
+                                , generics = [ Node { start = { row = 1, column = 16 }, end = { row = 1, column = 17 } } "a" ]
                                 , typeAnnotation =
-                                    Node { end = { column = 31, row = 1 }, start = { column = 20, row = 1 } }
+                                    Node { start = { row = 1, column = 20 }, end = { row = 1, column = 31 } }
                                         (Record
-                                            [ Node { end = { column = 29, row = 1 }, start = { column = 21, row = 1 } }
-                                                ( Node { end = { column = 25, row = 1 }, start = { column = 21, row = 1 } } "some"
-                                                , Node { end = { column = 29, row = 1 }, start = { column = 28, row = 1 } } (GenericType "a")
+                                            [ Node { start = { row = 1, column = 21 }, end = { row = 1, column = 29 } }
+                                                ( Node { start = { row = 1, column = 21 }, end = { row = 1, column = 25 } } "some"
+                                                , Node { start = { row = 1, column = 28 }, end = { row = 1, column = 29 } } (GenericType "a")
                                                 )
                                             ]
                                         )
@@ -680,28 +680,28 @@ type alias Foo = {color: String }"""
             \() ->
                 "type Color = Blue String | Red | Green"
                     |> expectAst
-                        (Node { end = { column = 39, row = 1 }, start = { column = 1, row = 1 } }
+                        (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 39 } }
                             (Declaration.CustomTypeDeclaration
-                                { constructors =
-                                    [ Node { end = { column = 25, row = 1 }, start = { column = 14, row = 1 } }
-                                        { arguments =
-                                            [ Node { end = { column = 25, row = 1 }, start = { column = 19, row = 1 } }
-                                                (Typed (Node { end = { column = 25, row = 1 }, start = { column = 19, row = 1 } } ( [], "String" )) [])
+                                { documentation = Nothing
+                                , name = Node { start = { row = 1, column = 6 }, end = { row = 1, column = 11 } } "Color"
+                                , generics = []
+                                , constructors =
+                                    [ Node { start = { row = 1, column = 14 }, end = { row = 1, column = 25 } }
+                                        { name = Node { start = { row = 1, column = 14 }, end = { row = 1, column = 18 } } "Blue"
+                                        , arguments =
+                                            [ Node { start = { row = 1, column = 19 }, end = { row = 1, column = 25 } }
+                                                (Typed (Node { start = { row = 1, column = 19 }, end = { row = 1, column = 25 } } ( [], "String" )) [])
                                             ]
-                                        , name = Node { end = { column = 18, row = 1 }, start = { column = 14, row = 1 } } "Blue"
                                         }
-                                    , Node { end = { column = 31, row = 1 }, start = { column = 28, row = 1 } }
-                                        { arguments = []
-                                        , name = Node { end = { column = 31, row = 1 }, start = { column = 28, row = 1 } } "Red"
+                                    , Node { start = { row = 1, column = 28 }, end = { row = 1, column = 31 } }
+                                        { name = Node { start = { row = 1, column = 28 }, end = { row = 1, column = 31 } } "Red"
+                                        , arguments = []
                                         }
-                                    , Node { end = { column = 39, row = 1 }, start = { column = 34, row = 1 } }
-                                        { arguments = []
-                                        , name = Node { end = { column = 39, row = 1 }, start = { column = 34, row = 1 } } "Green"
+                                    , Node { start = { row = 1, column = 34 }, end = { row = 1, column = 39 } }
+                                        { name = Node { start = { row = 1, column = 34 }, end = { row = 1, column = 39 } } "Green"
+                                        , arguments = []
                                         }
                                     ]
-                                , documentation = Nothing
-                                , generics = []
-                                , name = Node { end = { column = 11, row = 1 }, start = { column = 6, row = 1 } } "Color"
                                 }
                             )
                         )
@@ -710,31 +710,31 @@ type alias Foo = {color: String }"""
                 """{-| Classic RGB -}
 type Color = Blue String | Red | Green"""
                     |> expectAst
-                        (Node { end = { column = 39, row = 2 }, start = { column = 1, row = 1 } }
+                        (Node { start = { row = 1, column = 1 }, end = { row = 2, column = 39 } }
                             (CustomTypeDeclaration
-                                { constructors =
+                                { documentation = Just (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 19 } } "{-| Classic RGB -}")
+                                , name = Node { start = { row = 2, column = 6 }, end = { row = 2, column = 11 } } "Color"
+                                , generics = []
+                                , constructors =
                                     [ Node
-                                        { end = { column = 25, row = 2 }
-                                        , start = { column = 14, row = 2 }
+                                        { start = { row = 2, column = 14 }
+                                        , end = { row = 2, column = 25 }
                                         }
-                                        { arguments =
-                                            [ Node { end = { column = 25, row = 2 }, start = { column = 19, row = 2 } }
-                                                (Typed (Node { end = { column = 25, row = 2 }, start = { column = 19, row = 2 } } ( [], "String" )) [])
+                                        { name = Node { start = { row = 2, column = 14 }, end = { row = 2, column = 18 } } "Blue"
+                                        , arguments =
+                                            [ Node { start = { row = 2, column = 19 }, end = { row = 2, column = 25 } }
+                                                (Typed (Node { start = { row = 2, column = 19 }, end = { row = 2, column = 25 } } ( [], "String" )) [])
                                             ]
-                                        , name = Node { end = { column = 18, row = 2 }, start = { column = 14, row = 2 } } "Blue"
                                         }
-                                    , Node { end = { column = 31, row = 2 }, start = { column = 28, row = 2 } }
-                                        { arguments = []
-                                        , name = Node { end = { column = 31, row = 2 }, start = { column = 28, row = 2 } } "Red"
+                                    , Node { start = { row = 2, column = 28 }, end = { row = 2, column = 31 } }
+                                        { name = Node { start = { row = 2, column = 28 }, end = { row = 2, column = 31 } } "Red"
+                                        , arguments = []
                                         }
-                                    , Node { end = { column = 39, row = 2 }, start = { column = 34, row = 2 } }
-                                        { arguments = []
-                                        , name = Node { end = { column = 39, row = 2 }, start = { column = 34, row = 2 } } "Green"
+                                    , Node { start = { row = 2, column = 34 }, end = { row = 2, column = 39 } }
+                                        { name = Node { start = { row = 2, column = 34 }, end = { row = 2, column = 39 } } "Green"
+                                        , arguments = []
                                         }
                                     ]
-                                , documentation = Just (Node { end = { column = 19, row = 1 }, start = { column = 1, row = 1 } } "{-| Classic RGB -}")
-                                , generics = []
-                                , name = Node { end = { column = 11, row = 2 }, start = { column = 6, row = 2 } } "Color"
                                 }
                             )
                         )
@@ -742,21 +742,21 @@ type Color = Blue String | Red | Green"""
             \() ->
                 "type D = C a B"
                     |> expectAst
-                        (Node { end = { column = 15, row = 1 }, start = { column = 1, row = 1 } }
+                        (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 15 } }
                             (Declaration.CustomTypeDeclaration
-                                { constructors =
-                                    [ Node { end = { column = 15, row = 1 }, start = { column = 10, row = 1 } }
-                                        { arguments =
-                                            [ Node { end = { column = 13, row = 1 }, start = { column = 12, row = 1 } } (GenericType "a")
-                                            , Node { end = { column = 15, row = 1 }, start = { column = 14, row = 1 } }
-                                                (Typed (Node { end = { column = 15, row = 1 }, start = { column = 14, row = 1 } } ( [], "B" )) [])
+                                { documentation = Nothing
+                                , name = Node { start = { row = 1, column = 6 }, end = { row = 1, column = 7 } } "D"
+                                , generics = []
+                                , constructors =
+                                    [ Node { start = { row = 1, column = 10 }, end = { row = 1, column = 15 } }
+                                        { name = Node { start = { row = 1, column = 10 }, end = { row = 1, column = 11 } } "C"
+                                        , arguments =
+                                            [ Node { start = { row = 1, column = 12 }, end = { row = 1, column = 13 } } (GenericType "a")
+                                            , Node { start = { row = 1, column = 14 }, end = { row = 1, column = 15 } }
+                                                (Typed (Node { start = { row = 1, column = 14 }, end = { row = 1, column = 15 } } ( [], "B" )) [])
                                             ]
-                                        , name = Node { end = { column = 11, row = 1 }, start = { column = 10, row = 1 } } "C"
                                         }
                                     ]
-                                , documentation = Nothing
-                                , generics = []
-                                , name = Node { end = { column = 7, row = 1 }, start = { column = 6, row = 1 } } "D"
                                 }
                             )
                         )
@@ -764,21 +764,21 @@ type Color = Blue String | Red | Green"""
             \() ->
                 "type D = C B a"
                     |> expectAst
-                        (Node { end = { column = 15, row = 1 }, start = { column = 1, row = 1 } }
+                        (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 15 } }
                             (Declaration.CustomTypeDeclaration
-                                { constructors =
-                                    [ Node { end = { column = 15, row = 1 }, start = { column = 10, row = 1 } }
-                                        { arguments =
-                                            [ Node { end = { column = 13, row = 1 }, start = { column = 12, row = 1 } }
-                                                (Typed (Node { end = { column = 13, row = 1 }, start = { column = 12, row = 1 } } ( [], "B" )) [])
-                                            , Node { end = { column = 15, row = 1 }, start = { column = 14, row = 1 } } (GenericType "a")
+                                { documentation = Nothing
+                                , name = Node { start = { row = 1, column = 6 }, end = { row = 1, column = 7 } } "D"
+                                , generics = []
+                                , constructors =
+                                    [ Node { start = { row = 1, column = 10 }, end = { row = 1, column = 15 } }
+                                        { name = Node { start = { row = 1, column = 10 }, end = { row = 1, column = 11 } } "C"
+                                        , arguments =
+                                            [ Node { start = { row = 1, column = 12 }, end = { row = 1, column = 13 } }
+                                                (Typed (Node { start = { row = 1, column = 12 }, end = { row = 1, column = 13 } } ( [], "B" )) [])
+                                            , Node { start = { row = 1, column = 14 }, end = { row = 1, column = 15 } } (GenericType "a")
                                             ]
-                                        , name = Node { end = { column = 11, row = 1 }, start = { column = 10, row = 1 } } "C"
                                         }
                                     ]
-                                , documentation = Nothing
-                                , generics = []
-                                , name = Node { end = { column = 7, row = 1 }, start = { column = 6, row = 1 } } "D"
                                 }
                             )
                         )
@@ -790,21 +790,21 @@ type Color = Blue String | Red | Green"""
             \() ->
                 "type Maybe a = Just a | Nothing"
                     |> expectAst
-                        (Node { end = { column = 32, row = 1 }, start = { column = 1, row = 1 } }
+                        (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 32 } }
                             (Declaration.CustomTypeDeclaration
-                                { constructors =
-                                    [ Node { end = { column = 22, row = 1 }, start = { column = 16, row = 1 } }
-                                        { arguments = [ Node { end = { column = 22, row = 1 }, start = { column = 21, row = 1 } } (GenericType "a") ]
-                                        , name = Node { end = { column = 20, row = 1 }, start = { column = 16, row = 1 } } "Just"
+                                { documentation = Nothing
+                                , name = Node { start = { row = 1, column = 6 }, end = { row = 1, column = 11 } } "Maybe"
+                                , generics = [ Node { start = { row = 1, column = 12 }, end = { row = 1, column = 13 } } "a" ]
+                                , constructors =
+                                    [ Node { start = { row = 1, column = 16 }, end = { row = 1, column = 22 } }
+                                        { name = Node { start = { row = 1, column = 16 }, end = { row = 1, column = 20 } } "Just"
+                                        , arguments = [ Node { start = { row = 1, column = 21 }, end = { row = 1, column = 22 } } (GenericType "a") ]
                                         }
-                                    , Node { end = { column = 32, row = 1 }, start = { column = 25, row = 1 } }
-                                        { arguments = []
-                                        , name = Node { end = { column = 32, row = 1 }, start = { column = 25, row = 1 } } "Nothing"
+                                    , Node { start = { row = 1, column = 25 }, end = { row = 1, column = 32 } }
+                                        { name = Node { start = { row = 1, column = 25 }, end = { row = 1, column = 32 } } "Nothing"
+                                        , arguments = []
                                         }
                                     ]
-                                , documentation = Nothing
-                                , generics = [ Node { end = { column = 13, row = 1 }, start = { column = 12, row = 1 } } "a" ]
-                                , name = Node { end = { column = 11, row = 1 }, start = { column = 6, row = 1 } } "Maybe"
                                 }
                             )
                         )
