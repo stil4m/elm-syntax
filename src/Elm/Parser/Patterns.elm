@@ -110,8 +110,9 @@ variablePart =
 
 numberPart : Parser (WithComments Pattern)
 numberPart =
-    Elm.Parser.Numbers.number IntPattern HexPattern
-        |> ParserWithComments.fromCore
+    Elm.Parser.Numbers.number
+        (\n -> { comments = Rope.empty, syntax = IntPattern n })
+        (\n -> { comments = Rope.empty, syntax = HexPattern n })
 
 
 charPattern : Parser (WithComments Pattern)

@@ -1,7 +1,6 @@
 module ParserWithComments exposing
     ( Comments
     , WithComments
-    , fromCore
     , fromCoreMap
     , ignore
     , keep
@@ -32,11 +31,6 @@ type alias Comments =
 fromCoreMap : (res -> changedRes) -> Core.Parser res -> Parser (WithComments changedRes)
 fromCoreMap resChange p =
     Core.map (\v -> { comments = Rope.empty, syntax = resChange v }) p
-
-
-fromCore : Core.Parser res -> Parser (WithComments res)
-fromCore p =
-    Core.map (\v -> { comments = Rope.empty, syntax = v }) p
 
 
 map : (a -> b) -> Parser (WithComments a) -> Parser (WithComments b)

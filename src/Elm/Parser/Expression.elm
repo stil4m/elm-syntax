@@ -28,8 +28,10 @@ subExpressionsOneOf =
             [ referenceExpression
             , literalExpression
             , numberExpression
+                |> Core.map (\n -> { comments = Rope.empty, syntax = n })
             , tupledExpression
             , glslExpression
+                |> Core.map (\glsl -> { comments = Rope.empty, syntax = glsl })
             , listExpression
             , recordExpression
             , recordAccessFunctionExpression
@@ -101,7 +103,7 @@ recordAccess =
         )
 
 
-recordAccessParser : Parser (WithComments (Node String))
+recordAccessParser : Parser (Node String)
 recordAccessParser =
     lookBehindOneCharacter
         |> Core.andThen
@@ -112,7 +114,6 @@ recordAccessParser =
                 else
                     dotField
             )
-        |> ParserWithComments.fromCore
 
 
 problemRecordAccessStartingWithSpace : Core.Parser a
@@ -158,13 +159,12 @@ glslEnd =
     "|]"
 
 
-glslExpression : Parser (WithComments Expression)
+glslExpression : Parser Expression
 glslExpression =
     Core.mapChompedString
         (\s () -> s |> String.dropLeft glslStartLength |> GLSLExpression)
         (Core.multiComment glslStart glslEnd NotNestable)
         |. Core.symbol glslEnd
-        |> ParserWithComments.fromCore
 
 
 listExpression : Parser (WithComments Expression)
@@ -653,10 +653,9 @@ letFunction =
         |> Core.andThen identity
 
 
-numberExpression : Parser (WithComments Expression)
+numberExpression : Parser Expression
 numberExpression =
     Elm.Parser.Numbers.forgivingNumber Floatable Integer Hex
-        |> ParserWithComments.fromCore
 
 
 ifBlockExpression : Parser (WithComments (Node Expression))
@@ -1119,8 +1118,15 @@ infixHelp leftPrecedence rightPrecedence operator apply =
     )
 
 
-postfix : Int -> Parser (WithComments a) -> (expr -> a -> expr) -> ( Int, expr -> Parser (WithComments expr) )
+postfix : Int -> Parser a -> (expr -> a -> expr) -> ( Int, expr -> Parser (WithComments expr) )
 postfix precedence operator apply =
     ( precedence
-    , \left -> ParserWithComments.map (\right -> apply left right) operator
+    , \left ->
+        Core.map
+            (\right ->
+                { comments = Rope.empty
+                , syntax = apply left right
+                }
+            )
+            operator
     )

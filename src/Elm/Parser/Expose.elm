@@ -81,14 +81,14 @@ exposable =
     Core.oneOf
         [ functionExpose
         , typeExpose
-        , infixExpose |> ParserWithComments.fromCore
+        , infixExpose
         ]
         |> Node.parser
 
 
-infixExpose : Core.Parser TopLevelExpose
+infixExpose : Core.Parser (WithComments TopLevelExpose)
 infixExpose =
-    Core.map (\() -> InfixExpose)
+    Core.map (\() -> \infixName -> { comments = Rope.empty, syntax = InfixExpose infixName })
         Tokens.parensStart
         |= Core.variable
             { inner = \c -> c /= ')'
