@@ -2,7 +2,6 @@ module ParserWithComments exposing
     ( Comments
     , WithComments
     , ignore
-    , keep
     , many
     , manyWithoutReverse
     , map
@@ -119,6 +118,9 @@ many p =
 
 {-| Same as [`many`](#many), except that it doesn't reverse the list.
 This can be useful if you need to access the range of the last item.
+
+Mind you the comments will be reversed either way
+
 -}
 manyWithoutReverse : Parser (WithComments a) -> Parser (WithComments (List a))
 manyWithoutReverse p =

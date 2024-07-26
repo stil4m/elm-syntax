@@ -435,16 +435,18 @@ caseExpression =
 
 caseStatements : Parser (WithComments ( Case, List Case ))
 caseStatements =
-    ParserWithComments.map
+    Core.map
         (\firstCase ->
             \lastToSecondCase ->
-                ( firstCase
-                , lastToSecondCase
-                )
+                { comments = Rope.flatFromList [ firstCase.comments, lastToSecondCase.comments ]
+                , syntax =
+                    ( firstCase.syntax
+                    , lastToSecondCase.syntax
+                    )
+                }
         )
         caseStatement
-        |> ParserWithComments.keep
-            (ParserWithComments.manyWithoutReverse caseStatement)
+        |= ParserWithComments.manyWithoutReverse caseStatement
 
 
 caseStatement : Parser (WithComments Case)
@@ -512,8 +514,15 @@ letExpression =
 
 letDeclarations : Parser (WithComments (List (Node LetDeclaration)))
 letDeclarations =
-    ParserWithComments.map (\head -> \tail -> head :: tail) blockElement
-        |> ParserWithComments.keep (ParserWithComments.many blockElement)
+    Core.map
+        (\head ->
+            \tail ->
+                { comments = Rope.flatFromList [ head.comments, tail.comments ]
+                , syntax = head.syntax :: tail.syntax
+                }
+        )
+        blockElement
+        |= ParserWithComments.many blockElement
 
 
 blockElement : Parser (WithComments (Node LetDeclaration))
@@ -529,14 +538,25 @@ blockElement =
 
 letDestructuringDeclaration : Parser (WithComments (Node LetDeclaration))
 letDestructuringDeclaration =
-    ParserWithComments.map
-        (\((Node { start } _) as pattern) ->
-            \((Node { end } _) as expr) ->
-                Node { start = start, end = end } (LetDestructuring pattern expr)
+    Core.map
+        (\pattern ->
+            \expressionResult ->
+                let
+                    (Node { start } _) =
+                        pattern.syntax
+
+                    (Node { end } _) =
+                        expressionResult.syntax
+                in
+                { comments = Rope.flatFromList [ pattern.comments, expressionResult.comments ]
+                , syntax =
+                    Node { start = start, end = end }
+                        (LetDestructuring pattern.syntax expressionResult.syntax)
+                }
         )
         Patterns.pattern
         |. Tokens.equal
-        |> ParserWithComments.keep expression
+        |= expression
 
 
 letFunction : Parser (WithComments (Node LetDeclaration))
@@ -810,22 +830,24 @@ allowedPrefixOperatorExceptMinusThenClosingParensOneOf =
 
 tupledExpressionInnerNested : Parser (WithComments Expression)
 tupledExpressionInnerNested =
-    ParserWithComments.map
+    Core.map
         (\firstPart ->
             \tailPartsReverse ->
-                case tailPartsReverse of
+                case tailPartsReverse.syntax of
                     [] ->
-                        ParenthesizedExpression firstPart
+                        { comments = firstPart.comments
+                        , syntax = ParenthesizedExpression firstPart.syntax
+                        }
 
                     _ ->
-                        TupledExpression (firstPart :: List.reverse tailPartsReverse)
+                        { comments = Rope.flatFromList [ firstPart.comments, tailPartsReverse.comments ]
+                        , syntax = TupledExpression (firstPart.syntax :: List.reverse tailPartsReverse.syntax)
+                        }
         )
         expression
-        |> ParserWithComments.keep
-            (ParserWithComments.manyWithoutReverse
-                (Tokens.comma
-                    |> Parser.Extra.continueWith expression
-                )
+        |= ParserWithComments.manyWithoutReverse
+            (Tokens.comma
+                |> Parser.Extra.continueWith expression
             )
 
 

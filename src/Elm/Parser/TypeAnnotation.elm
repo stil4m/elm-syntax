@@ -14,7 +14,7 @@ import Rope
 
 typeAnnotation : Parser (WithComments (Node TypeAnnotation))
 typeAnnotation =
-    ParserWithComments.map
+    Core.map
         (\ta ->
             \afterTa ->
                 case afterTa of
@@ -22,15 +22,17 @@ typeAnnotation =
                         ta
 
                     Just out ->
-                        Node.combine TypeAnnotation.FunctionTypeAnnotation ta out
+                        { comments = Rope.flatFromList [ ta.comments, out.comments ]
+                        , syntax = Node.combine TypeAnnotation.FunctionTypeAnnotation ta.syntax out.syntax
+                        }
         )
         (Core.lazy (\() -> typeAnnotationNoFnIncludingTypedWithArguments))
-        |> ParserWithComments.keep
-            (ParserWithComments.maybe
-                (Core.map
-                    (\commentsBeforeArrow ->
-                        \commentsAfterArrow ->
-                            \typeAnnotationResult ->
+        |= Core.oneOf
+            [ Core.map
+                (\commentsBeforeArrow ->
+                    \commentsAfterArrow ->
+                        \typeAnnotationResult ->
+                            Just
                                 { comments =
                                     Rope.flatFromList
                                         [ commentsBeforeArrow
@@ -39,13 +41,13 @@ typeAnnotation =
                                         ]
                                 , syntax = typeAnnotationResult.syntax
                                 }
-                    )
-                    (Layout.maybeLayout |> Core.backtrackable)
-                    |. Tokens.arrowRight
-                    |= Layout.maybeLayout
-                    |= Core.lazy (\() -> typeAnnotation)
                 )
-            )
+                (Layout.maybeLayout |> Core.backtrackable)
+                |. Tokens.arrowRight
+                |= Layout.maybeLayout
+                |= Core.lazy (\() -> typeAnnotation)
+            , Core.succeed Nothing
+            ]
 
 
 typeAnnotationNoFnExcludingTypedWithArguments : Parser (WithComments (Node TypeAnnotation))
