@@ -64,6 +64,8 @@
 
 - Added module `Elm.Syntax.StringLiteralType` containing `type StringLiteralType = TripleQuote | SingleQuote`
 
+- Removed deprecated `Elm.Syntax.Range.emptyRange`, use `Elm.Syntax.Range.empty` instead.
+
 ## [7.3.4] - 2024-07-26
 
 Parsing is faster by ~90%. A big thank you to [@lue-bird](https://github.com/lue-bird) for finding and introducing a huge amount of performance improvements.
