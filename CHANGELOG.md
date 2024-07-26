@@ -62,6 +62,8 @@
 - Changed `Elm.Syntax.Exposing.Exposing`:
   - `Explicit (List (Node TopLevelExpose))` -> `Explicit (Node TopLevelExpose) (List (Node TopLevelExpose))` (takes a non-empty list of elements)
 
+- Removed deprecated `Elm.Syntax.Range.emptyRange`, use `Elm.Syntax.Range.empty` instead.
+
 ## [7.3.4] - 2024-07-26
 
 Parsing is faster by ~90%. A big thank you to [@lue-bird](https://github.com/lue-bird) for finding and introducing a huge amount of performance improvements.
