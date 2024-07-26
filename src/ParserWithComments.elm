@@ -9,7 +9,6 @@ module ParserWithComments exposing
     , manyWithoutReverse
     , map
     , maybe
-    , maybeIgnore
     , sepBy
     , sepBy1
     , sepBy1WithState
@@ -98,14 +97,6 @@ maybeMap onJust onNothing p =
                     }
                 )
         , Core.succeed { comments = Rope.empty, syntax = onNothing }
-        ]
-
-
-maybeIgnore : Parser Comments -> Parser Comments
-maybeIgnore p =
-    Core.oneOf
-        [ p
-        , Core.succeed Rope.empty
         ]
 
 

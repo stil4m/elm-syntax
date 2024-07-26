@@ -41,15 +41,16 @@ file =
         Layout.layoutStrict
         |= Node.parser moduleDefinition
         |= Layout.layoutStrict
-        |= ParserWithComments.maybeIgnore
-            (Core.map
+        |= Core.oneOf
+            [ Core.map
                 (\declarationParsed ->
                     \commentsAfter ->
                         Rope.flatFromList [ declarationParsed, commentsAfter ]
                 )
                 Comments.moduleDocumentation
                 |= Layout.layoutStrict
-            )
+            , Core.succeed Rope.empty
+            ]
         |= ParserWithComments.many importDefinition
         |= fileDeclarations
 
@@ -65,5 +66,8 @@ fileDeclarations =
                     }
             )
             declaration
-            |= ParserWithComments.maybeIgnore Layout.layoutStrict
+            |= Core.oneOf
+                [ Layout.layoutStrict
+                , Core.succeed Rope.empty
+                ]
         )
