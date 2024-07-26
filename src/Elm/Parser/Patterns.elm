@@ -10,25 +10,47 @@ import Elm.Syntax.Pattern as Pattern exposing (Pattern(..), QualifiedNameRef)
 import Parser as Core exposing ((|.), (|=), Parser)
 import Parser.Extra
 import ParserWithComments exposing (WithComments)
+import Rope
 
 
 composedWith : Parser (WithComments PatternComposedWith)
 composedWith =
-    Layout.maybeLayout
-        |> ParserWithComments.continueWith
-            (Core.oneOf
-                [ Tokens.asToken
-                    |> ParserWithComments.fromCoreIgnore Layout.layout
-                    |> ParserWithComments.continueWithCore
-                        (Node.parserCoreMap PatternComposedWithAs
-                            Tokens.functionName
+    Core.map
+        (\commentsBefore composedWithResult ->
+            { comments = Rope.flatFromList [ commentsBefore, composedWithResult.comments ]
+            , syntax = composedWithResult.syntax
+            }
+        )
+        Layout.maybeLayout
+        |= Core.oneOf
+            [ (Tokens.asToken
+                |> Parser.Extra.continueWith
+                    (Core.map
+                        (\commentsAfterAs ->
+                            \name ->
+                                { comments = commentsAfterAs
+                                , syntax = PatternComposedWithAs name
+                                }
                         )
-                , Tokens.cons
-                    |> ParserWithComments.fromCoreIgnore Layout.maybeLayout
-                    |> ParserWithComments.continueWith (ParserWithComments.map PatternComposedWithCons pattern)
-                , ParserWithComments.succeed PatternComposedWithNothing
-                ]
-            )
+                        Layout.layout
+                    )
+              )
+                |= Node.parserCore Tokens.functionName
+            , (Tokens.cons
+                |> Parser.Extra.continueWith
+                    (Core.map
+                        (\commentsAfterCons ->
+                            \patternResult ->
+                                { comments = Rope.flatFromList [ patternResult.comments, commentsAfterCons ]
+                                , syntax = PatternComposedWithCons patternResult.syntax
+                                }
+                        )
+                        Layout.maybeLayout
+                    )
+              )
+                |= pattern
+            , ParserWithComments.succeed PatternComposedWithNothing
+            ]
 
 
 type PatternComposedWith
@@ -102,11 +124,39 @@ listPattern : Parser (WithComments Pattern)
 listPattern =
     (Tokens.squareStart
         |> Parser.Extra.continueWith
-            (Layout.maybeLayout
-                |> ParserWithComments.continueWith (ParserWithComments.sepBy "," (Layout.maybeAroundBothSides pattern))
-                |> ParserWithComments.map ListPattern
+            (Core.map
+                (\commentsBeforeElements ->
+                    \elements ->
+                        { comments = Rope.flatFromList [ commentsBeforeElements, elements.comments ]
+                        , syntax = ListPattern elements.syntax
+                        }
+                )
+                Layout.maybeLayout
             )
     )
+        |= Core.oneOf
+            [ Core.map
+                (\head ->
+                    \commentsAfterHead ->
+                        \tail ->
+                            { comments =
+                                Rope.flatFromList
+                                    [ head.comments
+                                    , tail.comments
+                                    , commentsAfterHead
+                                    ]
+                            , syntax = head.syntax :: tail.syntax
+                            }
+                )
+                pattern
+                |= Layout.maybeLayout
+                |= ParserWithComments.many
+                    (Tokens.comma
+                        |> Parser.Extra.continueWith
+                            (Layout.maybeAroundBothSides pattern)
+                    )
+            , ParserWithComments.succeed []
+            ]
         |. Tokens.squareEnd
 
 
@@ -182,9 +232,15 @@ qualifiedPatternWithConsumeArgs =
         qualifiedNameRef
         |> ParserWithComments.fromCoreKeep
             (ParserWithComments.many
-                (Layout.maybeLayout
-                    |> Core.backtrackable
-                    |> ParserWithComments.continueWith qualifiedPatternArg
+                (Core.map
+                    (\commentsBefore ->
+                        \arg ->
+                            { comments = Rope.flatFromList [ arg.comments, commentsBefore ]
+                            , syntax = arg.syntax
+                            }
+                    )
+                    (Layout.maybeLayout |> Core.backtrackable)
+                    |= qualifiedPatternArg
                 )
             )
 
@@ -200,16 +256,45 @@ recordPattern : Parser (WithComments Pattern)
 recordPattern =
     (Tokens.curlyStart
         |> Parser.Extra.continueWith
-            (Layout.maybeLayout
-                |> ParserWithComments.continueWith
-                    (ParserWithComments.sepBy ","
-                        (Layout.maybeLayout
-                            |> ParserWithComments.continueWithCore
-                                (Tokens.functionName |> Node.parserCore)
-                            |> ParserWithComments.ignore Layout.maybeLayout
-                        )
-                    )
-                |> ParserWithComments.map RecordPattern
+            (Core.map
+                (\commentsBeforeElements ->
+                    \elements ->
+                        { comments = Rope.flatFromList [ commentsBeforeElements, elements.comments ]
+                        , syntax = RecordPattern elements.syntax
+                        }
+                )
+                Layout.maybeLayout
             )
     )
+        |= Core.oneOf
+            [ Core.map
+                (\head ->
+                    \commentsAfterHead ->
+                        \tail ->
+                            { comments =
+                                Rope.flatFromList
+                                    [ commentsAfterHead
+                                    , tail.comments
+                                    ]
+                            , syntax = head :: tail.syntax
+                            }
+                )
+                (Node.parserCore Tokens.functionName)
+                |= Layout.maybeLayout
+                |= ParserWithComments.many
+                    (Tokens.comma
+                        |> Parser.Extra.continueWith
+                            (Core.map
+                                (\beforeName name afterName ->
+                                    { comments = Rope.flatFromList [ beforeName, afterName ]
+                                    , syntax = name
+                                    }
+                                )
+                                Layout.maybeLayout
+                                |= Node.parserCore Tokens.functionName
+                                |= Layout.maybeLayout
+                            )
+                    )
+            , ParserWithComments.succeed []
+            ]
         |. Tokens.curlyEnd

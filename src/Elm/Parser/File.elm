@@ -28,10 +28,10 @@ file =
                                 , declarations = declarations.syntax
                                 , comments =
                                     Rope.flatFromList
-                                        [ commentsBeforeModuleDefinition.comments
+                                        [ commentsBeforeModuleDefinition
                                         , moduleDefinition.comments
-                                        , commentsAfterModuleDefinition.comments
-                                        , moduleComments.comments
+                                        , commentsAfterModuleDefinition
+                                        , moduleComments
                                         , imports.comments
                                         , declarations.comments
                                         ]
@@ -42,8 +42,13 @@ file =
         |= Node.parser moduleDefinition
         |= Layout.layoutStrict
         |= ParserWithComments.maybeIgnore
-            (Comments.moduleDocumentation
-                |> ParserWithComments.ignore Layout.layoutStrict
+            (Core.map
+                (\declarationParsed ->
+                    \commentsAfter ->
+                        Rope.flatFromList [ declarationParsed, commentsAfter ]
+                )
+                Comments.moduleDocumentation
+                |= Layout.layoutStrict
             )
         |= ParserWithComments.many importDefinition
         |= fileDeclarations
@@ -52,6 +57,13 @@ file =
 fileDeclarations : Parser (WithComments (List (Node Declaration)))
 fileDeclarations =
     ParserWithComments.many
-        (declaration
-            |> ParserWithComments.ignore (ParserWithComments.maybeIgnore Layout.layoutStrict)
+        (Core.map
+            (\declarationParsed ->
+                \commentsAfter ->
+                    { comments = Rope.flatFromList [ declarationParsed.comments, commentsAfter ]
+                    , syntax = declarationParsed.syntax
+                    }
+            )
+            declaration
+            |= ParserWithComments.maybeIgnore Layout.layoutStrict
         )

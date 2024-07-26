@@ -5,14 +5,13 @@ import Elm.Parser.Expose exposing (exposeDefinition)
 import Elm.Parser.Layout as Layout
 import Elm.Parser.Node as Node
 import Elm.Parser.Tokens as Tokens
-import Elm.Syntax.Exposing exposing (Exposing)
 import Elm.Syntax.Module exposing (Module(..))
-import Elm.Syntax.ModuleName exposing (ModuleName)
 import Elm.Syntax.Node exposing (Node)
 import List.Extra
 import Parser as Core exposing ((|.), (|=), Parser)
 import Parser.Extra
 import ParserWithComments exposing (WithComments)
+import Rope
 
 
 moduleDefinition : Parser (WithComments Module)
@@ -26,13 +25,21 @@ moduleDefinition =
 
 effectWhereClause : Parser (WithComments ( String, Node String ))
 effectWhereClause =
-    (Core.map (\fnName -> \typeName_ -> ( fnName, typeName_ ))
+    (Core.map
+        (\fnName ->
+            \commentsAfterFnName ->
+                \commentsAfterEqual ->
+                    \typeName_ ->
+                        { comments = Rope.flatFromList [ commentsAfterFnName, commentsAfterEqual ]
+                        , syntax = ( fnName, typeName_ )
+                        }
+        )
         Tokens.functionName
-        |> ParserWithComments.fromCoreIgnore Layout.maybeLayout
+        |= Layout.maybeLayout
     )
         |. Tokens.equal
-        |> ParserWithComments.ignore Layout.maybeLayout
-        |> ParserWithComments.keepFromCore (Node.parserCore Tokens.typeName)
+        |= Layout.maybeLayout
+        |= Node.parserCore Tokens.typeName
 
 
 whereBlock : Parser (WithComments { command : Maybe (Node String), subscription : Maybe (Node String) })
@@ -54,64 +61,118 @@ whereBlock =
 
 effectWhereClauses : Parser (WithComments { command : Maybe (Node String), subscription : Maybe (Node String) })
 effectWhereClauses =
-    Tokens.whereToken
-        |> ParserWithComments.fromCoreIgnore Layout.layout
-        |> ParserWithComments.continueWith whereBlock
+    (Tokens.whereToken
+        |> Parser.Extra.continueWith
+            (Core.map
+                (\commentsBefore ->
+                    \whereResult ->
+                        { comments = Rope.flatFromList [ commentsBefore, whereResult.comments ]
+                        , syntax = whereResult.syntax
+                        }
+                )
+                Layout.layout
+            )
+    )
+        |= whereBlock
 
 
 effectModuleDefinition : Parser (WithComments Module)
 effectModuleDefinition =
-    let
-        createEffectModule : Node ModuleName -> { command : Maybe (Node String), subscription : Maybe (Node String) } -> Node Exposing -> Module
-        createEffectModule name whereClauses exp =
-            EffectModule
-                { moduleName = name
-                , exposingList = exp
-                , command = whereClauses.command
-                , subscription = whereClauses.subscription
-                }
-    in
     (Core.symbol "effect"
-        |> ParserWithComments.fromCoreIgnore Layout.layout
+        |> Parser.Extra.continueWith
+            (Core.map
+                (\commentsAfterEffect ->
+                    \commentsModule ->
+                        \name ->
+                            \commentsAfterName ->
+                                \whereClauses ->
+                                    \commentsAfterWhereClauses ->
+                                        \exp ->
+                                            { comments =
+                                                Rope.flatFromList
+                                                    [ commentsAfterEffect
+                                                    , commentsModule
+                                                    , commentsAfterName
+                                                    , whereClauses.comments
+                                                    , commentsAfterWhereClauses
+                                                    , exp.comments
+                                                    ]
+                                            , syntax =
+                                                EffectModule
+                                                    { moduleName = name
+                                                    , exposingList = exp.syntax
+                                                    , command = whereClauses.syntax.command
+                                                    , subscription = whereClauses.syntax.subscription
+                                                    }
+                                            }
+                )
+                Layout.layout
+            )
     )
         |. Tokens.moduleToken
-        |> ParserWithComments.ignore Layout.layout
-        |> ParserWithComments.continueWithCore
-            (Core.map (\name -> \whereClauses -> \exp -> createEffectModule name whereClauses exp)
-                moduleName
-            )
-        |> ParserWithComments.ignore Layout.layout
-        |> ParserWithComments.keep effectWhereClauses
-        |> ParserWithComments.ignore Layout.layout
-        |> ParserWithComments.keep (Node.parser exposeDefinition)
+        |= Layout.layout
+        |= moduleName
+        |= Layout.layout
+        |= effectWhereClauses
+        |= Layout.layout
+        |= Node.parser exposeDefinition
 
 
 normalModuleDefinition : Parser (WithComments Module)
 normalModuleDefinition =
-    Tokens.moduleToken
-        |> ParserWithComments.fromCoreIgnore Layout.layout
-        |> ParserWithComments.continueWithCore
+    (Tokens.moduleToken
+        |> Parser.Extra.continueWith
             (Core.map
-                (\moduleName ->
-                    \exposingList ->
-                        NormalModule { moduleName = moduleName, exposingList = exposingList }
+                (\commentsAfterModule ->
+                    \moduleName ->
+                        \commentsAfterModuleName ->
+                            \exposingList ->
+                                { comments =
+                                    Rope.flatFromList
+                                        [ commentsAfterModule
+                                        , commentsAfterModuleName
+                                        , exposingList.comments
+                                        ]
+                                , syntax =
+                                    NormalModule
+                                        { moduleName = moduleName
+                                        , exposingList = exposingList.syntax
+                                        }
+                                }
                 )
-                moduleName
+                Layout.layout
             )
-        |> ParserWithComments.ignore Layout.layout
-        |> ParserWithComments.keep (Node.parser exposeDefinition)
+    )
+        |= moduleName
+        |= Layout.layout
+        |= Node.parser exposeDefinition
 
 
 portModuleDefinition : Parser (WithComments Module)
 portModuleDefinition =
     (Tokens.portToken
-        |> ParserWithComments.fromCoreIgnore Layout.layout
+        |> Parser.Extra.continueWith
+            (Core.map
+                (\commentsAfterPort ->
+                    \commentsAfterModule ->
+                        \moduleName ->
+                            \commentsAfterModuleName ->
+                                \exposingList ->
+                                    { comments =
+                                        Rope.flatFromList
+                                            [ commentsAfterPort
+                                            , commentsAfterModule
+                                            , commentsAfterModuleName
+                                            , exposingList.comments
+                                            ]
+                                    , syntax = PortModule { moduleName = moduleName, exposingList = exposingList.syntax }
+                                    }
+                )
+                Layout.layout
+            )
     )
         |. Tokens.moduleToken
-        |> ParserWithComments.ignore Layout.layout
-        |> ParserWithComments.continueWithCore
-            (Core.map (\moduleName -> \exposingList -> PortModule { moduleName = moduleName, exposingList = exposingList })
-                moduleName
-            )
-        |> ParserWithComments.ignore Layout.layout
-        |> ParserWithComments.keep (Node.parser exposeDefinition)
+        |= Layout.layout
+        |= moduleName
+        |= Layout.layout
+        |= Node.parser exposeDefinition

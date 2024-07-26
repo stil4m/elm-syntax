@@ -4,48 +4,73 @@ import Elm.Parser.Layout as Layout
 import Elm.Parser.Node as Node
 import Elm.Parser.Tokens as Tokens
 import Elm.Syntax.Exposing exposing (Exposing(..), TopLevelExpose(..))
-import Elm.Syntax.Node exposing (Node(..))
+import Elm.Syntax.Node exposing (Node)
+import Elm.Syntax.Range exposing (Range)
 import Parser as Core exposing ((|.), (|=), Parser)
 import Parser.Extra
 import ParserWithComments exposing (WithComments)
+import Rope
 import Set
 
 
 exposeDefinition : Parser (WithComments Exposing)
 exposeDefinition =
-    Tokens.exposingToken
-        |> Parser.Extra.continueWith Layout.maybeLayout
-        |> ParserWithComments.continueWith exposeListWith
+    (Tokens.exposingToken
+        |> Parser.Extra.continueWith
+            (Core.map
+                (\commentsAfterExposing ->
+                    \exposingList ->
+                        { comments = Rope.flatFromList [ commentsAfterExposing, exposingList.comments ]
+                        , syntax = exposingList.syntax
+                        }
+                )
+                Layout.maybeLayout
+            )
+    )
+        |= exposeListWith
 
 
 exposeListWith : Parser (WithComments Exposing)
 exposeListWith =
-    ParserWithComments.between
-        Tokens.parensStart
-        Tokens.parensEnd
-        (Layout.optimisticLayout
-            |> ParserWithComments.continueWith exposingListInner
-            |> ParserWithComments.ignore Layout.optimisticLayout
-        )
+    (Tokens.parensStart
+        |> Parser.Extra.continueWith
+            (Core.map
+                (\commentsBefore ->
+                    \exposingListInnerResult ->
+                        \commentsAfter ->
+                            { comments = Rope.flatFromList [ commentsBefore, exposingListInnerResult.comments, commentsAfter ]
+                            , syntax = exposingListInnerResult.syntax
+                            }
+                )
+                Layout.optimisticLayout
+            )
+    )
+        |= exposingListInner
+        |= Layout.optimisticLayout
+        |. Tokens.parensEnd
 
 
 exposingListInner : Parser (WithComments Exposing)
 exposingListInner =
     Core.oneOf
-        [ (Core.map
+        [ Core.map
             (\( startRow, startColumn ) ->
-                \( endRow, endColumn ) ->
-                    All
-                        { start = { row = startRow, column = startColumn }
-                        , end = { row = endRow, column = endColumn }
-                        }
+                \commentsBeforeDotDot ->
+                    \commentsAfterDotDot ->
+                        \( endRow, endColumn ) ->
+                            { comments = Rope.flatFromList [ commentsBeforeDotDot, commentsAfterDotDot ]
+                            , syntax =
+                                All
+                                    { start = { row = startRow, column = startColumn }
+                                    , end = { row = endRow, column = endColumn }
+                                    }
+                            }
             )
             Core.getPosition
-            |> ParserWithComments.fromCoreIgnore Layout.maybeLayout
-          )
+            |= Layout.maybeLayout
             |. Tokens.dotDot
-            |> ParserWithComments.ignore Layout.maybeLayout
-            |> ParserWithComments.keepFromCore Core.getPosition
+            |= Layout.maybeLayout
+            |= Core.getPosition
         , ParserWithComments.sepBy1 "," (Layout.maybeAroundBothSides exposable)
             |> ParserWithComments.map Explicit
         ]
@@ -82,29 +107,46 @@ typeExpose =
                     Nothing ->
                         TypeOrAliasExpose typeName
 
-                    Just (Node openRange ()) ->
+                    Just openRange ->
                         TypeExpose { name = typeName, open = Just openRange }
         )
         Tokens.typeName
         |> ParserWithComments.fromCoreKeep
             (ParserWithComments.maybe
-                ((Layout.maybeLayout |> Core.backtrackable)
-                    |> ParserWithComments.continueWith exposingVariants
+                (Core.map
+                    (\commentsBefore ->
+                        \exposingVariantsRangeAndComments ->
+                            { comments = Rope.flatFromList [ commentsBefore, exposingVariantsRangeAndComments.comments ]
+                            , syntax = exposingVariantsRangeAndComments.syntax
+                            }
+                    )
+                    (Layout.maybeLayout |> Core.backtrackable)
+                    |= exposingVariants
                 )
             )
 
 
-exposingVariants : Parser (WithComments (Node ()))
+exposingVariants : Parser (WithComments Range)
 exposingVariants =
-    Node.parser
-        (ParserWithComments.between
-            Tokens.parensStart
-            Tokens.parensEnd
-            (Layout.maybeLayout
-                |. Core.symbol ".."
-                |> ParserWithComments.ignore Layout.maybeLayout
-            )
+    Core.map
+        (\( startRow, startColumn ) ->
+            \left ->
+                \right ->
+                    \( endRow, endColumn ) ->
+                        { comments = Rope.flatFromList [ left, right ]
+                        , syntax =
+                            { start = { row = startRow, column = startColumn }
+                            , end = { row = endRow, column = endColumn }
+                            }
+                        }
         )
+        Core.getPosition
+        |. Tokens.parensStart
+        |= Layout.maybeLayout
+        |. Core.symbol ".."
+        |= Layout.maybeLayout
+        |. Tokens.parensEnd
+        |= Core.getPosition
 
 
 functionExpose : Parser (WithComments TopLevelExpose)

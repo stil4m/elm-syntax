@@ -51,13 +51,13 @@ all =
                     |> Expect.err
         , test "module documentation" <|
             \() ->
-                parseWithState "{-|foo\nbar-}" Parser.moduleDocumentation
+                parseWithState "{-|foo\nbar-}" (Parser.moduleDocumentation |> Core.map (\c -> { comments = c, syntax = () }))
                     |> Maybe.map .comments
                     |> Expect.equal
                         (Just [ Node { start = { row = 1, column = 1 }, end = { row = 2, column = 6 } } "{-|foo\nbar-}" ])
         , test "module documentation can handle nested comments" <|
             \() ->
-                parseWithState "{-| {- hello -} -}" Parser.moduleDocumentation
+                parseWithState "{-| {- hello -} -}" (Parser.moduleDocumentation |> Core.map (\c -> { comments = c, syntax = () }))
                     |> Maybe.map .comments
                     |> Expect.equal
                         (Just [ Node { start = { row = 1, column = 1 }, end = { row = 1, column = 19 } } "{-| {- hello -} -}" ])

@@ -16,7 +16,7 @@ import Elm.Syntax.Range exposing (Location)
 import Elm.Syntax.Signature exposing (Signature)
 import Elm.Syntax.Type exposing (ValueConstructor)
 import Elm.Syntax.TypeAnnotation exposing (TypeAnnotation)
-import Parser as Core exposing ((|.), Parser)
+import Parser as Core exposing ((|.), (|=), Parser)
 import Parser.Extra
 import ParserWithComments exposing (WithComments)
 import Rope
@@ -25,123 +25,147 @@ import Rope
 declaration : Parser (WithComments (Node Declaration))
 declaration =
     Core.oneOf
-        [ Core.map
+        [ (Core.map
             (\documentation ->
-                \afterDocumentation ->
-                    let
-                        start : Location
-                        start =
-                            (Node.range documentation).start
-                    in
-                    case afterDocumentation of
-                        FunctionDeclarationAfterDocumentation functionDeclarationAfterDocumentation ->
-                            let
-                                (Node startNameRange startName) =
-                                    functionDeclarationAfterDocumentation.startName
-                            in
-                            case functionDeclarationAfterDocumentation.signature of
-                                Just signature ->
-                                    let
-                                        (Node implementationNameRange implementationName) =
-                                            signature.implementationName
-                                    in
-                                    if implementationName == startName then
+                \commentsAfterDocumentation ->
+                    \afterDocumentation ->
+                        let
+                            start : Location
+                            start =
+                                (Node.range documentation).start
+                        in
+                        case afterDocumentation.syntax of
+                            FunctionDeclarationAfterDocumentation functionDeclarationAfterDocumentation ->
+                                let
+                                    (Node startNameRange startName) =
+                                        functionDeclarationAfterDocumentation.startName
+                                in
+                                case functionDeclarationAfterDocumentation.signature of
+                                    Just signature ->
+                                        let
+                                            (Node implementationNameRange implementationName) =
+                                                signature.implementationName
+                                        in
+                                        if implementationName == startName then
+                                            let
+                                                (Node expressionRange _) =
+                                                    functionDeclarationAfterDocumentation.expression
+                                            in
+                                            { comments =
+                                                Rope.flatFromList
+                                                    [ commentsAfterDocumentation, afterDocumentation.comments ]
+                                            , syntax =
+                                                Node { start = start, end = expressionRange.end }
+                                                    (Declaration.FunctionDeclaration
+                                                        { documentation = Just documentation
+                                                        , signature =
+                                                            Just
+                                                                (Node.combine Signature
+                                                                    functionDeclarationAfterDocumentation.startName
+                                                                    signature.typeAnnotation
+                                                                )
+                                                        , declaration =
+                                                            Node { start = implementationNameRange.start, end = expressionRange.end }
+                                                                { name = signature.implementationName
+                                                                , arguments = functionDeclarationAfterDocumentation.arguments
+                                                                , expression = functionDeclarationAfterDocumentation.expression
+                                                                }
+                                                        }
+                                                    )
+                                            }
+                                                |> Core.succeed
+
+                                        else
+                                            Core.problem
+                                                ("Expected to find the declaration for " ++ startName ++ " but found " ++ implementationName)
+
+                                    Nothing ->
                                         let
                                             (Node expressionRange _) =
                                                 functionDeclarationAfterDocumentation.expression
                                         in
-                                        ParserWithComments.succeed
-                                            (Node { start = start, end = expressionRange.end }
+                                        { comments =
+                                            Rope.flatFromList
+                                                [ commentsAfterDocumentation, afterDocumentation.comments ]
+                                        , syntax =
+                                            Node { start = start, end = expressionRange.end }
                                                 (Declaration.FunctionDeclaration
                                                     { documentation = Just documentation
-                                                    , signature =
-                                                        Just
-                                                            (Node.combine Signature
-                                                                functionDeclarationAfterDocumentation.startName
-                                                                signature.typeAnnotation
-                                                            )
+                                                    , signature = Nothing
                                                     , declaration =
-                                                        Node { start = implementationNameRange.start, end = expressionRange.end }
-                                                            { name = signature.implementationName
+                                                        Node { start = startNameRange.start, end = expressionRange.end }
+                                                            { name = functionDeclarationAfterDocumentation.startName
                                                             , arguments = functionDeclarationAfterDocumentation.arguments
                                                             , expression = functionDeclarationAfterDocumentation.expression
                                                             }
                                                     }
                                                 )
-                                            )
+                                        }
+                                            |> Core.succeed
 
-                                    else
-                                        Core.problem
-                                            ("Expected to find the declaration for " ++ startName ++ " but found " ++ implementationName)
+                            TypeDeclarationAfterDocumentation typeDeclarationAfterDocumentation ->
+                                let
+                                    end : Location
+                                    end =
+                                        case typeDeclarationAfterDocumentation.tailVariantsReverse of
+                                            (Node range _) :: _ ->
+                                                range.end
 
-                                Nothing ->
-                                    let
-                                        (Node expressionRange _) =
-                                            functionDeclarationAfterDocumentation.expression
-                                    in
-                                    Node { start = start, end = expressionRange.end }
-                                        (Declaration.FunctionDeclaration
+                                            [] ->
+                                                let
+                                                    (Node headVariantRange _) =
+                                                        typeDeclarationAfterDocumentation.headVariant
+                                                in
+                                                headVariantRange.end
+                                in
+                                { comments =
+                                    Rope.flatFromList
+                                        [ commentsAfterDocumentation, afterDocumentation.comments ]
+                                , syntax =
+                                    Node { start = start, end = end }
+                                        (Declaration.CustomTypeDeclaration
                                             { documentation = Just documentation
-                                            , signature = Nothing
-                                            , declaration =
-                                                Node { start = startNameRange.start, end = expressionRange.end }
-                                                    { name = functionDeclarationAfterDocumentation.startName
-                                                    , arguments = functionDeclarationAfterDocumentation.arguments
-                                                    , expression = functionDeclarationAfterDocumentation.expression
-                                                    }
+                                            , name = typeDeclarationAfterDocumentation.name
+                                            , generics = typeDeclarationAfterDocumentation.parameters
+                                            , constructors =
+                                                typeDeclarationAfterDocumentation.headVariant
+                                                    :: List.reverse typeDeclarationAfterDocumentation.tailVariantsReverse
                                             }
                                         )
-                                        |> ParserWithComments.succeed
+                                }
+                                    |> Core.succeed
 
-                        TypeDeclarationAfterDocumentation typeDeclarationAfterDocumentation ->
-                            let
-                                end : Location
-                                end =
-                                    case typeDeclarationAfterDocumentation.tailVariantsReverse of
-                                        (Node range _) :: _ ->
-                                            range.end
+                            TypeAliasDeclarationAfterDocumentation typeAliasDeclarationAfterDocumentation ->
+                                let
+                                    (Node typeAnnotationRange _) =
+                                        typeAliasDeclarationAfterDocumentation.typeAnnotation
+                                in
+                                { comments =
+                                    Rope.flatFromList
+                                        [ commentsAfterDocumentation, afterDocumentation.comments ]
+                                , syntax =
+                                    Node { start = start, end = typeAnnotationRange.end }
+                                        (Declaration.AliasDeclaration
+                                            { documentation = Just documentation
+                                            , name = typeAliasDeclarationAfterDocumentation.name
+                                            , generics = typeAliasDeclarationAfterDocumentation.parameters
+                                            , typeAnnotation = typeAliasDeclarationAfterDocumentation.typeAnnotation
+                                            }
+                                        )
+                                }
+                                    |> Core.succeed
 
-                                        [] ->
-                                            let
-                                                (Node headVariantRange _) =
-                                                    typeDeclarationAfterDocumentation.headVariant
-                                            in
-                                            headVariantRange.end
-                            in
-                            Node { start = start, end = end }
-                                (Declaration.CustomTypeDeclaration
-                                    { documentation = Just documentation
-                                    , name = typeDeclarationAfterDocumentation.name
-                                    , generics = typeDeclarationAfterDocumentation.parameters
-                                    , constructors =
-                                        typeDeclarationAfterDocumentation.headVariant
-                                            :: List.reverse typeDeclarationAfterDocumentation.tailVariantsReverse
-                                    }
-                                )
-                                |> ParserWithComments.succeed
-
-                        TypeAliasDeclarationAfterDocumentation typeAliasDeclarationAfterDocumentation ->
-                            let
-                                (Node typeAnnotationRange _) =
-                                    typeAliasDeclarationAfterDocumentation.typeAnnotation
-                            in
-                            Node { start = start, end = typeAnnotationRange.end }
-                                (Declaration.AliasDeclaration
-                                    { documentation = Just documentation
-                                    , name = typeAliasDeclarationAfterDocumentation.name
-                                    , generics = typeAliasDeclarationAfterDocumentation.parameters
-                                    , typeAnnotation = typeAliasDeclarationAfterDocumentation.typeAnnotation
-                                    }
-                                )
-                                |> ParserWithComments.succeed
-
-                        PortDeclarationAfterDocumentation portDeclarationAfterName ->
-                            let
-                                (Node typeAnnotationRange _) =
-                                    portDeclarationAfterName.typeAnnotation
-                            in
-                            Core.succeed
-                                { comments = Rope.one documentation
+                            PortDeclarationAfterDocumentation portDeclarationAfterName ->
+                                let
+                                    (Node typeAnnotationRange _) =
+                                        portDeclarationAfterName.typeAnnotation
+                                in
+                                { comments =
+                                    Rope.flatFromList
+                                        [ Rope.one documentation
+                                        , commentsAfterDocumentation
+                                        , afterDocumentation.comments
+                                        ]
                                 , syntax =
                                     Node
                                         { start = portDeclarationAfterName.startLocation
@@ -153,17 +177,17 @@ declaration =
                                             }
                                         )
                                 }
+                                    |> Core.succeed
             )
             Comments.declarationDocumentation
-            |> ParserWithComments.fromCoreIgnore Layout.layoutStrict
-            |> ParserWithComments.keep
-                (Core.oneOf
-                    [ functionAfterDocumentation
-                    , typeOrTypeAliasDefinitionAfterDocumentation
-                    , portDeclarationAfterDocumentation
-                    ]
-                )
-            |> ParserWithComments.andThen identity
+            |= Layout.layoutStrict
+            |= Core.oneOf
+                [ functionAfterDocumentation
+                , typeOrTypeAliasDefinitionAfterDocumentation
+                , portDeclarationAfterDocumentation
+                ]
+          )
+            |> Core.andThen identity
         , infixDeclaration
         , functionDeclarationWithoutDocumentation
         , typeOrTypeAliasDefinitionWithoutDocumentation
@@ -232,21 +256,34 @@ functionAfterDocumentation =
         |> ParserWithComments.fromCoreIgnore Layout.maybeLayout
         |> ParserWithComments.keep
             (ParserWithComments.maybe
-                (Tokens.colon
-                    |> ParserWithComments.fromCoreIgnore Layout.maybeLayout
-                    |> ParserWithComments.continueWith
-                        (ParserWithComments.map
-                            (\typeAnnotation ->
-                                \implementationNameNode ->
-                                    { implementationName = implementationNameNode
-                                    , typeAnnotation = typeAnnotation
-                                    }
+                ((Tokens.colon
+                    |> Parser.Extra.continueWith
+                        (Core.map
+                            (\commentsBeforeTypeAnnotation ->
+                                \typeAnnotationResult ->
+                                    \commentsAfterTypeAnnotation ->
+                                        \implementationNameNode ->
+                                            \afterImplementationName ->
+                                                { comments =
+                                                    Rope.flatFromList
+                                                        [ commentsBeforeTypeAnnotation
+                                                        , typeAnnotationResult.comments
+                                                        , commentsAfterTypeAnnotation
+                                                        , afterImplementationName
+                                                        ]
+                                                , syntax =
+                                                    { implementationName = implementationNameNode
+                                                    , typeAnnotation = typeAnnotationResult.syntax
+                                                    }
+                                                }
                             )
-                            TypeAnnotation.typeAnnotation
+                            Layout.maybeLayout
                         )
-                    |> ParserWithComments.ignore Layout.layoutStrict
-                    |> ParserWithComments.keepFromCore (Tokens.functionName |> Node.parserCore)
-                    |> ParserWithComments.ignore Layout.maybeLayout
+                 )
+                    |= TypeAnnotation.typeAnnotation
+                    |= Layout.layoutStrict
+                    |= (Tokens.functionName |> Node.parserCore)
+                    |= Layout.maybeLayout
                 )
             )
         |> ParserWithComments.keep
@@ -319,21 +356,34 @@ functionDeclarationWithoutDocumentation =
         |> ParserWithComments.fromCoreIgnore Layout.maybeLayout
         |> ParserWithComments.keep
             (ParserWithComments.maybe
-                (Tokens.colon
-                    |> ParserWithComments.fromCoreIgnore Layout.maybeLayout
-                    |> ParserWithComments.continueWith
-                        (ParserWithComments.map
-                            (\typeAnnotation ->
-                                \implementationNameNode ->
-                                    { implementationName = implementationNameNode
-                                    , typeAnnotation = typeAnnotation
-                                    }
+                ((Tokens.colon
+                    |> Parser.Extra.continueWith
+                        (Core.map
+                            (\commentsBeforeTypeAnnotation ->
+                                \typeAnnotationResult ->
+                                    \commentsAfterTypeAnnotation ->
+                                        \implementationNameNode ->
+                                            \afterImplementationName ->
+                                                { comments =
+                                                    Rope.flatFromList
+                                                        [ commentsBeforeTypeAnnotation
+                                                        , typeAnnotationResult.comments
+                                                        , commentsAfterTypeAnnotation
+                                                        , afterImplementationName
+                                                        ]
+                                                , syntax =
+                                                    { implementationName = implementationNameNode
+                                                    , typeAnnotation = typeAnnotationResult.syntax
+                                                    }
+                                                }
                             )
-                            TypeAnnotation.typeAnnotation
+                            Layout.maybeLayout
                         )
-                    |> ParserWithComments.ignore Layout.layoutStrict
-                    |> ParserWithComments.keepFromCore (Tokens.functionName |> Node.parserCore)
-                    |> ParserWithComments.ignore Layout.maybeLayout
+                 )
+                    |= TypeAnnotation.typeAnnotation
+                    |= Layout.layoutStrict
+                    |= (Tokens.functionName |> Node.parserCore)
+                    |= Layout.maybeLayout
                 )
             )
         |> ParserWithComments.keep
@@ -449,39 +499,60 @@ portDeclarationWithoutDocumentation =
 
 typeOrTypeAliasDefinitionAfterDocumentation : Parser (WithComments DeclarationAfterDocumentation)
 typeOrTypeAliasDefinitionAfterDocumentation =
-    Core.symbol "type"
-        |> ParserWithComments.fromCoreIgnore Layout.layout
-        |> ParserWithComments.continueWith
-            (Core.oneOf
-                [ typeAliasDefinitionAfterDocumentationAfterTypePrefix
-                , customTypeDefinitionAfterDocumentationAfterTypePrefix
-                ]
+    (Core.symbol "type"
+        |> Parser.Extra.continueWith
+            (Core.map
+                (\commentsAfterType ->
+                    \declarationAfterDocumentation ->
+                        { comments = Rope.flatFromList [ commentsAfterType, declarationAfterDocumentation.comments ]
+                        , syntax = declarationAfterDocumentation.syntax
+                        }
+                )
+                Layout.layout
             )
+    )
+        |= Core.oneOf
+            [ typeAliasDefinitionAfterDocumentationAfterTypePrefix
+            , customTypeDefinitionAfterDocumentationAfterTypePrefix
+            ]
 
 
 typeAliasDefinitionAfterDocumentationAfterTypePrefix : Parser (WithComments DeclarationAfterDocumentation)
 typeAliasDefinitionAfterDocumentationAfterTypePrefix =
     (Tokens.aliasToken
-        |> ParserWithComments.fromCoreIgnore Layout.layout
-        |> ParserWithComments.continueWithCore
-            (Node.parserCoreMap
-                (\name ->
-                    \parameters ->
-                        \typeAnnotation ->
-                            TypeAliasDeclarationAfterDocumentation
-                                { name = name
-                                , parameters = parameters
-                                , typeAnnotation = typeAnnotation
-                                }
+        |> Parser.Extra.continueWith
+            (Core.map
+                (\commentsAfterAlias ->
+                    \name ->
+                        \commentsAfterName ->
+                            \parameters ->
+                                \commentsAfterEquals ->
+                                    \typeAnnotationResult ->
+                                        { comments =
+                                            Rope.flatFromList
+                                                [ commentsAfterAlias
+                                                , commentsAfterName
+                                                , parameters.comments
+                                                , commentsAfterEquals
+                                                , typeAnnotationResult.comments
+                                                ]
+                                        , syntax =
+                                            TypeAliasDeclarationAfterDocumentation
+                                                { name = name
+                                                , parameters = parameters.syntax
+                                                , typeAnnotation = typeAnnotationResult.syntax
+                                                }
+                                        }
                 )
-                Tokens.typeName
+                Layout.layout
             )
-        |> ParserWithComments.ignore Layout.maybeLayout
-        |> ParserWithComments.keep typeGenericList
     )
+        |= Node.parserCore Tokens.typeName
+        |= Layout.maybeLayout
+        |= typeGenericList
         |. Tokens.equal
-        |> ParserWithComments.ignore Layout.maybeLayout
-        |> ParserWithComments.keep typeAnnotation
+        |= Layout.maybeLayout
+        |= typeAnnotation
 
 
 customTypeDefinitionAfterDocumentationAfterTypePrefix : Parser (WithComments DeclarationAfterDocumentation)
@@ -507,12 +578,23 @@ customTypeDefinitionAfterDocumentationAfterTypePrefix =
         |> ParserWithComments.keep valueConstructor
         |> ParserWithComments.keep
             (ParserWithComments.manyWithoutReverse
-                ((Layout.maybeLayout
-                    |> Core.backtrackable
-                 )
+                (Core.map
+                    (\commentsBeforePipe ->
+                        \commentsAfterPipe ->
+                            \variantResult ->
+                                { comments =
+                                    Rope.flatFromList
+                                        [ commentsBeforePipe
+                                        , commentsAfterPipe
+                                        , variantResult.comments
+                                        ]
+                                , syntax = variantResult.syntax
+                                }
+                    )
+                    (Layout.maybeLayout |> Core.backtrackable)
                     |. Tokens.pipe
-                    |> ParserWithComments.ignore Layout.maybeLayout
-                    |> ParserWithComments.continueWith valueConstructor
+                    |= Layout.maybeLayout
+                    |= valueConstructor
                 )
             )
 
@@ -526,82 +608,97 @@ typeOrTypeAliasDefinitionWithoutDocumentation =
                 start =
                     { row = startRow, column = 1 }
             in
-            \afterStart ->
-                case afterStart of
-                    TypeDeclarationWithoutDocumentation typeDeclarationAfterDocumentation ->
-                        let
-                            end : Location
-                            end =
-                                case typeDeclarationAfterDocumentation.tailVariantsReverse of
-                                    (Node range _) :: _ ->
-                                        range.end
+            \commentsAfterType ->
+                \afterStart ->
+                    { comments = Rope.flatFromList [ commentsAfterType, afterStart.comments ]
+                    , syntax =
+                        case afterStart.syntax of
+                            TypeDeclarationWithoutDocumentation typeDeclarationAfterDocumentation ->
+                                let
+                                    end : Location
+                                    end =
+                                        case typeDeclarationAfterDocumentation.tailVariantsReverse of
+                                            (Node range _) :: _ ->
+                                                range.end
 
-                                    [] ->
-                                        let
-                                            (Node headVariantRange _) =
-                                                typeDeclarationAfterDocumentation.headVariant
-                                        in
-                                        headVariantRange.end
-                        in
-                        Node { start = start, end = end }
-                            (Declaration.CustomTypeDeclaration
-                                { documentation = Nothing
-                                , name = typeDeclarationAfterDocumentation.name
-                                , generics = typeDeclarationAfterDocumentation.parameters
-                                , constructors =
-                                    typeDeclarationAfterDocumentation.headVariant
-                                        :: List.reverse typeDeclarationAfterDocumentation.tailVariantsReverse
-                                }
-                            )
+                                            [] ->
+                                                let
+                                                    (Node headVariantRange _) =
+                                                        typeDeclarationAfterDocumentation.headVariant
+                                                in
+                                                headVariantRange.end
+                                in
+                                Node { start = start, end = end }
+                                    (Declaration.CustomTypeDeclaration
+                                        { documentation = Nothing
+                                        , name = typeDeclarationAfterDocumentation.name
+                                        , generics = typeDeclarationAfterDocumentation.parameters
+                                        , constructors =
+                                            typeDeclarationAfterDocumentation.headVariant
+                                                :: List.reverse typeDeclarationAfterDocumentation.tailVariantsReverse
+                                        }
+                                    )
 
-                    TypeAliasDeclarationWithoutDocumentation typeAliasDeclarationAfterDocumentation ->
-                        let
-                            (Node typeAnnotationRange _) =
-                                typeAliasDeclarationAfterDocumentation.typeAnnotation
-                        in
-                        Node { start = start, end = typeAnnotationRange.end }
-                            (Declaration.AliasDeclaration
-                                { documentation = Nothing
-                                , name = typeAliasDeclarationAfterDocumentation.name
-                                , generics = typeAliasDeclarationAfterDocumentation.parameters
-                                , typeAnnotation = typeAliasDeclarationAfterDocumentation.typeAnnotation
-                                }
-                            )
+                            TypeAliasDeclarationWithoutDocumentation typeAliasDeclarationAfterDocumentation ->
+                                let
+                                    (Node typeAnnotationRange _) =
+                                        typeAliasDeclarationAfterDocumentation.typeAnnotation
+                                in
+                                Node { start = start, end = typeAnnotationRange.end }
+                                    (Declaration.AliasDeclaration
+                                        { documentation = Nothing
+                                        , name = typeAliasDeclarationAfterDocumentation.name
+                                        , generics = typeAliasDeclarationAfterDocumentation.parameters
+                                        , typeAnnotation = typeAliasDeclarationAfterDocumentation.typeAnnotation
+                                        }
+                                    )
+                    }
         )
         Core.getRow
         |. Core.symbol "type"
-        |> ParserWithComments.fromCoreIgnore Layout.layout
-        |> ParserWithComments.keep
-            (Core.oneOf
-                [ typeAliasDefinitionWithoutDocumentationAfterTypePrefix
-                , customTypeDefinitionWithoutDocumentationAfterTypePrefix
-                ]
-            )
+        |= Layout.layout
+        |= Core.oneOf
+            [ typeAliasDefinitionWithoutDocumentationAfterTypePrefix
+            , customTypeDefinitionWithoutDocumentationAfterTypePrefix
+            ]
 
 
 typeAliasDefinitionWithoutDocumentationAfterTypePrefix : Parser (WithComments TypeOrTypeAliasDeclarationWithoutDocumentation)
 typeAliasDefinitionWithoutDocumentationAfterTypePrefix =
     (Tokens.aliasToken
-        |> ParserWithComments.fromCoreIgnore Layout.layout
-        |> ParserWithComments.continueWithCore
-            (Node.parserCoreMap
-                (\name ->
-                    \parameters ->
-                        \typeAnnotation ->
-                            TypeAliasDeclarationWithoutDocumentation
-                                { name = name
-                                , parameters = parameters
-                                , typeAnnotation = typeAnnotation
-                                }
+        |> Parser.Extra.continueWith
+            (Core.map
+                (\commentsAfterAlias ->
+                    \name ->
+                        \commentsAfterName ->
+                            \parameters ->
+                                \commentsAfterEqual ->
+                                    \typeAnnotationResult ->
+                                        { comments =
+                                            Rope.flatFromList
+                                                [ commentsAfterAlias
+                                                , commentsAfterName
+                                                , parameters.comments
+                                                , commentsAfterEqual
+                                                , typeAnnotationResult.comments
+                                                ]
+                                        , syntax =
+                                            TypeAliasDeclarationWithoutDocumentation
+                                                { name = name
+                                                , parameters = parameters.syntax
+                                                , typeAnnotation = typeAnnotationResult.syntax
+                                                }
+                                        }
                 )
-                Tokens.typeName
+                Layout.layout
             )
-        |> ParserWithComments.ignore Layout.maybeLayout
-        |> ParserWithComments.keep typeGenericList
     )
+        |= Node.parserCore Tokens.typeName
+        |= Layout.maybeLayout
+        |= typeGenericList
         |. Tokens.equal
-        |> ParserWithComments.ignore Layout.maybeLayout
-        |> ParserWithComments.keep typeAnnotation
+        |= Layout.maybeLayout
+        |= typeAnnotation
 
 
 customTypeDefinitionWithoutDocumentationAfterTypePrefix : Parser (WithComments TypeOrTypeAliasDeclarationWithoutDocumentation)
@@ -628,12 +725,23 @@ customTypeDefinitionWithoutDocumentationAfterTypePrefix =
         |> ParserWithComments.keep valueConstructor
         |> ParserWithComments.keep
             (ParserWithComments.manyWithoutReverse
-                ((Layout.maybeLayout
-                    |> Core.backtrackable
-                 )
+                (Core.map
+                    (\commentsBeforePipe ->
+                        \commentsAfterPipe ->
+                            \variantResult ->
+                                { comments =
+                                    Rope.flatFromList
+                                        [ commentsBeforePipe
+                                        , commentsAfterPipe
+                                        , variantResult.comments
+                                        ]
+                                , syntax = variantResult.syntax
+                                }
+                    )
+                    (Layout.maybeLayout |> Core.backtrackable)
                     |. Tokens.pipe
-                    |> ParserWithComments.ignore Layout.maybeLayout
-                    |> ParserWithComments.continueWith valueConstructor
+                    |= Layout.maybeLayout
+                    |= valueConstructor
                 )
             )
 
@@ -660,9 +768,14 @@ valueConstructor =
             )
         |> ParserWithComments.fromCoreKeep
             (ParserWithComments.manyWithoutReverse
-                (Layout.maybeLayout
-                    |> Core.backtrackable
-                    |> ParserWithComments.continueWith typeAnnotationNoFnExcludingTypedWithArguments
+                (Core.map
+                    (\commentsBefore typeAnnotationResult ->
+                        { comments = Rope.flatFromList [ commentsBefore, typeAnnotationResult.comments ]
+                        , syntax = typeAnnotationResult.syntax
+                        }
+                    )
+                    (Layout.maybeLayout |> Core.backtrackable)
+                    |= typeAnnotationNoFnExcludingTypedWithArguments
                 )
             )
 

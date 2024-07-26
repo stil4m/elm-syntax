@@ -1,9 +1,8 @@
 module ParserWithComments exposing
-    ( WithComments
+    ( Comments
+    , WithComments
     , andThen
-    , between
     , continueWith
-    , continueWithCore
     , flattenFromCore
     , fromCore
     , fromCoreIgnore
@@ -26,13 +25,17 @@ module ParserWithComments exposing
     )
 
 import Elm.Syntax.Node exposing (Node)
-import Parser as Core exposing ((|.), Parser)
+import Parser as Core exposing (Parser)
 import Parser.Extra
 import Rope exposing (Rope)
 
 
 type alias WithComments res =
-    { comments : Rope (Node String), syntax : res }
+    { comments : Comments, syntax : res }
+
+
+type alias Comments =
+    Rope (Node String)
 
 
 fromCoreMap : (res -> changedRes) -> Core.Parser res -> Parser (WithComments changedRes)
@@ -73,7 +76,7 @@ andThen f p =
             )
 
 
-continueWith : Parser (WithComments b) -> Parser (WithComments ()) -> Parser (WithComments b)
+continueWith : Parser (WithComments b) -> Parser Comments -> Parser (WithComments b)
 continueWith next p =
     p
         |> Core.andThen
@@ -82,7 +85,7 @@ continueWith next p =
                     |> Core.map
                         (\nextResult ->
                             { comments =
-                                pOnlyComments.comments
+                                pOnlyComments
                                     |> Rope.prependTo nextResult.comments
                             , syntax = nextResult.syntax
                             }
@@ -90,7 +93,7 @@ continueWith next p =
             )
 
 
-fromCoreIgnore : Parser (WithComments ()) -> Core.Parser a -> Parser (WithComments a)
+fromCoreIgnore : Parser Comments -> Core.Parser a -> Parser (WithComments a)
 fromCoreIgnore next p =
     p
         |> Core.andThen
@@ -98,7 +101,7 @@ fromCoreIgnore next p =
                 next
                     |> Core.map
                         (\nextOnlyComments ->
-                            { comments = nextOnlyComments.comments
+                            { comments = nextOnlyComments
                             , syntax = pResult
                             }
                         )
@@ -202,11 +205,11 @@ maybeMap onJust onNothing p =
         ]
 
 
-maybeIgnore : Parser (WithComments ()) -> Parser (WithComments ())
+maybeIgnore : Parser Comments -> Parser Comments
 maybeIgnore p =
     Core.oneOf
         [ p
-        , Core.succeed { comments = Rope.empty, syntax = () }
+        , Core.succeed Rope.empty
         ]
 
 
@@ -214,12 +217,12 @@ many : Parser (WithComments a) -> Parser (WithComments (List a))
 many p =
     let
         manyWithoutReverseStep :
-            ( List (Rope (Node String)), List a )
+            ( List Comments, List a )
             ->
                 Core.Parser
                     (Core.Step
-                        ( List (Rope (Node String)), List a )
-                        { comments : Rope (Node String), syntax : List a }
+                        ( List Comments, List a )
+                        { comments : Comments, syntax : List a }
                     )
         manyWithoutReverseStep ( commentsSoFar, items ) =
             Core.oneOf
@@ -252,12 +255,12 @@ manyWithoutReverse : Parser (WithComments a) -> Parser (WithComments (List a))
 manyWithoutReverse p =
     let
         manyWithoutReverseStep :
-            ( List (Rope (Node String)), List a )
+            ( List Comments, List a )
             ->
                 Core.Parser
                     (Core.Step
-                        ( List (Rope (Node String)), List a )
-                        { comments : Rope (Node String), syntax : List a }
+                        ( List Comments, List a )
+                        { comments : Comments, syntax : List a }
                     )
         manyWithoutReverseStep ( commentsSoFar, items ) =
             Core.oneOf
@@ -290,12 +293,12 @@ loop : a -> (a -> Parser (WithComments (Core.Step a b))) -> Parser (WithComments
 loop initialState step =
     let
         stepWithComments :
-            ( List (Rope (Node String)), a )
+            ( List Comments, a )
             ->
                 Core.Parser
                     (Core.Step
-                        ( List (Rope (Node String)), a )
-                        { comments : Rope (Node String), syntax : b }
+                        ( List Comments, a )
+                        { comments : Comments, syntax : b }
                     )
         stepWithComments ( commentsSoFar, state ) =
             step state
@@ -331,7 +334,7 @@ sepBy1 sep p =
         |> keep (many (Core.symbol sep |> Parser.Extra.continueWith p))
 
 
-sepBy1WithState : Parser (WithComments ()) -> Parser (WithComments a) -> Parser (WithComments (List a))
+sepBy1WithState : Parser Comments -> Parser (WithComments a) -> Parser (WithComments (List a))
 sepBy1WithState sep p =
     map cons p
         |> keep
@@ -342,7 +345,7 @@ sepBy1WithState sep p =
                             p
                                 |> Core.map
                                     (\pResult ->
-                                        { comments = onlyComments.comments |> Rope.prependTo pResult.comments
+                                        { comments = onlyComments |> Rope.prependTo pResult.comments
                                         , syntax = pResult.syntax
                                         }
                                     )
@@ -351,15 +354,7 @@ sepBy1WithState sep p =
             )
 
 
-between : Core.Parser () -> Core.Parser () -> Parser (WithComments a) -> Parser (WithComments a)
-between lp rp p =
-    (lp
-        |> Parser.Extra.continueWith p
-    )
-        |. rp
-
-
-ignore : Parser (WithComments ()) -> Parser (WithComments a) -> Parser (WithComments a)
+ignore : Parser Comments -> Parser (WithComments a) -> Parser (WithComments a)
 ignore dropped target =
     target
         |> Core.andThen
@@ -369,23 +364,8 @@ ignore dropped target =
                         (\droppedOnlyComments ->
                             { comments =
                                 targetResult.comments
-                                    |> Rope.prependTo droppedOnlyComments.comments
+                                    |> Rope.prependTo droppedOnlyComments
                             , syntax = targetResult.syntax
-                            }
-                        )
-            )
-
-
-continueWithCore : Core.Parser a -> Parser (WithComments ()) -> Parser (WithComments a)
-continueWithCore target dropped =
-    dropped
-        |> Core.andThen
-            (\onlyComments ->
-                target
-                    |> Core.map
-                        (\a ->
-                            { comments = onlyComments.comments
-                            , syntax = a
                             }
                         )
             )

@@ -12,7 +12,8 @@ import Elm.Syntax.Node as Node exposing (Node(..))
 import Elm.Syntax.Signature exposing (Signature)
 import Parser as Core exposing ((|.), (|=), Nestable(..), Parser)
 import Parser.Extra
-import ParserWithComments exposing (WithComments)
+import ParserWithComments exposing (Comments, WithComments)
+import Rope
 
 
 subExpressions : Parser (WithComments (Node Expression))
@@ -169,12 +170,18 @@ glslExpression =
 listExpression : Parser (WithComments Expression)
 listExpression =
     (Tokens.squareStart
-        |> ParserWithComments.fromCoreIgnore Layout.maybeLayout
-        |> ParserWithComments.continueWith
-            (ParserWithComments.map ListExpr
-                (ParserWithComments.sepBy "," expression)
+        |> Parser.Extra.continueWith
+            (Core.map
+                (\commentsBefore ->
+                    \elements ->
+                        { comments = Rope.flatFromList [ commentsBefore, elements.comments ]
+                        , syntax = ListExpr elements.syntax
+                        }
+                )
+                Layout.maybeLayout
             )
     )
+        |= ParserWithComments.sepBy "," expression
         |. Tokens.squareEnd
 
 
@@ -185,13 +192,20 @@ listExpression =
 recordExpression : Parser (WithComments Expression)
 recordExpression =
     (Tokens.curlyStart
-        |> ParserWithComments.fromCoreIgnore Layout.maybeLayout
-        |> ParserWithComments.continueWith
-            (ParserWithComments.maybeMap identity
-                (RecordExpr [])
-                recordContents
+        |> Parser.Extra.continueWith
+            (Core.map
+                (\commentsBefore ->
+                    \afterCurly ->
+                        { comments = Rope.flatFromList [ commentsBefore, afterCurly.comments ]
+                        , syntax = afterCurly.syntax
+                        }
+                )
+                Layout.maybeLayout
             )
     )
+        |= ParserWithComments.maybeMap identity
+            (RecordExpr [])
+            recordContents
         |. Tokens.curlyEnd
 
 
@@ -199,31 +213,58 @@ recordContents : Parser (WithComments Expression)
 recordContents =
     Node.parserCoreMap
         (\nameNode ->
-            \afterNameBeforeFields ->
-                \tailFields ->
-                    case afterNameBeforeFields of
-                        RecordUpdateFirstSetter firstField ->
-                            RecordUpdateExpression nameNode (firstField :: tailFields)
+            \commentsAfterFunctionName ->
+                \afterNameBeforeFields ->
+                    \tailFields ->
+                        \commentsAfterEverything ->
+                            { comments =
+                                Rope.flatFromList
+                                    [ commentsAfterFunctionName
+                                    , afterNameBeforeFields.comments
+                                    , tailFields.comments
+                                    , commentsAfterEverything
+                                    ]
+                            , syntax =
+                                case afterNameBeforeFields.syntax of
+                                    RecordUpdateFirstSetter firstField ->
+                                        RecordUpdateExpression nameNode (firstField :: tailFields.syntax)
 
-                        FieldsFirstValue firstFieldValue ->
-                            RecordExpr (Node.combine Tuple.pair nameNode firstFieldValue :: tailFields)
+                                    FieldsFirstValue firstFieldValue ->
+                                        RecordExpr (Node.combine Tuple.pair nameNode firstFieldValue :: tailFields.syntax)
+                            }
         )
         Tokens.functionName
-        |> ParserWithComments.fromCoreIgnore Layout.maybeLayout
-        |> ParserWithComments.keep
-            (Core.oneOf
-                [ Tokens.pipe
-                    |> ParserWithComments.fromCoreIgnore Layout.maybeLayout
-                    |> ParserWithComments.continueWith
-                        (ParserWithComments.map RecordUpdateFirstSetter recordSetterNodeWithLayout)
-                , Tokens.equal
-                    |> ParserWithComments.fromCoreIgnore Layout.maybeLayout
-                    |> ParserWithComments.continueWith
-                        (ParserWithComments.map FieldsFirstValue expression)
-                ]
-            )
-        |> ParserWithComments.keep recordFields
-        |> ParserWithComments.ignore Layout.maybeLayout
+        |= Layout.maybeLayout
+        |= Core.oneOf
+            [ (Tokens.pipe
+                |> Parser.Extra.continueWith
+                    (Core.map
+                        (\commentsBefore ->
+                            \setterResult ->
+                                { comments = Rope.flatFromList [ commentsBefore, setterResult.comments ]
+                                , syntax = RecordUpdateFirstSetter setterResult.syntax
+                                }
+                        )
+                        Layout.maybeLayout
+                    )
+              )
+                |= recordSetterNodeWithLayout
+            , (Tokens.equal
+                |> Parser.Extra.continueWith
+                    (Core.map
+                        (\commentsBefore ->
+                            \expressionResult ->
+                                { comments = Rope.flatFromList [ commentsBefore, expressionResult.comments ]
+                                , syntax = FieldsFirstValue expressionResult.syntax
+                                }
+                        )
+                        Layout.maybeLayout
+                    )
+              )
+                |= expression
+            ]
+        |= recordFields
+        |= Layout.maybeLayout
 
 
 type RecordFieldsOrUpdateAfterName
@@ -234,31 +275,52 @@ type RecordFieldsOrUpdateAfterName
 recordFields : Parser (WithComments (List (Node RecordSetter)))
 recordFields =
     ParserWithComments.many
-        (Tokens.comma
-            |> ParserWithComments.fromCoreIgnore Layout.maybeLayout
-            |> ParserWithComments.continueWith recordSetterNodeWithLayout
+        ((Tokens.comma
+            |> Parser.Extra.continueWith
+                (Core.map
+                    (\commentsBefore ->
+                        \setterResult ->
+                            { comments = Rope.flatFromList [ commentsBefore, setterResult.comments ]
+                            , syntax = setterResult.syntax
+                            }
+                    )
+                    Layout.maybeLayout
+                )
+         )
+            |= recordSetterNodeWithLayout
         )
 
 
 recordSetterNodeWithLayout : Parser (WithComments (Node RecordSetter))
 recordSetterNodeWithLayout =
-    (Node.parserCoreMap
+    Node.parserCoreMap
         (\((Node fnNameRange _) as fnName) ->
-            \expr ->
-                \( endRow, endColumn ) ->
-                    Node { start = fnNameRange.start, end = { row = endRow, column = endColumn } }
-                        ( fnName, expr )
+            \commentsAfterFunctionName ->
+                \commentsAfterEquals ->
+                    \expressionResult ->
+                        \commentsAfterExpression ->
+                            \( endRow, endColumn ) ->
+                                { comments =
+                                    Rope.flatFromList
+                                        [ commentsAfterFunctionName
+                                        , commentsAfterEquals
+                                        , expressionResult.comments
+                                        , commentsAfterExpression
+                                        ]
+                                , syntax =
+                                    Node { start = fnNameRange.start, end = { row = endRow, column = endColumn } }
+                                        ( fnName, expressionResult.syntax )
+                                }
         )
         Tokens.functionName
-        |> ParserWithComments.fromCoreIgnore Layout.maybeLayout
-    )
+        |= Layout.maybeLayout
         |. Tokens.equal
-        |> ParserWithComments.ignore Layout.maybeLayout
-        |> ParserWithComments.keep expression
-        |> ParserWithComments.ignore Layout.maybeLayout
+        |= Layout.maybeLayout
+        |= expression
+        |= Layout.maybeLayout
         -- This extra whitespace is just included for compatibility with earlier version
         -- TODO for v8: remove and use (Node.range expr).end
-        |> ParserWithComments.keepFromCore Core.getPosition
+        |= Core.getPosition
 
 
 literalExpression : Parser (WithComments Expression)
@@ -279,22 +341,36 @@ charLiteralExpression =
 
 lambdaExpression : Parser (WithComments (Node Expression))
 lambdaExpression =
-    (Core.map
+    Core.map
         (\( startRow, startColumn ) ->
-            \args ->
-                \((Node { end } _) as expr) ->
-                    { args = args, expression = expr }
-                        |> LambdaExpression
-                        |> Node { start = { row = startRow, column = startColumn }, end = end }
+            \commentsAfterBackslash ->
+                \argsResult ->
+                    \commentsBeforeArrowRight ->
+                        \expressionResult ->
+                            let
+                                (Node { end } _) =
+                                    expressionResult.syntax
+                            in
+                            { comments =
+                                Rope.flatFromList
+                                    [ commentsAfterBackslash
+                                    , argsResult.comments
+                                    , commentsBeforeArrowRight
+                                    , expressionResult.comments
+                                    ]
+                            , syntax =
+                                { args = argsResult.syntax, expression = expressionResult.syntax }
+                                    |> LambdaExpression
+                                    |> Node { start = { row = startRow, column = startColumn }, end = end }
+                            }
         )
         Core.getPosition
         |. Tokens.backSlash
-        |> ParserWithComments.fromCoreIgnore Layout.maybeLayout
-        |> ParserWithComments.keep (ParserWithComments.sepBy1WithState Layout.maybeLayout Patterns.pattern)
-        |> ParserWithComments.ignore Layout.maybeLayout
-    )
+        |= Layout.maybeLayout
+        |= ParserWithComments.sepBy1WithState Layout.maybeLayout Patterns.pattern
+        |= Layout.maybeLayout
         |. Tokens.arrowRight
-        |> ParserWithComments.keep expression
+        |= expression
 
 
 
@@ -350,13 +426,26 @@ caseStatements =
 
 caseStatement : Parser (WithComments Case)
 caseStatement =
-    (Layout.onTopIndentation (\pattern -> \expr -> ( pattern, expr ))
-        |> ParserWithComments.keep Patterns.pattern
-        |> ParserWithComments.ignore Layout.maybeLayout
-    )
+    Layout.onTopIndentation
+        (\pattern ->
+            \commentsBeforeArrowRight ->
+                \commentsAfterArrowRight ->
+                    \expr ->
+                        { comments =
+                            Rope.flatFromList
+                                [ pattern.comments
+                                , commentsBeforeArrowRight
+                                , commentsAfterArrowRight
+                                , expr.comments
+                                ]
+                        , syntax = ( pattern.syntax, expr.syntax )
+                        }
+        )
+        |= Patterns.pattern
+        |= Layout.maybeLayout
         |. Tokens.arrowRight
-        |> ParserWithComments.ignore Layout.maybeLayout
-        |> ParserWithComments.keep expression
+        |= Layout.maybeLayout
+        |= expression
 
 
 
@@ -393,7 +482,7 @@ letDeclarations =
 blockElement : Parser (WithComments (Node LetDeclaration))
 blockElement =
     Layout.onTopIndentation ()
-        |> ParserWithComments.continueWith
+        |> Parser.Extra.continueWith
             (Core.oneOf
                 [ letFunction
                 , letDestructuringDeclaration
@@ -473,21 +562,34 @@ letFunction =
         |> ParserWithComments.fromCoreIgnore Layout.maybeLayout
         |> ParserWithComments.keep
             (ParserWithComments.maybe
-                (Tokens.colon
-                    |> ParserWithComments.fromCoreIgnore Layout.maybeLayout
-                    |> ParserWithComments.continueWith
-                        (ParserWithComments.map
-                            (\typeAnnotation ->
-                                \implementationNameNode ->
-                                    { implementationName = implementationNameNode
-                                    , typeAnnotation = typeAnnotation
-                                    }
+                ((Tokens.colon
+                    |> Parser.Extra.continueWith
+                        (Core.map
+                            (\commentsBeforeTypeAnnotation ->
+                                \typeAnnotationResult ->
+                                    \commentsAfterTypeAnnotation ->
+                                        \implementationNameNode ->
+                                            \afterImplementationName ->
+                                                { comments =
+                                                    Rope.flatFromList
+                                                        [ commentsBeforeTypeAnnotation
+                                                        , typeAnnotationResult.comments
+                                                        , commentsAfterTypeAnnotation
+                                                        , afterImplementationName
+                                                        ]
+                                                , syntax =
+                                                    { implementationName = implementationNameNode
+                                                    , typeAnnotation = typeAnnotationResult.syntax
+                                                    }
+                                                }
                             )
-                            TypeAnnotation.typeAnnotation
+                            Layout.maybeLayout
                         )
-                    |> ParserWithComments.ignore Layout.layoutStrict
-                    |> ParserWithComments.keepFromCore (Tokens.functionName |> Node.parserCore)
-                    |> ParserWithComments.ignore Layout.maybeLayout
+                 )
+                    |= TypeAnnotation.typeAnnotation
+                    |= Layout.layoutStrict
+                    |= (Tokens.functionName |> Node.parserCore)
+                    |= Layout.maybeLayout
                 )
             )
         |> ParserWithComments.keep (ParserWithComments.many (Patterns.pattern |> ParserWithComments.ignore Layout.maybeLayout))
@@ -506,25 +608,37 @@ numberExpression =
 
 ifBlockExpression : Parser (WithComments (Node Expression))
 ifBlockExpression =
-    ((Core.map
+    Core.map
         (\( startRow, startColumn ) ->
             \condition ->
                 \ifTrue ->
-                    \((Node { end } _) as ifFalse) ->
-                        Node
-                            { start = { row = startRow, column = startColumn }, end = end }
-                            (IfBlock condition ifTrue ifFalse)
+                    \commentsAfterElse ->
+                        \ifFalse ->
+                            let
+                                (Node { end } _) =
+                                    ifFalse.syntax
+                            in
+                            { comments =
+                                Rope.flatFromList
+                                    [ condition.comments
+                                    , ifTrue.comments
+                                    , commentsAfterElse
+                                    , ifFalse.comments
+                                    ]
+                            , syntax =
+                                Node
+                                    { start = { row = startRow, column = startColumn }, end = end }
+                                    (IfBlock condition.syntax ifTrue.syntax ifFalse.syntax)
+                            }
         )
         Core.getPosition
         |. Tokens.ifToken
-        |> ParserWithComments.fromCoreKeep expression
-     )
+        |= expression
         |. Tokens.thenToken
-        |> ParserWithComments.keep expression
-    )
+        |= expression
         |. Tokens.elseToken
-        |> ParserWithComments.ignore Layout.layout
-        |> ParserWithComments.keep expression
+        |= Layout.layout
+        |= expression
 
 
 negationOperation : Parser (WithComments (Node Expression))
@@ -666,20 +780,32 @@ subExpression currentPrecedence =
 
 optimisticLayoutSubExpressions : Parser (WithComments (Node Expression))
 optimisticLayoutSubExpressions =
-    Layout.optimisticLayout
-        |> ParserWithComments.continueWith subExpressions
+    Core.map
+        (\commentsBefore ->
+            \subExpressionResult ->
+                { comments = Rope.flatFromList [ commentsBefore, subExpressionResult.comments ]
+                , syntax = subExpressionResult.syntax
+                }
+        )
+        Layout.optimisticLayout
+        |= subExpressions
 
 
 expressionHelp : Int -> Node Expression -> Parser (WithComments (Core.Step (Node Expression) (Node Expression)))
 expressionHelp currentPrecedence leftExpression =
     case getAndThenOneOfAbovePrecedence currentPrecedence of
         Just parser ->
-            Layout.optimisticLayout
-                |> ParserWithComments.continueWith
-                    (ParserWithComments.maybeMap Core.Loop
-                        (Core.Done leftExpression)
-                        (combineOneOfApply parser leftExpression)
-                    )
+            Core.map
+                (\commentsBefore ->
+                    \combineExpressionResult ->
+                        { comments = Rope.flatFromList [ commentsBefore, combineExpressionResult.comments ]
+                        , syntax = combineExpressionResult.syntax
+                        }
+                )
+                Layout.optimisticLayout
+                |= ParserWithComments.maybeMap Core.Loop
+                    (Core.Done leftExpression)
+                    (combineOneOfApply parser leftExpression)
 
         Nothing ->
             Core.problem ("Could not find operators related to precedence " ++ String.fromInt currentPrecedence)
@@ -887,7 +1013,7 @@ infixLeftHelp precedence p apply =
     infixHelp precedence precedence p apply
 
 
-infixLeftWithState : Int -> Parser (WithComments ()) -> (Node Expression -> Node Expression -> Node Expression) -> ( Int, Node Expression -> Parser (WithComments (Node Expression)) )
+infixLeftWithState : Int -> Parser Comments -> (Node Expression -> Node Expression -> Node Expression) -> ( Int, Node Expression -> Parser (WithComments (Node Expression)) )
 infixLeftWithState precedence operator apply =
     let
         parser : Parser (WithComments (Node Expression))

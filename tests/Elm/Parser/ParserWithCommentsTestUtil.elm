@@ -14,8 +14,8 @@ parseWithState s p =
             Nothing
 
         Ok commentsAndSyntax ->
-            { syntax = commentsAndSyntax.syntax
-            , comments = commentsAndSyntax.comments |> Rope.toList
+            { comments = commentsAndSyntax.comments |> Rope.toList
+            , syntax = commentsAndSyntax.syntax
             }
                 |> Just
 
