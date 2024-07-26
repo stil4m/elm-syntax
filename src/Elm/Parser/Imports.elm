@@ -21,19 +21,27 @@ importDefinition =
             \commentsAfterImport ->
                 \((Node modRange _) as mod) ->
                     \commentsAfterModuleName ->
-                        \moduleAlias ->
-                            \exposingList ->
+                        \maybeModuleAlias ->
+                            \maybeExposingList ->
                                 \commentsAfterEverything ->
                                     let
                                         endRange : Range
                                         endRange =
-                                            case moduleAlias.syntax of
-                                                Just (Node range _) ->
+                                            case maybeModuleAlias of
+                                                Just moduleAliasValue ->
+                                                    let
+                                                        (Node range _) =
+                                                            moduleAliasValue.syntax
+                                                    in
                                                     range
 
                                                 Nothing ->
-                                                    case exposingList.syntax of
-                                                        Just (Node range _) ->
+                                                    case maybeExposingList of
+                                                        Just exposingListValue ->
+                                                            let
+                                                                (Node range _) =
+                                                                    exposingListValue.syntax
+                                                            in
                                                             range
 
                                                         Nothing ->
@@ -43,16 +51,26 @@ importDefinition =
                                         Rope.flatFromList
                                             [ commentsAfterImport
                                             , commentsAfterModuleName
-                                            , moduleAlias.comments
-                                            , exposingList.comments
+                                            , case maybeModuleAlias of
+                                                Nothing ->
+                                                    Rope.empty
+
+                                                Just moduleAliasValue ->
+                                                    moduleAliasValue.comments
+                                            , case maybeExposingList of
+                                                Nothing ->
+                                                    Rope.empty
+
+                                                Just exposingListValue ->
+                                                    exposingListValue.comments
                                             , commentsAfterEverything
                                             ]
                                     , syntax =
                                         Node
                                             { start = { row = startRow, column = 1 }, end = endRange.end }
                                             { moduleName = mod
-                                            , moduleAlias = moduleAlias.syntax
-                                            , exposingList = exposingList.syntax
+                                            , moduleAlias = maybeModuleAlias |> Maybe.map .syntax
+                                            , exposingList = maybeExposingList |> Maybe.map .syntax
                                             }
                                     }
         )
@@ -61,22 +79,27 @@ importDefinition =
         |= Layout.layout
         |= moduleName
         |= Layout.optimisticLayout
-        |= ParserWithComments.maybe
-            ((Tokens.asToken
+        |= Core.oneOf
+            [ (Tokens.asToken
                 |> Parser.Extra.continueWith
                     (Core.map
                         (\commentsBefore ->
                             \moduleAlias ->
                                 \commentsAfter ->
-                                    { comments = Rope.flatFromList [ commentsBefore, commentsAfter ]
-                                    , syntax = moduleAlias
-                                    }
+                                    Just
+                                        { comments = Rope.flatFromList [ commentsBefore, commentsAfter ]
+                                        , syntax = moduleAlias
+                                        }
                         )
                         Layout.layout
                     )
-             )
+              )
                 |= (Tokens.typeName |> Node.parserCoreValueMap List.singleton)
                 |= Layout.optimisticLayout
-            )
-        |= ParserWithComments.maybe (Node.parser exposeDefinition)
+            , Core.succeed Nothing
+            ]
+        |= Core.oneOf
+            [ Node.parserMapWithComments Just exposeDefinition
+            , Core.succeed Nothing
+            ]
         |= Layout.optimisticLayout

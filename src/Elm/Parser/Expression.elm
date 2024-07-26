@@ -573,13 +573,18 @@ letFunction =
                                     allComments =
                                         Rope.flatFromList
                                             [ commentsAfterStartName
-                                            , maybeSignature.comments
+                                            , case maybeSignature of
+                                                Nothing ->
+                                                    Rope.empty
+
+                                                Just signature ->
+                                                    signature.comments
                                             , arguments.comments
                                             , commentsAfterEqual
                                             , expressionResult.comments
                                             ]
                                 in
-                                case maybeSignature.syntax of
+                                case maybeSignature of
                                     Nothing ->
                                         let
                                             (Node expressionRange _) =
@@ -635,8 +640,8 @@ letFunction =
         )
         Tokens.functionName
         |= Layout.maybeLayout
-        |= ParserWithComments.maybe
-            ((Tokens.colon
+        |= Core.oneOf
+            [ (Tokens.colon
                 |> Parser.Extra.continueWith
                     (Core.map
                         (\commentsBeforeTypeAnnotation ->
@@ -644,27 +649,27 @@ letFunction =
                                 \commentsAfterTypeAnnotation ->
                                     \implementationNameNode ->
                                         \afterImplementationName ->
-                                            { comments =
-                                                Rope.flatFromList
-                                                    [ commentsBeforeTypeAnnotation
-                                                    , typeAnnotationResult.comments
-                                                    , commentsAfterTypeAnnotation
-                                                    , afterImplementationName
-                                                    ]
-                                            , syntax =
-                                                { implementationName = implementationNameNode
+                                            Just
+                                                { comments =
+                                                    Rope.flatFromList
+                                                        [ commentsBeforeTypeAnnotation
+                                                        , typeAnnotationResult.comments
+                                                        , commentsAfterTypeAnnotation
+                                                        , afterImplementationName
+                                                        ]
+                                                , implementationName = implementationNameNode
                                                 , typeAnnotation = typeAnnotationResult.syntax
                                                 }
-                                            }
                         )
                         Layout.maybeLayout
                     )
-             )
+              )
                 |= TypeAnnotation.typeAnnotation
                 |= Layout.layoutStrict
                 |= (Tokens.functionName |> Node.parserCore)
                 |= Layout.maybeLayout
-            )
+            , Core.succeed Nothing
+            ]
         |= ParserWithComments.many
             (Core.map
                 (\patternResult ->

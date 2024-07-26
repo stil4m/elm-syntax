@@ -1,8 +1,27 @@
-module Elm.Parser.Node exposing (parser, parserCore, parserCoreMap, parserCoreValueMap, parserMap)
+module Elm.Parser.Node exposing (parser, parserCore, parserCoreMap, parserCoreValueMap, parserMap, parserMapWithComments)
 
 import Elm.Syntax.Node exposing (Node(..))
 import Parser as Core exposing ((|=), Parser)
 import ParserWithComments exposing (WithComments)
+
+
+parserMapWithComments : (WithComments (Node a) -> b) -> Parser (WithComments a) -> Parser b
+parserMapWithComments valueNodeChange p =
+    Core.map
+        (\( startRow, startColumn ) v ( endRow, endColumn ) ->
+            { comments = v.comments
+            , syntax =
+                Node
+                    { start = { row = startRow, column = startColumn }
+                    , end = { row = endRow, column = endColumn }
+                    }
+                    v.syntax
+            }
+                |> valueNodeChange
+        )
+        Core.getPosition
+        |= p
+        |= Core.getPosition
 
 
 parserMap : (Node a -> b) -> Parser (WithComments a) -> Parser (WithComments b)

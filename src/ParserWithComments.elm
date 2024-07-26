@@ -3,7 +3,6 @@ module ParserWithComments exposing
     , WithComments
     , many
     , manyWithoutReverse
-    , maybe
     , sepBy
     , sepBy1
     , sepBy1WithState
@@ -49,20 +48,6 @@ keep rp lp =
                     )
                     rp
             )
-
-
-maybe : Parser (WithComments a) -> Parser (WithComments (Maybe a))
-maybe p =
-    Core.oneOf
-        [ p
-            |> Core.map
-                (\syntaxAndComments ->
-                    { comments = syntaxAndComments.comments
-                    , syntax = Just syntaxAndComments.syntax
-                    }
-                )
-        , Core.succeed { comments = Rope.empty, syntax = Nothing }
-        ]
 
 
 maybeMap : (a -> b) -> b -> Parser (WithComments a) -> Parser (WithComments b)
