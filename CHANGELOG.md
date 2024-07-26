@@ -36,7 +36,7 @@ We highly recommend using [the-sett/elm-syntax-dsl](https://package.elm-lang.org
 
 ## [7.3.0] - 2023-08-16
 
-- Added [`Elm.Processing.parseToFile`] to parse a file without the need to post-process the file, and deprecated [`Elm.Processing.parse`]
+- Added [`Elm.Parser.parseToFile`] to parse a file without the need to post-process the file, and deprecated [`Elm.Parser.parse`]
 - Added [`Elm.Syntax.Range.empty`] as an alias to [`Elm.Syntax.Range.emptyRange`] which is now deprecated
 - Added [`Elm.Syntax.Node.empty`]
 
