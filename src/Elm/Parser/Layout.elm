@@ -87,13 +87,13 @@ positivelyIndentedCore =
         |> Core.andThen identity
 
 
-positivelyIndented : Parser Comments
-positivelyIndented =
+positivelyIndented : res -> Parser res
+positivelyIndented res =
     Core.map
         (\column ->
             \indent ->
                 if indent < column then
-                    Core.succeed Rope.empty
+                    Core.succeed res
 
                 else
                     Core.problem "must be positively indented"

@@ -2,7 +2,6 @@ module ParserWithComments exposing
     ( Comments
     , WithComments
     , andThen
-    , continueWith
     , flattenFromCore
     , fromCore
     , fromCoreIgnore
@@ -71,23 +70,6 @@ andThen f p =
                                 pSyntaxAndComments.comments
                                     |> Rope.prependTo afterAndThen.comments
                             , syntax = afterAndThen.syntax
-                            }
-                        )
-            )
-
-
-continueWith : Parser (WithComments b) -> Parser Comments -> Parser (WithComments b)
-continueWith next p =
-    p
-        |> Core.andThen
-            (\pOnlyComments ->
-                next
-                    |> Core.map
-                        (\nextResult ->
-                            { comments =
-                                pOnlyComments
-                                    |> Rope.prependTo nextResult.comments
-                            , syntax = nextResult.syntax
                             }
                         )
             )

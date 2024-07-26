@@ -12,7 +12,7 @@ import Elm.Syntax.Node as Node exposing (Node(..))
 import Elm.Syntax.Signature exposing (Signature)
 import Parser as Core exposing ((|.), (|=), Nestable(..), Parser)
 import Parser.Extra
-import ParserWithComments exposing (Comments, WithComments)
+import ParserWithComments exposing (WithComments)
 import Rope
 
 
@@ -129,7 +129,7 @@ dotField =
 functionCall : ( Int, Node Expression -> Parser (WithComments (Node Expression)) )
 functionCall =
     infixLeftWithState 90
-        Layout.positivelyIndented
+        (Layout.positivelyIndented ())
         (\((Node { start } leftValue) as left) ((Node { end } _) as right) ->
             Node
                 { start = start, end = end }
@@ -1013,7 +1013,7 @@ infixLeftHelp precedence p apply =
     infixHelp precedence precedence p apply
 
 
-infixLeftWithState : Int -> Parser Comments -> (Node Expression -> Node Expression -> Node Expression) -> ( Int, Node Expression -> Parser (WithComments (Node Expression)) )
+infixLeftWithState : Int -> Parser () -> (Node Expression -> Node Expression -> Node Expression) -> ( Int, Node Expression -> Parser (WithComments (Node Expression)) )
 infixLeftWithState precedence operator apply =
     let
         parser : Parser (WithComments (Node Expression))
@@ -1023,7 +1023,8 @@ infixLeftWithState precedence operator apply =
     ( precedence
     , \left ->
         operator
-            |> ParserWithComments.continueWith (ParserWithComments.map (\e -> apply left e) parser)
+            |> Parser.Extra.continueWith
+                (ParserWithComments.map (\e -> apply left e) parser)
     )
 
 
