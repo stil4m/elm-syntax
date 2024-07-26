@@ -727,11 +727,18 @@ negationOperation : Parser (WithComments (Node Expression))
 negationOperation =
     minusNotFollowedBySpace
         |> Parser.Extra.continueWith
-            (ParserWithComments.map
-                (\((Node { start, end } _) as subExpr) ->
-                    Node
-                        { start = { row = start.row, column = start.column - 1 }, end = end }
-                        (Negation subExpr)
+            (Core.map
+                (\subExpressionResult ->
+                    let
+                        (Node { start, end } _) =
+                            subExpressionResult.syntax
+                    in
+                    { comments = subExpressionResult.comments
+                    , syntax =
+                        Node
+                            { start = { row = start.row, column = start.column - 1 }, end = end }
+                            (Negation subExpressionResult.syntax)
+                    }
                 )
                 (subExpression 95)
             )
@@ -1139,7 +1146,14 @@ infixLeftWithState precedence operator apply =
     , \left ->
         operator
             |> Parser.Extra.continueWith
-                (ParserWithComments.map (\e -> apply left e) parser)
+                (Core.map
+                    (\e ->
+                        { comments = e.comments
+                        , syntax = apply left e.syntax
+                        }
+                    )
+                    parser
+                )
     )
 
 

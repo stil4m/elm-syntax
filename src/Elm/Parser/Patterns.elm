@@ -106,14 +106,17 @@ parensPattern =
     (Tokens.parensStart
         |> Parser.Extra.continueWith
             (ParserWithComments.sepBy "," (Layout.maybeAroundBothSides pattern)
-                |> ParserWithComments.map
+                |> Core.map
                     (\c ->
-                        case c of
-                            [ x ] ->
-                                ParenthesizedPattern x
+                        { comments = c.comments
+                        , syntax =
+                            case c.syntax of
+                                [ x ] ->
+                                    ParenthesizedPattern x
 
-                            _ ->
-                                TuplePattern c
+                                _ ->
+                                    TuplePattern c.syntax
+                        }
                     )
             )
     )

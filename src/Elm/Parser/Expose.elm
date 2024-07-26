@@ -72,7 +72,10 @@ exposingListInner =
             |= Layout.maybeLayout
             |= Core.getPosition
         , ParserWithComments.sepBy1 "," (Layout.maybeAroundBothSides exposable)
-            |> ParserWithComments.map Explicit
+            |> Core.map
+                (\elements ->
+                    { comments = elements.comments, syntax = Explicit elements.syntax }
+                )
         ]
 
 

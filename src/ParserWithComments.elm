@@ -3,7 +3,6 @@ module ParserWithComments exposing
     , WithComments
     , many
     , manyWithoutReverse
-    , map
     , maybe
     , sepBy
     , sepBy1

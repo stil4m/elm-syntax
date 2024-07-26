@@ -48,10 +48,19 @@ whereBlock =
         |> Parser.Extra.continueWith
             (ParserWithComments.sepBy1 ","
                 (Layout.maybeAroundBothSides effectWhereClause)
-                |> ParserWithComments.map
+                |> Core.map
                     (\pairs ->
-                        { command = pairs |> List.Extra.find (\( fnName, _ ) -> fnName == "command") |> Maybe.map Tuple.second
-                        , subscription = pairs |> List.Extra.find (\( fnName, _ ) -> fnName == "subscription") |> Maybe.map Tuple.second
+                        { comments = pairs.comments
+                        , syntax =
+                            { command =
+                                pairs.syntax
+                                    |> List.Extra.find (\( fnName, _ ) -> fnName == "command")
+                                    |> Maybe.map Tuple.second
+                            , subscription =
+                                pairs.syntax
+                                    |> List.Extra.find (\( fnName, _ ) -> fnName == "subscription")
+                                    |> Maybe.map Tuple.second
+                            }
                         }
                     )
             )
