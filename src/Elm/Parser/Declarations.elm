@@ -297,7 +297,16 @@ functionAfterDocumentation =
                 |= Layout.maybeLayout
             )
         |= ParserWithComments.many
-            (Patterns.pattern |> ParserWithComments.ignore Layout.maybeLayout)
+            (Core.map
+                (\patternResult ->
+                    \commentsAfterPattern ->
+                        { comments = Rope.flatFromList [ patternResult.comments, commentsAfterPattern ]
+                        , syntax = patternResult.syntax
+                        }
+                )
+                Patterns.pattern
+                |= Layout.maybeLayout
+            )
         |. Tokens.equal
         |= Layout.maybeLayout
         |= expression
@@ -410,7 +419,16 @@ functionDeclarationWithoutDocumentation =
                 |= Layout.maybeLayout
             )
         |= ParserWithComments.many
-            (Patterns.pattern |> ParserWithComments.ignore Layout.maybeLayout)
+            (Core.map
+                (\patternResult ->
+                    \commentsAfterPattern ->
+                        { comments = Rope.flatFromList [ patternResult.comments, commentsAfterPattern ]
+                        , syntax = patternResult.syntax
+                        }
+                )
+                Patterns.pattern
+                |= Layout.maybeLayout
+            )
         |. Tokens.equal
         |= Layout.maybeLayout
         |= expression

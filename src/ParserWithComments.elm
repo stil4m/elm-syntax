@@ -1,7 +1,6 @@
 module ParserWithComments exposing
     ( Comments
     , WithComments
-    , ignore
     , many
     , manyWithoutReverse
     , map
@@ -187,23 +186,6 @@ sepBy1WithState sep p =
                                     )
                         )
                 )
-            )
-
-
-ignore : Parser Comments -> Parser (WithComments a) -> Parser (WithComments a)
-ignore dropped target =
-    target
-        |> Core.andThen
-            (\targetResult ->
-                dropped
-                    |> Core.map
-                        (\droppedOnlyComments ->
-                            { comments =
-                                targetResult.comments
-                                    |> Rope.prependTo droppedOnlyComments
-                            , syntax = targetResult.syntax
-                            }
-                        )
             )
 
 
