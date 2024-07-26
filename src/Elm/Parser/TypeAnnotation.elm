@@ -76,7 +76,7 @@ parensTypeAnnotation =
         |> Parser.Extra.continueWith
             (Core.oneOf
                 [ Tokens.parensEnd
-                    |> ParserWithComments.fromCoreMap (\() -> TypeAnnotation.Unit)
+                    |> Core.map (\() -> unitWithComments)
                 , (Core.map
                     (\commentsBeforeFirstPart ->
                         \firstPart ->
@@ -133,10 +133,15 @@ parensTypeAnnotation =
             )
 
 
+unitWithComments : WithComments TypeAnnotation
+unitWithComments =
+    { comments = Rope.empty, syntax = TypeAnnotation.Unit }
+
+
 genericTypeAnnotation : Parser (WithComments TypeAnnotation)
 genericTypeAnnotation =
     Tokens.functionName
-        |> ParserWithComments.fromCoreMap TypeAnnotation.GenericType
+        |> Core.map (\var -> { comments = Rope.empty, syntax = TypeAnnotation.GenericType var })
 
 
 recordTypeAnnotation : Parser (WithComments TypeAnnotation)
@@ -284,8 +289,8 @@ recordFieldDefinition =
 
 typedTypeAnnotationWithoutArguments : Parser (WithComments TypeAnnotation)
 typedTypeAnnotationWithoutArguments =
-    ParserWithComments.fromCoreMap
-        (\original -> TypeAnnotation.Typed original [])
+    Core.map
+        (\original -> { comments = Rope.empty, syntax = TypeAnnotation.Typed original [] })
         typeIndicator
 
 

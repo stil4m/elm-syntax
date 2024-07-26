@@ -154,4 +154,5 @@ exposingVariants =
 
 functionExpose : Parser (WithComments TopLevelExpose)
 functionExpose =
-    ParserWithComments.fromCoreMap FunctionExpose Tokens.functionName
+    Core.map (\name -> { comments = Rope.empty, syntax = FunctionExpose name })
+        Tokens.functionName

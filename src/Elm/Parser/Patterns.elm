@@ -105,7 +105,7 @@ parensPattern =
 variablePart : Parser (WithComments Pattern)
 variablePart =
     Tokens.functionName
-        |> ParserWithComments.fromCoreMap VarPattern
+        |> Core.map (\var -> { comments = Rope.empty, syntax = VarPattern var })
 
 
 numberPart : Parser (WithComments Pattern)
@@ -118,7 +118,7 @@ numberPart =
 charPattern : Parser (WithComments Pattern)
 charPattern =
     Tokens.characterLiteral
-        |> ParserWithComments.fromCoreMap CharPattern
+        |> Core.map (\char -> { comments = Rope.empty, syntax = CharPattern char })
 
 
 listPattern : Parser (WithComments Pattern)
@@ -197,18 +197,28 @@ qualifiedPatternArg =
 
 allPattern : Parser (WithComments Pattern)
 allPattern =
-    ParserWithComments.fromCoreMap (\() -> AllPattern) (Core.symbol "_")
+    Core.map (\() -> allPatternWithComments) (Core.symbol "_")
+
+
+allPatternWithComments : WithComments Pattern
+allPatternWithComments =
+    { comments = Rope.empty, syntax = AllPattern }
 
 
 unitPattern : Parser (WithComments Pattern)
 unitPattern =
-    ParserWithComments.fromCoreMap (\() -> UnitPattern) (Core.symbol "()")
+    Core.map (\() -> unitPatternWithComments) (Core.symbol "()")
+
+
+unitPatternWithComments : WithComments Pattern
+unitPatternWithComments =
+    { comments = Rope.empty, syntax = UnitPattern }
 
 
 stringPattern : Parser (WithComments Pattern)
 stringPattern =
     Tokens.singleOrTripleQuotedStringLiteral
-        |> ParserWithComments.fromCoreMap StringPattern
+        |> Core.map (\string -> { comments = Rope.empty, syntax = StringPattern string })
 
 
 qualifiedNameRef : Core.Parser QualifiedNameRef
@@ -253,8 +263,8 @@ qualifiedPatternWithConsumeArgs =
 qualifiedPatternWithoutConsumeArgs : Parser (WithComments Pattern)
 qualifiedPatternWithoutConsumeArgs =
     qualifiedNameRef
-        |> ParserWithComments.fromCoreMap
-            (\qualified -> NamedPattern qualified [])
+        |> Core.map
+            (\qualified -> { comments = Rope.empty, syntax = NamedPattern qualified [] })
 
 
 recordPattern : Parser (WithComments Pattern)

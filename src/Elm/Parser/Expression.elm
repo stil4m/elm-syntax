@@ -334,13 +334,13 @@ recordSetterNodeWithLayout =
 literalExpression : Parser (WithComments Expression)
 literalExpression =
     Tokens.singleOrTripleQuotedStringLiteral
-        |> ParserWithComments.fromCoreMap Literal
+        |> Core.map (\string -> { comments = Rope.empty, syntax = Literal string })
 
 
 charLiteralExpression : Parser (WithComments Expression)
 charLiteralExpression =
     Tokens.characterLiteral
-        |> ParserWithComments.fromCoreMap CharLiteral
+        |> Core.map (\char -> { comments = Rope.empty, syntax = CharLiteral char })
 
 
 
@@ -728,9 +728,9 @@ problemNegationThenSpace =
 
 referenceExpression : Parser (WithComments Expression)
 referenceExpression =
-    ParserWithComments.fromCoreMap
+    Core.map
         (\( qualification, unqualified ) ->
-            FunctionOrValue qualification unqualified
+            { comments = Rope.empty, syntax = FunctionOrValue qualification unqualified }
         )
         referenceExpressionTuple
 
@@ -762,7 +762,12 @@ recordAccessFunctionExpression : Parser (WithComments Expression)
 recordAccessFunctionExpression =
     Tokens.dot
         |> Parser.Extra.continueWith Tokens.functionName
-        |> ParserWithComments.fromCoreMap (\field -> RecordAccessFunction ("." ++ field))
+        |> Core.map
+            (\field ->
+                { comments = Rope.empty
+                , syntax = RecordAccessFunction ("." ++ field)
+                }
+            )
 
 
 tupledExpression : Parser (WithComments Expression)
@@ -770,16 +775,26 @@ tupledExpression =
     Tokens.parensStart
         |> Parser.Extra.continueWith
             (Core.oneOf
-                ((Tokens.parensEnd |> ParserWithComments.fromCoreMap (\() -> UnitExpr))
+                ((Tokens.parensEnd |> Core.map (\() -> unitWithComments))
                     :: -- since `-` alone  could indicate negation or prefix operator,
                        -- we check for `-)` first
-                       (Core.symbol "-)" |> ParserWithComments.fromCoreMap (\() -> PrefixOperator "-"))
+                       (Core.symbol "-)" |> Core.map (\() -> minusPrefixOperatorWithComments))
                     :: (tupledExpressionInnerNested |. Tokens.parensEnd)
                     -- and since prefix operators are much more rare than e.g. parenthesized
                     -- we check those later
                     :: allowedPrefixOperatorExceptMinusThenClosingParensOneOf
                 )
             )
+
+
+unitWithComments : WithComments Expression
+unitWithComments =
+    { comments = Rope.empty, syntax = UnitExpr }
+
+
+minusPrefixOperatorWithComments : WithComments Expression
+minusPrefixOperatorWithComments =
+    { comments = Rope.empty, syntax = PrefixOperator "-" }
 
 
 allowedPrefixOperatorExceptMinusThenClosingParensOneOf : List (Parser (WithComments Expression))
@@ -789,7 +804,7 @@ allowedPrefixOperatorExceptMinusThenClosingParensOneOf =
         |> List.map
             (\allowedOperatorToken ->
                 Core.symbol (allowedOperatorToken ++ ")")
-                    |> ParserWithComments.fromCoreMap (\() -> PrefixOperator allowedOperatorToken)
+                    |> Core.map (\() -> { comments = Rope.empty, syntax = PrefixOperator allowedOperatorToken })
             )
 
 
