@@ -1,18 +1,15 @@
 module ParserWithComments exposing
     ( Comments
     , WithComments
-    , andThen
     , fromCore
     , fromCoreMap
     , ignore
     , keep
-    , loop
     , many
     , manyWithoutReverse
     , map
     , maybe
     , maybeIgnore
-    , maybeMap
     , sepBy
     , sepBy1
     , sepBy1WithState
@@ -51,23 +48,6 @@ map f p =
                 { comments = commentsAndSyntax.comments
                 , syntax = f commentsAndSyntax.syntax
                 }
-            )
-
-
-andThen : (a -> Parser (WithComments b)) -> Parser (WithComments a) -> Parser (WithComments b)
-andThen f p =
-    p
-        |> Core.andThen
-            (\pSyntaxAndComments ->
-                f pSyntaxAndComments.syntax
-                    |> Core.map
-                        (\afterAndThen ->
-                            { comments =
-                                pSyntaxAndComments.comments
-                                    |> Rope.prependTo afterAndThen.comments
-                            , syntax = afterAndThen.syntax
-                            }
-                        )
             )
 
 
@@ -200,41 +180,6 @@ manyWithoutReverse p =
                 ]
     in
     Core.loop ( [], [] ) manyWithoutReverseStep
-
-
-{-| Same as [`many`](#many), except that it doesn't reverse the list.
-This can be useful if you need to access the range of the last item.
--}
-loop : a -> (a -> Parser (WithComments (Core.Step a b))) -> Parser (WithComments b)
-loop initialState step =
-    let
-        stepWithComments :
-            ( List Comments, a )
-            ->
-                Core.Parser
-                    (Core.Step
-                        ( List Comments, a )
-                        { comments : Comments, syntax : b }
-                    )
-        stepWithComments ( commentsSoFar, state ) =
-            step state
-                |> Core.map
-                    (\pResult ->
-                        case pResult.syntax of
-                            Core.Loop pResultLoop ->
-                                Core.Loop
-                                    ( pResult.comments :: commentsSoFar
-                                    , pResultLoop
-                                    )
-
-                            Core.Done pResultDone ->
-                                Core.Done
-                                    { comments = Rope.flatFromList (List.reverse (pResult.comments :: commentsSoFar))
-                                    , syntax = pResultDone
-                                    }
-                    )
-    in
-    Core.loop ( [], initialState ) stepWithComments
 
 
 sepBy : String -> Parser (WithComments a) -> Parser (WithComments (List a))

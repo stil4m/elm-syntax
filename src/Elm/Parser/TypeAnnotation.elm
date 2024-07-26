@@ -146,36 +146,43 @@ recordTypeAnnotation =
             (Core.map
                 (\commentsBefore ->
                     \afterCurly ->
-                        { comments =
-                            Rope.flatFromList
-                                [ commentsBefore
-                                , afterCurly.comments
-                                ]
-                        , syntax = afterCurly.syntax
-                        }
+                        case afterCurly of
+                            Nothing ->
+                                { comments = commentsBefore
+                                , syntax = TypeAnnotation.Record []
+                                }
+
+                            Just afterCurlyResult ->
+                                { comments =
+                                    Rope.flatFromList
+                                        [ commentsBefore
+                                        , afterCurlyResult.comments
+                                        ]
+                                , syntax = afterCurlyResult.syntax
+                                }
                 )
                 Layout.maybeLayout
             )
      )
-        |= ParserWithComments.maybeMap identity
-            (TypeAnnotation.Record [])
-            (Node.parserCoreMap
+        |= Core.oneOf
+            [ Node.parserCoreMap
                 (\firstName ->
                     \commentsAfterFirstName ->
                         \afterFirstName ->
-                            { comments =
-                                Rope.flatFromList
-                                    [ commentsAfterFirstName
-                                    , afterFirstName.comments
-                                    ]
-                            , syntax =
-                                case afterFirstName.syntax of
-                                    RecordExtensionExpressionAfterName fields ->
-                                        TypeAnnotation.GenericRecord firstName fields
+                            Just
+                                { comments =
+                                    Rope.flatFromList
+                                        [ commentsAfterFirstName
+                                        , afterFirstName.comments
+                                        ]
+                                , syntax =
+                                    case afterFirstName.syntax of
+                                        RecordExtensionExpressionAfterName fields ->
+                                            TypeAnnotation.GenericRecord firstName fields
 
-                                    FieldsAfterName fieldsAfterName ->
-                                        TypeAnnotation.Record (Node.combine Tuple.pair firstName fieldsAfterName.firstFieldValue :: fieldsAfterName.tailFields)
-                            }
+                                        FieldsAfterName fieldsAfterName ->
+                                            TypeAnnotation.Record (Node.combine Tuple.pair firstName fieldsAfterName.firstFieldValue :: fieldsAfterName.tailFields)
+                                }
                 )
                 Tokens.functionName
                 |= Layout.maybeLayout
@@ -212,13 +219,14 @@ recordTypeAnnotation =
                       )
                         |= typeAnnotation
                         |= Layout.maybeLayout
-                        |= ParserWithComments.maybeMap identity
-                            []
-                            (Tokens.comma
+                        |= Core.oneOf
+                            [ Tokens.comma
                                 |> Parser.Extra.continueWith recordFieldsTypeAnnotation
-                            )
+                            , Core.succeed { comments = Rope.empty, syntax = [] }
+                            ]
                     ]
-            )
+            , Core.succeed Nothing
+            ]
     )
         |. Tokens.curlyEnd
 

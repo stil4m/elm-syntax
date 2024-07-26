@@ -195,17 +195,25 @@ recordExpression =
         |> Parser.Extra.continueWith
             (Core.map
                 (\commentsBefore ->
-                    \afterCurly ->
-                        { comments = Rope.flatFromList [ commentsBefore, afterCurly.comments ]
-                        , syntax = afterCurly.syntax
-                        }
+                    \maybeAfterCurly ->
+                        case maybeAfterCurly of
+                            Nothing ->
+                                { comments = commentsBefore
+                                , syntax = RecordExpr []
+                                }
+
+                            Just afterCurly ->
+                                { comments = Rope.flatFromList [ commentsBefore, afterCurly.comments ]
+                                , syntax = afterCurly.syntax
+                                }
                 )
                 Layout.maybeLayout
             )
     )
-        |= ParserWithComments.maybeMap identity
-            (RecordExpr [])
-            recordContents
+        |= Core.oneOf
+            [ Core.map Just recordContents
+            , Core.succeed Nothing
+            ]
         |. Tokens.curlyEnd
 
 
@@ -814,13 +822,13 @@ tupledExpressionInnerNested =
 subExpression : Int -> Parser (WithComments (Node Expression))
 subExpression currentPrecedence =
     let
-        parser : Node Expression -> Parser (WithComments (Core.Step (Node Expression) (Node Expression)))
-        parser =
-            expressionHelp currentPrecedence
+        parser : WithComments (Node Expression) -> Parser (Core.Step (WithComments (Node Expression)) (WithComments (Node Expression)))
+        parser leftExpression =
+            expressionHelp currentPrecedence leftExpression
     in
     optimisticLayoutSubExpressions
-        |> ParserWithComments.andThen
-            (\leftExpression -> ParserWithComments.loop leftExpression parser)
+        |> Core.andThen
+            (\leftExpression -> Core.loop leftExpression parser)
 
 
 optimisticLayoutSubExpressions : Parser (WithComments (Node Expression))
@@ -836,21 +844,37 @@ optimisticLayoutSubExpressions =
         |= subExpressions
 
 
-expressionHelp : Int -> Node Expression -> Parser (WithComments (Core.Step (Node Expression) (Node Expression)))
+expressionHelp : Int -> WithComments (Node Expression) -> Parser (Core.Step (WithComments (Node Expression)) (WithComments (Node Expression)))
 expressionHelp currentPrecedence leftExpression =
     case getAndThenOneOfAbovePrecedence currentPrecedence of
         Just parser ->
             Core.map
                 (\commentsBefore ->
-                    \combineExpressionResult ->
-                        { comments = Rope.flatFromList [ commentsBefore, combineExpressionResult.comments ]
-                        , syntax = combineExpressionResult.syntax
-                        }
+                    \maybeCombineExpressionResult ->
+                        case maybeCombineExpressionResult of
+                            Nothing ->
+                                Core.Done
+                                    { comments = Rope.flatFromList [ leftExpression.comments, commentsBefore ]
+                                    , syntax = leftExpression.syntax
+                                    }
+
+                            Just combineExpressionResult ->
+                                Core.Loop
+                                    { comments =
+                                        Rope.flatFromList
+                                            [ leftExpression.comments
+                                            , commentsBefore
+                                            , combineExpressionResult.comments
+                                            ]
+                                    , syntax = combineExpressionResult.syntax
+                                    }
                 )
                 Layout.optimisticLayout
-                |= ParserWithComments.maybeMap Core.Loop
-                    (Core.Done leftExpression)
-                    (combineOneOfApply parser leftExpression)
+                |= Core.oneOf
+                    [ Core.map Just
+                        (combineOneOfApply parser leftExpression.syntax)
+                    , Core.succeed Nothing
+                    ]
 
         Nothing ->
             Core.problem ("Could not find operators related to precedence " ++ String.fromInt currentPrecedence)
