@@ -10,7 +10,6 @@ module ParserWithComments exposing
     , sepBy
     , sepBy1
     , sepBy1WithState
-    , succeed
     )
 
 import Elm.Syntax.Node exposing (Node)
@@ -53,11 +52,6 @@ keep rp lp =
                     )
                     rp
             )
-
-
-succeed : a -> Parser (WithComments a)
-succeed res =
-    Core.succeed { comments = Rope.empty, syntax = res }
 
 
 maybe : Parser (WithComments a) -> Parser (WithComments (Maybe a))
