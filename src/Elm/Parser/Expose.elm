@@ -105,25 +105,28 @@ typeExpose =
             \open ->
                 case open of
                     Nothing ->
-                        TypeOrAliasExpose typeName
+                        { comments = Rope.empty, syntax = TypeOrAliasExpose typeName }
 
                     Just openRange ->
-                        TypeExpose { name = typeName, open = Just openRange }
+                        { comments = openRange.comments
+                        , syntax =
+                            TypeExpose { name = typeName, open = Just openRange.syntax }
+                        }
         )
         Tokens.typeName
-        |> ParserWithComments.fromCoreKeep
-            (ParserWithComments.maybe
-                (Core.map
-                    (\commentsBefore ->
-                        \exposingVariantsRangeAndComments ->
+        |= Core.oneOf
+            [ Core.map
+                (\commentsBefore ->
+                    \exposingVariantsRangeAndComments ->
+                        Just
                             { comments = Rope.flatFromList [ commentsBefore, exposingVariantsRangeAndComments.comments ]
                             , syntax = exposingVariantsRangeAndComments.syntax
                             }
-                    )
-                    (Layout.maybeLayout |> Core.backtrackable)
-                    |= exposingVariants
                 )
-            )
+                (Layout.maybeLayout |> Core.backtrackable)
+                |= exposingVariants
+            , Core.succeed Nothing
+            ]
 
 
 exposingVariants : Parser (WithComments Range)

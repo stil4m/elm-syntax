@@ -1089,9 +1089,9 @@ infixHelp leftPrecedence rightPrecedence operator apply =
     in
     ( leftPrecedence
     , \left ->
-        Core.map (\() -> \e -> apply left e)
+        Core.map (\() -> \e -> { comments = e.comments, syntax = apply left e.syntax })
             operator
-            |> ParserWithComments.fromCoreKeep parser
+            |= parser
     )
 
 

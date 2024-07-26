@@ -228,20 +228,24 @@ qualifiedNameRefHelper moduleNameSoFar typeOrSegment =
 
 qualifiedPatternWithConsumeArgs : Parser (WithComments Pattern)
 qualifiedPatternWithConsumeArgs =
-    Core.map (\qualified -> \args -> NamedPattern qualified args)
+    Core.map
+        (\qualified ->
+            \args ->
+                { comments = args.comments
+                , syntax = NamedPattern qualified args.syntax
+                }
+        )
         qualifiedNameRef
-        |> ParserWithComments.fromCoreKeep
-            (ParserWithComments.many
-                (Core.map
-                    (\commentsBefore ->
-                        \arg ->
-                            { comments = Rope.flatFromList [ arg.comments, commentsBefore ]
-                            , syntax = arg.syntax
-                            }
-                    )
-                    (Layout.maybeLayout |> Core.backtrackable)
-                    |= qualifiedPatternArg
+        |= ParserWithComments.many
+            (Core.map
+                (\commentsBefore ->
+                    \arg ->
+                        { comments = Rope.flatFromList [ arg.comments, commentsBefore ]
+                        , syntax = arg.syntax
+                        }
                 )
+                (Layout.maybeLayout |> Core.backtrackable)
+                |= qualifiedPatternArg
             )
 
 

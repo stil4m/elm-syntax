@@ -825,35 +825,37 @@ customTypeDefinitionWithoutDocumentationAfterTypePrefix =
 
 valueConstructor : Parser (WithComments (Node ValueConstructor))
 valueConstructor =
-    Tokens.typeName
+    (Tokens.typeName
         |> Node.parserCoreMap
             (\((Node variantNameRange _) as variantNameNode) ->
                 \argumentsReverse ->
                     let
                         fullEnd : Location
                         fullEnd =
-                            case argumentsReverse of
+                            case argumentsReverse.syntax of
                                 (Node lastArgRange _) :: _ ->
                                     lastArgRange.end
 
                                 [] ->
                                     variantNameRange.end
                     in
-                    Node
-                        { start = variantNameRange.start, end = fullEnd }
-                        { name = variantNameNode, arguments = List.reverse argumentsReverse }
+                    { comments = argumentsReverse.comments
+                    , syntax =
+                        Node
+                            { start = variantNameRange.start, end = fullEnd }
+                            { name = variantNameNode, arguments = List.reverse argumentsReverse.syntax }
+                    }
             )
-        |> ParserWithComments.fromCoreKeep
-            (ParserWithComments.manyWithoutReverse
-                (Core.map
-                    (\commentsBefore typeAnnotationResult ->
-                        { comments = Rope.flatFromList [ commentsBefore, typeAnnotationResult.comments ]
-                        , syntax = typeAnnotationResult.syntax
-                        }
-                    )
-                    (Layout.maybeLayout |> Core.backtrackable)
-                    |= typeAnnotationNoFnExcludingTypedWithArguments
+    )
+        |= ParserWithComments.manyWithoutReverse
+            (Core.map
+                (\commentsBefore typeAnnotationResult ->
+                    { comments = Rope.flatFromList [ commentsBefore, typeAnnotationResult.comments ]
+                    , syntax = typeAnnotationResult.syntax
+                    }
                 )
+                (Layout.maybeLayout |> Core.backtrackable)
+                |= typeAnnotationNoFnExcludingTypedWithArguments
             )
 
 

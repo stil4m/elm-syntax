@@ -3,7 +3,6 @@ module ParserWithComments exposing
     , WithComments
     , andThen
     , fromCore
-    , fromCoreKeep
     , fromCoreMap
     , ignore
     , keep
@@ -83,21 +82,6 @@ keep rp lp =
                             lpSyntaxAndComments.comments
                                 |> Rope.prependTo rpSyntaxAndComments.comments
                         , syntax = lpSyntaxAndComments.syntax rpSyntaxAndComments.syntax
-                        }
-                    )
-                    rp
-            )
-
-
-fromCoreKeep : Parser (WithComments a) -> Core.Parser (a -> b) -> Parser (WithComments b)
-fromCoreKeep rp lp =
-    lp
-        |> Core.andThen
-            (\lpSyntax ->
-                Core.map
-                    (\rpSyntaxAndComments ->
-                        { comments = rpSyntaxAndComments.comments
-                        , syntax = lpSyntax rpSyntaxAndComments.syntax
                         }
                     )
                     rp

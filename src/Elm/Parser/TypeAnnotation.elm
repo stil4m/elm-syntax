@@ -300,18 +300,22 @@ typeIndicatorHelper moduleNameSoFar typeOrSegment =
 
 typedTypeAnnotationWithArguments : Parser (WithComments TypeAnnotation)
 typedTypeAnnotationWithArguments =
-    Core.map (\qualified -> \args -> TypeAnnotation.Typed qualified args)
+    Core.map
+        (\qualified ->
+            \args ->
+                { comments = args.comments
+                , syntax = TypeAnnotation.Typed qualified args.syntax
+                }
+        )
         typeIndicator
-        |> ParserWithComments.fromCoreKeep
-            (ParserWithComments.many
-                (Core.map
-                    (\commentsBefore ->
-                        \typeAnnotationResult ->
-                            { comments = Rope.flatFromList [ commentsBefore, typeAnnotationResult.comments ]
-                            , syntax = typeAnnotationResult.syntax
-                            }
-                    )
-                    (Layout.maybeLayout |> Core.backtrackable)
-                    |= typeAnnotationNoFnExcludingTypedWithArguments
+        |= ParserWithComments.many
+            (Core.map
+                (\commentsBefore ->
+                    \typeAnnotationResult ->
+                        { comments = Rope.flatFromList [ commentsBefore, typeAnnotationResult.comments ]
+                        , syntax = typeAnnotationResult.syntax
+                        }
                 )
+                (Layout.maybeLayout |> Core.backtrackable)
+                |= typeAnnotationNoFnExcludingTypedWithArguments
             )
