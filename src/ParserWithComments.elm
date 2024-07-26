@@ -2,14 +2,11 @@ module ParserWithComments exposing
     ( Comments
     , WithComments
     , andThen
-    , flattenFromCore
     , fromCore
-    , fromCoreIgnore
     , fromCoreKeep
     , fromCoreMap
     , ignore
     , keep
-    , keepFromCore
     , loop
     , many
     , manyWithoutReverse
@@ -75,38 +72,6 @@ andThen f p =
             )
 
 
-fromCoreIgnore : Parser Comments -> Core.Parser a -> Parser (WithComments a)
-fromCoreIgnore next p =
-    p
-        |> Core.andThen
-            (\pResult ->
-                next
-                    |> Core.map
-                        (\nextOnlyComments ->
-                            { comments = nextOnlyComments
-                            , syntax = pResult
-                            }
-                        )
-            )
-
-
-{-| Equivalent to andThen fromCore (but a tiny bit faster)
--}
-flattenFromCore : Parser (WithComments (Core.Parser b)) -> Parser (WithComments b)
-flattenFromCore p =
-    p
-        |> Core.andThen
-            (\resultCoreParserAndComments ->
-                resultCoreParserAndComments.syntax
-                    |> Core.map
-                        (\result ->
-                            { comments = resultCoreParserAndComments.comments
-                            , syntax = result
-                            }
-                        )
-            )
-
-
 keep : Parser (WithComments a) -> Parser (WithComments (a -> b)) -> Parser (WithComments b)
 keep rp lp =
     lp
@@ -133,21 +98,6 @@ fromCoreKeep rp lp =
                     (\rpSyntaxAndComments ->
                         { comments = rpSyntaxAndComments.comments
                         , syntax = lpSyntax rpSyntaxAndComments.syntax
-                        }
-                    )
-                    rp
-            )
-
-
-keepFromCore : Core.Parser a -> Parser (WithComments (a -> b)) -> Parser (WithComments b)
-keepFromCore rp lp =
-    lp
-        |> Core.andThen
-            (\lpCommentsAndSyntax ->
-                Core.map
-                    (\rpSyntax ->
-                        { comments = lpCommentsAndSyntax.comments
-                        , syntax = lpCommentsAndSyntax.syntax rpSyntax
                         }
                     )
                     rp

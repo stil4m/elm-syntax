@@ -4,7 +4,7 @@ import Elm.Parser.Layout as Layout
 import Elm.Parser.ParserWithCommentsTestUtil exposing (parseWithState)
 import Expect
 import Parser as Core exposing (Parser)
-import ParserWithComments exposing (Comments, WithComments)
+import ParserWithComments exposing (Comments)
 import Test exposing (..)
 
 
