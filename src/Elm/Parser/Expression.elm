@@ -352,30 +352,45 @@ lambdaExpression =
     Core.map
         (\( startRow, startColumn ) ->
             \commentsAfterBackslash ->
-                \argsResult ->
-                    \commentsBeforeArrowRight ->
-                        \expressionResult ->
-                            let
-                                (Node { end } _) =
-                                    expressionResult.syntax
-                            in
-                            { comments =
-                                Rope.flatFromList
-                                    [ commentsAfterBackslash
-                                    , argsResult.comments
-                                    , commentsBeforeArrowRight
-                                    , expressionResult.comments
-                                    ]
-                            , syntax =
-                                { args = argsResult.syntax, expression = expressionResult.syntax }
-                                    |> LambdaExpression
-                                    |> Node { start = { row = startRow, column = startColumn }, end = end }
-                            }
+                \firstArg ->
+                    \secondUpArgs ->
+                        \commentsBeforeArrowRight ->
+                            \expressionResult ->
+                                let
+                                    (Node { end } _) =
+                                        expressionResult.syntax
+                                in
+                                { comments =
+                                    Rope.flatFromList
+                                        [ commentsAfterBackslash
+                                        , firstArg.comments
+                                        , secondUpArgs.comments
+                                        , commentsBeforeArrowRight
+                                        , expressionResult.comments
+                                        ]
+                                , syntax =
+                                    { args = firstArg.syntax :: secondUpArgs.syntax
+                                    , expression = expressionResult.syntax
+                                    }
+                                        |> LambdaExpression
+                                        |> Node { start = { row = startRow, column = startColumn }, end = end }
+                                }
         )
         Core.getPosition
         |. Tokens.backSlash
         |= Layout.maybeLayout
-        |= ParserWithComments.sepBy1WithState Layout.maybeLayout Patterns.pattern
+        |= Patterns.pattern
+        |= ParserWithComments.many
+            (Core.map
+                (\commentsBefore ->
+                    \patternResult ->
+                        { comments = Rope.flatFromList [ commentsBefore, patternResult.comments ]
+                        , syntax = patternResult.syntax
+                        }
+                )
+                Layout.maybeLayout
+                |= Patterns.pattern
+            )
         |= Layout.maybeLayout
         |. Tokens.arrowRight
         |= expression

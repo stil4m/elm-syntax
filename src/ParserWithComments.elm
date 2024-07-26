@@ -5,7 +5,6 @@ module ParserWithComments exposing
     , manyWithoutReverse
     , sepBy
     , sepBy1
-    , sepBy1WithState
     )
 
 import Elm.Syntax.Node exposing (Node)
@@ -151,26 +150,6 @@ sepBy1 : String -> Parser (WithComments a) -> Parser (WithComments (List a))
 sepBy1 sep p =
     map cons p
         |> keep (many (Core.symbol sep |> Parser.Extra.continueWith p))
-
-
-sepBy1WithState : Parser Comments -> Parser (WithComments a) -> Parser (WithComments (List a))
-sepBy1WithState sep p =
-    map cons p
-        |> keep
-            (many
-                (sep
-                    |> Core.andThen
-                        (\onlyComments ->
-                            p
-                                |> Core.map
-                                    (\pResult ->
-                                        { comments = onlyComments |> Rope.prependTo pResult.comments
-                                        , syntax = pResult.syntax
-                                        }
-                                    )
-                        )
-                )
-            )
 
 
 cons : a -> List a -> List a
