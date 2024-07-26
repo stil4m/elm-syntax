@@ -2,7 +2,6 @@ module Elm.Syntax.Range exposing
     ( Range, Location
     , empty, combine
     , compare, compareLocations
-    , emptyRange
     )
 
 {-|
@@ -23,11 +22,6 @@ module Elm.Syntax.Range exposing
 See also [Basics.compare](https://package.elm-lang.org/packages/elm/core/latest/Basics#compare).
 
 @docs compare, compareLocations
-
-
-## Deprecated
-
-@docs emptyRange
 
 -}
 
@@ -55,16 +49,6 @@ empty =
     { start = { row = 0, column = 0 }
     , end = { row = 0, column = 0 }
     }
-
-
-{-| **@deprecated** Use [`empty`](#empty) instead. It does the same thing but the name is more Elm-y.
-
-Construct an empty range
-
--}
-emptyRange : Range
-emptyRange =
-    empty
 
 
 {-| Compute the largest area of a list of ranges.
