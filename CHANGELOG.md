@@ -140,7 +140,9 @@ With this change some additional big changes were made to the projects and the d
 - Range information is added to a significant bigger set of AST elements.
 - The decoders and encoders for the specific AST elements are moved to their modules (`Elm.Syntax.*`).
 
-[Unreleased]: https://github.com/stil4m/elm-syntax/compare/v7.3.2...HEAD
+[Unreleased]: https://github.com/stil4m/elm-syntax/compare/v7.3.4...HEAD
+[7.3.4]: https://github.com/stil4m/elm-syntax/releases/tag/7.3.4
+[7.3.3]: https://github.com/stil4m/elm-syntax/releases/tag/7.3.3
 [7.3.2]: https://github.com/stil4m/elm-syntax/releases/tag/7.3.2
 [7.3.1]: https://github.com/stil4m/elm-syntax/releases/tag/7.3.1
 [7.3.0]: https://github.com/stil4m/elm-syntax/releases/tag/7.3.0
