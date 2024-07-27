@@ -37,6 +37,19 @@ nonEmptyWhiteSpaceOrComment =
 
 whiteSpaceAndComments : Parser Comments
 whiteSpaceAndComments =
+    Parser.oneOf
+        [ Parser.keyword " "
+            |> Parser.andThen (\() -> whiteSpaceAndCommentsLoop)
+        , Parser.token " "
+            |> Parser.map (\() -> Rope.empty)
+
+        -- fallback if the hacky shortcuts don't commit
+        , whiteSpaceAndCommentsLoop
+        ]
+
+
+whiteSpaceAndCommentsLoop : Parser Comments
+whiteSpaceAndCommentsLoop =
     Parser.loop Rope.empty whiteSpaceAndCommentsFrom
 
 
