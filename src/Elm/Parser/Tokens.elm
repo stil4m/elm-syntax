@@ -203,7 +203,7 @@ stringLiteralHelper stringSoFar =
                     escapedCharValue
                 )
         , Parser.mapChompedString
-            (\value () -> Loop (stringSoFar ++ value))
+            (\value () -> Loop (stringSoFar ++ value ++ ""))
             chompWhileIsInsideString
         ]
 
@@ -236,7 +236,7 @@ tripleQuotedStringLiteralStep stringSoFar =
                     escapedCharValue
                 )
         , Parser.mapChompedString
-            (\value () -> Loop (stringSoFar ++ value))
+            (\value () -> Loop (stringSoFar ++ value ++ ""))
             chompWhileIsInsideString
         ]
 
