@@ -86,24 +86,23 @@ importDefinition =
                         (\commentsBefore ->
                             \( moduleAliasStartRow, moduleAliasStartColumn ) ->
                                 \moduleAlias ->
-                                    \moduleAliasEndColumn ->
-                                        \commentsAfter ->
-                                            Just
-                                                { comments = Rope.flatFromList [ commentsBefore, commentsAfter ]
-                                                , syntax =
-                                                    Node
-                                                        { start = { row = moduleAliasStartRow, column = moduleAliasStartColumn }
-                                                        , end = { row = moduleAliasStartRow, column = moduleAliasEndColumn }
-                                                        }
-                                                        (List.singleton moduleAlias)
-                                                }
+                                    \commentsAfter ->
+                                        Just
+                                            { comments = Rope.flatFromList [ commentsBefore, commentsAfter ]
+                                            , syntax =
+                                                Node
+                                                    (Node.singleLineStringRangeFrom
+                                                        { row = moduleAliasStartRow, column = moduleAliasStartColumn }
+                                                        moduleAlias
+                                                    )
+                                                    (List.singleton moduleAlias)
+                                            }
                         )
                         Layout.layout
                     )
               )
                 |= Parser.getPosition
                 |= Tokens.typeName
-                |= Parser.getCol
                 |= Layout.optimisticLayout
             , Parser.succeed Nothing
             ]

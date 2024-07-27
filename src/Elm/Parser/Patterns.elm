@@ -5,7 +5,7 @@ import Elm.Parser.Node as Node
 import Elm.Parser.Numbers
 import Elm.Parser.Tokens as Tokens
 import Elm.Syntax.ModuleName exposing (ModuleName)
-import Elm.Syntax.Node as Node exposing (Node(..))
+import Elm.Syntax.Node as Node exposing (Node)
 import Elm.Syntax.Pattern as Pattern exposing (Pattern(..), QualifiedNameRef)
 import Parser exposing ((|.), (|=), Parser)
 import Parser.Extra
@@ -41,23 +41,19 @@ composedWith =
                         (\commentsAfterAs ->
                             \( nameStartRow, nameStartColumn ) ->
                                 \name ->
-                                    \nameEndColumn ->
-                                        PatternComposedWithAs
-                                            { comments = commentsAfterAs
-                                            , syntax =
-                                                Node
-                                                    { start = { row = nameStartRow, column = nameStartColumn }
-                                                    , end = { row = nameStartRow, column = nameEndColumn }
-                                                    }
-                                                    name
-                                            }
+                                    PatternComposedWithAs
+                                        { comments = commentsAfterAs
+                                        , syntax =
+                                            Node.singleLineStringFrom
+                                                { row = nameStartRow, column = nameStartColumn }
+                                                name
+                                        }
                         )
                         Layout.layout
                     )
               )
                 |= Parser.getPosition
                 |= Tokens.functionName
-                |= Parser.getCol
             , (Tokens.cons
                 |> Parser.Extra.continueWith
                     (Parser.map
@@ -330,27 +326,23 @@ recordPattern =
             [ Parser.map
                 (\( headStartRow, headStartEnd ) ->
                     \head ->
-                        \headEndColumn ->
-                            \commentsAfterHead ->
-                                \tail ->
-                                    Just
-                                        { comments =
-                                            Rope.flatFromList
-                                                [ commentsAfterHead
-                                                , tail.comments
-                                                ]
-                                        , syntax =
-                                            Node
-                                                { start = { row = headStartRow, column = headStartEnd }
-                                                , end = { row = headStartRow, column = headEndColumn }
-                                                }
-                                                head
-                                                :: tail.syntax
-                                        }
+                        \commentsAfterHead ->
+                            \tail ->
+                                Just
+                                    { comments =
+                                        Rope.flatFromList
+                                            [ commentsAfterHead
+                                            , tail.comments
+                                            ]
+                                    , syntax =
+                                        Node.singleLineStringFrom
+                                            { row = headStartRow, column = headStartEnd }
+                                            head
+                                            :: tail.syntax
+                                    }
                 )
                 Parser.getPosition
                 |= Tokens.functionName
-                |= Parser.getCol
                 |= Layout.maybeLayout
                 |= ParserWithComments.many
                     (Tokens.comma
@@ -359,21 +351,17 @@ recordPattern =
                                 (\beforeName ->
                                     \( nameStartRow, nameStartColumn ) ->
                                         \name ->
-                                            \nameEndColumn ->
-                                                \afterName ->
-                                                    { comments = Rope.flatFromList [ beforeName, afterName ]
-                                                    , syntax =
-                                                        Node
-                                                            { start = { row = nameStartRow, column = nameStartColumn }
-                                                            , end = { row = nameStartRow, column = nameEndColumn }
-                                                            }
-                                                            name
-                                                    }
+                                            \afterName ->
+                                                { comments = Rope.flatFromList [ beforeName, afterName ]
+                                                , syntax =
+                                                    Node.singleLineStringFrom
+                                                        { row = nameStartRow, column = nameStartColumn }
+                                                        name
+                                                }
                                 )
                                 Layout.maybeLayout
                                 |= Parser.getPosition
                                 |= Tokens.functionName
-                                |= Parser.getCol
                                 |= Layout.maybeLayout
                             )
                     )
