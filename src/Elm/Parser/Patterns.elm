@@ -169,7 +169,8 @@ listPattern =
             )
     )
         |= Parser.oneOf
-            [ Parser.map
+            [ Parser.map (\() -> Nothing) Tokens.squareEnd
+            , Parser.map
                 (\head ->
                     \commentsAfterHead ->
                         \tail ->
@@ -190,9 +191,8 @@ listPattern =
                         |> Parser.Extra.continueWith
                             (Layout.maybeAroundBothSides pattern)
                     )
-            , Parser.succeed Nothing
+                |. Tokens.squareEnd
             ]
-        |. Tokens.squareEnd
 
 
 composablePattern : Parser (WithComments (Node Pattern))

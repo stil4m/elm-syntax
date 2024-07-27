@@ -29,10 +29,8 @@ subExpressionsOneOf =
             [ referenceExpression
             , literalExpression
             , numberExpression
-                |> Parser.map (\n -> { comments = Rope.empty, syntax = n })
             , tupledExpression
             , glslExpression
-                |> Parser.map (\glsl -> { comments = Rope.empty, syntax = glsl })
             , listExpression
             , recordExpression
             , recordAccessFunctionExpression
@@ -169,10 +167,15 @@ glslEnd =
     "|]"
 
 
-glslExpression : Parser Expression
+glslExpression : Parser (WithComments Expression)
 glslExpression =
     Parser.mapChompedString
-        (\s () -> s |> String.dropLeft glslStartLength |> GLSLExpression)
+        (\s () ->
+            { comments = Rope.empty
+            , syntax =
+                s |> String.dropLeft glslStartLength |> GLSLExpression
+            }
+        )
         (Parser.multiComment glslStart glslEnd NotNestable)
         |. Parser.symbol glslEnd
 
@@ -183,16 +186,43 @@ listExpression =
         |> Parser.Extra.continueWith
             (Parser.map
                 (\commentsBefore ->
-                    \elements ->
-                        { comments = Rope.flatFromList [ commentsBefore, elements.comments ]
-                        , syntax = ListExpr elements.syntax
-                        }
+                    \maybeElements ->
+                        case maybeElements of
+                            Nothing ->
+                                { comments = commentsBefore, syntax = ListExpr [] }
+
+                            Just elements ->
+                                { comments = Rope.flatFromList [ commentsBefore, elements.comments ]
+                                , syntax = ListExpr elements.syntax
+                                }
                 )
                 Layout.maybeLayout
             )
     )
-        |= ParserWithComments.sepBy "," expression
-        |. Tokens.squareEnd
+        |= Parser.oneOf
+            [ Parser.map (\() -> Nothing) Tokens.squareEnd
+            , Parser.map
+                (\head ->
+                    \commentsAfterHead ->
+                        \tail ->
+                            Just
+                                { comments =
+                                    Rope.flatFromList
+                                        [ head.comments
+                                        , commentsAfterHead
+                                        , tail.comments
+                                        ]
+                                , syntax = head.syntax :: tail.syntax
+                                }
+                )
+                expression
+                |= Layout.maybeLayout
+                |= ParserWithComments.many
+                    (Tokens.comma
+                        |> Parser.Extra.continueWith (Layout.maybeAroundBothSides expression)
+                    )
+                |. Tokens.squareEnd
+            ]
 
 
 
@@ -746,9 +776,12 @@ letFunction =
         |> Parser.andThen identity
 
 
-numberExpression : Parser Expression
+numberExpression : Parser (WithComments Expression)
 numberExpression =
-    Elm.Parser.Numbers.forgivingNumber Floatable Integer Hex
+    Elm.Parser.Numbers.forgivingNumber
+        (\n -> { comments = Rope.empty, syntax = Floatable n })
+        (\n -> { comments = Rope.empty, syntax = Integer n })
+        (\n -> { comments = Rope.empty, syntax = Hex n })
 
 
 ifBlockExpression : Parser (WithComments (Node Expression))
