@@ -91,22 +91,9 @@ fromSingleLineCommentNode =
         |= whitespaceAndCommentsOrEmpty
 
 
-whiteSpaceAndComments : Parser Comments
-whiteSpaceAndComments =
-    Parser.oneOf
-        [ Parser.keyword " "
-            |> Parser.andThen (\() -> whitespaceAndCommentsOrEmpty)
-        , Parser.token " "
-            |> Parser.map (\() -> Rope.empty)
-
-        -- fallback if the hacky shortcuts don't commit
-        , whitespaceAndCommentsOrEmpty
-        ]
-
-
 maybeLayout : Parser Comments
 maybeLayout =
-    whiteSpaceAndComments
+    whitespaceAndCommentsOrEmpty
         |. verifyLayoutIndent
 
 
@@ -177,7 +164,7 @@ layout =
 
 optimisticLayout : Parser Comments
 optimisticLayout =
-    whiteSpaceAndComments
+    whitespaceAndCommentsOrEmpty
 
 
 layoutStrict : Parser Comments
