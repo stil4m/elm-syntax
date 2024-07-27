@@ -61,7 +61,10 @@ whiteSpaceAndCommentsFrom soFar =
                                 aValue :: soFar
                         )
                 )
-        , Core.succeed (Core.Done (Rope.fromList (List.reverse soFar)))
+        , Core.lazy
+            (\() ->
+                Core.succeed (Core.Done (Rope.fromList (List.reverse soFar)))
+            )
         ]
 
 
