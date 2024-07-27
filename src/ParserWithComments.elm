@@ -25,11 +25,11 @@ many : Parser (WithComments a) -> Parser (WithComments (List a))
 many p =
     let
         manyWithoutReverseStep :
-            ( List Comments, List a )
+            ( Comments, List a )
             ->
                 Parser.Parser
                     (Parser.Step
-                        ( List Comments, List a )
+                        ( Comments, List a )
                         (WithComments (List a))
                     )
         manyWithoutReverseStep ( commentsSoFar, items ) =
@@ -38,7 +38,7 @@ many p =
                     |> Parser.map
                         (\pResult ->
                             Parser.Loop
-                                ( pResult.comments :: commentsSoFar
+                                ( Rope.flatFromList [ commentsSoFar, pResult.comments ]
                                 , pResult.syntax :: items
                                 )
                         )
@@ -46,14 +46,14 @@ many p =
                     (\() ->
                         Parser.succeed
                             (Parser.Done
-                                { comments = Rope.flatFromList (List.reverse commentsSoFar)
+                                { comments = commentsSoFar
                                 , syntax = List.reverse items
                                 }
                             )
                     )
                 ]
     in
-    Parser.loop ( [], [] ) manyWithoutReverseStep
+    Parser.loop ( Rope.empty, [] ) manyWithoutReverseStep
 
 
 {-| Same as [`many`](#many), except that it doesn't reverse the list.
@@ -66,11 +66,11 @@ manyWithoutReverse : Parser (WithComments a) -> Parser (WithComments (List a))
 manyWithoutReverse p =
     let
         manyWithoutReverseStep :
-            ( List Comments, List a )
+            ( Comments, List a )
             ->
                 Parser.Parser
                     (Parser.Step
-                        ( List Comments, List a )
+                        ( Comments, List a )
                         (WithComments (List a))
                     )
         manyWithoutReverseStep ( commentsSoFar, items ) =
@@ -79,7 +79,7 @@ manyWithoutReverse p =
                     |> Parser.map
                         (\pResult ->
                             Parser.Loop
-                                ( pResult.comments :: commentsSoFar
+                                ( Rope.flatFromList [ commentsSoFar, pResult.comments ]
                                 , pResult.syntax :: items
                                 )
                         )
@@ -87,14 +87,14 @@ manyWithoutReverse p =
                     (\() ->
                         Parser.succeed
                             (Parser.Done
-                                { comments = Rope.flatFromList (List.reverse commentsSoFar)
+                                { comments = commentsSoFar
                                 , syntax = items
                                 }
                             )
                     )
                 ]
     in
-    Parser.loop ( [], [] ) manyWithoutReverseStep
+    Parser.loop ( Rope.empty, [] ) manyWithoutReverseStep
 
 
 sepBy : String -> Parser (WithComments a) -> Parser (WithComments (List a))
