@@ -25,8 +25,7 @@ whitespaceAndCommentsOrEmpty =
         [ whitespace
             -- whitespace can't be followed by more whitespace
             |> Parser.andThen (\_ -> fromCommentElseEmpty)
-        , -- below will never run with elm-format-ed code
-          fromCommentElseEmpty
+        , fromCommentElseEmpty
         ]
 
 
