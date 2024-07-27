@@ -27,11 +27,23 @@ nonEmptyWhiteSpaceOrComment =
             , start = \c -> c == ' ' || c == '\n' || c == '\u{000D}'
             }
             |> Parser.map (\_ -> Nothing)
-        , Parser.oneOf
-            [ Comments.singleLineCommentCore |> Parser.getChompedString
-            , Comments.multilineCommentString
-            ]
-            |> Node.parserCoreMap Just
+        , -- since comments are comparatively rare
+          -- but expensive to check for, we allow shortcutting to dead end
+          Parser.map
+            (\source offset ->
+                case source |> String.slice offset (offset + 2) of
+                    "--" ->
+                        Comments.singleLineCommentCore |> Parser.getChompedString |> Node.parserCoreMap Just
+
+                    "{-" ->
+                        Comments.multilineCommentString |> Node.parserCoreMap Just
+
+                    _ ->
+                        Parser.problem "not a comment"
+            )
+            Parser.getSource
+            |= Parser.getOffset
+            |> Parser.andThen identity
         ]
 
 
