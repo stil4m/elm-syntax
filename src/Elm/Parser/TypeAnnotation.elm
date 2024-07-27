@@ -172,26 +172,39 @@ recordTypeAnnotation =
             )
      )
         |= Parser.oneOf
-            [ Node.parserCoreMap
-                (\firstName ->
-                    \commentsAfterFirstName ->
-                        \afterFirstName ->
-                            Just
-                                { comments =
-                                    Rope.flatFromList
-                                        [ commentsAfterFirstName
-                                        , afterFirstName.comments
-                                        ]
-                                , syntax =
-                                    case afterFirstName.syntax of
-                                        RecordExtensionExpressionAfterName fields ->
-                                            TypeAnnotation.GenericRecord firstName fields
+            [ Parser.map
+                (\( firstNameStartRow, firstNameStartColumn ) ->
+                    \firstName ->
+                        \firstNameEndColumn ->
+                            \commentsAfterFirstName ->
+                                \afterFirstName ->
+                                    let
+                                        firstNameNode : Node String
+                                        firstNameNode =
+                                            Node
+                                                { start = { row = firstNameStartRow, column = firstNameStartColumn }
+                                                , end = { row = firstNameStartRow, column = firstNameEndColumn }
+                                                }
+                                                firstName
+                                    in
+                                    Just
+                                        { comments =
+                                            Rope.flatFromList
+                                                [ commentsAfterFirstName
+                                                , afterFirstName.comments
+                                                ]
+                                        , syntax =
+                                            case afterFirstName.syntax of
+                                                RecordExtensionExpressionAfterName fields ->
+                                                    TypeAnnotation.GenericRecord firstNameNode fields
 
-                                        FieldsAfterName fieldsAfterName ->
-                                            TypeAnnotation.Record (Node.combine Tuple.pair firstName fieldsAfterName.firstFieldValue :: fieldsAfterName.tailFields)
-                                }
+                                                FieldsAfterName fieldsAfterName ->
+                                                    TypeAnnotation.Record (Node.combine Tuple.pair firstNameNode fieldsAfterName.firstFieldValue :: fieldsAfterName.tailFields)
+                                        }
                 )
-                Tokens.functionName
+                Parser.getPosition
+                |= Tokens.functionName
+                |= Parser.getCol
                 |= Layout.maybeLayout
                 |= Parser.oneOf
                     [ Tokens.pipe
@@ -262,24 +275,35 @@ recordFieldDefinition : Parser (WithComments TypeAnnotation.RecordField)
 recordFieldDefinition =
     Parser.map
         (\commentsBeforeFunctionName ->
-            \functionName ->
-                \commentsAfterFunctionName ->
-                    \commentsAfterColon ->
-                        \value ->
-                            \commentsAfterValue ->
-                                { comments =
-                                    Rope.flatFromList
-                                        [ commentsBeforeFunctionName
-                                        , commentsAfterFunctionName
-                                        , commentsAfterColon
-                                        , value.comments
-                                        , commentsAfterValue
-                                        ]
-                                , syntax = ( functionName, value.syntax )
-                                }
+            \( nameStartRow, nameStartColumn ) ->
+                \name ->
+                    \nameEndColumn ->
+                        \commentsAfterFunctionName ->
+                            \commentsAfterColon ->
+                                \value ->
+                                    \commentsAfterValue ->
+                                        { comments =
+                                            Rope.flatFromList
+                                                [ commentsBeforeFunctionName
+                                                , commentsAfterFunctionName
+                                                , commentsAfterColon
+                                                , value.comments
+                                                , commentsAfterValue
+                                                ]
+                                        , syntax =
+                                            ( Node
+                                                { start = { row = nameStartRow, column = nameStartColumn }
+                                                , end = { row = nameStartRow, column = nameEndColumn }
+                                                }
+                                                name
+                                            , value.syntax
+                                            )
+                                        }
         )
         Layout.maybeLayout
-        |= Node.parserCore Tokens.functionName
+        |= Parser.getPosition
+        |= Tokens.functionName
+        |= Parser.getCol
         |= Layout.maybeLayout
         |. Tokens.colon
         |= Layout.maybeLayout
@@ -298,9 +322,21 @@ typedTypeAnnotationWithoutArguments =
 
 typeIndicator : Parser.Parser (Node ( ModuleName, String ))
 typeIndicator =
-    Tokens.typeName
-        |> Parser.andThen (\typeOrSegment -> typeIndicatorHelper [] typeOrSegment)
-        |> Node.parserCore
+    Parser.map
+        (\( nameStartRow, nameStartColumn ) ->
+            \qualified ->
+                \nameEndColumn ->
+                    Node
+                        { start = { row = nameStartRow, column = nameStartColumn }
+                        , end = { row = nameStartRow, column = nameEndColumn }
+                        }
+                        qualified
+        )
+        Parser.getPosition
+        |= (Tokens.typeName
+                |> Parser.andThen (\typeOrSegment -> typeIndicatorHelper [] typeOrSegment)
+           )
+        |= Parser.getCol
 
 
 typeIndicatorHelper : ModuleName -> String -> Parser.Parser ( ModuleName, String )

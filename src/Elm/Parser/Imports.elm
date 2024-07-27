@@ -84,17 +84,26 @@ importDefinition =
                 |> Parser.Extra.continueWith
                     (Parser.map
                         (\commentsBefore ->
-                            \moduleAlias ->
-                                \commentsAfter ->
-                                    Just
-                                        { comments = Rope.flatFromList [ commentsBefore, commentsAfter ]
-                                        , syntax = moduleAlias
-                                        }
+                            \( moduleAliasStartRow, moduleAliasStartColumn ) ->
+                                \moduleAlias ->
+                                    \moduleAliasEndColumn ->
+                                        \commentsAfter ->
+                                            Just
+                                                { comments = Rope.flatFromList [ commentsBefore, commentsAfter ]
+                                                , syntax =
+                                                    Node
+                                                        { start = { row = moduleAliasStartRow, column = moduleAliasStartColumn }
+                                                        , end = { row = moduleAliasStartRow, column = moduleAliasEndColumn }
+                                                        }
+                                                        (List.singleton moduleAlias)
+                                                }
                         )
                         Layout.layout
                     )
               )
-                |= (Tokens.typeName |> Node.parserCoreValueMap List.singleton)
+                |= Parser.getPosition
+                |= Tokens.typeName
+                |= Parser.getCol
                 |= Layout.optimisticLayout
             , Parser.succeed Nothing
             ]

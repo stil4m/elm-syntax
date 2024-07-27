@@ -1,4 +1,4 @@
-module Elm.Parser.Node exposing (parser, parserCore, parserCoreMap, parserCoreValueMap, parserMap, parserMapWithComments)
+module Elm.Parser.Node exposing (parser, parserCore, parserCoreMap, parserMap, parserMapWithComments)
 
 import Elm.Syntax.Node exposing (Node(..))
 import Parser exposing ((|=), Parser)
@@ -75,25 +75,6 @@ parserCoreMap valueNodeChange p =
                         }
                         v
                         |> valueNodeChange
-        )
-        Parser.getPosition
-        |= p
-        |= Parser.getPosition
-
-
-{-| Internally saves 1 Parser.map compared to parserCore |> Parser.map
--}
-parserCoreValueMap : (a -> b) -> Parser.Parser a -> Parser.Parser (Node b)
-parserCoreValueMap valueChange p =
-    Parser.map
-        (\( startRow, startColumn ) ->
-            \v ->
-                \( endRow, endColumn ) ->
-                    Node
-                        { start = { row = startRow, column = startColumn }
-                        , end = { row = endRow, column = endColumn }
-                        }
-                        (v |> valueChange)
         )
         Parser.getPosition
         |= p
