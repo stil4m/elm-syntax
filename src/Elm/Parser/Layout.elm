@@ -14,7 +14,7 @@ import Elm.Parser.Node as Node
 import Elm.Syntax.Node exposing (Node)
 import Parser exposing ((|.), (|=), Parser)
 import ParserWithComments exposing (Comments, WithComments)
-import Rope
+import Rope exposing (Rope)
 import Set
 
 
@@ -37,7 +37,7 @@ nonEmptyWhiteSpaceOrComment =
 
 whiteSpaceAndComments : Parser Comments
 whiteSpaceAndComments =
-    Parser.loop [] whiteSpaceAndCommentsFrom
+    Parser.loop Rope.empty whiteSpaceAndCommentsFrom
 
 
 maybeLayout : Parser Comments
@@ -46,7 +46,7 @@ maybeLayout =
         |. verifyLayoutIndent
 
 
-whiteSpaceAndCommentsFrom : List (Node String) -> Parser.Parser (Parser.Step (List (Node String)) Comments)
+whiteSpaceAndCommentsFrom : Rope (Node String) -> Parser.Parser (Parser.Step (Rope (Node String)) Comments)
 whiteSpaceAndCommentsFrom soFar =
     Parser.oneOf
         [ nonEmptyWhiteSpaceOrComment
@@ -58,13 +58,10 @@ whiteSpaceAndCommentsFrom soFar =
                                 soFar
 
                             Just aValue ->
-                                aValue :: soFar
+                                Rope.flatFromList [ soFar, Rope.one aValue ]
                         )
                 )
-        , Parser.lazy
-            (\() ->
-                Parser.succeed (Parser.Done (Rope.fromList (List.reverse soFar)))
-            )
+        , Parser.succeed (Parser.Done soFar)
         ]
 
 
@@ -119,7 +116,7 @@ layout =
                         Rope.flatFromList [ Rope.one headValue, tail ]
         )
         nonEmptyWhiteSpaceOrComment
-        |= Parser.loop [] whiteSpaceAndCommentsFrom
+        |= Parser.loop Rope.empty whiteSpaceAndCommentsFrom
         |. verifyLayoutIndent
 
 

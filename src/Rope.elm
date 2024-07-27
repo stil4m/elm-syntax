@@ -1,4 +1,4 @@
-module Rope exposing (Rope(..), empty, flatFromList, fromList, one, toList)
+module Rope exposing (Rope(..), empty, flatFromList, one, toList)
 
 {-| inspired by [miniBill/elm-rope](https://dark.elm.dmy.fr/packages/miniBill/elm-rope/latest/)
 -}
@@ -7,11 +7,6 @@ module Rope exposing (Rope(..), empty, flatFromList, fromList, one, toList)
 type Rope a
     = Leaf (List a)
     | Branch (List (Rope a))
-
-
-fromList : List a -> Rope a
-fromList list =
-    Leaf list
 
 
 empty : Rope a
