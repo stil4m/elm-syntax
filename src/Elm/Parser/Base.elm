@@ -1,19 +1,29 @@
 module Elm.Parser.Base exposing (moduleName)
 
-import Elm.Parser.Node as Node
 import Elm.Parser.Tokens as Tokens
 import Elm.Syntax.ModuleName exposing (ModuleName)
-import Elm.Syntax.Node exposing (Node)
+import Elm.Syntax.Node exposing (Node(..))
 import Parser as Core exposing ((|=))
 import Parser.Extra
 
 
 moduleName : Core.Parser (Node ModuleName)
 moduleName =
-    Core.map listCons
-        Tokens.typeName
+    Core.map
+        (\( startRow, startColumn ) ->
+            \head ->
+                \tail ->
+                    \endColumn ->
+                        Node
+                            { start = { row = startRow, column = startColumn }
+                            , end = { row = startRow, column = endColumn }
+                            }
+                            (head :: tail)
+        )
+        Core.getPosition
+        |= Tokens.typeName
         |= moduleNameOrEmpty
-        |> Node.parserCore
+        |= Core.getCol
 
 
 listCons : a -> List a -> List a
