@@ -30,7 +30,7 @@ many p =
                 Core.Parser
                     (Core.Step
                         ( List Comments, List a )
-                        { comments : Comments, syntax : List a }
+                        (WithComments (List a))
                     )
         manyWithoutReverseStep ( commentsSoFar, items ) =
             Core.oneOf
@@ -71,7 +71,7 @@ manyWithoutReverse p =
                 Core.Parser
                     (Core.Step
                         ( List Comments, List a )
-                        { comments : Comments, syntax : List a }
+                        (WithComments (List a))
                     )
         manyWithoutReverseStep ( commentsSoFar, items ) =
             Core.oneOf
