@@ -24,13 +24,13 @@ composedWith =
                 PatternComposedWithAs composedWithAs ->
                     PatternComposedWithAs
                         { composedWithAs
-                            | comments = Rope.flatFromList [ commentsBefore, composedWithAs.comments ]
+                            | comments = commentsBefore |> Rope.prependTo composedWithAs.comments
                         }
 
                 PatternComposedWithCons composedWithCons ->
                     PatternComposedWithCons
                         { composedWithCons
-                            | comments = Rope.flatFromList [ commentsBefore, composedWithCons.comments ]
+                            | comments = commentsBefore |> Rope.prependTo composedWithCons.comments
                         }
         )
         Layout.maybeLayout
@@ -60,7 +60,7 @@ composedWith =
                         (\commentsAfterCons ->
                             \patternResult ->
                                 PatternComposedWithCons
-                                    { comments = Rope.flatFromList [ patternResult.comments, commentsAfterCons ]
+                                    { comments = patternResult.comments |> Rope.prependTo commentsAfterCons
                                     , syntax = patternResult.syntax
                                     }
                         )
@@ -93,12 +93,12 @@ composablePatternTryToCompose =
                         x
 
                     PatternComposedWithAs anotherName ->
-                        { comments = Rope.flatFromList [ x.comments, anotherName.comments ]
+                        { comments = x.comments |> Rope.prependTo anotherName.comments
                         , syntax = Node.combine Pattern.AsPattern x.syntax anotherName.syntax
                         }
 
                     PatternComposedWithCons y ->
-                        { comments = Rope.flatFromList [ x.comments, y.comments ]
+                        { comments = x.comments |> Rope.prependTo y.comments
                         , syntax = Node.combine Pattern.UnConsPattern x.syntax y.syntax
                         }
         )
@@ -161,7 +161,7 @@ listPattern =
                                 }
 
                             Just elements ->
-                                { comments = Rope.flatFromList [ commentsBeforeElements, elements.comments ]
+                                { comments = commentsBeforeElements |> Rope.prependTo elements.comments
                                 , syntax = ListPattern elements.syntax
                                 }
                 )
@@ -285,7 +285,7 @@ qualifiedPatternWithConsumeArgs =
             (Parser.map
                 (\commentsBefore ->
                     \arg ->
-                        { comments = Rope.flatFromList [ arg.comments, commentsBefore ]
+                        { comments = arg.comments |> Rope.prependTo commentsBefore
                         , syntax = arg.syntax
                         }
                 )
@@ -315,7 +315,7 @@ recordPattern =
                                 }
 
                             Just elements ->
-                                { comments = Rope.flatFromList [ commentsBeforeElements, elements.comments ]
+                                { comments = commentsBeforeElements |> Rope.prependTo elements.comments
                                 , syntax = RecordPattern elements.syntax
                                 }
                 )
@@ -352,7 +352,7 @@ recordPattern =
                                     \( nameStartRow, nameStartColumn ) ->
                                         \name ->
                                             \afterName ->
-                                                { comments = Rope.flatFromList [ beforeName, afterName ]
+                                                { comments = beforeName |> Rope.prependTo afterName
                                                 , syntax =
                                                     Node.singleLineStringFrom
                                                         { row = nameStartRow, column = nameStartColumn }

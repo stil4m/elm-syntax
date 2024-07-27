@@ -88,7 +88,7 @@ importDefinition =
                                 \moduleAlias ->
                                     \commentsAfter ->
                                         Just
-                                            { comments = Rope.flatFromList [ commentsBefore, commentsAfter ]
+                                            { comments = commentsBefore |> Rope.prependTo commentsAfter
                                             , syntax =
                                                 Node
                                                     (Node.singleLineStringRangeFrom

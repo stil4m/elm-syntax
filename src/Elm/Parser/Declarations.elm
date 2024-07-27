@@ -161,11 +161,11 @@ declaration =
                                         portDeclarationAfterName.typeAnnotation
                                 in
                                 { comments =
-                                    Rope.flatFromList
-                                        [ Rope.one documentation
-                                        , commentsAfterDocumentation
-                                        , afterDocumentation.comments
-                                        ]
+                                    Rope.one documentation
+                                        |> Rope.prependToLikelyFilled
+                                            (commentsAfterDocumentation
+                                                |> Rope.prependTo afterDocumentation.comments
+                                            )
                                 , syntax =
                                     Node
                                         { start = portDeclarationAfterName.startLocation
@@ -315,7 +315,7 @@ functionAfterDocumentation =
             (Parser.map
                 (\patternResult ->
                     \commentsAfterPattern ->
-                        { comments = Rope.flatFromList [ patternResult.comments, commentsAfterPattern ]
+                        { comments = patternResult.comments |> Rope.prependTo commentsAfterPattern
                         , syntax = patternResult.syntax
                         }
                 )
@@ -457,7 +457,7 @@ functionDeclarationWithoutDocumentation =
             (Parser.map
                 (\patternResult ->
                     \commentsAfterPattern ->
-                        { comments = Rope.flatFromList [ patternResult.comments, commentsAfterPattern ]
+                        { comments = patternResult.comments |> Rope.prependTo commentsAfterPattern
                         , syntax = patternResult.syntax
                         }
                 )
@@ -624,7 +624,7 @@ typeOrTypeAliasDefinitionAfterDocumentation =
             (Parser.map
                 (\commentsAfterType ->
                     \declarationAfterDocumentation ->
-                        { comments = Rope.flatFromList [ commentsAfterType, declarationAfterDocumentation.comments ]
+                        { comments = commentsAfterType |> Rope.prependTo declarationAfterDocumentation.comments
                         , syntax = declarationAfterDocumentation.syntax
                         }
                 )
@@ -747,7 +747,7 @@ typeOrTypeAliasDefinitionWithoutDocumentation =
             in
             \commentsAfterType ->
                 \afterStart ->
-                    { comments = Rope.flatFromList [ commentsAfterType, afterStart.comments ]
+                    { comments = commentsAfterType |> Rope.prependTo afterStart.comments
                     , syntax =
                         case afterStart.syntax of
                             TypeDeclarationWithoutDocumentation typeDeclarationAfterDocumentation ->
@@ -937,7 +937,7 @@ valueConstructor =
         |= ParserWithComments.manyWithoutReverse
             (Parser.map
                 (\commentsBefore typeAnnotationResult ->
-                    { comments = Rope.flatFromList [ commentsBefore, typeAnnotationResult.comments ]
+                    { comments = commentsBefore |> Rope.prependTo typeAnnotationResult.comments
                     , syntax = typeAnnotationResult.syntax
                     }
                 )

@@ -45,7 +45,7 @@ file =
             [ Parser.map
                 (\declarationParsed ->
                     \commentsAfter ->
-                        Rope.flatFromList [ declarationParsed, commentsAfter ]
+                        declarationParsed |> Rope.prependToLikelyFilled commentsAfter
                 )
                 Comments.moduleDocumentation
                 |= Layout.layoutStrict
@@ -62,7 +62,7 @@ fileDeclarations =
         (Parser.map
             (\declarationParsed ->
                 \commentsAfter ->
-                    { comments = Rope.flatFromList [ declarationParsed.comments, commentsAfter ]
+                    { comments = declarationParsed.comments |> Rope.prependTo commentsAfter
                     , syntax = declarationParsed.syntax
                     }
             )

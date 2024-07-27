@@ -20,7 +20,7 @@ exposeDefinition =
             (Parser.map
                 (\commentsAfterExposing ->
                     \exposingList ->
-                        { comments = Rope.flatFromList [ commentsAfterExposing, exposingList.comments ]
+                        { comments = commentsAfterExposing |> Rope.prependTo exposingList.comments
                         , syntax = exposingList.syntax
                         }
                 )
@@ -58,7 +58,7 @@ exposingListInner =
                 \commentsBeforeDotDot ->
                     \commentsAfterDotDot ->
                         \( endRow, endColumn ) ->
-                            { comments = Rope.flatFromList [ commentsBeforeDotDot, commentsAfterDotDot ]
+                            { comments = commentsBeforeDotDot |> Rope.prependTo commentsAfterDotDot
                             , syntax =
                                 All
                                     { start = { row = startRow, column = startColumn }
@@ -126,7 +126,7 @@ typeExpose =
                 (\commentsBefore ->
                     \exposingVariantsRangeAndComments ->
                         Just
-                            { comments = Rope.flatFromList [ commentsBefore, exposingVariantsRangeAndComments.comments ]
+                            { comments = commentsBefore |> Rope.prependTo exposingVariantsRangeAndComments.comments
                             , syntax = exposingVariantsRangeAndComments.syntax
                             }
                 )
@@ -143,7 +143,7 @@ exposingVariants =
             \left ->
                 \right ->
                     \( endRow, endColumn ) ->
-                        { comments = Rope.flatFromList [ left, right ]
+                        { comments = left |> Rope.prependTo right
                         , syntax =
                             { start = { row = startRow, column = startColumn }
                             , end = { row = endRow, column = endColumn }

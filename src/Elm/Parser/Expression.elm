@@ -192,7 +192,7 @@ listExpression =
                                 { comments = commentsBefore, syntax = ListExpr [] }
 
                             Just elements ->
-                                { comments = Rope.flatFromList [ commentsBefore, elements.comments ]
+                                { comments = commentsBefore |> Rope.prependTo elements.comments
                                 , syntax = ListExpr elements.syntax
                                 }
                 )
@@ -243,7 +243,7 @@ recordExpression =
                                 }
 
                             Just afterCurly ->
-                                { comments = Rope.flatFromList [ commentsBefore, afterCurly.comments ]
+                                { comments = commentsBefore |> Rope.prependTo afterCurly.comments
                                 , syntax = afterCurly.syntax
                                 }
                 )
@@ -297,7 +297,7 @@ recordContents =
                     (Parser.map
                         (\commentsBefore ->
                             \setterResult ->
-                                { comments = Rope.flatFromList [ commentsBefore, setterResult.comments ]
+                                { comments = commentsBefore |> Rope.prependTo setterResult.comments
                                 , syntax = RecordUpdateFirstSetter setterResult.syntax
                                 }
                         )
@@ -310,7 +310,7 @@ recordContents =
                     (Parser.map
                         (\commentsBefore ->
                             \expressionResult ->
-                                { comments = Rope.flatFromList [ commentsBefore, expressionResult.comments ]
+                                { comments = commentsBefore |> Rope.prependTo expressionResult.comments
                                 , syntax = FieldsFirstValue expressionResult.syntax
                                 }
                         )
@@ -336,7 +336,7 @@ recordFields =
                 (Parser.map
                     (\commentsBefore ->
                         \setterResult ->
-                            { comments = Rope.flatFromList [ commentsBefore, setterResult.comments ]
+                            { comments = commentsBefore |> Rope.prependTo setterResult.comments
                             , syntax = setterResult.syntax
                             }
                     )
@@ -442,7 +442,7 @@ lambdaExpression =
             (Parser.map
                 (\commentsBefore ->
                     \patternResult ->
-                        { comments = Rope.flatFromList [ commentsBefore, patternResult.comments ]
+                        { comments = commentsBefore |> Rope.prependTo patternResult.comments
                         , syntax = patternResult.syntax
                         }
                 )
@@ -511,7 +511,7 @@ caseStatements =
     Parser.map
         (\firstCase ->
             \lastToSecondCase ->
-                { comments = Rope.flatFromList [ firstCase.comments, lastToSecondCase.comments ]
+                { comments = firstCase.comments |> Rope.prependTo lastToSecondCase.comments
                 , syntax =
                     ( firstCase.syntax
                     , lastToSecondCase.syntax
@@ -590,7 +590,7 @@ letDeclarations =
     Parser.map
         (\head ->
             \tail ->
-                { comments = Rope.flatFromList [ head.comments, tail.comments ]
+                { comments = head.comments |> Rope.prependTo tail.comments
                 , syntax = head.syntax :: tail.syntax
                 }
         )
@@ -621,7 +621,7 @@ letDestructuringDeclaration =
                     (Node { end } _) =
                         expressionResult.syntax
                 in
-                { comments = Rope.flatFromList [ pattern.comments, expressionResult.comments ]
+                { comments = pattern.comments |> Rope.prependTo expressionResult.comments
                 , syntax =
                     Node { start = start, end = end }
                         (LetDestructuring pattern.syntax expressionResult.syntax)
@@ -762,7 +762,7 @@ letFunction =
             (Parser.map
                 (\patternResult ->
                     \commentsAfterPattern ->
-                        { comments = Rope.flatFromList [ patternResult.comments, commentsAfterPattern ]
+                        { comments = patternResult.comments |> Rope.prependTo commentsAfterPattern
                         , syntax = patternResult.syntax
                         }
                 )
@@ -956,7 +956,7 @@ tupledExpressionInnerNested =
                         }
 
                     _ ->
-                        { comments = Rope.flatFromList [ firstPart.comments, tailPartsReverse.comments ]
+                        { comments = firstPart.comments |> Rope.prependTo tailPartsReverse.comments
                         , syntax = TupledExpression (firstPart.syntax :: List.reverse tailPartsReverse.syntax)
                         }
         )
@@ -988,7 +988,7 @@ optimisticLayoutSubExpressions =
     Parser.map
         (\commentsBefore ->
             \subExpressionResult ->
-                { comments = Rope.flatFromList [ commentsBefore, subExpressionResult.comments ]
+                { comments = commentsBefore |> Rope.prependTo subExpressionResult.comments
                 , syntax = subExpressionResult.syntax
                 }
         )
@@ -1006,7 +1006,7 @@ expressionHelp currentPrecedence leftExpression =
                         case maybeCombineExpressionResult of
                             Nothing ->
                                 Parser.Done
-                                    { comments = Rope.flatFromList [ leftExpression.comments, commentsBefore ]
+                                    { comments = leftExpression.comments |> Rope.prependTo commentsBefore
                                     , syntax = leftExpression.syntax
                                     }
 

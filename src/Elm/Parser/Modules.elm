@@ -30,7 +30,7 @@ effectWhereClause =
             \commentsAfterFnName ->
                 \commentsAfterEqual ->
                     \typeName_ ->
-                        { comments = Rope.flatFromList [ commentsAfterFnName, commentsAfterEqual ]
+                        { comments = commentsAfterFnName |> Rope.prependTo commentsAfterEqual
                         , syntax = ( fnName, typeName_ )
                         }
         )
@@ -75,7 +75,7 @@ effectWhereClauses =
             (Parser.map
                 (\commentsBefore ->
                     \whereResult ->
-                        { comments = Rope.flatFromList [ commentsBefore, whereResult.comments ]
+                        { comments = commentsBefore |> Rope.prependTo whereResult.comments
                         , syntax = whereResult.syntax
                         }
                 )

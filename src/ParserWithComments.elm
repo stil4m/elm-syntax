@@ -38,7 +38,7 @@ many p =
                     |> Parser.map
                         (\pResult ->
                             Parser.Loop
-                                ( Rope.flatFromList [ commentsSoFar, pResult.comments ]
+                                ( commentsSoFar |> Rope.prependTo pResult.comments
                                 , pResult.syntax :: items
                                 )
                         )
@@ -79,7 +79,7 @@ manyWithoutReverse p =
                     |> Parser.map
                         (\pResult ->
                             Parser.Loop
-                                ( Rope.flatFromList [ commentsSoFar, pResult.comments ]
+                                ( commentsSoFar |> Rope.prependTo pResult.comments
                                 , pResult.syntax :: items
                                 )
                         )
@@ -103,7 +103,7 @@ sepBy sep p =
         [ Parser.map
             (\head ->
                 \tail ->
-                    { comments = Rope.flatFromList [ head.comments, tail.comments ]
+                    { comments = head.comments |> Rope.prependTo tail.comments
                     , syntax = head.syntax :: tail.syntax
                     }
             )
@@ -118,7 +118,7 @@ sepBy1 sep p =
     Parser.map
         (\head ->
             \tail ->
-                { comments = Rope.flatFromList [ head.comments, tail.comments ]
+                { comments = head.comments |> Rope.prependTo tail.comments
                 , syntax = head.syntax :: tail.syntax
                 }
         )

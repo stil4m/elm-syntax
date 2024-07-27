@@ -22,7 +22,7 @@ typeAnnotation =
                         ta
 
                     Just out ->
-                        { comments = Rope.flatFromList [ ta.comments, out.comments ]
+                        { comments = ta.comments |> Rope.prependTo out.comments
                         , syntax = Node.combine TypeAnnotation.FunctionTypeAnnotation ta.syntax out.syntax
                         }
         )
@@ -258,7 +258,7 @@ recordFieldsTypeAnnotation =
         (Parser.map
             (\commentsBefore ->
                 \fields ->
-                    { comments = Rope.flatFromList [ commentsBefore, fields.comments ]
+                    { comments = commentsBefore |> Rope.prependTo fields.comments
                     , syntax = fields.syntax
                     }
             )
@@ -355,7 +355,7 @@ typedTypeAnnotationWithArguments =
             (Parser.map
                 (\commentsBefore ->
                     \typeAnnotationResult ->
-                        { comments = Rope.flatFromList [ commentsBefore, typeAnnotationResult.comments ]
+                        { comments = commentsBefore |> Rope.prependTo typeAnnotationResult.comments
                         , syntax = typeAnnotationResult.syntax
                         }
                 )
