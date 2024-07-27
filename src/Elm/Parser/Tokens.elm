@@ -22,7 +22,7 @@ module Elm.Parser.Tokens exposing
 
 import Char
 import Hex
-import Parser as Core exposing ((|.), Step(..))
+import Parser exposing ((|.), Step(..))
 import Parser.Extra
 import Set exposing (Set)
 import Unicode
@@ -54,89 +54,89 @@ reservedList =
         |> Set.fromList
 
 
-portToken : Core.Parser ()
+portToken : Parser.Parser ()
 portToken =
-    Core.symbol "port"
+    Parser.symbol "port"
 
 
-moduleToken : Core.Parser ()
+moduleToken : Parser.Parser ()
 moduleToken =
-    Core.symbol "module"
+    Parser.symbol "module"
 
 
-whereToken : Core.Parser ()
+whereToken : Parser.Parser ()
 whereToken =
-    Core.symbol "where"
+    Parser.symbol "where"
 
 
-exposingToken : Core.Parser ()
+exposingToken : Parser.Parser ()
 exposingToken =
-    Core.symbol "exposing"
+    Parser.symbol "exposing"
 
 
-importToken : Core.Parser ()
+importToken : Parser.Parser ()
 importToken =
-    Core.keyword "import"
+    Parser.keyword "import"
 
 
-asToken : Core.Parser ()
+asToken : Parser.Parser ()
 asToken =
-    Core.keyword "as"
+    Parser.keyword "as"
 
 
-ifToken : Core.Parser ()
+ifToken : Parser.Parser ()
 ifToken =
-    Core.symbol "if"
+    Parser.symbol "if"
 
 
-thenToken : Core.Parser ()
+thenToken : Parser.Parser ()
 thenToken =
-    Core.symbol "then"
+    Parser.symbol "then"
 
 
-elseToken : Core.Parser ()
+elseToken : Parser.Parser ()
 elseToken =
-    Core.symbol "else"
+    Parser.symbol "else"
 
 
-caseToken : Core.Parser ()
+caseToken : Parser.Parser ()
 caseToken =
-    Core.symbol "case"
+    Parser.symbol "case"
 
 
-ofToken : Core.Parser ()
+ofToken : Parser.Parser ()
 ofToken =
-    Core.symbol "of"
+    Parser.symbol "of"
 
 
-letToken : Core.Parser ()
+letToken : Parser.Parser ()
 letToken =
-    Core.symbol "let"
+    Parser.symbol "let"
 
 
-inToken : Core.Parser ()
+inToken : Parser.Parser ()
 inToken =
-    Core.symbol "in"
+    Parser.symbol "in"
 
 
-aliasToken : Core.Parser ()
+aliasToken : Parser.Parser ()
 aliasToken =
-    Core.symbol "alias"
+    Parser.symbol "alias"
 
 
-escapedCharValue : Core.Parser Char
+escapedCharValue : Parser.Parser Char
 escapedCharValue =
-    Core.oneOf
-        [ Core.map (\() -> '\'') (Core.symbol "'")
-        , Core.map (\() -> '"') (Core.symbol "\"")
-        , Core.map (\() -> '\n') (Core.symbol "n")
-        , Core.map (\() -> '\t') (Core.symbol "t")
+    Parser.oneOf
+        [ Parser.map (\() -> '\'') (Parser.symbol "'")
+        , Parser.map (\() -> '"') (Parser.symbol "\"")
+        , Parser.map (\() -> '\n') (Parser.symbol "n")
+        , Parser.map (\() -> '\t') (Parser.symbol "t")
         , -- Eventhough Elm-format will change \r to a unicode version. When you dont use elm-format, this will not happen.
-          Core.map (\() -> '\u{000D}') (Core.symbol "r")
-        , Core.map (\() -> '\\') (Core.symbol "\\")
-        , (Core.symbol "u{"
+          Parser.map (\() -> '\u{000D}') (Parser.symbol "r")
+        , Parser.map (\() -> '\\') (Parser.symbol "\\")
+        , (Parser.symbol "u{"
             |> Parser.Extra.continueWith
-                (Core.map
+                (Parser.map
                     (\hex ->
                         case String.toLower hex |> Hex.fromString of
                             Ok n ->
@@ -145,7 +145,7 @@ escapedCharValue =
                             Err _ ->
                                 '\u{0000}'
                     )
-                    (Core.variable
+                    (Parser.variable
                         { inner = Char.isHexDigit
                         , reserved = Set.empty
                         , start = Char.isHexDigit
@@ -153,97 +153,97 @@ escapedCharValue =
                     )
                 )
           )
-            |. Core.symbol "}"
+            |. Parser.symbol "}"
         ]
 
 
-slashEscapedCharValue : Core.Parser Char
+slashEscapedCharValue : Parser.Parser Char
 slashEscapedCharValue =
-    Core.symbol "\\"
+    Parser.symbol "\\"
         |> Parser.Extra.continueWith escapedCharValue
 
 
-characterLiteral : Core.Parser Char
+characterLiteral : Parser.Parser Char
 characterLiteral =
-    (Core.symbol "'"
+    (Parser.symbol "'"
         |> Parser.Extra.continueWith
-            (Core.oneOf
+            (Parser.oneOf
                 [ slashEscapedCharValue
                 , Parser.Extra.anyChar
                 ]
             )
     )
-        |. Core.symbol "'"
+        |. Parser.symbol "'"
 
 
-singleOrTripleQuotedStringLiteral : Core.Parser String
+singleOrTripleQuotedStringLiteral : Parser.Parser String
 singleOrTripleQuotedStringLiteral =
     doubleQuote
         |> Parser.Extra.continueWith
-            (Core.oneOf
+            (Parser.oneOf
                 [ twoDoubleQuotes
-                    |> Parser.Extra.continueWith (Core.loop "" tripleQuotedStringLiteralStep)
-                , Core.loop "" stringLiteralHelper
+                    |> Parser.Extra.continueWith (Parser.loop "" tripleQuotedStringLiteralStep)
+                , Parser.loop "" stringLiteralHelper
                 ]
             )
 
 
-doubleQuote : Core.Parser ()
+doubleQuote : Parser.Parser ()
 doubleQuote =
-    Core.symbol "\""
+    Parser.symbol "\""
 
 
-stringLiteralHelper : String -> Core.Parser (Step String String)
+stringLiteralHelper : String -> Parser.Parser (Step String String)
 stringLiteralHelper stringSoFar =
-    Core.oneOf
-        [ doubleQuote |> Core.map (\() -> Done stringSoFar)
+    Parser.oneOf
+        [ doubleQuote |> Parser.map (\() -> Done stringSoFar)
         , backSlash
             |> Parser.Extra.continueWith
-                (Core.map (\v -> Loop (stringSoFar ++ String.fromChar v ++ ""))
+                (Parser.map (\v -> Loop (stringSoFar ++ String.fromChar v ++ ""))
                     escapedCharValue
                 )
-        , Core.mapChompedString
+        , Parser.mapChompedString
             (\value () -> Loop (stringSoFar ++ value))
             chompWhileIsInsideString
         ]
 
 
-chompWhileIsInsideString : Core.Parser ()
+chompWhileIsInsideString : Parser.Parser ()
 chompWhileIsInsideString =
-    Core.chompWhile (\c -> c /= '"' && c /= '\\')
+    Parser.chompWhile (\c -> c /= '"' && c /= '\\')
 
 
-twoDoubleQuotes : Core.Parser ()
+twoDoubleQuotes : Parser.Parser ()
 twoDoubleQuotes =
-    Core.symbol "\"\""
+    Parser.symbol "\"\""
 
 
-tripleDoubleQuote : Core.Parser ()
+tripleDoubleQuote : Parser.Parser ()
 tripleDoubleQuote =
-    Core.symbol "\"\"\""
+    Parser.symbol "\"\"\""
 
 
-tripleQuotedStringLiteralStep : String -> Core.Parser (Step String String)
+tripleQuotedStringLiteralStep : String -> Parser.Parser (Step String String)
 tripleQuotedStringLiteralStep stringSoFar =
-    Core.oneOf
+    Parser.oneOf
         [ tripleDoubleQuote
-            |> Core.map (\() -> Done stringSoFar)
+            |> Parser.map (\() -> Done stringSoFar)
         , doubleQuote
-            |> Core.map (\() -> Loop (stringSoFar ++ "\""))
+            |> Parser.map (\() -> Loop (stringSoFar ++ "\""))
         , backSlash
             |> Parser.Extra.continueWith
-                (Core.map (\v -> Loop (stringSoFar ++ String.fromChar v ++ ""))
+                (Parser.map (\v -> Loop (stringSoFar ++ String.fromChar v ++ ""))
                     escapedCharValue
                 )
-        , Core.mapChompedString
+        , Parser.mapChompedString
             (\value () -> Loop (stringSoFar ++ value))
             chompWhileIsInsideString
         ]
 
 
-functionName : Core.Parser String
+functionName : Parser.Parser String
 functionName =
-    Core.variable
+    Parser.variable
         { inner =
             \c ->
                 -- checking for Char.isAlphaNum early is much faster
@@ -253,9 +253,9 @@ functionName =
         }
 
 
-typeName : Core.Parser String
+typeName : Parser.Parser String
 typeName =
-    Core.variable
+    Parser.variable
         { inner =
             \c ->
                 -- checking for Char.isAlphaNum early is much faster
@@ -294,97 +294,97 @@ allowedOperatorTokens =
     ]
 
 
-prefixOperatorToken : Core.Parser String
+prefixOperatorToken : Parser.Parser String
 prefixOperatorToken =
     allowedOperatorTokens
-        |> List.map (\token -> Core.symbol token |> Core.map (\() -> token))
-        |> Core.oneOf
+        |> List.map (\token -> Parser.symbol token |> Parser.map (\() -> token))
+        |> Parser.oneOf
 
 
-minus : Core.Parser ()
+minus : Parser.Parser ()
 minus =
-    Core.symbol "-"
+    Parser.symbol "-"
 
 
-minusSymbols : Core.Parser ()
+minusSymbols : Parser.Parser ()
 minusSymbols =
-    Core.oneOf
-        [ Core.symbol "- "
-        , Core.symbol "-\n"
-        , Core.symbol "-\u{000D}"
+    Parser.oneOf
+        [ Parser.symbol "- "
+        , Parser.symbol "-\n"
+        , Parser.symbol "-\u{000D}"
         ]
 
 
-dot : Core.Parser ()
+dot : Parser.Parser ()
 dot =
-    Core.symbol "."
+    Parser.symbol "."
 
 
-dotDot : Core.Parser ()
+dotDot : Parser.Parser ()
 dotDot =
-    Core.symbol ".."
+    Parser.symbol ".."
 
 
-squareStart : Core.Parser ()
+squareStart : Parser.Parser ()
 squareStart =
-    Core.symbol "["
+    Parser.symbol "["
 
 
-squareEnd : Core.Parser ()
+squareEnd : Parser.Parser ()
 squareEnd =
-    Core.symbol "]"
+    Parser.symbol "]"
 
 
-curlyStart : Core.Parser ()
+curlyStart : Parser.Parser ()
 curlyStart =
-    Core.symbol "{"
+    Parser.symbol "{"
 
 
-curlyEnd : Core.Parser ()
+curlyEnd : Parser.Parser ()
 curlyEnd =
-    Core.symbol "}"
+    Parser.symbol "}"
 
 
-pipe : Core.Parser ()
+pipe : Parser.Parser ()
 pipe =
-    Core.symbol "|"
+    Parser.symbol "|"
 
 
-backSlash : Core.Parser ()
+backSlash : Parser.Parser ()
 backSlash =
-    Core.symbol "\\"
+    Parser.symbol "\\"
 
 
-arrowRight : Core.Parser ()
+arrowRight : Parser.Parser ()
 arrowRight =
-    Core.symbol "->"
+    Parser.symbol "->"
 
 
-equal : Core.Parser ()
+equal : Parser.Parser ()
 equal =
-    Core.symbol "="
+    Parser.symbol "="
 
 
-comma : Core.Parser ()
+comma : Parser.Parser ()
 comma =
-    Core.symbol ","
+    Parser.symbol ","
 
 
-parensStart : Core.Parser ()
+parensStart : Parser.Parser ()
 parensStart =
-    Core.symbol "("
+    Parser.symbol "("
 
 
-parensEnd : Core.Parser ()
+parensEnd : Parser.Parser ()
 parensEnd =
-    Core.symbol ")"
+    Parser.symbol ")"
 
 
-colon : Core.Parser ()
+colon : Parser.Parser ()
 colon =
-    Core.symbol ":"
+    Parser.symbol ":"
 
 
-cons : Core.Parser ()
+cons : Parser.Parser ()
 cons =
-    Core.symbol "::"
+    Parser.symbol "::"

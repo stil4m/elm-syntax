@@ -6,7 +6,7 @@ import Elm.Parser.Tokens as Tokens
 import Elm.Syntax.Exposing exposing (Exposing(..), TopLevelExpose(..))
 import Elm.Syntax.Node exposing (Node)
 import Elm.Syntax.Range exposing (Range)
-import Parser as Core exposing ((|.), (|=), Parser)
+import Parser exposing ((|.), (|=), Parser)
 import Parser.Extra
 import ParserWithComments exposing (WithComments)
 import Rope
@@ -17,7 +17,7 @@ exposeDefinition : Parser (WithComments Exposing)
 exposeDefinition =
     (Tokens.exposingToken
         |> Parser.Extra.continueWith
-            (Core.map
+            (Parser.map
                 (\commentsAfterExposing ->
                     \exposingList ->
                         { comments = Rope.flatFromList [ commentsAfterExposing, exposingList.comments ]
@@ -34,7 +34,7 @@ exposeListWith : Parser (WithComments Exposing)
 exposeListWith =
     (Tokens.parensStart
         |> Parser.Extra.continueWith
-            (Core.map
+            (Parser.map
                 (\commentsBefore ->
                     \exposingListInnerResult ->
                         \commentsAfter ->
@@ -52,8 +52,8 @@ exposeListWith =
 
 exposingListInner : Parser (WithComments Exposing)
 exposingListInner =
-    Core.oneOf
-        [ Core.map
+    Parser.oneOf
+        [ Parser.map
             (\( startRow, startColumn ) ->
                 \commentsBeforeDotDot ->
                     \commentsAfterDotDot ->
@@ -66,13 +66,13 @@ exposingListInner =
                                     }
                             }
             )
-            Core.getPosition
+            Parser.getPosition
             |= Layout.maybeLayout
             |. Tokens.dotDot
             |= Layout.maybeLayout
-            |= Core.getPosition
+            |= Parser.getPosition
         , ParserWithComments.sepBy1 "," (Layout.maybeAroundBothSides exposable)
-            |> Core.map
+            |> Parser.map
                 (\elements ->
                     { comments = elements.comments, syntax = Explicit elements.syntax }
                 )
@@ -81,7 +81,7 @@ exposingListInner =
 
 exposable : Parser (WithComments (Node TopLevelExpose))
 exposable =
-    Core.oneOf
+    Parser.oneOf
         [ functionExpose
         , typeExpose
         , infixExpose
@@ -89,12 +89,12 @@ exposable =
         |> Node.parser
 
 
-infixExpose : Core.Parser (WithComments TopLevelExpose)
+infixExpose : Parser.Parser (WithComments TopLevelExpose)
 infixExpose =
     (Tokens.parensStart
         |> Parser.Extra.continueWith
-            (Core.map (\infixName -> { comments = Rope.empty, syntax = InfixExpose infixName })
-                (Core.variable
+            (Parser.map (\infixName -> { comments = Rope.empty, syntax = InfixExpose infixName })
+                (Parser.variable
                     { inner = \c -> c /= ')'
                     , reserved = Set.empty
                     , start = \c -> c /= ')'
@@ -107,7 +107,7 @@ infixExpose =
 
 typeExpose : Parser (WithComments TopLevelExpose)
 typeExpose =
-    Core.map
+    Parser.map
         (\typeName ->
             \open ->
                 case open of
@@ -121,8 +121,8 @@ typeExpose =
                         }
         )
         Tokens.typeName
-        |= Core.oneOf
-            [ Core.map
+        |= Parser.oneOf
+            [ Parser.map
                 (\commentsBefore ->
                     \exposingVariantsRangeAndComments ->
                         Just
@@ -130,15 +130,15 @@ typeExpose =
                             , syntax = exposingVariantsRangeAndComments.syntax
                             }
                 )
-                (Layout.maybeLayout |> Core.backtrackable)
+                (Layout.maybeLayout |> Parser.backtrackable)
                 |= exposingVariants
-            , Core.succeed Nothing
+            , Parser.succeed Nothing
             ]
 
 
 exposingVariants : Parser (WithComments Range)
 exposingVariants =
-    Core.map
+    Parser.map
         (\( startRow, startColumn ) ->
             \left ->
                 \right ->
@@ -150,16 +150,16 @@ exposingVariants =
                             }
                         }
         )
-        Core.getPosition
+        Parser.getPosition
         |. Tokens.parensStart
         |= Layout.maybeLayout
-        |. Core.symbol ".."
+        |. Parser.symbol ".."
         |= Layout.maybeLayout
         |. Tokens.parensEnd
-        |= Core.getPosition
+        |= Parser.getPosition
 
 
 functionExpose : Parser (WithComments TopLevelExpose)
 functionExpose =
-    Core.map (\name -> { comments = Rope.empty, syntax = FunctionExpose name })
+    Parser.map (\name -> { comments = Rope.empty, syntax = FunctionExpose name })
         Tokens.functionName

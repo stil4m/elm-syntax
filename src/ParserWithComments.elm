@@ -8,7 +8,7 @@ module ParserWithComments exposing
     )
 
 import Elm.Syntax.Node exposing (Node)
-import Parser as Core exposing ((|=), Parser)
+import Parser exposing ((|=), Parser)
 import Parser.Extra
 import Rope exposing (Rope)
 
@@ -27,25 +27,25 @@ many p =
         manyWithoutReverseStep :
             ( List Comments, List a )
             ->
-                Core.Parser
-                    (Core.Step
+                Parser.Parser
+                    (Parser.Step
                         ( List Comments, List a )
                         (WithComments (List a))
                     )
         manyWithoutReverseStep ( commentsSoFar, items ) =
-            Core.oneOf
+            Parser.oneOf
                 [ p
-                    |> Core.map
+                    |> Parser.map
                         (\pResult ->
-                            Core.Loop
+                            Parser.Loop
                                 ( pResult.comments :: commentsSoFar
                                 , pResult.syntax :: items
                                 )
                         )
-                , Core.lazy
+                , Parser.lazy
                     (\() ->
-                        Core.succeed
-                            (Core.Done
+                        Parser.succeed
+                            (Parser.Done
                                 { comments = Rope.flatFromList (List.reverse commentsSoFar)
                                 , syntax = List.reverse items
                                 }
@@ -53,7 +53,7 @@ many p =
                     )
                 ]
     in
-    Core.loop ( [], [] ) manyWithoutReverseStep
+    Parser.loop ( [], [] ) manyWithoutReverseStep
 
 
 {-| Same as [`many`](#many), except that it doesn't reverse the list.
@@ -68,25 +68,25 @@ manyWithoutReverse p =
         manyWithoutReverseStep :
             ( List Comments, List a )
             ->
-                Core.Parser
-                    (Core.Step
+                Parser.Parser
+                    (Parser.Step
                         ( List Comments, List a )
                         (WithComments (List a))
                     )
         manyWithoutReverseStep ( commentsSoFar, items ) =
-            Core.oneOf
+            Parser.oneOf
                 [ p
-                    |> Core.map
+                    |> Parser.map
                         (\pResult ->
-                            Core.Loop
+                            Parser.Loop
                                 ( pResult.comments :: commentsSoFar
                                 , pResult.syntax :: items
                                 )
                         )
-                , Core.lazy
+                , Parser.lazy
                     (\() ->
-                        Core.succeed
-                            (Core.Done
+                        Parser.succeed
+                            (Parser.Done
                                 { comments = Rope.flatFromList (List.reverse commentsSoFar)
                                 , syntax = items
                                 }
@@ -94,13 +94,13 @@ manyWithoutReverse p =
                     )
                 ]
     in
-    Core.loop ( [], [] ) manyWithoutReverseStep
+    Parser.loop ( [], [] ) manyWithoutReverseStep
 
 
 sepBy : String -> Parser (WithComments a) -> Parser (WithComments (List a))
 sepBy sep p =
-    Core.oneOf
-        [ Core.map
+    Parser.oneOf
+        [ Parser.map
             (\head ->
                 \tail ->
                     { comments = Rope.flatFromList [ head.comments, tail.comments ]
@@ -108,14 +108,14 @@ sepBy sep p =
                     }
             )
             p
-            |= many (Core.symbol sep |> Parser.Extra.continueWith p)
-        , Core.succeed { comments = Rope.empty, syntax = [] }
+            |= many (Parser.symbol sep |> Parser.Extra.continueWith p)
+        , Parser.succeed { comments = Rope.empty, syntax = [] }
         ]
 
 
 sepBy1 : String -> Parser (WithComments a) -> Parser (WithComments (List a))
 sepBy1 sep p =
-    Core.map
+    Parser.map
         (\head ->
             \tail ->
                 { comments = Rope.flatFromList [ head.comments, tail.comments ]
@@ -123,4 +123,4 @@ sepBy1 sep p =
                 }
         )
         p
-        |= many (Core.symbol sep |> Parser.Extra.continueWith p)
+        |= many (Parser.symbol sep |> Parser.Extra.continueWith p)

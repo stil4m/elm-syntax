@@ -6,7 +6,7 @@ import Elm.Parser.Tokens as Tokens
 import Elm.Syntax.ModuleName exposing (ModuleName)
 import Elm.Syntax.Node as Node exposing (Node(..))
 import Elm.Syntax.TypeAnnotation as TypeAnnotation exposing (RecordDefinition, RecordField, TypeAnnotation)
-import Parser as Core exposing ((|.), (|=), Parser)
+import Parser exposing ((|.), (|=), Parser)
 import Parser.Extra
 import ParserWithComments exposing (WithComments)
 import Rope
@@ -14,7 +14,7 @@ import Rope
 
 typeAnnotation : Parser (WithComments (Node TypeAnnotation))
 typeAnnotation =
-    Core.map
+    Parser.map
         (\ta ->
             \afterTa ->
                 case afterTa of
@@ -26,9 +26,9 @@ typeAnnotation =
                         , syntax = Node.combine TypeAnnotation.FunctionTypeAnnotation ta.syntax out.syntax
                         }
         )
-        (Core.lazy (\() -> typeAnnotationNoFnIncludingTypedWithArguments))
-        |= Core.oneOf
-            [ Core.map
+        (Parser.lazy (\() -> typeAnnotationNoFnIncludingTypedWithArguments))
+        |= Parser.oneOf
+            [ Parser.map
                 (\commentsBeforeArrow ->
                     \commentsAfterArrow ->
                         \typeAnnotationResult ->
@@ -42,17 +42,17 @@ typeAnnotation =
                                 , syntax = typeAnnotationResult.syntax
                                 }
                 )
-                (Layout.maybeLayout |> Core.backtrackable)
+                (Layout.maybeLayout |> Parser.backtrackable)
                 |. Tokens.arrowRight
                 |= Layout.maybeLayout
-                |= Core.lazy (\() -> typeAnnotation)
-            , Core.succeed Nothing
+                |= Parser.lazy (\() -> typeAnnotation)
+            , Parser.succeed Nothing
             ]
 
 
 typeAnnotationNoFnExcludingTypedWithArguments : Parser (WithComments (Node TypeAnnotation))
 typeAnnotationNoFnExcludingTypedWithArguments =
-    Core.oneOf
+    Parser.oneOf
         [ parensTypeAnnotation
         , typedTypeAnnotationWithoutArguments
         , genericTypeAnnotation
@@ -63,7 +63,7 @@ typeAnnotationNoFnExcludingTypedWithArguments =
 
 typeAnnotationNoFnIncludingTypedWithArguments : Parser (WithComments (Node TypeAnnotation))
 typeAnnotationNoFnIncludingTypedWithArguments =
-    Core.oneOf
+    Parser.oneOf
         [ parensTypeAnnotation
         , typedTypeAnnotationWithArguments
         , genericTypeAnnotation
@@ -76,10 +76,10 @@ parensTypeAnnotation : Parser (WithComments TypeAnnotation)
 parensTypeAnnotation =
     Tokens.parensStart
         |> Parser.Extra.continueWith
-            (Core.oneOf
+            (Parser.oneOf
                 [ Tokens.parensEnd
-                    |> Core.map (\() -> unitWithComments)
-                , (Core.map
+                    |> Parser.map (\() -> unitWithComments)
+                , (Parser.map
                     (\commentsBeforeFirstPart ->
                         \firstPart ->
                             \commentsAfterFirstPart ->
@@ -110,7 +110,7 @@ parensTypeAnnotation =
                     |= ParserWithComments.manyWithoutReverse
                         ((Tokens.comma
                             |> Parser.Extra.continueWith
-                                (Core.map
+                                (Parser.map
                                     (\commentsBefore ->
                                         \typeAnnotationResult ->
                                             \commentsAfter ->
@@ -143,14 +143,14 @@ unitWithComments =
 genericTypeAnnotation : Parser (WithComments TypeAnnotation)
 genericTypeAnnotation =
     Tokens.functionName
-        |> Core.map (\var -> { comments = Rope.empty, syntax = TypeAnnotation.GenericType var })
+        |> Parser.map (\var -> { comments = Rope.empty, syntax = TypeAnnotation.GenericType var })
 
 
 recordTypeAnnotation : Parser (WithComments TypeAnnotation)
 recordTypeAnnotation =
     ((Tokens.curlyStart
         |> Parser.Extra.continueWith
-            (Core.map
+            (Parser.map
                 (\commentsBefore ->
                     \afterCurly ->
                         case afterCurly of
@@ -171,7 +171,7 @@ recordTypeAnnotation =
                 Layout.maybeLayout
             )
      )
-        |= Core.oneOf
+        |= Parser.oneOf
             [ Node.parserCoreMap
                 (\firstName ->
                     \commentsAfterFirstName ->
@@ -193,7 +193,7 @@ recordTypeAnnotation =
                 )
                 Tokens.functionName
                 |= Layout.maybeLayout
-                |= Core.oneOf
+                |= Parser.oneOf
                     [ Tokens.pipe
                         |> Parser.Extra.continueWith
                             (Node.parserMap
@@ -202,7 +202,7 @@ recordTypeAnnotation =
                             )
                     , (Tokens.colon
                         |> Parser.Extra.continueWith
-                            (Core.map
+                            (Parser.map
                                 (\commentsBeforeFirstFieldValue ->
                                     \firstFieldValue ->
                                         \commentsAfterFirstFieldValue ->
@@ -226,13 +226,13 @@ recordTypeAnnotation =
                       )
                         |= typeAnnotation
                         |= Layout.maybeLayout
-                        |= Core.oneOf
+                        |= Parser.oneOf
                             [ Tokens.comma
                                 |> Parser.Extra.continueWith recordFieldsTypeAnnotation
-                            , Core.succeed { comments = Rope.empty, syntax = [] }
+                            , Parser.succeed { comments = Rope.empty, syntax = [] }
                             ]
                     ]
-            , Core.succeed Nothing
+            , Parser.succeed Nothing
             ]
     )
         |. Tokens.curlyEnd
@@ -246,7 +246,7 @@ type RecordFieldsOrExtensionAfterName
 recordFieldsTypeAnnotation : Parser (WithComments TypeAnnotation.RecordDefinition)
 recordFieldsTypeAnnotation =
     ParserWithComments.sepBy1 ","
-        (Core.map
+        (Parser.map
             (\commentsBefore ->
                 \fields ->
                     { comments = Rope.flatFromList [ commentsBefore, fields.comments ]
@@ -260,7 +260,7 @@ recordFieldsTypeAnnotation =
 
 recordFieldDefinition : Parser (WithComments TypeAnnotation.RecordField)
 recordFieldDefinition =
-    Core.map
+    Parser.map
         (\commentsBeforeFunctionName ->
             \functionName ->
                 \commentsAfterFunctionName ->
@@ -291,31 +291,31 @@ recordFieldDefinition =
 
 typedTypeAnnotationWithoutArguments : Parser (WithComments TypeAnnotation)
 typedTypeAnnotationWithoutArguments =
-    Core.map
+    Parser.map
         (\original -> { comments = Rope.empty, syntax = TypeAnnotation.Typed original [] })
         typeIndicator
 
 
-typeIndicator : Core.Parser (Node ( ModuleName, String ))
+typeIndicator : Parser.Parser (Node ( ModuleName, String ))
 typeIndicator =
     Tokens.typeName
-        |> Core.andThen (\typeOrSegment -> typeIndicatorHelper [] typeOrSegment)
+        |> Parser.andThen (\typeOrSegment -> typeIndicatorHelper [] typeOrSegment)
         |> Node.parserCore
 
 
-typeIndicatorHelper : ModuleName -> String -> Core.Parser ( ModuleName, String )
+typeIndicatorHelper : ModuleName -> String -> Parser.Parser ( ModuleName, String )
 typeIndicatorHelper moduleNameSoFar typeOrSegment =
-    Core.oneOf
+    Parser.oneOf
         [ Tokens.dot
             |> Parser.Extra.continueWith Tokens.typeName
-            |> Core.andThen (\t -> typeIndicatorHelper (typeOrSegment :: moduleNameSoFar) t)
-        , Core.lazy (\() -> Core.succeed ( List.reverse moduleNameSoFar, typeOrSegment ))
+            |> Parser.andThen (\t -> typeIndicatorHelper (typeOrSegment :: moduleNameSoFar) t)
+        , Parser.lazy (\() -> Parser.succeed ( List.reverse moduleNameSoFar, typeOrSegment ))
         ]
 
 
 typedTypeAnnotationWithArguments : Parser (WithComments TypeAnnotation)
 typedTypeAnnotationWithArguments =
-    Core.map
+    Parser.map
         (\qualified ->
             \args ->
                 { comments = args.comments
@@ -324,13 +324,13 @@ typedTypeAnnotationWithArguments =
         )
         typeIndicator
         |= ParserWithComments.many
-            (Core.map
+            (Parser.map
                 (\commentsBefore ->
                     \typeAnnotationResult ->
                         { comments = Rope.flatFromList [ commentsBefore, typeAnnotationResult.comments ]
                         , syntax = typeAnnotationResult.syntax
                         }
                 )
-                (Layout.maybeLayout |> Core.backtrackable)
+                (Layout.maybeLayout |> Parser.backtrackable)
                 |= typeAnnotationNoFnExcludingTypedWithArguments
             )

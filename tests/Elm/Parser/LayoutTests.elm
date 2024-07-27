@@ -3,7 +3,7 @@ module Elm.Parser.LayoutTests exposing (all)
 import Elm.Parser.Layout as Layout
 import Elm.Parser.ParserWithCommentsTestUtil exposing (parseWithState)
 import Expect
-import Parser as Core exposing (Parser)
+import Parser exposing (Parser)
 import ParserWithComments exposing (Comments)
 import Test exposing (..)
 
@@ -92,12 +92,12 @@ all =
 
 setIndent : Int -> Parser a -> Parser a
 setIndent x p =
-    Core.withIndent (x + 1)
+    Parser.withIndent (x + 1)
         p
 
 
 parse : String -> Parser Comments -> Maybe ()
 parse source parser =
     parseWithState source
-        (parser |> Core.map (\c -> { comments = c, syntax = () }))
+        (parser |> Parser.map (\c -> { comments = c, syntax = () }))
         |> Maybe.map .syntax

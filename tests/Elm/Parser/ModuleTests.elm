@@ -12,7 +12,7 @@ import Elm.Syntax.Node exposing (Node(..))
 import Elm.Syntax.Pattern exposing (Pattern(..))
 import Elm.Syntax.TypeAnnotation exposing (TypeAnnotation(..))
 import Expect
-import Parser as Core exposing ((|.))
+import Parser exposing ((|.))
 import Test exposing (..)
 
 
@@ -500,9 +500,9 @@ expectAst =
     ParserWithCommentsUtil.expectAst Parser.moduleDefinition
 
 
-parseCore : String -> Core.Parser a -> Maybe a
+parseCore : String -> Parser.Parser a -> Maybe a
 parseCore source parser =
-    case Core.run (parser |. Core.end) source of
+    case Parser.run (parser |. Parser.end) source of
         Err _ ->
             Nothing
 
@@ -512,7 +512,7 @@ parseCore source parser =
 
 expectInvalid : String -> Expect.Expectation
 expectInvalid source =
-    case Core.run (File.file |. Core.end) source of
+    case Parser.run (File.file |. Parser.end) source of
         Err _ ->
             Expect.pass
 

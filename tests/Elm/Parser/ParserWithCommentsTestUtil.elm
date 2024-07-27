@@ -2,14 +2,14 @@ module Elm.Parser.ParserWithCommentsTestUtil exposing (expectAst, expectAstWithC
 
 import Elm.Syntax.Node exposing (Node)
 import Expect
-import Parser as Core exposing ((|.), DeadEnd, Parser)
+import Parser exposing ((|.), DeadEnd, Parser)
 import ParserWithComments exposing (WithComments)
 import Rope
 
 
 parseWithState : String -> Parser (WithComments a) -> Maybe { comments : List (Node String), syntax : a }
 parseWithState s p =
-    case Core.run (p |. Core.end) s of
+    case Parser.run (p |. Parser.end) s of
         Err _ ->
             Nothing
 
@@ -28,7 +28,7 @@ parse s p =
 
 parseWithFailure : String -> Parser (WithComments a) -> Result (List DeadEnd) a
 parseWithFailure s p =
-    case Core.run (p |. Core.end) s of
+    case Parser.run (p |. Parser.end) s of
         Err deadEnds ->
             Err deadEnds
 
@@ -39,7 +39,7 @@ parseWithFailure s p =
 expectAst : Parser (WithComments a) -> a -> String -> Expect.Expectation
 expectAst parser =
     \expected source ->
-        case Core.run (parser |. Core.end) source of
+        case Parser.run (parser |. Parser.end) source of
             Err error ->
                 Expect.fail ("Expected the source to be parsed correctly:\n" ++ Debug.toString error)
 
@@ -58,7 +58,7 @@ expectAst parser =
 expectAstWithComments : Parser (WithComments a) -> { ast : a, comments : List (Node String) } -> String -> Expect.Expectation
 expectAstWithComments parser =
     \expected source ->
-        case Core.run (parser |. Core.end) source of
+        case Parser.run (parser |. Parser.end) source of
             Err error ->
                 Expect.fail ("Expected the source to be parsed correctly:\n" ++ Debug.toString error)
 

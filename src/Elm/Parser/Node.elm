@@ -1,13 +1,13 @@
 module Elm.Parser.Node exposing (parser, parserCore, parserCoreMap, parserCoreValueMap, parserMap, parserMapWithComments)
 
 import Elm.Syntax.Node exposing (Node(..))
-import Parser as Core exposing ((|=), Parser)
+import Parser exposing ((|=), Parser)
 import ParserWithComments exposing (WithComments)
 
 
 parserMapWithComments : (WithComments (Node a) -> b) -> Parser (WithComments a) -> Parser b
 parserMapWithComments valueNodeChange p =
-    Core.map
+    Parser.map
         (\( startRow, startColumn ) v ( endRow, endColumn ) ->
             { comments = v.comments
             , syntax =
@@ -19,14 +19,14 @@ parserMapWithComments valueNodeChange p =
             }
                 |> valueNodeChange
         )
-        Core.getPosition
+        Parser.getPosition
         |= p
-        |= Core.getPosition
+        |= Parser.getPosition
 
 
 parserMap : (Node a -> b) -> Parser (WithComments a) -> Parser (WithComments b)
 parserMap valueNodeChange p =
-    Core.map
+    Parser.map
         (\( startRow, startColumn ) v ( endRow, endColumn ) ->
             { comments = v.comments
             , syntax =
@@ -38,14 +38,14 @@ parserMap valueNodeChange p =
                     |> valueNodeChange
             }
         )
-        Core.getPosition
+        Parser.getPosition
         |= p
-        |= Core.getPosition
+        |= Parser.getPosition
 
 
 parser : Parser (WithComments a) -> Parser (WithComments (Node a))
 parser p =
-    Core.map
+    Parser.map
         (\( startRow, startColumn ) v ( endRow, endColumn ) ->
             { comments = v.comments
             , syntax =
@@ -56,16 +56,16 @@ parser p =
                     v.syntax
             }
         )
-        Core.getPosition
+        Parser.getPosition
         |= p
-        |= Core.getPosition
+        |= Parser.getPosition
 
 
-{-| Internally saves 1 Core.map compared to parserCore |> Core.map
+{-| Internally saves 1 Parser.map compared to parserCore |> Parser.map
 -}
-parserCoreMap : (Node a -> b) -> Core.Parser a -> Core.Parser b
+parserCoreMap : (Node a -> b) -> Parser.Parser a -> Parser.Parser b
 parserCoreMap valueNodeChange p =
-    Core.map
+    Parser.map
         (\( startRow, startColumn ) ->
             \v ->
                 \( endRow, endColumn ) ->
@@ -76,16 +76,16 @@ parserCoreMap valueNodeChange p =
                         v
                         |> valueNodeChange
         )
-        Core.getPosition
+        Parser.getPosition
         |= p
-        |= Core.getPosition
+        |= Parser.getPosition
 
 
-{-| Internally saves 1 Core.map compared to parserCore |> Core.map
+{-| Internally saves 1 Parser.map compared to parserCore |> Parser.map
 -}
-parserCoreValueMap : (a -> b) -> Core.Parser a -> Core.Parser (Node b)
+parserCoreValueMap : (a -> b) -> Parser.Parser a -> Parser.Parser (Node b)
 parserCoreValueMap valueChange p =
-    Core.map
+    Parser.map
         (\( startRow, startColumn ) ->
             \v ->
                 \( endRow, endColumn ) ->
@@ -95,14 +95,14 @@ parserCoreValueMap valueChange p =
                         }
                         (v |> valueChange)
         )
-        Core.getPosition
+        Parser.getPosition
         |= p
-        |= Core.getPosition
+        |= Parser.getPosition
 
 
-parserCore : Core.Parser a -> Core.Parser (Node a)
+parserCore : Parser.Parser a -> Parser.Parser (Node a)
 parserCore p =
-    Core.map
+    Parser.map
         (\( startRow, startColumn ) ->
             \v ->
                 \( endRow, endColumn ) ->
@@ -112,6 +112,6 @@ parserCore p =
                         }
                         v
         )
-        Core.getPosition
+        Parser.getPosition
         |= p
-        |= Core.getPosition
+        |= Parser.getPosition

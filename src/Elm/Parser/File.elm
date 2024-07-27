@@ -9,14 +9,14 @@ import Elm.Parser.Node as Node
 import Elm.Syntax.Declaration exposing (Declaration)
 import Elm.Syntax.File exposing (File)
 import Elm.Syntax.Node exposing (Node)
-import Parser as Core exposing ((|=), Parser)
+import Parser exposing ((|=), Parser)
 import ParserWithComments exposing (WithComments)
 import Rope
 
 
-file : Core.Parser File
+file : Parser.Parser File
 file =
-    Core.map
+    Parser.map
         (\commentsBeforeModuleDefinition ->
             \moduleDefinition ->
                 \commentsAfterModuleDefinition ->
@@ -41,15 +41,15 @@ file =
         Layout.layoutStrict
         |= Node.parser moduleDefinition
         |= Layout.layoutStrict
-        |= Core.oneOf
-            [ Core.map
+        |= Parser.oneOf
+            [ Parser.map
                 (\declarationParsed ->
                     \commentsAfter ->
                         Rope.flatFromList [ declarationParsed, commentsAfter ]
                 )
                 Comments.moduleDocumentation
                 |= Layout.layoutStrict
-            , Core.succeed Rope.empty
+            , Parser.succeed Rope.empty
             ]
         |= ParserWithComments.many importDefinition
         |= fileDeclarations
@@ -58,7 +58,7 @@ file =
 fileDeclarations : Parser (WithComments (List (Node Declaration)))
 fileDeclarations =
     ParserWithComments.many
-        (Core.map
+        (Parser.map
             (\declarationParsed ->
                 \commentsAfter ->
                     { comments = Rope.flatFromList [ declarationParsed.comments, commentsAfter ]
@@ -66,8 +66,8 @@ fileDeclarations =
                     }
             )
             declaration
-            |= Core.oneOf
+            |= Parser.oneOf
                 [ Layout.layoutStrict
-                , Core.succeed Rope.empty
+                , Parser.succeed Rope.empty
                 ]
         )

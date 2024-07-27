@@ -8,7 +8,7 @@ import Elm.Parser.Tokens as Tokens
 import Elm.Syntax.Import exposing (Import)
 import Elm.Syntax.Node exposing (Node(..))
 import Elm.Syntax.Range exposing (Range)
-import Parser as Core exposing ((|.), (|=), Parser)
+import Parser exposing ((|.), (|=), Parser)
 import Parser.Extra
 import ParserWithComments exposing (WithComments)
 import Rope
@@ -16,7 +16,7 @@ import Rope
 
 importDefinition : Parser (WithComments (Node Import))
 importDefinition =
-    Core.map
+    Parser.map
         (\startRow ->
             \commentsAfterImport ->
                 \((Node modRange _) as mod) ->
@@ -74,15 +74,15 @@ importDefinition =
                                             }
                                     }
         )
-        Core.getRow
+        Parser.getRow
         |. Tokens.importToken
         |= Layout.layout
         |= moduleName
         |= Layout.optimisticLayout
-        |= Core.oneOf
+        |= Parser.oneOf
             [ (Tokens.asToken
                 |> Parser.Extra.continueWith
-                    (Core.map
+                    (Parser.map
                         (\commentsBefore ->
                             \moduleAlias ->
                                 \commentsAfter ->
@@ -96,10 +96,10 @@ importDefinition =
               )
                 |= (Tokens.typeName |> Node.parserCoreValueMap List.singleton)
                 |= Layout.optimisticLayout
-            , Core.succeed Nothing
+            , Parser.succeed Nothing
             ]
-        |= Core.oneOf
+        |= Parser.oneOf
             [ Node.parserMapWithComments Just exposeDefinition
-            , Core.succeed Nothing
+            , Parser.succeed Nothing
             ]
         |= Layout.optimisticLayout

@@ -8,7 +8,7 @@ import Elm.Parser.Tokens as Tokens
 import Elm.Syntax.Module exposing (Module(..))
 import Elm.Syntax.Node exposing (Node)
 import List.Extra
-import Parser as Core exposing ((|.), (|=), Parser)
+import Parser exposing ((|.), (|=), Parser)
 import Parser.Extra
 import ParserWithComments exposing (WithComments)
 import Rope
@@ -16,7 +16,7 @@ import Rope
 
 moduleDefinition : Parser (WithComments Module)
 moduleDefinition =
-    Core.oneOf
+    Parser.oneOf
         [ normalModuleDefinition
         , portModuleDefinition
         , effectModuleDefinition
@@ -25,7 +25,7 @@ moduleDefinition =
 
 effectWhereClause : Parser (WithComments ( String, Node String ))
 effectWhereClause =
-    (Core.map
+    (Parser.map
         (\fnName ->
             \commentsAfterFnName ->
                 \commentsAfterEqual ->
@@ -48,7 +48,7 @@ whereBlock =
         |> Parser.Extra.continueWith
             (ParserWithComments.sepBy1 ","
                 (Layout.maybeAroundBothSides effectWhereClause)
-                |> Core.map
+                |> Parser.map
                     (\pairs ->
                         { comments = pairs.comments
                         , syntax =
@@ -72,7 +72,7 @@ effectWhereClauses : Parser (WithComments { command : Maybe (Node String), subsc
 effectWhereClauses =
     (Tokens.whereToken
         |> Parser.Extra.continueWith
-            (Core.map
+            (Parser.map
                 (\commentsBefore ->
                     \whereResult ->
                         { comments = Rope.flatFromList [ commentsBefore, whereResult.comments ]
@@ -87,9 +87,9 @@ effectWhereClauses =
 
 effectModuleDefinition : Parser (WithComments Module)
 effectModuleDefinition =
-    (Core.symbol "effect"
+    (Parser.symbol "effect"
         |> Parser.Extra.continueWith
-            (Core.map
+            (Parser.map
                 (\commentsAfterEffect ->
                     \commentsModule ->
                         \name ->
@@ -131,7 +131,7 @@ normalModuleDefinition : Parser (WithComments Module)
 normalModuleDefinition =
     (Tokens.moduleToken
         |> Parser.Extra.continueWith
-            (Core.map
+            (Parser.map
                 (\commentsAfterModule ->
                     \moduleName ->
                         \commentsAfterModuleName ->
@@ -161,7 +161,7 @@ portModuleDefinition : Parser (WithComments Module)
 portModuleDefinition =
     (Tokens.portToken
         |> Parser.Extra.continueWith
-            (Core.map
+            (Parser.map
                 (\commentsAfterPort ->
                     \commentsAfterModule ->
                         \moduleName ->

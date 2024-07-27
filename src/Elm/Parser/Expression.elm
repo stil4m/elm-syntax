@@ -10,7 +10,7 @@ import Elm.Syntax.Expression as Expression exposing (Case, Expression(..), LetDe
 import Elm.Syntax.Infix as Infix
 import Elm.Syntax.Node as Node exposing (Node(..))
 import Elm.Syntax.Signature exposing (Signature)
-import Parser as Core exposing ((|.), (|=), Nestable(..), Parser)
+import Parser exposing ((|.), (|=), Nestable(..), Parser)
 import Parser.Extra
 import ParserWithComments exposing (Comments, WithComments)
 import Rope
@@ -18,20 +18,20 @@ import Rope
 
 subExpressions : Parser (WithComments (Node Expression))
 subExpressions =
-    Core.lazy (\() -> subExpressionsOneOf)
+    Parser.lazy (\() -> subExpressionsOneOf)
 
 
 subExpressionsOneOf : Parser (WithComments (Node Expression))
 subExpressionsOneOf =
-    Core.oneOf
-        [ Core.oneOf
+    Parser.oneOf
+        [ Parser.oneOf
             [ referenceExpression
             , literalExpression
             , numberExpression
-                |> Core.map (\n -> { comments = Rope.empty, syntax = n })
+                |> Parser.map (\n -> { comments = Rope.empty, syntax = n })
             , tupledExpression
             , glslExpression
-                |> Core.map (\glsl -> { comments = Rope.empty, syntax = glsl })
+                |> Parser.map (\glsl -> { comments = Rope.empty, syntax = glsl })
             , listExpression
             , recordExpression
             , recordAccessFunctionExpression
@@ -106,7 +106,7 @@ recordAccess =
 recordAccessParser : Parser (Node String)
 recordAccessParser =
     lookBehindOneCharacter
-        |> Core.andThen
+        |> Parser.andThen
             (\c ->
                 if c == " " || c == "\n" || c == "\u{000D}" then
                     problemRecordAccessStartingWithSpace
@@ -116,12 +116,12 @@ recordAccessParser =
             )
 
 
-problemRecordAccessStartingWithSpace : Core.Parser a
+problemRecordAccessStartingWithSpace : Parser.Parser a
 problemRecordAccessStartingWithSpace =
-    Core.problem "Record access can't start with a space"
+    Parser.problem "Record access can't start with a space"
 
 
-dotField : Core.Parser (Node String)
+dotField : Parser.Parser (Node String)
 dotField =
     Tokens.dot
         |> Parser.Extra.continueWith (Node.parserCore Tokens.functionName)
@@ -161,17 +161,17 @@ glslEnd =
 
 glslExpression : Parser Expression
 glslExpression =
-    Core.mapChompedString
+    Parser.mapChompedString
         (\s () -> s |> String.dropLeft glslStartLength |> GLSLExpression)
-        (Core.multiComment glslStart glslEnd NotNestable)
-        |. Core.symbol glslEnd
+        (Parser.multiComment glslStart glslEnd NotNestable)
+        |. Parser.symbol glslEnd
 
 
 listExpression : Parser (WithComments Expression)
 listExpression =
     (Tokens.squareStart
         |> Parser.Extra.continueWith
-            (Core.map
+            (Parser.map
                 (\commentsBefore ->
                     \elements ->
                         { comments = Rope.flatFromList [ commentsBefore, elements.comments ]
@@ -193,7 +193,7 @@ recordExpression : Parser (WithComments Expression)
 recordExpression =
     (Tokens.curlyStart
         |> Parser.Extra.continueWith
-            (Core.map
+            (Parser.map
                 (\commentsBefore ->
                     \maybeAfterCurly ->
                         case maybeAfterCurly of
@@ -210,9 +210,9 @@ recordExpression =
                 Layout.maybeLayout
             )
     )
-        |= Core.oneOf
-            [ Core.map Just recordContents
-            , Core.succeed Nothing
+        |= Parser.oneOf
+            [ Parser.map Just recordContents
+            , Parser.succeed Nothing
             ]
         |. Tokens.curlyEnd
 
@@ -243,10 +243,10 @@ recordContents =
         )
         Tokens.functionName
         |= Layout.maybeLayout
-        |= Core.oneOf
+        |= Parser.oneOf
             [ (Tokens.pipe
                 |> Parser.Extra.continueWith
-                    (Core.map
+                    (Parser.map
                         (\commentsBefore ->
                             \setterResult ->
                                 { comments = Rope.flatFromList [ commentsBefore, setterResult.comments ]
@@ -259,7 +259,7 @@ recordContents =
                 |= recordSetterNodeWithLayout
             , (Tokens.equal
                 |> Parser.Extra.continueWith
-                    (Core.map
+                    (Parser.map
                         (\commentsBefore ->
                             \expressionResult ->
                                 { comments = Rope.flatFromList [ commentsBefore, expressionResult.comments ]
@@ -285,7 +285,7 @@ recordFields =
     ParserWithComments.many
         ((Tokens.comma
             |> Parser.Extra.continueWith
-                (Core.map
+                (Parser.map
                     (\commentsBefore ->
                         \setterResult ->
                             { comments = Rope.flatFromList [ commentsBefore, setterResult.comments ]
@@ -328,19 +328,19 @@ recordSetterNodeWithLayout =
         |= Layout.maybeLayout
         -- This extra whitespace is just included for compatibility with earlier version
         -- TODO for v8: remove and use (Node.range expr).end
-        |= Core.getPosition
+        |= Parser.getPosition
 
 
 literalExpression : Parser (WithComments Expression)
 literalExpression =
     Tokens.singleOrTripleQuotedStringLiteral
-        |> Core.map (\string -> { comments = Rope.empty, syntax = Literal string })
+        |> Parser.map (\string -> { comments = Rope.empty, syntax = Literal string })
 
 
 charLiteralExpression : Parser (WithComments Expression)
 charLiteralExpression =
     Tokens.characterLiteral
-        |> Core.map (\char -> { comments = Rope.empty, syntax = CharLiteral char })
+        |> Parser.map (\char -> { comments = Rope.empty, syntax = CharLiteral char })
 
 
 
@@ -349,7 +349,7 @@ charLiteralExpression =
 
 lambdaExpression : Parser (WithComments (Node Expression))
 lambdaExpression =
-    Core.map
+    Parser.map
         (\( startRow, startColumn ) ->
             \commentsAfterBackslash ->
                 \firstArg ->
@@ -376,12 +376,12 @@ lambdaExpression =
                                         |> Node { start = { row = startRow, column = startColumn }, end = end }
                                 }
         )
-        Core.getPosition
+        Parser.getPosition
         |. Tokens.backSlash
         |= Layout.maybeLayout
         |= Patterns.pattern
         |= ParserWithComments.many
-            (Core.map
+            (Parser.map
                 (\commentsBefore ->
                     \patternResult ->
                         { comments = Rope.flatFromList [ commentsBefore, patternResult.comments ]
@@ -402,7 +402,7 @@ lambdaExpression =
 
 caseExpression : Parser (WithComments (Node Expression))
 caseExpression =
-    (Core.map
+    (Parser.map
         (\( startRow, startColumn ) ->
             \commentsAfterCase ->
                 \casedExpressionResult ->
@@ -437,7 +437,7 @@ caseExpression =
                                     )
                             }
         )
-        Core.getPosition
+        Parser.getPosition
         |. Tokens.caseToken
         |= Layout.layout
         |= expression
@@ -450,7 +450,7 @@ caseExpression =
 
 caseStatements : Parser (WithComments ( Case, List Case ))
 caseStatements =
-    Core.map
+    Parser.map
         (\firstCase ->
             \lastToSecondCase ->
                 { comments = Rope.flatFromList [ firstCase.comments, lastToSecondCase.comments ]
@@ -495,7 +495,7 @@ caseStatement =
 letExpression : Parser (WithComments (Node Expression))
 letExpression =
     Parser.Extra.withIndent
-        (Core.map
+        (Parser.map
             (\( startRow, startColumn ) ->
                 \commentsAfterLet ->
                     \declarations ->
@@ -517,7 +517,7 @@ letExpression =
                                         (LetExpression { declarations = declarations.syntax, expression = expr })
                                 }
             )
-            Core.getPosition
+            Parser.getPosition
             |. Tokens.letToken
             |= Layout.layout
             |= Parser.Extra.withIndent letDeclarations
@@ -529,7 +529,7 @@ letExpression =
 
 letDeclarations : Parser (WithComments (List (Node LetDeclaration)))
 letDeclarations =
-    Core.map
+    Parser.map
         (\head ->
             \tail ->
                 { comments = Rope.flatFromList [ head.comments, tail.comments ]
@@ -544,7 +544,7 @@ blockElement : Parser (WithComments (Node LetDeclaration))
 blockElement =
     Layout.onTopIndentation ()
         |> Parser.Extra.continueWith
-            (Core.oneOf
+            (Parser.oneOf
                 [ letFunction
                 , letDestructuringDeclaration
                 ]
@@ -553,7 +553,7 @@ blockElement =
 
 letDestructuringDeclaration : Parser (WithComments (Node LetDeclaration))
 letDestructuringDeclaration =
-    Core.map
+    Parser.map
         (\pattern ->
             \expressionResult ->
                 let
@@ -620,7 +620,7 @@ letFunction =
                                                     }
                                                 )
                                         }
-                                            |> Core.succeed
+                                            |> Parser.succeed
 
                                     Just signature ->
                                         let
@@ -647,18 +647,18 @@ letFunction =
                                                         }
                                                     )
                                             }
-                                                |> Core.succeed
+                                                |> Parser.succeed
 
                                         else
-                                            Core.problem
+                                            Parser.problem
                                                 ("Expected to find the declaration for " ++ startName ++ " but found " ++ implementationName)
         )
         Tokens.functionName
         |= Layout.maybeLayout
-        |= Core.oneOf
+        |= Parser.oneOf
             [ (Tokens.colon
                 |> Parser.Extra.continueWith
-                    (Core.map
+                    (Parser.map
                         (\commentsBeforeTypeAnnotation ->
                             \typeAnnotationResult ->
                                 \commentsAfterTypeAnnotation ->
@@ -683,10 +683,10 @@ letFunction =
                 |= Layout.layoutStrict
                 |= (Tokens.functionName |> Node.parserCore)
                 |= Layout.maybeLayout
-            , Core.succeed Nothing
+            , Parser.succeed Nothing
             ]
         |= ParserWithComments.many
-            (Core.map
+            (Parser.map
                 (\patternResult ->
                     \commentsAfterPattern ->
                         { comments = Rope.flatFromList [ patternResult.comments, commentsAfterPattern ]
@@ -700,7 +700,7 @@ letFunction =
         |. Tokens.equal
         |= Layout.maybeLayout
         |= expression
-        |> Core.andThen identity
+        |> Parser.andThen identity
 
 
 numberExpression : Parser Expression
@@ -710,7 +710,7 @@ numberExpression =
 
 ifBlockExpression : Parser (WithComments (Node Expression))
 ifBlockExpression =
-    Core.map
+    Parser.map
         (\( startRow, startColumn ) ->
             \condition ->
                 \ifTrue ->
@@ -733,7 +733,7 @@ ifBlockExpression =
                                     (IfBlock condition.syntax ifTrue.syntax ifFalse.syntax)
                             }
         )
-        Core.getPosition
+        Parser.getPosition
         |. Tokens.ifToken
         |= expression
         |. Tokens.thenToken
@@ -747,7 +747,7 @@ negationOperation : Parser (WithComments (Node Expression))
 negationOperation =
     minusNotFollowedBySpace
         |> Parser.Extra.continueWith
-            (Core.map
+            (Parser.map
                 (\subExpressionResult ->
                     let
                         (Node { start, end } _) =
@@ -764,38 +764,38 @@ negationOperation =
             )
 
 
-minusNotFollowedBySpace : Core.Parser ()
+minusNotFollowedBySpace : Parser.Parser ()
 minusNotFollowedBySpace =
-    Core.backtrackable Tokens.minus
+    Parser.backtrackable Tokens.minus
         |> Parser.Extra.continueWith
-            (Core.oneOf
-                [ Core.chompIf (\next -> next == '\u{000D}' || next == '\n' || next == ' ')
-                    |> Core.backtrackable
-                    |> Core.map (\() -> problemNegationThenSpace)
-                , Core.succeed (Core.commit ())
+            (Parser.oneOf
+                [ Parser.chompIf (\next -> next == '\u{000D}' || next == '\n' || next == ' ')
+                    |> Parser.backtrackable
+                    |> Parser.map (\() -> problemNegationThenSpace)
+                , Parser.succeed (Parser.commit ())
                 ]
             )
-        |> Core.andThen identity
+        |> Parser.andThen identity
 
 
-problemNegationThenSpace : Core.Parser a
+problemNegationThenSpace : Parser.Parser a
 problemNegationThenSpace =
-    Core.problem "negation sign cannot be followed by a space"
+    Parser.problem "negation sign cannot be followed by a space"
 
 
 referenceExpression : Parser (WithComments Expression)
 referenceExpression =
-    Core.map
+    Parser.map
         (\( qualification, unqualified ) ->
             { comments = Rope.empty, syntax = FunctionOrValue qualification unqualified }
         )
         referenceExpressionTuple
 
 
-referenceExpressionTuple : Core.Parser ( List String, String )
+referenceExpressionTuple : Parser.Parser ( List String, String )
 referenceExpressionTuple =
-    Core.oneOf
-        [ Core.map
+    Parser.oneOf
+        [ Parser.map
             (\firstName ->
                 \after ->
                     case after of
@@ -806,15 +806,15 @@ referenceExpressionTuple =
                             ( firstName :: qualificationAfter, unqualified )
             )
             Tokens.typeName
-            |= Core.oneOf
+            |= Parser.oneOf
                 [ Tokens.dot
                     |> Parser.Extra.continueWith
-                        (Core.map Just
-                            (Core.lazy (\() -> referenceExpressionTuple))
+                        (Parser.map Just
+                            (Parser.lazy (\() -> referenceExpressionTuple))
                         )
-                , Core.succeed Nothing
+                , Parser.succeed Nothing
                 ]
-        , Core.map (\unqualified -> ( [], unqualified )) Tokens.functionName
+        , Parser.map (\unqualified -> ( [], unqualified )) Tokens.functionName
         ]
 
 
@@ -822,7 +822,7 @@ recordAccessFunctionExpression : Parser (WithComments Expression)
 recordAccessFunctionExpression =
     Tokens.dot
         |> Parser.Extra.continueWith Tokens.functionName
-        |> Core.map
+        |> Parser.map
             (\field ->
                 { comments = Rope.empty
                 , syntax = RecordAccessFunction ("." ++ field)
@@ -834,11 +834,11 @@ tupledExpression : Parser (WithComments Expression)
 tupledExpression =
     Tokens.parensStart
         |> Parser.Extra.continueWith
-            (Core.oneOf
-                ((Tokens.parensEnd |> Core.map (\() -> unitWithComments))
+            (Parser.oneOf
+                ((Tokens.parensEnd |> Parser.map (\() -> unitWithComments))
                     :: -- since `-` alone  could indicate negation or prefix operator,
                        -- we check for `-)` first
-                       (Core.symbol "-)" |> Core.map (\() -> minusPrefixOperatorWithComments))
+                       (Parser.symbol "-)" |> Parser.map (\() -> minusPrefixOperatorWithComments))
                     :: (tupledExpressionInnerNested |. Tokens.parensEnd)
                     -- and since prefix operators are much more rare than e.g. parenthesized
                     -- we check those later
@@ -863,14 +863,14 @@ allowedPrefixOperatorExceptMinusThenClosingParensOneOf =
         |> List.filter (\token -> token /= "-")
         |> List.map
             (\allowedOperatorToken ->
-                Core.symbol (allowedOperatorToken ++ ")")
-                    |> Core.map (\() -> { comments = Rope.empty, syntax = PrefixOperator allowedOperatorToken })
+                Parser.symbol (allowedOperatorToken ++ ")")
+                    |> Parser.map (\() -> { comments = Rope.empty, syntax = PrefixOperator allowedOperatorToken })
             )
 
 
 tupledExpressionInnerNested : Parser (WithComments Expression)
 tupledExpressionInnerNested =
-    Core.map
+    Parser.map
         (\firstPart ->
             \tailPartsReverse ->
                 case tailPartsReverse.syntax of
@@ -898,18 +898,18 @@ tupledExpressionInnerNested =
 subExpression : Int -> Parser (WithComments (Node Expression))
 subExpression currentPrecedence =
     let
-        parser : WithComments (Node Expression) -> Parser (Core.Step (WithComments (Node Expression)) (WithComments (Node Expression)))
+        parser : WithComments (Node Expression) -> Parser (Parser.Step (WithComments (Node Expression)) (WithComments (Node Expression)))
         parser leftExpression =
             expressionHelp currentPrecedence leftExpression
     in
     optimisticLayoutSubExpressions
-        |> Core.andThen
-            (\leftExpression -> Core.loop leftExpression parser)
+        |> Parser.andThen
+            (\leftExpression -> Parser.loop leftExpression parser)
 
 
 optimisticLayoutSubExpressions : Parser (WithComments (Node Expression))
 optimisticLayoutSubExpressions =
-    Core.map
+    Parser.map
         (\commentsBefore ->
             \subExpressionResult ->
                 { comments = Rope.flatFromList [ commentsBefore, subExpressionResult.comments ]
@@ -920,22 +920,22 @@ optimisticLayoutSubExpressions =
         |= subExpressions
 
 
-expressionHelp : Int -> WithComments (Node Expression) -> Parser (Core.Step (WithComments (Node Expression)) (WithComments (Node Expression)))
+expressionHelp : Int -> WithComments (Node Expression) -> Parser (Parser.Step (WithComments (Node Expression)) (WithComments (Node Expression)))
 expressionHelp currentPrecedence leftExpression =
     case getAndThenOneOfAbovePrecedence currentPrecedence of
         Just parser ->
-            Core.map
+            Parser.map
                 (\commentsBefore ->
                     \maybeCombineExpressionResult ->
                         case maybeCombineExpressionResult of
                             Nothing ->
-                                Core.Done
+                                Parser.Done
                                     { comments = Rope.flatFromList [ leftExpression.comments, commentsBefore ]
                                     , syntax = leftExpression.syntax
                                     }
 
                             Just combineExpressionResult ->
-                                Core.Loop
+                                Parser.Loop
                                     { comments =
                                         Rope.flatFromList
                                             [ leftExpression.comments
@@ -946,14 +946,14 @@ expressionHelp currentPrecedence leftExpression =
                                     }
                 )
                 Layout.optimisticLayout
-                |= Core.oneOf
-                    [ Core.map Just
+                |= Parser.oneOf
+                    [ Parser.map Just
                         (combineOneOfApply parser leftExpression.syntax)
-                    , Core.succeed Nothing
+                    , Parser.succeed Nothing
                     ]
 
         Nothing ->
-            Core.problem ("Could not find operators related to precedence " ++ String.fromInt currentPrecedence)
+            Parser.problem ("Could not find operators related to precedence " ++ String.fromInt currentPrecedence)
 
 
 combineOneOfApply :
@@ -961,7 +961,7 @@ combineOneOfApply :
     -> arg
     -> Parser (WithComments arg)
 combineOneOfApply possibilitiesForCurrentPrecedence leftExpression =
-    Core.oneOf
+    Parser.oneOf
         (List.map
             (\parser -> parser leftExpression)
             possibilitiesForCurrentPrecedence
@@ -1095,7 +1095,7 @@ computeAndThenOneOfAbovePrecedence currentPrecedence =
 infixLeft : Int -> String -> ( Int, Node Expression -> Parser (WithComments (Node Expression)) )
 infixLeft precedence symbol =
     infixLeftHelp precedence
-        (Core.symbol symbol)
+        (Parser.symbol symbol)
         (\((Node { start } _) as left) ((Node { end } _) as right) ->
             Node
                 { start = start, end = end }
@@ -1106,7 +1106,7 @@ infixLeft precedence symbol =
 infixNonAssociative : Int -> String -> ( Int, Node Expression -> Parser (WithComments (Node Expression)) )
 infixNonAssociative precedence symbol =
     infixLeftHelp precedence
-        (Core.symbol symbol)
+        (Parser.symbol symbol)
         (\((Node { start } _) as left) ((Node { end } _) as right) ->
             Node
                 { start = start, end = end }
@@ -1117,7 +1117,7 @@ infixNonAssociative precedence symbol =
 infixRight : Int -> String -> ( Int, Node Expression -> Parser (WithComments (Node Expression)) )
 infixRight precedence symbol =
     infixRightHelp precedence
-        (Core.symbol symbol)
+        (Parser.symbol symbol)
         (\((Node { start } _) as left) ((Node { end } _) as right) ->
             Node
                 { start = start, end = end }
@@ -1125,18 +1125,18 @@ infixRight precedence symbol =
         )
 
 
-lookBehindOneCharacter : Core.Parser String
+lookBehindOneCharacter : Parser.Parser String
 lookBehindOneCharacter =
-    Core.map (\offset -> \source -> String.slice (offset - 1) offset source)
-        Core.getOffset
-        |= Core.getSource
+    Parser.map (\offset -> \source -> String.slice (offset - 1) offset source)
+        Parser.getOffset
+        |= Parser.getSource
 
 
 infixLeftSubtraction : Int -> ( Int, Node Expression -> Parser (WithComments (Node Expression)) )
 infixLeftSubtraction precedence =
     infixLeftHelp precedence
         (lookBehindOneCharacter
-            |> Core.andThen
+            |> Parser.andThen
                 (\c ->
                     -- 'a-b', 'a - b' and 'a- b' are subtractions, but 'a -b' is an application on a negation
                     if c == " " || c == "\n" || c == "\u{000D}" then
@@ -1153,7 +1153,7 @@ infixLeftSubtraction precedence =
         )
 
 
-infixLeftHelp : Int -> Core.Parser () -> (Node Expression -> Node Expression -> Node Expression) -> ( Int, Node Expression -> Parser (WithComments (Node Expression)) )
+infixLeftHelp : Int -> Parser.Parser () -> (Node Expression -> Node Expression -> Node Expression) -> ( Int, Node Expression -> Parser (WithComments (Node Expression)) )
 infixLeftHelp precedence p apply =
     infixHelp precedence precedence p apply
 
@@ -1169,20 +1169,20 @@ infixLeftWithState precedence operator apply =
     , \left ->
         operator
             |> Parser.Extra.continueWith
-                (Core.map (\e -> { e | syntax = apply left e.syntax })
+                (Parser.map (\e -> { e | syntax = apply left e.syntax })
                     parser
                 )
     )
 
 
-infixRightHelp : Int -> Core.Parser () -> (Node Expression -> Node Expression -> Node Expression) -> ( Int, Node Expression -> Parser (WithComments (Node Expression)) )
+infixRightHelp : Int -> Parser.Parser () -> (Node Expression -> Node Expression -> Node Expression) -> ( Int, Node Expression -> Parser (WithComments (Node Expression)) )
 infixRightHelp precedence p apply =
     -- To get right associativity, we use (precedence - 1) for the
     -- right precedence.
     infixHelp precedence (precedence - 1) p apply
 
 
-infixHelp : Int -> Int -> Core.Parser () -> (Node Expression -> Node Expression -> Node Expression) -> ( Int, Node Expression -> Parser (WithComments (Node Expression)) )
+infixHelp : Int -> Int -> Parser.Parser () -> (Node Expression -> Node Expression -> Node Expression) -> ( Int, Node Expression -> Parser (WithComments (Node Expression)) )
 infixHelp leftPrecedence rightPrecedence operator apply =
     let
         parser : Parser (WithComments (Node Expression))
@@ -1193,7 +1193,7 @@ infixHelp leftPrecedence rightPrecedence operator apply =
     , \left ->
         operator
             |> Parser.Extra.continueWith
-                (Core.map (\e -> { e | syntax = apply left e.syntax })
+                (Parser.map (\e -> { e | syntax = apply left e.syntax })
                     parser
                 )
     )
@@ -1203,7 +1203,7 @@ postfix : Int -> Parser a -> (expr -> a -> expr) -> ( Int, expr -> Parser (WithC
 postfix precedence operator apply =
     ( precedence
     , \left ->
-        Core.map
+        Parser.map
             (\right ->
                 { comments = Rope.empty
                 , syntax = apply left right

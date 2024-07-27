@@ -1,9 +1,9 @@
 module Elm.Parser.TestUtil exposing (parse)
 
-import Parser as Core exposing ((|.))
+import Parser exposing ((|.))
 
 
-parse : String -> Core.Parser a -> Maybe a
+parse : String -> Parser.Parser a -> Maybe a
 parse source p =
-    Core.run (p |. Core.end) source
+    Parser.run (p |. Parser.end) source
         |> Result.toMaybe

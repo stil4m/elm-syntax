@@ -7,7 +7,7 @@ import Elm.Parser.Tokens as Tokens
 import Elm.Syntax.ModuleName exposing (ModuleName)
 import Elm.Syntax.Node as Node exposing (Node)
 import Elm.Syntax.Pattern as Pattern exposing (Pattern(..), QualifiedNameRef)
-import Parser as Core exposing ((|.), (|=), Parser)
+import Parser exposing ((|.), (|=), Parser)
 import Parser.Extra
 import ParserWithComments exposing (WithComments)
 import Rope
@@ -15,7 +15,7 @@ import Rope
 
 composedWith : Parser PatternComposedWith
 composedWith =
-    Core.map
+    Parser.map
         (\commentsBefore composedWithResult ->
             case composedWithResult of
                 PatternComposedWithNothing ->
@@ -34,10 +34,10 @@ composedWith =
                         }
         )
         Layout.maybeLayout
-        |= Core.oneOf
+        |= Parser.oneOf
             [ (Tokens.asToken
                 |> Parser.Extra.continueWith
-                    (Core.map
+                    (Parser.map
                         (\commentsAfterAs ->
                             \name ->
                                 PatternComposedWithAs
@@ -51,7 +51,7 @@ composedWith =
                 |= Node.parserCore Tokens.functionName
             , (Tokens.cons
                 |> Parser.Extra.continueWith
-                    (Core.map
+                    (Parser.map
                         (\commentsAfterCons ->
                             \patternResult ->
                                 PatternComposedWithCons
@@ -63,7 +63,7 @@ composedWith =
                     )
               )
                 |= pattern
-            , Core.succeed PatternComposedWithNothing
+            , Parser.succeed PatternComposedWithNothing
             ]
 
 
@@ -75,12 +75,12 @@ type PatternComposedWith
 
 pattern : Parser (WithComments (Node Pattern))
 pattern =
-    Core.lazy (\() -> composablePatternTryToCompose)
+    Parser.lazy (\() -> composablePatternTryToCompose)
 
 
 composablePatternTryToCompose : Parser (WithComments (Node Pattern))
 composablePatternTryToCompose =
-    Core.map
+    Parser.map
         (\x ->
             \maybeComposedWith ->
                 case maybeComposedWith of
@@ -106,7 +106,7 @@ parensPattern =
     (Tokens.parensStart
         |> Parser.Extra.continueWith
             (ParserWithComments.sepBy "," (Layout.maybeAroundBothSides pattern)
-                |> Core.map
+                |> Parser.map
                     (\c ->
                         { comments = c.comments
                         , syntax =
@@ -126,7 +126,7 @@ parensPattern =
 variablePart : Parser (WithComments Pattern)
 variablePart =
     Tokens.functionName
-        |> Core.map (\var -> { comments = Rope.empty, syntax = VarPattern var })
+        |> Parser.map (\var -> { comments = Rope.empty, syntax = VarPattern var })
 
 
 numberPart : Parser (WithComments Pattern)
@@ -139,14 +139,14 @@ numberPart =
 charPattern : Parser (WithComments Pattern)
 charPattern =
     Tokens.characterLiteral
-        |> Core.map (\char -> { comments = Rope.empty, syntax = CharPattern char })
+        |> Parser.map (\char -> { comments = Rope.empty, syntax = CharPattern char })
 
 
 listPattern : Parser (WithComments Pattern)
 listPattern =
     (Tokens.squareStart
         |> Parser.Extra.continueWith
-            (Core.map
+            (Parser.map
                 (\commentsBeforeElements ->
                     \maybeElements ->
                         case maybeElements of
@@ -163,8 +163,8 @@ listPattern =
                 Layout.maybeLayout
             )
     )
-        |= Core.oneOf
-            [ Core.map
+        |= Parser.oneOf
+            [ Parser.map
                 (\head ->
                     \commentsAfterHead ->
                         \tail ->
@@ -185,14 +185,14 @@ listPattern =
                         |> Parser.Extra.continueWith
                             (Layout.maybeAroundBothSides pattern)
                     )
-            , Core.succeed Nothing
+            , Parser.succeed Nothing
             ]
         |. Tokens.squareEnd
 
 
 composablePattern : Parser (WithComments (Node Pattern))
 composablePattern =
-    Core.oneOf
+    Parser.oneOf
         [ variablePart
         , qualifiedPatternWithConsumeArgs
         , allPattern
@@ -209,7 +209,7 @@ composablePattern =
 
 qualifiedPatternArg : Parser (WithComments (Node Pattern))
 qualifiedPatternArg =
-    Core.oneOf
+    Parser.oneOf
         [ variablePart
         , qualifiedPatternWithoutConsumeArgs
         , allPattern
@@ -226,7 +226,7 @@ qualifiedPatternArg =
 
 allPattern : Parser (WithComments Pattern)
 allPattern =
-    Core.map (\() -> allPatternWithComments) (Core.symbol "_")
+    Parser.map (\() -> allPatternWithComments) (Parser.symbol "_")
 
 
 allPatternWithComments : WithComments Pattern
@@ -236,7 +236,7 @@ allPatternWithComments =
 
 unitPattern : Parser (WithComments Pattern)
 unitPattern =
-    Core.map (\() -> unitPatternWithComments) (Core.symbol "()")
+    Parser.map (\() -> unitPatternWithComments) (Parser.symbol "()")
 
 
 unitPatternWithComments : WithComments Pattern
@@ -247,28 +247,28 @@ unitPatternWithComments =
 stringPattern : Parser (WithComments Pattern)
 stringPattern =
     Tokens.singleOrTripleQuotedStringLiteral
-        |> Core.map (\string -> { comments = Rope.empty, syntax = StringPattern string })
+        |> Parser.map (\string -> { comments = Rope.empty, syntax = StringPattern string })
 
 
-qualifiedNameRef : Core.Parser QualifiedNameRef
+qualifiedNameRef : Parser.Parser QualifiedNameRef
 qualifiedNameRef =
     Tokens.typeName
-        |> Core.andThen (\typeOrSegment -> qualifiedNameRefHelper [] typeOrSegment)
+        |> Parser.andThen (\typeOrSegment -> qualifiedNameRefHelper [] typeOrSegment)
 
 
-qualifiedNameRefHelper : ModuleName -> String -> Core.Parser QualifiedNameRef
+qualifiedNameRefHelper : ModuleName -> String -> Parser.Parser QualifiedNameRef
 qualifiedNameRefHelper moduleNameSoFar typeOrSegment =
-    Core.oneOf
+    Parser.oneOf
         [ Tokens.dot
             |> Parser.Extra.continueWith Tokens.typeName
-            |> Core.andThen (\t -> qualifiedNameRefHelper (typeOrSegment :: moduleNameSoFar) t)
-        , Core.lazy (\() -> Core.succeed { moduleName = List.reverse moduleNameSoFar, name = typeOrSegment })
+            |> Parser.andThen (\t -> qualifiedNameRefHelper (typeOrSegment :: moduleNameSoFar) t)
+        , Parser.lazy (\() -> Parser.succeed { moduleName = List.reverse moduleNameSoFar, name = typeOrSegment })
         ]
 
 
 qualifiedPatternWithConsumeArgs : Parser (WithComments Pattern)
 qualifiedPatternWithConsumeArgs =
-    Core.map
+    Parser.map
         (\qualified ->
             \args ->
                 { comments = args.comments
@@ -277,14 +277,14 @@ qualifiedPatternWithConsumeArgs =
         )
         qualifiedNameRef
         |= ParserWithComments.many
-            (Core.map
+            (Parser.map
                 (\commentsBefore ->
                     \arg ->
                         { comments = Rope.flatFromList [ arg.comments, commentsBefore ]
                         , syntax = arg.syntax
                         }
                 )
-                (Layout.maybeLayout |> Core.backtrackable)
+                (Layout.maybeLayout |> Parser.backtrackable)
                 |= qualifiedPatternArg
             )
 
@@ -292,7 +292,7 @@ qualifiedPatternWithConsumeArgs =
 qualifiedPatternWithoutConsumeArgs : Parser (WithComments Pattern)
 qualifiedPatternWithoutConsumeArgs =
     qualifiedNameRef
-        |> Core.map
+        |> Parser.map
             (\qualified -> { comments = Rope.empty, syntax = NamedPattern qualified [] })
 
 
@@ -300,7 +300,7 @@ recordPattern : Parser (WithComments Pattern)
 recordPattern =
     (Tokens.curlyStart
         |> Parser.Extra.continueWith
-            (Core.map
+            (Parser.map
                 (\commentsBeforeElements ->
                     \maybeElements ->
                         case maybeElements of
@@ -317,8 +317,8 @@ recordPattern =
                 Layout.maybeLayout
             )
     )
-        |= Core.oneOf
-            [ Core.map
+        |= Parser.oneOf
+            [ Parser.map
                 (\head ->
                     \commentsAfterHead ->
                         \tail ->
@@ -336,7 +336,7 @@ recordPattern =
                 |= ParserWithComments.many
                     (Tokens.comma
                         |> Parser.Extra.continueWith
-                            (Core.map
+                            (Parser.map
                                 (\beforeName name afterName ->
                                     { comments = Rope.flatFromList [ beforeName, afterName ]
                                     , syntax = name
@@ -347,6 +347,6 @@ recordPattern =
                                 |= Layout.maybeLayout
                             )
                     )
-            , Core.succeed Nothing
+            , Parser.succeed Nothing
             ]
         |. Tokens.curlyEnd

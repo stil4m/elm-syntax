@@ -12,23 +12,23 @@ module Elm.Parser.Layout exposing
 import Elm.Parser.Comments as Comments
 import Elm.Parser.Node as Node
 import Elm.Syntax.Node exposing (Node)
-import Parser as Core exposing ((|.), (|=), Parser)
+import Parser exposing ((|.), (|=), Parser)
 import ParserWithComments exposing (Comments, WithComments)
 import Rope
 import Set
 
 
-nonEmptyWhiteSpaceOrComment : Core.Parser (Maybe (Node String))
+nonEmptyWhiteSpaceOrComment : Parser.Parser (Maybe (Node String))
 nonEmptyWhiteSpaceOrComment =
-    Core.oneOf
-        [ Core.variable
+    Parser.oneOf
+        [ Parser.variable
             { inner = \c -> c == ' ' || c == '\n' || c == '\u{000D}'
             , reserved = Set.empty
             , start = \c -> c == ' ' || c == '\n' || c == '\u{000D}'
             }
-            |> Core.map (\_ -> Nothing)
-        , Core.oneOf
-            [ Comments.singleLineCommentCore |> Core.getChompedString
+            |> Parser.map (\_ -> Nothing)
+        , Parser.oneOf
+            [ Comments.singleLineCommentCore |> Parser.getChompedString
             , Comments.multilineCommentString
             ]
             |> Node.parserCoreMap Just
@@ -37,7 +37,7 @@ nonEmptyWhiteSpaceOrComment =
 
 whiteSpaceAndComments : Parser Comments
 whiteSpaceAndComments =
-    Core.loop [] whiteSpaceAndCommentsFrom
+    Parser.loop [] whiteSpaceAndCommentsFrom
 
 
 maybeLayout : Parser Comments
@@ -46,13 +46,13 @@ maybeLayout =
         |. verifyLayoutIndent
 
 
-whiteSpaceAndCommentsFrom : List (Node String) -> Core.Parser (Core.Step (List (Node String)) Comments)
+whiteSpaceAndCommentsFrom : List (Node String) -> Parser.Parser (Parser.Step (List (Node String)) Comments)
 whiteSpaceAndCommentsFrom soFar =
-    Core.oneOf
+    Parser.oneOf
         [ nonEmptyWhiteSpaceOrComment
-            |> Core.map
+            |> Parser.map
                 (\a ->
-                    Core.Loop
+                    Parser.Loop
                         (case a of
                             Nothing ->
                                 soFar
@@ -61,9 +61,9 @@ whiteSpaceAndCommentsFrom soFar =
                                 aValue :: soFar
                         )
                 )
-        , Core.lazy
+        , Parser.lazy
             (\() ->
-                Core.succeed (Core.Done (Rope.fromList (List.reverse soFar)))
+                Parser.succeed (Parser.Done (Rope.fromList (List.reverse soFar)))
             )
         ]
 
@@ -74,41 +74,41 @@ verifyLayoutIndent =
         (\stateIndent current -> "Expected indent larger than " ++ String.fromInt stateIndent ++ ", got " ++ String.fromInt current)
 
 
-positivelyIndentedCore : Core.Parser ()
+positivelyIndentedCore : Parser.Parser ()
 positivelyIndentedCore =
-    Core.map
+    Parser.map
         (\column ->
             \indent ->
                 if indent < column then
-                    Core.succeed ()
+                    Parser.succeed ()
 
                 else
-                    Core.problem "must be positively indented"
+                    Parser.problem "must be positively indented"
         )
-        Core.getCol
-        |= Core.getIndent
-        |> Core.andThen identity
+        Parser.getCol
+        |= Parser.getIndent
+        |> Parser.andThen identity
 
 
 positivelyIndented : res -> Parser res
 positivelyIndented res =
-    Core.map
+    Parser.map
         (\column ->
             \indent ->
                 if indent < column then
-                    Core.succeed res
+                    Parser.succeed res
 
                 else
-                    Core.problem "must be positively indented"
+                    Parser.problem "must be positively indented"
         )
-        Core.getCol
-        |= Core.getIndent
-        |> Core.andThen identity
+        Parser.getCol
+        |= Parser.getIndent
+        |> Parser.andThen identity
 
 
 layout : Parser Comments
 layout =
-    Core.map
+    Parser.map
         (\head ->
             \tail ->
                 case head of
@@ -119,7 +119,7 @@ layout =
                         Rope.flatFromList [ Rope.one headValue, tail ]
         )
         nonEmptyWhiteSpaceOrComment
-        |= Core.loop [] whiteSpaceAndCommentsFrom
+        |= Parser.loop [] whiteSpaceAndCommentsFrom
         |. verifyLayoutIndent
 
 
@@ -137,44 +137,44 @@ layoutStrict =
 
 onTopIndentation : res -> Parser res
 onTopIndentation res =
-    Core.map
+    Parser.map
         (\column ->
             \indent ->
                 if indent == column then
-                    Core.succeed res
+                    Parser.succeed res
 
                 else
                     problemTopIndentation
         )
-        Core.getCol
-        |= Core.getIndent
-        |> Core.andThen identity
+        Parser.getCol
+        |= Parser.getIndent
+        |> Parser.andThen identity
 
 
-problemTopIndentation : Core.Parser a
+problemTopIndentation : Parser.Parser a
 problemTopIndentation =
-    Core.problem "must be on top indentation"
+    Parser.problem "must be on top indentation"
 
 
 verifyIndent : (Int -> Int -> Bool) -> (Int -> Int -> String) -> Parser ()
 verifyIndent verify failMessage =
-    Core.map
+    Parser.map
         (\column ->
             \indent ->
                 if verify indent column then
-                    Core.succeed ()
+                    Parser.succeed ()
 
                 else
-                    Core.problem (failMessage indent column)
+                    Parser.problem (failMessage indent column)
         )
-        Core.getCol
-        |= Core.getIndent
-        |> Core.andThen identity
+        Parser.getCol
+        |= Parser.getIndent
+        |> Parser.andThen identity
 
 
 maybeAroundBothSides : Parser (WithComments b) -> Parser (WithComments b)
 maybeAroundBothSides x =
-    Core.map
+    Parser.map
         (\before ->
             \v ->
                 \after ->

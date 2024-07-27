@@ -3,13 +3,13 @@ module Elm.Parser.Base exposing (moduleName)
 import Elm.Parser.Tokens as Tokens
 import Elm.Syntax.ModuleName exposing (ModuleName)
 import Elm.Syntax.Node exposing (Node(..))
-import Parser as Core exposing ((|=))
+import Parser exposing ((|=))
 import Parser.Extra
 
 
-moduleName : Core.Parser (Node ModuleName)
+moduleName : Parser.Parser (Node ModuleName)
 moduleName =
-    Core.map
+    Parser.map
         (\( startRow, startColumn ) ->
             \head ->
                 \tail ->
@@ -20,10 +20,10 @@ moduleName =
                             }
                             (head :: tail)
         )
-        Core.getPosition
+        Parser.getPosition
         |= Tokens.typeName
         |= moduleNameOrEmpty
-        |= Core.getCol
+        |= Parser.getCol
 
 
 listCons : a -> List a -> List a
@@ -31,15 +31,15 @@ listCons head =
     \tail -> head :: tail
 
 
-moduleNameOrEmpty : Core.Parser ModuleName
+moduleNameOrEmpty : Parser.Parser ModuleName
 moduleNameOrEmpty =
-    Core.oneOf
+    Parser.oneOf
         [ (Tokens.dot
             |> Parser.Extra.continueWith
-                (Core.map listCons
+                (Parser.map listCons
                     Tokens.typeName
                 )
           )
-            |= Core.lazy (\() -> moduleNameOrEmpty)
-        , Core.succeed []
+            |= Parser.lazy (\() -> moduleNameOrEmpty)
+        , Parser.succeed []
         ]

@@ -1,38 +1,38 @@
 module Parser.Extra exposing (anyChar, continueWith, withIndent)
 
-import Parser as Core
+import Parser
 
 
-anyChar : Core.Parser Char
+anyChar : Parser.Parser Char
 anyChar =
-    Core.chompIf (always True)
-        |> Core.getChompedString
-        |> Core.andThen
+    Parser.chompIf (always True)
+        |> Parser.getChompedString
+        |> Parser.andThen
             (\s ->
                 case String.toList s of
                     [] ->
                         problemAnyCharacter
 
                     c :: _ ->
-                        Core.succeed c
+                        Parser.succeed c
             )
 
 
-problemAnyCharacter : Core.Parser a
+problemAnyCharacter : Parser.Parser a
 problemAnyCharacter =
-    Core.problem "expected any character"
+    Parser.problem "expected any character"
 
 
-{-| Like `Core.andThen (\() -> ...)` but circumvents laziness
+{-| Like `Parser.andThen (\() -> ...)` but circumvents laziness
 -}
-continueWith : Core.Parser b -> Core.Parser () -> Core.Parser b
+continueWith : Parser.Parser b -> Parser.Parser () -> Parser.Parser b
 continueWith b a =
-    a |> Core.andThen (\() -> b)
+    a |> Parser.andThen (\() -> b)
 
 
 {-| For a given ParserWithComments.Parser, take the current start column as indentation for the whole block
 -}
-withIndent : Core.Parser a -> Core.Parser a
+withIndent : Parser.Parser a -> Parser.Parser a
 withIndent p =
-    Core.andThen (\column -> Core.withIndent column p)
-        Core.getCol
+    Parser.andThen (\column -> Parser.withIndent column p)
+        Parser.getCol
