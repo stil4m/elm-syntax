@@ -33,18 +33,36 @@ nonEmptyWhiteSpaceOrComment =
             (\source offset ->
                 case source |> String.slice offset (offset + 2) of
                     "--" ->
-                        Comments.singleLineCommentCore |> Parser.getChompedString |> Node.parserCoreMap Just
+                        justSingleLineCommentNode
 
                     "{-" ->
-                        Comments.multilineCommentString |> Node.parserCoreMap Just
+                        justMultilineCOmmentNode
 
                     _ ->
-                        Parser.problem "not a comment"
+                        problemNotAComment
             )
             Parser.getSource
             |= Parser.getOffset
             |> Parser.andThen identity
         ]
+
+
+justMultilineCOmmentNode : Parser (Maybe (Node String))
+justMultilineCOmmentNode =
+    Comments.multilineCommentString
+        |> Node.parserCoreMap Just
+
+
+justSingleLineCommentNode : Parser (Maybe (Node String))
+justSingleLineCommentNode =
+    Comments.singleLineCommentCore
+        |> Parser.getChompedString
+        |> Node.parserCoreMap Just
+
+
+problemNotAComment : Parser a
+problemNotAComment =
+    Parser.problem "not a comment"
 
 
 whiteSpaceAndComments : Parser Comments
