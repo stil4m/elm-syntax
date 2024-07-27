@@ -8,7 +8,7 @@ module ParserWithComments exposing
     )
 
 import Elm.Syntax.Node exposing (Node)
-import Parser as Core exposing (Parser)
+import Parser as Core exposing ((|=), Parser)
 import Parser.Extra
 import Rope exposing (Rope)
 
@@ -19,34 +19,6 @@ type alias WithComments res =
 
 type alias Comments =
     Rope (Node String)
-
-
-map : (a -> b) -> Parser (WithComments a) -> Parser (WithComments b)
-map f p =
-    p
-        |> Core.map
-            (\commentsAndSyntax ->
-                { comments = commentsAndSyntax.comments
-                , syntax = f commentsAndSyntax.syntax
-                }
-            )
-
-
-keep : Parser (WithComments a) -> Parser (WithComments (a -> b)) -> Parser (WithComments b)
-keep rp lp =
-    lp
-        |> Core.andThen
-            (\lpSyntaxAndComments ->
-                Core.map
-                    (\rpSyntaxAndComments ->
-                        { comments =
-                            lpSyntaxAndComments.comments
-                                |> Rope.prependTo rpSyntaxAndComments.comments
-                        , syntax = lpSyntaxAndComments.syntax rpSyntaxAndComments.syntax
-                        }
-                    )
-                    rp
-            )
 
 
 maybeMap : (a -> b) -> b -> Parser (WithComments a) -> Parser (WithComments b)
@@ -148,10 +120,12 @@ sepBy sep p =
 
 sepBy1 : String -> Parser (WithComments a) -> Parser (WithComments (List a))
 sepBy1 sep p =
-    map cons p
-        |> keep (many (Core.symbol sep |> Parser.Extra.continueWith p))
-
-
-cons : a -> List a -> List a
-cons first =
-    \rest -> first :: rest
+    Core.map
+        (\head ->
+            \tail ->
+                { comments = Rope.flatFromList [ head.comments, tail.comments ]
+                , syntax = head.syntax :: tail.syntax
+                }
+        )
+        p
+        |= many (Core.symbol sep |> Parser.Extra.continueWith p)
