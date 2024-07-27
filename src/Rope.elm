@@ -9,7 +9,7 @@ type alias Rope a =
 
 
 type RopeLikelyFilled a
-    = Leaf (List a)
+    = Leaf a
     | Branch (List (RopeLikelyFilled a))
 
 
@@ -20,7 +20,7 @@ empty =
 
 one : a -> RopeLikelyFilled a
 one onlyElement =
-    Leaf [ onlyElement ]
+    Leaf onlyElement
 
 
 prependToLikelyFilled : Rope a -> RopeLikelyFilled a -> Rope a
@@ -71,8 +71,8 @@ toList rope =
 ropeLikelyFilledToListInto : List a -> RopeLikelyFilled a -> List a
 ropeLikelyFilledToListInto initialAcc ropeLikelyFilled =
     case ropeLikelyFilled of
-        Leaf list ->
-            List.foldr (::) initialAcc list
+        Leaf onlyElement ->
+            onlyElement :: initialAcc
 
         Branch ropes ->
             List.foldr (\childRope childAcc -> ropeLikelyFilledToListInto childAcc childRope)
