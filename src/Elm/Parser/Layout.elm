@@ -43,7 +43,7 @@ whiteSpaceAndComments =
 maybeLayout : Parser Comments
 maybeLayout =
     whiteSpaceAndComments
-        |> verifyLayoutIndent
+        |. verifyLayoutIndent
 
 
 whiteSpaceAndCommentsFrom : List (Node String) -> Core.Parser (Core.Step (List (Node String)) Comments)
@@ -65,7 +65,7 @@ whiteSpaceAndCommentsFrom soFar =
         ]
 
 
-verifyLayoutIndent : Parser Comments -> Parser Comments
+verifyLayoutIndent : Parser ()
 verifyLayoutIndent =
     verifyIndent (\stateIndent current -> stateIndent < current)
         (\stateIndent current -> "Expected indent larger than " ++ String.fromInt stateIndent ++ ", got " ++ String.fromInt current)
@@ -117,7 +117,7 @@ layout =
         )
         nonEmptyWhiteSpaceOrComment
         |= Core.loop [] whiteSpaceAndCommentsFrom
-        |> verifyLayoutIndent
+        |. verifyLayoutIndent
 
 
 optimisticLayout : Parser Comments
@@ -128,7 +128,7 @@ optimisticLayout =
 layoutStrict : Parser Comments
 layoutStrict =
     optimisticLayout
-        |> verifyIndent (\stateIndent current -> stateIndent == current)
+        |. verifyIndent (\stateIndent current -> stateIndent == current)
             (\stateIndent current -> "Expected indent " ++ String.fromInt stateIndent ++ ", got " ++ String.fromInt current)
 
 
@@ -153,22 +153,20 @@ problemTopIndentation =
     Core.problem "must be on top indentation"
 
 
-verifyIndent : (Int -> Int -> Bool) -> (Int -> Int -> String) -> Parser Comments -> Parser Comments
-verifyIndent verify failMessage toVerify =
-    toVerify
-        |. (Core.map
-                (\column ->
-                    \indent ->
-                        if verify indent column then
-                            Core.succeed ()
+verifyIndent : (Int -> Int -> Bool) -> (Int -> Int -> String) -> Parser ()
+verifyIndent verify failMessage =
+    Core.map
+        (\column ->
+            \indent ->
+                if verify indent column then
+                    Core.succeed ()
 
-                        else
-                            Core.problem (failMessage indent column)
-                )
-                Core.getCol
-                |= Core.getIndent
-                |> Core.andThen identity
-           )
+                else
+                    Core.problem (failMessage indent column)
+        )
+        Core.getCol
+        |= Core.getIndent
+        |> Core.andThen identity
 
 
 maybeAroundBothSides : Parser (WithComments b) -> Parser (WithComments b)
