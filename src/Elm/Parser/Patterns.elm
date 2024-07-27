@@ -157,7 +157,7 @@ listPattern =
                         case maybeElements of
                             Nothing ->
                                 { comments = commentsBeforeElements
-                                , syntax = ListPattern []
+                                , syntax = patternListEmpty
                                 }
 
                             Just elements ->
@@ -193,6 +193,11 @@ listPattern =
                     )
                 |. Tokens.squareEnd
             ]
+
+
+patternListEmpty : Pattern
+patternListEmpty =
+    ListPattern []
 
 
 composablePattern : Parser (WithComments (Node Pattern))
@@ -311,7 +316,7 @@ recordPattern =
                         case maybeElements of
                             Nothing ->
                                 { comments = commentsBeforeElements
-                                , syntax = RecordPattern []
+                                , syntax = patternRecordEmpty
                                 }
 
                             Just elements ->
@@ -368,3 +373,8 @@ recordPattern =
             , Parser.succeed Nothing
             ]
         |. Tokens.curlyEnd
+
+
+patternRecordEmpty : Pattern
+patternRecordEmpty =
+    RecordPattern []

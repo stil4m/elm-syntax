@@ -156,7 +156,7 @@ recordTypeAnnotation =
                         case afterCurly of
                             Nothing ->
                                 { comments = commentsBefore
-                                , syntax = TypeAnnotation.Record []
+                                , syntax = typeAnnotationRecordEmpty
                                 }
 
                             Just afterCurlyResult ->
@@ -245,6 +245,11 @@ recordTypeAnnotation =
             ]
     )
         |. Tokens.curlyEnd
+
+
+typeAnnotationRecordEmpty : TypeAnnotation
+typeAnnotationRecordEmpty =
+    TypeAnnotation.Record []
 
 
 type RecordFieldsOrExtensionAfterName

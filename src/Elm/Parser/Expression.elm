@@ -189,7 +189,7 @@ listExpression =
                     \maybeElements ->
                         case maybeElements of
                             Nothing ->
-                                { comments = commentsBefore, syntax = ListExpr [] }
+                                { comments = commentsBefore, syntax = expressionListEmpty }
 
                             Just elements ->
                                 { comments = commentsBefore |> Rope.prependTo elements.comments
@@ -225,6 +225,11 @@ listExpression =
             ]
 
 
+expressionListEmpty : Expression
+expressionListEmpty =
+    ListExpr []
+
+
 
 -- recordExpression
 
@@ -239,7 +244,7 @@ recordExpression =
                         case maybeAfterCurly of
                             Nothing ->
                                 { comments = commentsBefore
-                                , syntax = RecordExpr []
+                                , syntax = expressionRecordEmpty
                                 }
 
                             Just afterCurly ->
@@ -255,6 +260,11 @@ recordExpression =
             , Parser.succeed Nothing
             ]
         |. Tokens.curlyEnd
+
+
+expressionRecordEmpty : Expression
+expressionRecordEmpty =
+    RecordExpr []
 
 
 recordContents : Parser (WithComments Expression)
