@@ -509,12 +509,12 @@ infixDeclaration =
         |= Layout.layout
         |= Node.parserCore Parser.int
         |= Layout.layout
-        |= ((Tokens.parensStart
+        |= Node.parserCore
+            ((Tokens.parensStart
                 |> Parser.Extra.continueWith Tokens.prefixOperatorToken
-            )
+             )
                 |. Tokens.parensEnd
-                |> Node.parserCore
-           )
+            )
         |= Layout.layout
         |. Tokens.equal
         |= Layout.layout
