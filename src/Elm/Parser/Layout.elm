@@ -11,112 +11,103 @@ module Elm.Parser.Layout exposing
 
 import Elm.Parser.Comments as Comments
 import Elm.Parser.Node as Node
-import Elm.Syntax.Node exposing (Node)
 import Parser exposing ((|.), (|=), Parser)
 import ParserWithComments exposing (Comments, WithComments)
-import Rope exposing (Rope)
+import Rope
 import Set
 
 
 {-| Nothing if there can't be more whitespace/comments ahead,
 otherwise Just with the next comment node
 -}
-maybeNonEmptyWhiteSpaceAndNextComment : Parser.Parser (Maybe (Node String))
-maybeNonEmptyWhiteSpaceAndNextComment =
+whitespaceAndCommentsOrEmpty : Parser.Parser Comments
+whitespaceAndCommentsOrEmpty =
     Parser.oneOf
-        [ Parser.variable
-            { inner = \c -> c == ' ' || c == '\n' || c == '\u{000D}'
-            , reserved = Set.empty
-            , start = \c -> c == ' ' || c == '\n' || c == '\u{000D}'
-            }
+        [ whitespace
             -- whitespace can't be followed by more whitespace
-            |> Parser.andThen (\_ -> commentOrNothing)
+            |> Parser.andThen (\_ -> fromCommentElseEmpty)
         , -- below will never run with elm-format-ed code
-          commentOrNothing
+          fromCommentElseEmpty
         ]
 
 
-commentOrNothing : Parser (Maybe (Node String))
-commentOrNothing =
+whitespace : Parser String
+whitespace =
+    Parser.variable
+        { inner = \c -> c == ' ' || c == '\n' || c == '\u{000D}'
+        , reserved = Set.empty
+        , start = \c -> c == ' ' || c == '\n' || c == '\u{000D}'
+        }
+
+
+fromCommentElseEmpty : Parser Comments
+fromCommentElseEmpty =
     -- since comments are comparatively rare
     -- but expensive to check for, we allow shortcutting to dead end
     Parser.map
         (\source offset ->
             case source |> String.slice offset (offset + 2) of
                 "--" ->
-                    -- this will always succeed from here, so no need to fall back to Nothing
-                    justSingleLineCommentNode
+                    -- this will always succeed from here, so no need to fall back to Rope.empty
+                    fromSingleLineCommentNode
 
                 "{-" ->
-                    justMultilineCommentNodeOrNothingOnProblem
+                    fromMultilineCommentNodeOrEmptyOnProblem
 
                 _ ->
-                    succeedNothing
+                    Parser.succeed Rope.empty
         )
         Parser.getSource
         |= Parser.getOffset
         |> Parser.andThen identity
 
 
-succeedNothing : Parser (Maybe a)
-succeedNothing =
-    Parser.succeed Nothing
+fromMultilineCommentNodeOrEmptyOnProblem : Parser Comments
+fromMultilineCommentNodeOrEmptyOnProblem =
+    Parser.oneOf [ fromMultilineCommentNode, Parser.succeed Rope.empty ]
 
 
-justMultilineCommentNodeOrNothingOnProblem : Parser (Maybe (Node String))
-justMultilineCommentNodeOrNothingOnProblem =
-    Parser.oneOf [ justMultilineCommentNode, Parser.succeed Nothing ]
+fromMultilineCommentNode : Parser Comments
+fromMultilineCommentNode =
+    Node.parserCoreMap
+        (\comment ->
+            \commentsAfter ->
+                Rope.flatFromList [ Rope.one comment, commentsAfter ]
+        )
+        Comments.multilineCommentString
+        |= whitespaceAndCommentsOrEmpty
 
 
-justMultilineCommentNode : Parser (Maybe (Node String))
-justMultilineCommentNode =
-    Comments.multilineCommentString
-        |> Node.parserCoreMap Just
-
-
-justSingleLineCommentNode : Parser (Maybe (Node String))
-justSingleLineCommentNode =
-    Comments.singleLineCommentCore
-        |> Parser.getChompedString
-        |> Node.parserCoreMap Just
+fromSingleLineCommentNode : Parser Comments
+fromSingleLineCommentNode =
+    Node.parserCoreMap
+        (\comment ->
+            \commentsAfter ->
+                Rope.flatFromList [ Rope.one comment, commentsAfter ]
+        )
+        (Comments.singleLineCommentCore
+            |> Parser.getChompedString
+        )
+        |= whitespaceAndCommentsOrEmpty
 
 
 whiteSpaceAndComments : Parser Comments
 whiteSpaceAndComments =
     Parser.oneOf
         [ Parser.keyword " "
-            |> Parser.andThen (\() -> whiteSpaceAndCommentsLoop)
+            |> Parser.andThen (\() -> whitespaceAndCommentsOrEmpty)
         , Parser.token " "
             |> Parser.map (\() -> Rope.empty)
 
         -- fallback if the hacky shortcuts don't commit
-        , whiteSpaceAndCommentsLoop
+        , whitespaceAndCommentsOrEmpty
         ]
-
-
-whiteSpaceAndCommentsLoop : Parser Comments
-whiteSpaceAndCommentsLoop =
-    Parser.loop Rope.empty whiteSpaceAndCommentsFrom
 
 
 maybeLayout : Parser Comments
 maybeLayout =
     whiteSpaceAndComments
         |. verifyLayoutIndent
-
-
-whiteSpaceAndCommentsFrom : Rope (Node String) -> Parser.Parser (Parser.Step (Rope (Node String)) Comments)
-whiteSpaceAndCommentsFrom soFar =
-    maybeNonEmptyWhiteSpaceAndNextComment
-        |> Parser.map
-            (\a ->
-                case a of
-                    Nothing ->
-                        Parser.Done soFar
-
-                    Just aValue ->
-                        Parser.Loop (Rope.flatFromList [ soFar, Rope.one aValue ])
-            )
 
 
 verifyLayoutIndent : Parser ()
@@ -159,19 +150,29 @@ positivelyIndented res =
 
 layout : Parser Comments
 layout =
-    (maybeNonEmptyWhiteSpaceAndNextComment
-        |> Parser.andThen
-            (\head ->
-                case head of
-                    Nothing ->
-                        Parser.succeed Rope.empty
+    Parser.oneOf
+        [ (whitespace
+            |> Parser.andThen (\_ -> fromCommentElseEmpty)
+          )
+            |. verifyLayoutIndent
+        , -- below will never run with elm-format-ed code
+          Parser.map
+            (\source offset ->
+                case source |> String.slice offset (offset + 2) of
+                    "--" ->
+                        -- this will always succeed from here, so no need to fall back to Rope.empty
+                        fromSingleLineCommentNode |. verifyLayoutIndent
 
-                    Just headValue ->
-                        Parser.map (\tail -> Rope.flatFromList [ Rope.one headValue, tail ])
-                            (Parser.loop Rope.empty whiteSpaceAndCommentsFrom)
+                    "{-" ->
+                        fromMultilineCommentNodeOrEmptyOnProblem |. verifyLayoutIndent
+
+                    _ ->
+                        Parser.problem "missing whitespace/comments"
             )
-    )
-        |. verifyLayoutIndent
+            Parser.getSource
+            |= Parser.getOffset
+            |> Parser.andThen identity
+        ]
 
 
 optimisticLayout : Parser Comments
