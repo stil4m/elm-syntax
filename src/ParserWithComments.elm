@@ -21,20 +21,6 @@ type alias Comments =
     Rope (Node String)
 
 
-maybeMap : (a -> b) -> b -> Parser (WithComments a) -> Parser (WithComments b)
-maybeMap onJust onNothing p =
-    Core.oneOf
-        [ p
-            |> Core.map
-                (\syntaxAndComments ->
-                    { comments = syntaxAndComments.comments
-                    , syntax = onJust syntaxAndComments.syntax
-                    }
-                )
-        , Core.succeed { comments = Rope.empty, syntax = onNothing }
-        ]
-
-
 many : Parser (WithComments a) -> Parser (WithComments (List a))
 many p =
     let
@@ -113,9 +99,18 @@ manyWithoutReverse p =
 
 sepBy : String -> Parser (WithComments a) -> Parser (WithComments (List a))
 sepBy sep p =
-    maybeMap identity
-        []
-        (sepBy1 sep p)
+    Core.oneOf
+        [ Core.map
+            (\head ->
+                \tail ->
+                    { comments = Rope.flatFromList [ head.comments, tail.comments ]
+                    , syntax = head.syntax :: tail.syntax
+                    }
+            )
+            p
+            |= many (Core.symbol sep |> Parser.Extra.continueWith p)
+        , Core.succeed { comments = Rope.empty, syntax = [] }
+        ]
 
 
 sepBy1 : String -> Parser (WithComments a) -> Parser (WithComments (List a))
