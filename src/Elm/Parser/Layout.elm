@@ -6,7 +6,6 @@ module Elm.Parser.Layout exposing
     , onTopIndentation
     , optimisticLayout
     , positivelyIndented
-    , positivelyIndentedCore
     )
 
 import Elm.Parser.Comments as Comments
@@ -55,11 +54,16 @@ fromCommentElseEmpty =
                     fromMultilineCommentNodeOrEmptyOnProblem
 
                 _ ->
-                    Parser.succeed Rope.empty
+                    succeedRopeEmpty
         )
         Parser.getSource
         |= Parser.getOffset
         |> Parser.andThen identity
+
+
+succeedRopeEmpty : Parser (Rope.Rope a)
+succeedRopeEmpty =
+    Parser.succeed Rope.empty
 
 
 fromMultilineCommentNodeOrEmptyOnProblem : Parser Comments
@@ -101,36 +105,25 @@ verifyLayoutIndent =
         (\stateIndent current -> "Expected indent larger than " ++ String.fromInt stateIndent ++ ", got " ++ String.fromInt current)
 
 
-positivelyIndentedCore : Parser.Parser ()
-positivelyIndentedCore =
+positivelyIndented : Parser.Parser ()
+positivelyIndented =
     Parser.map
         (\column ->
             \indent ->
                 if indent < column then
-                    Parser.succeed ()
+                    succeedUnit
 
                 else
-                    Parser.problem "must be positively indented"
+                    problemPositivelyIndented
         )
         Parser.getCol
         |= Parser.getIndent
         |> Parser.andThen identity
 
 
-positivelyIndented : res -> Parser res
-positivelyIndented res =
-    Parser.map
-        (\column ->
-            \indent ->
-                if indent < column then
-                    Parser.succeed res
-
-                else
-                    Parser.problem "must be positively indented"
-        )
-        Parser.getCol
-        |= Parser.getIndent
-        |> Parser.andThen identity
+problemPositivelyIndented : Parser a
+problemPositivelyIndented =
+    Parser.problem "must be positively indented"
 
 
 layout : Parser Comments
@@ -146,18 +139,33 @@ layout =
                 case source |> String.slice offset (offset + 2) of
                     "--" ->
                         -- this will always succeed from here, so no need to fall back to Rope.empty
-                        fromSingleLineCommentNode |. verifyLayoutIndent
+                        fromSingleLineCommentNodeVerifyLayoutIndent
 
                     "{-" ->
-                        fromMultilineCommentNodeOrEmptyOnProblem |. verifyLayoutIndent
+                        fromMultilineCommentNodeOrEmptyOnProblemVerifyLayoutIndent
 
                     _ ->
-                        Parser.problem "missing whitespace/comments"
+                        problemMissingWhitespaceOrComments
             )
             Parser.getSource
             |= Parser.getOffset
             |> Parser.andThen identity
         ]
+
+
+fromSingleLineCommentNodeVerifyLayoutIndent : Parser Comments
+fromSingleLineCommentNodeVerifyLayoutIndent =
+    fromSingleLineCommentNode |. verifyLayoutIndent
+
+
+fromMultilineCommentNodeOrEmptyOnProblemVerifyLayoutIndent : Parser Comments
+fromMultilineCommentNodeOrEmptyOnProblemVerifyLayoutIndent =
+    fromMultilineCommentNodeOrEmptyOnProblem |. verifyLayoutIndent
+
+
+problemMissingWhitespaceOrComments : Parser a
+problemMissingWhitespaceOrComments =
+    Parser.problem "missing whitespace/comments"
 
 
 optimisticLayout : Parser Comments
@@ -199,7 +207,7 @@ verifyIndent verify failMessage =
         (\column ->
             \indent ->
                 if verify indent column then
-                    Parser.succeed ()
+                    succeedUnit
 
                 else
                     Parser.problem (failMessage indent column)
@@ -207,6 +215,11 @@ verifyIndent verify failMessage =
         Parser.getCol
         |= Parser.getIndent
         |> Parser.andThen identity
+
+
+succeedUnit : Parser ()
+succeedUnit =
+    Parser.succeed ()
 
 
 maybeAroundBothSides : Parser (WithComments b) -> Parser (WithComments b)

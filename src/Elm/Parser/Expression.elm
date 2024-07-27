@@ -140,7 +140,7 @@ dotField =
 functionCall : ( Int, Node Expression -> Parser (WithComments (Node Expression)) )
 functionCall =
     infixLeftWithState 90
-        (Layout.positivelyIndented ())
+        Layout.positivelyIndented
         (\((Node { start } leftValue) as left) ((Node { end } _) as right) ->
             Node
                 { start = start, end = end }
@@ -470,7 +470,7 @@ caseExpression =
         |= Layout.layout
         |= expression
     )
-        |. Layout.positivelyIndentedCore
+        |. Layout.positivelyIndented
         |. Tokens.ofToken
         |= Layout.layout
         |= Parser.Extra.withIndent caseStatements
