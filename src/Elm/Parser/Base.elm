@@ -5,6 +5,7 @@ import Elm.Parser.Tokens as Tokens
 import Elm.Syntax.ModuleName exposing (ModuleName)
 import Elm.Syntax.Node exposing (Node)
 import Parser as Core exposing ((|=))
+import Parser.Extra
 
 
 moduleName : Core.Parser (Node ModuleName)
@@ -23,9 +24,12 @@ listCons head =
 moduleNameOrEmpty : Core.Parser ModuleName
 moduleNameOrEmpty =
     Core.oneOf
-        [ Core.map (\() -> listCons)
-            Tokens.dot
-            |= Tokens.typeName
+        [ (Tokens.dot
+            |> Parser.Extra.continueWith
+                (Core.map listCons
+                    Tokens.typeName
+                )
+          )
             |= Core.lazy (\() -> moduleNameOrEmpty)
         , Core.succeed []
         ]

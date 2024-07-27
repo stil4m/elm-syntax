@@ -807,8 +807,11 @@ referenceExpressionTuple =
             )
             Tokens.typeName
             |= Core.oneOf
-                [ Core.map (\() -> Just) Tokens.dot
-                    |= Core.lazy (\() -> referenceExpressionTuple)
+                [ Tokens.dot
+                    |> Parser.Extra.continueWith
+                        (Core.map Just
+                            (Core.lazy (\() -> referenceExpressionTuple))
+                        )
                 , Core.succeed Nothing
                 ]
         , Core.map (\unqualified -> ( [], unqualified )) Tokens.functionName
@@ -1193,9 +1196,11 @@ infixHelp leftPrecedence rightPrecedence operator apply =
     in
     ( leftPrecedence
     , \left ->
-        Core.map (\() -> \e -> { comments = e.comments, syntax = apply left e.syntax })
-            operator
-            |= parser
+        operator
+            |> Parser.Extra.continueWith
+                (Core.map (\e -> { e | syntax = apply left e.syntax })
+                    parser
+                )
     )
 
 

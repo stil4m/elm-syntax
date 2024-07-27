@@ -91,13 +91,17 @@ exposable =
 
 infixExpose : Core.Parser (WithComments TopLevelExpose)
 infixExpose =
-    Core.map (\() -> \infixName -> { comments = Rope.empty, syntax = InfixExpose infixName })
-        Tokens.parensStart
-        |= Core.variable
-            { inner = \c -> c /= ')'
-            , reserved = Set.empty
-            , start = \c -> c /= ')'
-            }
+    (Tokens.parensStart
+        |> Parser.Extra.continueWith
+            (Core.map (\infixName -> { comments = Rope.empty, syntax = InfixExpose infixName })
+                (Core.variable
+                    { inner = \c -> c /= ')'
+                    , reserved = Set.empty
+                    , start = \c -> c /= ')'
+                    }
+                )
+            )
+    )
         |. Tokens.parensEnd
 
 

@@ -22,7 +22,7 @@ module Elm.Parser.Tokens exposing
 
 import Char
 import Hex
-import Parser as Core exposing ((|.), (|=), Step(..))
+import Parser as Core exposing ((|.), Step(..))
 import Parser.Extra
 import Set exposing (Set)
 import Unicode
@@ -134,22 +134,25 @@ escapedCharValue =
         , -- Eventhough Elm-format will change \r to a unicode version. When you dont use elm-format, this will not happen.
           Core.map (\() -> '\u{000D}') (Core.symbol "r")
         , Core.map (\() -> '\\') (Core.symbol "\\")
-        , Core.map
-            (\() ->
-                \hex ->
-                    case String.toLower hex |> Hex.fromString of
-                        Ok n ->
-                            Char.fromCode n
+        , (Core.symbol "u{"
+            |> Parser.Extra.continueWith
+                (Core.map
+                    (\hex ->
+                        case String.toLower hex |> Hex.fromString of
+                            Ok n ->
+                                Char.fromCode n
 
-                        Err _ ->
-                            '\u{0000}'
-            )
-            (Core.symbol "u{")
-            |= Core.variable
-                { inner = Char.isHexDigit
-                , reserved = Set.empty
-                , start = Char.isHexDigit
-                }
+                            Err _ ->
+                                '\u{0000}'
+                    )
+                    (Core.variable
+                        { inner = Char.isHexDigit
+                        , reserved = Set.empty
+                        , start = Char.isHexDigit
+                        }
+                    )
+                )
+          )
             |. Core.symbol "}"
         ]
 
@@ -194,9 +197,11 @@ stringLiteralHelper : String -> Core.Parser (Step String String)
 stringLiteralHelper stringSoFar =
     Core.oneOf
         [ doubleQuote |> Core.map (\() -> Done stringSoFar)
-        , Core.map (\() -> \v -> Loop (stringSoFar ++ String.fromChar v ++ ""))
-            backSlash
-            |= escapedCharValue
+        , backSlash
+            |> Parser.Extra.continueWith
+                (Core.map (\v -> Loop (stringSoFar ++ String.fromChar v ++ ""))
+                    escapedCharValue
+                )
         , Core.mapChompedString
             (\value () -> Loop (stringSoFar ++ value))
             chompWhileIsInsideString
@@ -225,9 +230,11 @@ tripleQuotedStringLiteralStep stringSoFar =
             |> Core.map (\() -> Done stringSoFar)
         , doubleQuote
             |> Core.map (\() -> Loop (stringSoFar ++ "\""))
-        , Core.map (\() -> \v -> Loop (stringSoFar ++ String.fromChar v ++ ""))
-            backSlash
-            |= escapedCharValue
+        , backSlash
+            |> Parser.Extra.continueWith
+                (Core.map (\v -> Loop (stringSoFar ++ String.fromChar v ++ ""))
+                    escapedCharValue
+                )
         , Core.mapChompedString
             (\value () -> Loop (stringSoFar ++ value))
             chompWhileIsInsideString
