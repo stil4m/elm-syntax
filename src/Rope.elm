@@ -1,4 +1,4 @@
-module Rope exposing (Rope(..), empty, flatFromList, fromList, one, prependTo, toList)
+module Rope exposing (Rope(..), empty, flatFromList, fromList, one, toList)
 
 {-| inspired by [miniBill/elm-rope](https://dark.elm.dmy.fr/packages/miniBill/elm-rope/latest/)
 -}
@@ -27,11 +27,6 @@ one onlyElement =
 flatFromList : List (Rope a) -> Rope a
 flatFromList ropes =
     Branch ropes
-
-
-prependTo : Rope a -> Rope a -> Rope a
-prependTo right left =
-    flatFromList [ left, right ]
 
 
 toList : Rope a -> List a

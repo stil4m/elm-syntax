@@ -113,7 +113,7 @@ layout =
                         tail
 
                     Just headValue ->
-                        Rope.one headValue |> Rope.prependTo tail
+                        Rope.flatFromList [ Rope.one headValue, tail ]
         )
         nonEmptyWhiteSpaceOrComment
         |= Core.loop [] whiteSpaceAndCommentsFrom
