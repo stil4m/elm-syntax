@@ -80,14 +80,12 @@ fromMultilineCommentNode =
 
 fromSingleLineCommentNode : Parser Comments
 fromSingleLineCommentNode =
-    Node.parserCoreMap
+    Parser.map
         (\comment ->
             \commentsAfter ->
                 Rope.flatFromList [ Rope.one comment, commentsAfter ]
         )
-        (Comments.singleLineCommentCore
-            |> Parser.getChompedString
-        )
+        Comments.singleLineCommentCore
         |= whitespaceAndCommentsOrEmpty
 
 

@@ -2,16 +2,30 @@ module Elm.Parser.Comments exposing (declarationDocumentation, moduleDocumentati
 
 import Elm.Parser.Node as Node
 import Elm.Syntax.Documentation exposing (Documentation)
-import Elm.Syntax.Node exposing (Node)
-import Parser exposing ((|.), Nestable(..), Parser)
+import Elm.Syntax.Node exposing (Node(..))
+import Parser exposing ((|.), (|=), Nestable(..), Parser)
 import ParserWithComments exposing (Comments)
 import Rope
 
 
-singleLineCommentCore : Parser.Parser ()
+singleLineCommentCore : Parser.Parser (Node String)
 singleLineCommentCore =
-    Parser.symbol "--"
-        |. Parser.chompWhile (\c -> c /= '\u{000D}' && c /= '\n')
+    Parser.map
+        (\( startRow, startColumn ) ->
+            \content ->
+                \endColumn ->
+                    Node
+                        { start = { row = startRow, column = startColumn }
+                        , end = { row = startRow, column = endColumn }
+                        }
+                        content
+        )
+        Parser.getPosition
+        |= (Parser.symbol "--"
+                |. Parser.chompWhile (\c -> c /= '\u{000D}' && c /= '\n')
+                |> Parser.getChompedString
+           )
+        |= Parser.getCol
 
 
 multilineCommentString : Parser.Parser String

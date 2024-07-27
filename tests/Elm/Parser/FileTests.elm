@@ -16,7 +16,7 @@ import Elm.Syntax.TypeAnnotation exposing (TypeAnnotation(..))
 import Expect
 import Json.Decode
 import Json.Encode
-import Parser exposing ((|.))
+import Parser
 import Test exposing (..)
 
 
@@ -28,7 +28,7 @@ all =
                 (\( n, s ) ->
                     test ("sample " ++ String.fromInt n) <|
                         \() ->
-                            case Parser.run (Parser.file |. Parser.end) s of
+                            case Parser.run Parser.file s of
                                 Err error ->
                                     Expect.fail (error |> Debug.toString)
 
@@ -61,7 +61,7 @@ all =
                                 let
                                     parsed : Maybe RawFile
                                     parsed =
-                                        Parser.run (Parser.file |. Parser.end) s
+                                        Parser.run Parser.file s
                                             |> Result.toMaybe
                                             |> Maybe.map InternalRawFile.Raw
 

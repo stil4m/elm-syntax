@@ -512,7 +512,7 @@ parseCore source parser =
 
 expectInvalid : String -> Expect.Expectation
 expectInvalid source =
-    case Parser.run (File.file |. Parser.end) source of
+    case Parser.run File.file source of
         Err _ ->
             Expect.pass
 
