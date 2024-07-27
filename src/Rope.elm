@@ -16,7 +16,7 @@ empty =
 
 one : a -> Rope a
 one onlyElement =
-    Leaf (List.singleton onlyElement)
+    Leaf [ onlyElement ]
 
 
 flatFromList : List (Rope a) -> Rope a

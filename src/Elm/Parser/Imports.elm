@@ -95,7 +95,7 @@ importDefinition =
                                                         { row = moduleAliasStartRow, column = moduleAliasStartColumn }
                                                         moduleAlias
                                                     )
-                                                    (List.singleton moduleAlias)
+                                                    [ moduleAlias ]
                                             }
                         )
                         Layout.layout
