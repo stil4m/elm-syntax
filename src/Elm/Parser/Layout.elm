@@ -16,9 +16,6 @@ import Rope
 import Set
 
 
-{-| Nothing if there can't be more whitespace/comments ahead,
-otherwise Just with the next comment node
--}
 whitespaceAndCommentsOrEmpty : Parser.Parser Comments
 whitespaceAndCommentsOrEmpty =
     Parser.oneOf
