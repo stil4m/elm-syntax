@@ -257,23 +257,23 @@ stringPattern =
         |> Parser.map (\string -> { comments = Rope.empty, syntax = StringPattern string })
 
 
-maybeDotQualifiedTuple : Parser.Parser (Maybe ( List String, String ))
-maybeDotQualifiedTuple =
+maybeDotTypeNamesTuple : Parser.Parser (Maybe ( List String, String ))
+maybeDotTypeNamesTuple =
     Parser.oneOf
         [ Tokens.dot
             |> Parser.Extra.continueWith
                 (Parser.map
-                    (\firstName ->
-                        \afterFirstName ->
-                            case afterFirstName of
+                    (\startName ->
+                        \afterStartName ->
+                            case afterStartName of
                                 Nothing ->
-                                    Just ( [], firstName )
+                                    Just ( [], startName )
 
                                 Just ( qualificationAfter, unqualified ) ->
-                                    Just ( firstName :: qualificationAfter, unqualified )
+                                    Just ( startName :: qualificationAfter, unqualified )
                     )
                     Tokens.typeName
-                    |= Parser.lazy (\() -> maybeDotQualifiedTuple)
+                    |= Parser.lazy (\() -> maybeDotTypeNamesTuple)
                 )
         , Parser.succeed Nothing
         ]
@@ -282,25 +282,24 @@ maybeDotQualifiedTuple =
 qualifiedPatternWithConsumeArgs : Parser (WithComments Pattern)
 qualifiedPatternWithConsumeArgs =
     Parser.map
-        (\firstName ->
-            \afterFirstName ->
+        (\startName ->
+            \afterStartName ->
                 \args ->
-                    case afterFirstName of
-                        Nothing ->
-                            { comments = args.comments
-                            , syntax = NamedPattern { moduleName = [], name = firstName } args.syntax
-                            }
+                    { comments = args.comments
+                    , syntax =
+                        NamedPattern
+                            (case afterStartName of
+                                Nothing ->
+                                    { moduleName = [], name = startName }
 
-                        Just ( qualificationAfter, unqualified ) ->
-                            { comments = args.comments
-                            , syntax =
-                                NamedPattern
-                                    { moduleName = firstName :: qualificationAfter, name = unqualified }
-                                    args.syntax
-                            }
+                                Just ( qualificationAfter, unqualified ) ->
+                                    { moduleName = startName :: qualificationAfter, name = unqualified }
+                            )
+                            args.syntax
+                    }
         )
         Tokens.typeName
-        |= maybeDotQualifiedTuple
+        |= maybeDotTypeNamesTuple
         |= ParserWithComments.many
             (Parser.map
                 (\commentsBefore ->
@@ -331,7 +330,7 @@ qualifiedPatternWithoutConsumeArgs =
                         }
         )
         Tokens.typeName
-        |= maybeDotQualifiedTuple
+        |= maybeDotTypeNamesTuple
 
 
 recordPattern : Parser (WithComments Pattern)
