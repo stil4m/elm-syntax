@@ -253,10 +253,7 @@ recordExpression =
                 Layout.maybeLayout
             )
     )
-        |= Parser.oneOf
-            [ Parser.map Just recordContents
-            , Parser.succeed Nothing
-            ]
+        |= recordContents
         |. Tokens.curlyEnd
 
 
@@ -265,68 +262,72 @@ expressionRecordEmpty =
     RecordExpr []
 
 
-recordContents : Parser (WithComments Expression)
+recordContents : Parser (Maybe (WithComments Expression))
 recordContents =
-    Parser.map
-        (\( nameStartRow, nameStartColumn ) ->
-            \name ->
-                \commentsAfterFunctionName ->
-                    \afterNameBeforeFields ->
-                        \tailFields ->
-                            \commentsAfterEverything ->
-                                let
-                                    nameNode : Node String
-                                    nameNode =
-                                        Node.singleLineStringFrom { row = nameStartRow, column = nameStartColumn }
-                                            name
-                                in
-                                { comments =
-                                    commentsAfterFunctionName
-                                        |> Rope.prependTo afterNameBeforeFields.comments
-                                        |> Rope.prependTo tailFields.comments
-                                        |> Rope.prependTo commentsAfterEverything
-                                , syntax =
-                                    case afterNameBeforeFields.syntax of
-                                        RecordUpdateFirstSetter firstField ->
-                                            RecordUpdateExpression nameNode (firstField :: tailFields.syntax)
+    Parser.oneOf
+        [ Parser.map
+            (\( nameStartRow, nameStartColumn ) ->
+                \name ->
+                    \commentsAfterFunctionName ->
+                        \afterNameBeforeFields ->
+                            \tailFields ->
+                                \commentsAfterEverything ->
+                                    let
+                                        nameNode : Node String
+                                        nameNode =
+                                            Node.singleLineStringFrom { row = nameStartRow, column = nameStartColumn }
+                                                name
+                                    in
+                                    Just
+                                        { comments =
+                                            commentsAfterFunctionName
+                                                |> Rope.prependTo afterNameBeforeFields.comments
+                                                |> Rope.prependTo tailFields.comments
+                                                |> Rope.prependTo commentsAfterEverything
+                                        , syntax =
+                                            case afterNameBeforeFields.syntax of
+                                                RecordUpdateFirstSetter firstField ->
+                                                    RecordUpdateExpression nameNode (firstField :: tailFields.syntax)
 
-                                        FieldsFirstValue firstFieldValue ->
-                                            RecordExpr (Node.combine Tuple.pair nameNode firstFieldValue :: tailFields.syntax)
-                                }
-        )
-        Parser.getPosition
-        |= Tokens.functionName
-        |= Layout.maybeLayout
-        |= Parser.oneOf
-            [ (Tokens.pipe
-                |> Parser.Extra.continueWith
-                    (Parser.map
-                        (\commentsBefore ->
-                            \setterResult ->
-                                { comments = commentsBefore |> Rope.prependTo setterResult.comments
-                                , syntax = RecordUpdateFirstSetter setterResult.syntax
-                                }
+                                                FieldsFirstValue firstFieldValue ->
+                                                    RecordExpr (Node.combine Tuple.pair nameNode firstFieldValue :: tailFields.syntax)
+                                        }
+            )
+            Parser.getPosition
+            |= Tokens.functionName
+            |= Layout.maybeLayout
+            |= Parser.oneOf
+                [ (Tokens.pipe
+                    |> Parser.Extra.continueWith
+                        (Parser.map
+                            (\commentsBefore ->
+                                \setterResult ->
+                                    { comments = commentsBefore |> Rope.prependTo setterResult.comments
+                                    , syntax = RecordUpdateFirstSetter setterResult.syntax
+                                    }
+                            )
+                            Layout.maybeLayout
                         )
-                        Layout.maybeLayout
-                    )
-              )
-                |= recordSetterNodeWithLayout
-            , (Tokens.equal
-                |> Parser.Extra.continueWith
-                    (Parser.map
-                        (\commentsBefore ->
-                            \expressionResult ->
-                                { comments = commentsBefore |> Rope.prependTo expressionResult.comments
-                                , syntax = FieldsFirstValue expressionResult.syntax
-                                }
+                  )
+                    |= recordSetterNodeWithLayout
+                , (Tokens.equal
+                    |> Parser.Extra.continueWith
+                        (Parser.map
+                            (\commentsBefore ->
+                                \expressionResult ->
+                                    { comments = commentsBefore |> Rope.prependTo expressionResult.comments
+                                    , syntax = FieldsFirstValue expressionResult.syntax
+                                    }
+                            )
+                            Layout.maybeLayout
                         )
-                        Layout.maybeLayout
-                    )
-              )
-                |= expression
-            ]
-        |= recordFields
-        |= Layout.maybeLayout
+                  )
+                    |= expression
+                ]
+            |= recordFields
+            |= Layout.maybeLayout
+        , Parser.succeed Nothing
+        ]
 
 
 type RecordFieldsOrUpdateAfterName
