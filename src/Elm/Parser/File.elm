@@ -43,7 +43,7 @@ file =
             [ Parser.map
                 (\moduleDocumentation ->
                     \commentsAfter ->
-                        Rope.one moduleDocumentation |> Rope.likelyFilledPrependTo commentsAfter
+                        Rope.one moduleDocumentation |> Rope.filledPrependTo commentsAfter
                 )
                 Comments.moduleDocumentation
                 |= Layout.layoutStrict

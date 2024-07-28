@@ -1,16 +1,16 @@
-module Rope exposing (Rope, RopeLikelyFilled(..), empty, likelyFilledPrependTo, one, prependTo, toList)
+module Rope exposing (Rope, RopeFilled(..), empty, filledPrependTo, one, prependTo, toList)
 
 {-| inspired by [miniBill/elm-rope](https://dark.elm.dmy.fr/packages/miniBill/elm-rope/latest/)
 -}
 
 
 type alias Rope a =
-    Maybe (RopeLikelyFilled a)
+    Maybe (RopeFilled a)
 
 
-type RopeLikelyFilled a
+type RopeFilled a
     = Leaf a
-    | Branch2 { left : RopeLikelyFilled a, right : RopeLikelyFilled a }
+    | Branch2 { left : RopeFilled a, right : RopeFilled a }
 
 
 empty : Rope a
@@ -18,13 +18,13 @@ empty =
     Nothing
 
 
-one : a -> RopeLikelyFilled a
+one : a -> RopeFilled a
 one onlyElement =
     Leaf onlyElement
 
 
-likelyFilledPrependTo : Rope a -> RopeLikelyFilled a -> Rope a
-likelyFilledPrependTo right leftLikelyFilled =
+filledPrependTo : Rope a -> RopeFilled a -> Rope a
+filledPrependTo right leftLikelyFilled =
     case right of
         Nothing ->
             Just leftLikelyFilled
@@ -58,7 +58,7 @@ toList rope =
             ropeLikelyFilledToListInto [] ropeLikelyFilled
 
 
-ropeLikelyFilledToListInto : List a -> RopeLikelyFilled a -> List a
+ropeLikelyFilledToListInto : List a -> RopeFilled a -> List a
 ropeLikelyFilledToListInto initialAcc ropeLikelyFilled =
     case ropeLikelyFilled of
         Leaf onlyElement ->

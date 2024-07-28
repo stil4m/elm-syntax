@@ -72,7 +72,7 @@ fromMultilineCommentNode =
     Node.parserCoreMap
         (\comment ->
             \commentsAfter ->
-                Rope.one comment |> Rope.likelyFilledPrependTo commentsAfter
+                Rope.one comment |> Rope.filledPrependTo commentsAfter
         )
         Comments.multilineCommentString
         |= whitespaceAndCommentsOrEmpty
@@ -83,7 +83,7 @@ fromSingleLineCommentNode =
     Parser.map
         (\comment ->
             \commentsAfter ->
-                Rope.one comment |> Rope.likelyFilledPrependTo commentsAfter
+                Rope.one comment |> Rope.filledPrependTo commentsAfter
         )
         Comments.singleLineCommentCore
         |= whitespaceAndCommentsOrEmpty

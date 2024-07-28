@@ -162,7 +162,7 @@ declaration =
                                 in
                                 { comments =
                                     Rope.one documentation
-                                        |> Rope.likelyFilledPrependTo
+                                        |> Rope.filledPrependTo
                                             commentsAfterDocumentation
                                         |> Rope.prependTo afterDocumentation.comments
                                 , syntax =
