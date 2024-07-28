@@ -40,17 +40,18 @@ fromCommentElseEmpty =
     -- since comments are comparatively rare
     -- but expensive to check for, we allow shortcutting to dead end
     Parser.map
-        (\source offset ->
-            case source |> String.slice offset (offset + 2) of
-                "--" ->
-                    -- this will always succeed from here, so no need to fall back to Rope.empty
-                    fromSingleLineCommentNode
+        (\source ->
+            \offset ->
+                case source |> String.slice offset (offset + 2) of
+                    "--" ->
+                        -- this will always succeed from here, so no need to fall back to Rope.empty
+                        fromSingleLineCommentNode
 
-                "{-" ->
-                    fromMultilineCommentNodeOrEmptyOnProblem
+                    "{-" ->
+                        fromMultilineCommentNodeOrEmptyOnProblem
 
-                _ ->
-                    succeedRopeEmpty
+                    _ ->
+                        succeedRopeEmpty
         )
         Parser.getSource
         |= Parser.getOffset
@@ -131,17 +132,18 @@ layout =
             |. verifyLayoutIndent
         , -- below will never run with elm-format-ed code
           Parser.map
-            (\source offset ->
-                case source |> String.slice offset (offset + 2) of
-                    "--" ->
-                        -- this will always succeed from here, so no need to fall back to Rope.empty
-                        fromSingleLineCommentNodeVerifyLayoutIndent
+            (\source ->
+                \offset ->
+                    case source |> String.slice offset (offset + 2) of
+                        "--" ->
+                            -- this will always succeed from here, so no need to fall back to Rope.empty
+                            fromSingleLineCommentNodeVerifyLayoutIndent
 
-                    "{-" ->
-                        fromMultilineCommentNodeOrEmptyOnProblemVerifyLayoutIndent
+                        "{-" ->
+                            fromMultilineCommentNodeOrEmptyOnProblemVerifyLayoutIndent
 
-                    _ ->
-                        problemMissingWhitespaceOrComments
+                        _ ->
+                            problemMissingWhitespaceOrComments
             )
             Parser.getSource
             |= Parser.getOffset
