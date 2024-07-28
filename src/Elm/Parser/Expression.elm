@@ -854,36 +854,45 @@ problemNegationThenSpace =
 
 referenceExpression : Parser (WithComments Expression)
 referenceExpression =
-    Parser.map
-        (\( qualification, unqualified ) ->
-            { comments = Rope.empty, syntax = FunctionOrValue qualification unqualified }
-        )
-        referenceExpressionTuple
-
-
-referenceExpressionTuple : Parser.Parser ( List String, String )
-referenceExpressionTuple =
     Parser.oneOf
         [ Parser.map
             (\firstName ->
                 \after ->
                     case after of
                         Nothing ->
-                            ( [], firstName )
+                            { comments = Rope.empty, syntax = FunctionOrValue [] firstName }
 
                         Just ( qualificationAfter, unqualified ) ->
-                            ( firstName :: qualificationAfter, unqualified )
+                            { comments = Rope.empty, syntax = FunctionOrValue (firstName :: qualificationAfter) unqualified }
             )
             Tokens.typeName
-            |= Parser.oneOf
-                [ Tokens.dot
-                    |> Parser.Extra.continueWith
-                        (Parser.map Just
-                            (Parser.lazy (\() -> referenceExpressionTuple))
+            |= maybeDotReferenceExpressionTuple
+        , Parser.map (\unqualified -> { comments = Rope.empty, syntax = FunctionOrValue [] unqualified }) Tokens.functionName
+        ]
+
+
+maybeDotReferenceExpressionTuple : Parser.Parser (Maybe ( List String, String ))
+maybeDotReferenceExpressionTuple =
+    Parser.oneOf
+        [ Tokens.dot
+            |> Parser.Extra.continueWith
+                (Parser.oneOf
+                    [ Parser.map
+                        (\firstName ->
+                            \after ->
+                                case after of
+                                    Nothing ->
+                                        Just ( [], firstName )
+
+                                    Just ( qualificationAfter, unqualified ) ->
+                                        Just ( firstName :: qualificationAfter, unqualified )
                         )
-                , Parser.succeed Nothing
-                ]
-        , Parser.map (\unqualified -> ( [], unqualified )) Tokens.functionName
+                        Tokens.typeName
+                        |= Parser.lazy (\() -> maybeDotReferenceExpressionTuple)
+                    , Parser.map (\unqualified -> Just ( [], unqualified )) Tokens.functionName
+                    ]
+                )
+        , Parser.succeed Nothing
         ]
 
 
