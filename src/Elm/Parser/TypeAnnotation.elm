@@ -3,7 +3,6 @@ module Elm.Parser.TypeAnnotation exposing (typeAnnotation, typeAnnotationNoFnExc
 import Elm.Parser.Layout as Layout
 import Elm.Parser.Node as Node
 import Elm.Parser.Tokens as Tokens
-import Elm.Syntax.ModuleName exposing (ModuleName)
 import Elm.Syntax.Node as Node exposing (Node(..))
 import Elm.Syntax.TypeAnnotation as TypeAnnotation exposing (RecordDefinition, RecordField, TypeAnnotation)
 import Parser exposing ((|.), (|=), Parser)
@@ -299,54 +298,86 @@ recordFieldDefinition =
 typedTypeAnnotationWithoutArguments : Parser (WithComments TypeAnnotation)
 typedTypeAnnotationWithoutArguments =
     Parser.map
-        (\original -> { comments = Rope.empty, syntax = TypeAnnotation.Typed original [] })
-        typeIndicator
-
-
-typeIndicator : Parser.Parser (Node ( ModuleName, String ))
-typeIndicator =
-    Parser.map
         (\( nameStartRow, nameStartColumn ) ->
-            \qualified ->
-                \nameEndColumn ->
-                    Node
-                        { start = { row = nameStartRow, column = nameStartColumn }
-                        , end = { row = nameStartRow, column = nameEndColumn }
+            \startName ->
+                \afterStartName ->
+                    \nameEndColumn ->
+                        { comments = Rope.empty
+                        , syntax =
+                            TypeAnnotation.Typed
+                                (Node
+                                    { start = { row = nameStartRow, column = nameStartColumn }
+                                    , end = { row = nameStartRow, column = nameEndColumn }
+                                    }
+                                    (case afterStartName of
+                                        Nothing ->
+                                            ( [], startName )
+
+                                        Just ( qualificationAfterStartName, unqualified ) ->
+                                            ( startName :: qualificationAfterStartName, unqualified )
+                                    )
+                                )
+                                []
                         }
-                        qualified
         )
         Parser.getPosition
-        |= (Tokens.typeName
-                |> Parser.andThen (\typeOrSegment -> typeIndicatorHelper [] typeOrSegment)
-           )
+        |= Tokens.typeName
+        |= maybeDotTypeNamesTuple
         |= Parser.getCol
 
 
-typeIndicatorHelper : ModuleName -> String -> Parser.Parser ( ModuleName, String )
-typeIndicatorHelper moduleNameSoFar typeOrSegment =
+maybeDotTypeNamesTuple : Parser.Parser (Maybe ( List String, String ))
+maybeDotTypeNamesTuple =
     Parser.oneOf
-        [ dotTypeName
-            |> Parser.andThen (\t -> typeIndicatorHelper (typeOrSegment :: moduleNameSoFar) t)
-        , Parser.lazy (\() -> Parser.succeed ( List.reverse moduleNameSoFar, typeOrSegment ))
+        [ Tokens.dot
+            |> Parser.Extra.continueWith
+                (Parser.map
+                    (\firstName ->
+                        \afterFirstName ->
+                            case afterFirstName of
+                                Nothing ->
+                                    Just ( [], firstName )
+
+                                Just ( qualificationAfter, unqualified ) ->
+                                    Just ( firstName :: qualificationAfter, unqualified )
+                    )
+                    Tokens.typeName
+                    |= Parser.lazy (\() -> maybeDotTypeNamesTuple)
+                )
+        , Parser.succeed Nothing
         ]
-
-
-dotTypeName : Parser String
-dotTypeName =
-    Tokens.dot
-        |> Parser.Extra.continueWith Tokens.typeName
 
 
 typedTypeAnnotationWithArguments : Parser (WithComments TypeAnnotation)
 typedTypeAnnotationWithArguments =
     Parser.map
-        (\qualified ->
-            \args ->
-                { comments = args.comments
-                , syntax = TypeAnnotation.Typed qualified args.syntax
-                }
+        (\( nameStartRow, nameStartColumn ) ->
+            \startName ->
+                \afterStartName ->
+                    \nameEndColumn ->
+                        \args ->
+                            { comments = args.comments
+                            , syntax =
+                                TypeAnnotation.Typed
+                                    (Node
+                                        { start = { row = nameStartRow, column = nameStartColumn }
+                                        , end = { row = nameStartRow, column = nameEndColumn }
+                                        }
+                                        (case afterStartName of
+                                            Nothing ->
+                                                ( [], startName )
+
+                                            Just ( qualificationAfterStartName, unqualified ) ->
+                                                ( startName :: qualificationAfterStartName, unqualified )
+                                        )
+                                    )
+                                    args.syntax
+                            }
         )
-        typeIndicator
+        Parser.getPosition
+        |= Tokens.typeName
+        |= maybeDotTypeNamesTuple
+        |= Parser.getCol
         |= ParserWithComments.many
             (Parser.map
                 (\commentsBefore ->
