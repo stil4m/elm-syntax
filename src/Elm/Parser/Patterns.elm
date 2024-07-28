@@ -23,14 +23,14 @@ composedWith =
 
                 PatternComposedWithAs composedWithAs ->
                     PatternComposedWithAs
-                        { composedWithAs
-                            | comments = commentsBefore |> Rope.prependTo composedWithAs.comments
+                        { comments = commentsBefore |> Rope.prependTo composedWithAs.comments
+                        , syntax = composedWithAs.syntax
                         }
 
                 PatternComposedWithCons composedWithCons ->
                     PatternComposedWithCons
-                        { composedWithCons
-                            | comments = commentsBefore |> Rope.prependTo composedWithCons.comments
+                        { comments = commentsBefore |> Rope.prependTo composedWithCons.comments
+                        , syntax = composedWithCons.syntax
                         }
         )
         Layout.maybeLayout
