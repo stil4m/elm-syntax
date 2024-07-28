@@ -5,7 +5,6 @@ import Elm.Parser.Node as Node
 import Elm.Parser.Tokens as Tokens
 import Elm.Syntax.Exposing exposing (Exposing(..), TopLevelExpose(..))
 import Elm.Syntax.Node exposing (Node)
-import Elm.Syntax.Range exposing (Range)
 import Parser exposing ((|.), (|=), Parser)
 import Parser.Extra
 import ParserWithComments exposing (WithComments)
@@ -127,39 +126,28 @@ typeExpose =
         |= Parser.oneOf
             [ Parser.map
                 (\commentsBefore ->
-                    \exposingVariantsRangeAndComments ->
-                        Just
-                            { comments = commentsBefore |> Rope.prependTo exposingVariantsRangeAndComments.comments
-                            , syntax = exposingVariantsRangeAndComments.syntax
-                            }
+                    \( startRow, startColumn ) ->
+                        \left ->
+                            \right ->
+                                \( endRow, endColumn ) ->
+                                    Just
+                                        { comments = commentsBefore |> Rope.prependTo left |> Rope.prependTo right
+                                        , syntax =
+                                            { start = { row = startRow, column = startColumn }
+                                            , end = { row = endRow, column = endColumn }
+                                            }
+                                        }
                 )
                 (Layout.maybeLayout |> Parser.backtrackable)
-                |= exposingVariants
+                |= Parser.getPosition
+                |. Tokens.parensStart
+                |= Layout.maybeLayout
+                |. Tokens.dotDot
+                |= Layout.maybeLayout
+                |. Tokens.parensEnd
+                |= Parser.getPosition
             , Parser.succeed Nothing
             ]
-
-
-exposingVariants : Parser (WithComments Range)
-exposingVariants =
-    Parser.map
-        (\( startRow, startColumn ) ->
-            \left ->
-                \right ->
-                    \( endRow, endColumn ) ->
-                        { comments = left |> Rope.prependTo right
-                        , syntax =
-                            { start = { row = startRow, column = startColumn }
-                            , end = { row = endRow, column = endColumn }
-                            }
-                        }
-        )
-        Parser.getPosition
-        |. Tokens.parensStart
-        |= Layout.maybeLayout
-        |. Parser.symbol ".."
-        |= Layout.maybeLayout
-        |. Tokens.parensEnd
-        |= Parser.getPosition
 
 
 functionExpose : Parser (WithComments TopLevelExpose)
