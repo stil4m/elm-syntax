@@ -27,14 +27,12 @@ file =
                                 , imports = imports.syntax
                                 , declarations = declarations.syntax
                                 , comments =
-                                    Rope.flatFromList
-                                        [ commentsBeforeModuleDefinition
-                                        , moduleDefinition.comments
-                                        , commentsAfterModuleDefinition
-                                        , moduleComments
-                                        , imports.comments
-                                        , declarations.comments
-                                        ]
+                                    commentsBeforeModuleDefinition
+                                        |> Rope.prependTo moduleDefinition.comments
+                                        |> Rope.prependTo commentsAfterModuleDefinition
+                                        |> Rope.prependTo moduleComments
+                                        |> Rope.prependTo imports.comments
+                                        |> Rope.prependTo declarations.comments
                                         |> Rope.toList
                                 }
         )
@@ -43,9 +41,9 @@ file =
         |= Layout.layoutStrict
         |= Parser.oneOf
             [ Parser.map
-                (\declarationParsed ->
+                (\moduleDocumentation ->
                     \commentsAfter ->
-                        declarationParsed |> Rope.prependToLikelyFilled commentsAfter
+                        Rope.one moduleDocumentation |> Rope.likelyFilledPrependTo commentsAfter
                 )
                 Comments.moduleDocumentation
                 |= Layout.layoutStrict

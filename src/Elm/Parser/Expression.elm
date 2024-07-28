@@ -207,11 +207,9 @@ listExpression =
                         \tail ->
                             Just
                                 { comments =
-                                    Rope.flatFromList
-                                        [ head.comments
-                                        , commentsAfterHead
-                                        , tail.comments
-                                        ]
+                                    head.comments
+                                        |> Rope.prependTo commentsAfterHead
+                                        |> Rope.prependTo tail.comments
                                 , syntax = head.syntax :: tail.syntax
                                 }
                 )
@@ -283,12 +281,10 @@ recordContents =
                                             name
                                 in
                                 { comments =
-                                    Rope.flatFromList
-                                        [ commentsAfterFunctionName
-                                        , afterNameBeforeFields.comments
-                                        , tailFields.comments
-                                        , commentsAfterEverything
-                                        ]
+                                    commentsAfterFunctionName
+                                        |> Rope.prependTo afterNameBeforeFields.comments
+                                        |> Rope.prependTo tailFields.comments
+                                        |> Rope.prependTo commentsAfterEverything
                                 , syntax =
                                     case afterNameBeforeFields.syntax of
                                         RecordUpdateFirstSetter firstField ->
@@ -373,12 +369,10 @@ recordSetterNodeWithLayout =
                                             { row = nameStartRow, column = nameStartColumn }
                                     in
                                     { comments =
-                                        Rope.flatFromList
-                                            [ commentsAfterFunctionName
-                                            , commentsAfterEquals
-                                            , expressionResult.comments
-                                            , commentsAfterExpression
-                                            ]
+                                        commentsAfterFunctionName
+                                            |> Rope.prependTo commentsAfterEquals
+                                            |> Rope.prependTo expressionResult.comments
+                                            |> Rope.prependTo commentsAfterExpression
                                     , syntax =
                                         Node { start = start, end = { row = endRow, column = endColumn } }
                                             ( Node.singleLineStringFrom start
@@ -429,13 +423,11 @@ lambdaExpression =
                                         expressionResult.syntax
                                 in
                                 { comments =
-                                    Rope.flatFromList
-                                        [ commentsAfterBackslash
-                                        , firstArg.comments
-                                        , secondUpArgs.comments
-                                        , commentsBeforeArrowRight
-                                        , expressionResult.comments
-                                        ]
+                                    commentsAfterBackslash
+                                        |> Rope.prependTo firstArg.comments
+                                        |> Rope.prependTo secondUpArgs.comments
+                                        |> Rope.prependTo commentsBeforeArrowRight
+                                        |> Rope.prependTo expressionResult.comments
                                 , syntax =
                                     { args = firstArg.syntax :: secondUpArgs.syntax
                                     , expression = expressionResult.syntax
@@ -481,12 +473,10 @@ caseExpression =
                                     casesResult.syntax
                             in
                             { comments =
-                                Rope.flatFromList
-                                    [ commentsAfterCase
-                                    , casedExpressionResult.comments
-                                    , commentsAfterOf
-                                    , casesResult.comments
-                                    ]
+                                commentsAfterCase
+                                    |> Rope.prependTo casedExpressionResult.comments
+                                    |> Rope.prependTo commentsAfterOf
+                                    |> Rope.prependTo casesResult.comments
                             , syntax =
                                 Node
                                     { start = { row = startRow, column = startColumn }
@@ -540,12 +530,10 @@ caseStatement =
                 \commentsAfterArrowRight ->
                     \expr ->
                         { comments =
-                            Rope.flatFromList
-                                [ pattern.comments
-                                , commentsBeforeArrowRight
-                                , commentsAfterArrowRight
-                                , expr.comments
-                                ]
+                            pattern.comments
+                                |> Rope.prependTo commentsBeforeArrowRight
+                                |> Rope.prependTo commentsAfterArrowRight
+                                |> Rope.prependTo expr.comments
                         , syntax = ( pattern.syntax, expr.syntax )
                         }
         )
@@ -574,12 +562,10 @@ letExpression =
                                         expressionResult.syntax
                                 in
                                 { comments =
-                                    Rope.flatFromList
-                                        [ commentsAfterLet
-                                        , declarations.comments
-                                        , commentsBeforeIn
-                                        , expressionResult.comments
-                                        ]
+                                    commentsAfterLet
+                                        |> Rope.prependTo declarations.comments
+                                        |> Rope.prependTo commentsBeforeIn
+                                        |> Rope.prependTo expressionResult.comments
                                 , syntax =
                                     Node { start = { row = startRow, column = startColumn }, end = end }
                                         (LetExpression { declarations = declarations.syntax, expression = expr })
@@ -655,18 +641,18 @@ letFunction =
                                     let
                                         allComments : Comments
                                         allComments =
-                                            Rope.flatFromList
-                                                [ commentsAfterStartName
-                                                , case maybeSignature of
-                                                    Nothing ->
-                                                        Rope.empty
+                                            commentsAfterStartName
+                                                |> Rope.prependTo
+                                                    (case maybeSignature of
+                                                        Nothing ->
+                                                            Rope.empty
 
-                                                    Just signature ->
-                                                        signature.comments
-                                                , arguments.comments
-                                                , commentsAfterEqual
-                                                , expressionResult.comments
-                                                ]
+                                                        Just signature ->
+                                                            signature.comments
+                                                    )
+                                                |> Rope.prependTo arguments.comments
+                                                |> Rope.prependTo commentsAfterEqual
+                                                |> Rope.prependTo expressionResult.comments
 
                                         start : Location
                                         start =
@@ -746,12 +732,10 @@ letFunction =
                                             \afterImplementationName ->
                                                 Just
                                                     { comments =
-                                                        Rope.flatFromList
-                                                            [ commentsBeforeTypeAnnotation
-                                                            , typeAnnotationResult.comments
-                                                            , commentsAfterTypeAnnotation
-                                                            , afterImplementationName
-                                                            ]
+                                                        commentsBeforeTypeAnnotation
+                                                            |> Rope.prependTo typeAnnotationResult.comments
+                                                            |> Rope.prependTo commentsAfterTypeAnnotation
+                                                            |> Rope.prependTo afterImplementationName
                                                     , implementationName =
                                                         Node.singleLineStringFrom { row = implementationNameStartRow, column = implementationNameStartColumn }
                                                             implementationName
@@ -807,12 +791,10 @@ ifBlockExpression =
                                     ifFalse.syntax
                             in
                             { comments =
-                                Rope.flatFromList
-                                    [ condition.comments
-                                    , ifTrue.comments
-                                    , commentsAfterElse
-                                    , ifFalse.comments
-                                    ]
+                                condition.comments
+                                    |> Rope.prependTo ifTrue.comments
+                                    |> Rope.prependTo commentsAfterElse
+                                    |> Rope.prependTo ifFalse.comments
                             , syntax =
                                 Node
                                     { start = { row = startRow, column = startColumn }, end = end }
@@ -1023,11 +1005,9 @@ expressionHelp currentPrecedence leftExpression =
                             Just combineExpressionResult ->
                                 Parser.Loop
                                     { comments =
-                                        Rope.flatFromList
-                                            [ leftExpression.comments
-                                            , commentsBefore
-                                            , combineExpressionResult.comments
-                                            ]
+                                        leftExpression.comments
+                                            |> Rope.prependTo commentsBefore
+                                            |> Rope.prependTo combineExpressionResult.comments
                                     , syntax = combineExpressionResult.syntax
                                     }
                 )

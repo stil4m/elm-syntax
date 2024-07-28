@@ -1,4 +1,4 @@
-module Rope exposing (Rope, RopeLikelyFilled(..), empty, flatFromList, one, prependTo, prependToLikelyFilled, toList)
+module Rope exposing (Rope, RopeLikelyFilled(..), empty, likelyFilledPrependTo, one, prependTo, toList)
 
 {-| inspired by [miniBill/elm-rope](https://dark.elm.dmy.fr/packages/miniBill/elm-rope/latest/)
 -}
@@ -10,7 +10,7 @@ type alias Rope a =
 
 type RopeLikelyFilled a
     = Leaf a
-    | Branch (List (RopeLikelyFilled a))
+    | Branch2 { left : RopeLikelyFilled a, right : RopeLikelyFilled a }
 
 
 empty : Rope a
@@ -23,14 +23,14 @@ one onlyElement =
     Leaf onlyElement
 
 
-prependToLikelyFilled : Rope a -> RopeLikelyFilled a -> Rope a
-prependToLikelyFilled right leftLikelyFilled =
+likelyFilledPrependTo : Rope a -> RopeLikelyFilled a -> Rope a
+likelyFilledPrependTo right leftLikelyFilled =
     case right of
         Nothing ->
             Just leftLikelyFilled
 
         Just rightLikelyFilled ->
-            Just (Branch [ leftLikelyFilled, rightLikelyFilled ])
+            Just (Branch2 { left = leftLikelyFilled, right = rightLikelyFilled })
 
 
 prependTo : Rope a -> Rope a -> Rope a
@@ -45,17 +45,7 @@ prependTo right left =
                     left
 
                 Just rightLikelyFilled ->
-                    Just (Branch [ leftLikelyFilled, rightLikelyFilled ])
-
-
-flatFromList : List (Rope a) -> Rope a
-flatFromList ropes =
-    case List.filterMap identity ropes of
-        [] ->
-            Nothing
-
-        filledList ->
-            Just (Branch filledList)
+                    Just (Branch2 { left = leftLikelyFilled, right = rightLikelyFilled })
 
 
 toList : Rope a -> List a
@@ -74,7 +64,10 @@ ropeLikelyFilledToListInto initialAcc ropeLikelyFilled =
         Leaf onlyElement ->
             onlyElement :: initialAcc
 
-        Branch ropes ->
-            List.foldr (\childRope childAcc -> ropeLikelyFilledToListInto childAcc childRope)
-                initialAcc
-                ropes
+        Branch2 ropes ->
+            ropeLikelyFilledToListInto
+                (ropeLikelyFilledToListInto
+                    initialAcc
+                    ropes.right
+                )
+                ropes.left

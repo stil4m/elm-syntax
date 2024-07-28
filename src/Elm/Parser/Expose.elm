@@ -38,7 +38,10 @@ exposeListWith =
                 (\commentsBefore ->
                     \exposingListInnerResult ->
                         \commentsAfter ->
-                            { comments = Rope.flatFromList [ commentsBefore, exposingListInnerResult.comments, commentsAfter ]
+                            { comments =
+                                commentsBefore
+                                    |> Rope.prependTo exposingListInnerResult.comments
+                                    |> Rope.prependTo commentsAfter
                             , syntax = exposingListInnerResult.syntax
                             }
                 )

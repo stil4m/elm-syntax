@@ -52,8 +52,8 @@ declaration =
                                                     functionDeclarationAfterDocumentation.expression
                                             in
                                             { comments =
-                                                Rope.flatFromList
-                                                    [ commentsAfterDocumentation, afterDocumentation.comments ]
+                                                commentsAfterDocumentation
+                                                    |> Rope.prependTo afterDocumentation.comments
                                             , syntax =
                                                 Node { start = start, end = expressionRange.end }
                                                     (Declaration.FunctionDeclaration
@@ -85,8 +85,8 @@ declaration =
                                                 functionDeclarationAfterDocumentation.expression
                                         in
                                         { comments =
-                                            Rope.flatFromList
-                                                [ commentsAfterDocumentation, afterDocumentation.comments ]
+                                            commentsAfterDocumentation
+                                                |> Rope.prependTo afterDocumentation.comments
                                         , syntax =
                                             Node { start = start, end = expressionRange.end }
                                                 (Declaration.FunctionDeclaration
@@ -119,8 +119,8 @@ declaration =
                                                 headVariantRange.end
                                 in
                                 { comments =
-                                    Rope.flatFromList
-                                        [ commentsAfterDocumentation, afterDocumentation.comments ]
+                                    commentsAfterDocumentation
+                                        |> Rope.prependTo afterDocumentation.comments
                                 , syntax =
                                     Node { start = start, end = end }
                                         (Declaration.CustomTypeDeclaration
@@ -141,8 +141,8 @@ declaration =
                                         typeAliasDeclarationAfterDocumentation.typeAnnotation
                                 in
                                 { comments =
-                                    Rope.flatFromList
-                                        [ commentsAfterDocumentation, afterDocumentation.comments ]
+                                    commentsAfterDocumentation
+                                        |> Rope.prependTo afterDocumentation.comments
                                 , syntax =
                                     Node { start = start, end = typeAnnotationRange.end }
                                         (Declaration.AliasDeclaration
@@ -162,10 +162,9 @@ declaration =
                                 in
                                 { comments =
                                     Rope.one documentation
-                                        |> Rope.prependToLikelyFilled
-                                            (commentsAfterDocumentation
-                                                |> Rope.prependTo afterDocumentation.comments
-                                            )
+                                        |> Rope.likelyFilledPrependTo
+                                            commentsAfterDocumentation
+                                        |> Rope.prependTo afterDocumentation.comments
                                 , syntax =
                                     Node
                                         { start = portDeclarationAfterName.startLocation
@@ -249,18 +248,18 @@ functionAfterDocumentation =
                             \commentsAfterEqual ->
                                 \result ->
                                     { comments =
-                                        Rope.flatFromList
-                                            [ commentsAfterStartName
-                                            , case maybeSignature of
-                                                Nothing ->
-                                                    Rope.empty
+                                        commentsAfterStartName
+                                            |> Rope.prependTo
+                                                (case maybeSignature of
+                                                    Nothing ->
+                                                        Rope.empty
 
-                                                Just signature ->
-                                                    signature.comments
-                                            , arguments.comments
-                                            , commentsAfterEqual
-                                            , result.comments
-                                            ]
+                                                    Just signature ->
+                                                        signature.comments
+                                                )
+                                            |> Rope.prependTo arguments.comments
+                                            |> Rope.prependTo commentsAfterEqual
+                                            |> Rope.prependTo result.comments
                                     , syntax =
                                         FunctionDeclarationAfterDocumentation
                                             { startName =
@@ -287,12 +286,10 @@ functionAfterDocumentation =
                                             \afterImplementationName ->
                                                 Just
                                                     { comments =
-                                                        Rope.flatFromList
-                                                            [ commentsBeforeTypeAnnotation
-                                                            , typeAnnotationResult.comments
-                                                            , commentsAfterTypeAnnotation
-                                                            , afterImplementationName
-                                                            ]
+                                                        commentsBeforeTypeAnnotation
+                                                            |> Rope.prependTo typeAnnotationResult.comments
+                                                            |> Rope.prependTo commentsAfterTypeAnnotation
+                                                            |> Rope.prependTo afterImplementationName
                                                     , syntax =
                                                         { implementationName =
                                                             Node.singleLineStringFrom { row = implementationNameStartRow, column = implementationNameStartColumn }
@@ -340,18 +337,18 @@ functionDeclarationWithoutDocumentation =
                                     let
                                         allComments : Comments
                                         allComments =
-                                            Rope.flatFromList
-                                                [ commentsAfterStartName
-                                                , case maybeSignature of
-                                                    Nothing ->
-                                                        Rope.empty
+                                            commentsAfterStartName
+                                                |> Rope.prependTo
+                                                    (case maybeSignature of
+                                                        Nothing ->
+                                                            Rope.empty
 
-                                                    Just signature ->
-                                                        signature.comments
-                                                , arguments.comments
-                                                , commentsAfterEqual
-                                                , result.comments
-                                                ]
+                                                        Just signature ->
+                                                            signature.comments
+                                                    )
+                                                |> Rope.prependTo arguments.comments
+                                                |> Rope.prependTo commentsAfterEqual
+                                                |> Rope.prependTo result.comments
 
                                         start : Location
                                         start =
@@ -431,12 +428,10 @@ functionDeclarationWithoutDocumentation =
                                             \afterImplementationName ->
                                                 Just
                                                     { comments =
-                                                        Rope.flatFromList
-                                                            [ commentsBeforeTypeAnnotation
-                                                            , typeAnnotationResult.comments
-                                                            , commentsAfterTypeAnnotation
-                                                            , afterImplementationName
-                                                            ]
+                                                        commentsBeforeTypeAnnotation
+                                                            |> Rope.prependTo typeAnnotationResult.comments
+                                                            |> Rope.prependTo commentsAfterTypeAnnotation
+                                                            |> Rope.prependTo afterImplementationName
                                                     , implementationName =
                                                         Node.singleLineStringFrom { row = implementationNameStartRow, column = implementationNameStartColumn }
                                                             implementationName
@@ -485,13 +480,11 @@ infixDeclaration =
                                         \commentsAfterEqual ->
                                             \((Node fnRange _) as fn) ->
                                                 { comments =
-                                                    Rope.flatFromList
-                                                        [ commentsAfterInfix
-                                                        , commentsAfterDirection
-                                                        , commentsAfterPrecedence
-                                                        , commentsAfterOperator
-                                                        , commentsAfterEqual
-                                                        ]
+                                                    commentsAfterInfix
+                                                        |> Rope.prependTo commentsAfterDirection
+                                                        |> Rope.prependTo commentsAfterPrecedence
+                                                        |> Rope.prependTo commentsAfterOperator
+                                                        |> Rope.prependTo commentsAfterEqual
                                                 , syntax =
                                                     Node
                                                         { start = { row = startRow, column = 1 }
@@ -544,12 +537,10 @@ portDeclarationAfterDocumentation =
                             \commentsAfterColon ->
                                 \typeAnnotationResult ->
                                     { comments =
-                                        Rope.flatFromList
-                                            [ commentsAfterPort
-                                            , commentsAfterName
-                                            , typeAnnotationResult.comments
-                                            , commentsAfterColon
-                                            ]
+                                        commentsAfterPort
+                                            |> Rope.prependTo commentsAfterName
+                                            |> Rope.prependTo typeAnnotationResult.comments
+                                            |> Rope.prependTo commentsAfterColon
                                     , syntax =
                                         PortDeclarationAfterDocumentation
                                             { startLocation = { row = startRow, column = 1 }
@@ -586,12 +577,10 @@ portDeclarationWithoutDocumentation =
                                             typeAnnotationResult.syntax
                                     in
                                     { comments =
-                                        Rope.flatFromList
-                                            [ commentsAfterPort
-                                            , commentsAfterName
-                                            , commentsAfterColon
-                                            , typeAnnotationResult.comments
-                                            ]
+                                        commentsAfterPort
+                                            |> Rope.prependTo commentsAfterName
+                                            |> Rope.prependTo commentsAfterColon
+                                            |> Rope.prependTo typeAnnotationResult.comments
                                     , syntax =
                                         Node
                                             { start = { row = startRow, column = 1 }
@@ -650,13 +639,11 @@ typeAliasDefinitionAfterDocumentationAfterTypePrefix =
                                     \commentsAfterEquals ->
                                         \typeAnnotationResult ->
                                             { comments =
-                                                Rope.flatFromList
-                                                    [ commentsAfterAlias
-                                                    , commentsAfterName
-                                                    , parameters.comments
-                                                    , commentsAfterEquals
-                                                    , typeAnnotationResult.comments
-                                                    ]
+                                                commentsAfterAlias
+                                                    |> Rope.prependTo commentsAfterName
+                                                    |> Rope.prependTo parameters.comments
+                                                    |> Rope.prependTo commentsAfterEquals
+                                                    |> Rope.prependTo typeAnnotationResult.comments
                                             , syntax =
                                                 TypeAliasDeclarationAfterDocumentation
                                                     { name =
@@ -690,13 +677,11 @@ customTypeDefinitionAfterDocumentationAfterTypePrefix =
                             \headVariant ->
                                 \tailVariantsReverse ->
                                     { comments =
-                                        Rope.flatFromList
-                                            [ commentsAfterName
-                                            , parameters.comments
-                                            , commentsAfterEqual
-                                            , headVariant.comments
-                                            , tailVariantsReverse.comments
-                                            ]
+                                        commentsAfterName
+                                            |> Rope.prependTo parameters.comments
+                                            |> Rope.prependTo commentsAfterEqual
+                                            |> Rope.prependTo headVariant.comments
+                                            |> Rope.prependTo tailVariantsReverse.comments
                                     , syntax =
                                         TypeDeclarationAfterDocumentation
                                             { name =
@@ -721,11 +706,9 @@ customTypeDefinitionAfterDocumentationAfterTypePrefix =
                     \commentsAfterPipe ->
                         \variantResult ->
                             { comments =
-                                Rope.flatFromList
-                                    [ commentsBeforePipe
-                                    , commentsAfterPipe
-                                    , variantResult.comments
-                                    ]
+                                commentsBeforePipe
+                                    |> Rope.prependTo commentsAfterPipe
+                                    |> Rope.prependTo variantResult.comments
                             , syntax = variantResult.syntax
                             }
                 )
@@ -813,13 +796,11 @@ typeAliasDefinitionWithoutDocumentationAfterTypePrefix =
                                     \commentsAfterEqual ->
                                         \typeAnnotationResult ->
                                             { comments =
-                                                Rope.flatFromList
-                                                    [ commentsAfterAlias
-                                                    , commentsAfterName
-                                                    , parameters.comments
-                                                    , commentsAfterEqual
-                                                    , typeAnnotationResult.comments
-                                                    ]
+                                                commentsAfterAlias
+                                                    |> Rope.prependTo commentsAfterName
+                                                    |> Rope.prependTo parameters.comments
+                                                    |> Rope.prependTo commentsAfterEqual
+                                                    |> Rope.prependTo typeAnnotationResult.comments
                                             , syntax =
                                                 TypeAliasDeclarationWithoutDocumentation
                                                     { name =
@@ -853,13 +834,11 @@ customTypeDefinitionWithoutDocumentationAfterTypePrefix =
                             \headVariant ->
                                 \tailVariantsReverse ->
                                     { comments =
-                                        Rope.flatFromList
-                                            [ commentsAfterName
-                                            , parameters.comments
-                                            , commentsAfterEqual
-                                            , headVariant.comments
-                                            , tailVariantsReverse.comments
-                                            ]
+                                        commentsAfterName
+                                            |> Rope.prependTo parameters.comments
+                                            |> Rope.prependTo commentsAfterEqual
+                                            |> Rope.prependTo headVariant.comments
+                                            |> Rope.prependTo tailVariantsReverse.comments
                                     , syntax =
                                         TypeDeclarationWithoutDocumentation
                                             { name =
@@ -885,11 +864,9 @@ customTypeDefinitionWithoutDocumentationAfterTypePrefix =
                     \commentsAfterPipe ->
                         \variantResult ->
                             { comments =
-                                Rope.flatFromList
-                                    [ commentsBeforePipe
-                                    , commentsAfterPipe
-                                    , variantResult.comments
-                                    ]
+                                commentsBeforePipe
+                                    |> Rope.prependTo commentsAfterPipe
+                                    |> Rope.prependTo variantResult.comments
                             , syntax = variantResult.syntax
                             }
                 )

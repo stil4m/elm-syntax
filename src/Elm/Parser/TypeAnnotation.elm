@@ -34,11 +34,9 @@ typeAnnotation =
                         \typeAnnotationResult ->
                             Just
                                 { comments =
-                                    Rope.flatFromList
-                                        [ commentsBeforeArrow
-                                        , commentsAfterArrow
-                                        , typeAnnotationResult.comments
-                                        ]
+                                    commentsBeforeArrow
+                                        |> Rope.prependTo commentsAfterArrow
+                                        |> Rope.prependTo typeAnnotationResult.comments
                                 , syntax = typeAnnotationResult.syntax
                                 }
                 )
@@ -85,12 +83,10 @@ parensTypeAnnotation =
                             \commentsAfterFirstPart ->
                                 \lastToSecondPart ->
                                     { comments =
-                                        Rope.flatFromList
-                                            [ commentsBeforeFirstPart
-                                            , firstPart.comments
-                                            , commentsAfterFirstPart
-                                            , lastToSecondPart.comments
-                                            ]
+                                        commentsBeforeFirstPart
+                                            |> Rope.prependTo firstPart.comments
+                                            |> Rope.prependTo commentsAfterFirstPart
+                                            |> Rope.prependTo lastToSecondPart.comments
                                     , syntax =
                                         case lastToSecondPart.syntax of
                                             [] ->
@@ -115,11 +111,9 @@ parensTypeAnnotation =
                                         \typeAnnotationResult ->
                                             \commentsAfter ->
                                                 { comments =
-                                                    Rope.flatFromList
-                                                        [ commentsBefore
-                                                        , typeAnnotationResult.comments
-                                                        , commentsAfter
-                                                        ]
+                                                    commentsBefore
+                                                        |> Rope.prependTo typeAnnotationResult.comments
+                                                        |> Rope.prependTo commentsAfter
                                                 , syntax = typeAnnotationResult.syntax
                                                 }
                                     )
@@ -161,10 +155,8 @@ recordTypeAnnotation =
 
                             Just afterCurlyResult ->
                                 { comments =
-                                    Rope.flatFromList
-                                        [ commentsBefore
-                                        , afterCurlyResult.comments
-                                        ]
+                                    commentsBefore
+                                        |> Rope.prependTo afterCurlyResult.comments
                                 , syntax = afterCurlyResult.syntax
                                 }
                 )
@@ -186,10 +178,8 @@ recordTypeAnnotation =
                                 in
                                 Just
                                     { comments =
-                                        Rope.flatFromList
-                                            [ commentsAfterFirstName
-                                            , afterFirstName.comments
-                                            ]
+                                        commentsAfterFirstName
+                                            |> Rope.prependTo afterFirstName.comments
                                     , syntax =
                                         case afterFirstName.syntax of
                                             RecordExtensionExpressionAfterName fields ->
@@ -217,12 +207,10 @@ recordTypeAnnotation =
                                         \commentsAfterFirstFieldValue ->
                                             \tailFields ->
                                                 { comments =
-                                                    Rope.flatFromList
-                                                        [ commentsBeforeFirstFieldValue
-                                                        , firstFieldValue.comments
-                                                        , commentsAfterFirstFieldValue
-                                                        , tailFields.comments
-                                                        ]
+                                                    commentsBeforeFirstFieldValue
+                                                        |> Rope.prependTo firstFieldValue.comments
+                                                        |> Rope.prependTo commentsAfterFirstFieldValue
+                                                        |> Rope.prependTo tailFields.comments
                                                 , syntax =
                                                     FieldsAfterName
                                                         { firstFieldValue = firstFieldValue.syntax
@@ -283,13 +271,11 @@ recordFieldDefinition =
                             \value ->
                                 \commentsAfterValue ->
                                     { comments =
-                                        Rope.flatFromList
-                                            [ commentsBeforeFunctionName
-                                            , commentsAfterFunctionName
-                                            , commentsAfterColon
-                                            , value.comments
-                                            , commentsAfterValue
-                                            ]
+                                        commentsBeforeFunctionName
+                                            |> Rope.prependTo commentsAfterFunctionName
+                                            |> Rope.prependTo commentsAfterColon
+                                            |> Rope.prependTo value.comments
+                                            |> Rope.prependTo commentsAfterValue
                                     , syntax =
                                         ( Node.singleLineStringFrom
                                             { row = nameStartRow, column = nameStartColumn }

@@ -4,7 +4,6 @@ import Elm.Parser.Node as Node
 import Elm.Syntax.Documentation exposing (Documentation)
 import Elm.Syntax.Node exposing (Node(..))
 import Parser exposing ((|.), (|=), Nestable(..), Parser)
-import Rope exposing (RopeLikelyFilled)
 
 
 singleLineCommentCore : Parser.Parser (Node String)
@@ -44,10 +43,9 @@ problemUnexpected =
     Parser.problem "unexpected documentation comment"
 
 
-moduleDocumentation : Parser (RopeLikelyFilled (Node String))
+moduleDocumentation : Parser (Node String)
 moduleDocumentation =
     declarationDocumentation
-        |> Parser.map (\comment -> Rope.one comment)
 
 
 declarationDocumentation : Parser.Parser (Node Documentation)

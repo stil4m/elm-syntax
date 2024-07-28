@@ -48,23 +48,25 @@ importDefinition =
                                                             modRange
                                     in
                                     { comments =
-                                        Rope.flatFromList
-                                            [ commentsAfterImport
-                                            , commentsAfterModuleName
-                                            , case maybeModuleAlias of
-                                                Nothing ->
-                                                    Rope.empty
+                                        commentsAfterImport
+                                            |> Rope.prependTo commentsAfterModuleName
+                                            |> Rope.prependTo
+                                                (case maybeModuleAlias of
+                                                    Nothing ->
+                                                        Rope.empty
 
-                                                Just moduleAliasValue ->
-                                                    moduleAliasValue.comments
-                                            , case maybeExposingList of
-                                                Nothing ->
-                                                    Rope.empty
+                                                    Just moduleAliasValue ->
+                                                        moduleAliasValue.comments
+                                                )
+                                            |> Rope.prependTo
+                                                (case maybeExposingList of
+                                                    Nothing ->
+                                                        Rope.empty
 
-                                                Just exposingListValue ->
-                                                    exposingListValue.comments
-                                            , commentsAfterEverything
-                                            ]
+                                                    Just exposingListValue ->
+                                                        exposingListValue.comments
+                                                )
+                                            |> Rope.prependTo commentsAfterEverything
                                     , syntax =
                                         Node
                                             { start = { row = startRow, column = 1 }, end = endRange.end }

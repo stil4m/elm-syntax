@@ -98,14 +98,12 @@ effectModuleDefinition =
                                     \commentsAfterWhereClauses ->
                                         \exp ->
                                             { comments =
-                                                Rope.flatFromList
-                                                    [ commentsAfterEffect
-                                                    , commentsModule
-                                                    , commentsAfterName
-                                                    , whereClauses.comments
-                                                    , commentsAfterWhereClauses
-                                                    , exp.comments
-                                                    ]
+                                                commentsAfterEffect
+                                                    |> Rope.prependTo commentsModule
+                                                    |> Rope.prependTo commentsAfterName
+                                                    |> Rope.prependTo whereClauses.comments
+                                                    |> Rope.prependTo commentsAfterWhereClauses
+                                                    |> Rope.prependTo exp.comments
                                             , syntax =
                                                 EffectModule
                                                     { moduleName = name
@@ -137,11 +135,9 @@ normalModuleDefinition =
                         \commentsAfterModuleName ->
                             \exposingList ->
                                 { comments =
-                                    Rope.flatFromList
-                                        [ commentsAfterModule
-                                        , commentsAfterModuleName
-                                        , exposingList.comments
-                                        ]
+                                    commentsAfterModule
+                                        |> Rope.prependTo commentsAfterModuleName
+                                        |> Rope.prependTo exposingList.comments
                                 , syntax =
                                     NormalModule
                                         { moduleName = moduleName
@@ -168,12 +164,10 @@ portModuleDefinition =
                             \commentsAfterModuleName ->
                                 \exposingList ->
                                     { comments =
-                                        Rope.flatFromList
-                                            [ commentsAfterPort
-                                            , commentsAfterModule
-                                            , commentsAfterModuleName
-                                            , exposingList.comments
-                                            ]
+                                        commentsAfterPort
+                                            |> Rope.prependTo commentsAfterModule
+                                            |> Rope.prependTo commentsAfterModuleName
+                                            |> Rope.prependTo exposingList.comments
                                     , syntax = PortModule { moduleName = moduleName, exposingList = exposingList.syntax }
                                     }
                 )

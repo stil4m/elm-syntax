@@ -176,11 +176,9 @@ listPattern =
                         \tail ->
                             Just
                                 { comments =
-                                    Rope.flatFromList
-                                        [ head.comments
-                                        , tail.comments
-                                        , commentsAfterHead
-                                        ]
+                                    head.comments
+                                        |> Rope.prependTo tail.comments
+                                        |> Rope.prependTo commentsAfterHead
                                 , syntax = head.syntax :: tail.syntax
                                 }
                 )
@@ -340,10 +338,8 @@ recordPattern =
                             \tail ->
                                 Just
                                     { comments =
-                                        Rope.flatFromList
-                                            [ commentsAfterHead
-                                            , tail.comments
-                                            ]
+                                        commentsAfterHead
+                                            |> Rope.prependTo tail.comments
                                     , syntax =
                                         Node.singleLineStringFrom
                                             { row = headStartRow, column = headStartEnd }

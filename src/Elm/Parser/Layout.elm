@@ -72,7 +72,7 @@ fromMultilineCommentNode =
     Node.parserCoreMap
         (\comment ->
             \commentsAfter ->
-                Rope.one comment |> Rope.prependToLikelyFilled commentsAfter
+                Rope.one comment |> Rope.likelyFilledPrependTo commentsAfter
         )
         Comments.multilineCommentString
         |= whitespaceAndCommentsOrEmpty
@@ -83,7 +83,7 @@ fromSingleLineCommentNode =
     Parser.map
         (\comment ->
             \commentsAfter ->
-                Rope.one comment |> Rope.prependToLikelyFilled commentsAfter
+                Rope.one comment |> Rope.likelyFilledPrependTo commentsAfter
         )
         Comments.singleLineCommentCore
         |= whitespaceAndCommentsOrEmpty
@@ -224,7 +224,10 @@ maybeAroundBothSides x =
         (\before ->
             \v ->
                 \after ->
-                    { comments = Rope.flatFromList [ before, v.comments, after ]
+                    { comments =
+                        before
+                            |> Rope.prependTo v.comments
+                            |> Rope.prependTo after
                     , syntax = v.syntax
                     }
         )
