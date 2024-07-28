@@ -4,9 +4,8 @@ import Elm.Parser.Layout as Layout
 import Elm.Parser.Node as Node
 import Elm.Parser.Numbers
 import Elm.Parser.Tokens as Tokens
-import Elm.Syntax.ModuleName exposing (ModuleName)
 import Elm.Syntax.Node as Node exposing (Node)
-import Elm.Syntax.Pattern as Pattern exposing (Pattern(..), QualifiedNameRef)
+import Elm.Syntax.Pattern as Pattern exposing (Pattern(..))
 import Parser exposing ((|.), (|=), Parser)
 import Parser.Extra
 import ParserWithComments exposing (WithComments)
@@ -258,37 +257,50 @@ stringPattern =
         |> Parser.map (\string -> { comments = Rope.empty, syntax = StringPattern string })
 
 
-qualifiedNameRef : Parser.Parser QualifiedNameRef
-qualifiedNameRef =
-    Tokens.typeName
-        |> Parser.andThen (\typeOrSegment -> qualifiedNameRefHelper [] typeOrSegment)
-
-
-qualifiedNameRefHelper : ModuleName -> String -> Parser.Parser QualifiedNameRef
-qualifiedNameRefHelper moduleNameSoFar typeOrSegment =
+maybeDotQualifiedTuple : Parser.Parser (Maybe ( List String, String ))
+maybeDotQualifiedTuple =
     Parser.oneOf
-        [ dotTypeName
-            |> Parser.andThen (\t -> qualifiedNameRefHelper (typeOrSegment :: moduleNameSoFar) t)
-        , Parser.lazy (\() -> Parser.succeed { moduleName = List.reverse moduleNameSoFar, name = typeOrSegment })
+        [ Tokens.dot
+            |> Parser.Extra.continueWith
+                (Parser.map
+                    (\firstName ->
+                        \afterFirstName ->
+                            case afterFirstName of
+                                Nothing ->
+                                    Just ( [], firstName )
+
+                                Just ( qualificationAfter, unqualified ) ->
+                                    Just ( firstName :: qualificationAfter, unqualified )
+                    )
+                    Tokens.typeName
+                    |= Parser.lazy (\() -> maybeDotQualifiedTuple)
+                )
+        , Parser.succeed Nothing
         ]
-
-
-dotTypeName : Parser String
-dotTypeName =
-    Tokens.dot
-        |> Parser.Extra.continueWith Tokens.typeName
 
 
 qualifiedPatternWithConsumeArgs : Parser (WithComments Pattern)
 qualifiedPatternWithConsumeArgs =
     Parser.map
-        (\qualified ->
-            \args ->
-                { comments = args.comments
-                , syntax = NamedPattern qualified args.syntax
-                }
+        (\firstName ->
+            \afterFirstName ->
+                \args ->
+                    case afterFirstName of
+                        Nothing ->
+                            { comments = args.comments
+                            , syntax = NamedPattern { moduleName = [], name = firstName } args.syntax
+                            }
+
+                        Just ( qualificationAfter, unqualified ) ->
+                            { comments = args.comments
+                            , syntax =
+                                NamedPattern
+                                    { moduleName = firstName :: qualificationAfter, name = unqualified }
+                                    args.syntax
+                            }
         )
-        qualifiedNameRef
+        Tokens.typeName
+        |= maybeDotQualifiedTuple
         |= ParserWithComments.many
             (Parser.map
                 (\commentsBefore ->
@@ -304,9 +316,22 @@ qualifiedPatternWithConsumeArgs =
 
 qualifiedPatternWithoutConsumeArgs : Parser (WithComments Pattern)
 qualifiedPatternWithoutConsumeArgs =
-    qualifiedNameRef
-        |> Parser.map
-            (\qualified -> { comments = Rope.empty, syntax = NamedPattern qualified [] })
+    Parser.map
+        (\firstName ->
+            \after ->
+                case after of
+                    Nothing ->
+                        { comments = Rope.empty
+                        , syntax = NamedPattern { moduleName = [], name = firstName } []
+                        }
+
+                    Just ( qualificationAfter, unqualified ) ->
+                        { comments = Rope.empty
+                        , syntax = NamedPattern { moduleName = firstName :: qualificationAfter, name = unqualified } []
+                        }
+        )
+        Tokens.typeName
+        |= maybeDotQualifiedTuple
 
 
 recordPattern : Parser (WithComments Pattern)
