@@ -53,7 +53,7 @@ many p =
                     )
                 ]
     in
-    Parser.loop ( Rope.empty, [] ) manyWithoutReverseStep
+    Parser.loop tupleRopeEmptyListEmpty manyWithoutReverseStep
 
 
 {-| Same as [`many`](#many), except that it doesn't reverse the list.
@@ -94,7 +94,12 @@ manyWithoutReverse p =
                     )
                 ]
     in
-    Parser.loop ( Rope.empty, [] ) manyWithoutReverseStep
+    Parser.loop tupleRopeEmptyListEmpty manyWithoutReverseStep
+
+
+tupleRopeEmptyListEmpty : ( Rope a, List b )
+tupleRopeEmptyListEmpty =
+    ( Rope.empty, [] )
 
 
 sepBy : String -> Parser (WithComments a) -> Parser (WithComments (List a))
@@ -109,8 +114,13 @@ sepBy sep p =
             )
             p
             |= many (Parser.symbol sep |> Parser.Extra.continueWith p)
-        , Parser.succeed { comments = Rope.empty, syntax = [] }
+        , parserSucceedListEmptyWithComments
         ]
+
+
+parserSucceedListEmptyWithComments : Parser (WithComments (List a))
+parserSucceedListEmptyWithComments =
+    Parser.succeed { comments = Rope.empty, syntax = [] }
 
 
 sepBy1 : String -> Parser (WithComments a) -> Parser (WithComments (List a))

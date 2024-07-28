@@ -339,11 +339,16 @@ typeIndicator =
 typeIndicatorHelper : ModuleName -> String -> Parser.Parser ( ModuleName, String )
 typeIndicatorHelper moduleNameSoFar typeOrSegment =
     Parser.oneOf
-        [ Tokens.dot
-            |> Parser.Extra.continueWith Tokens.typeName
+        [ dotTypeName
             |> Parser.andThen (\t -> typeIndicatorHelper (typeOrSegment :: moduleNameSoFar) t)
         , Parser.lazy (\() -> Parser.succeed ( List.reverse moduleNameSoFar, typeOrSegment ))
         ]
+
+
+dotTypeName : Parser String
+dotTypeName =
+    Tokens.dot
+        |> Parser.Extra.continueWith Tokens.typeName
 
 
 typedTypeAnnotationWithArguments : Parser (WithComments TypeAnnotation)

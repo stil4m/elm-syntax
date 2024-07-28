@@ -1035,11 +1035,16 @@ expressionHelp currentPrecedence leftExpression =
                 |= Parser.oneOf
                     [ Parser.map Just
                         (combineOneOfApply parser leftExpression.syntax)
-                    , Parser.succeed Nothing
+                    , parserSucceedNothing
                     ]
 
         Nothing ->
             Parser.problem ("Could not find operators related to precedence " ++ String.fromInt currentPrecedence)
+
+
+parserSucceedNothing : Parser (Maybe a)
+parserSucceedNothing =
+    Parser.succeed Nothing
 
 
 combineOneOfApply :
@@ -1058,111 +1063,111 @@ getAndThenOneOfAbovePrecedence : Int -> Maybe (List (Node Expression -> Parser (
 getAndThenOneOfAbovePrecedence precedence =
     case precedence of
         0 ->
-            Just andThenOneOfAbovePrecedence0
+            justAndThenOneOfAbovePrecedence0
 
         1 ->
-            Just andThenOneOfAbovePrecedence1
+            justAndThenOneOfAbovePrecedence1
 
         2 ->
-            Just andThenOneOfAbovePrecedence2
+            justAndThenOneOfAbovePrecedence2
 
         3 ->
-            Just andThenOneOfAbovePrecedence3
+            justAndThenOneOfAbovePrecedence3
 
         4 ->
-            Just andThenOneOfAbovePrecedence4
+            justAndThenOneOfAbovePrecedence4
 
         5 ->
-            Just andThenOneOfAbovePrecedence5
+            justAndThenOneOfAbovePrecedence5
 
         6 ->
-            Just andThenOneOfAbovePrecedence6
+            justAndThenOneOfAbovePrecedence6
 
         7 ->
-            Just andThenOneOfAbovePrecedence7
+            justAndThenOneOfAbovePrecedence7
 
         8 ->
-            Just andThenOneOfAbovePrecedence8
+            justAndThenOneOfAbovePrecedence8
 
         9 ->
-            Just andThenOneOfAbovePrecedence9
+            justAndThenOneOfAbovePrecedence9
 
         90 ->
-            Just andThenOneOfAbovePrecedence90
+            justAndThenOneOfAbovePrecedence90
 
         95 ->
-            Just andThenOneOfAbovePrecedence95
+            justAndThenOneOfAbovePrecedence95
 
         100 ->
-            Just andThenOneOfAbovePrecedence100
+            justAndThenOneOfAbovePrecedence100
 
         _ ->
             Nothing
 
 
-andThenOneOfAbovePrecedence0 : List (Node Expression -> Parser (WithComments (Node Expression)))
-andThenOneOfAbovePrecedence0 =
-    computeAndThenOneOfAbovePrecedence 0
+justAndThenOneOfAbovePrecedence0 : Maybe (List (Node Expression -> Parser (WithComments (Node Expression))))
+justAndThenOneOfAbovePrecedence0 =
+    Just (computeAndThenOneOfAbovePrecedence 0)
 
 
-andThenOneOfAbovePrecedence1 : List (Node Expression -> Parser (WithComments (Node Expression)))
-andThenOneOfAbovePrecedence1 =
-    computeAndThenOneOfAbovePrecedence 1
+justAndThenOneOfAbovePrecedence1 : Maybe (List (Node Expression -> Parser (WithComments (Node Expression))))
+justAndThenOneOfAbovePrecedence1 =
+    Just (computeAndThenOneOfAbovePrecedence 1)
 
 
-andThenOneOfAbovePrecedence2 : List (Node Expression -> Parser (WithComments (Node Expression)))
-andThenOneOfAbovePrecedence2 =
-    computeAndThenOneOfAbovePrecedence 2
+justAndThenOneOfAbovePrecedence2 : Maybe (List (Node Expression -> Parser (WithComments (Node Expression))))
+justAndThenOneOfAbovePrecedence2 =
+    Just (computeAndThenOneOfAbovePrecedence 2)
 
 
-andThenOneOfAbovePrecedence3 : List (Node Expression -> Parser (WithComments (Node Expression)))
-andThenOneOfAbovePrecedence3 =
-    computeAndThenOneOfAbovePrecedence 3
+justAndThenOneOfAbovePrecedence3 : Maybe (List (Node Expression -> Parser (WithComments (Node Expression))))
+justAndThenOneOfAbovePrecedence3 =
+    Just (computeAndThenOneOfAbovePrecedence 3)
 
 
-andThenOneOfAbovePrecedence4 : List (Node Expression -> Parser (WithComments (Node Expression)))
-andThenOneOfAbovePrecedence4 =
-    computeAndThenOneOfAbovePrecedence 4
+justAndThenOneOfAbovePrecedence4 : Maybe (List (Node Expression -> Parser (WithComments (Node Expression))))
+justAndThenOneOfAbovePrecedence4 =
+    Just (computeAndThenOneOfAbovePrecedence 4)
 
 
-andThenOneOfAbovePrecedence5 : List (Node Expression -> Parser (WithComments (Node Expression)))
-andThenOneOfAbovePrecedence5 =
-    computeAndThenOneOfAbovePrecedence 5
+justAndThenOneOfAbovePrecedence5 : Maybe (List (Node Expression -> Parser (WithComments (Node Expression))))
+justAndThenOneOfAbovePrecedence5 =
+    Just (computeAndThenOneOfAbovePrecedence 5)
 
 
-andThenOneOfAbovePrecedence6 : List (Node Expression -> Parser (WithComments (Node Expression)))
-andThenOneOfAbovePrecedence6 =
-    computeAndThenOneOfAbovePrecedence 6
+justAndThenOneOfAbovePrecedence6 : Maybe (List (Node Expression -> Parser (WithComments (Node Expression))))
+justAndThenOneOfAbovePrecedence6 =
+    Just (computeAndThenOneOfAbovePrecedence 6)
 
 
-andThenOneOfAbovePrecedence7 : List (Node Expression -> Parser (WithComments (Node Expression)))
-andThenOneOfAbovePrecedence7 =
-    computeAndThenOneOfAbovePrecedence 7
+justAndThenOneOfAbovePrecedence7 : Maybe (List (Node Expression -> Parser (WithComments (Node Expression))))
+justAndThenOneOfAbovePrecedence7 =
+    Just (computeAndThenOneOfAbovePrecedence 7)
 
 
-andThenOneOfAbovePrecedence8 : List (Node Expression -> Parser (WithComments (Node Expression)))
-andThenOneOfAbovePrecedence8 =
-    computeAndThenOneOfAbovePrecedence 8
+justAndThenOneOfAbovePrecedence8 : Maybe (List (Node Expression -> Parser (WithComments (Node Expression))))
+justAndThenOneOfAbovePrecedence8 =
+    Just (computeAndThenOneOfAbovePrecedence 8)
 
 
-andThenOneOfAbovePrecedence9 : List (Node Expression -> Parser (WithComments (Node Expression)))
-andThenOneOfAbovePrecedence9 =
-    computeAndThenOneOfAbovePrecedence 9
+justAndThenOneOfAbovePrecedence9 : Maybe (List (Node Expression -> Parser (WithComments (Node Expression))))
+justAndThenOneOfAbovePrecedence9 =
+    Just (computeAndThenOneOfAbovePrecedence 9)
 
 
-andThenOneOfAbovePrecedence90 : List (Node Expression -> Parser (WithComments (Node Expression)))
-andThenOneOfAbovePrecedence90 =
-    computeAndThenOneOfAbovePrecedence 90
+justAndThenOneOfAbovePrecedence90 : Maybe (List (Node Expression -> Parser (WithComments (Node Expression))))
+justAndThenOneOfAbovePrecedence90 =
+    Just (computeAndThenOneOfAbovePrecedence 90)
 
 
-andThenOneOfAbovePrecedence95 : List (Node Expression -> Parser (WithComments (Node Expression)))
-andThenOneOfAbovePrecedence95 =
-    computeAndThenOneOfAbovePrecedence 95
+justAndThenOneOfAbovePrecedence95 : Maybe (List (Node Expression -> Parser (WithComments (Node Expression))))
+justAndThenOneOfAbovePrecedence95 =
+    Just (computeAndThenOneOfAbovePrecedence 95)
 
 
-andThenOneOfAbovePrecedence100 : List (Node Expression -> Parser (WithComments (Node Expression)))
-andThenOneOfAbovePrecedence100 =
-    computeAndThenOneOfAbovePrecedence 100
+justAndThenOneOfAbovePrecedence100 : Maybe (List (Node Expression -> Parser (WithComments (Node Expression))))
+justAndThenOneOfAbovePrecedence100 =
+    Just (computeAndThenOneOfAbovePrecedence 100)
 
 
 computeAndThenOneOfAbovePrecedence : Int -> List (Node Expression -> Parser (WithComments (Node Expression)))

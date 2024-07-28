@@ -269,11 +269,16 @@ qualifiedNameRef =
 qualifiedNameRefHelper : ModuleName -> String -> Parser.Parser QualifiedNameRef
 qualifiedNameRefHelper moduleNameSoFar typeOrSegment =
     Parser.oneOf
-        [ Tokens.dot
-            |> Parser.Extra.continueWith Tokens.typeName
+        [ dotTypeName
             |> Parser.andThen (\t -> qualifiedNameRefHelper (typeOrSegment :: moduleNameSoFar) t)
         , Parser.lazy (\() -> Parser.succeed { moduleName = List.reverse moduleNameSoFar, name = typeOrSegment })
         ]
+
+
+dotTypeName : Parser String
+dotTypeName =
+    Tokens.dot
+        |> Parser.Extra.continueWith Tokens.typeName
 
 
 qualifiedPatternWithConsumeArgs : Parser (WithComments Pattern)
