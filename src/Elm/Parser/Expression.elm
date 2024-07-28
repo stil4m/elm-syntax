@@ -122,7 +122,7 @@ problemRecordAccessStartingWithSpace =
 
 dotField : Parser.Parser (Node String)
 dotField =
-    Tokens.dot
+    (Tokens.dot
         |> Parser.Extra.continueWith
             (Parser.map
                 (\( nameStartRow, nameStartColumn ) ->
@@ -131,8 +131,9 @@ dotField =
                             name
                 )
                 Parser.getPosition
-                |= Tokens.functionName
             )
+    )
+        |= Tokens.functionName
 
 
 functionCall : ( Int, Node Expression -> Parser (WithComments (Node Expression)) )
@@ -463,7 +464,7 @@ lambdaExpression =
 
 caseExpression : Parser (WithComments (Node Expression))
 caseExpression =
-    (Parser.map
+    Parser.map
         (\( startRow, startColumn ) ->
             \commentsAfterCase ->
                 \casedExpressionResult ->
@@ -500,7 +501,6 @@ caseExpression =
         |. Tokens.caseToken
         |= Layout.layout
         |= expression
-    )
         |. Layout.positivelyIndented
         |. Tokens.ofToken
         |= Layout.layout
@@ -631,7 +631,7 @@ letDestructuringDeclaration =
 
 letFunction : Parser (WithComments (Node LetDeclaration))
 letFunction =
-    (Parser.map
+    Parser.map
         (\( startNameStartRow, startNameStartColumn ) ->
             \startName ->
                 \commentsAfterStartName ->
@@ -764,7 +764,6 @@ letFunction =
                 Patterns.pattern
                 |= Layout.maybeLayout
             )
-    )
         |. Tokens.equal
         |= Layout.maybeLayout
         |= expression

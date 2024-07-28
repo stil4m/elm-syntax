@@ -260,7 +260,7 @@ stringPattern =
 maybeDotTypeNamesTuple : Parser.Parser (Maybe ( List String, String ))
 maybeDotTypeNamesTuple =
     Parser.oneOf
-        [ Tokens.dot
+        [ (Tokens.dot
             |> Parser.Extra.continueWith
                 (Parser.map
                     (\startName ->
@@ -273,8 +273,9 @@ maybeDotTypeNamesTuple =
                                     Just ( startName :: qualificationAfter, unqualified )
                     )
                     Tokens.typeName
-                    |= Parser.lazy (\() -> maybeDotTypeNamesTuple)
                 )
+          )
+            |= Parser.lazy (\() -> maybeDotTypeNamesTuple)
         , Parser.succeed Nothing
         ]
 
@@ -375,7 +376,7 @@ recordPattern =
                 |= Tokens.functionName
                 |= Layout.maybeLayout
                 |= ParserWithComments.many
-                    (Tokens.comma
+                    ((Tokens.comma
                         |> Parser.Extra.continueWith
                             (Parser.map
                                 (\beforeName ->
@@ -390,10 +391,11 @@ recordPattern =
                                                 }
                                 )
                                 Layout.maybeLayout
-                                |= Parser.getPosition
-                                |= Tokens.functionName
-                                |= Layout.maybeLayout
                             )
+                     )
+                        |= Parser.getPosition
+                        |= Tokens.functionName
+                        |= Layout.maybeLayout
                     )
             , Parser.succeed Nothing
             ]

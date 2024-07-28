@@ -25,7 +25,7 @@ moduleDefinition =
 
 effectWhereClause : Parser (WithComments ( String, Node String ))
 effectWhereClause =
-    (Parser.map
+    Parser.map
         (\fnName ->
             \commentsAfterFnName ->
                 \commentsAfterEqual ->
@@ -36,7 +36,6 @@ effectWhereClause =
         )
         Tokens.functionName
         |= Layout.maybeLayout
-    )
         |. Tokens.equal
         |= Layout.maybeLayout
         |= Node.parserCore Tokens.typeName

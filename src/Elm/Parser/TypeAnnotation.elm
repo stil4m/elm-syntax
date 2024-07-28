@@ -76,7 +76,7 @@ parensTypeAnnotation =
             (Parser.oneOf
                 [ Tokens.parensEnd
                     |> Parser.map (\() -> unitWithComments)
-                , (Parser.map
+                , Parser.map
                     (\commentsBeforeFirstPart ->
                         \firstPart ->
                             \commentsAfterFirstPart ->
@@ -122,7 +122,6 @@ parensTypeAnnotation =
                             |= typeAnnotation
                             |= Layout.maybeLayout
                         )
-                  )
                     |. Tokens.parensEnd
                 ]
             )
@@ -329,7 +328,7 @@ typedTypeAnnotationWithoutArguments =
 maybeDotTypeNamesTuple : Parser.Parser (Maybe ( List String, String ))
 maybeDotTypeNamesTuple =
     Parser.oneOf
-        [ Tokens.dot
+        [ (Tokens.dot
             |> Parser.Extra.continueWith
                 (Parser.map
                     (\firstName ->
@@ -342,8 +341,9 @@ maybeDotTypeNamesTuple =
                                     Just ( firstName :: qualificationAfter, unqualified )
                     )
                     Tokens.typeName
-                    |= Parser.lazy (\() -> maybeDotTypeNamesTuple)
                 )
+          )
+            |= Parser.lazy (\() -> maybeDotTypeNamesTuple)
         , Parser.succeed Nothing
         ]
 

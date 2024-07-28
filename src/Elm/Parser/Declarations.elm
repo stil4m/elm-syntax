@@ -25,7 +25,7 @@ import Rope
 declaration : Parser (WithComments (Node Declaration))
 declaration =
     Parser.oneOf
-        [ (Parser.map
+        [ Parser.map
             (\documentation ->
                 \commentsAfterDocumentation ->
                     \afterDocumentation ->
@@ -185,7 +185,6 @@ declaration =
                 , typeOrTypeAliasDefinitionAfterDocumentation
                 , portDeclarationAfterDocumentation
                 ]
-          )
             |> Parser.andThen identity
         , infixDeclaration
         , functionDeclarationWithoutDocumentation
@@ -326,7 +325,7 @@ functionAfterDocumentation =
 
 functionDeclarationWithoutDocumentation : Parser (WithComments (Node Declaration))
 functionDeclarationWithoutDocumentation =
-    (Parser.map
+    Parser.map
         (\( startNameStartRow, startNameStartColumn ) ->
             \startName ->
                 \commentsAfterStartName ->
@@ -462,7 +461,6 @@ functionDeclarationWithoutDocumentation =
         |. Tokens.equal
         |= Layout.maybeLayout
         |= expression
-    )
         |> Parser.andThen identity
 
 
