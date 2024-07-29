@@ -11,7 +11,7 @@ import Elm.Syntax.Infix as Infix
 import Elm.Syntax.Node as Node exposing (Node(..))
 import Elm.Syntax.Range exposing (Location)
 import Elm.Syntax.Signature exposing (Signature)
-import Parser exposing ((|.), (|=), Nestable(..), Parser)
+import Parser exposing ((|.), (|=), Parser)
 import Parser.Extra
 import ParserWithComments exposing (Comments, WithComments)
 import Rope
@@ -176,16 +176,20 @@ glslEnd =
 
 glslExpression : Parser { comments : Comments, end : Location, expression : Expression }
 glslExpression =
-    Parser.mapChompedString
-        (\s () ->
-            \( endRow, endColumn ) ->
-                { comments = Rope.empty
-                , end = { row = endRow, column = endColumn }
-                , expression =
-                    s |> String.dropLeft glslStartLength |> GLSLExpression
-                }
-        )
-        (Parser.multiComment glslStart glslEnd NotNestable)
+    (Parser.symbol glslStart
+        |> Parser.Extra.continueWith
+            (Parser.mapChompedString
+                (\s () ->
+                    \( endRow, endColumn ) ->
+                        { comments = Rope.empty
+                        , end = { row = endRow, column = endColumn }
+                        , expression =
+                            s |> String.dropLeft glslStartLength |> GLSLExpression
+                        }
+                )
+                (Parser.chompUntil glslEnd)
+            )
+    )
         |. Parser.symbol glslEnd
         |= Parser.getPosition
 
