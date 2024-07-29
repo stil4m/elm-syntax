@@ -246,11 +246,38 @@ functionName =
     Parser.variable
         { inner =
             \c ->
-                -- checking for Char.isAlphaNum early is much faster
-                Char.isAlphaNum c || c == '_' || Unicode.isAlphaNum c
+                -- checking for these common ranges early is much faster
+                charIsAlphaNumFast c || c == '_' || Unicode.isAlphaNum c
         , reserved = reservedList
-        , start = \c -> Char.isLower c || Unicode.isLower c
+        , start =
+            \c -> Char.isLower c || Unicode.isLower c
         }
+
+
+charIsAlphaNumFast : Char -> Bool
+charIsAlphaNumFast char =
+    -- Char.isAlphaNum does not reuse the same Char.toCode and is therefore slightly slower
+    let
+        charCode : Int
+        charCode =
+            char |> Char.toCode
+    in
+    charCodeIsLower charCode || charCodeIsUpper charCode || charCodeIsDigit charCode
+
+
+charCodeIsLower : Int -> Bool
+charCodeIsLower code =
+    0x61 <= code && code <= 0x7A
+
+
+charCodeIsUpper : Int -> Bool
+charCodeIsUpper code =
+    code <= 0x5A && 0x41 <= code
+
+
+charCodeIsDigit : Int -> Bool
+charCodeIsDigit code =
+    code <= 0x39 && 0x30 <= code
 
 
 typeName : Parser.Parser String
@@ -258,10 +285,11 @@ typeName =
     Parser.variable
         { inner =
             \c ->
-                -- checking for Char.isAlphaNum early is much faster
-                Char.isAlphaNum c || c == '_' || Unicode.isAlphaNum c
+                -- checking for these common ranges early is much faster
+                charIsAlphaNumFast c || c == '_' || Unicode.isAlphaNum c
         , reserved = Set.empty
-        , start = \c -> Char.isUpper c || Unicode.isUpper c
+        , start =
+            \c -> Char.isUpper c || Unicode.isUpper c
         }
 
 
