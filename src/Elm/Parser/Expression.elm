@@ -43,8 +43,7 @@ subExpressionsOneOf =
             , literalExpression
             , numberExpression
             , tupledExpression
-            , glslExpression
-            , listExpression
+            , Tokens.squareStart |> Parser.Extra.continueWith expressionAfterOpeningSquareBracket
             , recordExpression
             , caseExpression
             , lambdaExpression
@@ -160,32 +159,21 @@ functionCall =
         )
 
 
-glslStart : String
-glslStart =
-    "[glsl|"
-
-
-glslStartLength : Int
-glslStartLength =
-    String.length glslStart
-
-
 glslEnd : String
 glslEnd =
     "|]"
 
 
-glslExpression : Parser { comments : Comments, end : Location, expression : Expression }
-glslExpression =
-    (Parser.symbol glslStart
+glslExpressionAfterOpeningSquareBracket : Parser { comments : Comments, end : Location, expression : Expression }
+glslExpressionAfterOpeningSquareBracket =
+    (Parser.symbol "glsl|"
         |> Parser.Extra.continueWith
             (Parser.mapChompedString
                 (\s () ->
                     \( endRow, endColumn ) ->
                         { comments = Rope.empty
                         , end = { row = endRow, column = endColumn }
-                        , expression =
-                            s |> String.dropLeft glslStartLength |> GLSLExpression
+                        , expression = GLSLExpression s
                         }
                 )
                 (Parser.chompUntil glslEnd)
@@ -195,53 +183,52 @@ glslExpression =
         |= Parser.getPosition
 
 
-listExpression : Parser { comments : Comments, end : Location, expression : Expression }
-listExpression =
-    (Tokens.squareStart
-        |> Parser.Extra.continueWith
-            (Parser.map
-                (\commentsBefore ->
-                    \maybeElements ->
-                        \( endRow, endColumn ) ->
-                            case maybeElements of
-                                Nothing ->
-                                    { comments = commentsBefore
-                                    , end = { row = endRow, column = endColumn }
-                                    , expression = expressionListEmpty
-                                    }
-
-                                Just elements ->
-                                    { comments = commentsBefore |> Rope.prependTo elements.comments
-                                    , end = { row = endRow, column = endColumn }
-                                    , expression = ListExpr elements.syntax
-                                    }
-                )
-                Layout.maybeLayout
-            )
-    )
-        |= Parser.oneOf
-            [ Parser.map (\() -> Nothing) Tokens.squareEnd
-            , Parser.map
-                (\head ->
-                    \commentsAfterHead ->
-                        \tail ->
-                            Just
-                                { comments =
-                                    head.comments
-                                        |> Rope.prependTo commentsAfterHead
-                                        |> Rope.prependTo tail.comments
-                                , syntax = head.syntax :: tail.syntax
+expressionAfterOpeningSquareBracket : Parser { comments : Comments, end : Location, expression : Expression }
+expressionAfterOpeningSquareBracket =
+    Parser.oneOf
+        [ glslExpressionAfterOpeningSquareBracket
+        , Parser.map
+            (\commentsBefore ->
+                \maybeElements ->
+                    \( endRow, endColumn ) ->
+                        case maybeElements of
+                            Nothing ->
+                                { comments = commentsBefore
+                                , end = { row = endRow, column = endColumn }
+                                , expression = expressionListEmpty
                                 }
-                )
-                expression
-                |= Layout.maybeLayout
-                |= ParserWithComments.many
-                    (Tokens.comma
-                        |> Parser.Extra.continueWith (Layout.maybeAroundBothSides expression)
+
+                            Just elements ->
+                                { comments = commentsBefore |> Rope.prependTo elements.comments
+                                , end = { row = endRow, column = endColumn }
+                                , expression = ListExpr elements.syntax
+                                }
+            )
+            Layout.maybeLayout
+            |= Parser.oneOf
+                [ Parser.map (\() -> Nothing) Tokens.squareEnd
+                , Parser.map
+                    (\head ->
+                        \commentsAfterHead ->
+                            \tail ->
+                                Just
+                                    { comments =
+                                        head.comments
+                                            |> Rope.prependTo commentsAfterHead
+                                            |> Rope.prependTo tail.comments
+                                    , syntax = head.syntax :: tail.syntax
+                                    }
                     )
-                |. Tokens.squareEnd
-            ]
-        |= Parser.getPosition
+                    expression
+                    |= Layout.maybeLayout
+                    |= ParserWithComments.many
+                        (Tokens.comma
+                            |> Parser.Extra.continueWith (Layout.maybeAroundBothSides expression)
+                        )
+                    |. Tokens.squareEnd
+                ]
+            |= Parser.getPosition
+        ]
 
 
 expressionListEmpty : Expression
