@@ -86,37 +86,37 @@ asToken =
 
 ifToken : Parser.Parser ()
 ifToken =
-    Parser.symbol "if"
+    Parser.keyword "if"
 
 
 thenToken : Parser.Parser ()
 thenToken =
-    Parser.symbol "then"
+    Parser.keyword "then"
 
 
 elseToken : Parser.Parser ()
 elseToken =
-    Parser.symbol "else"
+    Parser.keyword "else"
 
 
 caseToken : Parser.Parser ()
 caseToken =
-    Parser.symbol "case"
+    Parser.keyword "case"
 
 
 ofToken : Parser.Parser ()
 ofToken =
-    Parser.symbol "of"
+    Parser.keyword "of"
 
 
 letToken : Parser.Parser ()
 letToken =
-    Parser.symbol "let"
+    Parser.keyword "let"
 
 
 inToken : Parser.Parser ()
 inToken =
-    Parser.symbol "in"
+    Parser.keyword "in"
 
 
 aliasToken : Parser.Parser ()

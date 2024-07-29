@@ -3,6 +3,7 @@ module Elm.Parser.Layout exposing
     , layoutStrict
     , maybeAroundBothSides
     , maybeLayout
+    , moduleLevelIndentation
     , onTopIndentation
     , optimisticLayout
     , positivelyIndented
@@ -178,12 +179,30 @@ layoutStrict =
             (\stateIndent current -> "Expected indent " ++ String.fromInt stateIndent ++ ", got " ++ String.fromInt current)
 
 
+moduleLevelIndentation : res -> Parser res
+moduleLevelIndentation res =
+    Parser.andThen
+        (\column ->
+            if column == 1 then
+                Parser.succeed res
+
+            else
+                problemModuleLevelIndentation
+        )
+        Parser.getCol
+
+
+problemModuleLevelIndentation : Parser.Parser a
+problemModuleLevelIndentation =
+    Parser.problem "must be on module-level indentation"
+
+
 onTopIndentation : res -> Parser res
 onTopIndentation res =
     Parser.map
         (\column ->
             \indent ->
-                if indent == column then
+                if column == indent then
                     Parser.succeed res
 
                 else
