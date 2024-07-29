@@ -38,7 +38,8 @@ subExpressionsOneOf =
         )
         Parser.getPosition
         |= Parser.oneOf
-            [ referenceExpression
+            [ qualifiedReferenceExpression
+            , unqualifiedReferenceExpression
             , literalExpression
             , numberExpression
             , tupledExpression
@@ -904,38 +905,40 @@ problemNegationThenSpace =
     Parser.problem "negation sign cannot be followed by a space"
 
 
-referenceExpression : Parser { comments : Comments, end : Location, expression : Expression }
-referenceExpression =
-    Parser.oneOf
-        [ Parser.map
-            (\firstName ->
-                \after ->
-                    \( endRow, endColumn ) ->
-                        { comments = Rope.empty
-                        , end = { row = endRow, column = endColumn }
-                        , expression =
-                            case after of
-                                Nothing ->
-                                    FunctionOrValue [] firstName
-
-                                Just ( qualificationAfter, unqualified ) ->
-                                    FunctionOrValue (firstName :: qualificationAfter) unqualified
-                        }
-            )
-            Tokens.typeName
-            |= maybeDotReferenceExpressionTuple
-            |= Parser.getPosition
-        , Parser.map
-            (\unqualified ->
+qualifiedReferenceExpression : Parser { comments : Comments, end : Location, expression : Expression }
+qualifiedReferenceExpression =
+    Parser.map
+        (\firstName ->
+            \after ->
                 \( endRow, endColumn ) ->
                     { comments = Rope.empty
                     , end = { row = endRow, column = endColumn }
-                    , expression = FunctionOrValue [] unqualified
+                    , expression =
+                        case after of
+                            Nothing ->
+                                FunctionOrValue [] firstName
+
+                            Just ( qualificationAfter, unqualified ) ->
+                                FunctionOrValue (firstName :: qualificationAfter) unqualified
                     }
-            )
-            Tokens.functionName
-            |= Parser.getPosition
-        ]
+        )
+        Tokens.typeName
+        |= maybeDotReferenceExpressionTuple
+        |= Parser.getPosition
+
+
+unqualifiedReferenceExpression : Parser { comments : Comments, end : Location, expression : Expression }
+unqualifiedReferenceExpression =
+    Parser.map
+        (\unqualified ->
+            \( endRow, endColumn ) ->
+                { comments = Rope.empty
+                , end = { row = endRow, column = endColumn }
+                , expression = FunctionOrValue [] unqualified
+                }
+        )
+        Tokens.functionName
+        |= Parser.getPosition
 
 
 maybeDotReferenceExpressionTuple : Parser.Parser (Maybe ( List String, String ))
