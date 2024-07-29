@@ -144,7 +144,7 @@ dotField =
 
 functionCall : ( Int, Parser (Node Expression -> WithComments (Node Expression)) )
 functionCall =
-    infixLeftWithState 90
+    infixLeftHelp 90
         Layout.positivelyIndented
         (\((Node { start } leftValue) as left) ((Node { end } _) as right) ->
             Node
@@ -1329,17 +1329,6 @@ infixLeftSubtraction precedence =
 infixLeftHelp : Int -> Parser.Parser () -> (Node Expression -> Node Expression -> Node Expression) -> ( Int, Parser (Node Expression -> WithComments (Node Expression)) )
 infixLeftHelp precedence p apply =
     infixHelp precedence precedence p apply
-
-
-infixLeftWithState : Int -> Parser () -> (Node Expression -> Node Expression -> Node Expression) -> ( Int, Parser (Node Expression -> WithComments (Node Expression)) )
-infixLeftWithState precedence operator apply =
-    ( precedence
-    , operator
-        |> Parser.Extra.continueWith
-            (Parser.map (\e -> \left -> { comments = e.comments, syntax = apply left e.syntax })
-                (subExpression precedence)
-            )
-    )
 
 
 infixRightHelp : Int -> Parser.Parser () -> (Node Expression -> Node Expression -> Node Expression) -> ( Int, Parser (Node Expression -> WithComments (Node Expression)) )
