@@ -911,18 +911,16 @@ referenceExpression =
             (\firstName ->
                 \after ->
                     \( endRow, endColumn ) ->
-                        case after of
-                            Nothing ->
-                                { comments = Rope.empty
-                                , end = { row = endRow, column = endColumn }
-                                , expression = FunctionOrValue [] firstName
-                                }
+                        { comments = Rope.empty
+                        , end = { row = endRow, column = endColumn }
+                        , expression =
+                            case after of
+                                Nothing ->
+                                    FunctionOrValue [] firstName
 
-                            Just ( qualificationAfter, unqualified ) ->
-                                { comments = Rope.empty
-                                , end = { row = endRow, column = endColumn }
-                                , expression = FunctionOrValue (firstName :: qualificationAfter) unqualified
-                                }
+                                Just ( qualificationAfter, unqualified ) ->
+                                    FunctionOrValue (firstName :: qualificationAfter) unqualified
+                        }
             )
             Tokens.typeName
             |= maybeDotReferenceExpressionTuple
