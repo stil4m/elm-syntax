@@ -55,7 +55,7 @@ subExpressionsOneOf =
             ]
 
 
-andThenOneOf : List ( Int, Node Expression -> Parser (WithComments (Node Expression)) )
+andThenOneOf : List ( Int, Parser (Node Expression -> WithComments (Node Expression)) )
 andThenOneOf =
     -- TODO Add tests for all operators
     -- TODO Report a syntax error when encountering multiple of the comparison operators
@@ -97,7 +97,7 @@ expression =
     subExpression 0
 
 
-recordAccess : ( Int, Node Expression -> Parser (WithComments (Node Expression)) )
+recordAccess : ( Int, Parser (Node Expression -> WithComments (Node Expression)) )
 recordAccess =
     postfix 100
         recordAccessParser
@@ -142,7 +142,7 @@ dotField =
         |= Tokens.functionName
 
 
-functionCall : ( Int, Node Expression -> Parser (WithComments (Node Expression)) )
+functionCall : ( Int, Parser (Node Expression -> WithComments (Node Expression)) )
 functionCall =
     infixLeftWithState 90
         Layout.positivelyIndented
@@ -1116,8 +1116,7 @@ expressionHelp currentPrecedence leftExpression =
                 )
                 Layout.optimisticLayout
                 |= Parser.oneOf
-                    [ Parser.map Just
-                        (combineOneOfApply parser leftExpression.syntax)
+                    [ justCombineOneOfApply parser leftExpression.syntax
                     , parserSucceedNothing
                     ]
 
@@ -1130,19 +1129,19 @@ parserSucceedNothing =
     Parser.succeed Nothing
 
 
-combineOneOfApply :
-    List (arg -> Parser (WithComments arg))
+justCombineOneOfApply :
+    List (Parser (arg -> WithComments arg))
     -> arg
-    -> Parser (WithComments arg)
-combineOneOfApply possibilitiesForCurrentPrecedence leftExpression =
+    -> Parser (Maybe (WithComments arg))
+justCombineOneOfApply possibilitiesForCurrentPrecedence leftExpression =
     Parser.oneOf
         (List.map
-            (\parser -> parser leftExpression)
+            (\parser -> parser |> Parser.map (\f -> Just (f leftExpression)))
             possibilitiesForCurrentPrecedence
         )
 
 
-getAndThenOneOfAbovePrecedence : Int -> Maybe (List (Node Expression -> Parser (WithComments (Node Expression))))
+getAndThenOneOfAbovePrecedence : Int -> Maybe (List (Parser (Node Expression -> WithComments (Node Expression))))
 getAndThenOneOfAbovePrecedence precedence =
     case precedence of
         0 ->
@@ -1188,72 +1187,72 @@ getAndThenOneOfAbovePrecedence precedence =
             Nothing
 
 
-justAndThenOneOfAbovePrecedence0 : Maybe (List (Node Expression -> Parser (WithComments (Node Expression))))
+justAndThenOneOfAbovePrecedence0 : Maybe (List (Parser (Node Expression -> WithComments (Node Expression))))
 justAndThenOneOfAbovePrecedence0 =
     Just (computeAndThenOneOfAbovePrecedence 0)
 
 
-justAndThenOneOfAbovePrecedence1 : Maybe (List (Node Expression -> Parser (WithComments (Node Expression))))
+justAndThenOneOfAbovePrecedence1 : Maybe (List (Parser (Node Expression -> WithComments (Node Expression))))
 justAndThenOneOfAbovePrecedence1 =
     Just (computeAndThenOneOfAbovePrecedence 1)
 
 
-justAndThenOneOfAbovePrecedence2 : Maybe (List (Node Expression -> Parser (WithComments (Node Expression))))
+justAndThenOneOfAbovePrecedence2 : Maybe (List (Parser (Node Expression -> WithComments (Node Expression))))
 justAndThenOneOfAbovePrecedence2 =
     Just (computeAndThenOneOfAbovePrecedence 2)
 
 
-justAndThenOneOfAbovePrecedence3 : Maybe (List (Node Expression -> Parser (WithComments (Node Expression))))
+justAndThenOneOfAbovePrecedence3 : Maybe (List (Parser (Node Expression -> WithComments (Node Expression))))
 justAndThenOneOfAbovePrecedence3 =
     Just (computeAndThenOneOfAbovePrecedence 3)
 
 
-justAndThenOneOfAbovePrecedence4 : Maybe (List (Node Expression -> Parser (WithComments (Node Expression))))
+justAndThenOneOfAbovePrecedence4 : Maybe (List (Parser (Node Expression -> WithComments (Node Expression))))
 justAndThenOneOfAbovePrecedence4 =
     Just (computeAndThenOneOfAbovePrecedence 4)
 
 
-justAndThenOneOfAbovePrecedence5 : Maybe (List (Node Expression -> Parser (WithComments (Node Expression))))
+justAndThenOneOfAbovePrecedence5 : Maybe (List (Parser (Node Expression -> WithComments (Node Expression))))
 justAndThenOneOfAbovePrecedence5 =
     Just (computeAndThenOneOfAbovePrecedence 5)
 
 
-justAndThenOneOfAbovePrecedence6 : Maybe (List (Node Expression -> Parser (WithComments (Node Expression))))
+justAndThenOneOfAbovePrecedence6 : Maybe (List (Parser (Node Expression -> WithComments (Node Expression))))
 justAndThenOneOfAbovePrecedence6 =
     Just (computeAndThenOneOfAbovePrecedence 6)
 
 
-justAndThenOneOfAbovePrecedence7 : Maybe (List (Node Expression -> Parser (WithComments (Node Expression))))
+justAndThenOneOfAbovePrecedence7 : Maybe (List (Parser (Node Expression -> WithComments (Node Expression))))
 justAndThenOneOfAbovePrecedence7 =
     Just (computeAndThenOneOfAbovePrecedence 7)
 
 
-justAndThenOneOfAbovePrecedence8 : Maybe (List (Node Expression -> Parser (WithComments (Node Expression))))
+justAndThenOneOfAbovePrecedence8 : Maybe (List (Parser (Node Expression -> WithComments (Node Expression))))
 justAndThenOneOfAbovePrecedence8 =
     Just (computeAndThenOneOfAbovePrecedence 8)
 
 
-justAndThenOneOfAbovePrecedence9 : Maybe (List (Node Expression -> Parser (WithComments (Node Expression))))
+justAndThenOneOfAbovePrecedence9 : Maybe (List (Parser (Node Expression -> WithComments (Node Expression))))
 justAndThenOneOfAbovePrecedence9 =
     Just (computeAndThenOneOfAbovePrecedence 9)
 
 
-justAndThenOneOfAbovePrecedence90 : Maybe (List (Node Expression -> Parser (WithComments (Node Expression))))
+justAndThenOneOfAbovePrecedence90 : Maybe (List (Parser (Node Expression -> WithComments (Node Expression))))
 justAndThenOneOfAbovePrecedence90 =
     Just (computeAndThenOneOfAbovePrecedence 90)
 
 
-justAndThenOneOfAbovePrecedence95 : Maybe (List (Node Expression -> Parser (WithComments (Node Expression))))
+justAndThenOneOfAbovePrecedence95 : Maybe (List (Parser (Node Expression -> WithComments (Node Expression))))
 justAndThenOneOfAbovePrecedence95 =
     Just (computeAndThenOneOfAbovePrecedence 95)
 
 
-justAndThenOneOfAbovePrecedence100 : Maybe (List (Node Expression -> Parser (WithComments (Node Expression))))
+justAndThenOneOfAbovePrecedence100 : Maybe (List (Parser (Node Expression -> WithComments (Node Expression))))
 justAndThenOneOfAbovePrecedence100 =
     Just (computeAndThenOneOfAbovePrecedence 100)
 
 
-computeAndThenOneOfAbovePrecedence : Int -> List (Node Expression -> Parser (WithComments (Node Expression)))
+computeAndThenOneOfAbovePrecedence : Int -> List (Parser (Node Expression -> WithComments (Node Expression)))
 computeAndThenOneOfAbovePrecedence currentPrecedence =
     andThenOneOf
         |> List.filterMap
@@ -1266,7 +1265,7 @@ computeAndThenOneOfAbovePrecedence currentPrecedence =
             )
 
 
-infixLeft : Int -> String -> ( Int, Node Expression -> Parser (WithComments (Node Expression)) )
+infixLeft : Int -> String -> ( Int, Parser (Node Expression -> WithComments (Node Expression)) )
 infixLeft precedence symbol =
     infixLeftHelp precedence
         (Parser.symbol symbol)
@@ -1277,7 +1276,7 @@ infixLeft precedence symbol =
         )
 
 
-infixNonAssociative : Int -> String -> ( Int, Node Expression -> Parser (WithComments (Node Expression)) )
+infixNonAssociative : Int -> String -> ( Int, Parser (Node Expression -> WithComments (Node Expression)) )
 infixNonAssociative precedence symbol =
     infixLeftHelp precedence
         (Parser.symbol symbol)
@@ -1288,7 +1287,7 @@ infixNonAssociative precedence symbol =
         )
 
 
-infixRight : Int -> String -> ( Int, Node Expression -> Parser (WithComments (Node Expression)) )
+infixRight : Int -> String -> ( Int, Parser (Node Expression -> WithComments (Node Expression)) )
 infixRight precedence symbol =
     infixRightHelp precedence
         (Parser.symbol symbol)
@@ -1306,7 +1305,7 @@ lookBehindOneCharacter =
         |= Parser.getSource
 
 
-infixLeftSubtraction : Int -> ( Int, Node Expression -> Parser (WithComments (Node Expression)) )
+infixLeftSubtraction : Int -> ( Int, Parser (Node Expression -> WithComments (Node Expression)) )
 infixLeftSubtraction precedence =
     infixLeftHelp precedence
         (lookBehindOneCharacter
@@ -1327,61 +1326,49 @@ infixLeftSubtraction precedence =
         )
 
 
-infixLeftHelp : Int -> Parser.Parser () -> (Node Expression -> Node Expression -> Node Expression) -> ( Int, Node Expression -> Parser (WithComments (Node Expression)) )
+infixLeftHelp : Int -> Parser.Parser () -> (Node Expression -> Node Expression -> Node Expression) -> ( Int, Parser (Node Expression -> WithComments (Node Expression)) )
 infixLeftHelp precedence p apply =
     infixHelp precedence precedence p apply
 
 
-infixLeftWithState : Int -> Parser () -> (Node Expression -> Node Expression -> Node Expression) -> ( Int, Node Expression -> Parser (WithComments (Node Expression)) )
+infixLeftWithState : Int -> Parser () -> (Node Expression -> Node Expression -> Node Expression) -> ( Int, Parser (Node Expression -> WithComments (Node Expression)) )
 infixLeftWithState precedence operator apply =
-    let
-        parser : Parser (WithComments (Node Expression))
-        parser =
-            subExpression precedence
-    in
     ( precedence
-    , \left ->
-        operator
-            |> Parser.Extra.continueWith
-                (Parser.map (\e -> { comments = e.comments, syntax = apply left e.syntax })
-                    parser
-                )
+    , operator
+        |> Parser.Extra.continueWith
+            (Parser.map (\e -> \left -> { comments = e.comments, syntax = apply left e.syntax })
+                (subExpression precedence)
+            )
     )
 
 
-infixRightHelp : Int -> Parser.Parser () -> (Node Expression -> Node Expression -> Node Expression) -> ( Int, Node Expression -> Parser (WithComments (Node Expression)) )
+infixRightHelp : Int -> Parser.Parser () -> (Node Expression -> Node Expression -> Node Expression) -> ( Int, Parser (Node Expression -> WithComments (Node Expression)) )
 infixRightHelp precedence p apply =
     -- To get right associativity, we use (precedence - 1) for the
     -- right precedence.
     infixHelp precedence (precedence - 1) p apply
 
 
-infixHelp : Int -> Int -> Parser.Parser () -> (Node Expression -> Node Expression -> Node Expression) -> ( Int, Node Expression -> Parser (WithComments (Node Expression)) )
+infixHelp : Int -> Int -> Parser.Parser () -> (Node Expression -> Node Expression -> Node Expression) -> ( Int, Parser (Node Expression -> WithComments (Node Expression)) )
 infixHelp leftPrecedence rightPrecedence operator apply =
-    let
-        parser : Parser (WithComments (Node Expression))
-        parser =
-            subExpression rightPrecedence
-    in
     ( leftPrecedence
-    , \left ->
-        operator
-            |> Parser.Extra.continueWith
-                (Parser.map (\e -> { comments = e.comments, syntax = apply left e.syntax })
-                    parser
-                )
+    , operator
+        |> Parser.Extra.continueWith
+            (Parser.map (\e -> \left -> { comments = e.comments, syntax = apply left e.syntax })
+                (subExpression rightPrecedence)
+            )
     )
 
 
-postfix : Int -> Parser a -> (expr -> a -> expr) -> ( Int, expr -> Parser (WithComments expr) )
+postfix : Int -> Parser a -> (expr -> a -> expr) -> ( Int, Parser (expr -> WithComments expr) )
 postfix precedence operator apply =
     ( precedence
-    , \left ->
-        Parser.map
-            (\right ->
+    , Parser.map
+        (\right ->
+            \left ->
                 { comments = Rope.empty
                 , syntax = apply left right
                 }
-            )
-            operator
+        )
+        operator
     )
