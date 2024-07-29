@@ -1116,7 +1116,8 @@ expressionHelp currentPrecedence leftExpression =
                 )
                 Layout.optimisticLayout
                 |= Parser.oneOf
-                    [ justCombineOneOfApply parser leftExpression.syntax
+                    [ Parser.oneOf parser
+                        |> Parser.map (\f -> Just (f leftExpression.syntax))
                     , parserSucceedNothing
                     ]
 
@@ -1127,18 +1128,6 @@ expressionHelp currentPrecedence leftExpression =
 parserSucceedNothing : Parser (Maybe a)
 parserSucceedNothing =
     Parser.succeed Nothing
-
-
-justCombineOneOfApply :
-    List (Parser (arg -> WithComments arg))
-    -> arg
-    -> Parser (Maybe (WithComments arg))
-justCombineOneOfApply possibilitiesForCurrentPrecedence leftExpression =
-    Parser.oneOf
-        (List.map
-            (\parser -> parser |> Parser.map (\f -> Just (f leftExpression)))
-            possibilitiesForCurrentPrecedence
-        )
 
 
 getAndThenOneOfAbovePrecedence : Int -> Maybe (List (Parser (Node Expression -> WithComments (Node Expression))))
