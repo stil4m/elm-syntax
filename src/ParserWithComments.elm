@@ -3,7 +3,6 @@ module ParserWithComments exposing
     , WithComments
     , many
     , manyWithoutReverse
-    , sepBy
     , sepBy1
     , until
     , untilWithoutReverse
@@ -168,27 +167,6 @@ manyWithoutReverse p =
 listEmptyWithComments : WithComments (List b)
 listEmptyWithComments =
     { comments = Rope.empty, syntax = [] }
-
-
-sepBy : String -> Parser (WithComments a) -> Parser (WithComments (List a))
-sepBy sep p =
-    Parser.oneOf
-        [ Parser.map
-            (\head ->
-                \tail ->
-                    { comments = head.comments |> Rope.prependTo tail.comments
-                    , syntax = head.syntax :: tail.syntax
-                    }
-            )
-            p
-            |= many (Parser.symbol sep |> Parser.Extra.continueWith p)
-        , parserSucceedListEmptyWithComments
-        ]
-
-
-parserSucceedListEmptyWithComments : Parser (WithComments (List a))
-parserSucceedListEmptyWithComments =
-    Parser.succeed { comments = Rope.empty, syntax = [] }
 
 
 sepBy1 : String -> Parser (WithComments a) -> Parser (WithComments (List a))
