@@ -812,6 +812,12 @@ type Color = Blue String | Red | Green"""
             \() ->
                 parse "type Maybe a = Just a |\nNothing" Elm.Parser.Declarations.declaration
                     |> Expect.equal Nothing
+        , test "fail if declarations not on module-level" <|
+            \() ->
+                """a = f
+    3
+    b = 4"""
+                    |> expectInvalid
         , test "regression test for disallowing ( +)" <|
             \() ->
                 "a = ( +)"
