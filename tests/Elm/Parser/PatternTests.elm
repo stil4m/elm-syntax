@@ -14,7 +14,17 @@ all =
         [ test "Unit" <|
             \() ->
                 "()"
-                    |> expectAst (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 3 } } UnitPattern)
+                    |> expectAst
+                        (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 3 } } UnitPattern)
+        , test "Unit with inner layout" <|
+            \() ->
+                """(
+   -- comment
+   )"""
+                    |> expectAstWithComments Parser.pattern
+                        { ast = Node { start = { row = 1, column = 1 }, end = { row = 3, column = 5 } } UnitPattern
+                        , comments = [ Node { start = { row = 2, column = 4 }, end = { row = 2, column = 14 } } "-- comment" ]
+                        }
         , test "String" <|
             \() ->
                 "\"Foo\""
