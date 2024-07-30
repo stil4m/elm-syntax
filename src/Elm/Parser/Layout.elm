@@ -94,13 +94,7 @@ fromSingleLineCommentNode =
 maybeLayout : Parser Comments
 maybeLayout =
     whitespaceAndCommentsOrEmpty
-        |. verifyLayoutIndent
-
-
-verifyLayoutIndent : Parser ()
-verifyLayoutIndent =
-    verifyIndent (\stateIndent current -> stateIndent < current)
-        (\stateIndent current -> "Expected indent larger than " ++ String.fromInt stateIndent ++ ", got " ++ String.fromInt current)
+        |. positivelyIndented
 
 
 positivelyIndented : Parser.Parser ()
@@ -119,6 +113,11 @@ positivelyIndented =
         |> Parser.andThen identity
 
 
+succeedUnit : Parser ()
+succeedUnit =
+    Parser.succeed ()
+
+
 problemPositivelyIndented : Parser a
 problemPositivelyIndented =
     Parser.problem "must be positively indented"
@@ -130,7 +129,7 @@ layout =
         [ (whitespace
             |> Parser.andThen (\_ -> fromCommentElseEmpty)
           )
-            |. verifyLayoutIndent
+            |. positivelyIndented
         , -- below will never run with elm-format-ed code
           Parser.map
             (\source ->
@@ -154,12 +153,12 @@ layout =
 
 fromSingleLineCommentNodeVerifyLayoutIndent : Parser Comments
 fromSingleLineCommentNodeVerifyLayoutIndent =
-    fromSingleLineCommentNode |. verifyLayoutIndent
+    fromSingleLineCommentNode |. positivelyIndented
 
 
 fromMultilineCommentNodeOrEmptyOnProblemVerifyLayoutIndent : Parser Comments
 fromMultilineCommentNodeOrEmptyOnProblemVerifyLayoutIndent =
-    fromMultilineCommentNodeOrEmptyOnProblem |. verifyLayoutIndent
+    fromMultilineCommentNodeOrEmptyOnProblem |. positivelyIndented
 
 
 problemMissingWhitespaceOrComments : Parser a
@@ -220,27 +219,6 @@ onTopIndentation res =
 problemTopIndentation : Parser.Parser a
 problemTopIndentation =
     Parser.problem "must be on top indentation"
-
-
-verifyIndent : (Int -> Int -> Bool) -> (Int -> Int -> String) -> Parser ()
-verifyIndent verify failMessage =
-    Parser.map
-        (\column ->
-            \indent ->
-                if verify indent column then
-                    succeedUnit
-
-                else
-                    Parser.problem (failMessage indent column)
-        )
-        Parser.getCol
-        |= Parser.getIndent
-        |> Parser.andThen identity
-
-
-succeedUnit : Parser ()
-succeedUnit =
-    Parser.succeed ()
 
 
 maybeAroundBothSides : Parser (WithComments b) -> Parser (WithComments b)
