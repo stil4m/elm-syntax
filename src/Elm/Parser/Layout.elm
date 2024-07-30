@@ -175,8 +175,7 @@ optimisticLayout =
 layoutStrict : Parser Comments
 layoutStrict =
     optimisticLayout
-        |. verifyIndent (\stateIndent current -> stateIndent == current)
-            (\stateIndent current -> "Expected indent " ++ String.fromInt stateIndent ++ ", got " ++ String.fromInt current)
+        |. onTopIndentation ()
 
 
 moduleLevelIndentation : res -> Parser res
