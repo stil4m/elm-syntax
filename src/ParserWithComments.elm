@@ -32,14 +32,14 @@ many p =
                         ( Comments, List a )
                         (WithComments (List a))
                     )
-        manyWithoutReverseStep ( commentsSoFar, items ) =
+        manyWithoutReverseStep ( commentsSoFar, itemsSoFar ) =
             Parser.oneOf
                 [ p
                     |> Parser.map
                         (\pResult ->
                             Parser.Loop
                                 ( commentsSoFar |> Rope.prependTo pResult.comments
-                                , pResult.syntax :: items
+                                , pResult.syntax :: itemsSoFar
                                 )
                         )
                 , Parser.lazy
@@ -47,13 +47,18 @@ many p =
                         Parser.succeed
                             (Parser.Done
                                 { comments = commentsSoFar
-                                , syntax = List.reverse items
+                                , syntax = List.reverse itemsSoFar
                                 }
                             )
                     )
                 ]
     in
-    Parser.loop tupleRopeEmptyListEmpty manyWithoutReverseStep
+    Parser.loop listEmptyWithCommentsTuple manyWithoutReverseStep
+
+
+listEmptyWithCommentsTuple : ( Rope a, List b )
+listEmptyWithCommentsTuple =
+    ( Rope.empty, [] )
 
 
 {-| Same as [`many`](#many), except that it doesn't reverse the list.
@@ -66,40 +71,32 @@ manyWithoutReverse : Parser (WithComments a) -> Parser (WithComments (List a))
 manyWithoutReverse p =
     let
         manyWithoutReverseStep :
-            ( Comments, List a )
+            WithComments (List a)
             ->
                 Parser.Parser
                     (Parser.Step
-                        ( Comments, List a )
+                        (WithComments (List a))
                         (WithComments (List a))
                     )
-        manyWithoutReverseStep ( commentsSoFar, items ) =
+        manyWithoutReverseStep soFar =
             Parser.oneOf
                 [ p
                     |> Parser.map
                         (\pResult ->
                             Parser.Loop
-                                ( commentsSoFar |> Rope.prependTo pResult.comments
-                                , pResult.syntax :: items
-                                )
-                        )
-                , Parser.lazy
-                    (\() ->
-                        Parser.succeed
-                            (Parser.Done
-                                { comments = commentsSoFar
-                                , syntax = items
+                                { comments = soFar.comments |> Rope.prependTo pResult.comments
+                                , syntax = pResult.syntax :: soFar.syntax
                                 }
-                            )
-                    )
+                        )
+                , Parser.succeed (Parser.Done soFar)
                 ]
     in
-    Parser.loop tupleRopeEmptyListEmpty manyWithoutReverseStep
+    Parser.loop listEmptyWithComments manyWithoutReverseStep
 
 
-tupleRopeEmptyListEmpty : ( Rope a, List b )
-tupleRopeEmptyListEmpty =
-    ( Rope.empty, [] )
+listEmptyWithComments : WithComments (List b)
+listEmptyWithComments =
+    { comments = Rope.empty, syntax = [] }
 
 
 sepBy : String -> Parser (WithComments a) -> Parser (WithComments (List a))
