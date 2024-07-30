@@ -17,8 +17,8 @@ composedWith =
     Parser.map
         (\commentsBefore composedWithResult ->
             case composedWithResult of
-                PatternComposedWithNothing ->
-                    PatternComposedWithNothing
+                PatternComposedWithNothing () ->
+                    PatternComposedWithNothing ()
 
                 PatternComposedWithAs composedWithAs ->
                     PatternComposedWithAs
@@ -67,12 +67,12 @@ composedWith =
                     )
               )
                 |= pattern
-            , Parser.succeed PatternComposedWithNothing
+            , Parser.succeed (PatternComposedWithNothing ())
             ]
 
 
 type PatternComposedWith
-    = PatternComposedWithNothing
+    = PatternComposedWithNothing ()
     | PatternComposedWithAs (WithComments (Node String))
     | PatternComposedWithCons (WithComments (Node Pattern))
 
@@ -88,7 +88,7 @@ composablePatternTryToCompose =
         (\x ->
             \maybeComposedWith ->
                 case maybeComposedWith of
-                    PatternComposedWithNothing ->
+                    PatternComposedWithNothing () ->
                         x
 
                     PatternComposedWithAs anotherName ->

@@ -1188,9 +1188,13 @@ applyExtensionRight extensionRight ((Node { start } left) as leftNode) =
                     )
                 )
 
-        ExtendRightByOperation symbol direction ((Node { end } _) as right) ->
+        ExtendRightByOperation extendRightOperation ->
+            let
+                ((Node { end } _) as right) =
+                    extendRightOperation.expression
+            in
             Node { start = start, end = end }
-                (OperatorApplication symbol direction leftNode right)
+                (OperatorApplication extendRightOperation.symbol extendRightOperation.direction leftNode right)
 
 
 abovePrecedence0 : Parser (WithComments ExtensionRight)
@@ -1268,7 +1272,7 @@ infixLeft precedence possibilitiesForPrecedence symbol =
         possibilitiesForPrecedence
         (Parser.symbol symbol)
         (\right ->
-            ExtendRightByOperation symbol Infix.Left right
+            ExtendRightByOperation { symbol = symbol, direction = Infix.Left, expression = right }
         )
 
 
@@ -1278,7 +1282,7 @@ infixNonAssociative precedence possibilitiesForPrecedence symbol =
         possibilitiesForPrecedence
         (Parser.symbol symbol)
         (\right ->
-            ExtendRightByOperation symbol Infix.Non right
+            ExtendRightByOperation { symbol = symbol, direction = Infix.Non, expression = right }
         )
 
 
@@ -1291,7 +1295,7 @@ infixRight precedence possibilitiesForPrecedenceMinus1 symbol =
         possibilitiesForPrecedenceMinus1
         (Parser.symbol symbol)
         (\right ->
-            ExtendRightByOperation symbol Infix.Right right
+            ExtendRightByOperation { symbol = symbol, direction = Infix.Right, expression = right }
         )
 
 
@@ -1318,7 +1322,7 @@ infixLeftSubtraction precedence possibilitiesForPrecedence =
                 )
         )
         (\right ->
-            ExtendRightByOperation "-" Infix.Left right
+            ExtendRightByOperation { symbol = "-", direction = Infix.Left, expression = right }
         )
 
 
@@ -1357,6 +1361,6 @@ postfix precedence operator apply =
 
 
 type ExtensionRight
-    = ExtendRightByOperation String Infix.InfixDirection (Node Expression)
+    = ExtendRightByOperation { symbol : String, direction : Infix.InfixDirection, expression : Node Expression }
     | ExtendRightByApplication (Node Expression)
     | ExtendRightByRecordAccess (Node String)
