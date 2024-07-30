@@ -665,6 +665,42 @@ all =
                                 )
                             )
                         )
+        , test "fail if `then` not positively indented" <|
+            \() ->
+                """let
+    x =
+        if True
+   then  1 else 0
+in
+x"""
+                    |> expectInvalid
+        , test "fail if if-true-branch not positively indented" <|
+            \() ->
+                """let
+    x =
+        if True then
+    1   else 0
+in
+x"""
+                    |> expectInvalid
+        , test "fail if `else` not positively indented" <|
+            \() ->
+                """let
+    x =
+        if True then 1
+   else 0
+in
+x"""
+                    |> expectInvalid
+        , test "fail if if-false-branch not positively indented" <|
+            \() ->
+                """let
+    x =
+        if True then 1 else
+    0
+in
+x"""
+                    |> expectInvalid
         ]
 
 
