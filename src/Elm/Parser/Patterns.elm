@@ -142,7 +142,7 @@ parensPattern =
                         |= Layout.maybeLayout
                         |= ParserWithComments.until Tokens.parensEnd
                             (Tokens.comma |> Parser.Extra.continueWith (Layout.maybeAroundBothSides pattern))
-                    , Parser.succeed { comments = Rope.empty, syntax = UnitPattern }
+                    , Parser.map (\() -> { comments = Rope.empty, syntax = UnitPattern }) Tokens.parensEnd
                     ]
             )
 
