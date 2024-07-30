@@ -179,10 +179,15 @@ layoutStrict =
 
 moduleLevelIndentation : res -> Parser res
 moduleLevelIndentation res =
+    let
+        succeedRes : Parser res
+        succeedRes =
+            Parser.succeed res
+    in
     Parser.andThen
         (\column ->
             if column == 1 then
-                Parser.succeed res
+                succeedRes
 
             else
                 problemModuleLevelIndentation
