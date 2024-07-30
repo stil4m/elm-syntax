@@ -7,6 +7,7 @@ module Elm.Parser.Layout exposing
     , onTopIndentation
     , optimisticLayout
     , positivelyIndented
+    , positivelyIndentedPlus
     )
 
 import Elm.Parser.Comments as Comments
@@ -95,6 +96,25 @@ maybeLayout : Parser Comments
 maybeLayout =
     whitespaceAndCommentsOrEmpty
         |. positivelyIndented
+
+
+{-| Use to check that the indentation of an already parsed token
+would be valid for [`positivelyIndented`](#positivelyIndented)
+-}
+positivelyIndentedPlus : Int -> Parser.Parser ()
+positivelyIndentedPlus extraIndent =
+    Parser.map
+        (\column ->
+            \indent ->
+                if column > indent + extraIndent then
+                    succeedUnit
+
+                else
+                    problemPositivelyIndented
+        )
+        Parser.getCol
+        |= Parser.getIndent
+        |> Parser.andThen identity
 
 
 positivelyIndented : Parser.Parser ()

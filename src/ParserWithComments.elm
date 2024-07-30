@@ -5,6 +5,7 @@ module ParserWithComments exposing
     , manyWithoutReverse
     , sepBy
     , sepBy1
+    , until
     )
 
 import Elm.Syntax.Node exposing (Node)
@@ -19,6 +20,42 @@ type alias WithComments res =
 
 type alias Comments =
     Rope (Node String)
+
+
+until : Parser () -> Parser (WithComments a) -> Parser (WithComments (List a))
+until end p =
+    let
+        manyWithoutReverseStep :
+            ( Comments, List a )
+            ->
+                Parser.Parser
+                    (Parser.Step
+                        ( Comments, List a )
+                        (WithComments (List a))
+                    )
+        manyWithoutReverseStep ( commentsSoFar, itemsSoFar ) =
+            Parser.oneOf
+                [ p
+                    |> Parser.map
+                        (\pResult ->
+                            Parser.Loop
+                                ( commentsSoFar |> Rope.prependTo pResult.comments
+                                , pResult.syntax :: itemsSoFar
+                                )
+                        )
+                , end
+                    |> Parser.andThen
+                        (\() ->
+                            Parser.succeed
+                                (Parser.Done
+                                    { comments = commentsSoFar
+                                    , syntax = List.reverse itemsSoFar
+                                    }
+                                )
+                        )
+                ]
+    in
+    Parser.loop listEmptyWithCommentsTuple manyWithoutReverseStep
 
 
 many : Parser (WithComments a) -> Parser (WithComments (List a))

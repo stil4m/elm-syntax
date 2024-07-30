@@ -9,6 +9,7 @@ import Elm.Parser.TypeAnnotation as TypeAnnotation
 import Elm.Syntax.Expression as Expression exposing (Case, Expression(..), LetDeclaration(..), RecordSetter)
 import Elm.Syntax.Infix as Infix
 import Elm.Syntax.Node as Node exposing (Node(..))
+import Elm.Syntax.Pattern exposing (Pattern)
 import Elm.Syntax.Range exposing (Location)
 import Elm.Syntax.Signature exposing (Signature)
 import Parser exposing ((|.), (|=), Parser)
@@ -436,8 +437,8 @@ lambdaExpression =
             (Parser.map
                 (\commentsAfterBackslash ->
                     \firstArg ->
-                        \secondUpArgs ->
-                            \commentsBeforeArrowRight ->
+                        \commentsAfterFirstArg ->
+                            \secondUpArgs ->
                                 \expressionResult ->
                                     let
                                         (Node { end } _) =
@@ -446,8 +447,8 @@ lambdaExpression =
                                     { comments =
                                         commentsAfterBackslash
                                             |> Rope.prependTo firstArg.comments
+                                            |> Rope.prependTo commentsAfterFirstArg
                                             |> Rope.prependTo secondUpArgs.comments
-                                            |> Rope.prependTo commentsBeforeArrowRight
                                             |> Rope.prependTo expressionResult.comments
                                     , end = end
                                     , expression =
@@ -461,19 +462,20 @@ lambdaExpression =
             )
     )
         |= Patterns.pattern
-        |= ParserWithComments.many
+        |= Layout.maybeLayout
+        |= ParserWithComments.until Tokens.arrowRight
             (Parser.map
-                (\commentsBefore ->
-                    \patternResult ->
-                        { comments = commentsBefore |> Rope.prependTo patternResult.comments
+                (\patternResult ->
+                    \commentsAfter ->
+                        { comments =
+                            patternResult.comments
+                                |> Rope.prependTo commentsAfter
                         , syntax = patternResult.syntax
                         }
                 )
-                Layout.maybeLayout
-                |= Patterns.pattern
+                Patterns.pattern
+                |= Layout.maybeLayout
             )
-        |= Layout.maybeLayout
-        |. Tokens.arrowRight
         |= expression
 
 
@@ -609,15 +611,16 @@ letExpression =
                     Layout.maybeLayout
                 )
          )
-            |= Parser.Extra.withIndent letDeclarations
-            |. Tokens.inToken
+            |= Parser.Extra.withIndent letDeclarationsIn
         )
-        |= Layout.optimisticLayout
+        -- check that the `in` token used as the end parser in letDeclarationsIn is indented correctly
+        |. Layout.positivelyIndentedPlus 2
+        |= Layout.maybeLayout
         |= expression
 
 
-letDeclarations : Parser (WithComments (List (Node LetDeclaration)))
-letDeclarations =
+letDeclarationsIn : Parser (WithComments (List (Node LetDeclaration)))
+letDeclarationsIn =
     Layout.onTopIndentation
         (\headLetResult ->
             \commentsAfter ->
@@ -634,7 +637,7 @@ letDeclarations =
             , letDestructuringDeclaration
             ]
         |= Layout.optimisticLayout
-        |= ParserWithComments.many blockElement
+        |= ParserWithComments.until Tokens.inToken blockElement
 
 
 blockElement : Parser (WithComments (Node LetDeclaration))
@@ -800,21 +803,25 @@ letFunction =
                 |= Layout.maybeLayout
             , Parser.succeed Nothing
             ]
-        |= ParserWithComments.many
-            (Parser.map
-                (\patternResult ->
-                    \commentsAfterPattern ->
-                        { comments = patternResult.comments |> Rope.prependTo commentsAfterPattern
-                        , syntax = patternResult.syntax
-                        }
-                )
-                Patterns.pattern
-                |= Layout.maybeLayout
-            )
-        |. Tokens.equal
+        |= parameterPatternsEqual
         |= Layout.maybeLayout
         |= expression
         |> Parser.andThen identity
+
+
+parameterPatternsEqual : Parser (WithComments (List (Node Pattern)))
+parameterPatternsEqual =
+    ParserWithComments.until Tokens.equal
+        (Parser.map
+            (\patternResult ->
+                \commentsAfterPattern ->
+                    { comments = patternResult.comments |> Rope.prependTo commentsAfterPattern
+                    , syntax = patternResult.syntax
+                    }
+            )
+            Patterns.pattern
+            |= Layout.maybeLayout
+        )
 
 
 numberExpression : Parser { comments : Comments, end : Location, expression : Expression }

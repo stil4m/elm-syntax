@@ -307,18 +307,7 @@ functionAfterDocumentation =
                 |= Layout.maybeLayout
             , Parser.succeed Nothing
             ]
-        |= ParserWithComments.many
-            (Parser.map
-                (\patternResult ->
-                    \commentsAfterPattern ->
-                        { comments = patternResult.comments |> Rope.prependTo commentsAfterPattern
-                        , syntax = patternResult.syntax
-                        }
-                )
-                Patterns.pattern
-                |= Layout.maybeLayout
-            )
-        |. Tokens.equal
+        |= parameterPatternsEqual
         |= Layout.maybeLayout
         |= expression
 
@@ -447,21 +436,25 @@ functionDeclarationWithoutDocumentation =
                 |= Layout.maybeLayout
             , Parser.succeed Nothing
             ]
-        |= ParserWithComments.many
-            (Parser.map
-                (\patternResult ->
-                    \commentsAfterPattern ->
-                        { comments = patternResult.comments |> Rope.prependTo commentsAfterPattern
-                        , syntax = patternResult.syntax
-                        }
-                )
-                Patterns.pattern
-                |= Layout.maybeLayout
-            )
-        |. Tokens.equal
+        |= parameterPatternsEqual
         |= Layout.maybeLayout
         |= expression
         |> Parser.andThen identity
+
+
+parameterPatternsEqual : Parser (WithComments (List (Node Pattern)))
+parameterPatternsEqual =
+    ParserWithComments.until Tokens.equal
+        (Parser.map
+            (\patternResult ->
+                \commentsAfterPattern ->
+                    { comments = patternResult.comments |> Rope.prependTo commentsAfterPattern
+                    , syntax = patternResult.syntax
+                    }
+            )
+            Patterns.pattern
+            |= Layout.maybeLayout
+        )
 
 
 infixDeclaration : Parser (WithComments (Node Declaration))
@@ -658,8 +651,7 @@ typeAliasDefinitionAfterDocumentationAfterTypePrefix =
         |= Parser.getPosition
         |= Tokens.typeName
         |= Layout.maybeLayout
-        |= typeGenericList
-        |. Tokens.equal
+        |= typeGenericListEquals
         |= Layout.maybeLayout
         |= typeAnnotation
 
@@ -694,8 +686,7 @@ customTypeDefinitionAfterDocumentationAfterTypePrefix =
         Parser.getPosition
         |= Tokens.typeName
         |= Layout.maybeLayout
-        |= typeGenericList
-        |. Tokens.equal
+        |= typeGenericListEquals
         |= Layout.maybeLayout
         |= valueConstructor
         |= ParserWithComments.manyWithoutReverse
@@ -815,8 +806,7 @@ typeAliasDefinitionWithoutDocumentationAfterTypePrefix =
         |= Parser.getPosition
         |= Tokens.typeName
         |= Layout.maybeLayout
-        |= typeGenericList
-        |. Tokens.equal
+        |= typeGenericListEquals
         |= Layout.maybeLayout
         |= typeAnnotation
 
@@ -852,8 +842,7 @@ customTypeDefinitionWithoutDocumentationAfterTypePrefix =
         Parser.getPosition
         |= Tokens.typeName
         |= Layout.maybeLayout
-        |= typeGenericList
-        |. Tokens.equal
+        |= typeGenericListEquals
         |= Layout.maybeLayout
         |= valueConstructor
         |= ParserWithComments.manyWithoutReverse
@@ -921,9 +910,9 @@ valueConstructor =
             )
 
 
-typeGenericList : Parser (WithComments (List (Node String)))
-typeGenericList =
-    ParserWithComments.many
+typeGenericListEquals : Parser (WithComments (List (Node String)))
+typeGenericListEquals =
+    ParserWithComments.until Tokens.equal
         (Parser.map
             (\( nameStartRow, nameStartColumn ) ->
                 \name ->
