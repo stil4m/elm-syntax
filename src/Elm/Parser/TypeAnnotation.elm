@@ -102,7 +102,7 @@ parensTypeAnnotation =
                     Layout.maybeLayout
                     |= typeAnnotation
                     |= Layout.maybeLayout
-                    |= ParserWithComments.manyWithoutReverse
+                    |= ParserWithComments.untilWithoutReverse Tokens.parensEnd
                         ((Tokens.comma
                             |> Parser.Extra.continueWith
                                 (Parser.map
@@ -122,7 +122,6 @@ parensTypeAnnotation =
                             |= typeAnnotation
                             |= Layout.maybeLayout
                         )
-                    |. Tokens.parensEnd
                 ]
             )
 

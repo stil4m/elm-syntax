@@ -6,6 +6,7 @@ module ParserWithComments exposing
     , sepBy
     , sepBy1
     , until
+    , untilWithoutReverse
     )
 
 import Elm.Syntax.Node exposing (Node)
@@ -35,15 +36,7 @@ until end p =
                     )
         manyWithoutReverseStep ( commentsSoFar, itemsSoFar ) =
             Parser.oneOf
-                [ p
-                    |> Parser.map
-                        (\pResult ->
-                            Parser.Loop
-                                ( commentsSoFar |> Rope.prependTo pResult.comments
-                                , pResult.syntax :: itemsSoFar
-                                )
-                        )
-                , end
+                [ end
                     |> Parser.andThen
                         (\() ->
                             Parser.succeed
@@ -51,6 +44,14 @@ until end p =
                                     { comments = commentsSoFar
                                     , syntax = List.reverse itemsSoFar
                                     }
+                                )
+                        )
+                , p
+                    |> Parser.map
+                        (\pResult ->
+                            Parser.Loop
+                                ( commentsSoFar |> Rope.prependTo pResult.comments
+                                , pResult.syntax :: itemsSoFar
                                 )
                         )
                 ]
@@ -96,6 +97,39 @@ many p =
 listEmptyWithCommentsTuple : ( Rope a, List b )
 listEmptyWithCommentsTuple =
     ( Rope.empty, [] )
+
+
+{-| Same as [`until`](#until), except that it doesn't reverse the list.
+This can be useful if you need to access the range of the last item.
+
+Mind you the comments will be reversed either way
+
+-}
+untilWithoutReverse : Parser () -> Parser (WithComments a) -> Parser (WithComments (List a))
+untilWithoutReverse end p =
+    let
+        manyWithoutReverseStep :
+            WithComments (List a)
+            ->
+                Parser.Parser
+                    (Parser.Step
+                        (WithComments (List a))
+                        (WithComments (List a))
+                    )
+        manyWithoutReverseStep soFar =
+            Parser.oneOf
+                [ Parser.map (\() -> Parser.Done soFar) end
+                , p
+                    |> Parser.map
+                        (\pResult ->
+                            Parser.Loop
+                                { comments = soFar.comments |> Rope.prependTo pResult.comments
+                                , syntax = pResult.syntax :: soFar.syntax
+                                }
+                        )
+                ]
+    in
+    Parser.loop listEmptyWithComments manyWithoutReverseStep
 
 
 {-| Same as [`many`](#many), except that it doesn't reverse the list.

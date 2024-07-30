@@ -1097,7 +1097,7 @@ tupledExpressionInnerAfterOpeningParens =
         )
         expression
         |= Layout.maybeLayout
-        |= ParserWithComments.manyWithoutReverse
+        |= ParserWithComments.untilWithoutReverse Tokens.parensEnd
             (Tokens.comma
                 |> Parser.Extra.continueWith
                     (Parser.map
@@ -1116,7 +1116,6 @@ tupledExpressionInnerAfterOpeningParens =
                         |= Layout.maybeLayout
                     )
             )
-        |. Tokens.parensEnd
         |= Parser.getPosition
 
 
