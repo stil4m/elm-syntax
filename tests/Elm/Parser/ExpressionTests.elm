@@ -665,6 +665,15 @@ all =
                                 )
                             )
                         )
+        , test "fail if condition not positively indented" <|
+            \() ->
+                """let
+    x =
+        if
+    f y then  1 else 0
+in
+x"""
+                    |> expectInvalid
         , test "fail if `then` not positively indented" <|
             \() ->
                 """let
@@ -710,12 +719,48 @@ x"""
 in
 x"""
                     |> expectInvalid
+        , test "fail if record field value not positively indented" <|
+            \() ->
+                """let
+    x =
+        { a = 0, b =
+    1 }
+in
+x"""
+                    |> expectInvalid
+        , test "fail if record field name not positively indented" <|
+            \() ->
+                """let
+    x =
+        { a = 0,
+    b       = 1 }
+in
+x"""
+                    |> expectInvalid
+        , test "fail if record field `=` not positively indented" <|
+            \() ->
+                """let
+    x =
+        { a = 0, b
+    =         1 }
+in
+x"""
+                    |> expectInvalid
         , test "fail if tuple closing parens not positively indented" <|
             \() ->
                 """let
     x =
         ( 0, 1
     )
+in
+x"""
+                    |> expectInvalid
+        , test "fail if tuple part not positively indented" <|
+            \() ->
+                """let
+    x =
+        ( 0,
+    1   )
 in
 x"""
                     |> expectInvalid
