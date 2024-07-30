@@ -199,11 +199,16 @@ problemModuleLevelIndentation =
 
 onTopIndentation : res -> Parser res
 onTopIndentation res =
+    let
+        succeedRes : Parser res
+        succeedRes =
+            Parser.succeed res
+    in
     Parser.map
         (\column ->
             \indent ->
                 if column == indent then
-                    Parser.succeed res
+                    succeedRes
 
                 else
                     problemTopIndentation
