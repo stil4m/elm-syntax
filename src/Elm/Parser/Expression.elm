@@ -1138,8 +1138,7 @@ subExpressionMap toExtensionRightWith aboveCurrentPrecedenceLayout =
                     )
                     aboveCurrentPrecedenceLayout
                     |= Layout.optimisticLayout
-                , -- TODO lazy?
-                  Parser.succeed
+                , Parser.succeed
                     (Parser.Done (toExtensionRightWith leftExpressionResult))
                 ]
     in
