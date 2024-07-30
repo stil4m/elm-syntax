@@ -107,24 +107,44 @@ composablePatternTryToCompose =
 
 parensPattern : Parser (WithComments Pattern)
 parensPattern =
-    (Tokens.parensStart
+    Tokens.parensStart
         |> Parser.Extra.continueWith
-            (ParserWithComments.sepBy "," (Layout.maybeAroundBothSides pattern)
-                |> Parser.map
-                    (\c ->
-                        { comments = c.comments
-                        , syntax =
-                            case c.syntax of
-                                [ x ] ->
-                                    ParenthesizedPattern x
-
-                                _ ->
-                                    TuplePattern c.syntax
+            (Parser.map
+                (\commentsBeforeHead ->
+                    \contentResult ->
+                        { comments =
+                            commentsBeforeHead
+                                |> Rope.prependTo contentResult.comments
+                        , syntax = contentResult.syntax
                         }
-                    )
+                )
+                -- yes, (  ) is a valid pattern but not a valid type or expression
+                Layout.maybeLayout
+                |= Parser.oneOf
+                    [ Parser.map
+                        (\headResult ->
+                            \commentsAfterHead ->
+                                \tailResult ->
+                                    { comments =
+                                        headResult.comments
+                                            |> Rope.prependTo commentsAfterHead
+                                            |> Rope.prependTo tailResult.comments
+                                    , syntax =
+                                        case tailResult.syntax of
+                                            [] ->
+                                                ParenthesizedPattern headResult.syntax
+
+                                            _ ->
+                                                TuplePattern (headResult.syntax :: tailResult.syntax)
+                                    }
+                        )
+                        pattern
+                        |= Layout.maybeLayout
+                        |= ParserWithComments.until Tokens.parensEnd
+                            (Tokens.comma |> Parser.Extra.continueWith (Layout.maybeAroundBothSides pattern))
+                    , Parser.succeed { comments = Rope.empty, syntax = UnitPattern }
+                    ]
             )
-    )
-        |. Tokens.parensEnd
 
 
 variablePart : Parser (WithComments Pattern)
