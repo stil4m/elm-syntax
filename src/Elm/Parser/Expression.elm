@@ -618,14 +618,22 @@ letExpression =
 
 letDeclarations : Parser (WithComments (List (Node LetDeclaration)))
 letDeclarations =
-    Parser.map
-        (\head ->
-            \tail ->
-                { comments = head.comments |> Rope.prependTo tail.comments
-                , syntax = head.syntax :: tail.syntax
-                }
+    Layout.onTopIndentation
+        (\headLetResult ->
+            \commentsAfter ->
+                \tailLetResult ->
+                    { comments =
+                        headLetResult.comments
+                            |> Rope.prependTo commentsAfter
+                            |> Rope.prependTo tailLetResult.comments
+                    , syntax = headLetResult.syntax :: tailLetResult.syntax
+                    }
         )
-        blockElement
+        |= Parser.oneOf
+            [ letFunction
+            , letDestructuringDeclaration
+            ]
+        |= Layout.optimisticLayout
         |= ParserWithComments.many blockElement
 
 
