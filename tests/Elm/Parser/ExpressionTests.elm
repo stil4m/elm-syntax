@@ -701,6 +701,42 @@ x"""
 in
 x"""
                     |> expectInvalid
+        , test "fail if record closing curly not positively indented" <|
+            \() ->
+                """let
+    x =
+        { a = 0, b = 1
+    }
+in
+x"""
+                    |> expectInvalid
+        , test "fail if tuple closing parens not positively indented" <|
+            \() ->
+                """let
+    x =
+        ( 0, 1
+    )
+in
+x"""
+                    |> expectInvalid
+        , test "fail if operator not positively indented" <|
+            \() ->
+                """let
+    x =
+        0
+    + 1
+in
+x"""
+                    |> expectInvalid
+        , test "fail if function call argument not positively indented" <|
+            \() ->
+                """let
+    x =
+        f 0
+    1
+in
+x"""
+                    |> expectInvalid
         ]
 
 
