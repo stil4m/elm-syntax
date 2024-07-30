@@ -17,13 +17,8 @@ import ParserWithComments exposing (Comments, WithComments)
 import Rope
 
 
-subExpressions : Parser (WithComments (Node Expression))
-subExpressions =
-    Parser.lazy (\() -> subExpressionsOneOf)
-
-
-subExpressionsOneOf : Parser (WithComments (Node Expression))
-subExpressionsOneOf =
+subExpression : Parser (WithComments (Node Expression))
+subExpression =
     Parser.map
         (\( startRow, startColumn ) ->
             \expressionAndEnd ->
@@ -1154,7 +1149,7 @@ subExpressionMap toExtensionRightWith aboveCurrentPrecedenceLayout =
                     }
         )
         Layout.optimisticLayout
-        |= subExpressions
+        |= Parser.lazy (\() -> subExpression)
         |= Layout.optimisticLayout
         |> Parser.andThen
             (\leftExpression -> Parser.loop leftExpression step)
