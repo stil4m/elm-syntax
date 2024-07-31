@@ -4,7 +4,7 @@ import Elm.Parser.Layout as Layout
 import Elm.Parser.Node as Node
 import Elm.Parser.Tokens as Tokens
 import Elm.Syntax.Exposing exposing (Exposing(..), TopLevelExpose(..))
-import Elm.Syntax.Node exposing (Node)
+import Elm.Syntax.Node exposing (Node(..))
 import Parser exposing ((|.), (|=), Parser)
 import Parser.Extra
 import ParserWithComments exposing (WithComments)
@@ -36,19 +36,16 @@ exposeListWith =
             (Parser.map
                 (\commentsBefore ->
                     \exposingListInnerResult ->
-                        \commentsAfter ->
-                            { comments =
-                                commentsBefore
-                                    |> Rope.prependTo exposingListInnerResult.comments
-                                    |> Rope.prependTo commentsAfter
-                            , syntax = exposingListInnerResult.syntax
-                            }
+                        { comments =
+                            commentsBefore
+                                |> Rope.prependTo exposingListInnerResult.comments
+                        , syntax = exposingListInnerResult.syntax
+                        }
                 )
                 Layout.optimisticLayout
             )
     )
         |= exposingListInner
-        |= Layout.optimisticLayout
         |. Tokens.parensEnd
 
 
@@ -56,39 +53,61 @@ exposingListInner : Parser (WithComments Exposing)
 exposingListInner =
     Parser.oneOf
         [ Parser.map
-            (\( startRow, startColumn ) ->
-                \commentsBeforeDotDot ->
-                    \commentsAfterDotDot ->
-                        \( endRow, endColumn ) ->
-                            { comments = commentsBeforeDotDot |> Rope.prependTo commentsAfterDotDot
-                            , syntax =
-                                All
-                                    { start = { row = startRow, column = startColumn }
-                                    , end = { row = endRow, column = endColumn }
-                                    }
-                            }
+            (\( headStartRow, headStartColumn ) ->
+                \headElement ->
+                    \( headEndRow, headEndColumn ) ->
+                        \commentsAfterHeadElement ->
+                            \tailElements ->
+                                { comments =
+                                    headElement.comments
+                                        |> Rope.prependTo commentsAfterHeadElement
+                                        |> Rope.prependTo tailElements.comments
+                                , syntax =
+                                    Explicit
+                                        (Node
+                                            { start = { row = headStartRow, column = headStartColumn }
+                                            , end = { row = headEndRow, column = headEndColumn }
+                                            }
+                                            headElement.syntax
+                                            :: tailElements.syntax
+                                        )
+                                }
             )
             Parser.getPosition
+            |= exposable
+            |= Parser.getPosition
             |= Layout.maybeLayout
+            |= ParserWithComments.many
+                (Tokens.comma
+                    |> Parser.Extra.continueWith
+                        (Layout.maybeAroundBothSides (exposable |> Node.parser))
+                )
+        , Parser.map
+            (\( startRow, startColumn ) ->
+                \commentsAfterDotDot ->
+                    \( endRow, endColumn ) ->
+                        { comments = commentsAfterDotDot
+                        , syntax =
+                            All
+                                { start = { row = startRow, column = startColumn }
+                                , end = { row = endRow, column = endColumn }
+                                }
+                        }
+            )
+            Parser.getPosition
             |. Tokens.dotDot
             |= Layout.maybeLayout
             |= Parser.getPosition
-        , ParserWithComments.sepBy1 "," (Layout.maybeAroundBothSides exposable)
-            |> Parser.map
-                (\elements ->
-                    { comments = elements.comments, syntax = Explicit elements.syntax }
-                )
         ]
 
 
-exposable : Parser (WithComments (Node TopLevelExpose))
+exposable : Parser (WithComments TopLevelExpose)
 exposable =
     Parser.oneOf
         [ functionExpose
         , typeExpose
         , infixExpose
         ]
-        |> Node.parser
 
 
 infixExpose : Parser.Parser (WithComments TopLevelExpose)
