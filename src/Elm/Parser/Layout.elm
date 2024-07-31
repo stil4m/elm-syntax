@@ -41,23 +41,24 @@ fromCommentElseEmpty : Parser Comments
 fromCommentElseEmpty =
     -- since comments are comparatively rare
     -- but expensive to check for, we allow shortcutting to dead end
-    Parser.map
+    Parser.andThen
         (\source ->
-            \offset ->
-                case source |> String.slice offset (offset + 2) of
-                    "--" ->
-                        -- this will always succeed from here, so no need to fall back to Rope.empty
-                        fromSingleLineCommentNode
+            Parser.andThen
+                (\offset ->
+                    case source |> String.slice offset (offset + 2) of
+                        "--" ->
+                            -- this will always succeed from here, so no need to fall back to Rope.empty
+                            fromSingleLineCommentNode
 
-                    "{-" ->
-                        fromMultilineCommentNodeOrEmptyOnProblem
+                        "{-" ->
+                            fromMultilineCommentNodeOrEmptyOnProblem
 
-                    _ ->
-                        succeedRopeEmpty
+                        _ ->
+                            succeedRopeEmpty
+                )
+                Parser.getOffset
         )
         Parser.getSource
-        |= Parser.getOffset
-        |> Parser.andThen identity
 
 
 succeedRopeEmpty : Parser (Rope.Rope a)
@@ -103,34 +104,36 @@ would be valid for [`positivelyIndented`](#positivelyIndented)
 -}
 positivelyIndentedPlus : Int -> Parser.Parser ()
 positivelyIndentedPlus extraIndent =
-    Parser.map
+    Parser.andThen
         (\column ->
-            \indent ->
-                if column > indent + extraIndent then
-                    succeedUnit
+            Parser.andThen
+                (\indent ->
+                    if column > indent + extraIndent then
+                        succeedUnit
 
-                else
-                    problemPositivelyIndented
+                    else
+                        problemPositivelyIndented
+                )
+                Parser.getIndent
         )
         Parser.getCol
-        |= Parser.getIndent
-        |> Parser.andThen identity
 
 
 positivelyIndented : Parser.Parser ()
 positivelyIndented =
-    Parser.map
-        (\column ->
-            \indent ->
-                if indent < column then
-                    succeedUnit
+    Parser.getCol
+        |> Parser.andThen
+            (\column ->
+                Parser.andThen
+                    (\indent ->
+                        if column > indent then
+                            succeedUnit
 
-                else
-                    problemPositivelyIndented
-        )
-        Parser.getCol
-        |= Parser.getIndent
-        |> Parser.andThen identity
+                        else
+                            problemPositivelyIndented
+                    )
+                    Parser.getIndent
+            )
 
 
 succeedUnit : Parser ()
@@ -150,24 +153,24 @@ layout =
             |> Parser.andThen (\_ -> fromCommentElseEmpty)
           )
             |. positivelyIndented
-        , -- below will never run with elm-format-ed code
-          Parser.map
+        , Parser.andThen
             (\source ->
-                \offset ->
-                    case source |> String.slice offset (offset + 2) of
-                        "--" ->
-                            -- this will always succeed from here, so no need to fall back to Rope.empty
-                            fromSingleLineCommentNodeVerifyLayoutIndent
+                Parser.andThen
+                    (\offset ->
+                        case source |> String.slice offset (offset + 2) of
+                            "--" ->
+                                -- this will always succeed from here, so no need to fall back to Rope.empty
+                                fromSingleLineCommentNodeVerifyLayoutIndent
 
-                        "{-" ->
-                            fromMultilineCommentNodeOrEmptyOnProblemVerifyLayoutIndent
+                            "{-" ->
+                                fromMultilineCommentNodeOrEmptyOnProblemVerifyLayoutIndent
 
-                        _ ->
-                            problemMissingWhitespaceOrComments
+                            _ ->
+                                problemMissingWhitespaceOrComments
+                    )
+                    Parser.getOffset
             )
             Parser.getSource
-            |= Parser.getOffset
-            |> Parser.andThen identity
         ]
 
 
@@ -227,18 +230,19 @@ onTopIndentation res =
         succeedRes =
             Parser.succeed res
     in
-    Parser.map
+    Parser.andThen
         (\column ->
-            \indent ->
-                if column == indent then
-                    succeedRes
+            Parser.andThen
+                (\indent ->
+                    if column == indent then
+                        succeedRes
 
-                else
-                    problemTopIndentation
+                    else
+                        problemTopIndentation
+                )
+                Parser.getIndent
         )
         Parser.getCol
-        |= Parser.getIndent
-        |> Parser.andThen identity
 
 
 problemTopIndentation : Parser.Parser a
