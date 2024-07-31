@@ -6,31 +6,40 @@ const currentElm = require('./current/elm.js');
 
 const fileToParses = process.argv.slice(2);
 
-console.log(publishedElm);
 const published = publishedElm.Elm.ParseMain.init();
 const current = currentElm.Elm.ParseMain.init();
 
+const publishedTimes = [];
+const currentTimes = [];
 (async function() {
     for await (const filePath of fileToParses) {
-        //const publishedName = 'published ' + filePath;
-        //const currentName = 'current ' + filePath;
-        //console.time(publishedName)
-        //console.timeEnd(publishedName)
-        //console.time(currentName)
-        //console.timeEnd(currentName)
         const content = fs.readFileSync(filePath, 'utf8');
-        const before = await parse(published, "published", content)
-        const after = await parse(current, "current", content)
+        const before = await parse(published, 'published ' + filePath, publishedTimes, content)
+        const after = await parse(current, 'current ' + filePath, currentTimes, content)
     }
+
+    const publishedAvg = avg(publishedTimes);
+    const currentAvg = avg(currentTimes);
+    const speedup = (publishedAvg / currentAvg - 1) * 100
+    console.log('Published: avg ' + publishedAvg);
+    console.log('Current:   avg ' + currentAvg);
+    console.log(`Diff: ${speedup}% faster`);
 })()
 
-function parse(elmApp, name, content) {
+function parse(elmApp, name, array, content) {
     return new Promise((resolve) => {
+      elmApp.ports.parseResult.subscribe(fn);
+      const startTime = globalThis.performance.now();
+      elmApp.ports.requestParsing.send(content);
       function fn(data) {
+        array.push(globalThis.performance.now() - startTime);
         elmApp.ports.parseResult.unsubscribe(fn);
         resolve(data);
       }
-      elmApp.ports.parseResult.subscribe(fn);
-      elmApp.ports.requestParsing.send(content);
     });
+}
+
+
+function avg(array) {
+    return array.reduce((a, b) => a + b, 0) / array.length;
 }
