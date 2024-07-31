@@ -1,6 +1,16 @@
 #!/usr/bin/env node
 
 const fs = require('node:fs');
+try {
+    require('./published/elm.js');
+    require('./current/elm.js');
+} catch (error) {
+    console.error(`ERROR: You have not compiled the Elm applications yet. Please run:
+
+    npm run prepare-find-regressions
+`)
+    process.exit(1);
+}
 const publishedElm = require('./published/elm.js');
 const currentElm = require('./current/elm.js');
 
@@ -18,12 +28,12 @@ const currentTimes = [];
         const before = await parse(published, 'published ' + filePath, publishedTimes, content)
             .catch(error => {
                 console.error(`Failure parsing ${filePath} with PUBLISHED`, error);
-                return "FAILURE";
+                return 'FAILURE';
             })
         const after = await parse(current, 'current ' + filePath, currentTimes, content)
             .catch(error => {
                 console.error(`Failure parsing ${filePath} with CURRENT`, error);
-                return "FAILURE";
+                return 'FAILURE';
             })
         if (checkEquality) {
             if (JSON.stringify(before) !== JSON.stringify(after)) {
