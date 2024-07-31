@@ -12,25 +12,13 @@ import ParserWithComments exposing (WithComments)
 import Rope
 
 
-composedWith : Parser PatternComposedWith
+composedWith : Parser (WithComments PatternComposedWith)
 composedWith =
     Parser.map
         (\commentsBefore composedWithResult ->
-            case composedWithResult of
-                PatternComposedWithNothing () ->
-                    PatternComposedWithNothing ()
-
-                PatternComposedWithAs composedWithAs ->
-                    PatternComposedWithAs
-                        { comments = commentsBefore |> Rope.prependTo composedWithAs.comments
-                        , syntax = composedWithAs.syntax
-                        }
-
-                PatternComposedWithCons composedWithCons ->
-                    PatternComposedWithCons
-                        { comments = commentsBefore |> Rope.prependTo composedWithCons.comments
-                        , syntax = composedWithCons.syntax
-                        }
+            { comments = commentsBefore |> Rope.prependTo composedWithResult.comments
+            , syntax = composedWithResult.syntax
+            }
         )
         Layout.maybeLayout
         |= Parser.oneOf
@@ -40,13 +28,14 @@ composedWith =
                         (\commentsAfterAs ->
                             \( nameStartRow, nameStartColumn ) ->
                                 \name ->
-                                    PatternComposedWithAs
-                                        { comments = commentsAfterAs
-                                        , syntax =
-                                            Node.singleLineStringFrom
+                                    { comments = commentsAfterAs
+                                    , syntax =
+                                        PatternComposedWithAs
+                                            (Node.singleLineStringFrom
                                                 { row = nameStartRow, column = nameStartColumn }
                                                 name
-                                        }
+                                            )
+                                    }
                         )
                         Layout.layout
                     )
@@ -58,23 +47,22 @@ composedWith =
                     (Parser.map
                         (\commentsAfterCons ->
                             \patternResult ->
-                                PatternComposedWithCons
-                                    { comments = patternResult.comments |> Rope.prependTo commentsAfterCons
-                                    , syntax = patternResult.syntax
-                                    }
+                                { comments = patternResult.comments |> Rope.prependTo commentsAfterCons
+                                , syntax = PatternComposedWithCons patternResult.syntax
+                                }
                         )
                         Layout.maybeLayout
                     )
               )
                 |= pattern
-            , Parser.succeed (PatternComposedWithNothing ())
+            , Parser.succeed { comments = Rope.empty, syntax = PatternComposedWithNothing () }
             ]
 
 
 type PatternComposedWith
     = PatternComposedWithNothing ()
-    | PatternComposedWithAs (WithComments (Node String))
-    | PatternComposedWithCons (WithComments (Node Pattern))
+    | PatternComposedWithAs (Node String)
+    | PatternComposedWithCons (Node Pattern)
 
 
 pattern : Parser (WithComments (Node Pattern))
@@ -87,19 +75,18 @@ composablePatternTryToCompose =
     Parser.map
         (\x ->
             \maybeComposedWith ->
-                case maybeComposedWith of
-                    PatternComposedWithNothing () ->
-                        x
+                { comments = x.comments |> Rope.prependTo maybeComposedWith.comments
+                , syntax =
+                    case maybeComposedWith.syntax of
+                        PatternComposedWithNothing () ->
+                            x.syntax
 
-                    PatternComposedWithAs anotherName ->
-                        { comments = x.comments |> Rope.prependTo anotherName.comments
-                        , syntax = Node.combine Pattern.AsPattern x.syntax anotherName.syntax
-                        }
+                        PatternComposedWithAs anotherName ->
+                            Node.combine Pattern.AsPattern x.syntax anotherName
 
-                    PatternComposedWithCons y ->
-                        { comments = x.comments |> Rope.prependTo y.comments
-                        , syntax = Node.combine Pattern.UnConsPattern x.syntax y.syntax
-                        }
+                        PatternComposedWithCons y ->
+                            Node.combine Pattern.UnConsPattern x.syntax y
+                }
         )
         composablePattern
         |= composedWith
