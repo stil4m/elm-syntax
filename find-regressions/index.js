@@ -16,7 +16,15 @@ const currentTimes = [];
     for await (const filePath of fileToParses) {
         const content = fs.readFileSync(filePath, 'utf8');
         const before = await parse(published, 'published ' + filePath, publishedTimes, content)
+            .catch(error => {
+                console.error(`Failure parsing ${filePath} with PUBLISHED`, error);
+                return "FAILURE";
+            })
         const after = await parse(current, 'current ' + filePath, currentTimes, content)
+            .catch(error => {
+                console.error(`Failure parsing ${filePath} with CURRENT`, error);
+                return "FAILURE";
+            })
         if (checkEquality) {
             if (JSON.stringify(before) !== JSON.stringify(after)) {
                 console.error(`DIFFERENT: ${filePath}`);
