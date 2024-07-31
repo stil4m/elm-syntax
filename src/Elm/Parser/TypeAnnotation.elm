@@ -244,17 +244,28 @@ type RecordFieldsOrExtensionAfterName
 
 recordFieldsTypeAnnotation : Parser (WithComments TypeAnnotation.RecordDefinition)
 recordFieldsTypeAnnotation =
-    ParserWithComments.sepBy1 ","
-        (Parser.map
-            (\commentsBefore ->
-                \fields ->
-                    { comments = commentsBefore |> Rope.prependTo fields.comments
-                    , syntax = fields.syntax
-                    }
-            )
-            Layout.maybeLayout
-            |= Node.parser recordFieldDefinition
+    Parser.map
+        (\head ->
+            \tail ->
+                { comments = head.comments |> Rope.prependTo tail.comments
+                , syntax = head.syntax :: tail.syntax
+                }
         )
+        layoutThenRecordFieldDefinition
+        |= ParserWithComments.many (Parser.symbol "," |> Parser.Extra.continueWith layoutThenRecordFieldDefinition)
+
+
+layoutThenRecordFieldDefinition : Parser (WithComments (Node RecordField))
+layoutThenRecordFieldDefinition =
+    Parser.map
+        (\commentsBefore ->
+            \fields ->
+                { comments = commentsBefore |> Rope.prependTo fields.comments
+                , syntax = fields.syntax
+                }
+        )
+        Layout.maybeLayout
+        |= Node.parser recordFieldDefinition
 
 
 recordFieldDefinition : Parser (WithComments TypeAnnotation.RecordField)
