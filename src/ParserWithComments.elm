@@ -35,22 +35,22 @@ until end p =
                     )
         step ( commentsSoFar, itemsSoFar ) =
             Parser.oneOf
-                [ end
-                    |> Parser.map
-                        (\() ->
-                            Parser.Done
-                                { comments = commentsSoFar
-                                , syntax = List.reverse itemsSoFar
-                                }
-                        )
-                , p
-                    |> Parser.map
-                        (\pResult ->
-                            Parser.Loop
-                                ( commentsSoFar |> Rope.prependTo pResult.comments
-                                , pResult.syntax :: itemsSoFar
-                                )
-                        )
+                [ Parser.map
+                    (\() ->
+                        Parser.Done
+                            { comments = commentsSoFar
+                            , syntax = List.reverse itemsSoFar
+                            }
+                    )
+                    end
+                , Parser.map
+                    (\pResult ->
+                        Parser.Loop
+                            ( commentsSoFar |> Rope.prependTo pResult.comments
+                            , pResult.syntax :: itemsSoFar
+                            )
+                    )
+                    p
                 ]
     in
     Parser.loop listEmptyWithCommentsTuple step
@@ -69,14 +69,14 @@ many p =
                     )
         step ( commentsSoFar, itemsSoFar ) =
             Parser.oneOf
-                [ p
-                    |> Parser.map
-                        (\pResult ->
-                            Parser.Loop
-                                ( commentsSoFar |> Rope.prependTo pResult.comments
-                                , pResult.syntax :: itemsSoFar
-                                )
-                        )
+                [ Parser.map
+                    (\pResult ->
+                        Parser.Loop
+                            ( commentsSoFar |> Rope.prependTo pResult.comments
+                            , pResult.syntax :: itemsSoFar
+                            )
+                    )
+                    p
                 , Parser.lazy
                     (\() ->
                         Parser.succeed
@@ -116,14 +116,14 @@ untilWithoutReverse end p =
         withoutReverseStep soFar =
             Parser.oneOf
                 [ Parser.map (\() -> Parser.Done soFar) end
-                , p
-                    |> Parser.map
-                        (\pResult ->
-                            Parser.Loop
-                                { comments = soFar.comments |> Rope.prependTo pResult.comments
-                                , syntax = pResult.syntax :: soFar.syntax
-                                }
-                        )
+                , Parser.map
+                    (\pResult ->
+                        Parser.Loop
+                            { comments = soFar.comments |> Rope.prependTo pResult.comments
+                            , syntax = pResult.syntax :: soFar.syntax
+                            }
+                    )
+                    p
                 ]
     in
     Parser.loop listEmptyWithComments withoutReverseStep
@@ -148,14 +148,14 @@ manyWithoutReverse p =
                     )
         withoutReverseStep soFar =
             Parser.oneOf
-                [ p
-                    |> Parser.map
-                        (\pResult ->
-                            Parser.Loop
-                                { comments = soFar.comments |> Rope.prependTo pResult.comments
-                                , syntax = pResult.syntax :: soFar.syntax
-                                }
-                        )
+                [ Parser.map
+                    (\pResult ->
+                        Parser.Loop
+                            { comments = soFar.comments |> Rope.prependTo pResult.comments
+                            , syntax = pResult.syntax :: soFar.syntax
+                            }
+                    )
+                    p
                 , Parser.succeed (Parser.Done soFar)
                 ]
     in
