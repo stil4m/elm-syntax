@@ -43,9 +43,10 @@ effectWhereClause =
 
 whereBlock : Parser (WithComments { command : Maybe (Node String), subscription : Maybe (Node String) })
 whereBlock =
-    (Tokens.curlyStart
+    Tokens.curlyStart
         |> Parser.Extra.continueWith
-            (ParserWithComments.sepBy1 ","
+            (ParserWithComments.sepBy1Until ","
+                Tokens.curlyEnd
                 (Layout.maybeAroundBothSides effectWhereClause)
                 |> Parser.map
                     (\pairs ->
@@ -63,8 +64,6 @@ whereBlock =
                         }
                     )
             )
-    )
-        |. Tokens.curlyEnd
 
 
 effectWhereClauses : Parser (WithComments { command : Maybe (Node String), subscription : Maybe (Node String) })

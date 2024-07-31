@@ -4,6 +4,7 @@ module ParserWithComments exposing
     , many
     , manyWithoutReverse
     , sepBy1
+    , sepBy1Until
     , until
     , untilWithoutReverse
     )
@@ -180,3 +181,17 @@ sepBy1 sep p =
         )
         p
         |= many (Parser.symbol sep |> Parser.Extra.continueWith p)
+
+
+sepBy1Until : String -> Parser () -> Parser (WithComments a) -> Parser (WithComments (List a))
+sepBy1Until sep end p =
+    Parser.map
+        (\head ->
+            \tail ->
+                { comments = head.comments |> Rope.prependTo tail.comments
+                , syntax = head.syntax :: tail.syntax
+                }
+        )
+        p
+        |= until end
+            (Parser.symbol sep |> Parser.Extra.continueWith p)
