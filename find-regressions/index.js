@@ -1,5 +1,30 @@
 #!/usr/bin/env node
 
+/**
+# Instructions
+
+First (and after every change), compile the parsing applications:
+
+    npm run prepare-find-regressions
+
+then run the script like:
+
+     node find-regressions some-folder/**\/*.elm
+
+The version it will compare to is the one in `find-regressions/published/elm.json`
+under the `dependencies.direct.['stil4m/elm-syntax']` field.
+
+The script will also give performance metrics.
+If you only want to get that (and don't care about the regression check), run:
+
+     node find-regressions --no-check some-folder/**\/*.elm
+
+Note that the performance information given are likely *very* inaccurate.
+We probably ought to patch benchmark capturing code inside the compiled JS code,
+as close to the parsing code as possible (currently, we measure the time for sending+parsing+encoding+sending-back.
+
+*/
+
 const fs = require('node:fs');
 try {
     require('./published/elm.js');
@@ -14,7 +39,7 @@ try {
 const publishedElm = require('./published/elm.js');
 const currentElm = require('./current/elm.js');
 
-const checkEquality = process.argv[2] === '--check';
+const disableEquality = process.argv[2] === '--no-check';
 const fileToParses = process.argv.slice(checkEquality ? 3 : 2);
 
 const published = publishedElm.Elm.ParseMain.init();
@@ -35,7 +60,7 @@ const currentTimes = [];
                 console.error(`Failure parsing ${filePath} with CURRENT`, error);
                 return 'FAILURE';
             })
-        if (checkEquality) {
+        if (!disableEquality) {
             if (JSON.stringify(before) !== JSON.stringify(after)) {
                 console.error(`DIFFERENT: ${filePath}`);
             }
