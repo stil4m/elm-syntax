@@ -34,8 +34,8 @@ subExpression =
         )
         Parser.getPosition
         |= Parser.oneOf
-            [ qualifiedReferenceExpression
-            , unqualifiedReferenceExpression
+            [ qualifiedOrVariantOrRecordConstructorReferenceExpression
+            , unqualifiedFunctionReferenceExpression
             , literalExpression
             , numberExpression
             , tupledExpression
@@ -933,8 +933,8 @@ problemNegationThenSpace =
     Parser.problem "negation sign cannot be followed by a space"
 
 
-qualifiedReferenceExpression : Parser { comments : Comments, end : Location, expression : Expression }
-qualifiedReferenceExpression =
+qualifiedOrVariantOrRecordConstructorReferenceExpression : Parser { comments : Comments, end : Location, expression : Expression }
+qualifiedOrVariantOrRecordConstructorReferenceExpression =
     Parser.map
         (\firstName ->
             \after ->
@@ -955,8 +955,8 @@ qualifiedReferenceExpression =
         |= Parser.getPosition
 
 
-unqualifiedReferenceExpression : Parser { comments : Comments, end : Location, expression : Expression }
-unqualifiedReferenceExpression =
+unqualifiedFunctionReferenceExpression : Parser { comments : Comments, end : Location, expression : Expression }
+unqualifiedFunctionReferenceExpression =
     Parser.map
         (\unqualified ->
             \( endRow, endColumn ) ->
