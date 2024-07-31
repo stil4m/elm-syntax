@@ -50,7 +50,7 @@ composablePatternTryToCompose =
         |= maybeComposedWith
 
 
-maybeComposedWith : Parser { comments : ParserWithComments.Comments, syntax : PatternComposedWith }
+maybeComposedWith : Parser (WithComments PatternComposedWith)
 maybeComposedWith =
     Parser.oneOf
         [ (Tokens.asToken
