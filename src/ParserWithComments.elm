@@ -36,14 +36,12 @@ until end p =
         manyWithoutReverseStep ( commentsSoFar, itemsSoFar ) =
             Parser.oneOf
                 [ end
-                    |> Parser.andThen
+                    |> Parser.map
                         (\() ->
-                            Parser.succeed
-                                (Parser.Done
-                                    { comments = commentsSoFar
-                                    , syntax = List.reverse itemsSoFar
-                                    }
-                                )
+                            Parser.Done
+                                { comments = commentsSoFar
+                                , syntax = List.reverse itemsSoFar
+                                }
                         )
                 , p
                     |> Parser.map
