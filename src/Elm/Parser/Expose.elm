@@ -46,7 +46,6 @@ exposeListWith =
             )
     )
         |= exposingListInner
-        |. Tokens.parensEnd
 
 
 exposingListInner : Parser (WithComments Exposing)
@@ -77,7 +76,7 @@ exposingListInner =
             |= exposable
             |= Parser.getPosition
             |= Layout.maybeLayout
-            |= ParserWithComments.many
+            |= ParserWithComments.until Tokens.parensEnd
                 (Tokens.comma
                     |> Parser.Extra.continueWith
                         (Layout.maybeAroundBothSides (exposable |> Node.parser))
@@ -98,6 +97,7 @@ exposingListInner =
             |. Tokens.dotDot
             |= Layout.maybeLayout
             |= Parser.getPosition
+            |. Tokens.parensEnd
         ]
 
 

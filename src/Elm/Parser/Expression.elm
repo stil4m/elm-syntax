@@ -206,11 +206,10 @@ expressionAfterOpeningSquareBracket =
                     )
                     expression
                     |= Layout.maybeLayout
-                    |= ParserWithComments.many
+                    |= ParserWithComments.until Tokens.squareEnd
                         (Tokens.comma
                             |> Parser.Extra.continueWith (Layout.maybeAroundBothSides expression)
                         )
-                    |. Tokens.squareEnd
                 ]
             |= Parser.getPosition
         ]

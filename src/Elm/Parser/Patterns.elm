@@ -6,7 +6,7 @@ import Elm.Parser.Numbers
 import Elm.Parser.Tokens as Tokens
 import Elm.Syntax.Node as Node exposing (Node)
 import Elm.Syntax.Pattern as Pattern exposing (Pattern(..))
-import Parser exposing ((|.), (|=), Parser)
+import Parser exposing ((|=), Parser)
 import Parser.Extra
 import ParserWithComments exposing (WithComments)
 import Rope
@@ -188,12 +188,11 @@ listPattern =
                 )
                 pattern
                 |= Layout.maybeLayout
-                |= ParserWithComments.many
+                |= ParserWithComments.until Tokens.squareEnd
                     (Tokens.comma
                         |> Parser.Extra.continueWith
                             (Layout.maybeAroundBothSides pattern)
                     )
-                |. Tokens.squareEnd
             ]
 
 
@@ -380,7 +379,7 @@ recordPattern =
                 Parser.getPosition
                 |= Tokens.functionName
                 |= Layout.maybeLayout
-                |= ParserWithComments.many
+                |= ParserWithComments.until Tokens.curlyEnd
                     ((Tokens.comma
                         |> Parser.Extra.continueWith
                             (Parser.map
@@ -402,9 +401,9 @@ recordPattern =
                         |= Tokens.functionName
                         |= Layout.maybeLayout
                     )
-            , Parser.succeed Nothing
+            , Parser.map (\() -> Nothing)
+                Tokens.curlyEnd
             ]
-        |. Tokens.curlyEnd
 
 
 patternRecordEmpty : Pattern

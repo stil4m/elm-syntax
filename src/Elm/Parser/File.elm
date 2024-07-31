@@ -9,7 +9,7 @@ import Elm.Parser.Node as Node
 import Elm.Syntax.Declaration exposing (Declaration)
 import Elm.Syntax.File exposing (File)
 import Elm.Syntax.Node exposing (Node)
-import Parser exposing ((|.), (|=), Parser)
+import Parser exposing ((|=), Parser)
 import ParserWithComments exposing (WithComments)
 import Rope
 
@@ -51,12 +51,11 @@ file =
             ]
         |= ParserWithComments.many importDefinition
         |= fileDeclarations
-        |. Parser.end
 
 
 fileDeclarations : Parser (WithComments (List (Node Declaration)))
 fileDeclarations =
-    ParserWithComments.many
+    ParserWithComments.until Parser.end
         (Layout.moduleLevelIndentation
             (\declarationParsed ->
                 \commentsAfter ->
