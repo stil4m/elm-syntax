@@ -1180,8 +1180,8 @@ applyExtensionRight extensionRight ((Node { start } left) as leftNode) =
             Node { start = start, end = end }
                 (Expression.Application
                     (case left of
-                        Expression.Application args ->
-                            args ++ [ right ]
+                        Expression.Application (called :: firstArg :: secondArgUp) ->
+                            called :: firstArg :: (secondArgUp ++ [ right ])
 
                         _ ->
                             [ leftNode, right ]
