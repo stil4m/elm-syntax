@@ -25,7 +25,7 @@ type alias Comments =
 until : Parser () -> Parser (WithComments a) -> Parser (WithComments (List a))
 until end p =
     let
-        manyWithoutReverseStep :
+        step :
             ( Comments, List a )
             ->
                 Parser.Parser
@@ -33,7 +33,7 @@ until end p =
                         ( Comments, List a )
                         (WithComments (List a))
                     )
-        manyWithoutReverseStep ( commentsSoFar, itemsSoFar ) =
+        step ( commentsSoFar, itemsSoFar ) =
             Parser.oneOf
                 [ end
                     |> Parser.map
@@ -53,13 +53,13 @@ until end p =
                         )
                 ]
     in
-    Parser.loop listEmptyWithCommentsTuple manyWithoutReverseStep
+    Parser.loop listEmptyWithCommentsTuple step
 
 
 many : Parser (WithComments a) -> Parser (WithComments (List a))
 many p =
     let
-        manyWithoutReverseStep :
+        step :
             ( Comments, List a )
             ->
                 Parser.Parser
@@ -67,7 +67,7 @@ many p =
                         ( Comments, List a )
                         (WithComments (List a))
                     )
-        manyWithoutReverseStep ( commentsSoFar, itemsSoFar ) =
+        step ( commentsSoFar, itemsSoFar ) =
             Parser.oneOf
                 [ p
                     |> Parser.map
@@ -88,7 +88,7 @@ many p =
                     )
                 ]
     in
-    Parser.loop listEmptyWithCommentsTuple manyWithoutReverseStep
+    Parser.loop listEmptyWithCommentsTuple step
 
 
 listEmptyWithCommentsTuple : ( Rope a, List b )
@@ -105,7 +105,7 @@ Mind you the comments will be reversed either way
 untilWithoutReverse : Parser () -> Parser (WithComments a) -> Parser (WithComments (List a))
 untilWithoutReverse end p =
     let
-        manyWithoutReverseStep :
+        withoutReverseStep :
             WithComments (List a)
             ->
                 Parser.Parser
@@ -113,7 +113,7 @@ untilWithoutReverse end p =
                         (WithComments (List a))
                         (WithComments (List a))
                     )
-        manyWithoutReverseStep soFar =
+        withoutReverseStep soFar =
             Parser.oneOf
                 [ Parser.map (\() -> Parser.Done soFar) end
                 , p
@@ -126,7 +126,7 @@ untilWithoutReverse end p =
                         )
                 ]
     in
-    Parser.loop listEmptyWithComments manyWithoutReverseStep
+    Parser.loop listEmptyWithComments withoutReverseStep
 
 
 {-| Same as [`many`](#many), except that it doesn't reverse the list.
@@ -138,7 +138,7 @@ Mind you the comments will be reversed either way
 manyWithoutReverse : Parser (WithComments a) -> Parser (WithComments (List a))
 manyWithoutReverse p =
     let
-        manyWithoutReverseStep :
+        withoutReverseStep :
             WithComments (List a)
             ->
                 Parser.Parser
@@ -146,7 +146,7 @@ manyWithoutReverse p =
                         (WithComments (List a))
                         (WithComments (List a))
                     )
-        manyWithoutReverseStep soFar =
+        withoutReverseStep soFar =
             Parser.oneOf
                 [ p
                     |> Parser.map
@@ -159,7 +159,7 @@ manyWithoutReverse p =
                 , Parser.succeed (Parser.Done soFar)
                 ]
     in
-    Parser.loop listEmptyWithComments manyWithoutReverseStep
+    Parser.loop listEmptyWithComments withoutReverseStep
 
 
 listEmptyWithComments : WithComments (List b)
