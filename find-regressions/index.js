@@ -10,20 +10,27 @@ console.log(publishedElm);
 const published = publishedElm.Elm.ParseMain.init();
 const current = currentElm.Elm.ParseMain.init();
 
-for (const filePath of fileToParses) {
-    //const publishedName = 'published ' + filePath;
-    //const currentName = 'current ' + filePath;
-    //console.time(publishedName)
-    //console.timeEnd(publishedName)
-    //console.time(currentName)
-    //console.timeEnd(currentName)
-    const content = fs.readFileSync(filePath, 'utf8');
-    const promise1 = new Promise((resolve) => {
+(async function() {
+    for await (const filePath of fileToParses) {
+        //const publishedName = 'published ' + filePath;
+        //const currentName = 'current ' + filePath;
+        //console.time(publishedName)
+        //console.timeEnd(publishedName)
+        //console.time(currentName)
+        //console.timeEnd(currentName)
+        const content = fs.readFileSync(filePath, 'utf8');
+        const before = await parse(published, "published", content)
+        const after = await parse(current, "current", content)
+    }
+})()
+
+function parse(elmApp, name, content) {
+    return new Promise((resolve) => {
       function fn(data) {
-        published.ports.parseResult.unsubscribe(fn);
+        elmApp.ports.parseResult.unsubscribe(fn);
         resolve(data);
       }
-      published.ports.parseResult.subscribe(fn);
-      published.ports.requestParsing.send(content);
+      elmApp.ports.parseResult.subscribe(fn);
+      elmApp.ports.requestParsing.send(content);
     });
 }
