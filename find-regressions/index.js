@@ -4,7 +4,8 @@ const fs = require('node:fs');
 const publishedElm = require('./published/elm.js');
 const currentElm = require('./current/elm.js');
 
-const fileToParses = process.argv.slice(2);
+const checkEquality = process.argv[2] === '--check';
+const fileToParses = process.argv.slice(checkEquality ? 3 : 2);
 
 const published = publishedElm.Elm.ParseMain.init();
 const current = currentElm.Elm.ParseMain.init();
@@ -16,6 +17,11 @@ const currentTimes = [];
         const content = fs.readFileSync(filePath, 'utf8');
         const before = await parse(published, 'published ' + filePath, publishedTimes, content)
         const after = await parse(current, 'current ' + filePath, currentTimes, content)
+        if (checkEquality) {
+            if (JSON.stringify(before) !== JSON.stringify(after)) {
+                console.error(`DIFFERENT: ${filePath}`);
+            }
+        }
     }
 
     const publishedAvg = avg(publishedTimes);
