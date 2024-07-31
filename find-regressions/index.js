@@ -1,14 +1,13 @@
 #!/usr/bin/env node
 
-const fs = require('node:fs/promises');
+const fs = require('node:fs');
 const publishedElm = require('./published/elm.js');
 const currentElm = require('./current/elm.js');
 
-const fileToParse = process.argv[2];
+const fileToParses = process.argv.slice(2);
 
-(async function () {
-    console.log(fileToParse);
-    const content = await fs.readFile(fileToParse, 'utf8')
+for (const filePath of fileToParses) {
+    console.log(filePath);
+    const content = fs.readFileSync(filePath, 'utf8')
     console.log(content)
-})()
-
+}
