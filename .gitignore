@@ -3,3 +3,4 @@ parse.js
 node_modules
 .idea
 *.html
+find-regressions/**/*.js
