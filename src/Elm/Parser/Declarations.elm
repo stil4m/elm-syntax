@@ -500,8 +500,7 @@ infixDeclaration =
                      )
                         |. Tokens.parensEnd
                     )
-                |= Layout.maybeLayout
-                |. Tokens.equal
+                |= Layout.maybeLayoutUntilIgnored Tokens.equal
                 |= Layout.maybeLayout
                 |= Node.parserCore Tokens.functionName
             )
@@ -550,8 +549,7 @@ portDeclarationAfterDocumentation =
                 |= Layout.maybeLayout
                 |= Parser.getPosition
                 |= Tokens.functionName
-                |= Layout.maybeLayout
-                |. Tokens.colon
+                |= Layout.maybeLayoutUntilIgnored Tokens.colon
                 |= Layout.maybeLayout
                 |= typeAnnotation
             )
@@ -596,8 +594,7 @@ portDeclarationWithoutDocumentation =
                 |= Layout.maybeLayout
                 |= Parser.getPosition
                 |= Tokens.functionName
-                |= Layout.maybeLayout
-                |. Tokens.colon
+                |= Layout.maybeLayoutUntilIgnored Tokens.colon
                 |= Layout.maybeLayout
                 |= typeAnnotation
             )
@@ -707,8 +704,7 @@ customTypeDefinitionAfterDocumentationAfterTypePrefix =
                             , syntax = variantResult.syntax
                             }
                 )
-                (Layout.maybeLayout |> Parser.backtrackable)
-                |. Tokens.pipe
+                (Layout.maybeLayoutUntilIgnored Tokens.pipe |> Parser.backtrackable)
                 |= Layout.maybeLayout
                 |= valueConstructor
             )
@@ -865,8 +861,7 @@ customTypeDefinitionWithoutDocumentationAfterTypePrefix =
                             , syntax = variantResult.syntax
                             }
                 )
-                (Layout.maybeLayout |> Parser.backtrackable)
-                |. Tokens.pipe
+                (Layout.maybeLayoutUntilIgnored Tokens.pipe |> Parser.backtrackable)
                 |= Layout.maybeLayout
                 |= valueConstructor
             )

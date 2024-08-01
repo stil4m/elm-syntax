@@ -18,33 +18,19 @@ exposeDefinition =
         |> Parser.Extra.continueWith
             (Parser.map
                 (\commentsAfterExposing ->
-                    \exposingList ->
-                        { comments = commentsAfterExposing |> Rope.prependTo exposingList.comments
-                        , syntax = exposingList.syntax
-                        }
+                    \commentsBefore ->
+                        \exposingListInnerResult ->
+                            { comments =
+                                commentsAfterExposing
+                                    |> Rope.prependTo commentsBefore
+                                    |> Rope.prependTo exposingListInnerResult.comments
+                            , syntax = exposingListInnerResult.syntax
+                            }
                 )
-                Layout.maybeLayout
+                (Layout.maybeLayoutUntilIgnored Tokens.parensStart)
             )
     )
-        |= exposeListWith
-
-
-exposeListWith : Parser (WithComments Exposing)
-exposeListWith =
-    (Tokens.parensStart
-        |> Parser.Extra.continueWith
-            (Parser.map
-                (\commentsBefore ->
-                    \exposingListInnerResult ->
-                        { comments =
-                            commentsBefore
-                                |> Rope.prependTo exposingListInnerResult.comments
-                        , syntax = exposingListInnerResult.syntax
-                        }
-                )
-                Layout.optimisticLayout
-            )
-    )
+        |= Layout.optimisticLayout
         |= exposingListInner
         |. Tokens.parensEnd
 
@@ -160,10 +146,8 @@ typeExpose =
                 (Layout.maybeLayout |> Parser.backtrackable)
                 |= Parser.getPosition
                 |. Tokens.parensStart
-                |= Layout.maybeLayout
-                |. Tokens.dotDot
-                |= Layout.maybeLayout
-                |. Tokens.parensEnd
+                |= Layout.maybeLayoutUntilIgnored Tokens.dotDot
+                |= Layout.maybeLayoutUntilIgnored Tokens.parensEnd
                 |= Parser.getPosition
             , Parser.succeed Nothing
             ]
