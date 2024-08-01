@@ -539,8 +539,8 @@ caseStatements =
                                 firstCasePatternResult.comments
                                     |> Rope.prependTo commentsAfterFirstCasePattern
                                     |> Rope.prependTo commentsAfterFirstCaseArrowRight
-                                    |> Rope.prependTo lastToSecondCase.comments
                                     |> Rope.prependTo firstCaseExpressionResult.comments
+                                    |> Rope.prependTo lastToSecondCase.comments
                             , syntax =
                                 ( ( firstCasePatternResult.syntax, firstCaseExpressionResult.syntax )
                                 , lastToSecondCase.syntax

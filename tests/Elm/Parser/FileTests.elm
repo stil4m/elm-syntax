@@ -113,6 +113,34 @@ f =
                             , Node { start = { row = 20, column = 1 }, end = { row = 20, column = 8 } } "{- 6 -}"
                             ]
                         )
+        , test "declarations with comments" <|
+            \() ->
+                """module Foo exposing (b, fn)
+
+fn a =
+    case a of
+        X ->
+            1
+                -- 1
+                + 2
+
+        Y ->
+            1
+
+-- 2
+
+b =
+    1
+
+"""
+                    |> Elm.Parser.parseToFile
+                    |> Result.map .comments
+                    |> Expect.equal
+                        (Ok
+                            [ Node { start = { row = 7, column = 17 }, end = { row = 7, column = 21 } } "-- 1"
+                            , Node { start = { row = 13, column = 1 }, end = { row = 13, column = 5 } } "-- 2"
+                            ]
+                        )
         , test "function declaration with a case and trailing whitespace" <|
             \() ->
                 """
