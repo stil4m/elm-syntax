@@ -15,77 +15,94 @@ import Rope
 
 importDefinition : Parser (WithComments (Node Import))
 importDefinition =
-    ParserFast.mapWithStartPosition
-        (\start importResult ->
-            { comments = importResult.comments
-            , syntax =
-                Node { start = start, end = importResult.end }
-                    importResult.import_
-            }
-        )
-        (ParserFast.map6
-            (\commentsAfterImport ((Node modRange _) as mod) commentsAfterModuleName maybeModuleAlias maybeExposingList commentsAfterEverything ->
-                let
-                    endRange : Range
-                    endRange =
-                        case maybeModuleAlias of
-                            Just moduleAliasValue ->
-                                let
-                                    (Node range _) =
-                                        moduleAliasValue.syntax
-                                in
-                                range
+    (Tokens.importToken
+        |> Parser.Extra.continueWith
+            (Parser.map
+                (\startRow ->
+                    \commentsAfterImport ->
+                        \((Node modRange _) as mod) ->
+                            \commentsAfterModuleName ->
+                                \maybeModuleAlias ->
+                                    \maybeExposingList ->
+                                        \commentsAfterEverything ->
+                                            let
+                                                endRange : Range
+                                                endRange =
+                                                    case maybeModuleAlias of
+                                                        Just moduleAliasValue ->
+                                                            let
+                                                                (Node range _) =
+                                                                    moduleAliasValue.syntax
+                                                            in
+                                                            range
 
-                            Nothing ->
-                                case maybeExposingList of
-                                    Just exposingListValue ->
-                                        let
-                                            (Node range _) =
-                                                exposingListValue.syntax
-                                        in
-                                        range
+                                                        Nothing ->
+                                                            case maybeExposingList of
+                                                                Just exposingListValue ->
+                                                                    let
+                                                                        (Node range _) =
+                                                                            exposingListValue.syntax
+                                                                    in
+                                                                    range
 
-                                    Nothing ->
-                                        modRange
-                in
-                { comments =
-                    commentsAfterImport
-                        |> Rope.prependTo commentsAfterModuleName
-                        |> Rope.prependTo
-                            (case maybeModuleAlias of
-                                Nothing ->
-                                    Rope.empty
+                                                                Nothing ->
+                                                                    modRange
+                                            in
+                                            { comments =
+                                                commentsAfterImport
+                                                    |> Rope.prependTo commentsAfterModuleName
+                                                    |> Rope.prependTo
+                                                        (case maybeModuleAlias of
+                                                            Nothing ->
+                                                                Rope.empty
 
-                                Just moduleAliasValue ->
-                                    moduleAliasValue.comments
-                            )
-                        |> Rope.prependTo
-                            (case maybeExposingList of
-                                Nothing ->
-                                    Rope.empty
+                                                            Just moduleAliasValue ->
+                                                                moduleAliasValue.comments
+                                                        )
+                                                    |> Rope.prependTo
+                                                        (case maybeExposingList of
+                                                            Nothing ->
+                                                                Rope.empty
 
-                                Just exposingListValue ->
-                                    exposingListValue.comments
-                            )
-                        |> Rope.prependTo commentsAfterEverything
-                , end = endRange.end
-                , import_ =
-                    { moduleName = mod
-                    , moduleAlias = maybeModuleAlias |> Maybe.map .syntax
-                    , exposingList = maybeExposingList |> Maybe.map .syntax
-                    }
-                }
+                                                            Just exposingListValue ->
+                                                                exposingListValue.comments
+                                                        )
+                                                    |> Rope.prependTo commentsAfterEverything
+                                            , syntax =
+                                                Node
+                                                    { start = { row = startRow, column = 1 }, end = endRange.end }
+                                                    { moduleName = mod
+                                                    , moduleAlias = maybeModuleAlias |> Maybe.map .syntax
+                                                    , exposingList = maybeExposingList |> Maybe.map .syntax
+                                                    }
+                                            }
+                )
+                Parser.getRow
             )
-            (ParserFast.keywordFollowedBy "import" Layout.maybeLayout)
-            moduleName
-            Layout.optimisticLayout
-            (ParserFast.orSucceed
-                (ParserFast.map3
-                    (\commentsBefore moduleAliasNode commentsAfter ->
-                        Just
-                            { comments = commentsBefore |> Rope.prependTo commentsAfter
-                            , syntax = moduleAliasNode
-                            }
+    )
+        |= Layout.maybeLayout
+        |= moduleName
+        |= Layout.optimisticLayout
+        |= Parser.oneOf
+            [ (Tokens.asToken
+                |> Parser.Extra.continueWith
+                    (Parser.map
+                        (\commentsBefore ->
+                            \( moduleAliasStartRow, moduleAliasStartColumn ) ->
+                                \moduleAlias ->
+                                    \commentsAfter ->
+                                        Just
+                                            { comments = commentsBefore |> Rope.prependTo commentsAfter
+                                            , syntax =
+                                                Node
+                                                    (Node.singleLineStringRangeFrom
+                                                        { row = moduleAliasStartRow, column = moduleAliasStartColumn }
+                                                        moduleAlias
+                                                    )
+                                                    [ moduleAlias ]
+                                            }
+                        )
+                        Layout.layout
                     )
                     (ParserFast.keywordFollowedBy "as" Layout.maybeLayout)
                     (ParserFast.mapWithStartAndEndPosition
