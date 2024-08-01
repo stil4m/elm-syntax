@@ -916,21 +916,15 @@ negationOperation =
 
 minusNotFollowedBySpace : Parser.Parser ()
 minusNotFollowedBySpace =
-    Parser.backtrackable Tokens.minus
+    Tokens.minus
         |> Parser.Extra.continueWith
             (Parser.oneOf
                 [ Parser.chompIf (\next -> next == '\u{000D}' || next == '\n' || next == ' ')
-                    |> Parser.backtrackable
-                    |> Parser.map (\() -> problemNegationThenSpace)
-                , Parser.succeed (Parser.commit ())
+                    |> Parser.Extra.continueWith (Parser.problem "negation sign cannot be followed by a space")
+                , Parser.succeed ()
                 ]
             )
-        |> Parser.andThen identity
-
-
-problemNegationThenSpace : Parser.Parser a
-problemNegationThenSpace =
-    Parser.problem "negation sign cannot be followed by a space"
+        |> Parser.backtrackable
 
 
 qualifiedOrVariantOrRecordConstructorReferenceExpression : Parser { comments : Comments, end : Location, expression : Expression }
