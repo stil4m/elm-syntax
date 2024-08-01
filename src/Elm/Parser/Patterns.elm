@@ -68,7 +68,7 @@ maybeComposedWith =
                                         )
                                 }
                     )
-                    Layout.layout
+                    Layout.maybeLayout
                 )
           )
             |= Parser.getPosition
