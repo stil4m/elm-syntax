@@ -36,14 +36,11 @@ typeAnnotation =
                         , syntax = typeAnnotationResult.syntax
                         }
                 )
-                (Layout.maybeLayoutUntilIgnored ParserFast.symbolFollowedBy "->"
-                    |> ParserFast.backtrackable
-                )
-                Layout.maybeLayout
-                (ParserFast.lazy (\() -> typeAnnotation))
-            )
-            Nothing
-        )
+                (Layout.maybeLayoutUntilIgnored Tokens.arrowRight |> Parser.backtrackable)
+                |= Layout.maybeLayout
+                |= Parser.lazy (\() -> typeAnnotation)
+            , Parser.succeed Nothing
+            ]
 
 
 typeAnnotationNoFnExcludingTypedWithArguments : Parser (WithComments (Node TypeAnnotation))
@@ -243,10 +240,11 @@ recordFieldDefinition =
             }
         )
         Layout.maybeLayout
-        (Node.parserCore Tokens.functionName)
-        (Layout.maybeLayoutUntilIgnored ParserFast.symbolFollowedBy ":")
-        Layout.maybeLayout
-        typeAnnotation
+        |= Parser.getPosition
+        |= Tokens.functionName
+        |= Layout.maybeLayoutUntilIgnored Tokens.colon
+        |= Layout.maybeLayout
+        |= typeAnnotation
         -- This extra whitespace is just included for compatibility with earlier version
         -- TODO for v8: move to recordFieldsTypeAnnotation
         Layout.maybeLayout

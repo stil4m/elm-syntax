@@ -31,9 +31,9 @@ effectWhereClause =
             }
         )
         Tokens.functionName
-        (Layout.maybeLayoutUntilIgnored ParserFast.symbolFollowedBy "=")
-        Layout.maybeLayout
-        (Node.parserCore Tokens.typeName)
+        |= Layout.maybeLayoutUntilIgnored Tokens.equal
+        |= Layout.maybeLayout
+        |= Node.parserCore Tokens.typeName
 
 
 whereBlock : Parser (WithComments { command : Maybe (Node String), subscription : Maybe (Node String) })

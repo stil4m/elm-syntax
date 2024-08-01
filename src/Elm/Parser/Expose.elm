@@ -13,21 +13,25 @@ import Set
 
 exposeDefinition : Parser (WithComments Exposing)
 exposeDefinition =
-    ParserFast.map4
-        (\commentsAfterExposing commentsBefore exposingListInnerResult () ->
-            { comments =
-                commentsAfterExposing
-                    |> Rope.prependTo commentsBefore
-                    |> Rope.prependTo exposingListInnerResult.comments
-            , syntax = exposingListInnerResult.syntax
-            }
-        )
-        (ParserFast.symbolFollowedBy "exposing"
-            (Layout.maybeLayoutUntilIgnored ParserFast.symbolFollowedBy "(")
-        )
-        Layout.optimisticLayout
-        exposingListInner
-        Tokens.parensEnd
+    (Tokens.exposingToken
+        |> Parser.Extra.continueWith
+            (Parser.map
+                (\commentsAfterExposing ->
+                    \commentsBefore ->
+                        \exposingListInnerResult ->
+                            { comments =
+                                commentsAfterExposing
+                                    |> Rope.prependTo commentsBefore
+                                    |> Rope.prependTo exposingListInnerResult.comments
+                            , syntax = exposingListInnerResult.syntax
+                            }
+                )
+                (Layout.maybeLayoutUntilIgnored Tokens.parensStart)
+            )
+    )
+        |= Layout.optimisticLayout
+        |= exposingListInner
+        |. Tokens.parensEnd
 
 
 exposingListInner : Parser (WithComments Exposing)
@@ -112,22 +116,14 @@ typeExpose =
                         , syntax = all.range
                         }
                 )
-                (Layout.maybeLayout |> ParserFast.backtrackable)
-                (ParserFast.mapWithStartAndEndPosition
-                    (\start comments end ->
-                        { comments = comments, range = { start = start, end = end } }
-                    )
-                    (ParserFast.map2 (\left right -> left |> Rope.prependTo right)
-                        (ParserFast.symbolFollowedBy "("
-                            (Layout.maybeLayoutUntilIgnored ParserFast.symbolFollowedBy "..")
-                        )
-                        (Layout.maybeLayoutUntilIgnored ParserFast.symbolFollowedBy ")")
-                    )
-                )
-            )
-            Nothing
-        )
-        |> Node.parser
+                (Layout.maybeLayout |> Parser.backtrackable)
+                |= Parser.getPosition
+                |. Tokens.parensStart
+                |= Layout.maybeLayoutUntilIgnored Tokens.dotDot
+                |= Layout.maybeLayoutUntilIgnored Tokens.parensEnd
+                |= Parser.getPosition
+            , Parser.succeed Nothing
+            ]
 
 
 functionExpose : Parser (WithComments (Node TopLevelExpose))
