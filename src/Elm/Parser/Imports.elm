@@ -78,7 +78,7 @@ importDefinition =
         )
         Parser.getRow
         |. Tokens.importToken
-        |= Layout.layout
+        |= Layout.maybeLayout
         |= moduleName
         |= Layout.optimisticLayout
         |= Parser.oneOf
