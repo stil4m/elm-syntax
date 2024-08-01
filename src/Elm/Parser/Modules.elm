@@ -78,7 +78,7 @@ effectWhereClauses =
                         , syntax = whereResult.syntax
                         }
                 )
-                Layout.layout
+                Layout.maybeLayout
             )
     )
         |= whereBlock
@@ -86,7 +86,7 @@ effectWhereClauses =
 
 effectModuleDefinition : Parser (WithComments Module)
 effectModuleDefinition =
-    (Parser.symbol "effect"
+    (Parser.keyword "effect"
         |> Parser.Extra.continueWith
             (Parser.map
                 (\commentsAfterEffect ->
@@ -112,15 +112,15 @@ effectModuleDefinition =
                                                     }
                                             }
                 )
-                Layout.layout
+                Layout.maybeLayout
             )
     )
         |. Tokens.moduleToken
-        |= Layout.layout
+        |= Layout.maybeLayout
         |= moduleName
-        |= Layout.layout
+        |= Layout.maybeLayout
         |= effectWhereClauses
-        |= Layout.layout
+        |= Layout.maybeLayout
         |= Node.parser exposeDefinition
 
 
@@ -144,11 +144,11 @@ normalModuleDefinition =
                                         }
                                 }
                 )
-                Layout.layout
+                Layout.maybeLayout
             )
     )
         |= moduleName
-        |= Layout.layout
+        |= Layout.maybeLayout
         |= Node.parser exposeDefinition
 
 
@@ -170,11 +170,11 @@ portModuleDefinition =
                                     , syntax = PortModule { moduleName = moduleName, exposingList = exposingList.syntax }
                                     }
                 )
-                Layout.layout
+                Layout.maybeLayout
             )
     )
         |. Tokens.moduleToken
-        |= Layout.layout
+        |= Layout.maybeLayout
         |= moduleName
-        |= Layout.layout
+        |= Layout.maybeLayout
         |= Node.parser exposeDefinition

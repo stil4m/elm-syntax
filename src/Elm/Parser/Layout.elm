@@ -1,6 +1,5 @@
 module Elm.Parser.Layout exposing
-    ( layout
-    , layoutStrict
+    ( layoutStrict
     , maybeAroundBothSides
     , maybeLayout
     , moduleLevelIndentation
@@ -144,49 +143,6 @@ succeedUnit =
 problemPositivelyIndented : Parser a
 problemPositivelyIndented =
     Parser.problem "must be positively indented"
-
-
-layout : Parser Comments
-layout =
-    Parser.oneOf
-        [ (whitespace
-            |> Parser.andThen (\_ -> fromCommentElseEmpty)
-          )
-            |. positivelyIndented
-        , Parser.andThen
-            (\source ->
-                Parser.andThen
-                    (\offset ->
-                        case source |> String.slice offset (offset + 2) of
-                            "--" ->
-                                -- this will always succeed from here, so no need to fall back to Rope.empty
-                                fromSingleLineCommentNodeVerifyLayoutIndent
-
-                            "{-" ->
-                                fromMultilineCommentNodeOrEmptyOnProblemVerifyLayoutIndent
-
-                            _ ->
-                                problemMissingWhitespaceOrComments
-                    )
-                    Parser.getOffset
-            )
-            Parser.getSource
-        ]
-
-
-fromSingleLineCommentNodeVerifyLayoutIndent : Parser Comments
-fromSingleLineCommentNodeVerifyLayoutIndent =
-    fromSingleLineCommentNode |. positivelyIndented
-
-
-fromMultilineCommentNodeOrEmptyOnProblemVerifyLayoutIndent : Parser Comments
-fromMultilineCommentNodeOrEmptyOnProblemVerifyLayoutIndent =
-    fromMultilineCommentNodeOrEmptyOnProblem |. positivelyIndented
-
-
-problemMissingWhitespaceOrComments : Parser a
-problemMissingWhitespaceOrComments =
-    Parser.problem "missing whitespace/comments"
 
 
 optimisticLayout : Parser Comments
