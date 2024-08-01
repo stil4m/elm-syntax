@@ -31,16 +31,11 @@ multilineCommentString : Parser.Parser String
 multilineCommentString =
     Parser.oneOf
         [ Parser.symbol "{-|"
-            |> Parser.Extra.continueWith problemUnexpected
+            |> Parser.Extra.continueWith (Parser.problem "unexpected documentation comment")
         , Parser.multiComment "{-" "-}" Nestable
             |> Parser.getChompedString
         ]
         |> Parser.backtrackable
-
-
-problemUnexpected : Parser.Parser a
-problemUnexpected =
-    Parser.problem "unexpected documentation comment"
 
 
 moduleDocumentation : Parser (Node String)
