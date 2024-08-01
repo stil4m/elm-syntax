@@ -140,7 +140,7 @@ functionCall : ( Int, Parser (WithComments ExtensionRight) )
 functionCall =
     infixHelp 90
         (Parser.lazy (\() -> abovePrecedence90))
-        Layout.positivelyIndented
+        (Layout.positivelyIndented ())
         ExtendRightByApplication
 
 
@@ -254,8 +254,7 @@ recordExpression =
             )
     )
         |= recordContents
-        |= Layout.maybeLayout
-        |. Tokens.curlyEnd
+        |= Layout.maybeLayoutUntilIgnored Tokens.curlyEnd
         |= Parser.getPosition
 
 
@@ -388,8 +387,7 @@ recordSetterNodeWithLayout =
         )
         Parser.getPosition
         |= Tokens.functionName
-        |= Layout.maybeLayout
-        |. Tokens.equal
+        |= Layout.maybeLayoutUntilIgnored Tokens.equal
         |= Layout.maybeLayout
         |= expression
         |= Layout.maybeLayout
@@ -521,8 +519,7 @@ caseExpression =
             )
     )
         |= expression
-        |= Layout.maybeLayout
-        |. Tokens.ofToken
+        |= Layout.maybeLayoutUntilIgnored Tokens.ofToken
         |= Layout.maybeLayout
         |= Parser.Extra.withIndent caseStatements
 
@@ -548,8 +545,7 @@ caseStatements =
                             }
         )
         Patterns.pattern
-        |= Layout.maybeLayout
-        |. Tokens.arrowRight
+        |= Layout.maybeLayoutUntilIgnored Tokens.arrowRight
         |= Layout.maybeLayout
         |= expression
         |= ParserWithComments.manyWithoutReverse caseStatement
@@ -575,8 +571,7 @@ caseStatement =
         (Layout.optimisticLayout |> Parser.backtrackable)
         |. Layout.onTopIndentation ()
         |= Patterns.pattern
-        |= Layout.maybeLayout
-        |. Tokens.arrowRight
+        |= Layout.maybeLayoutUntilIgnored Tokens.arrowRight
         |= Layout.maybeLayout
         |= expression
 
@@ -885,12 +880,10 @@ ifBlockExpression =
             )
     )
         |= expression
-        |= Layout.maybeLayout
-        |. Tokens.thenToken
+        |= Layout.maybeLayoutUntilIgnored Tokens.thenToken
         |= Layout.maybeLayout
         |= expression
-        |= Layout.maybeLayout
-        |. Tokens.elseToken
+        |= Layout.maybeLayoutUntilIgnored Tokens.elseToken
         |= Layout.maybeLayout
         |= expression
 

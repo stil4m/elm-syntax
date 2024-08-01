@@ -2,6 +2,7 @@ module Elm.Parser.Layout exposing
     ( layoutStrict
     , maybeAroundBothSides
     , maybeLayout
+    , maybeLayoutUntilIgnored
     , moduleLevelIndentation
     , onTopIndentation
     , optimisticLayout
@@ -11,10 +12,69 @@ module Elm.Parser.Layout exposing
 
 import Elm.Parser.Comments as Comments
 import Elm.Parser.Node as Node
+import Elm.Syntax.Node exposing (Node)
 import Parser exposing ((|.), (|=), Parser)
 import ParserWithComments exposing (Comments, WithComments)
 import Rope
 import Set
+
+
+maybeLayoutUntilIgnored : Parser () -> Parser.Parser Comments
+maybeLayoutUntilIgnored end =
+    let
+        fromSingleLineCommentUntilEnd : Parser (Rope.Rope (Node String))
+        fromSingleLineCommentUntilEnd =
+            Parser.map
+                (\comment ->
+                    \commentsAfter ->
+                        Rope.one comment |> Rope.filledPrependTo commentsAfter
+                )
+                Comments.singleLineCommentCore
+                |= Parser.lazy (\() -> maybeLayoutUntilIgnored end)
+
+        fromMultilineCommentNodeUntilEnd : Parser Comments
+        fromMultilineCommentNodeUntilEnd =
+            Parser.oneOf [ fromMultilineCommentNode, endNoComments ]
+
+        endNoComments : Parser Comments
+        endNoComments =
+            positivelyIndented Rope.empty |. end
+
+        fromCommentElseEmptyThenEnd : Parser Comments
+        fromCommentElseEmptyThenEnd =
+            -- since comments are comparatively rare
+            -- but expensive to check for, we allow shortcutting to dead end
+            Parser.andThen
+                (\source ->
+                    Parser.andThen
+                        (\offset ->
+                            case source |> String.slice offset (offset + 2) of
+                                "--" ->
+                                    fromSingleLineCommentUntilEnd
+
+                                "{-" ->
+                                    fromMultilineCommentNodeUntilEnd
+
+                                _ ->
+                                    endNoComments
+                        )
+                        Parser.getOffset
+                )
+                Parser.getSource
+
+        endOrFromCommentElseEmptyThenEnd : Parser Comments
+        endOrFromCommentElseEmptyThenEnd =
+            Parser.oneOf
+                [ endNoComments |> Parser.backtrackable
+                , fromCommentElseEmptyThenEnd
+                ]
+    in
+    Parser.oneOf
+        [ whitespace
+            |> Parser.andThen (\_ -> endOrFromCommentElseEmptyThenEnd)
+        , endNoComments |> Parser.backtrackable
+        , fromCommentElseEmptyThenEnd
+        ]
 
 
 whitespaceAndCommentsOrEmpty : Parser.Parser Comments
@@ -95,7 +155,7 @@ fromSingleLineCommentNode =
 maybeLayout : Parser Comments
 maybeLayout =
     whitespaceAndCommentsOrEmpty
-        |. positivelyIndented
+        |. positivelyIndented ()
 
 
 {-| Use to check that the indentation of an already parsed token
@@ -118,15 +178,20 @@ positivelyIndentedPlus extraIndent =
         Parser.getCol
 
 
-positivelyIndented : Parser.Parser ()
-positivelyIndented =
+positivelyIndented : res -> Parser.Parser res
+positivelyIndented res =
+    let
+        succeedRes : Parser res
+        succeedRes =
+            Parser.succeed res
+    in
     Parser.getCol
         |> Parser.andThen
             (\column ->
                 Parser.andThen
                     (\indent ->
                         if column > indent then
-                            succeedUnit
+                            succeedRes
 
                         else
                             problemPositivelyIndented
