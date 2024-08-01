@@ -4,6 +4,8 @@
 // More instructions on how to run the script is available in that file.
 
 const fs = require('node:fs');
+const os = require('node:os');
+const path = require('node:path');
 try {
     require('./published/elm.js');
     require('./current/elm.js');
@@ -29,6 +31,8 @@ globalThis.measurements = {
 };
 
 (async function() {
+    const tmpDirectory = fs.mkdtempSync(path.join(os.tmpdir(), 'elm-syntax-regressions-'));
+
     for await (const filePath of fileToParses) {
         const source = fs.readFileSync(filePath, 'utf8');
         const before = await parse(published, source)
@@ -43,7 +47,13 @@ globalThis.measurements = {
             })
         if (!disableEquality) {
             if (JSON.stringify(before) !== JSON.stringify(after)) {
+                const pathBefore = path.join(tmpDirectory, path.basename(filePath, '.elm'), 'before.txt');
+                const pathAfter = path.join(tmpDirectory, path.basename(filePath, '.elm'), 'after.txt');
+                fs.mkdirSync(path.dirname(pathBefore), {recursive: true});
+                fs.writeFileSync(pathBefore, JSON.stringify(before, null, 4), {encoding: 'utf8'});
+                fs.writeFileSync(pathAfter, JSON.stringify(after, null, 4), {encoding: 'utf8'});
                 console.error(`DIFFERENT: ${filePath}`);
+                console.error(`  diff ${pathBefore} ${pathAfter}`);
             }
         }
     }
