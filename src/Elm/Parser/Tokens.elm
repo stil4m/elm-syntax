@@ -56,12 +56,77 @@ reservedList =
         |> Set.fromList
 
 
-inToken : ParserFast.Parser ()
+portToken : Parser.Parser ()
+portToken =
+    Parser.keyword "port"
+
+
+moduleToken : Parser.Parser ()
+moduleToken =
+    Parser.keyword "module"
+
+
+whereToken : Parser.Parser ()
+whereToken =
+    Parser.keyword "where"
+
+
+exposingToken : Parser.Parser ()
+exposingToken =
+    Parser.symbol "exposing"
+
+
+importToken : Parser.Parser ()
+importToken =
+    Parser.keyword "import"
+
+
+asToken : Parser.Parser ()
+asToken =
+    Parser.keyword "as"
+
+
+ifToken : Parser.Parser ()
+ifToken =
+    Parser.keyword "if"
+
+
+thenToken : Parser.Parser ()
+thenToken =
+    Parser.keyword "then"
+
+
+elseToken : Parser.Parser ()
+elseToken =
+    Parser.keyword "else"
+
+
+caseToken : Parser.Parser ()
+caseToken =
+    Parser.keyword "case"
+
+
+ofToken : Parser.Parser ()
+ofToken =
+    Parser.keyword "of"
+
+
+letToken : Parser.Parser ()
+letToken =
+    Parser.keyword "let"
+
+
+inToken : Parser.Parser ()
 inToken =
     ParserFast.keyword "in" ()
 
 
-escapedCharValue : ParserFast.Parser Char
+aliasToken : Parser.Parser ()
+aliasToken =
+    Parser.keyword "alias"
+
+
+escapedCharValue : Parser.Parser Char
 escapedCharValue =
     ParserFast.oneOf
         [ ParserFast.symbol "'" '\''

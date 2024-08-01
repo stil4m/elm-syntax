@@ -13,7 +13,7 @@ all =
     describe "LayoutTests"
         [ test "empty" <|
             \() ->
-                parse "" (ParserFast.withIndent 0 Layout.maybeLayout)
+                parse "" (Parser.withIndent 0 Layout.maybeLayout)
                     |> Expect.equal (Just ())
         , test "just whitespace" <|
             \() ->

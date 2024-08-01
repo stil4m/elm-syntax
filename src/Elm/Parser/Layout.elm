@@ -1,8 +1,5 @@
 module Elm.Parser.Layout exposing
     ( layoutStrict
-    , layoutStrictFollowedBy
-    , layoutStrictFollowedByComments
-    , layoutStrictFollowedByWithComments
     , maybeAroundBothSides
     , maybeLayout
     , maybeLayoutUntilIgnored
@@ -173,7 +170,7 @@ positivelyIndentedFollowedBy nextParser =
 
 problemPositivelyIndented : Parser a
 problemPositivelyIndented =
-    ParserFast.problem "must be positively indented"
+    Parser.problem "must be positively indented"
 
 
 optimisticLayout : Parser Comments

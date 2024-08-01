@@ -412,29 +412,51 @@ parameterPatternsEqual =
 
 infixDeclaration : Parser (WithComments (Node Declaration))
 infixDeclaration =
-    ParserFast.map9
-        (\commentsAfterInfix direction commentsAfterDirection precedence commentsAfterPrecedence operator commentsAfterOperator commentsAfterEqual fn ->
-            { comments =
-                commentsAfterInfix
-                    |> Rope.prependTo commentsAfterDirection
-                    |> Rope.prependTo commentsAfterPrecedence
-                    |> Rope.prependTo commentsAfterOperator
-                    |> Rope.prependTo commentsAfterEqual
-            , syntax =
-                Declaration.InfixDeclaration
-                    { direction = direction, precedence = precedence, operator = operator, function = fn }
-            }
-        )
-        (ParserFast.keywordFollowedBy "infix" Layout.maybeLayout)
-        (Node.parserCore infixDirection)
-        Layout.maybeLayout
-        (Node.parserCore ParserFast.int)
-        Layout.maybeLayout
-        (Node.parserCore
-            (ParserFast.map2
-                (\prefixOperator () -> prefixOperator)
-                (ParserFast.symbolFollowedBy "(" Tokens.prefixOperatorToken)
-                Tokens.parensEnd
+    Parser.keyword "infix"
+        |> Parser.Extra.continueWith
+            (Parser.map
+                (\startRow ->
+                    \commentsAfterInfix ->
+                        \direction ->
+                            \commentsAfterDirection ->
+                                \precedence ->
+                                    \commentsAfterPrecedence ->
+                                        \operator ->
+                                            \commentsAfterOperator ->
+                                                \commentsAfterEqual ->
+                                                    \((Node fnRange _) as fn) ->
+                                                        { comments =
+                                                            commentsAfterInfix
+                                                                |> Rope.prependTo commentsAfterDirection
+                                                                |> Rope.prependTo commentsAfterPrecedence
+                                                                |> Rope.prependTo commentsAfterOperator
+                                                                |> Rope.prependTo commentsAfterEqual
+                                                        , syntax =
+                                                            Node
+                                                                { start = { row = startRow, column = 1 }
+                                                                , end = fnRange.end
+                                                                }
+                                                                (Declaration.InfixDeclaration
+                                                                    { direction = direction, precedence = precedence, operator = operator, function = fn }
+                                                                )
+                                                        }
+                )
+                Parser.getRow
+                |= Layout.maybeLayout
+                |= Node.parserCore infixDirection
+                |= Layout.maybeLayout
+                |= Node.parserCore Parser.int
+                |= Layout.maybeLayout
+                |= Node.parserCore
+                    ((Tokens.parensStart
+                        |> Parser.Extra.continueWith Tokens.prefixOperatorToken
+                     )
+                        |. Tokens.parensEnd
+                    )
+                |= Layout.maybeLayout
+                |. Tokens.equal
+                |= Layout.maybeLayout
+                |= Node.parserCore Tokens.functionName
             )
         )
         (Layout.maybeLayoutUntilIgnored ParserFast.symbolFollowedBy "=")
@@ -454,99 +476,145 @@ infixDirection =
 
 portDeclarationAfterDocumentation : Parser (WithComments DeclarationAfterDocumentation)
 portDeclarationAfterDocumentation =
-    ParserFast.map5
-        (\commentsAfterPort ((Node nameRange _) as name) commentsAfterName commentsAfterColon typeAnnotationResult ->
-            { comments =
-                commentsAfterPort
-                    |> Rope.prependTo commentsAfterName
-                    |> Rope.prependTo typeAnnotationResult.comments
-                    |> Rope.prependTo commentsAfterColon
-            , syntax =
-                PortDeclarationAfterDocumentation
-                    { startLocation = { row = nameRange.start.row, column = 1 }
-                    , name = name
-                    , typeAnnotation = typeAnnotationResult.syntax
-                    }
-            }
-        )
-        (ParserFast.keywordFollowedBy "port" Layout.maybeLayout)
-        (Node.parserCore Tokens.functionName)
-        (Layout.maybeLayoutUntilIgnored ParserFast.symbolFollowedBy ":")
-        Layout.maybeLayout
-        typeAnnotation
+    Tokens.portToken
+        |> Parser.Extra.continueWith
+            (Parser.map
+                (\startRow ->
+                    \commentsAfterPort ->
+                        \( nameStartRow, nameStartColumn ) ->
+                            \name ->
+                                \commentsAfterName ->
+                                    \commentsAfterColon ->
+                                        \typeAnnotationResult ->
+                                            { comments =
+                                                commentsAfterPort
+                                                    |> Rope.prependTo commentsAfterName
+                                                    |> Rope.prependTo typeAnnotationResult.comments
+                                                    |> Rope.prependTo commentsAfterColon
+                                            , syntax =
+                                                PortDeclarationAfterDocumentation
+                                                    { startLocation = { row = startRow, column = 1 }
+                                                    , name =
+                                                        Node.singleLineStringFrom { row = nameStartRow, column = nameStartColumn }
+                                                            name
+                                                    , typeAnnotation = typeAnnotationResult.syntax
+                                                    }
+                                            }
+                )
+                Parser.getRow
+                |= Layout.maybeLayout
+                |= Parser.getPosition
+                |= Tokens.functionName
+                |= Layout.maybeLayout
+                |. Tokens.colon
+                |= Layout.maybeLayout
+                |= typeAnnotation
+            )
 
 
 portDeclarationWithoutDocumentation : Parser (WithComments (Node Declaration))
 portDeclarationWithoutDocumentation =
-    ParserFast.map5
-        (\commentsAfterPort ((Node nameRange _) as name) commentsAfterName commentsAfterColon typeAnnotationResult ->
-            let
-                (Node { end } _) =
-                    typeAnnotationResult.syntax
-            in
-            { comments =
-                commentsAfterPort
-                    |> Rope.prependTo commentsAfterName
-                    |> Rope.prependTo commentsAfterColon
-                    |> Rope.prependTo typeAnnotationResult.comments
-            , syntax =
-                Node
-                    { start = { row = nameRange.start.row, column = 1 }
-                    , end = end
-                    }
-                    (Declaration.PortDeclaration
-                        { name = name
-                        , typeAnnotation = typeAnnotationResult.syntax
-                        }
-                    )
-            }
-        )
-        (ParserFast.keywordFollowedBy "port" Layout.maybeLayout)
-        (Node.parserCore Tokens.functionName)
-        (Layout.maybeLayoutUntilIgnored ParserFast.symbolFollowedBy ":")
-        Layout.maybeLayout
-        typeAnnotation
+    Tokens.portToken
+        |> Parser.Extra.continueWith
+            (Parser.map
+                (\startRow ->
+                    \commentsAfterPort ->
+                        \( nameStartRow, nameStartColumn ) ->
+                            \name ->
+                                \commentsAfterName ->
+                                    \commentsAfterColon ->
+                                        \typeAnnotationResult ->
+                                            let
+                                                (Node { end } _) =
+                                                    typeAnnotationResult.syntax
+                                            in
+                                            { comments =
+                                                commentsAfterPort
+                                                    |> Rope.prependTo commentsAfterName
+                                                    |> Rope.prependTo commentsAfterColon
+                                                    |> Rope.prependTo typeAnnotationResult.comments
+                                            , syntax =
+                                                Node
+                                                    { start = { row = startRow, column = 1 }
+                                                    , end = end
+                                                    }
+                                                    (Declaration.PortDeclaration
+                                                        { name =
+                                                            Node.singleLineStringFrom { row = nameStartRow, column = nameStartColumn }
+                                                                name
+                                                        , typeAnnotation = typeAnnotationResult.syntax
+                                                        }
+                                                    )
+                                            }
+                )
+                Parser.getRow
+                |= Layout.maybeLayout
+                |= Parser.getPosition
+                |= Tokens.functionName
+                |= Layout.maybeLayout
+                |. Tokens.colon
+                |= Layout.maybeLayout
+                |= typeAnnotation
+            )
 
 
 typeOrTypeAliasDefinitionAfterDocumentation : Parser (WithComments DeclarationAfterDocumentation)
 typeOrTypeAliasDefinitionAfterDocumentation =
-    ParserFast.map2
-        (\commentsAfterType declarationAfterDocumentation ->
-            { comments = commentsAfterType |> Rope.prependTo declarationAfterDocumentation.comments
-            , syntax = declarationAfterDocumentation.syntax
-            }
-        )
-        (ParserFast.keywordFollowedBy "type" Layout.maybeLayout)
-        (ParserFast.oneOf2
-            typeAliasDefinitionAfterDocumentationAfterTypePrefix
-            customTypeDefinitionAfterDocumentationAfterTypePrefix
-        )
+    (Parser.keyword "type"
+        |> Parser.Extra.continueWith
+            (Parser.map
+                (\commentsAfterType ->
+                    \declarationAfterDocumentation ->
+                        { comments = commentsAfterType |> Rope.prependTo declarationAfterDocumentation.comments
+                        , syntax = declarationAfterDocumentation.syntax
+                        }
+                )
+                Layout.maybeLayout
+            )
+    )
+        |= Parser.oneOf
+            [ typeAliasDefinitionAfterDocumentationAfterTypePrefix
+            , customTypeDefinitionAfterDocumentationAfterTypePrefix
+            ]
 
 
 typeAliasDefinitionAfterDocumentationAfterTypePrefix : Parser (WithComments DeclarationAfterDocumentation)
 typeAliasDefinitionAfterDocumentationAfterTypePrefix =
-    ParserFast.map6
-        (\commentsAfterAlias name commentsAfterName parameters commentsAfterEquals typeAnnotationResult ->
-            { comments =
-                commentsAfterAlias
-                    |> Rope.prependTo commentsAfterName
-                    |> Rope.prependTo parameters.comments
-                    |> Rope.prependTo commentsAfterEquals
-                    |> Rope.prependTo typeAnnotationResult.comments
-            , syntax =
-                TypeAliasDeclarationAfterDocumentation
-                    { name = name
-                    , parameters = parameters.syntax
-                    , typeAnnotation = typeAnnotationResult.syntax
-                    }
-            }
-        )
-        (ParserFast.keywordFollowedBy "alias" Layout.maybeLayout)
-        (Node.parserCore Tokens.typeName)
-        Layout.maybeLayout
-        typeGenericListEquals
-        Layout.maybeLayout
-        typeAnnotation
+    (Tokens.aliasToken
+        |> Parser.Extra.continueWith
+            (Parser.map
+                (\commentsAfterAlias ->
+                    \( nameStartRow, nameStartColumn ) ->
+                        \name ->
+                            \commentsAfterName ->
+                                \parameters ->
+                                    \commentsAfterEquals ->
+                                        \typeAnnotationResult ->
+                                            { comments =
+                                                commentsAfterAlias
+                                                    |> Rope.prependTo commentsAfterName
+                                                    |> Rope.prependTo parameters.comments
+                                                    |> Rope.prependTo commentsAfterEquals
+                                                    |> Rope.prependTo typeAnnotationResult.comments
+                                            , syntax =
+                                                TypeAliasDeclarationAfterDocumentation
+                                                    { name =
+                                                        Node.singleLineStringFrom { row = nameStartRow, column = nameStartColumn }
+                                                            name
+                                                    , parameters = parameters.syntax
+                                                    , typeAnnotation = typeAnnotationResult.syntax
+                                                    }
+                                            }
+                )
+                Layout.maybeLayout
+            )
+    )
+        |= Parser.getPosition
+        |= Tokens.typeName
+        |= Layout.maybeLayout
+        |= typeGenericListEquals
+        |= Layout.maybeLayout
+        |= typeAnnotation
 
 
 customTypeDefinitionAfterDocumentationAfterTypePrefix : Parser (WithComments DeclarationAfterDocumentation)
@@ -592,65 +660,49 @@ customTypeDefinitionAfterDocumentationAfterTypePrefix =
 
 typeOrTypeAliasDefinitionWithoutDocumentation : Parser (WithComments (Node Declaration.Declaration))
 typeOrTypeAliasDefinitionWithoutDocumentation =
-    ParserFast.mapWithStartPosition
-        (\start result ->
-            { comments = result.comments
-            , syntax =
-                Node { start = start, end = result.end }
-                    result.declaration
-            }
-        )
-        (ParserFast.map2
-            (\commentsAfterType afterStart ->
-                let
-                    allComments : Comments
-                    allComments =
-                        commentsAfterType |> Rope.prependTo afterStart.comments
-                in
-                case afterStart.syntax of
-                    TypeDeclarationWithoutDocumentation typeDeclarationAfterDocumentation ->
-                        let
-                            end : Location
-                            end =
-                                case typeDeclarationAfterDocumentation.tailVariantsReverse of
-                                    (Node range _) :: _ ->
-                                        range.end
+    Parser.keyword "type"
+        |> Parser.Extra.continueWith
+            (Parser.map
+                (\startRow ->
+                    let
+                        start : Location
+                        start =
+                            { row = startRow, column = 1 }
+                    in
+                    \commentsAfterType ->
+                        \afterStart ->
+                            { comments = commentsAfterType |> Rope.prependTo afterStart.comments
+                            , syntax =
+                                case afterStart.syntax of
+                                    TypeDeclarationWithoutDocumentation typeDeclarationAfterDocumentation ->
+                                        let
+                                            end : Location
+                                            end =
+                                                case typeDeclarationAfterDocumentation.tailVariantsReverse of
+                                                    (Node range _) :: _ ->
+                                                        range.end
 
                                     [] ->
                                         let
                                             (Node headVariantRange _) =
                                                 typeDeclarationAfterDocumentation.headVariant
                                         in
-                                        headVariantRange.end
-                        in
-                        { comments = allComments
-                        , declaration =
-                            Declaration.CustomTypeDeclaration
-                                { documentation = Nothing
-                                , name = typeDeclarationAfterDocumentation.name
-                                , generics = typeDeclarationAfterDocumentation.parameters
-                                , constructors =
-                                    typeDeclarationAfterDocumentation.headVariant
-                                        :: List.reverse typeDeclarationAfterDocumentation.tailVariantsReverse
-                                }
-                        , end = end
-                        }
-
-                    TypeAliasDeclarationWithoutDocumentation typeAliasDeclarationAfterDocumentation ->
-                        let
-                            (Node typeAnnotationRange _) =
-                                typeAliasDeclarationAfterDocumentation.typeAnnotation
-                        in
-                        { comments = allComments
-                        , declaration =
-                            Declaration.AliasDeclaration
-                                { documentation = Nothing
-                                , name = typeAliasDeclarationAfterDocumentation.name
-                                , generics = typeAliasDeclarationAfterDocumentation.parameters
-                                , typeAnnotation = typeAliasDeclarationAfterDocumentation.typeAnnotation
-                                }
-                        , end = typeAnnotationRange.end
-                        }
+                                        Node { start = start, end = typeAnnotationRange.end }
+                                            (Declaration.AliasDeclaration
+                                                { documentation = Nothing
+                                                , name = typeAliasDeclarationAfterDocumentation.name
+                                                , generics = typeAliasDeclarationAfterDocumentation.parameters
+                                                , typeAnnotation = typeAliasDeclarationAfterDocumentation.typeAnnotation
+                                                }
+                                            )
+                            }
+                )
+                Parser.getRow
+                |= Layout.maybeLayout
+                |= Parser.oneOf
+                    [ typeAliasDefinitionWithoutDocumentationAfterTypePrefix
+                    , customTypeDefinitionWithoutDocumentationAfterTypePrefix
+                    ]
             )
             (ParserFast.keywordFollowedBy "type" Layout.maybeLayout)
             (ParserFast.oneOf2
@@ -662,28 +714,41 @@ typeOrTypeAliasDefinitionWithoutDocumentation =
 
 typeAliasDefinitionWithoutDocumentationAfterTypePrefix : Parser (WithComments TypeOrTypeAliasDeclarationWithoutDocumentation)
 typeAliasDefinitionWithoutDocumentationAfterTypePrefix =
-    ParserFast.map6
-        (\commentsAfterAlias name commentsAfterName parameters commentsAfterEqual typeAnnotationResult ->
-            { comments =
-                commentsAfterAlias
-                    |> Rope.prependTo commentsAfterName
-                    |> Rope.prependTo parameters.comments
-                    |> Rope.prependTo commentsAfterEqual
-                    |> Rope.prependTo typeAnnotationResult.comments
-            , syntax =
-                TypeAliasDeclarationWithoutDocumentation
-                    { name = name
-                    , parameters = parameters.syntax
-                    , typeAnnotation = typeAnnotationResult.syntax
-                    }
-            }
-        )
-        (ParserFast.keywordFollowedBy "alias" Layout.maybeLayout)
-        (Node.parserCore Tokens.typeName)
-        Layout.maybeLayout
-        typeGenericListEquals
-        Layout.maybeLayout
-        typeAnnotation
+    (Tokens.aliasToken
+        |> Parser.Extra.continueWith
+            (Parser.map
+                (\commentsAfterAlias ->
+                    \( nameStartRow, nameStartColumn ) ->
+                        \name ->
+                            \commentsAfterName ->
+                                \parameters ->
+                                    \commentsAfterEqual ->
+                                        \typeAnnotationResult ->
+                                            { comments =
+                                                commentsAfterAlias
+                                                    |> Rope.prependTo commentsAfterName
+                                                    |> Rope.prependTo parameters.comments
+                                                    |> Rope.prependTo commentsAfterEqual
+                                                    |> Rope.prependTo typeAnnotationResult.comments
+                                            , syntax =
+                                                TypeAliasDeclarationWithoutDocumentation
+                                                    { name =
+                                                        Node.singleLineStringFrom { row = nameStartRow, column = nameStartColumn }
+                                                            name
+                                                    , parameters = parameters.syntax
+                                                    , typeAnnotation = typeAnnotationResult.syntax
+                                                    }
+                                            }
+                )
+                Layout.maybeLayout
+            )
+    )
+        |= Parser.getPosition
+        |= Tokens.typeName
+        |= Layout.maybeLayout
+        |= typeGenericListEquals
+        |= Layout.maybeLayout
+        |= typeAnnotation
 
 
 customTypeDefinitionWithoutDocumentationAfterTypePrefix : Parser (WithComments TypeOrTypeAliasDeclarationWithoutDocumentation)
