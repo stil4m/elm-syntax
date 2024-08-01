@@ -592,7 +592,7 @@ portDeclarationWithoutDocumentation =
         |= Parser.getPosition
         |= Tokens.functionName
         |= Layout.maybeLayout
-        |. Parser.symbol ":"
+        |. Tokens.colon
         |= Layout.maybeLayout
         |= typeAnnotation
 
