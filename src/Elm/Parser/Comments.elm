@@ -4,6 +4,7 @@ import Elm.Parser.Node as Node
 import Elm.Syntax.Documentation exposing (Documentation)
 import Elm.Syntax.Node exposing (Node(..))
 import Parser exposing ((|.), (|=), Nestable(..), Parser)
+import Parser.Extra
 
 
 singleLineCommentCore : Parser.Parser (Node String)
@@ -30,12 +31,11 @@ multilineCommentString : Parser.Parser String
 multilineCommentString =
     Parser.oneOf
         [ Parser.symbol "{-|"
-            |> Parser.backtrackable
-            |> Parser.map (\() -> problemUnexpected)
+            |> Parser.Extra.continueWith problemUnexpected
         , Parser.multiComment "{-" "-}" Nestable
-            |> Parser.mapChompedString (\comment () -> Parser.succeed comment)
+            |> Parser.getChompedString
         ]
-        |> Parser.andThen identity
+        |> Parser.backtrackable
 
 
 problemUnexpected : Parser.Parser a
@@ -50,21 +50,20 @@ moduleDocumentation =
 
 declarationDocumentation : Parser.Parser (Node Documentation)
 declarationDocumentation =
-    Parser.oneOf
-        [ Parser.oneOf
-            [ Parser.symbol "{-|"
-                |> Parser.backtrackable
-                |> Parser.map (\() -> coreTemporaryProblem {- "falls back" to multiComment from the start -})
-            , Parser.succeed (Parser.succeed (Parser.problem "not a documentation comment"))
-            ]
-            |> Parser.andThen identity
-        , Parser.multiComment "{-" "-}" Nestable
-            |> Parser.mapChompedString (\comment () -> Parser.succeed comment)
-        ]
-        |> Parser.andThen identity
+    -- technically making the whole parser fail on multi-line comments would be "correct"
+    -- but in practice, all declaration comments allow layout before which already handles
+    -- these.
+    -- Here's how a "safe" version would look:
+    -- Parser.oneOf
+    --[ -- if the next symbol isn't "{-|", we commit to failure
+    --  (Parser.symbol "{-" |. Parser.chompIf (\c -> c /= '|'))
+    --    |> Parser.backtrackable
+    --    |> Parser.Extra.continueWith (Parser.problem "multiline comment should be documentation comment")
+    --, Parser.multiComment "{-" "-}" Nestable
+    --    |> Parser.getChompedString
+    --    |> Node.parserCore
+    --]
+    --    |> Parser.backtrackable
+    Parser.multiComment "{-" "-}" Nestable
+        |> Parser.getChompedString
         |> Node.parserCore
-
-
-coreTemporaryProblem : Parser.Parser a
-coreTemporaryProblem =
-    Parser.problem ""
