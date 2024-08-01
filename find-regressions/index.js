@@ -45,17 +45,20 @@ const fileToParses = process.argv.slice(checkEquality ? 3 : 2);
 const published = publishedElm.Elm.ParseMain.init({ flags: 'published' });
 const current = currentElm.Elm.ParseMain.init({ flags: 'current' });
 
-const publishedTimes = [];
-const currentTimes = [];
+globalThis.measurements = {
+    'current': [],
+    'published': [],
+};
+
 (async function() {
     for await (const filePath of fileToParses) {
         const source = fs.readFileSync(filePath, 'utf8');
-        const before = await parse(published, 'published ' + filePath, publishedTimes, source)
+        const before = await parse(published, source)
             .catch(error => {
                 console.error(`Failure parsing ${filePath} with PUBLISHED`, error);
                 return 'FAILURE';
             })
-        const after = await parse(current, 'current ' + filePath, currentTimes, source)
+        const after = await parse(current, source)
             .catch(error => {
                 console.error(`Failure parsing ${filePath} with CURRENT`, error);
                 return 'FAILURE';
@@ -67,21 +70,19 @@ const currentTimes = [];
         }
     }
 
-    const publishedAvg = avg(publishedTimes);
-    const currentAvg = avg(currentTimes);
+    const publishedAvg = avg(globalThis.measurements.published);
+    const currentAvg = avg(globalThis.measurements.current);
     const speedup = (publishedAvg / currentAvg - 1) * 100
     console.log('Published: avg ' + publishedAvg);
     console.log('Current:   avg ' + currentAvg);
     console.log(`Diff: ${speedup}% faster`);
 })()
 
-function parse(elmApp, name, array, source) {
+function parse(elmApp, source) {
     return new Promise((resolve) => {
       elmApp.ports.parseResult.subscribe(fn);
-      const startTime = globalThis.performance.now();
       elmApp.ports.requestParsing.send(source);
       function fn(data) {
-        array.push(globalThis.performance.now() - startTime);
         elmApp.ports.parseResult.unsubscribe(fn);
         resolve(data);
       }

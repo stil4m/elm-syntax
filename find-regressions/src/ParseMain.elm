@@ -52,7 +52,7 @@ update version (GotFile source) =
 parseAndBenchmark : Version -> String -> Result (List DeadEnd) File
 parseAndBenchmark version source =
     let
-        _ =
+        start =
             timeStart version
     in
     Parser.parseToFile source
