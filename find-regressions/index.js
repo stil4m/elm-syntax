@@ -39,8 +39,8 @@ try {
 const publishedElm = require('./published/elm.js');
 const currentElm = require('./current/elm.js');
 
-const disableEquality = process.argv[2] === '--no-check';
-const fileToParses = process.argv.slice(checkEquality ? 3 : 2);
+const disableEquality = process.argv.includes('--no-check');
+const fileToParses = process.argv.slice(2).filter(arg => arg !== '--no-check');
 
 const published = publishedElm.Elm.ParseMain.init({ flags: 'published' });
 const current = currentElm.Elm.ParseMain.init({ flags: 'current' });
