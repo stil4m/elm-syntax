@@ -8,7 +8,7 @@ import Elm.Parser.Tokens as Tokens
 import Elm.Syntax.Import exposing (Import)
 import Elm.Syntax.Node exposing (Node(..))
 import Elm.Syntax.Range exposing (Range)
-import Parser exposing ((|.), (|=), Parser)
+import Parser exposing ((|=), Parser)
 import Parser.Extra
 import ParserWithComments exposing (WithComments)
 import Rope
