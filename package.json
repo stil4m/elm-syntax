@@ -15,7 +15,6 @@
     "test:format": "elm-format --validate src/ tests/",
     "test:run": "elm-test",
     "test:review": "elm-review",
-    "prepare-find-regressions": "./find-regressions/make-and-patch.sh",
     "preview-docs": "elm-doc-preview",
     "elm-bump": "npm-run-all --print-name --silent --sequential test bump-version 'test:review -- --fix-all-without-prompt'",
     "bump-version": "(yes | elm bump)",

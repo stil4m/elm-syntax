@@ -52,6 +52,7 @@ update version (GotFile source) =
 parseAndBenchmark : Version -> String -> Result (List DeadEnd) File
 parseAndBenchmark version source =
     let
+        start : ()
         start =
             timeStart version
     in
