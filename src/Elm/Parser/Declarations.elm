@@ -459,7 +459,7 @@ parameterPatternsEqual =
 
 infixDeclaration : Parser (WithComments (Node Declaration))
 infixDeclaration =
-    Parser.symbol "infix"
+    Parser.keyword "infix"
         |> Parser.Extra.continueWith
             (Parser.map
                 (\startRow ->
@@ -489,7 +489,7 @@ infixDeclaration =
                                                         }
                 )
                 Parser.getRow
-                |= Layout.layout
+                |= Layout.maybeLayout
                 |= Node.parserCore infixDirection
                 |= Layout.maybeLayout
                 |= Node.parserCore Parser.int
@@ -547,7 +547,7 @@ portDeclarationAfterDocumentation =
                                             }
                 )
                 Parser.getRow
-                |= Layout.layout
+                |= Layout.maybeLayout
                 |= Parser.getPosition
                 |= Tokens.functionName
                 |= Layout.maybeLayout
@@ -593,7 +593,7 @@ portDeclarationWithoutDocumentation =
                                             }
                 )
                 Parser.getRow
-                |= Layout.layout
+                |= Layout.maybeLayout
                 |= Parser.getPosition
                 |= Tokens.functionName
                 |= Layout.maybeLayout
@@ -605,7 +605,7 @@ portDeclarationWithoutDocumentation =
 
 typeOrTypeAliasDefinitionAfterDocumentation : Parser (WithComments DeclarationAfterDocumentation)
 typeOrTypeAliasDefinitionAfterDocumentation =
-    (Parser.symbol "type"
+    (Parser.keyword "type"
         |> Parser.Extra.continueWith
             (Parser.map
                 (\commentsAfterType ->
@@ -614,7 +614,7 @@ typeOrTypeAliasDefinitionAfterDocumentation =
                         , syntax = declarationAfterDocumentation.syntax
                         }
                 )
-                Layout.layout
+                Layout.maybeLayout
             )
     )
         |= Parser.oneOf
@@ -651,7 +651,7 @@ typeAliasDefinitionAfterDocumentationAfterTypePrefix =
                                                     }
                                             }
                 )
-                Layout.layout
+                Layout.maybeLayout
             )
     )
         |= Parser.getPosition
@@ -716,7 +716,7 @@ customTypeDefinitionAfterDocumentationAfterTypePrefix =
 
 typeOrTypeAliasDefinitionWithoutDocumentation : Parser (WithComments (Node Declaration.Declaration))
 typeOrTypeAliasDefinitionWithoutDocumentation =
-    Parser.symbol "type"
+    Parser.keyword "type"
         |> Parser.Extra.continueWith
             (Parser.map
                 (\startRow ->
@@ -772,7 +772,7 @@ typeOrTypeAliasDefinitionWithoutDocumentation =
                             }
                 )
                 Parser.getRow
-                |= Layout.layout
+                |= Layout.maybeLayout
                 |= Parser.oneOf
                     [ typeAliasDefinitionWithoutDocumentationAfterTypePrefix
                     , customTypeDefinitionWithoutDocumentationAfterTypePrefix
@@ -808,7 +808,7 @@ typeAliasDefinitionWithoutDocumentationAfterTypePrefix =
                                                     }
                                             }
                 )
-                Layout.layout
+                Layout.maybeLayout
             )
     )
         |= Parser.getPosition

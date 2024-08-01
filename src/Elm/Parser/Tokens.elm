@@ -56,17 +56,17 @@ reservedList =
 
 portToken : Parser.Parser ()
 portToken =
-    Parser.symbol "port"
+    Parser.keyword "port"
 
 
 moduleToken : Parser.Parser ()
 moduleToken =
-    Parser.symbol "module"
+    Parser.keyword "module"
 
 
 whereToken : Parser.Parser ()
 whereToken =
-    Parser.symbol "where"
+    Parser.keyword "where"
 
 
 exposingToken : Parser.Parser ()
@@ -121,7 +121,7 @@ inToken =
 
 aliasToken : Parser.Parser ()
 aliasToken =
-    Parser.symbol "alias"
+    Parser.keyword "alias"
 
 
 escapedCharValue : Parser.Parser Char

@@ -11,41 +11,41 @@ import Test exposing (..)
 all : Test
 all =
     describe "LayoutTests"
-        [ test "should consume" <|
+        [ test "empty" <|
             \() ->
-                parse "" Layout.layout
-                    |> Expect.equal Nothing
+                parse "" (Parser.withIndent 0 Layout.maybeLayout)
+                    |> Expect.equal (Just ())
         , test "just whitespace" <|
             \() ->
-                parse " " Layout.layout
+                parse " " Layout.maybeLayout
                     |> Expect.equal (Just ())
         , test "spaces followed by new line" <|
             \() ->
-                parse " \n" Layout.layout
+                parse " \n" Layout.maybeLayout
                     |> Expect.equal Nothing
         , test "with newline and higher indent 2" <|
             \() ->
-                parse "\n  " Layout.layout
+                parse "\n  " Layout.maybeLayout
                     |> Expect.equal (Just ())
         , test "with newline and higher indent 3" <|
             \() ->
-                parse " \n " Layout.layout
+                parse " \n " Layout.maybeLayout
                     |> Expect.equal (Just ())
-        , test "layout with multiline comment" <|
+        , test "maybeLayout with multiline comment" <|
             \() ->
-                parse "\n--x\n{- foo \n-}\n " Layout.layout
+                parse "\n--x\n{- foo \n-}\n " Layout.maybeLayout
                     |> Expect.equal (Just ())
-        , test "layout with documentation comment fails" <|
+        , test "maybeLayout with documentation comment fails" <|
             \() ->
-                parse "\n--x\n{-| foo \n-}\n " Layout.layout
+                parse "\n--x\n{-| foo \n-}\n " Layout.maybeLayout
                     |> Expect.equal Nothing
         , test "with newline and higher indent 4" <|
             \() ->
-                parse " \n  " (setIndent 1 Layout.layout)
+                parse " \n  " (setIndent 1 Layout.maybeLayout)
                     |> Expect.equal (Just ())
         , test "newlines spaces and single line comments" <|
             \() ->
-                parse "\n\n      --time\n  " Layout.layout
+                parse "\n\n      --time\n  " Layout.maybeLayout
                     |> Expect.equal (Just ())
         , test "layoutStrict" <|
             \() ->
