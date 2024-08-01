@@ -493,7 +493,7 @@ infixDeclaration =
                 |= Node.parserCore infixDirection
                 |= Layout.maybeLayout
                 |= Node.parserCore Parser.int
-                |= Layout.layout
+                |= Layout.maybeLayout
                 |= Node.parserCore
                     ((Tokens.parensStart
                         |> Parser.Extra.continueWith Tokens.prefixOperatorToken
