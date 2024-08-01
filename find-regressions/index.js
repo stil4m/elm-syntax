@@ -42,20 +42,20 @@ const currentElm = require('./current/elm.js');
 const disableEquality = process.argv[2] === '--no-check';
 const fileToParses = process.argv.slice(checkEquality ? 3 : 2);
 
-const published = publishedElm.Elm.ParseMain.init();
-const current = currentElm.Elm.ParseMain.init();
+const published = publishedElm.Elm.ParseMain.init({ flags: 'published' });
+const current = currentElm.Elm.ParseMain.init({ flags: 'current' });
 
 const publishedTimes = [];
 const currentTimes = [];
 (async function() {
     for await (const filePath of fileToParses) {
-        const content = fs.readFileSync(filePath, 'utf8');
-        const before = await parse(published, 'published ' + filePath, publishedTimes, content)
+        const source = fs.readFileSync(filePath, 'utf8');
+        const before = await parse(published, 'published ' + filePath, publishedTimes, source)
             .catch(error => {
                 console.error(`Failure parsing ${filePath} with PUBLISHED`, error);
                 return 'FAILURE';
             })
-        const after = await parse(current, 'current ' + filePath, currentTimes, content)
+        const after = await parse(current, 'current ' + filePath, currentTimes, source)
             .catch(error => {
                 console.error(`Failure parsing ${filePath} with CURRENT`, error);
                 return 'FAILURE';
@@ -75,11 +75,11 @@ const currentTimes = [];
     console.log(`Diff: ${speedup}% faster`);
 })()
 
-function parse(elmApp, name, array, content) {
+function parse(elmApp, name, array, source) {
     return new Promise((resolve) => {
       elmApp.ports.parseResult.subscribe(fn);
       const startTime = globalThis.performance.now();
-      elmApp.ports.requestParsing.send(content);
+      elmApp.ports.requestParsing.send(source);
       function fn(data) {
         array.push(globalThis.performance.now() - startTime);
         elmApp.ports.parseResult.unsubscribe(fn);
