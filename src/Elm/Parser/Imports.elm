@@ -103,7 +103,7 @@ importDefinition =
                                                     [ moduleAlias ]
                                             }
                         )
-                        Layout.layout
+                        Layout.maybeLayout
                     )
               )
                 |= Parser.getPosition
