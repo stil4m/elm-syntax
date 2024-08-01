@@ -16,68 +16,71 @@ import Rope
 
 importDefinition : Parser (WithComments (Node Import))
 importDefinition =
-    Parser.map
-        (\startRow ->
-            \commentsAfterImport ->
-                \((Node modRange _) as mod) ->
-                    \commentsAfterModuleName ->
-                        \maybeModuleAlias ->
-                            \maybeExposingList ->
-                                \commentsAfterEverything ->
-                                    let
-                                        endRange : Range
-                                        endRange =
-                                            case maybeModuleAlias of
-                                                Just moduleAliasValue ->
-                                                    let
-                                                        (Node range _) =
-                                                            moduleAliasValue.syntax
-                                                    in
-                                                    range
-
-                                                Nothing ->
-                                                    case maybeExposingList of
-                                                        Just exposingListValue ->
+    (Tokens.importToken
+        |> Parser.Extra.continueWith
+            (Parser.map
+                (\startRow ->
+                    \commentsAfterImport ->
+                        \((Node modRange _) as mod) ->
+                            \commentsAfterModuleName ->
+                                \maybeModuleAlias ->
+                                    \maybeExposingList ->
+                                        \commentsAfterEverything ->
+                                            let
+                                                endRange : Range
+                                                endRange =
+                                                    case maybeModuleAlias of
+                                                        Just moduleAliasValue ->
                                                             let
                                                                 (Node range _) =
-                                                                    exposingListValue.syntax
+                                                                    moduleAliasValue.syntax
                                                             in
                                                             range
 
                                                         Nothing ->
-                                                            modRange
-                                    in
-                                    { comments =
-                                        commentsAfterImport
-                                            |> Rope.prependTo commentsAfterModuleName
-                                            |> Rope.prependTo
-                                                (case maybeModuleAlias of
-                                                    Nothing ->
-                                                        Rope.empty
+                                                            case maybeExposingList of
+                                                                Just exposingListValue ->
+                                                                    let
+                                                                        (Node range _) =
+                                                                            exposingListValue.syntax
+                                                                    in
+                                                                    range
 
-                                                    Just moduleAliasValue ->
-                                                        moduleAliasValue.comments
-                                                )
-                                            |> Rope.prependTo
-                                                (case maybeExposingList of
-                                                    Nothing ->
-                                                        Rope.empty
+                                                                Nothing ->
+                                                                    modRange
+                                            in
+                                            { comments =
+                                                commentsAfterImport
+                                                    |> Rope.prependTo commentsAfterModuleName
+                                                    |> Rope.prependTo
+                                                        (case maybeModuleAlias of
+                                                            Nothing ->
+                                                                Rope.empty
 
-                                                    Just exposingListValue ->
-                                                        exposingListValue.comments
-                                                )
-                                            |> Rope.prependTo commentsAfterEverything
-                                    , syntax =
-                                        Node
-                                            { start = { row = startRow, column = 1 }, end = endRange.end }
-                                            { moduleName = mod
-                                            , moduleAlias = maybeModuleAlias |> Maybe.map .syntax
-                                            , exposingList = maybeExposingList |> Maybe.map .syntax
+                                                            Just moduleAliasValue ->
+                                                                moduleAliasValue.comments
+                                                        )
+                                                    |> Rope.prependTo
+                                                        (case maybeExposingList of
+                                                            Nothing ->
+                                                                Rope.empty
+
+                                                            Just exposingListValue ->
+                                                                exposingListValue.comments
+                                                        )
+                                                    |> Rope.prependTo commentsAfterEverything
+                                            , syntax =
+                                                Node
+                                                    { start = { row = startRow, column = 1 }, end = endRange.end }
+                                                    { moduleName = mod
+                                                    , moduleAlias = maybeModuleAlias |> Maybe.map .syntax
+                                                    , exposingList = maybeExposingList |> Maybe.map .syntax
+                                                    }
                                             }
-                                    }
-        )
-        Parser.getRow
-        |. Tokens.importToken
+                )
+                Parser.getRow
+            )
+    )
         |= Layout.maybeLayout
         |= moduleName
         |= Layout.optimisticLayout
