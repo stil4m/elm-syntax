@@ -4,7 +4,6 @@ import Elm.Parser.Expression exposing (expression)
 import Elm.Parser.ParserWithCommentsTestUtil as ParserWithCommentsUtil
 import Elm.Syntax.DestructurePattern exposing (DestructurePattern(..))
 import Elm.Syntax.Expression exposing (..)
-import Elm.Syntax.Infix exposing (InfixDirection(..))
 import Elm.Syntax.Node exposing (Node(..))
 import Expect
 import Test exposing (..)
@@ -62,7 +61,6 @@ all =
                                 , expression =
                                     Node { start = { row = 1, column = 9 }, end = { row = 1, column = 14 } }
                                         (Operation "+"
-                                            Left
                                             (Node { start = { row = 1, column = 9 }, end = { row = 1, column = 10 } } (FunctionOrValue [] "a"))
                                             (Node { start = { row = 1, column = 13 }, end = { row = 1, column = 14 } } (FunctionOrValue [] "b"))
                                         )
@@ -86,7 +84,6 @@ all =
                                 , expression =
                                     Node { start = { row = 1, column = 11 }, end = { row = 1, column = 16 } }
                                         (Operation "+"
-                                            Left
                                             (Node { start = { row = 1, column = 11 }, end = { row = 1, column = 12 } } (FunctionOrValue [] "a"))
                                             (Node { start = { row = 1, column = 15 }, end = { row = 1, column = 16 } } (FunctionOrValue [] "b"))
                                         )

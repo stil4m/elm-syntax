@@ -5,7 +5,6 @@ import Elm.Parser.ParserWithCommentsTestUtil as ParserWithCommentsUtil exposing 
 import Elm.Syntax.Declaration as Declaration exposing (..)
 import Elm.Syntax.DestructurePattern exposing (DestructurePattern(..))
 import Elm.Syntax.Expression as Expression exposing (..)
-import Elm.Syntax.Infix as Infix exposing (InfixDirection(..))
 import Elm.Syntax.Node exposing (Node(..))
 import Elm.Syntax.Pattern exposing (..)
 import Elm.Syntax.StringLiteralType exposing (StringLiteralType(..))
@@ -148,7 +147,6 @@ foo = bar"""
                                         , expression =
                                             Node { start = { row = 1, column = 9 }, end = { row = 1, column = 14 } }
                                                 (Operation "+"
-                                                    Infix.Left
                                                     (Node { start = { row = 1, column = 9 }, end = { row = 1, column = 10 } } (FunctionOrValue [] "x"))
                                                     (Node { start = { row = 1, column = 13 }, end = { row = 1, column = 14 } } (IntegerLiteral 1))
                                                 )
@@ -318,7 +316,6 @@ foo = bar"""
                                                         ( Node { start = { row = 3, column = 5 }, end = { row = 3, column = 14 } } (NamedPattern { moduleName = [], name = "Increment" } [])
                                                         , Node { start = { row = 4, column = 7 }, end = { row = 4, column = 16 } }
                                                             (Operation "+"
-                                                                Left
                                                                 (Node { start = { row = 4, column = 7 }, end = { row = 4, column = 12 } } (FunctionOrValue [] "model"))
                                                                 (Node { start = { row = 4, column = 15 }, end = { row = 4, column = 16 } } (IntegerLiteral 1))
                                                             )
@@ -327,7 +324,6 @@ foo = bar"""
                                                         [ ( Node { start = { row = 6, column = 5 }, end = { row = 6, column = 14 } } (NamedPattern { moduleName = [], name = "Decrement" } [])
                                                           , Node { start = { row = 7, column = 7 }, end = { row = 7, column = 16 } }
                                                                 (Operation "-"
-                                                                    Left
                                                                     (Node { start = { row = 7, column = 7 }, end = { row = 7, column = 12 } } (FunctionOrValue [] "model"))
                                                                     (Node { start = { row = 7, column = 15 }, end = { row = 7, column = 16 } } (IntegerLiteral 1))
                                                                 )
@@ -493,11 +489,9 @@ foo = bar"""
                                         , expression =
                                             Node { start = { row = 1, column = 31 }, end = { row = 1, column = 83 } }
                                                 (Operation "<|"
-                                                    Right
                                                     (Node { start = { row = 1, column = 31 }, end = { row = 1, column = 36 } } (FunctionOrValue [] "curry"))
                                                     (Node { start = { row = 1, column = 40 }, end = { row = 1, column = 83 } }
                                                         (Operation ">>"
-                                                            Right
                                                             (Node { start = { row = 1, column = 40 }, end = { row = 1, column = 56 } }
                                                                 (TupleExpression
                                                                     [ Node { start = { row = 1, column = 41 }, end = { row = 1, column = 55 } }
@@ -552,7 +546,6 @@ foo = bar"""
                                                             (NamedPattern { moduleName = [], name = "Increment" } [])
                                                         , Node { start = { row = 4, column = 7 }, end = { row = 4, column = 16 } }
                                                             (Operation "+"
-                                                                Left
                                                                 (Node { start = { row = 4, column = 7 }, end = { row = 4, column = 12 } } (FunctionOrValue [] "model"))
                                                                 (Node { start = { row = 4, column = 15 }, end = { row = 4, column = 16 } } (IntegerLiteral 1))
                                                             )
@@ -562,7 +555,6 @@ foo = bar"""
                                                                 (NamedPattern { moduleName = [], name = "Decrement" } [])
                                                           , Node { start = { row = 7, column = 7 }, end = { row = 7, column = 16 } }
                                                                 (Operation "-"
-                                                                    Left
                                                                     (Node { start = { row = 7, column = 7 }, end = { row = 7, column = 12 } } (FunctionOrValue [] "model"))
                                                                     (Node { start = { row = 7, column = 15 }, end = { row = 7, column = 16 } } (IntegerLiteral 1))
                                                                 )
