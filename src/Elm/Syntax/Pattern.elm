@@ -23,6 +23,7 @@ For example:
 
 import Elm.Syntax.ModuleName exposing (ModuleName)
 import Elm.Syntax.Node exposing (Node(..))
+import Elm.Syntax.StringLiteralType exposing (StringLiteralType)
 
 
 {-| Custom type for all patterns such as:
@@ -48,7 +49,7 @@ type Pattern
     = AllPattern
     | UnitPattern
     | CharPattern Char
-    | StringPattern String
+    | StringPattern StringLiteralType String
     | IntPattern Int
     | HexPattern Int
     | TuplePattern (List (Node Pattern))
