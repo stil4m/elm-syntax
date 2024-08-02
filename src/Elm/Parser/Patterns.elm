@@ -235,10 +235,10 @@ stringPattern : Parser (WithComments (Node Pattern))
 stringPattern =
     Tokens.singleOrTripleQuotedStringLiteral
         |> ParserFast.mapWithStartAndEndPosition
-            (\start ( _, string ) end ->
+            (\start ( stringLiteralType, string ) end ->
                 { comments = Rope.empty
                 , syntax =
-                    Node { start = start, end = end } (StringPattern string)
+                    Node { start = start, end = end } (StringPattern stringLiteralType string)
                 }
             )
 
