@@ -7,7 +7,6 @@ import Elm.Syntax.Declaration exposing (Declaration(..))
 import Elm.Syntax.DestructurePattern exposing (DestructurePattern(..))
 import Elm.Syntax.Exposing exposing (Exposing(..))
 import Elm.Syntax.Expression exposing (Expression(..), LetDeclaration(..))
-import Elm.Syntax.Infix exposing (InfixDirection(..))
 import Elm.Syntax.Module exposing (Module(..))
 import Elm.Syntax.Node exposing (Node(..))
 import Elm.Syntax.Pattern exposing (Pattern(..))
@@ -225,7 +224,6 @@ lambdaWhitespace =   \\ a b ->    a
                                                             , expression =
                                                                 Node { start = { row = 4, column = 34 }, end = { row = 8, column = 6 } }
                                                                     (Operation "+"
-                                                                        Left
                                                                         (Node { start = { row = 4, column = 34 }, end = { row = 4, column = 35 } } (FunctionOrValue [] "a"))
                                                                         (Node { start = { row = 8, column = 5 }, end = { row = 8, column = 6 } } (FunctionOrValue [] "b"))
                                                                     )

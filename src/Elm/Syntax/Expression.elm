@@ -20,7 +20,6 @@ Although it is a easy and simple language, you can express a lot! See the `Expre
 
 import Elm.Syntax.DestructurePattern exposing (DestructurePattern)
 import Elm.Syntax.Documentation exposing (Documentation)
-import Elm.Syntax.Infix exposing (InfixDirection)
 import Elm.Syntax.ModuleName exposing (ModuleName)
 import Elm.Syntax.Node as Node exposing (Node(..))
 import Elm.Syntax.Pattern exposing (Pattern)
@@ -111,7 +110,7 @@ type Expression
     | FunctionOrValue ModuleName String
     | PrefixOperator String
     | FunctionCall (Node Expression) (Node Expression) (List (Node Expression))
-    | Operation String InfixDirection (Node Expression) (Node Expression)
+    | Operation String (Node Expression) (Node Expression)
     | If (Node Expression) (Node Expression) (Node Expression)
     | TupleExpression (List (Node Expression))
     | Let LetBlock
@@ -222,7 +221,7 @@ isCase e =
 isOperation : Expression -> Bool
 isOperation e =
     case e of
-        Operation _ _ _ _ ->
+        Operation _ _ _ ->
             True
 
         _ ->

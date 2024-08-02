@@ -9,7 +9,6 @@ import Elm.Parser.Tokens as Tokens
 import Elm.Parser.TypeAnnotation as TypeAnnotation
 import Elm.Syntax.DestructurePattern exposing (DestructurePattern)
 import Elm.Syntax.Expression as Expression exposing (Case, Expression(..), LetDeclaration(..), RecordSetter)
-import Elm.Syntax.Infix as Infix
 import Elm.Syntax.Node as Node exposing (Node(..))
 import Elm.Syntax.Range exposing (Location)
 import Elm.Syntax.Signature exposing (Signature)
@@ -1135,7 +1134,7 @@ applyExtensionRight extensionRight ((Node { start } left) as leftNode) =
                     extendRightOperation.expression
             in
             Node { start = start, end = end }
-                (Operation extendRightOperation.symbol extendRightOperation.direction leftNode right)
+                (Operation extendRightOperation.symbol leftNode right)
 
 
 abovePrecedence0 : Parser (WithComments ExtensionRight)
@@ -1213,7 +1212,7 @@ infixLeft precedence possibilitiesForPrecedence symbol =
         possibilitiesForPrecedence
         (ParserFast.symbolFollowedBy symbol)
         (\right ->
-            ExtendRightByOperation { symbol = symbol, direction = Infix.Left, expression = right }
+            ExtendRightByOperation { symbol = symbol, expression = right }
         )
 
 
@@ -1223,7 +1222,7 @@ infixNonAssociative precedence possibilitiesForPrecedence symbol =
         possibilitiesForPrecedence
         (ParserFast.symbolFollowedBy symbol)
         (\right ->
-            ExtendRightByOperation { symbol = symbol, direction = Infix.Non, expression = right }
+            ExtendRightByOperation { symbol = symbol, expression = right }
         )
 
 
@@ -1236,7 +1235,7 @@ infixRight precedence possibilitiesForPrecedenceMinus1 symbol =
         possibilitiesForPrecedenceMinus1
         (ParserFast.symbolFollowedBy symbol)
         (\right ->
-            ExtendRightByOperation { symbol = symbol, direction = Infix.Right, expression = right }
+            ExtendRightByOperation { symbol = symbol, expression = right }
         )
 
 
@@ -1264,7 +1263,7 @@ infixLeftSubtraction precedence possibilitiesForPrecedence =
                 )
         )
         (\right ->
-            ExtendRightByOperation { symbol = "-", direction = Infix.Left, expression = right }
+            ExtendRightByOperation { symbol = "-", expression = right }
         )
 
 
@@ -1296,6 +1295,6 @@ postfix precedence operator =
 
 
 type ExtensionRight
-    = ExtendRightByOperation { symbol : String, direction : Infix.InfixDirection, expression : Node Expression }
+    = ExtendRightByOperation { symbol : String, expression : Node Expression }
     | ExtendRightByApplication (Node Expression)
     | ExtendRightByRecordAccess (Node String)
