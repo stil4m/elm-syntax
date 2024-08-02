@@ -25,11 +25,11 @@ import Rope
 declaration : Parser (WithComments (Node Declaration))
 declaration =
     Parser.oneOf
-        [ infixDeclaration
-        , functionDeclarationWithoutDocumentation
+        [ functionDeclarationWithoutDocumentation
         , declarationWithDocumentation
         , typeOrTypeAliasDefinitionWithoutDocumentation
         , portDeclarationWithoutDocumentation
+        , infixDeclaration
         ]
 
 
@@ -276,6 +276,7 @@ functionAfterDocumentation =
                                     }
         )
         Parser.getPosition
+        -- infix declarations itself don't have documentation
         |= Tokens.functionName
         |= Layout.maybeLayout
         |= Parser.oneOf
@@ -407,7 +408,7 @@ functionDeclarationWithoutDocumentation =
                                                     ("Expected to find the declaration for " ++ startName ++ " but found " ++ implementationName)
         )
         Parser.getPosition
-        |= Tokens.functionName
+        |= Tokens.functionNameNotInfix
         |= Layout.maybeLayout
         |= Parser.oneOf
             [ (Tokens.colon
