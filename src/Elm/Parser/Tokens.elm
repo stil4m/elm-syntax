@@ -23,9 +23,9 @@ module Elm.Parser.Tokens exposing
 import Char
 import Char.Extra
 import Hex
-import ParserFast
-import ParserFast.Advanced
-import ParserFast.Extra
+import Parser exposing ((|.))
+import Parser.Advanced
+import Parser.Extra
 import Set exposing (Set)
 import Unicode
 
@@ -162,26 +162,35 @@ characterLiteral =
 
 singleOrTripleQuotedStringLiteral : ParserFast.Parser String
 singleOrTripleQuotedStringLiteral =
-    ParserFast.symbolFollowedBy "\""
-        (ParserFast.oneOf2
-            (ParserFast.symbolFollowedBy "\"\""
-                (ParserFast.Advanced.loop "" tripleQuotedStringLiteralStep)
+    doubleQuote
+        |> Parser.Extra.continueWith
+            (Parser.oneOf
+                [ twoDoubleQuotes
+                    |> Parser.Extra.continueWith
+                        (Parser.Advanced.loop "" tripleQuotedStringLiteralStep)
+                , Parser.Advanced.loop "" stringLiteralHelper
+                ]
             )
             (ParserFast.Advanced.loop "" stringLiteralHelper)
         )
 
 
-stringLiteralHelper : String -> ParserFast.Parser (ParserFast.Advanced.Step String String)
+doubleQuote : Parser.Parser ()
+doubleQuote =
+    Parser.symbol "\""
+
+
+stringLiteralHelper : String -> Parser.Parser (Parser.Advanced.Step String String)
 stringLiteralHelper stringSoFar =
-    ParserFast.oneOf
-        [ ParserFast.symbol "\"" (ParserFast.Advanced.Done stringSoFar)
-        , ParserFast.map
-            (\v ->
-                ParserFast.Advanced.Loop (stringSoFar ++ String.fromChar v ++ "")
-            )
-            (ParserFast.symbolFollowedBy "\\" escapedCharValue)
-        , ParserFast.mapChompedString
-            (\value () -> ParserFast.Advanced.Loop (stringSoFar ++ value ++ ""))
+    Parser.oneOf
+        [ doubleQuote |> Parser.map (\() -> Parser.Advanced.Done stringSoFar)
+        , backSlash
+            |> Parser.Extra.continueWith
+                (Parser.map (\v -> Parser.Advanced.Loop (stringSoFar ++ String.fromChar v ++ ""))
+                    escapedCharValue
+                )
+        , Parser.mapChompedString
+            (\value () -> Parser.Advanced.Loop (stringSoFar ++ value ++ ""))
             chompWhileIsInsideString
         ]
 
@@ -191,18 +200,30 @@ chompWhileIsInsideString =
     ParserFast.chompWhile (\c -> c /= '"' && c /= '\\')
 
 
-tripleQuotedStringLiteralStep : String -> ParserFast.Parser (ParserFast.Advanced.Step String String)
+twoDoubleQuotes : Parser.Parser ()
+twoDoubleQuotes =
+    Parser.symbol "\"\""
+
+
+tripleDoubleQuote : Parser.Parser ()
+tripleDoubleQuote =
+    Parser.symbol "\"\"\""
+
+
+tripleQuotedStringLiteralStep : String -> Parser.Parser (Parser.Advanced.Step String String)
 tripleQuotedStringLiteralStep stringSoFar =
-    ParserFast.oneOf
-        [ ParserFast.symbol "\"\"\"" (ParserFast.Advanced.Done stringSoFar)
-        , ParserFast.symbol "\"" (ParserFast.Advanced.Loop (stringSoFar ++ "\""))
-        , ParserFast.map
-            (\v ->
-                ParserFast.Advanced.Loop (stringSoFar ++ String.fromChar v ++ "")
-            )
-            (ParserFast.symbolFollowedBy "\\" escapedCharValue)
-        , ParserFast.mapChompedString
-            (\value () -> ParserFast.Advanced.Loop (stringSoFar ++ value ++ ""))
+    Parser.oneOf
+        [ tripleDoubleQuote
+            |> Parser.map (\() -> Parser.Advanced.Done stringSoFar)
+        , doubleQuote
+            |> Parser.map (\() -> Parser.Advanced.Loop (stringSoFar ++ "\""))
+        , backSlash
+            |> Parser.Extra.continueWith
+                (Parser.map (\v -> Parser.Advanced.Loop (stringSoFar ++ String.fromChar v ++ ""))
+                    escapedCharValue
+                )
+        , Parser.mapChompedString
+            (\value () -> Parser.Advanced.Loop (stringSoFar ++ value ++ ""))
             chompWhileIsInsideString
         ]
 

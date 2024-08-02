@@ -12,8 +12,9 @@ import Elm.Syntax.Node as Node exposing (Node(..))
 import Elm.Syntax.Pattern exposing (Pattern)
 import Elm.Syntax.Range exposing (Location)
 import Elm.Syntax.Signature exposing (Signature)
-import ParserFast exposing (Parser)
-import ParserFast.Advanced
+import Parser exposing ((|.), (|=), Parser)
+import Parser.Advanced
+import Parser.Extra
 import ParserWithComments exposing (Comments, WithComments)
 import Rope
 
@@ -1164,14 +1165,27 @@ subExpressionMap aboveCurrentPrecedenceLayout =
     let
         step :
             WithComments (Node Expression)
-            ->
-                Parser
-                    (ParserFast.Advanced.Step
-                        (WithComments (Node Expression))
-                        (WithComments (Node Expression))
-                    )
+            -> Parser (Parser.Advanced.Step (WithComments (Node Expression)) a)
         step leftExpressionResult =
-            subExpressionLoopStep aboveCurrentPrecedenceLayout leftExpressionResult
+            Parser.oneOf
+                [ Parser.map
+                    (\extensionRight ->
+                        \commentsAfter ->
+                            { comments =
+                                leftExpressionResult.comments
+                                    |> Rope.prependTo extensionRight.comments
+                                    |> Rope.prependTo commentsAfter
+                            , syntax =
+                                leftExpressionResult.syntax
+                                    |> applyExtensionRight extensionRight.syntax
+                            }
+                                |> Parser.Advanced.Loop
+                    )
+                    aboveCurrentPrecedenceLayout
+                    |= Layout.optimisticLayout
+                , Parser.succeed
+                    (Parser.Advanced.Done (toExtensionRightWith leftExpressionResult))
+                ]
     in
     ParserFast.map3
         (\commentsBefore leftExpressionResult commentsAfter ->
@@ -1183,69 +1197,10 @@ subExpressionMap aboveCurrentPrecedenceLayout =
             }
         )
         Layout.optimisticLayout
-        (ParserFast.lazy (\() -> subExpression))
-        Layout.optimisticLayout
-        |> ParserFast.andThen
-            (\leftExpression -> ParserFast.Advanced.loop leftExpression step)
-
-
-extendedSubExpressionWithoutInitialLayout :
-    Parser (WithComments ExtensionRight)
-    -> Parser (WithComments (Node Expression))
-extendedSubExpressionWithoutInitialLayout aboveCurrentPrecedenceLayout =
-    let
-        step :
-            WithComments (Node Expression)
-            ->
-                Parser
-                    (ParserFast.Advanced.Step
-                        (WithComments (Node Expression))
-                        (WithComments (Node Expression))
-                    )
-        step leftExpressionResult =
-            subExpressionLoopStep aboveCurrentPrecedenceLayout leftExpressionResult
-    in
-    ParserFast.map2
-        (\leftExpressionResult commentsAfter ->
-            { comments =
-                leftExpressionResult.comments
-                    |> Rope.prependTo commentsAfter
-            , syntax = leftExpressionResult.syntax
-            }
-        )
-        (ParserFast.lazy (\() -> subExpression))
-        Layout.optimisticLayout
-        |> ParserFast.andThen
-            (\leftExpression -> ParserFast.Advanced.loop leftExpression step)
-
-
-subExpressionLoopStep :
-    Parser (WithComments ExtensionRight)
-    -> WithComments (Node Expression)
-    ->
-        Parser
-            (ParserFast.Advanced.Step
-                (WithComments (Node Expression))
-                (WithComments (Node Expression))
-            )
-subExpressionLoopStep aboveCurrentPrecedenceLayout leftExpressionResult =
-    ParserFast.orSucceed
-        (ParserFast.map2
-            (\extensionRight commentsAfter ->
-                { comments =
-                    leftExpressionResult.comments
-                        |> Rope.prependTo extensionRight.comments
-                        |> Rope.prependTo commentsAfter
-                , syntax =
-                    leftExpressionResult.syntax
-                        |> applyExtensionRight extensionRight.syntax
-                }
-                    |> ParserFast.Advanced.Loop
-            )
-            aboveCurrentPrecedenceLayout
-            Layout.optimisticLayout
-        )
-        (ParserFast.Advanced.Done leftExpressionResult)
+        |= Parser.lazy (\() -> subExpression)
+        |= Layout.optimisticLayout
+        |> Parser.andThen
+            (\leftExpression -> Parser.Advanced.loop leftExpression step)
 
 
 applyExtensionRight : ExtensionRight -> Node Expression -> Node Expression
