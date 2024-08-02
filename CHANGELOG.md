@@ -37,7 +37,10 @@
   - Renamed `Integer` to `IntegerLiteral`
   - Renamed `Hex` to `HexLiteral`
   - Renamed `ListExpr` to `ListLiteral`
-  - Renamed `OperatorApplication` to `Operation`
+  - `OperatorApplication`
+    - Renamed `OperatorApplication` to `Operation`
+    - Removed the `InfixDirection` field
+    - `OperatorApplication String InfixDirection (Node Expression) (Node Expression)` -> `Operation String (Node Expression) (Node Expression)`
   - Renamed `isOperatorApplication` to `isOperation`
   - Renamed `RecordExpr` to `Record`
   - Renamed `CaseExpression` to `Case`

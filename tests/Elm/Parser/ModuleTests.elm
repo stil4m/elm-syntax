@@ -7,7 +7,6 @@ import Elm.Syntax.Declaration exposing (Declaration(..))
 import Elm.Syntax.DestructurePattern exposing (DestructurePattern(..))
 import Elm.Syntax.Exposing exposing (..)
 import Elm.Syntax.Expression exposing (Expression(..))
-import Elm.Syntax.Infix exposing (InfixDirection(..))
 import Elm.Syntax.Module exposing (..)
 import Elm.Syntax.Node as Node exposing (Node(..))
 import Elm.Syntax.TypeAnnotation exposing (TypeAnnotation(..))
@@ -463,7 +462,6 @@ fun2 n =
                                                 , expression =
                                                     Node { start = { row = 4, column = 3 }, end = { row = 5, column = 11 } }
                                                         (Operation "+"
-                                                            Left
                                                             (Node { start = { row = 4, column = 3 }, end = { row = 4, column = 9 } }
                                                                 (FunctionCall
                                                                     (Node { start = { row = 4, column = 3 }, end = { row = 4, column = 7 } } (FunctionOrValue [] "fun2"))

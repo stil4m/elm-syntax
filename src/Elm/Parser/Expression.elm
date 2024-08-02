@@ -7,7 +7,6 @@ import Elm.Parser.Tokens as Tokens
 import Elm.Parser.TypeAnnotation as TypeAnnotation
 import Elm.Syntax.DestructurePattern exposing (DestructurePattern)
 import Elm.Syntax.Expression as Expression exposing (Case, Expression(..), LetDeclaration(..), RecordSetter)
-import Elm.Syntax.Infix as Infix
 import Elm.Syntax.Node as Node exposing (Node(..))
 import Elm.Syntax.Range exposing (Range)
 import Elm.Syntax.Signature exposing (Signature)
@@ -1419,7 +1418,6 @@ applyExtensionRight (ExtendRightByOperation operation) ((Node leftRange _) as le
     in
     Node { start = leftRange.start, end = rightExpressionRange.end }
         (Operation operation.symbol
-            operation.direction
             leftNode
             rightExpressionNode
         )
@@ -1450,7 +1448,6 @@ infixLeft leftPrecedence symbol =
                 , syntax =
                     ExtendRightByOperation
                         { symbol = symbol
-                        , direction = Infix.Left
                         , expression = first.syntax
                         }
                 }
@@ -1480,7 +1477,6 @@ infixNonAssociative leftPrecedence symbol =
                 , syntax =
                     ExtendRightByOperation
                         { symbol = symbol
-                        , direction = Infix.Non
                         , expression = right.syntax
                         }
                 }
@@ -1524,7 +1520,6 @@ infixRight leftPrecedence symbol =
                 , syntax =
                     ExtendRightByOperation
                         { symbol = symbol
-                        , direction = Infix.Right
                         , expression = first.syntax
                         }
                 }
@@ -1551,6 +1546,5 @@ temporaryErrPrecedenceTooHigh =
 type ExtensionRight
     = ExtendRightByOperation
         { symbol : String
-        , direction : Infix.InfixDirection
         , expression : Node Expression
         }

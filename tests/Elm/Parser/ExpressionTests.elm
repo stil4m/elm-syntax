@@ -5,7 +5,6 @@ import Elm.Parser.Expression exposing (expression)
 import Elm.Parser.ParserWithCommentsTestUtil as ParserWithCommentsUtil
 import Elm.Syntax.DestructurePattern exposing (DestructurePattern(..))
 import Elm.Syntax.Expression exposing (Expression(..))
-import Elm.Syntax.Infix as Infix exposing (InfixDirection(..))
 import Elm.Syntax.Node exposing (Node(..))
 import Elm.Syntax.StringLiteralType exposing (StringLiteralType(..))
 import Expect
@@ -118,7 +117,6 @@ all =
                             (TupleExpression
                                 [ Node { start = { row = 1, column = 2 }, end = { row = 1, column = 11 } }
                                     (Operation "*"
-                                        Left
                                         (Node { start = { row = 1, column = 2 }, end = { row = 1, column = 4 } }
                                             (Negation (Node { start = { row = 1, column = 3 }, end = { row = 1, column = 4 } } (IntegerLiteral 1)))
                                         )
@@ -143,7 +141,6 @@ all =
                     |> expectAst
                         (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 10 } } <|
                             Operation "+"
-                                Infix.Left
                                 (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 6 } } <| FunctionOrValue [] "model")
                                 (Node { start = { row = 1, column = 9 }, end = { row = 1, column = 10 } } <| IntegerLiteral 1)
                         )
@@ -153,10 +150,8 @@ all =
                     |> expectAst
                         (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 15 } }
                             (Operation "=="
-                                Non
                                 (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 10 } }
                                     (Operation "+"
-                                        Left
                                         (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 6 } } (FunctionOrValue [] "count"))
                                         (Node { start = { row = 1, column = 9 }, end = { row = 1, column = 10 } } (IntegerLiteral 1))
                                     )
@@ -170,10 +165,8 @@ all =
                     |> expectAst
                         (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 15 } }
                             (Operation "/="
-                                Non
                                 (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 10 } }
                                     (Operation "+"
-                                        Left
                                         (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 6 } } (FunctionOrValue [] "count"))
                                         (Node { start = { row = 1, column = 9 }, end = { row = 1, column = 10 } } (IntegerLiteral 1))
                                     )
@@ -187,11 +180,9 @@ all =
                     |> expectAst
                         (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 15 } }
                             (Operation "+"
-                                Left
                                 (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 6 } } (FunctionOrValue [] "count"))
                                 (Node { start = { row = 1, column = 9 }, end = { row = 1, column = 15 } }
                                     (Operation "//"
-                                        Left
                                         (Node { start = { row = 1, column = 9 }, end = { row = 1, column = 10 } } (IntegerLiteral 1))
                                         (Node { start = { row = 1, column = 14 }, end = { row = 1, column = 15 } } (IntegerLiteral 2))
                                     )
@@ -204,10 +195,8 @@ all =
                     |> expectAst
                         (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 28 } }
                             (Operation "<|"
-                                Right
                                 (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 23 } }
                                     (Operation "&&"
-                                        Right
                                         (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 10 } } (FunctionOrValue [] "condition"))
                                         (Node { start = { row = 1, column = 14 }, end = { row = 1, column = 23 } } (FunctionOrValue [] "condition"))
                                     )
@@ -565,7 +554,6 @@ all =
                     |> expectAst
                         (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 4 } }
                             (Operation "-"
-                                Left
                                 (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 2 } } (IntegerLiteral 2))
                                 (Node { start = { row = 1, column = 3 }, end = { row = 1, column = 4 } } (IntegerLiteral 1))
                             )
@@ -600,7 +588,6 @@ all =
                                     (TupleExpression
                                         [ Node { start = { row = 1, column = 3 }, end = { row = 1, column = 8 } }
                                             (Operation "-"
-                                                Left
                                                 (Node { start = { row = 1, column = 3 }, end = { row = 1, column = 4 } } (FunctionOrValue [] "x"))
                                                 (Node { start = { row = 1, column = 7 }, end = { row = 1, column = 8 } } (FunctionOrValue [] "y"))
                                             )
@@ -615,22 +602,18 @@ all =
                     |> expectAst
                         (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 29 } }
                             (Operation "=="
-                                Non
                                 (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 18 } }
                                     (Operation "+"
-                                        Left
                                         (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 3 } }
                                             (Negation (Node { start = { row = 1, column = 2 }, end = { row = 1, column = 3 } } (IntegerLiteral 1)))
                                         )
                                         (Node { start = { row = 1, column = 6 }, end = { row = 1, column = 18 } }
                                             (Operation "*"
-                                                Left
                                                 (Node { start = { row = 1, column = 6 }, end = { row = 1, column = 9 } }
                                                     (Negation (Node { start = { row = 1, column = 7 }, end = { row = 1, column = 9 } } (IntegerLiteral 10)))
                                                 )
                                                 (Node { start = { row = 1, column = 12 }, end = { row = 1, column = 18 } }
                                                     (Operation "^"
-                                                        Right
                                                         (Node { start = { row = 1, column = 12 }, end = { row = 1, column = 16 } }
                                                             (Negation
                                                                 (Node { start = { row = 1, column = 13 }, end = { row = 1, column = 16 } } (IntegerLiteral 100))
@@ -655,10 +638,8 @@ all =
                         (Node
                             { start = { row = 1, column = 1 }, end = { row = 1, column = 10 } }
                             (Operation "-"
-                                Left
                                 (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 6 } }
                                     (Operation "+"
-                                        Left
                                         (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 2 } } (IntegerLiteral 1))
                                         (Node { start = { row = 1, column = 5 }, end = { row = 1, column = 6 } } (IntegerLiteral 2))
                                     )
@@ -672,7 +653,6 @@ all =
                     |> expectAst
                         (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 7 } }
                             (Operation "|>"
-                                Left
                                 (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 2 } } (FunctionOrValue [] "a"))
                                 (Node { start = { row = 1, column = 6 }, end = { row = 1, column = 7 } } (FunctionOrValue [] "b"))
                             )
@@ -693,20 +673,16 @@ all =
                                                 , expression =
                                                     Node { start = { row = 1, column = 19 }, end = { row = 1, column = 53 } }
                                                         (Operation "||"
-                                                            Right
                                                             (Node { start = { row = 1, column = 19 }, end = { row = 1, column = 27 } }
                                                                 (Operation "=="
-                                                                    Non
                                                                     (Node { start = { row = 1, column = 19 }, end = { row = 1, column = 20 } } (FunctionOrValue [] "c"))
                                                                     (Node { start = { row = 1, column = 24 }, end = { row = 1, column = 27 } } (CharLiteral ' '))
                                                                 )
                                                             )
                                                             (Node { start = { row = 1, column = 31 }, end = { row = 1, column = 53 } }
                                                                 (Operation "||"
-                                                                    Right
                                                                     (Node { start = { row = 1, column = 31 }, end = { row = 1, column = 40 } }
                                                                         (Operation "=="
-                                                                            Non
                                                                             (Node { start = { row = 1, column = 31 }, end = { row = 1, column = 32 } } (FunctionOrValue [] "c"))
                                                                             (Node { start = { row = 1, column = 36 }, end = { row = 1, column = 40 } }
                                                                                 (CharLiteral '\n')
@@ -715,7 +691,6 @@ all =
                                                                     )
                                                                     (Node { start = { row = 1, column = 44 }, end = { row = 1, column = 53 } }
                                                                         (Operation "=="
-                                                                            Non
                                                                             (Node { start = { row = 1, column = 44 }, end = { row = 1, column = 45 } } (FunctionOrValue [] "c"))
                                                                             (Node { start = { row = 1, column = 49 }, end = { row = 1, column = 53 } }
                                                                                 (CharLiteral '\u{000D}')
@@ -788,7 +763,6 @@ all =
                     |> expectAst
                         (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 16 } }
                             (Operation "+"
-                                Left
                                 (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 2 } } (IntegerLiteral 1))
                                 (Node { start = { row = 1, column = 5 }, end = { row = 1, column = 16 } }
                                     (Negation
