@@ -32,48 +32,24 @@ maybeLayoutUntilIgnored end =
                 Comments.singleLineCommentCore
                 |= Parser.lazy (\() -> maybeLayoutUntilIgnored end)
 
-        fromMultilineCommentNodeUntilEnd : Parser Comments
-        fromMultilineCommentNodeUntilEnd =
-            Parser.oneOf [ fromMultilineCommentNode, endNoComments ]
-
         endNoComments : Parser Comments
         endNoComments =
-            positivelyIndented Rope.empty |. end
-
-        fromCommentElseEmptyThenEnd : Parser Comments
-        fromCommentElseEmptyThenEnd =
-            -- since comments are comparatively rare
-            -- but expensive to check for, we allow shortcutting to dead end
-            Parser.andThen
-                (\source ->
-                    Parser.andThen
-                        (\offset ->
-                            case source |> String.slice offset (offset + 2) of
-                                "--" ->
-                                    fromSingleLineCommentUntilEnd
-
-                                "{-" ->
-                                    fromMultilineCommentNodeUntilEnd
-
-                                _ ->
-                                    endNoComments
-                        )
-                        Parser.getOffset
-                )
-                Parser.getSource
+            positivelyIndented Rope.empty |. end |> Parser.backtrackable
 
         endOrFromCommentElseEmptyThenEnd : Parser Comments
         endOrFromCommentElseEmptyThenEnd =
             Parser.oneOf
-                [ endNoComments |> Parser.backtrackable
-                , fromCommentElseEmptyThenEnd
+                [ endNoComments
+                , fromSingleLineCommentUntilEnd
+                , fromMultilineCommentNode
                 ]
     in
     Parser.oneOf
         [ whitespace
             |> Parser.andThen (\_ -> endOrFromCommentElseEmptyThenEnd)
-        , endNoComments |> Parser.backtrackable
-        , fromCommentElseEmptyThenEnd
+        , endNoComments
+        , fromSingleLineCommentUntilEnd
+        , fromMultilineCommentNode
         ]
 
 
