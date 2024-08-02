@@ -5,6 +5,7 @@ import Elm.Parser.ParserWithCommentsTestUtil as ParserWithCommentsUtil
 import Elm.Syntax.Expression exposing (..)
 import Elm.Syntax.Node exposing (Node(..))
 import Elm.Syntax.Pattern exposing (..)
+import Elm.Syntax.StringLiteralType exposing (StringLiteralType(..))
 import Expect
 import Test exposing (..)
 
@@ -142,11 +143,11 @@ True -> 1"""
                                         }
                                         (FunctionOrValue [] "x")
                                 , firstCase =
-                                    ( Node { start = { row = 2, column = 9 }, end = { row = 2, column = 39 } } (StringPattern "single line triple quote")
+                                    ( Node { start = { row = 2, column = 9 }, end = { row = 2, column = 39 } } (StringPattern TripleQuote "single line triple quote")
                                     , Node { start = { row = 3, column = 13 }, end = { row = 3, column = 14 } } (IntegerLiteral 1)
                                     )
                                 , restOfCases =
-                                    [ ( Node { start = { row = 4, column = 9 }, end = { row = 5, column = 28 } } (StringPattern "multi line\n            triple quote")
+                                    [ ( Node { start = { row = 4, column = 9 }, end = { row = 5, column = 28 } } (StringPattern TripleQuote "multi line\n            triple quote")
                                       , Node { start = { row = 6, column = 13 }, end = { row = 6, column = 14 } } (IntegerLiteral 2)
                                       )
                                     , ( Node { start = { row = 7, column = 9 }, end = { row = 7, column = 10 } } AllPattern
