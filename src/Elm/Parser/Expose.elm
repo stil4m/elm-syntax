@@ -27,7 +27,7 @@ exposeDefinition =
                             , syntax = exposingListInnerResult.syntax
                             }
                 )
-                (Layout.maybeLayoutUntilIgnored Tokens.parensStart)
+                (Layout.maybeLayoutUntilIgnored Parser.token "(")
             )
     )
         |= Layout.optimisticLayout
@@ -146,8 +146,8 @@ typeExpose =
                 (Layout.maybeLayout |> Parser.backtrackable)
                 |= Parser.getPosition
                 |. Tokens.parensStart
-                |= Layout.maybeLayoutUntilIgnored Tokens.dotDot
-                |= Layout.maybeLayoutUntilIgnored Tokens.parensEnd
+                |= Layout.maybeLayoutUntilIgnored Parser.token ".."
+                |= Layout.maybeLayoutUntilIgnored Parser.token ")"
                 |= Parser.getPosition
             , Parser.succeed Nothing
             ]

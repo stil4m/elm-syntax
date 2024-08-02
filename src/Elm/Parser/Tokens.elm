@@ -1,5 +1,5 @@
 module Elm.Parser.Tokens exposing
-    ( asToken, caseToken, elseToken, exposingToken, ifToken, importToken, inToken, letToken, moduleToken, whereToken, ofToken, portToken, thenToken, aliasToken
+    ( asToken, caseToken, exposingToken, ifToken, importToken, inToken, letToken, moduleToken, whereToken, portToken, aliasToken
     , dot, dotDot, squareStart, squareEnd, curlyStart, curlyEnd, pipe, backSlash, arrowRight, equal, comma, parensStart, parensEnd, colon, cons
     , minus, minusSymbols
     , prefixOperatorToken, allowedOperatorTokens
@@ -9,7 +9,7 @@ module Elm.Parser.Tokens exposing
 
 {-|
 
-@docs asToken, caseToken, elseToken, exposingToken, ifToken, importToken, inToken, letToken, moduleToken, whereToken, ofToken, portToken, thenToken, aliasToken
+@docs asToken, caseToken, exposingToken, ifToken, importToken, inToken, letToken, moduleToken, whereToken, portToken, aliasToken
 
 @docs dot, dotDot, squareStart, squareEnd, curlyStart, curlyEnd, pipe, backSlash, arrowRight, equal, comma, parensStart, parensEnd, colon, cons
 @docs minus, minusSymbols
@@ -89,24 +89,9 @@ ifToken =
     Parser.keyword "if"
 
 
-thenToken : Parser.Parser ()
-thenToken =
-    Parser.keyword "then"
-
-
-elseToken : Parser.Parser ()
-elseToken =
-    Parser.keyword "else"
-
-
 caseToken : Parser.Parser ()
 caseToken =
     Parser.keyword "case"
-
-
-ofToken : Parser.Parser ()
-ofToken =
-    Parser.keyword "of"
 
 
 letToken : Parser.Parser ()
