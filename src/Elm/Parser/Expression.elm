@@ -231,40 +231,29 @@ recordExpression =
         |> Parser.Extra.continueWith
             (Parser.map
                 (\commentsBefore ->
-                    \maybeAfterCurly ->
-                        \commentsBeforeClosingCurly ->
-                            \( endRow, endColumn ) ->
-                                case maybeAfterCurly of
-                                    Nothing ->
-                                        { comments = commentsBefore |> Rope.prependTo commentsBeforeClosingCurly
-                                        , end = { row = endRow, column = endColumn }
-                                        , expression = expressionRecordEmpty
-                                        }
-
-                                    Just afterCurly ->
-                                        { comments =
-                                            commentsBefore
-                                                |> Rope.prependTo afterCurly.comments
-                                                |> Rope.prependTo commentsBeforeClosingCurly
-                                        , end = { row = endRow, column = endColumn }
-                                        , expression = afterCurly.syntax
-                                        }
+                    \afterCurly ->
+                        \( endRow, endColumn ) ->
+                            { comments =
+                                commentsBefore
+                                    |> Rope.prependTo afterCurly.comments
+                            , end = { row = endRow, column = endColumn }
+                            , expression = afterCurly.syntax
+                            }
                 )
                 Layout.maybeLayout
             )
     )
-        |= recordContents
-        |= Layout.maybeLayoutUntilIgnored Parser.token "}"
+        |= recordContentsCurlyEnd
         |= Parser.getPosition
 
 
-expressionRecordEmpty : Expression
-expressionRecordEmpty =
-    RecordExpr []
+expressionRecordEmptyWithComments : WithComments Expression
+expressionRecordEmptyWithComments =
+    { comments = Rope.empty, syntax = RecordExpr [] }
 
 
-recordContents : Parser (Maybe (WithComments Expression))
-recordContents =
+recordContentsCurlyEnd : Parser (WithComments Expression)
+recordContentsCurlyEnd =
     Parser.oneOf
         [ Parser.map
             (\( nameStartRow, nameStartColumn ) ->
@@ -272,17 +261,18 @@ recordContents =
                     \commentsAfterFunctionName ->
                         \afterNameBeforeFields ->
                             \tailFields ->
-                                let
-                                    nameNode : Node String
-                                    nameNode =
-                                        Node.singleLineStringFrom { row = nameStartRow, column = nameStartColumn }
-                                            name
-                                in
-                                Just
+                                \commentsBeforeClosingCurly ->
+                                    let
+                                        nameNode : Node String
+                                        nameNode =
+                                            Node.singleLineStringFrom { row = nameStartRow, column = nameStartColumn }
+                                                name
+                                    in
                                     { comments =
                                         commentsAfterFunctionName
                                             |> Rope.prependTo afterNameBeforeFields.comments
                                             |> Rope.prependTo tailFields.comments
+                                            |> Rope.prependTo commentsBeforeClosingCurly
                                     , syntax =
                                         case afterNameBeforeFields.syntax of
                                             RecordUpdateFirstSetter firstField ->
@@ -329,7 +319,8 @@ recordContents =
                     |= Layout.maybeLayout
                 ]
             |= recordFields
-        , Parser.succeed Nothing
+            |= Layout.maybeLayoutUntilIgnored Parser.token "}"
+        , Parser.map (\() -> expressionRecordEmptyWithComments) Tokens.curlyEnd
         ]
 
 
