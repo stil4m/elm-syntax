@@ -217,77 +217,32 @@ expressionAfterOpeningSquareBracket =
 
 recordExpression : Parser (WithComments (Node Expression))
 recordExpression =
-    ParserFast.map2
-        (\commentsBefore afterCurly ->
-            { comments =
-                commentsBefore
-                    |> Rope.prependTo afterCurly.comments
-            , syntax = afterCurly.syntax
-            }
-        )
-        (ParserFast.symbolFollowedBy "{" Layout.maybeLayout)
-        recordContentsCurlyEnd
-        |> Node.parser
+    (Tokens.curlyStart
+        |> Parser.Extra.continueWith
+            (Parser.map
+                (\commentsBefore ->
+                    \afterCurly ->
+                        \( endRow, endColumn ) ->
+                            { comments =
+                                commentsBefore
+                                    |> Rope.prependTo afterCurly.comments
+                            , end = { row = endRow, column = endColumn }
+                            , expression = afterCurly.syntax
+                            }
+                )
+            )
+    )
+        |= recordContentsCurlyEnd
+        |= Parser.getPosition
+
+
+expressionRecordEmptyWithComments : WithComments Expression
+expressionRecordEmptyWithComments =
+    { comments = Rope.empty, syntax = RecordExpr [] }
 
 
 recordContentsCurlyEnd : Parser (WithComments Expression)
 recordContentsCurlyEnd =
-    ParserFast.oneOf2
-        (ParserFast.map5
-            (\nameNode commentsAfterFunctionName afterNameBeforeFields tailFields commentsBeforeClosingCurly ->
-                { comments =
-                    commentsAfterFunctionName
-                        |> Rope.prependTo afterNameBeforeFields.comments
-                        |> Rope.prependTo tailFields.comments
-                        |> Rope.prependTo commentsBeforeClosingCurly
-                , syntax =
-                    case afterNameBeforeFields.syntax of
-                        RecordUpdateFirstSetter firstField ->
-                            RecordUpdateExpression nameNode (firstField :: tailFields.syntax)
-
-                        FieldsFirstValue firstFieldValue ->
-                            RecordExpr (Node.combine Tuple.pair nameNode firstFieldValue :: tailFields.syntax)
-                }
-            )
-            (Node.parserCore Tokens.functionName)
-            Layout.maybeLayout
-            (ParserFast.oneOf2
-                (ParserFast.map2
-                    (\commentsBefore setterResult ->
-                        { comments = commentsBefore |> Rope.prependTo setterResult.comments
-                        , syntax = RecordUpdateFirstSetter setterResult.syntax
-                        }
-                    )
-                    (ParserFast.symbolFollowedBy "|" Layout.maybeLayout)
-                    recordSetterNodeWithLayout
-                )
-                (ParserFast.map3
-                    (\commentsBefore expressionResult commentsAfter ->
-                        { comments =
-                            commentsBefore
-                                |> Rope.prependTo expressionResult.comments
-                                |> Rope.prependTo commentsAfter
-                        , syntax = FieldsFirstValue expressionResult.syntax
-                        }
-                    )
-                    (ParserFast.symbolFollowedBy "=" Layout.maybeLayout)
-                    expression
-                    Layout.maybeLayout
-                )
-            )
-    )
-        |= recordContents
-        |= Layout.maybeLayoutUntilIgnored Parser.token "}"
-        |= Parser.getPosition
-
-
-expressionRecordEmpty : Expression
-expressionRecordEmpty =
-    RecordExpr []
-
-
-recordContents : Parser (Maybe (WithComments Expression))
-recordContents =
     Parser.oneOf
         [ Parser.map
             (\( nameStartRow, nameStartColumn ) ->
@@ -295,17 +250,18 @@ recordContents =
                     \commentsAfterFunctionName ->
                         \afterNameBeforeFields ->
                             \tailFields ->
-                                let
-                                    nameNode : Node String
-                                    nameNode =
-                                        Node.singleLineStringFrom { row = nameStartRow, column = nameStartColumn }
-                                            name
-                                in
-                                Just
+                                \commentsBeforeClosingCurly ->
+                                    let
+                                        nameNode : Node String
+                                        nameNode =
+                                            Node.singleLineStringFrom { row = nameStartRow, column = nameStartColumn }
+                                                name
+                                    in
                                     { comments =
                                         commentsAfterFunctionName
                                             |> Rope.prependTo afterNameBeforeFields.comments
                                             |> Rope.prependTo tailFields.comments
+                                            |> Rope.prependTo commentsBeforeClosingCurly
                                     , syntax =
                                         case afterNameBeforeFields.syntax of
                                             RecordUpdateFirstSetter firstField ->
@@ -352,7 +308,8 @@ recordContents =
                     |= Layout.maybeLayout
                 ]
             |= recordFields
-        , Parser.succeed Nothing
+            |= Layout.maybeLayoutUntilIgnored Parser.token "}"
+        , Parser.map (\() -> expressionRecordEmptyWithComments) Tokens.curlyEnd
         ]
 
 
