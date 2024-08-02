@@ -6,11 +6,11 @@ import Elm.Syntax.Node exposing (Node)
 import ParserFast exposing (Parser)
 
 
-singleLineCommentCore : ParserFast.Parser String
+singleLineCommentCore : Parser.Parser String
 singleLineCommentCore =
-    ParserFast.symbolFollowedBy "--"
-        (ParserFast.chompWhile (\c -> c /= '\u{000D}' && c /= '\n'))
-        |> ParserFast.getChompedString
+    Parser.symbol "--"
+        |. Parser.chompWhile (\c -> c /= '\u{000D}' && c /= '\n')
+        |> Parser.getChompedString
 
 
 multilineCommentString : ParserFast.Parser String
