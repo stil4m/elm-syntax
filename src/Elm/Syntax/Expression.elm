@@ -110,7 +110,7 @@ type Expression
     | ListLiteral (List (Node Expression))
     | FunctionOrValue ModuleName String
     | PrefixOperator String
-    | FunctionCall (Node Expression) (List (Node Expression))
+    | FunctionCall (Node Expression) (Node Expression) (List (Node Expression))
     | Operation String InfixDirection (Node Expression) (Node Expression)
     | If (Node Expression) (Node Expression) (Node Expression)
     | TupleExpression (List (Node Expression))
