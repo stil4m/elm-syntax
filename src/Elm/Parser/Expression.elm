@@ -13,6 +13,7 @@ import Elm.Syntax.Pattern exposing (Pattern)
 import Elm.Syntax.Range exposing (Location)
 import Elm.Syntax.Signature exposing (Signature)
 import Parser exposing ((|.), (|=), Parser)
+import Parser.Advanced
 import Parser.Extra
 import ParserWithComments exposing (Comments, WithComments)
 import Rope
@@ -1107,7 +1108,9 @@ subExpressionMap :
     -> Parser a
 subExpressionMap toExtensionRightWith aboveCurrentPrecedenceLayout =
     let
-        step : WithComments (Node Expression) -> Parser (Parser.Step (WithComments (Node Expression)) a)
+        step :
+            WithComments (Node Expression)
+            -> Parser (Parser.Advanced.Step (WithComments (Node Expression)) a)
         step leftExpressionResult =
             Parser.oneOf
                 [ Parser.map
@@ -1121,12 +1124,12 @@ subExpressionMap toExtensionRightWith aboveCurrentPrecedenceLayout =
                                 leftExpressionResult.syntax
                                     |> applyExtensionRight extensionRight.syntax
                             }
-                                |> Parser.Loop
+                                |> Parser.Advanced.Loop
                     )
                     aboveCurrentPrecedenceLayout
                     |= Layout.optimisticLayout
                 , Parser.succeed
-                    (Parser.Done (toExtensionRightWith leftExpressionResult))
+                    (Parser.Advanced.Done (toExtensionRightWith leftExpressionResult))
                 ]
     in
     Parser.map
@@ -1144,7 +1147,7 @@ subExpressionMap toExtensionRightWith aboveCurrentPrecedenceLayout =
         |= Parser.lazy (\() -> subExpression)
         |= Layout.optimisticLayout
         |> Parser.andThen
-            (\leftExpression -> Parser.loop leftExpression step)
+            (\leftExpression -> Parser.Advanced.loop leftExpression step)
 
 
 applyExtensionRight : ExtensionRight -> Node Expression -> Node Expression
