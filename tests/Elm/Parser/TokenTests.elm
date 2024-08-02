@@ -2,7 +2,7 @@ module Elm.Parser.TokenTests exposing (all)
 
 import Elm.Parser.TestUtil exposing (..)
 import Elm.Parser.Tokens as Parser
-import Elm.Syntax.Expression exposing (StringLiteralType(..))
+import Elm.Syntax.StringLiteralType exposing (StringLiteralType(..))
 import Expect
 import Test exposing (..)
 

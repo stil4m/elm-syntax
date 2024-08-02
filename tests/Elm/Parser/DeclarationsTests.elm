@@ -8,6 +8,7 @@ import Elm.Syntax.Expression as Expression exposing (..)
 import Elm.Syntax.Infix as Infix exposing (InfixDirection(..))
 import Elm.Syntax.Node exposing (Node(..))
 import Elm.Syntax.Pattern exposing (..)
+import Elm.Syntax.StringLiteralType exposing (StringLiteralType(..))
 import Elm.Syntax.TypeAnnotation as TypeAnnotation exposing (..)
 import Expect
 import Test exposing (..)

@@ -1,5 +1,5 @@
 module Elm.Syntax.Expression exposing
-    ( Expression(..), StringLiteralType(..), Lambda, LetBlock, LetDeclaration(..), RecordSetter, CaseBlock, Case, Function, FunctionImplementation
+    ( Expression(..), Lambda, LetBlock, LetDeclaration(..), RecordSetter, CaseBlock, Case, Function, FunctionImplementation
     , functionRange, isLambda, isLet, isIfElse, isCase, isOperation
     )
 
@@ -9,7 +9,7 @@ Although it is a easy and simple language, you can express a lot! See the `Expre
 
 ## Types
 
-@docs Expression, StringLiteralType, Lambda, LetBlock, LetDeclaration, RecordSetter, CaseBlock, Case, Function, FunctionImplementation
+@docs Expression, Lambda, LetBlock, LetDeclaration, RecordSetter, CaseBlock, Case, Function, FunctionImplementation
 
 
 ## Functions
@@ -26,6 +26,7 @@ import Elm.Syntax.Node as Node exposing (Node(..))
 import Elm.Syntax.Pattern exposing (Pattern)
 import Elm.Syntax.Range exposing (Range)
 import Elm.Syntax.Signature exposing (Signature)
+import Elm.Syntax.StringLiteralType exposing (StringLiteralType)
 
 
 {-| Type alias for a full function
@@ -121,13 +122,6 @@ type Expression
     | RecordAccessFunction String
     | RecordUpdate (Node String) (Node RecordSetter) (List (Node RecordSetter))
     | GLSL String
-
-
-{-| Indicates whether a string literal is single (`"abc"`) or triple-quoted (`"""abc"""`).
--}
-type StringLiteralType
-    = SingleQuote
-    | TripleQuote
 
 
 {-| Expression for setting a record field

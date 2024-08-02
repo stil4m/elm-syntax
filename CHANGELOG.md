@@ -26,7 +26,6 @@
   - Renamed `Literal` to `StringLiteral`
   - Added information to `String` literal as to whether `"""` or `"` was used:
     - `Literal String` -> `StringLiteral StringLiteralType String`
-    - Added `type StringLiteralType = TripleQuote | SingleQuote`
   - Renamed `Application` to `FunctionCall`
   - `Application (List (Node Expression))` -> `FunctionCall (Node Expression) (Node Expression) (List (Node Expression))` (function is separated, and takes a non-empty list of arguments)
   - Renamed `RecordUpdateExpression` to `RecordUpdate`
@@ -61,6 +60,8 @@
 
 - Changed `Elm.Syntax.Exposing.Exposing`:
   - `Explicit (List (Node TopLevelExpose))` -> `Explicit (Node TopLevelExpose) (List (Node TopLevelExpose))` (takes a non-empty list of elements)
+
+- Added module `Elm.Syntax.StringLiteralType` containing `type StringLiteralType = TripleQuote | SingleQuote`
 
 - Removed deprecated `Elm.Syntax.Range.emptyRange`, use `Elm.Syntax.Range.empty` instead.
 

@@ -21,7 +21,7 @@ module Elm.Parser.Tokens exposing
 -}
 
 import Char
-import Elm.Syntax.Expression exposing (StringLiteralType(..))
+import Elm.Syntax.StringLiteralType exposing (StringLiteralType(..))
 import Hex
 import Parser exposing ((|.), Step(..))
 import Parser.Extra
