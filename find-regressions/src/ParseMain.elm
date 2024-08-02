@@ -3,6 +3,7 @@ port module ParseMain exposing (main)
 import Elm.Parser as Parser
 import Elm.Syntax.File exposing (File)
 import Json.Encode as Encode
+import Parser exposing (DeadEnd)
 
 
 port requestParsing : (String -> msg) -> Sub msg
@@ -11,11 +12,15 @@ port requestParsing : (String -> msg) -> Sub msg
 port parseResult : Encode.Value -> Cmd msg
 
 
-main : Program () () Msg
+type alias Version =
+    String
+
+
+main : Program Version Version Msg
 main =
     Platform.worker
-        { init = always ( (), Cmd.none )
-        , update = \msg _ -> ( (), update msg )
+        { init = \version -> ( version, Cmd.none )
+        , update = \msg version -> ( version, update version msg )
         , subscriptions = always subscriptions
         }
 
@@ -29,12 +34,12 @@ type Msg
     = GotFile String
 
 
-update : Msg -> Cmd Msg
-update (GotFile source) =
+update : Version -> Msg -> Cmd Msg
+update version (GotFile source) =
     let
         json : Encode.Value
         json =
-            case Parser.parseToFile source of
+            case parseAndBenchmark version source of
                 Ok ast ->
                     Elm.Syntax.File.encode ast
 
@@ -42,3 +47,24 @@ update (GotFile source) =
                     Encode.null
     in
     parseResult json
+
+
+parseAndBenchmark : Version -> String -> Result (List DeadEnd) File
+parseAndBenchmark version source =
+    let
+        start : ()
+        start =
+            timeStart version
+    in
+    Parser.parseToFile source
+        |> (\parsed -> always parsed (timeEnd version))
+
+
+timeStart : Version -> ()
+timeStart version =
+    ()
+
+
+timeEnd : Version -> ()
+timeEnd version =
+    ()
