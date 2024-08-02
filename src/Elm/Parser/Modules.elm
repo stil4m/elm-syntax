@@ -31,7 +31,7 @@ effectWhereClause =
             }
         )
         Tokens.functionName
-        |= Layout.maybeLayoutUntilIgnored Tokens.equal
+        |= Layout.maybeLayoutUntilIgnored Parser.token "="
         |= Layout.maybeLayout
         |= Node.parserCore Tokens.typeName
 

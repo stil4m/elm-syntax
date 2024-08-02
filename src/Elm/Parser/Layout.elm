@@ -14,15 +14,25 @@ import Elm.Parser.Comments as Comments
 import Elm.Parser.Node as Node
 import Elm.Syntax.Node exposing (Node(..))
 import Parser exposing ((|.), (|=), Parser)
+import Parser.Extra
 import ParserWithComments exposing (Comments, WithComments)
 import Rope
 import Set
 
 
-maybeLayoutUntilIgnored : Parser () -> Parser.Parser Comments
-maybeLayoutUntilIgnored end =
+maybeLayoutUntilIgnored : (String -> Parser ()) -> String -> Parser.Parser Comments
+maybeLayoutUntilIgnored endParser endSymbol =
+    whitespaceAndCommentsUntilEndComments
+        (endParser endSymbol
+            |> Parser.Extra.continueWith
+                (positivelyIndentedPlusResultingIn (String.length endSymbol) Rope.empty)
+        )
+
+
+whitespaceAndCommentsUntilEndComments : Parser Comments -> Parser Comments
+whitespaceAndCommentsUntilEndComments end =
     let
-        fromSingleLineCommentUntilEnd : Parser (Rope.Rope (Node String))
+        fromSingleLineCommentUntilEnd : Parser Comments
         fromSingleLineCommentUntilEnd =
             Parser.map
                 (\startColumn ->
@@ -41,26 +51,32 @@ maybeLayoutUntilIgnored end =
                 Parser.getCol
                 |= Comments.singleLineCommentCore
                 |= Parser.getPosition
-                |= Parser.lazy (\() -> maybeLayoutUntilIgnored end)
+                |= Parser.lazy (\() -> whitespaceAndCommentsUntilEndComments end)
 
-        endNoComments : Parser Comments
-        endNoComments =
-            positivelyIndented Rope.empty |. end |> Parser.backtrackable
+        fromMultilineCommentNodeUntilEnd : Parser Comments
+        fromMultilineCommentNodeUntilEnd =
+            Node.parserCoreMap
+                (\comment ->
+                    \commentsAfter ->
+                        Rope.one comment |> Rope.filledPrependTo commentsAfter
+                )
+                Comments.multilineCommentString
+                |= Parser.lazy (\() -> whitespaceAndCommentsUntilEndComments end)
 
         endOrFromCommentElseEmptyThenEnd : Parser Comments
         endOrFromCommentElseEmptyThenEnd =
             Parser.oneOf
-                [ endNoComments
+                [ end
                 , fromSingleLineCommentUntilEnd
-                , fromMultilineCommentNode
+                , fromMultilineCommentNodeUntilEnd
                 ]
     in
     Parser.oneOf
         [ whitespace
             |> Parser.andThen (\_ -> endOrFromCommentElseEmptyThenEnd)
-        , endNoComments
+        , end
         , fromSingleLineCommentUntilEnd
-        , fromMultilineCommentNode
+        , fromMultilineCommentNodeUntilEnd
         ]
 
 
@@ -174,6 +190,28 @@ positivelyIndentedPlusFollowedBy extraIndent nextParser =
             else
                 problemPositivelyIndented
         )
+
+
+positivelyIndentedPlusResultingIn : Int -> res -> Parser.Parser res
+positivelyIndentedPlusResultingIn extraIndent res =
+    let
+        succeedRes : Parser res
+        succeedRes =
+            Parser.succeed res
+    in
+    Parser.andThen
+        (\column ->
+            Parser.andThen
+                (\indent ->
+                    if column > indent + extraIndent then
+                        succeedRes
+
+                    else
+                        problemPositivelyIndented
+                )
+                Parser.getIndent
+        )
+        Parser.getCol
 
 
 positivelyIndented : res -> Parser.Parser res
