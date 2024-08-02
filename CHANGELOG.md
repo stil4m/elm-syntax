@@ -50,6 +50,8 @@
 
 - Changed `Elm.Syntax.Pattern.Pattern`:
   - Removed `FloatPattern` (it was not possible to get)
+  - Added information to `StringPattern` as to whether `"""` or `"` was used:
+    - `StringPattern String` -> `StringPattern StringLiteralType String`
 
 - Changed `Elm.Syntax.TypeAnnotation.TypeAnnotation`:
   - `Tupled` -> `Tuple`

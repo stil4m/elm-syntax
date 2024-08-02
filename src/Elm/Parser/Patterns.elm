@@ -259,8 +259,7 @@ unitPatternWithComments =
 stringPattern : Parser (WithComments Pattern)
 stringPattern =
     Tokens.singleOrTripleQuotedStringLiteral
-        -- TODO Store the StringLiteralType information in StringPattern
-        |> Parser.map (\( _, string ) -> { comments = Rope.empty, syntax = StringPattern string })
+        |> Parser.map (\( stringLiteralType, string ) -> { comments = Rope.empty, syntax = StringPattern stringLiteralType string })
 
 
 maybeDotTypeNamesTuple : Parser.Parser (Maybe ( List String, String ))
