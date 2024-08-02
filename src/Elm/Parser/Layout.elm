@@ -12,7 +12,7 @@ module Elm.Parser.Layout exposing
 
 import Elm.Parser.Comments as Comments
 import Elm.Parser.Node as Node
-import Elm.Syntax.Node exposing (Node)
+import Elm.Syntax.Node exposing (Node(..))
 import Parser exposing ((|.), (|=), Parser)
 import ParserWithComments exposing (Comments, WithComments)
 import Rope
@@ -25,11 +25,22 @@ maybeLayoutUntilIgnored end =
         fromSingleLineCommentUntilEnd : Parser (Rope.Rope (Node String))
         fromSingleLineCommentUntilEnd =
             Parser.map
-                (\comment ->
-                    \commentsAfter ->
-                        Rope.one comment |> Rope.filledPrependTo commentsAfter
+                (\startColumn ->
+                    \content ->
+                        \( endRow, endColumn ) ->
+                            \commentsAfter ->
+                                Rope.one
+                                    (Node
+                                        { start = { row = endRow, column = startColumn }
+                                        , end = { row = endRow, column = endColumn }
+                                        }
+                                        content
+                                    )
+                                    |> Rope.filledPrependTo commentsAfter
                 )
-                Comments.singleLineCommentCore
+                Parser.getCol
+                |= Comments.singleLineCommentCore
+                |= Parser.getPosition
                 |= Parser.lazy (\() -> maybeLayoutUntilIgnored end)
 
         endNoComments : Parser Comments
@@ -120,11 +131,22 @@ fromMultilineCommentNode =
 fromSingleLineCommentNode : Parser Comments
 fromSingleLineCommentNode =
     Parser.map
-        (\comment ->
-            \commentsAfter ->
-                Rope.one comment |> Rope.filledPrependTo commentsAfter
+        (\startColumn ->
+            \content ->
+                \( endRow, endColumn ) ->
+                    \commentsAfter ->
+                        Rope.one
+                            (Node
+                                { start = { row = endRow, column = startColumn }
+                                , end = { row = endRow, column = endColumn }
+                                }
+                                content
+                            )
+                            |> Rope.filledPrependTo commentsAfter
         )
-        Comments.singleLineCommentCore
+        Parser.getCol
+        |= Comments.singleLineCommentCore
+        |= Parser.getPosition
         |= whitespaceAndCommentsOrEmpty
 
 
