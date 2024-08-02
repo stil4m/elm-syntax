@@ -254,7 +254,7 @@ recordExpression =
             )
     )
         |= recordContents
-        |= Layout.maybeLayoutUntilIgnored Tokens.curlyEnd
+        |= Layout.maybeLayoutUntilIgnored Parser.token "}"
         |= Parser.getPosition
 
 
@@ -387,7 +387,7 @@ recordSetterNodeWithLayout =
         )
         Parser.getPosition
         |= Tokens.functionName
-        |= Layout.maybeLayoutUntilIgnored Tokens.equal
+        |= Layout.maybeLayoutUntilIgnored Parser.token "="
         |= Layout.maybeLayout
         |= expression
         |= Layout.maybeLayout
@@ -519,7 +519,7 @@ caseExpression =
             )
     )
         |= expression
-        |= Layout.maybeLayoutUntilIgnored Tokens.ofToken
+        |= Layout.maybeLayoutUntilIgnored Parser.keyword "of"
         |= Layout.maybeLayout
         |= Parser.Extra.withIndent caseStatements
 
@@ -545,7 +545,7 @@ caseStatements =
                             }
         )
         Patterns.pattern
-        |= Layout.maybeLayoutUntilIgnored Tokens.arrowRight
+        |= Layout.maybeLayoutUntilIgnored Parser.token "->"
         |= Layout.maybeLayout
         |= expression
         |= ParserWithComments.manyWithoutReverse caseStatement
@@ -571,7 +571,7 @@ caseStatement =
         (Layout.optimisticLayout |> Parser.backtrackable)
         |. Layout.onTopIndentation ()
         |= Patterns.pattern
-        |= Layout.maybeLayoutUntilIgnored Tokens.arrowRight
+        |= Layout.maybeLayoutUntilIgnored Parser.token "->"
         |= Layout.maybeLayout
         |= expression
 
@@ -880,10 +880,10 @@ ifBlockExpression =
             )
     )
         |= expression
-        |= Layout.maybeLayoutUntilIgnored Tokens.thenToken
+        |= Layout.maybeLayoutUntilIgnored Parser.keyword "then"
         |= Layout.maybeLayout
         |= expression
-        |= Layout.maybeLayoutUntilIgnored Tokens.elseToken
+        |= Layout.maybeLayoutUntilIgnored Parser.keyword "else"
         |= Layout.maybeLayout
         |= expression
 

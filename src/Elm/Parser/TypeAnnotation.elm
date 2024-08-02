@@ -39,7 +39,7 @@ typeAnnotation =
                                 , syntax = typeAnnotationResult.syntax
                                 }
                 )
-                (Layout.maybeLayoutUntilIgnored Tokens.arrowRight |> Parser.backtrackable)
+                (Layout.maybeLayoutUntilIgnored Parser.token "->" |> Parser.backtrackable)
                 |= Layout.maybeLayout
                 |= Parser.lazy (\() -> typeAnnotation)
             , Parser.succeed Nothing
@@ -283,7 +283,7 @@ recordFieldDefinition =
         Layout.maybeLayout
         |= Parser.getPosition
         |= Tokens.functionName
-        |= Layout.maybeLayoutUntilIgnored Tokens.colon
+        |= Layout.maybeLayoutUntilIgnored Parser.token ":"
         |= Layout.maybeLayout
         |= typeAnnotation
         -- This extra whitespace is just included for compatibility with earlier version
