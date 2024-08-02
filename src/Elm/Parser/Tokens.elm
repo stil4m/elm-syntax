@@ -4,7 +4,7 @@ module Elm.Parser.Tokens exposing
     , minus, minusSymbols
     , prefixOperatorToken, allowedOperatorTokens
     , characterLiteral, singleOrTripleQuotedStringLiteral
-    , functionName, typeName
+    , functionName, functionNameNotInfix, typeName
     )
 
 {-|
@@ -16,7 +16,7 @@ module Elm.Parser.Tokens exposing
 @docs prefixOperatorToken, allowedOperatorTokens
 
 @docs characterLiteral, singleOrTripleQuotedStringLiteral
-@docs functionName, typeName
+@docs functionName, functionNameNotInfix, typeName
 
 -}
 
@@ -236,6 +236,19 @@ functionName =
                 -- checking for these common ranges early is much faster
                 charIsAlphaNumFast c || c == '_' || Unicode.isAlphaNum c
         , reserved = reservedList
+        , start =
+            \c -> Char.isLower c || Unicode.isLower c
+        }
+
+
+functionNameNotInfix : Parser.Parser String
+functionNameNotInfix =
+    Parser.variable
+        { inner =
+            \c ->
+                -- checking for these common ranges early is much faster
+                charIsAlphaNumFast c || c == '_' || Unicode.isAlphaNum c
+        , reserved = Set.insert "infix" reservedList
         , start =
             \c -> Char.isLower c || Unicode.isLower c
         }
