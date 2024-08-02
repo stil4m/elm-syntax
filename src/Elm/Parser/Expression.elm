@@ -1379,13 +1379,19 @@ subExpressionMaybeAppliedOptimisticLayout =
                     [] ->
                         leftExpressionResult.syntax
 
-                    ((Node lastArgRange _) :: _) as argsReverse ->
+                    (Node lastArgRange _) :: _ ->
                         let
                             ((Node leftRange _) as leftNode) =
                                 leftExpressionResult.syntax
                         in
-                        Node { start = leftRange.start, end = lastArgRange.end }
-                            (Expression.FunctionCall leftNode (List.reverse argsReverse))
+                        case List.reverse maybeArgsReverse.syntax of
+                            [] ->
+                                -- Should not happen, so dummy value
+                                Node { start = leftRange.start, end = lastArgRange.end } (IntegerLiteral 0)
+
+                            firstArg :: restOfArgs ->
+                                Node { start = leftRange.start, end = lastArgRange.end }
+                                    (Expression.FunctionCall leftNode firstArg restOfArgs)
             }
         )
         (ParserFast.lazy (\() -> subExpression))

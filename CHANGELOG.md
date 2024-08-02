@@ -28,7 +28,7 @@
     - `Literal String` -> `StringLiteral StringLiteralType String`
     - Added `type StringLiteralType = TripleQuote | SingleQuote`
   - Renamed `Application` to `FunctionCall`
-  - `Application (List (Node Expression))` -> `FunctionCall (Node Expression) (List (Node Expression))` (takes a non-empty list of arguments)
+  - `Application (List (Node Expression))` -> `FunctionCall (Node Expression) (Node Expression) (List (Node Expression))` (function is separated, and takes a non-empty list of arguments)
   - Renamed `RecordUpdateExpression` to `RecordUpdate`
   - `RecordUpdateExpression (Node String) (List (Node RecordSetter))` -> `RecordUpdate (Node String) (Node RecordSetter) (List (Node RecordSetter))` (takes a non-empty list of fields)
   - Renamed `TupledExpression` to `TupleExpression`
