@@ -3,7 +3,8 @@ module Elm.Parser.Comments exposing (declarationDocumentation, moduleDocumentati
 import Elm.Parser.Node as Node
 import Elm.Syntax.Documentation exposing (Documentation)
 import Elm.Syntax.Node exposing (Node)
-import ParserFast exposing (Parser)
+import Parser exposing ((|.), Nestable(..), Parser)
+import Parser.Extra
 
 
 singleLineCommentCore : Parser.Parser String
