@@ -6,6 +6,7 @@
 const fs = require('node:fs');
 const os = require('node:os');
 const path = require('node:path');
+const {spawn} = require('node:child_process');
 try {
     require('./published/elm.js');
     require('./current/elm.js');
@@ -22,8 +23,8 @@ const currentElm = require('./current/elm.js');
 const disableEquality = process.argv.includes('--no-check');
 const fileToParses = process.argv.slice(2).filter(arg => arg !== '--no-check');
 
-const published = publishedElm.Elm.ParseMain.init({ flags: 'published' });
-const current = currentElm.Elm.ParseMain.init({ flags: 'current' });
+const publishedApp = publishedElm.Elm.ParseMain.init({ flags: 'published' });
+const currentApp = currentElm.Elm.ParseMain.init({ flags: 'current' });
 
 globalThis.measurements = {
     'current': [],
@@ -35,25 +36,37 @@ globalThis.measurements = {
 
     for await (const filePath of fileToParses) {
         const source = fs.readFileSync(filePath, 'utf8');
-        const before = await parse(published, source)
+        const published = await parse(publishedApp, source)
             .catch(error => {
                 console.error(`Failure parsing ${filePath} with PUBLISHED`, error);
                 return 'FAILURE';
             })
-        const after = await parse(current, source)
+        const current = await parse(currentApp, source)
             .catch(error => {
                 console.error(`Failure parsing ${filePath} with CURRENT`, error);
                 return 'FAILURE';
             })
         if (!disableEquality) {
-            if (JSON.stringify(before) !== JSON.stringify(after)) {
-                const pathBefore = path.join(tmpDirectory, path.basename(filePath, '.elm'), 'before.txt');
-                const pathAfter = path.join(tmpDirectory, path.basename(filePath, '.elm'), 'after.txt');
-                fs.mkdirSync(path.dirname(pathBefore), {recursive: true});
-                fs.writeFileSync(pathBefore, JSON.stringify(before, null, 4), {encoding: 'utf8'});
-                fs.writeFileSync(pathAfter, JSON.stringify(after, null, 4), {encoding: 'utf8'});
+            if (JSON.stringify(published) !== JSON.stringify(current)) {
+                const regressionFolder = path.join(tmpDirectory, path.basename(filePath, '.elm'));
+                const pathPublished = path.join(regressionFolder, 'published.txt');
+                const pathCurrent = path.join(regressionFolder, 'current.txt');
+                fs.mkdirSync(path.dirname(pathPublished), {recursive: true});
+                fs.writeFileSync(pathPublished, JSON.stringify(published, null, 4), {encoding: 'utf8'});
+                fs.writeFileSync(pathCurrent, JSON.stringify(current, null, 4), {encoding: 'utf8'});
+                fs.writeFileSync(path.join(regressionFolder, path.basename(filePath)), source, {encoding: 'utf8'});
+                const diff = fs.createWriteStream(path.join(regressionFolder, 'diff.diff'), { flags: 'a' });
+                diff.on('open', () => {
+                    spawn(
+                        "diff",
+                        [pathPublished, pathCurrent],
+                        { stdio: [diff, diff, diff] }
+                    );
+                });
+
                 console.error(`DIFFERENT: ${filePath}`);
-                console.error(`  diff ${pathBefore} ${pathAfter}`);
+                console.error(`  Folder: ${path.dirname(pathPublished)}`);
+                console.error()
             }
         }
     }
