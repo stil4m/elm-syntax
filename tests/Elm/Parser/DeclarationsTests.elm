@@ -265,7 +265,7 @@ foo = bar"""
                                             Node { start = { row = 2, column = 3 }, end = { row = 2, column = 62 } }
                                                 (FunctionCall
                                                     (Node { start = { row = 2, column = 3 }, end = { row = 2, column = 18 } } (FunctionOrValue [] "beginnerProgram"))
-                                                    [ Node { start = { row = 2, column = 19 }, end = { row = 2, column = 62 } }
+                                                    (Node { start = { row = 2, column = 19 }, end = { row = 2, column = 62 } }
                                                         (Expression.Record
                                                             [ Node { start = { row = 2, column = 21 }, end = { row = 2, column = 30 } }
                                                                 ( Node { start = { row = 2, column = 21 }, end = { row = 2, column = 26 } } "model"
@@ -281,7 +281,8 @@ foo = bar"""
                                                                 )
                                                             ]
                                                         )
-                                                    ]
+                                                    )
+                                                    []
                                                 )
                                         }
                                 }
@@ -425,8 +426,8 @@ foo = bar"""
                                             Node { start = { row = 2, column = 3 }, end = { row = 2, column = 23 } }
                                                 (FunctionCall
                                                     (Node { start = { row = 2, column = 3 }, end = { row = 2, column = 7 } } (FunctionOrValue [] "text"))
-                                                    [ Node { start = { row = 2, column = 8 }, end = { row = 2, column = 23 } } (StringLiteral SingleQuote "Hello, World!")
-                                                    ]
+                                                    (Node { start = { row = 2, column = 8 }, end = { row = 2, column = 23 } } (StringLiteral SingleQuote "Hello, World!"))
+                                                    []
                                                 )
                                         }
                                 }
@@ -449,8 +450,8 @@ foo = bar"""
                                             Node { start = { row = 2, column = 3 }, end = { row = 2, column = 23 } }
                                                 (FunctionCall
                                                     (Node { start = { row = 2, column = 3 }, end = { row = 2, column = 7 } } (FunctionOrValue [] "text"))
-                                                    [ Node { start = { row = 2, column = 8 }, end = { row = 2, column = 23 } } (StringLiteral SingleQuote "Hello, World!")
-                                                    ]
+                                                    (Node { start = { row = 2, column = 8 }, end = { row = 2, column = 23 } } (StringLiteral SingleQuote "Hello, World!"))
+                                                    []
                                                 )
                                         }
                                 }
@@ -501,16 +502,16 @@ foo = bar"""
                                                                     [ Node { start = { row = 1, column = 41 }, end = { row = 1, column = 55 } }
                                                                         (FunctionCall
                                                                             (Node { start = { row = 1, column = 41 }, end = { row = 1, column = 48 } } (FunctionOrValue [] "uncurry"))
-                                                                            [ Node { start = { row = 1, column = 49 }, end = { row = 1, column = 55 } } (FunctionOrValue [] "update")
-                                                                            ]
+                                                                            (Node { start = { row = 1, column = 49 }, end = { row = 1, column = 55 } } (FunctionOrValue [] "update"))
+                                                                            []
                                                                         )
                                                                     ]
                                                                 )
                                                             )
                                                             (Node { start = { row = 1, column = 60 }, end = { row = 1, column = 83 } }
                                                                 (FunctionCall (Node { start = { row = 1, column = 60 }, end = { row = 1, column = 74 } } (FunctionOrValue [] "batchStateCmds"))
-                                                                    [ Node { start = { row = 1, column = 75 }, end = { row = 1, column = 83 } } (FunctionOrValue [] "sendPort")
-                                                                    ]
+                                                                    (Node { start = { row = 1, column = 75 }, end = { row = 1, column = 83 } } (FunctionOrValue [] "sendPort"))
+                                                                    []
                                                                 )
                                                             )
                                                         )
