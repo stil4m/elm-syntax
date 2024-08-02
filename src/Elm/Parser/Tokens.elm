@@ -22,7 +22,8 @@ module Elm.Parser.Tokens exposing
 
 import Char
 import Hex
-import Parser exposing ((|.), Step(..))
+import Parser exposing ((|.))
+import Parser.Advanced
 import Parser.Extra
 import Set exposing (Set)
 import Unicode
@@ -167,8 +168,9 @@ singleOrTripleQuotedStringLiteral =
         |> Parser.Extra.continueWith
             (Parser.oneOf
                 [ twoDoubleQuotes
-                    |> Parser.Extra.continueWith (Parser.loop "" tripleQuotedStringLiteralStep)
-                , Parser.loop "" stringLiteralHelper
+                    |> Parser.Extra.continueWith
+                        (Parser.Advanced.loop "" tripleQuotedStringLiteralStep)
+                , Parser.Advanced.loop "" stringLiteralHelper
                 ]
             )
 
@@ -178,17 +180,17 @@ doubleQuote =
     Parser.symbol "\""
 
 
-stringLiteralHelper : String -> Parser.Parser (Step String String)
+stringLiteralHelper : String -> Parser.Parser (Parser.Advanced.Step String String)
 stringLiteralHelper stringSoFar =
     Parser.oneOf
-        [ doubleQuote |> Parser.map (\() -> Done stringSoFar)
+        [ doubleQuote |> Parser.map (\() -> Parser.Advanced.Done stringSoFar)
         , backSlash
             |> Parser.Extra.continueWith
-                (Parser.map (\v -> Loop (stringSoFar ++ String.fromChar v ++ ""))
+                (Parser.map (\v -> Parser.Advanced.Loop (stringSoFar ++ String.fromChar v ++ ""))
                     escapedCharValue
                 )
         , Parser.mapChompedString
-            (\value () -> Loop (stringSoFar ++ value ++ ""))
+            (\value () -> Parser.Advanced.Loop (stringSoFar ++ value ++ ""))
             chompWhileIsInsideString
         ]
 
@@ -208,20 +210,20 @@ tripleDoubleQuote =
     Parser.symbol "\"\"\""
 
 
-tripleQuotedStringLiteralStep : String -> Parser.Parser (Step String String)
+tripleQuotedStringLiteralStep : String -> Parser.Parser (Parser.Advanced.Step String String)
 tripleQuotedStringLiteralStep stringSoFar =
     Parser.oneOf
         [ tripleDoubleQuote
-            |> Parser.map (\() -> Done stringSoFar)
+            |> Parser.map (\() -> Parser.Advanced.Done stringSoFar)
         , doubleQuote
-            |> Parser.map (\() -> Loop (stringSoFar ++ "\""))
+            |> Parser.map (\() -> Parser.Advanced.Loop (stringSoFar ++ "\""))
         , backSlash
             |> Parser.Extra.continueWith
-                (Parser.map (\v -> Loop (stringSoFar ++ String.fromChar v ++ ""))
+                (Parser.map (\v -> Parser.Advanced.Loop (stringSoFar ++ String.fromChar v ++ ""))
                     escapedCharValue
                 )
         , Parser.mapChompedString
-            (\value () -> Loop (stringSoFar ++ value ++ ""))
+            (\value () -> Parser.Advanced.Loop (stringSoFar ++ value ++ ""))
             chompWhileIsInsideString
         ]
 
