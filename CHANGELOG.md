@@ -40,7 +40,8 @@
   - `OperatorApplication`
     - Renamed `OperatorApplication` to `Operation`
     - Removed the `InfixDirection` field
-    - `OperatorApplication String InfixDirection (Node Expression) (Node Expression)` -> `Operation String (Node Expression) (Node Expression)`
+    - Moved the operator to be between the two expressions
+    - `OperatorApplication String InfixDirection (Node Expression) (Node Expression)` -> `Operation (Node Expression) String (Node Expression)`
   - Renamed `isOperatorApplication` to `isOperation`
   - Renamed `RecordExpr` to `Record`
   - Renamed `CaseExpression` to `Case`

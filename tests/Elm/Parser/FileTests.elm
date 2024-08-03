@@ -223,8 +223,9 @@ lambdaWhitespace =   \\ a b ->    a
                                                                 [ Node { start = { row = 4, column = 26 }, end = { row = 4, column = 27 } } (VarPattern_ "b") ]
                                                             , expression =
                                                                 Node { start = { row = 4, column = 34 }, end = { row = 8, column = 6 } }
-                                                                    (Operation "+"
+                                                                    (Operation
                                                                         (Node { start = { row = 4, column = 34 }, end = { row = 4, column = 35 } } (FunctionOrValue [] "a"))
+                                                                        "+"
                                                                         (Node { start = { row = 8, column = 5 }, end = { row = 8, column = 6 } } (FunctionOrValue [] "b"))
                                                                     )
                                                             }
