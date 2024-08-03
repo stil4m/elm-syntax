@@ -9,7 +9,6 @@ import Elm.Syntax.Module exposing (Module(..))
 import Elm.Syntax.Node exposing (Node)
 import List.Extra
 import Parser exposing ((|.), (|=), Parser)
-import Parser.Extra
 import ParserWithComments exposing (WithComments)
 import Rope
 
@@ -42,78 +41,73 @@ effectWhereClause =
 
 whereBlock : Parser (WithComments { command : Maybe (Node String), subscription : Maybe (Node String) })
 whereBlock =
-    (Tokens.curlyStart
-        |> Parser.Extra.continueWith
-            (ParserWithComments.sepBy1 ","
-                (Layout.maybeAroundBothSides effectWhereClause)
-                |> Parser.map
-                    (\pairs ->
-                        { comments = pairs.comments
-                        , syntax =
-                            { command =
-                                pairs.syntax
-                                    |> List.Extra.find (\( fnName, _ ) -> fnName == "command")
-                                    |> Maybe.map Tuple.second
-                            , subscription =
-                                pairs.syntax
-                                    |> List.Extra.find (\( fnName, _ ) -> fnName == "subscription")
-                                    |> Maybe.map Tuple.second
-                            }
-                        }
-                    )
-            )
+    (Parser.map
+        (\() ->
+            \pairs ->
+                { comments = pairs.comments
+                , syntax =
+                    { command =
+                        pairs.syntax
+                            |> List.Extra.find (\( fnName, _ ) -> fnName == "command")
+                            |> Maybe.map Tuple.second
+                    , subscription =
+                        pairs.syntax
+                            |> List.Extra.find (\( fnName, _ ) -> fnName == "subscription")
+                            |> Maybe.map Tuple.second
+                    }
+                }
+        )
+        Tokens.curlyStart
+        |= ParserWithComments.sepBy1 ","
+            (Layout.maybeAroundBothSides effectWhereClause)
     )
         |. Tokens.curlyEnd
 
 
 effectWhereClauses : Parser (WithComments { command : Maybe (Node String), subscription : Maybe (Node String) })
 effectWhereClauses =
-    (Tokens.whereToken
-        |> Parser.Extra.continueWith
-            (Parser.map
-                (\commentsBefore ->
-                    \whereResult ->
-                        { comments = commentsBefore |> Rope.prependTo whereResult.comments
-                        , syntax = whereResult.syntax
-                        }
-                )
-                Layout.maybeLayout
-            )
-    )
+    Parser.map
+        (\() ->
+            \commentsBefore ->
+                \whereResult ->
+                    { comments = commentsBefore |> Rope.prependTo whereResult.comments
+                    , syntax = whereResult.syntax
+                    }
+        )
+        Tokens.whereToken
+        |= Layout.maybeLayout
         |= whereBlock
 
 
 effectModuleDefinition : Parser (WithComments Module)
 effectModuleDefinition =
-    (Parser.keyword "effect"
-        |> Parser.Extra.continueWith
-            (Parser.map
-                (\commentsAfterEffect ->
-                    \commentsModule ->
-                        \name ->
-                            \commentsAfterName ->
-                                \whereClauses ->
-                                    \commentsAfterWhereClauses ->
-                                        \exp ->
-                                            { comments =
-                                                commentsAfterEffect
-                                                    |> Rope.prependTo commentsModule
-                                                    |> Rope.prependTo commentsAfterName
-                                                    |> Rope.prependTo whereClauses.comments
-                                                    |> Rope.prependTo commentsAfterWhereClauses
-                                                    |> Rope.prependTo exp.comments
-                                            , syntax =
-                                                EffectModule
-                                                    { moduleName = name
-                                                    , exposingList = exp.syntax
-                                                    , command = whereClauses.syntax.command
-                                                    , subscription = whereClauses.syntax.subscription
-                                                    }
-                                            }
-                )
-                Layout.maybeLayout
-            )
-    )
+    Parser.map
+        (\() ->
+            \commentsAfterEffect ->
+                \commentsModule ->
+                    \name ->
+                        \commentsAfterName ->
+                            \whereClauses ->
+                                \commentsAfterWhereClauses ->
+                                    \exp ->
+                                        { comments =
+                                            commentsAfterEffect
+                                                |> Rope.prependTo commentsModule
+                                                |> Rope.prependTo commentsAfterName
+                                                |> Rope.prependTo whereClauses.comments
+                                                |> Rope.prependTo commentsAfterWhereClauses
+                                                |> Rope.prependTo exp.comments
+                                        , syntax =
+                                            EffectModule
+                                                { moduleName = name
+                                                , exposingList = exp.syntax
+                                                , command = whereClauses.syntax.command
+                                                , subscription = whereClauses.syntax.subscription
+                                                }
+                                        }
+        )
+        (Parser.keyword "effect")
+        |= Layout.maybeLayout
         |. Tokens.moduleToken
         |= Layout.maybeLayout
         |= moduleName
@@ -125,27 +119,25 @@ effectModuleDefinition =
 
 normalModuleDefinition : Parser (WithComments Module)
 normalModuleDefinition =
-    (Tokens.moduleToken
-        |> Parser.Extra.continueWith
-            (Parser.map
-                (\commentsAfterModule ->
-                    \moduleName ->
-                        \commentsAfterModuleName ->
-                            \exposingList ->
-                                { comments =
-                                    commentsAfterModule
-                                        |> Rope.prependTo commentsAfterModuleName
-                                        |> Rope.prependTo exposingList.comments
-                                , syntax =
-                                    NormalModule
-                                        { moduleName = moduleName
-                                        , exposingList = exposingList.syntax
-                                        }
-                                }
-                )
-                Layout.maybeLayout
-            )
-    )
+    Parser.map
+        (\() ->
+            \commentsAfterModule ->
+                \moduleName ->
+                    \commentsAfterModuleName ->
+                        \exposingList ->
+                            { comments =
+                                commentsAfterModule
+                                    |> Rope.prependTo commentsAfterModuleName
+                                    |> Rope.prependTo exposingList.comments
+                            , syntax =
+                                NormalModule
+                                    { moduleName = moduleName
+                                    , exposingList = exposingList.syntax
+                                    }
+                            }
+        )
+        Tokens.moduleToken
+        |= Layout.maybeLayout
         |= moduleName
         |= Layout.maybeLayout
         |= Node.parser exposeDefinition
@@ -153,25 +145,23 @@ normalModuleDefinition =
 
 portModuleDefinition : Parser (WithComments Module)
 portModuleDefinition =
-    (Tokens.portToken
-        |> Parser.Extra.continueWith
-            (Parser.map
-                (\commentsAfterPort ->
-                    \commentsAfterModule ->
-                        \moduleName ->
-                            \commentsAfterModuleName ->
-                                \exposingList ->
-                                    { comments =
-                                        commentsAfterPort
-                                            |> Rope.prependTo commentsAfterModule
-                                            |> Rope.prependTo commentsAfterModuleName
-                                            |> Rope.prependTo exposingList.comments
-                                    , syntax = PortModule { moduleName = moduleName, exposingList = exposingList.syntax }
-                                    }
-                )
-                Layout.maybeLayout
-            )
-    )
+    Parser.map
+        (\() ->
+            \commentsAfterPort ->
+                \commentsAfterModule ->
+                    \moduleName ->
+                        \commentsAfterModuleName ->
+                            \exposingList ->
+                                { comments =
+                                    commentsAfterPort
+                                        |> Rope.prependTo commentsAfterModule
+                                        |> Rope.prependTo commentsAfterModuleName
+                                        |> Rope.prependTo exposingList.comments
+                                , syntax = PortModule { moduleName = moduleName, exposingList = exposingList.syntax }
+                                }
+        )
+        Tokens.portToken
+        |= Layout.maybeLayout
         |. Tokens.moduleToken
         |= Layout.maybeLayout
         |= moduleName

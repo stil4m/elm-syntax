@@ -121,17 +121,15 @@ problemRecordAccessStartingWithSpace =
 
 dotField : Parser.Parser (Node String)
 dotField =
-    (Tokens.dot
-        |> Parser.Extra.continueWith
-            (Parser.map
-                (\( nameStartRow, nameStartColumn ) ->
-                    \name ->
-                        Node.singleLineStringFrom { row = nameStartRow, column = nameStartColumn }
-                            name
-                )
-                Parser.getPosition
-            )
-    )
+    Parser.map
+        (\() ->
+            \( nameStartRow, nameStartColumn ) ->
+                \name ->
+                    Node.singleLineStringFrom { row = nameStartRow, column = nameStartColumn }
+                        name
+        )
+        Tokens.dot
+        |= Parser.getPosition
         |= Tokens.functionName
 
 
@@ -226,22 +224,20 @@ expressionListEmpty =
 
 recordExpression : Parser { comments : Comments, end : Location, expression : Expression }
 recordExpression =
-    (Tokens.curlyStart
-        |> Parser.Extra.continueWith
-            (Parser.map
-                (\commentsBefore ->
-                    \afterCurly ->
-                        \( endRow, endColumn ) ->
-                            { comments =
-                                commentsBefore
-                                    |> Rope.prependTo afterCurly.comments
-                            , end = { row = endRow, column = endColumn }
-                            , expression = afterCurly.syntax
-                            }
-                )
-                Layout.maybeLayout
-            )
-    )
+    Parser.map
+        (\() ->
+            \commentsBefore ->
+                \afterCurly ->
+                    \( endRow, endColumn ) ->
+                        { comments =
+                            commentsBefore
+                                |> Rope.prependTo afterCurly.comments
+                        , end = { row = endRow, column = endColumn }
+                        , expression = afterCurly.syntax
+                        }
+        )
+        Tokens.curlyStart
+        |= Layout.maybeLayout
         |= recordContentsCurlyEnd
         |= Parser.getPosition
 
@@ -285,35 +281,31 @@ recordContentsCurlyEnd =
             |= Tokens.functionName
             |= Layout.maybeLayout
             |= Parser.oneOf
-                [ (Tokens.pipe
-                    |> Parser.Extra.continueWith
-                        (Parser.map
-                            (\commentsBefore ->
-                                \setterResult ->
-                                    { comments = commentsBefore |> Rope.prependTo setterResult.comments
-                                    , syntax = RecordUpdateFirstSetter setterResult.syntax
-                                    }
-                            )
-                            Layout.maybeLayout
-                        )
-                  )
+                [ Parser.map
+                    (\() ->
+                        \commentsBefore ->
+                            \setterResult ->
+                                { comments = commentsBefore |> Rope.prependTo setterResult.comments
+                                , syntax = RecordUpdateFirstSetter setterResult.syntax
+                                }
+                    )
+                    Tokens.pipe
+                    |= Layout.maybeLayout
                     |= recordSetterNodeWithLayout
-                , (Tokens.equal
-                    |> Parser.Extra.continueWith
-                        (Parser.map
-                            (\commentsBefore ->
-                                \expressionResult ->
-                                    \commentsAfter ->
-                                        { comments =
-                                            commentsBefore
-                                                |> Rope.prependTo expressionResult.comments
-                                                |> Rope.prependTo commentsAfter
-                                        , syntax = FieldsFirstValue expressionResult.syntax
-                                        }
-                            )
-                            Layout.maybeLayout
-                        )
-                  )
+                , Parser.map
+                    (\() ->
+                        \commentsBefore ->
+                            \expressionResult ->
+                                \commentsAfter ->
+                                    { comments =
+                                        commentsBefore
+                                            |> Rope.prependTo expressionResult.comments
+                                            |> Rope.prependTo commentsAfter
+                                    , syntax = FieldsFirstValue expressionResult.syntax
+                                    }
+                    )
+                    Tokens.equal
+                    |= Layout.maybeLayout
                     |= expression
                     |= Layout.maybeLayout
                 ]
@@ -331,17 +323,16 @@ type RecordFieldsOrUpdateAfterName
 recordFields : Parser (WithComments (List (Node RecordSetter)))
 recordFields =
     ParserWithComments.many
-        ((Tokens.comma
-            |> Parser.Extra.continueWith
-                (Parser.map
-                    (\commentsBefore ->
-                        \setterResult ->
-                            { comments = commentsBefore |> Rope.prependTo setterResult.comments
-                            , syntax = setterResult.syntax
-                            }
-                    )
-                    Layout.maybeLayout
-                )
+        ((Parser.map
+            (\() ->
+                \commentsBefore ->
+                    \setterResult ->
+                        { comments = commentsBefore |> Rope.prependTo setterResult.comments
+                        , syntax = setterResult.syntax
+                        }
+            )
+            Tokens.comma
+            |= Layout.maybeLayout
          )
             |= recordSetterNodeWithLayout
         )
@@ -420,35 +411,33 @@ charLiteralExpression =
 
 lambdaExpression : Parser { comments : Comments, end : Location, expression : Expression }
 lambdaExpression =
-    (Tokens.backSlash
-        |> Parser.Extra.continueWith
-            (Parser.map
-                (\commentsAfterBackslash ->
-                    \firstArg ->
-                        \commentsAfterFirstArg ->
-                            \secondUpArgs ->
-                                \expressionResult ->
-                                    let
-                                        (Node { end } _) =
-                                            expressionResult.syntax
-                                    in
-                                    { comments =
-                                        commentsAfterBackslash
-                                            |> Rope.prependTo firstArg.comments
-                                            |> Rope.prependTo commentsAfterFirstArg
-                                            |> Rope.prependTo secondUpArgs.comments
-                                            |> Rope.prependTo expressionResult.comments
-                                    , end = end
-                                    , expression =
-                                        { args = firstArg.syntax :: secondUpArgs.syntax
-                                        , expression = expressionResult.syntax
-                                        }
-                                            |> LambdaExpression
+    Parser.map
+        (\() ->
+            \commentsAfterBackslash ->
+                \firstArg ->
+                    \commentsAfterFirstArg ->
+                        \secondUpArgs ->
+                            \expressionResult ->
+                                let
+                                    (Node { end } _) =
+                                        expressionResult.syntax
+                                in
+                                { comments =
+                                    commentsAfterBackslash
+                                        |> Rope.prependTo firstArg.comments
+                                        |> Rope.prependTo commentsAfterFirstArg
+                                        |> Rope.prependTo secondUpArgs.comments
+                                        |> Rope.prependTo expressionResult.comments
+                                , end = end
+                                , expression =
+                                    { args = firstArg.syntax :: secondUpArgs.syntax
+                                    , expression = expressionResult.syntax
                                     }
-                )
-                Layout.maybeLayout
-            )
-    )
+                                        |> LambdaExpression
+                                }
+        )
+        Tokens.backSlash
+        |= Layout.maybeLayout
         |= Patterns.pattern
         |= Layout.maybeLayout
         |= ParserWithComments.until Tokens.arrowRight
@@ -473,41 +462,39 @@ lambdaExpression =
 
 caseExpression : Parser { comments : Comments, end : Location, expression : Expression }
 caseExpression =
-    (Tokens.caseToken
-        |> Parser.Extra.continueWith
-            (Parser.map
-                (\commentsAfterCase ->
-                    \casedExpressionResult ->
-                        \commentsBeforeOf ->
-                            \commentsAfterOf ->
-                                \casesResult ->
-                                    let
-                                        ( ( _, Node firstCaseExpressionRange _ ) as firstCase, lastToSecondCase ) =
-                                            casesResult.syntax
-                                    in
-                                    { comments =
-                                        commentsAfterCase
-                                            |> Rope.prependTo casedExpressionResult.comments
-                                            |> Rope.prependTo commentsBeforeOf
-                                            |> Rope.prependTo commentsAfterOf
-                                            |> Rope.prependTo casesResult.comments
-                                    , end =
-                                        case lastToSecondCase of
-                                            [] ->
-                                                firstCaseExpressionRange.end
+    Parser.map
+        (\() ->
+            \commentsAfterCase ->
+                \casedExpressionResult ->
+                    \commentsBeforeOf ->
+                        \commentsAfterOf ->
+                            \casesResult ->
+                                let
+                                    ( ( _, Node firstCaseExpressionRange _ ) as firstCase, lastToSecondCase ) =
+                                        casesResult.syntax
+                                in
+                                { comments =
+                                    commentsAfterCase
+                                        |> Rope.prependTo casedExpressionResult.comments
+                                        |> Rope.prependTo commentsBeforeOf
+                                        |> Rope.prependTo commentsAfterOf
+                                        |> Rope.prependTo casesResult.comments
+                                , end =
+                                    case lastToSecondCase of
+                                        [] ->
+                                            firstCaseExpressionRange.end
 
-                                            ( _, Node lastCaseExpressionRange _ ) :: _ ->
-                                                lastCaseExpressionRange.end
-                                    , expression =
-                                        CaseExpression
-                                            { expression = casedExpressionResult.syntax
-                                            , cases = firstCase :: List.reverse lastToSecondCase
-                                            }
-                                    }
-                )
-                Layout.maybeLayout
-            )
-    )
+                                        ( _, Node lastCaseExpressionRange _ ) :: _ ->
+                                            lastCaseExpressionRange.end
+                                , expression =
+                                    CaseExpression
+                                        { expression = casedExpressionResult.syntax
+                                        , cases = firstCase :: List.reverse lastToSecondCase
+                                        }
+                                }
+        )
+        Tokens.caseToken
+        |= Layout.maybeLayout
         |= expression
         |= Layout.maybeLayoutUntilIgnored Parser.keyword "of"
         |= Layout.maybeLayout
@@ -573,28 +560,27 @@ caseStatement =
 letExpression : Parser { comments : Comments, end : Location, expression : Expression }
 letExpression =
     Parser.Extra.withIndent
-        ((Tokens.letToken
-            |> Parser.Extra.continueWith
-                (Parser.map
-                    (\commentsAfterLet ->
-                        \declarations ->
-                            \commentsAfterIn ->
-                                \expressionResult ->
-                                    let
-                                        ((Node { end } _) as expr) =
-                                            expressionResult.syntax
-                                    in
-                                    { comments =
-                                        commentsAfterLet
-                                            |> Rope.prependTo declarations.comments
-                                            |> Rope.prependTo commentsAfterIn
-                                            |> Rope.prependTo expressionResult.comments
-                                    , end = end
-                                    , expression = LetExpression { declarations = declarations.syntax, expression = expr }
-                                    }
-                    )
-                    Layout.maybeLayout
-                )
+        ((Parser.map
+            (\() ->
+                \commentsAfterLet ->
+                    \declarations ->
+                        \commentsAfterIn ->
+                            \expressionResult ->
+                                let
+                                    ((Node { end } _) as expr) =
+                                        expressionResult.syntax
+                                in
+                                { comments =
+                                    commentsAfterLet
+                                        |> Rope.prependTo declarations.comments
+                                        |> Rope.prependTo commentsAfterIn
+                                        |> Rope.prependTo expressionResult.comments
+                                , end = end
+                                , expression = LetExpression { declarations = declarations.syntax, expression = expr }
+                                }
+            )
+            Tokens.letToken
+            |= Layout.maybeLayout
          )
             |= Parser.Extra.withIndent letDeclarationsIn
         )
@@ -757,30 +743,28 @@ letFunction =
         |= Tokens.functionName
         |= Layout.maybeLayout
         |= Parser.oneOf
-            [ (Tokens.colon
-                |> Parser.Extra.continueWith
-                    (Parser.map
-                        (\commentsBeforeTypeAnnotation ->
-                            \typeAnnotationResult ->
-                                \commentsAfterTypeAnnotation ->
-                                    \( implementationNameStartRow, implementationNameStartColumn ) ->
-                                        \implementationName ->
-                                            \afterImplementationName ->
-                                                Just
-                                                    { comments =
-                                                        commentsBeforeTypeAnnotation
-                                                            |> Rope.prependTo typeAnnotationResult.comments
-                                                            |> Rope.prependTo commentsAfterTypeAnnotation
-                                                            |> Rope.prependTo afterImplementationName
-                                                    , implementationName =
-                                                        Node.singleLineStringFrom { row = implementationNameStartRow, column = implementationNameStartColumn }
-                                                            implementationName
-                                                    , typeAnnotation = typeAnnotationResult.syntax
-                                                    }
-                        )
-                        Layout.maybeLayout
-                    )
-              )
+            [ Parser.map
+                (\() ->
+                    \commentsBeforeTypeAnnotation ->
+                        \typeAnnotationResult ->
+                            \commentsAfterTypeAnnotation ->
+                                \( implementationNameStartRow, implementationNameStartColumn ) ->
+                                    \implementationName ->
+                                        \afterImplementationName ->
+                                            Just
+                                                { comments =
+                                                    commentsBeforeTypeAnnotation
+                                                        |> Rope.prependTo typeAnnotationResult.comments
+                                                        |> Rope.prependTo commentsAfterTypeAnnotation
+                                                        |> Rope.prependTo afterImplementationName
+                                                , implementationName =
+                                                    Node.singleLineStringFrom { row = implementationNameStartRow, column = implementationNameStartColumn }
+                                                        implementationName
+                                                , typeAnnotation = typeAnnotationResult.syntax
+                                                }
+                )
+                Tokens.colon
+                |= Layout.maybeLayout
                 |= TypeAnnotation.typeAnnotation
                 |= Layout.layoutStrict
                 |= Parser.getPosition
@@ -838,37 +822,35 @@ numberExpression =
 
 ifBlockExpression : Parser { comments : Comments, end : Location, expression : Expression }
 ifBlockExpression =
-    (Tokens.ifToken
-        |> Parser.Extra.continueWith
-            (Parser.map
-                (\commentsAfterIf ->
-                    \condition ->
-                        \commentsBeforeThen ->
-                            \commentsAfterThen ->
-                                \ifTrue ->
-                                    \commentsBeforeElse ->
-                                        \commentsAfterElse ->
-                                            \ifFalse ->
-                                                let
-                                                    (Node { end } _) =
-                                                        ifFalse.syntax
-                                                in
-                                                { comments =
-                                                    commentsAfterIf
-                                                        |> Rope.prependTo condition.comments
-                                                        |> Rope.prependTo commentsBeforeThen
-                                                        |> Rope.prependTo commentsAfterThen
-                                                        |> Rope.prependTo ifTrue.comments
-                                                        |> Rope.prependTo commentsBeforeElse
-                                                        |> Rope.prependTo commentsAfterElse
-                                                        |> Rope.prependTo ifFalse.comments
-                                                , end = end
-                                                , expression = IfBlock condition.syntax ifTrue.syntax ifFalse.syntax
-                                                }
-                )
-                Layout.maybeLayout
-            )
-    )
+    Parser.map
+        (\() ->
+            \commentsAfterIf ->
+                \condition ->
+                    \commentsBeforeThen ->
+                        \commentsAfterThen ->
+                            \ifTrue ->
+                                \commentsBeforeElse ->
+                                    \commentsAfterElse ->
+                                        \ifFalse ->
+                                            let
+                                                (Node { end } _) =
+                                                    ifFalse.syntax
+                                            in
+                                            { comments =
+                                                commentsAfterIf
+                                                    |> Rope.prependTo condition.comments
+                                                    |> Rope.prependTo commentsBeforeThen
+                                                    |> Rope.prependTo commentsAfterThen
+                                                    |> Rope.prependTo ifTrue.comments
+                                                    |> Rope.prependTo commentsBeforeElse
+                                                    |> Rope.prependTo commentsAfterElse
+                                                    |> Rope.prependTo ifFalse.comments
+                                            , end = end
+                                            , expression = IfBlock condition.syntax ifTrue.syntax ifFalse.syntax
+                                            }
+        )
+        Tokens.ifToken
+        |= Layout.maybeLayout
         |= expression
         |= Layout.maybeLayoutUntilIgnored Parser.keyword "then"
         |= Layout.maybeLayout
@@ -973,19 +955,18 @@ maybeDotReferenceExpressionTuple =
 
 recordAccessFunctionExpression : Parser { comments : Comments, end : Location, expression : Expression }
 recordAccessFunctionExpression =
-    Tokens.dot
-        |> Parser.Extra.continueWith
-            (Parser.map
-                (\field ->
-                    \( endRow, endColumn ) ->
-                        { comments = Rope.empty
-                        , end = { row = endRow, column = endColumn }
-                        , expression = RecordAccessFunction ("." ++ field)
-                        }
-                )
-                Tokens.functionName
-                |= Parser.getPosition
-            )
+    Parser.map
+        (\() ->
+            \field ->
+                \( endRow, endColumn ) ->
+                    { comments = Rope.empty
+                    , end = { row = endRow, column = endColumn }
+                    , expression = RecordAccessFunction ("." ++ field)
+                    }
+        )
+        Tokens.dot
+        |= Tokens.functionName
+        |= Parser.getPosition
 
 
 tupledExpression : Parser { comments : Comments, end : Location, expression : Expression }
@@ -993,31 +974,29 @@ tupledExpression =
     Tokens.parensStart
         |> Parser.Extra.continueWith
             (Parser.oneOf
-                ((Tokens.parensEnd
-                    |> Parser.Extra.continueWith
-                        (Parser.map
-                            (\( endRow, endColumn ) ->
-                                { comments = Rope.empty
-                                , end = { row = endRow, column = endColumn }
-                                , expression = UnitExpr
-                                }
-                            )
-                            Parser.getPosition
-                        )
+                ((Parser.map
+                    (\() ->
+                        \( endRow, endColumn ) ->
+                            { comments = Rope.empty
+                            , end = { row = endRow, column = endColumn }
+                            , expression = UnitExpr
+                            }
+                    )
+                    Tokens.parensEnd
+                    |= Parser.getPosition
                  )
                     :: -- since `-` alone  could indicate negation or prefix operator,
                        -- we check for `-)` first
-                       (Parser.symbol "-)"
-                            |> Parser.Extra.continueWith
-                                (Parser.map
-                                    (\( endRow, endColumn ) ->
-                                        { comments = Rope.empty
-                                        , end = { row = endRow, column = endColumn }
-                                        , expression = expressionPrefixOperatorMinus
-                                        }
-                                    )
-                                    Parser.getPosition
-                                )
+                       (Parser.map
+                            (\() ->
+                                \( endRow, endColumn ) ->
+                                    { comments = Rope.empty
+                                    , end = { row = endRow, column = endColumn }
+                                    , expression = expressionPrefixOperatorMinus
+                                    }
+                            )
+                            (Parser.symbol "-)")
+                            |= Parser.getPosition
                        )
                     :: tupledExpressionInnerAfterOpeningParens
                     -- and since prefix operators are much more rare than e.g. parenthesized
@@ -1038,17 +1017,16 @@ allowedPrefixOperatorExceptMinusThenClosingParensOneOf =
         |> List.filter (\token -> token /= "-")
         |> List.map
             (\allowedOperatorToken ->
-                Parser.symbol (allowedOperatorToken ++ ")")
-                    |> Parser.Extra.continueWith
-                        (Parser.map
-                            (\( endRow, endColumn ) ->
-                                { comments = Rope.empty
-                                , end = { row = endRow, column = endColumn }
-                                , expression = PrefixOperator allowedOperatorToken
-                                }
-                            )
-                            Parser.getPosition
-                        )
+                Parser.map
+                    (\() ->
+                        \( endRow, endColumn ) ->
+                            { comments = Rope.empty
+                            , end = { row = endRow, column = endColumn }
+                            , expression = PrefixOperator allowedOperatorToken
+                            }
+                    )
+                    (Parser.symbol (allowedOperatorToken ++ ")"))
+                    |= Parser.getPosition
             )
 
 
@@ -1075,23 +1053,22 @@ tupledExpressionInnerAfterOpeningParens =
         expression
         |= Layout.maybeLayout
         |= ParserWithComments.untilWithoutReverse Tokens.parensEnd
-            (Tokens.comma
-                |> Parser.Extra.continueWith
-                    (Parser.map
-                        (\commentsBefore ->
-                            \partResult ->
-                                \commentsAfter ->
-                                    { comments =
-                                        commentsBefore
-                                            |> Rope.prependTo partResult.comments
-                                            |> Rope.prependTo commentsAfter
-                                    , syntax = partResult.syntax
-                                    }
-                        )
-                        Layout.maybeLayout
-                        |= expression
-                        |= Layout.maybeLayout
-                    )
+            (Parser.map
+                (\() ->
+                    \commentsBefore ->
+                        \partResult ->
+                            \commentsAfter ->
+                                { comments =
+                                    commentsBefore
+                                        |> Rope.prependTo partResult.comments
+                                        |> Rope.prependTo commentsAfter
+                                , syntax = partResult.syntax
+                                }
+                )
+                Tokens.comma
+                |= Layout.maybeLayout
+                |= expression
+                |= Layout.maybeLayout
             )
         |= Parser.getPosition
 
