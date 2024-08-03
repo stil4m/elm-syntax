@@ -3,8 +3,8 @@ module Elm.Parser.Base exposing (moduleName)
 import Elm.Parser.Node as Node
 import Elm.Parser.Tokens as Tokens
 import Elm.Syntax.ModuleName exposing (ModuleName)
-import Elm.Syntax.Node exposing (Node)
-import ParserFast
+import Elm.Syntax.Node exposing (Node(..))
+import Parser exposing ((|=))
 
 
 moduleName : ParserFast.Parser (Node ModuleName)
@@ -15,7 +15,7 @@ moduleName =
         |> Node.parserCore
 
 
-moduleNameOrEmpty : ParserFast.Parser ModuleName
+moduleNameOrEmpty : Parser.Parser ModuleName
 moduleNameOrEmpty =
     Parser.oneOf
         [ Parser.map (\() -> \head -> \tail -> head :: tail) Tokens.dot

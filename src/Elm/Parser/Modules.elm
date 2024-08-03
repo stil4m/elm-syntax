@@ -8,7 +8,7 @@ import Elm.Parser.Tokens as Tokens
 import Elm.Syntax.Module exposing (Module(..))
 import Elm.Syntax.Node exposing (Node)
 import List.Extra
-import ParserFast exposing (Parser)
+import Parser exposing ((|.), (|=), Parser)
 import ParserWithComments exposing (WithComments)
 import Rope
 
