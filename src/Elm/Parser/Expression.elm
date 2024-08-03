@@ -967,18 +967,21 @@ unqualifiedFunctionReferenceExpression =
 
 maybeDotReferenceExpressionTuple : ParserFast.Parser (Maybe ( List String, String ))
 maybeDotReferenceExpressionTuple =
-    ParserFast.orSucceed
-        (ParserFast.symbolFollowedBy "."
-            (ParserFast.oneOf2
-                (ParserFast.map2
-                    (\firstName after ->
-                        Just
-                            (case after of
-                                Nothing ->
-                                    ( [], firstName )
+    Parser.oneOf
+        [ Tokens.dot
+            |> Parser.Extra.continueWith
+                (Parser.oneOf
+                    [ Parser.map
+                        (\firstName ->
+                            \after ->
+                                Just
+                                    (case after of
+                                        Nothing ->
+                                            ( [], firstName )
 
-                                    Just ( qualificationAfter, unqualified ) ->
-                                        Just ( firstName :: qualificationAfter, unqualified )
+                                        Just ( qualificationAfter, unqualified ) ->
+                                            ( firstName :: qualificationAfter, unqualified )
+                                    )
                         )
                         Tokens.typeName
                         |= Parser.lazy (\() -> maybeDotReferenceExpressionTuple)
