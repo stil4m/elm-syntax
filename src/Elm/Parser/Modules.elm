@@ -4,7 +4,7 @@ import Elm.Parser.Base exposing (moduleName)
 import Elm.Parser.Expose exposing (exposeDefinition)
 import Elm.Parser.Layout as Layout
 import Elm.Parser.Tokens as Tokens
-import Elm.Syntax.Module exposing (Module(..))
+import Elm.Syntax.Module exposing (Module, ModuleKind(..))
 import Elm.Syntax.Node exposing (Node(..))
 import List.Extra
 import ParserFast exposing (Parser)
@@ -96,13 +96,14 @@ effectModuleDefinition =
                     |> Rope.prependTo exp.comments
             , syntax =
                 Node range
-                    (EffectModule
-                        { moduleName = name
-                        , exposingList = exp.syntax
-                        , command = whereClauses.syntax.command
-                        , subscription = whereClauses.syntax.subscription
-                        }
-                    )
+                    { moduleName = name
+                    , kind =
+                        EffectModule
+                            { command = whereClauses.syntax.command
+                            , subscription = whereClauses.syntax.subscription
+                            }
+                    , exposingList = exp.syntax
+                    }
             }
         )
         (ParserFast.keywordFollowedBy "effect" Layout.maybeLayout)
@@ -124,11 +125,10 @@ normalModuleDefinition =
                     |> Rope.prependTo exposingList.comments
             , syntax =
                 Node range
-                    (NormalModule
-                        { moduleName = moduleName
-                        , exposingList = exposingList.syntax
-                        }
-                    )
+                    { moduleName = moduleName
+                    , kind = NormalModule
+                    , exposingList = exposingList.syntax
+                    }
             }
         )
         (ParserFast.keywordFollowedBy "module" Layout.maybeLayout)
@@ -148,7 +148,10 @@ portModuleDefinition =
                     |> Rope.prependTo exposingList.comments
             , syntax =
                 Node range
-                    (PortModule { moduleName = moduleName, exposingList = exposingList.syntax })
+                    { moduleName = moduleName
+                    , kind = PortModule
+                    , exposingList = exposingList.syntax
+                    }
             }
         )
         (ParserFast.keywordFollowedBy "port" Layout.maybeLayout)

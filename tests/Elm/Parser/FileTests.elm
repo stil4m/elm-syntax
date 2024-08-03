@@ -7,7 +7,7 @@ import Elm.Syntax.Declaration exposing (Declaration(..))
 import Elm.Syntax.DestructurePattern exposing (DestructurePattern(..))
 import Elm.Syntax.Exposing exposing (Exposing(..))
 import Elm.Syntax.Expression exposing (Expression(..), LetDeclaration(..))
-import Elm.Syntax.Module exposing (Module(..))
+import Elm.Syntax.Module exposing (ModuleKind(..))
 import Elm.Syntax.Node exposing (Node(..))
 import Elm.Syntax.Pattern exposing (Pattern(..))
 import Elm.Syntax.TypeAnnotation exposing (TypeAnnotation(..))
@@ -139,13 +139,12 @@ caseWhitespace f = case f   of
                         (Ok
                             { moduleDefinition =
                                 Node { start = { row = 2, column = 1 }, end = { row = 2, column = 41 } }
-                                    (NormalModule
-                                        { moduleName = Node { start = { row = 2, column = 8 }, end = { row = 2, column = 27 } } [ "Trailing", "Whitespace" ]
-                                        , exposingList =
-                                            Node { start = { row = 2, column = 28 }, end = { row = 2, column = 41 } }
-                                                (All { start = { row = 2, column = 38 }, end = { row = 2, column = 40 } })
-                                        }
-                                    )
+                                    { moduleName = Node { start = { row = 2, column = 8 }, end = { row = 2, column = 27 } } [ "Trailing", "Whitespace" ]
+                                    , kind = NormalModule
+                                    , exposingList =
+                                        Node { start = { row = 2, column = 28 }, end = { row = 2, column = 41 } }
+                                            (All { start = { row = 2, column = 38 }, end = { row = 2, column = 40 } })
+                                    }
                             , imports = []
                             , declarations =
                                 [ Node { start = { row = 4, column = 1 }, end = { row = 11, column = 11 } }
@@ -198,13 +197,12 @@ lambdaWhitespace =   \\ a b ->    a
                         (Ok
                             { moduleDefinition =
                                 Node { start = { row = 2, column = 1 }, end = { row = 2, column = 41 } }
-                                    (NormalModule
-                                        { moduleName = Node { start = { row = 2, column = 8 }, end = { row = 2, column = 27 } } [ "Trailing", "Whitespace" ]
-                                        , exposingList =
-                                            Node { start = { row = 2, column = 28 }, end = { row = 2, column = 41 } }
-                                                (All { start = { row = 2, column = 38 }, end = { row = 2, column = 40 } })
-                                        }
-                                    )
+                                    { moduleName = Node { start = { row = 2, column = 8 }, end = { row = 2, column = 27 } } [ "Trailing", "Whitespace" ]
+                                    , kind = NormalModule
+                                    , exposingList =
+                                        Node { start = { row = 2, column = 28 }, end = { row = 2, column = 41 } }
+                                            (All { start = { row = 2, column = 38 }, end = { row = 2, column = 40 } })
+                                    }
                             , imports = []
                             , declarations =
                                 [ Node { start = { row = 4, column = 1 }, end = { row = 8, column = 6 } }
@@ -256,13 +254,12 @@ letWhitespace = let
                         (Ok
                             { moduleDefinition =
                                 Node { start = { row = 2, column = 1 }, end = { row = 2, column = 41 } }
-                                    (NormalModule
-                                        { moduleName = Node { start = { row = 2, column = 8 }, end = { row = 2, column = 27 } } [ "Trailing", "Whitespace" ]
-                                        , exposingList =
-                                            Node { start = { row = 2, column = 28 }, end = { row = 2, column = 41 } }
-                                                (All { start = { row = 2, column = 38 }, end = { row = 2, column = 40 } })
-                                        }
-                                    )
+                                    { moduleName = Node { start = { row = 2, column = 8 }, end = { row = 2, column = 27 } } [ "Trailing", "Whitespace" ]
+                                    , kind = NormalModule
+                                    , exposingList =
+                                        Node { start = { row = 2, column = 28 }, end = { row = 2, column = 41 } }
+                                            (All { start = { row = 2, column = 38 }, end = { row = 2, column = 40 } })
+                                    }
                             , imports = []
                             , declarations =
                                 [ Node { start = { row = 4, column = 1 }, end = { row = 8, column = 3 } }
@@ -317,13 +314,12 @@ type Configuration
                         (Ok
                             { moduleDefinition =
                                 Node { start = { row = 2, column = 1 }, end = { row = 2, column = 25 } }
-                                    (NormalModule
-                                        { moduleName = Node { start = { row = 2, column = 8 }, end = { row = 2, column = 11 } } [ "Foo" ]
-                                        , exposingList =
-                                            Node { start = { row = 2, column = 12 }, end = { row = 2, column = 25 } }
-                                                (All { start = { row = 2, column = 22 }, end = { row = 2, column = 24 } })
-                                        }
-                                    )
+                                    { moduleName = Node { start = { row = 2, column = 8 }, end = { row = 2, column = 11 } } [ "Foo" ]
+                                    , kind = NormalModule
+                                    , exposingList =
+                                        Node { start = { row = 2, column = 12 }, end = { row = 2, column = 25 } }
+                                            (All { start = { row = 2, column = 22 }, end = { row = 2, column = 24 } })
+                                    }
                             , imports =
                                 [ Node { start = { row = 4, column = 1 }, end = { row = 4, column = 12 } }
                                     { moduleName = Node { start = { row = 4, column = 8 }, end = { row = 4, column = 12 } } [ "Dict" ]
@@ -364,13 +360,12 @@ type Configuration
                         (Ok
                             { moduleDefinition =
                                 Node { start = { row = 2, column = 1 }, end = { row = 2, column = 25 } }
-                                    (NormalModule
-                                        { moduleName = Node { start = { row = 2, column = 8 }, end = { row = 2, column = 11 } } [ "Foo" ]
-                                        , exposingList =
-                                            Node { start = { row = 2, column = 12 }, end = { row = 2, column = 25 } }
-                                                (All { start = { row = 2, column = 22 }, end = { row = 2, column = 24 } })
-                                        }
-                                    )
+                                    { moduleName = Node { start = { row = 2, column = 8 }, end = { row = 2, column = 11 } } [ "Foo" ]
+                                    , kind = NormalModule
+                                    , exposingList =
+                                        Node { start = { row = 2, column = 12 }, end = { row = 2, column = 25 } }
+                                            (All { start = { row = 2, column = 22 }, end = { row = 2, column = 24 } })
+                                    }
                             , imports = []
                             , declarations =
                                 [ Node { start = { row = 6, column = 1 }, end = { row = 7, column = 20 } }
@@ -406,13 +401,12 @@ port sendResponse : String -> Cmd msg
                         (Ok
                             { moduleDefinition =
                                 Node { start = { row = 2, column = 1 }, end = { row = 2, column = 30 } }
-                                    (PortModule
-                                        { moduleName = Node { start = { row = 2, column = 13 }, end = { row = 2, column = 16 } } [ "Foo" ]
-                                        , exposingList =
-                                            Node { start = { row = 2, column = 17 }, end = { row = 2, column = 30 } }
-                                                (All { start = { row = 2, column = 27 }, end = { row = 2, column = 29 } })
-                                        }
-                                    )
+                                    { moduleName = Node { start = { row = 2, column = 13 }, end = { row = 2, column = 16 } } [ "Foo" ]
+                                    , kind = PortModule
+                                    , exposingList =
+                                        Node { start = { row = 2, column = 17 }, end = { row = 2, column = 30 } }
+                                            (All { start = { row = 2, column = 27 }, end = { row = 2, column = 29 } })
+                                    }
                             , imports =
                                 [ Node { start = { row = 4, column = 1 }, end = { row = 4, column = 14 } }
                                     { moduleName = Node { start = { row = 4, column = 8 }, end = { row = 4, column = 14 } } [ "String" ]
