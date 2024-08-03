@@ -460,7 +460,7 @@ fun2 n =
                                                 , arguments = [ Node { start = { row = 3, column = 6 }, end = { row = 3, column = 7 } } (VarPattern_ "n") ]
                                                 , expression =
                                                     Node { start = { row = 4, column = 3 }, end = { row = 5, column = 11 } }
-                                                        (Operation "+"
+                                                        (Operation
                                                             (Node { start = { row = 4, column = 3 }, end = { row = 4, column = 9 } }
                                                                 (FunctionCall
                                                                     (Node { start = { row = 4, column = 3 }, end = { row = 4, column = 7 } } (FunctionOrValue [] "fun2"))
@@ -468,6 +468,7 @@ fun2 n =
                                                                     []
                                                                 )
                                                             )
+                                                            (Node { start = { row = 5, column = 3 }, end = { row = 5, column = 4 } } "+")
                                                             (Node { start = { row = 5, column = 5 }, end = { row = 5, column = 11 } }
                                                                 (FunctionCall
                                                                     (Node { start = { row = 5, column = 5 }, end = { row = 5, column = 9 } } (FunctionOrValue [] "fun2"))
