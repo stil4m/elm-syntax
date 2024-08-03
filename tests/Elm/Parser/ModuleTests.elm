@@ -468,7 +468,7 @@ fun2 n =
                                                                     []
                                                                 )
                                                             )
-                                                            "+"
+                                                            (Node { start = { row = 5, column = 3 }, end = { row = 5, column = 4 } } "+")
                                                             (Node { start = { row = 5, column = 5 }, end = { row = 5, column = 11 } }
                                                                 (FunctionCall
                                                                     (Node { start = { row = 5, column = 5 }, end = { row = 5, column = 9 } } (FunctionOrValue [] "fun2"))

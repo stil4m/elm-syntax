@@ -225,7 +225,7 @@ lambdaWhitespace =   \\ a b ->    a
                                                                 Node { start = { row = 4, column = 34 }, end = { row = 8, column = 6 } }
                                                                     (Operation
                                                                         (Node { start = { row = 4, column = 34 }, end = { row = 4, column = 35 } } (FunctionOrValue [] "a"))
-                                                                        "+"
+                                                                        (Node { start = { row = 6, column = 8 }, end = { row = 6, column = 9 } } "+")
                                                                         (Node { start = { row = 8, column = 5 }, end = { row = 8, column = 6 } } (FunctionOrValue [] "b"))
                                                                     )
                                                             }

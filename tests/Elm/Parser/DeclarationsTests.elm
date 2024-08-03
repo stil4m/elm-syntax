@@ -148,7 +148,7 @@ foo = bar"""
                                             Node { start = { row = 1, column = 9 }, end = { row = 1, column = 14 } }
                                                 (Operation
                                                     (Node { start = { row = 1, column = 9 }, end = { row = 1, column = 10 } } (FunctionOrValue [] "x"))
-                                                    "+"
+                                                    (Node { start = { row = 1, column = 11 }, end = { row = 1, column = 12 } } "+")
                                                     (Node { start = { row = 1, column = 13 }, end = { row = 1, column = 14 } } (IntegerLiteral 1))
                                                 )
                                         }
@@ -318,7 +318,7 @@ foo = bar"""
                                                         , Node { start = { row = 4, column = 7 }, end = { row = 4, column = 16 } }
                                                             (Operation
                                                                 (Node { start = { row = 4, column = 7 }, end = { row = 4, column = 12 } } (FunctionOrValue [] "model"))
-                                                                "+"
+                                                                (Node { start = { row = 4, column = 13 }, end = { row = 4, column = 14 } } "+")
                                                                 (Node { start = { row = 4, column = 15 }, end = { row = 4, column = 16 } } (IntegerLiteral 1))
                                                             )
                                                         )
@@ -327,7 +327,7 @@ foo = bar"""
                                                           , Node { start = { row = 7, column = 7 }, end = { row = 7, column = 16 } }
                                                                 (Operation
                                                                     (Node { start = { row = 7, column = 7 }, end = { row = 7, column = 12 } } (FunctionOrValue [] "model"))
-                                                                    "-"
+                                                                    (Node { start = { row = 7, column = 13 }, end = { row = 7, column = 14 } } "-")
                                                                     (Node { start = { row = 7, column = 15 }, end = { row = 7, column = 16 } } (IntegerLiteral 1))
                                                                 )
                                                           )
@@ -493,7 +493,7 @@ foo = bar"""
                                             Node { start = { row = 1, column = 31 }, end = { row = 1, column = 83 } }
                                                 (Operation
                                                     (Node { start = { row = 1, column = 31 }, end = { row = 1, column = 36 } } (FunctionOrValue [] "curry"))
-                                                    "<|"
+                                                    (Node { start = { row = 1, column = 37 }, end = { row = 1, column = 39 } } "<|")
                                                     (Node { start = { row = 1, column = 40 }, end = { row = 1, column = 83 } }
                                                         (Operation
                                                             (Node { start = { row = 1, column = 40 }, end = { row = 1, column = 56 } }
@@ -507,7 +507,7 @@ foo = bar"""
                                                                     ]
                                                                 )
                                                             )
-                                                            ">>"
+                                                            (Node { start = { row = 1, column = 57 }, end = { row = 1, column = 59 } } ">>")
                                                             (Node { start = { row = 1, column = 60 }, end = { row = 1, column = 83 } }
                                                                 (FunctionCall (Node { start = { row = 1, column = 60 }, end = { row = 1, column = 74 } } (FunctionOrValue [] "batchStateCmds"))
                                                                     (Node { start = { row = 1, column = 75 }, end = { row = 1, column = 83 } } (FunctionOrValue [] "sendPort"))
@@ -552,7 +552,7 @@ foo = bar"""
                                                         , Node { start = { row = 4, column = 7 }, end = { row = 4, column = 16 } }
                                                             (Operation
                                                                 (Node { start = { row = 4, column = 7 }, end = { row = 4, column = 12 } } (FunctionOrValue [] "model"))
-                                                                "+"
+                                                                (Node { start = { row = 4, column = 13 }, end = { row = 4, column = 14 } } "+")
                                                                 (Node { start = { row = 4, column = 15 }, end = { row = 4, column = 16 } } (IntegerLiteral 1))
                                                             )
                                                         )
@@ -562,7 +562,7 @@ foo = bar"""
                                                           , Node { start = { row = 7, column = 7 }, end = { row = 7, column = 16 } }
                                                                 (Operation
                                                                     (Node { start = { row = 7, column = 7 }, end = { row = 7, column = 12 } } (FunctionOrValue [] "model"))
-                                                                    "-"
+                                                                    (Node { start = { row = 7, column = 13 }, end = { row = 7, column = 14 } } "-")
                                                                     (Node { start = { row = 7, column = 15 }, end = { row = 7, column = 16 } } (IntegerLiteral 1))
                                                                 )
                                                           )

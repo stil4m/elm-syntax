@@ -62,7 +62,7 @@ all =
                                     Node { start = { row = 1, column = 9 }, end = { row = 1, column = 14 } }
                                         (Operation
                                             (Node { start = { row = 1, column = 9 }, end = { row = 1, column = 10 } } (FunctionOrValue [] "a"))
-                                            "+"
+                                            (Node { start = { row = 1, column = 11 }, end = { row = 1, column = 12 } } "+")
                                             (Node { start = { row = 1, column = 13 }, end = { row = 1, column = 14 } } (FunctionOrValue [] "b"))
                                         )
                                 }
@@ -86,7 +86,7 @@ all =
                                     Node { start = { row = 1, column = 11 }, end = { row = 1, column = 16 } }
                                         (Operation
                                             (Node { start = { row = 1, column = 11 }, end = { row = 1, column = 12 } } (FunctionOrValue [] "a"))
-                                            "+"
+                                            (Node { start = { row = 1, column = 13 }, end = { row = 1, column = 14 } } "+")
                                             (Node { start = { row = 1, column = 15 }, end = { row = 1, column = 16 } } (FunctionOrValue [] "b"))
                                         )
                                 }

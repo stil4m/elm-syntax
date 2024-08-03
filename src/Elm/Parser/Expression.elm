@@ -1268,22 +1268,36 @@ computeAbovePrecedence currentPrecedence =
 
 infixLeft : Int -> Parser (WithComments ExtensionRight) -> String -> ( Int, Parser (WithComments ExtensionRight) )
 infixLeft precedence possibilitiesForPrecedence symbol =
-    infixHelp precedence
+    infixHelpWithNode precedence
         possibilitiesForPrecedence
-        (Parser.symbol symbol)
-        (\right ->
-            ExtendRightByOperation { symbol = symbol, expression = right }
+        (symbolNode symbol)
+
+
+symbolNode : String -> Parser (Node String)
+symbolNode symbol =
+    let
+        length : Int
+        length =
+            String.length symbol
+    in
+    Parser.map
+        (\() ->
+            \( endRow, endColumn ) ->
+                Node
+                    { start = { row = endRow, column = endColumn - length }
+                    , end = { row = endRow, column = endColumn }
+                    }
+                    symbol
         )
+        (Parser.symbol symbol)
+        |= Parser.getPosition
 
 
 infixNonAssociative : Int -> Parser (WithComments ExtensionRight) -> String -> ( Int, Parser (WithComments ExtensionRight) )
 infixNonAssociative precedence possibilitiesForPrecedence symbol =
-    infixHelp precedence
+    infixHelpWithNode precedence
         possibilitiesForPrecedence
-        (Parser.symbol symbol)
-        (\right ->
-            ExtendRightByOperation { symbol = symbol, expression = right }
-        )
+        (symbolNode symbol)
 
 
 {-| To get right associativity, please provide abovePrecedence(precedence-1) for the
@@ -1291,12 +1305,9 @@ right precedence parser.
 -}
 infixRight : Int -> Parser (WithComments ExtensionRight) -> String -> ( Int, Parser (WithComments ExtensionRight) )
 infixRight precedence possibilitiesForPrecedenceMinus1 symbol =
-    infixHelp precedence
+    infixHelpWithNode precedence
         possibilitiesForPrecedenceMinus1
-        (Parser.symbol symbol)
-        (\right ->
-            ExtendRightByOperation { symbol = symbol, expression = right }
-        )
+        (symbolNode symbol)
 
 
 lookBehindOneCharacter : Parser.Parser String
@@ -1308,22 +1319,39 @@ lookBehindOneCharacter =
 
 infixLeftSubtraction : Int -> Parser (WithComments ExtensionRight) -> ( Int, Parser (WithComments ExtensionRight) )
 infixLeftSubtraction precedence possibilitiesForPrecedence =
-    infixHelp precedence
+    infixHelpWithNode precedence
         possibilitiesForPrecedence
         (lookBehindOneCharacter
             |> Parser.andThen
                 (\c ->
                     -- 'a-b', 'a - b' and 'a- b' are subtractions, but 'a -b' is an application on a negation
                     if c == " " || c == "\n" || c == "\u{000D}" then
-                        Tokens.minusSymbols
+                        minusSymbols
 
                     else
-                        Tokens.minus
+                        minusSymbol
                 )
         )
-        (\right ->
-            ExtendRightByOperation { symbol = "-", expression = right }
+
+
+minusSymbols : Parser (Node String)
+minusSymbols =
+    Parser.map
+        (\() ->
+            \( endRow, endColumn ) ->
+                Node
+                    { start = { row = endRow, column = endColumn - 2 }
+                    , end = { row = endRow, column = endColumn - 1 }
+                    }
+                    "-"
         )
+        Tokens.minusSymbols
+        |= Parser.getPosition
+
+
+minusSymbol : Parser (Node String)
+minusSymbol =
+    symbolNode "-"
 
 
 infixHelp :
@@ -1347,6 +1375,25 @@ infixHelp leftPrecedence rightPrecedence operator apply =
     )
 
 
+infixHelpWithNode :
+    Int
+    -> Parser (WithComments ExtensionRight)
+    -> Parser.Parser (Node String)
+    -> ( Int, Parser (WithComments ExtensionRight) )
+infixHelpWithNode leftPrecedence rightPrecedence operator =
+    ( leftPrecedence
+    , Parser.map
+        (\op ->
+            \e ->
+                { comments = e.comments
+                , syntax = ExtendRightByOperation { symbol = op, expression = e.syntax }
+                }
+        )
+        operator
+        |= subExpressionMap identity rightPrecedence
+    )
+
+
 postfix : Int -> Parser a -> (a -> ExtensionRight) -> ( Int, Parser (WithComments ExtensionRight) )
 postfix precedence operator apply =
     ( precedence
@@ -1361,6 +1408,6 @@ postfix precedence operator apply =
 
 
 type ExtensionRight
-    = ExtendRightByOperation { symbol : String, expression : Node Expression }
+    = ExtendRightByOperation { symbol : Node String, expression : Node Expression }
     | ExtendRightByApplication (Node Expression)
     | ExtendRightByRecordAccess (Node String)

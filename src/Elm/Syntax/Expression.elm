@@ -110,7 +110,7 @@ type Expression
     | FunctionOrValue ModuleName String
     | PrefixOperator String
     | FunctionCall (Node Expression) (Node Expression) (List (Node Expression))
-    | Operation (Node Expression) String (Node Expression)
+    | Operation (Node Expression) (Node String) (Node Expression)
     | If (Node Expression) (Node Expression) (Node Expression)
     | TupleExpression (List (Node Expression))
     | Let LetBlock

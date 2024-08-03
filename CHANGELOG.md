@@ -41,7 +41,8 @@
     - Renamed `OperatorApplication` to `Operation`
     - Removed the `InfixDirection` field
     - Moved the operator to be between the two expressions
-    - `OperatorApplication String InfixDirection (Node Expression) (Node Expression)` -> `Operation (Node Expression) String (Node Expression)`
+    - Wrapped the operator in `Node` to store its position
+    - `OperatorApplication String InfixDirection (Node Expression) (Node Expression)` -> `Operation (Node Expression) (Node String) (Node Expression)`
   - Renamed `isOperatorApplication` to `isOperation`
   - Renamed `RecordExpr` to `Record`
   - Renamed `CaseExpression` to `Case`
