@@ -389,9 +389,10 @@ recordPattern =
                         |= Tokens.functionName
                         |= Layout.maybeLayout
                     )
-            , Parser.succeed Nothing
+                |. Tokens.curlyEnd
+            , Parser.map (\() -> Nothing)
+                Tokens.curlyEnd
             ]
-        |. Tokens.curlyEnd
 
 
 patternRecordEmpty : Pattern
