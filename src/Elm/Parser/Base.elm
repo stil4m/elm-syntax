@@ -17,9 +17,9 @@ moduleName =
 
 moduleNameOrEmpty : ParserFast.Parser ModuleName
 moduleNameOrEmpty =
-    ParserFast.orSucceed
-        (ParserFast.map2 (\head tail -> head :: tail)
-            (ParserFast.symbolFollowedBy "." Tokens.typeName)
-            (ParserFast.lazy (\() -> moduleNameOrEmpty))
-        )
-        []
+    Parser.oneOf
+        [ Parser.map (\() -> \head -> \tail -> head :: tail) Tokens.dot
+            |= Tokens.typeName
+            |= Parser.lazy (\() -> moduleNameOrEmpty)
+        , Parser.succeed []
+        ]

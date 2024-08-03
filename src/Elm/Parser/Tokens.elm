@@ -23,7 +23,7 @@ module Elm.Parser.Tokens exposing
 import Char
 import Char.Extra
 import Hex
-import Parser exposing ((|.))
+import Parser exposing ((|.), (|=))
 import Parser.Advanced
 import Parser.Extra
 import Set exposing (Set)
@@ -119,26 +119,25 @@ escapedCharValue =
         , ParserFast.symbol "n" '\n'
         , ParserFast.symbol "t" '\t'
         , -- Eventhough Elm-format will change \r to a unicode version. When you dont use elm-format, this will not happen.
-          ParserFast.symbol "r" '\u{000D}'
-        , ParserFast.symbol "\\" '\\'
-        , ParserFast.map2
-            (\hex () ->
-                case String.toLower hex |> Hex.fromString of
-                    Ok n ->
-                        Char.fromCode n
+          Parser.map (\() -> '\u{000D}') (Parser.symbol "r")
+        , Parser.map (\() -> '\\') (Parser.symbol "\\")
+        , Parser.map
+            (\() ->
+                \hex ->
+                    case String.toLower hex |> Hex.fromString of
+                        Ok n ->
+                            Char.fromCode n
 
-                    Err _ ->
-                        '\u{0000}'
+                        Err _ ->
+                            '\u{0000}'
             )
-            (ParserFast.symbolFollowedBy "u{"
-                (ParserFast.variable
-                    { inner = Char.isHexDigit
-                    , reserved = Set.empty
-                    , start = Char.isHexDigit
-                    }
-                )
-            )
-            (ParserFast.symbol "}" ())
+            (Parser.symbol "u{")
+            |= Parser.variable
+                { inner = Char.isHexDigit
+                , reserved = Set.empty
+                , start = Char.isHexDigit
+                }
+            |. Parser.symbol "}"
         ]
 
 
@@ -184,11 +183,9 @@ stringLiteralHelper : String -> Parser.Parser (Parser.Advanced.Step String Strin
 stringLiteralHelper stringSoFar =
     Parser.oneOf
         [ doubleQuote |> Parser.map (\() -> Parser.Advanced.Done stringSoFar)
-        , backSlash
-            |> Parser.Extra.continueWith
-                (Parser.map (\v -> Parser.Advanced.Loop (stringSoFar ++ String.fromChar v ++ ""))
-                    escapedCharValue
-                )
+        , Parser.map (\() -> \v -> Parser.Advanced.Loop (stringSoFar ++ String.fromChar v ++ ""))
+            backSlash
+            |= escapedCharValue
         , Parser.mapChompedString
             (\value () -> Parser.Advanced.Loop (stringSoFar ++ value ++ ""))
             chompWhileIsInsideString
@@ -217,11 +214,9 @@ tripleQuotedStringLiteralStep stringSoFar =
             |> Parser.map (\() -> Parser.Advanced.Done stringSoFar)
         , doubleQuote
             |> Parser.map (\() -> Parser.Advanced.Loop (stringSoFar ++ "\""))
-        , backSlash
-            |> Parser.Extra.continueWith
-                (Parser.map (\v -> Parser.Advanced.Loop (stringSoFar ++ String.fromChar v ++ ""))
-                    escapedCharValue
-                )
+        , Parser.map (\() -> \v -> Parser.Advanced.Loop (stringSoFar ++ String.fromChar v ++ ""))
+            backSlash
+            |= escapedCharValue
         , Parser.mapChompedString
             (\value () -> Parser.Advanced.Loop (stringSoFar ++ value ++ ""))
             chompWhileIsInsideString

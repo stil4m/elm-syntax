@@ -300,71 +300,40 @@ functionAfterDocumentation =
         |= Tokens.functionName
         |= Layout.maybeLayout
         |= Parser.oneOf
-            [ (Tokens.colon
-                |> Parser.Extra.continueWith
-                    (Parser.map
-                        (\commentsBeforeTypeAnnotation ->
-                            \typeAnnotationResult ->
-                                \commentsAfterTypeAnnotation ->
-                                    \( implementationNameStartRow, implementationNameStartColumn ) ->
-                                        \implementationName ->
-                                            \afterImplementationName ->
-                                                Just
-                                                    { comments =
-                                                        commentsBeforeTypeAnnotation
-                                                            |> Rope.prependTo typeAnnotationResult.comments
-                                                            |> Rope.prependTo commentsAfterTypeAnnotation
-                                                            |> Rope.prependTo afterImplementationName
-                                                    , syntax =
-                                                        { implementationName =
-                                                            Node.singleLineStringFrom { row = implementationNameStartRow, column = implementationNameStartColumn }
-                                                                implementationName
-                                                        , typeAnnotation = typeAnnotationResult.syntax
-                                                        }
+            [ Parser.map
+                (\() ->
+                    \commentsBeforeTypeAnnotation ->
+                        \typeAnnotationResult ->
+                            \commentsAfterTypeAnnotation ->
+                                \( implementationNameStartRow, implementationNameStartColumn ) ->
+                                    \implementationName ->
+                                        \afterImplementationName ->
+                                            Just
+                                                { comments =
+                                                    commentsBeforeTypeAnnotation
+                                                        |> Rope.prependTo typeAnnotationResult.comments
+                                                        |> Rope.prependTo commentsAfterTypeAnnotation
+                                                        |> Rope.prependTo afterImplementationName
+                                                , syntax =
+                                                    { implementationName =
+                                                        Node.singleLineStringFrom { row = implementationNameStartRow, column = implementationNameStartColumn }
+                                                            implementationName
+                                                    , typeAnnotation = typeAnnotationResult.syntax
                                                     }
-                        )
-                    |> Rope.prependTo arguments.comments
-                    |> Rope.prependTo commentsAfterEqual
-                    |> Rope.prependTo result.comments
-            , syntax =
-                FunctionDeclarationAfterDocumentation
-                    { startName = startName
-                    , signature = maybeSignature |> Maybe.map .syntax
-                    , arguments = arguments.syntax
-                    , expression = result.syntax
-                    }
-            }
-        )
-        -- infix declarations itself don't have documentation
-        (Node.parserCore Tokens.functionName)
-        Layout.maybeLayout
-        (ParserFast.orSucceed
-            (ParserFast.map4
-                (\commentsBeforeTypeAnnotation typeAnnotationResult implementationName afterImplementationName ->
-                    Just
-                        { comments =
-                            commentsBeforeTypeAnnotation
-                                |> Rope.prependTo typeAnnotationResult.comments
-                                |> Rope.prependTo implementationName.comments
-                                |> Rope.prependTo afterImplementationName
-                        , syntax =
-                            { implementationName = implementationName.syntax
-                            , typeAnnotation = typeAnnotationResult.syntax
-                            }
-                        }
+                                                }
                 )
-                (ParserFast.symbolFollowedBy ":" Layout.maybeLayout)
-                TypeAnnotation.typeAnnotation
-                (Layout.layoutStrictFollowedBy
-                    (Node.parserCore Tokens.functionName)
-                )
-                Layout.maybeLayout
-            )
-            Nothing
-        )
-        parameterPatternsEqual
-        Layout.maybeLayout
-        expression
+                Tokens.colon
+                |= Layout.maybeLayout
+                |= TypeAnnotation.typeAnnotation
+                |= Layout.layoutStrict
+                |= Parser.getPosition
+                |= Tokens.functionName
+                |= Layout.maybeLayout
+            , Parser.succeed Nothing
+            ]
+        |= parameterPatternsEqual
+        |= Layout.maybeLayout
+        |= expression
 
 
 functionDeclarationWithoutDocumentation : Parser (WithComments (Node Declaration))
@@ -449,30 +418,28 @@ functionDeclarationWithoutDocumentation =
         |= Tokens.functionNameNotInfix
         |= Layout.maybeLayout
         |= Parser.oneOf
-            [ (Tokens.colon
-                |> Parser.Extra.continueWith
-                    (Parser.map
-                        (\commentsBeforeTypeAnnotation ->
-                            \typeAnnotationResult ->
-                                \commentsAfterTypeAnnotation ->
-                                    \( implementationNameStartRow, implementationNameStartColumn ) ->
-                                        \implementationName ->
-                                            \afterImplementationName ->
-                                                Just
-                                                    { comments =
-                                                        commentsBeforeTypeAnnotation
-                                                            |> Rope.prependTo typeAnnotationResult.comments
-                                                            |> Rope.prependTo commentsAfterTypeAnnotation
-                                                            |> Rope.prependTo afterImplementationName
-                                                    , implementationName =
-                                                        Node.singleLineStringFrom { row = implementationNameStartRow, column = implementationNameStartColumn }
-                                                            implementationName
-                                                    , typeAnnotation = typeAnnotationResult.syntax
-                                                    }
-                        )
-                        Layout.maybeLayout
-                    )
-              )
+            [ Parser.map
+                (\() ->
+                    \commentsBeforeTypeAnnotation ->
+                        \typeAnnotationResult ->
+                            \commentsAfterTypeAnnotation ->
+                                \( implementationNameStartRow, implementationNameStartColumn ) ->
+                                    \implementationName ->
+                                        \afterImplementationName ->
+                                            Just
+                                                { comments =
+                                                    commentsBeforeTypeAnnotation
+                                                        |> Rope.prependTo typeAnnotationResult.comments
+                                                        |> Rope.prependTo commentsAfterTypeAnnotation
+                                                        |> Rope.prependTo afterImplementationName
+                                                , implementationName =
+                                                    Node.singleLineStringFrom { row = implementationNameStartRow, column = implementationNameStartColumn }
+                                                        implementationName
+                                                , typeAnnotation = typeAnnotationResult.syntax
+                                                }
+                )
+                Tokens.colon
+                |= Layout.maybeLayout
                 |= TypeAnnotation.typeAnnotation
                 |= Layout.layoutStrict
                 |= Parser.getPosition
@@ -502,56 +469,50 @@ parameterPatternsEqual =
 
 infixDeclaration : Parser (WithComments (Node Declaration))
 infixDeclaration =
-    Parser.keyword "infix"
-        |> Parser.Extra.continueWith
-            (Parser.map
-                (\startRow ->
-                    \commentsAfterInfix ->
-                        \direction ->
-                            \commentsAfterDirection ->
-                                \precedence ->
-                                    \commentsAfterPrecedence ->
-                                        \operator ->
-                                            \commentsAfterOperator ->
-                                                \commentsAfterEqual ->
-                                                    \((Node fnRange _) as fn) ->
-                                                        { comments =
-                                                            commentsAfterInfix
-                                                                |> Rope.prependTo commentsAfterDirection
-                                                                |> Rope.prependTo commentsAfterPrecedence
-                                                                |> Rope.prependTo commentsAfterOperator
-                                                                |> Rope.prependTo commentsAfterEqual
-                                                        , syntax =
-                                                            Node
-                                                                { start = { row = startRow, column = 1 }
-                                                                , end = fnRange.end
-                                                                }
-                                                                (Declaration.InfixDeclaration
-                                                                    { direction = direction, precedence = precedence, operator = operator, function = fn }
-                                                                )
-                                                        }
-                )
-                Parser.getRow
-                |= Layout.maybeLayout
-                |= Node.parserCore infixDirection
-                |= Layout.maybeLayout
-                |= Node.parserCore Parser.int
-                |= Layout.maybeLayout
-                |= Node.parserCore
-                    ((Tokens.parensStart
-                        |> Parser.Extra.continueWith Tokens.prefixOperatorToken
-                     )
-                        |. Tokens.parensEnd
-                    )
-                |= Layout.maybeLayoutUntilIgnored Parser.token "="
-                |= Layout.maybeLayout
-                |= Node.parserCore Tokens.functionName
-            )
+    Parser.map
+        (\() ->
+            \startRow ->
+                \commentsAfterInfix ->
+                    \direction ->
+                        \commentsAfterDirection ->
+                            \precedence ->
+                                \commentsAfterPrecedence ->
+                                    \operator ->
+                                        \commentsAfterOperator ->
+                                            \commentsAfterEqual ->
+                                                \((Node fnRange _) as fn) ->
+                                                    { comments =
+                                                        commentsAfterInfix
+                                                            |> Rope.prependTo commentsAfterDirection
+                                                            |> Rope.prependTo commentsAfterPrecedence
+                                                            |> Rope.prependTo commentsAfterOperator
+                                                            |> Rope.prependTo commentsAfterEqual
+                                                    , syntax =
+                                                        Node
+                                                            { start = { row = startRow, column = 1 }
+                                                            , end = fnRange.end
+                                                            }
+                                                            (Declaration.InfixDeclaration
+                                                                { direction = direction, precedence = precedence, operator = operator, function = fn }
+                                                            )
+                                                    }
         )
-        (Layout.maybeLayoutUntilIgnored ParserFast.symbolFollowedBy "=")
-        Layout.maybeLayout
-        (Node.parserCore Tokens.functionName)
-        |> Node.parser
+        (Parser.keyword "infix")
+        |= Parser.getRow
+        |= Layout.maybeLayout
+        |= Node.parserCore infixDirection
+        |= Layout.maybeLayout
+        |= Node.parserCore Parser.int
+        |= Layout.maybeLayout
+        |= Node.parserCore
+            ((Tokens.parensStart
+                |> Parser.Extra.continueWith Tokens.prefixOperatorToken
+             )
+                |. Tokens.parensEnd
+            )
+        |= Layout.maybeLayoutUntilIgnored Parser.token "="
+        |= Layout.maybeLayout
+        |= Node.parserCore Tokens.functionName
 
 
 infixDirection : ParserFast.Parser Infix.InfixDirection
@@ -565,100 +526,96 @@ infixDirection =
 
 portDeclarationAfterDocumentation : Parser (WithComments DeclarationAfterDocumentation)
 portDeclarationAfterDocumentation =
-    Tokens.portToken
-        |> Parser.Extra.continueWith
-            (Parser.map
-                (\startRow ->
-                    \commentsAfterPort ->
-                        \( nameStartRow, nameStartColumn ) ->
-                            \name ->
-                                \commentsAfterName ->
-                                    \commentsAfterColon ->
-                                        \typeAnnotationResult ->
-                                            { comments =
-                                                commentsAfterPort
-                                                    |> Rope.prependTo commentsAfterName
-                                                    |> Rope.prependTo typeAnnotationResult.comments
-                                                    |> Rope.prependTo commentsAfterColon
-                                            , syntax =
-                                                PortDeclarationAfterDocumentation
-                                                    { startLocation = { row = startRow, column = 1 }
-                                                    , name =
-                                                        Node.singleLineStringFrom { row = nameStartRow, column = nameStartColumn }
-                                                            name
-                                                    , typeAnnotation = typeAnnotationResult.syntax
-                                                    }
-                                            }
-                )
-                Parser.getRow
-                |= Layout.maybeLayout
-                |= Parser.getPosition
-                |= Tokens.functionName
-                |= Layout.maybeLayoutUntilIgnored Parser.token ":"
-                |= Layout.maybeLayout
-                |= typeAnnotation
-            )
+    Parser.map
+        (\() ->
+            \startRow ->
+                \commentsAfterPort ->
+                    \( nameStartRow, nameStartColumn ) ->
+                        \name ->
+                            \commentsAfterName ->
+                                \commentsAfterColon ->
+                                    \typeAnnotationResult ->
+                                        { comments =
+                                            commentsAfterPort
+                                                |> Rope.prependTo commentsAfterName
+                                                |> Rope.prependTo typeAnnotationResult.comments
+                                                |> Rope.prependTo commentsAfterColon
+                                        , syntax =
+                                            PortDeclarationAfterDocumentation
+                                                { startLocation = { row = startRow, column = 1 }
+                                                , name =
+                                                    Node.singleLineStringFrom { row = nameStartRow, column = nameStartColumn }
+                                                        name
+                                                , typeAnnotation = typeAnnotationResult.syntax
+                                                }
+                                        }
+        )
+        Tokens.portToken
+        |= Parser.getRow
+        |= Layout.maybeLayout
+        |= Parser.getPosition
+        |= Tokens.functionName
+        |= Layout.maybeLayoutUntilIgnored Parser.token ":"
+        |= Layout.maybeLayout
+        |= typeAnnotation
 
 
 portDeclarationWithoutDocumentation : Parser (WithComments (Node Declaration))
 portDeclarationWithoutDocumentation =
-    Tokens.portToken
-        |> Parser.Extra.continueWith
-            (Parser.map
-                (\startRow ->
-                    \commentsAfterPort ->
-                        \( nameStartRow, nameStartColumn ) ->
-                            \name ->
-                                \commentsAfterName ->
-                                    \commentsAfterColon ->
-                                        \typeAnnotationResult ->
-                                            let
-                                                (Node { end } _) =
-                                                    typeAnnotationResult.syntax
-                                            in
-                                            { comments =
-                                                commentsAfterPort
-                                                    |> Rope.prependTo commentsAfterName
-                                                    |> Rope.prependTo commentsAfterColon
-                                                    |> Rope.prependTo typeAnnotationResult.comments
-                                            , syntax =
-                                                Node
-                                                    { start = { row = startRow, column = 1 }
-                                                    , end = end
+    Parser.map
+        (\() ->
+            \startRow ->
+                \commentsAfterPort ->
+                    \( nameStartRow, nameStartColumn ) ->
+                        \name ->
+                            \commentsAfterName ->
+                                \commentsAfterColon ->
+                                    \typeAnnotationResult ->
+                                        let
+                                            (Node { end } _) =
+                                                typeAnnotationResult.syntax
+                                        in
+                                        { comments =
+                                            commentsAfterPort
+                                                |> Rope.prependTo commentsAfterName
+                                                |> Rope.prependTo commentsAfterColon
+                                                |> Rope.prependTo typeAnnotationResult.comments
+                                        , syntax =
+                                            Node
+                                                { start = { row = startRow, column = 1 }
+                                                , end = end
+                                                }
+                                                (Declaration.PortDeclaration
+                                                    { name =
+                                                        Node.singleLineStringFrom { row = nameStartRow, column = nameStartColumn }
+                                                            name
+                                                    , typeAnnotation = typeAnnotationResult.syntax
                                                     }
-                                                    (Declaration.PortDeclaration
-                                                        { name =
-                                                            Node.singleLineStringFrom { row = nameStartRow, column = nameStartColumn }
-                                                                name
-                                                        , typeAnnotation = typeAnnotationResult.syntax
-                                                        }
-                                                    )
-                                            }
-                )
-                Parser.getRow
-                |= Layout.maybeLayout
-                |= Parser.getPosition
-                |= Tokens.functionName
-                |= Layout.maybeLayoutUntilIgnored Parser.token ":"
-                |= Layout.maybeLayout
-                |= typeAnnotation
-            )
+                                                )
+                                        }
+        )
+        Tokens.portToken
+        |= Parser.getRow
+        |= Layout.maybeLayout
+        |= Parser.getPosition
+        |= Tokens.functionName
+        |= Layout.maybeLayoutUntilIgnored Parser.token ":"
+        |= Layout.maybeLayout
+        |= typeAnnotation
 
 
 typeOrTypeAliasDefinitionAfterDocumentation : Parser (WithComments DeclarationAfterDocumentation)
 typeOrTypeAliasDefinitionAfterDocumentation =
-    (Parser.keyword "type"
-        |> Parser.Extra.continueWith
-            (Parser.map
-                (\commentsAfterType ->
-                    \declarationAfterDocumentation ->
-                        { comments = commentsAfterType |> Rope.prependTo declarationAfterDocumentation.comments
-                        , syntax = declarationAfterDocumentation.syntax
-                        }
-                )
-                Layout.maybeLayout
-            )
-    )
+    Parser.map
+        (\() ->
+            \commentsAfterType ->
+                \declarationAfterDocumentation ->
+                    { comments = commentsAfterType |> Rope.prependTo declarationAfterDocumentation.comments
+                    , syntax = declarationAfterDocumentation.syntax
+                    }
+        )
+        (Parser.keyword "type")
+        |= Layout.maybeLayout
         |= Parser.oneOf
             [ typeAliasDefinitionAfterDocumentationAfterTypePrefix
             , customTypeDefinitionAfterDocumentationAfterTypePrefix
@@ -667,35 +624,33 @@ typeOrTypeAliasDefinitionAfterDocumentation =
 
 typeAliasDefinitionAfterDocumentationAfterTypePrefix : Parser (WithComments DeclarationAfterDocumentation)
 typeAliasDefinitionAfterDocumentationAfterTypePrefix =
-    (Tokens.aliasToken
-        |> Parser.Extra.continueWith
-            (Parser.map
-                (\commentsAfterAlias ->
-                    \( nameStartRow, nameStartColumn ) ->
-                        \name ->
-                            \commentsAfterName ->
-                                \parameters ->
-                                    \commentsAfterEquals ->
-                                        \typeAnnotationResult ->
-                                            { comments =
-                                                commentsAfterAlias
-                                                    |> Rope.prependTo commentsAfterName
-                                                    |> Rope.prependTo parameters.comments
-                                                    |> Rope.prependTo commentsAfterEquals
-                                                    |> Rope.prependTo typeAnnotationResult.comments
-                                            , syntax =
-                                                TypeAliasDeclarationAfterDocumentation
-                                                    { name =
-                                                        Node.singleLineStringFrom { row = nameStartRow, column = nameStartColumn }
-                                                            name
-                                                    , parameters = parameters.syntax
-                                                    , typeAnnotation = typeAnnotationResult.syntax
-                                                    }
-                                            }
-                )
-                Layout.maybeLayout
-            )
-    )
+    Parser.map
+        (\() ->
+            \commentsAfterAlias ->
+                \( nameStartRow, nameStartColumn ) ->
+                    \name ->
+                        \commentsAfterName ->
+                            \parameters ->
+                                \commentsAfterEquals ->
+                                    \typeAnnotationResult ->
+                                        { comments =
+                                            commentsAfterAlias
+                                                |> Rope.prependTo commentsAfterName
+                                                |> Rope.prependTo parameters.comments
+                                                |> Rope.prependTo commentsAfterEquals
+                                                |> Rope.prependTo typeAnnotationResult.comments
+                                        , syntax =
+                                            TypeAliasDeclarationAfterDocumentation
+                                                { name =
+                                                    Node.singleLineStringFrom { row = nameStartRow, column = nameStartColumn }
+                                                        name
+                                                , parameters = parameters.syntax
+                                                , typeAnnotation = typeAnnotationResult.syntax
+                                                }
+                                        }
+        )
+        Tokens.aliasToken
+        |= Layout.maybeLayout
         |= Parser.getPosition
         |= Tokens.typeName
         |= Layout.maybeLayout
@@ -747,89 +702,98 @@ customTypeDefinitionAfterDocumentationAfterTypePrefix =
 
 typeOrTypeAliasDefinitionWithoutDocumentation : Parser (WithComments (Node Declaration.Declaration))
 typeOrTypeAliasDefinitionWithoutDocumentation =
-    Parser.keyword "type"
-        |> Parser.Extra.continueWith
-            (Parser.map
-                (\startRow ->
-                    let
-                        start : Location
-                        start =
-                            { row = startRow, column = 1 }
-                    in
-                    \commentsAfterType ->
-                        \afterStart ->
-                            { comments = commentsAfterType |> Rope.prependTo afterStart.comments
-                            , syntax =
-                                case afterStart.syntax of
-                                    TypeDeclarationWithoutDocumentation typeDeclarationAfterDocumentation ->
-                                        let
-                                            end : Location
-                                            end =
-                                                case typeDeclarationAfterDocumentation.tailVariantsReverse of
-                                                    (Node range _) :: _ ->
-                                                        range.end
+    Parser.map
+        (\() ->
+            \startRow ->
+                let
+                    start : Location
+                    start =
+                        { row = startRow, column = 1 }
+                in
+                \commentsAfterType ->
+                    \afterStart ->
+                        { comments = commentsAfterType |> Rope.prependTo afterStart.comments
+                        , syntax =
+                            case afterStart.syntax of
+                                TypeDeclarationWithoutDocumentation typeDeclarationAfterDocumentation ->
+                                    let
+                                        end : Location
+                                        end =
+                                            case typeDeclarationAfterDocumentation.tailVariantsReverse of
+                                                (Node range _) :: _ ->
+                                                    range.end
 
-                                    [] ->
-                                        let
-                                            (Node headVariantRange _) =
+                                                [] ->
+                                                    let
+                                                        (Node headVariantRange _) =
+                                                            typeDeclarationAfterDocumentation.headVariant
+                                                    in
+                                                    headVariantRange.end
+                                    in
+                                    Node { start = start, end = end }
+                                        (Declaration.CustomTypeDeclaration
+                                            { documentation = Nothing
+                                            , name = typeDeclarationAfterDocumentation.name
+                                            , generics = typeDeclarationAfterDocumentation.parameters
+                                            , constructors =
                                                 typeDeclarationAfterDocumentation.headVariant
-                                        in
-                                        Node { start = start, end = typeAnnotationRange.end }
-                                            (Declaration.AliasDeclaration
-                                                { documentation = Nothing
-                                                , name = typeAliasDeclarationAfterDocumentation.name
-                                                , generics = typeAliasDeclarationAfterDocumentation.parameters
-                                                , typeAnnotation = typeAliasDeclarationAfterDocumentation.typeAnnotation
-                                                }
-                                            )
-                            }
-                )
-                Parser.getRow
-                |= Layout.maybeLayout
-                |= Parser.oneOf
-                    [ typeAliasDefinitionWithoutDocumentationAfterTypePrefix
-                    , customTypeDefinitionWithoutDocumentationAfterTypePrefix
-                    ]
-            )
-            (ParserFast.keywordFollowedBy "type" Layout.maybeLayout)
-            (ParserFast.oneOf2
-                typeAliasDefinitionWithoutDocumentationAfterTypePrefix
-                customTypeDefinitionWithoutDocumentationAfterTypePrefix
-            )
+                                                    :: List.reverse typeDeclarationAfterDocumentation.tailVariantsReverse
+                                            }
+                                        )
+
+                                TypeAliasDeclarationWithoutDocumentation typeAliasDeclarationAfterDocumentation ->
+                                    let
+                                        (Node typeAnnotationRange _) =
+                                            typeAliasDeclarationAfterDocumentation.typeAnnotation
+                                    in
+                                    Node { start = start, end = typeAnnotationRange.end }
+                                        (Declaration.AliasDeclaration
+                                            { documentation = Nothing
+                                            , name = typeAliasDeclarationAfterDocumentation.name
+                                            , generics = typeAliasDeclarationAfterDocumentation.parameters
+                                            , typeAnnotation = typeAliasDeclarationAfterDocumentation.typeAnnotation
+                                            }
+                                        )
+                        }
         )
+        (Parser.keyword "type")
+        |= Parser.getRow
+        |= Layout.maybeLayout
+        |= Parser.oneOf
+            [ typeAliasDefinitionWithoutDocumentationAfterTypePrefix
+            , customTypeDefinitionWithoutDocumentationAfterTypePrefix
+            ]
 
 
 typeAliasDefinitionWithoutDocumentationAfterTypePrefix : Parser (WithComments TypeOrTypeAliasDeclarationWithoutDocumentation)
 typeAliasDefinitionWithoutDocumentationAfterTypePrefix =
-    (Tokens.aliasToken
-        |> Parser.Extra.continueWith
-            (Parser.map
-                (\commentsAfterAlias ->
-                    \( nameStartRow, nameStartColumn ) ->
-                        \name ->
-                            \commentsAfterName ->
-                                \parameters ->
-                                    \commentsAfterEqual ->
-                                        \typeAnnotationResult ->
-                                            { comments =
-                                                commentsAfterAlias
-                                                    |> Rope.prependTo commentsAfterName
-                                                    |> Rope.prependTo parameters.comments
-                                                    |> Rope.prependTo commentsAfterEqual
-                                                    |> Rope.prependTo typeAnnotationResult.comments
-                                            , syntax =
-                                                TypeAliasDeclarationWithoutDocumentation
-                                                    { name =
-                                                        Node.singleLineStringFrom { row = nameStartRow, column = nameStartColumn }
-                                                            name
-                                                    , parameters = parameters.syntax
-                                                    , typeAnnotation = typeAnnotationResult.syntax
-                                                    }
-                                            }
-                )
-                Layout.maybeLayout
-            )
-    )
+    Parser.map
+        (\() ->
+            \commentsAfterAlias ->
+                \( nameStartRow, nameStartColumn ) ->
+                    \name ->
+                        \commentsAfterName ->
+                            \parameters ->
+                                \commentsAfterEqual ->
+                                    \typeAnnotationResult ->
+                                        { comments =
+                                            commentsAfterAlias
+                                                |> Rope.prependTo commentsAfterName
+                                                |> Rope.prependTo parameters.comments
+                                                |> Rope.prependTo commentsAfterEqual
+                                                |> Rope.prependTo typeAnnotationResult.comments
+                                        , syntax =
+                                            TypeAliasDeclarationWithoutDocumentation
+                                                { name =
+                                                    Node.singleLineStringFrom { row = nameStartRow, column = nameStartColumn }
+                                                        name
+                                                , parameters = parameters.syntax
+                                                , typeAnnotation = typeAnnotationResult.syntax
+                                                }
+                                        }
+        )
+        Tokens.aliasToken
+        |= Layout.maybeLayout
         |= Parser.getPosition
         |= Tokens.typeName
         |= Layout.maybeLayout
