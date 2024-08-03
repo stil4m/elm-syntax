@@ -140,7 +140,7 @@ type alias LetBlock =
 {-| Union type for all possible declarations in a let block
 -}
 type LetDeclaration
-    = LetFunction Function
+    = LetFunction { signature : Maybe (Node Signature), declaration : Node FunctionImplementation }
     | LetDestructuring (Node DestructurePattern) (Node Expression)
 
 
