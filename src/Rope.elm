@@ -9,8 +9,8 @@ type alias Rope a =
 
 
 type RopeFilled a
-    = Leaf a
-    | Branch2 { left : RopeFilled a, right : RopeFilled a }
+    = Leaf a ()
+    | Branch2 (RopeFilled a) (RopeFilled a)
 
 
 empty : Rope a
@@ -20,7 +20,7 @@ empty =
 
 one : a -> RopeFilled a
 one onlyElement =
-    Leaf onlyElement
+    Leaf onlyElement ()
 
 
 filledPrependTo : Rope a -> RopeFilled a -> Rope a
@@ -30,7 +30,7 @@ filledPrependTo right leftLikelyFilled =
             Just leftLikelyFilled
 
         Just rightLikelyFilled ->
-            Just (Branch2 { left = leftLikelyFilled, right = rightLikelyFilled })
+            Just (Branch2 leftLikelyFilled rightLikelyFilled)
 
 
 prependTo : Rope a -> Rope a -> Rope a
@@ -45,7 +45,7 @@ prependTo right left =
                     left
 
                 Just rightLikelyFilled ->
-                    Just (Branch2 { left = leftLikelyFilled, right = rightLikelyFilled })
+                    Just (Branch2 leftLikelyFilled rightLikelyFilled)
 
 
 toList : Rope a -> List a
@@ -61,13 +61,13 @@ toList rope =
 ropeLikelyFilledToListInto : List a -> RopeFilled a -> List a
 ropeLikelyFilledToListInto initialAcc ropeLikelyFilled =
     case ropeLikelyFilled of
-        Leaf onlyElement ->
+        Leaf onlyElement () ->
             onlyElement :: initialAcc
 
-        Branch2 ropes ->
+        Branch2 left right ->
             ropeLikelyFilledToListInto
                 (ropeLikelyFilledToListInto
                     initialAcc
-                    ropes.right
+                    right
                 )
-                ropes.left
+                left
