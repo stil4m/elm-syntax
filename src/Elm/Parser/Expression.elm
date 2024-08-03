@@ -937,12 +937,14 @@ maybeDotReferenceExpressionTuple =
                     [ Parser.map
                         (\firstName ->
                             \after ->
-                                case after of
-                                    Nothing ->
-                                        Just ( [], firstName )
+                                Just
+                                    (case after of
+                                        Nothing ->
+                                            ( [], firstName )
 
-                                    Just ( qualificationAfter, unqualified ) ->
-                                        Just ( firstName :: qualificationAfter, unqualified )
+                                        Just ( qualificationAfter, unqualified ) ->
+                                            ( firstName :: qualificationAfter, unqualified )
+                                    )
                         )
                         Tokens.typeName
                         |= Parser.lazy (\() -> maybeDotReferenceExpressionTuple)
