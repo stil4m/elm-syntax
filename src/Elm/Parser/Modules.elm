@@ -9,7 +9,6 @@ import Elm.Syntax.Module exposing (Module(..))
 import Elm.Syntax.Node exposing (Node)
 import List.Extra
 import Parser exposing ((|.), (|=), Parser)
-import Parser.Extra
 import ParserWithComments exposing (WithComments)
 import Rope
 

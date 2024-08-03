@@ -4,7 +4,6 @@ import Elm.Parser.Tokens as Tokens
 import Elm.Syntax.ModuleName exposing (ModuleName)
 import Elm.Syntax.Node exposing (Node(..))
 import Parser exposing ((|=))
-import Parser.Extra
 
 
 moduleName : Parser.Parser (Node ModuleName)
@@ -24,11 +23,6 @@ moduleName =
         |= Tokens.typeName
         |= moduleNameOrEmpty
         |= Parser.getCol
-
-
-listCons : a -> List a -> List a
-listCons head =
-    \tail -> head :: tail
 
 
 moduleNameOrEmpty : Parser.Parser ModuleName
