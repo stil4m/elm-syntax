@@ -34,12 +34,8 @@ listCons head =
 moduleNameOrEmpty : Parser.Parser ModuleName
 moduleNameOrEmpty =
     Parser.oneOf
-        [ (Tokens.dot
-            |> Parser.Extra.continueWith
-                (Parser.map listCons
-                    Tokens.typeName
-                )
-          )
+        [ Parser.map (\() -> \head -> \tail -> head :: tail) Tokens.dot
+            |= Tokens.typeName
             |= Parser.lazy (\() -> moduleNameOrEmpty)
         , Parser.succeed []
         ]

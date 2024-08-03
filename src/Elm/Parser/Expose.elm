@@ -14,22 +14,20 @@ import Set
 
 exposeDefinition : Parser (WithComments Exposing)
 exposeDefinition =
-    (Tokens.exposingToken
-        |> Parser.Extra.continueWith
-            (Parser.map
-                (\commentsAfterExposing ->
-                    \commentsBefore ->
-                        \exposingListInnerResult ->
-                            { comments =
-                                commentsAfterExposing
-                                    |> Rope.prependTo commentsBefore
-                                    |> Rope.prependTo exposingListInnerResult.comments
-                            , syntax = exposingListInnerResult.syntax
-                            }
-                )
-                (Layout.maybeLayoutUntilIgnored Parser.token "(")
-            )
-    )
+    Parser.map
+        (\() ->
+            \commentsAfterExposing ->
+                \commentsBefore ->
+                    \exposingListInnerResult ->
+                        { comments =
+                            commentsAfterExposing
+                                |> Rope.prependTo commentsBefore
+                                |> Rope.prependTo exposingListInnerResult.comments
+                        , syntax = exposingListInnerResult.syntax
+                        }
+        )
+        Tokens.exposingToken
+        |= Layout.maybeLayoutUntilIgnored Parser.token "("
         |= Layout.optimisticLayout
         |= exposingListInner
         |. Tokens.parensEnd
@@ -98,16 +96,13 @@ exposable =
 
 infixExpose : Parser.Parser (WithComments TopLevelExpose)
 infixExpose =
-    (Tokens.parensStart
-        |> Parser.Extra.continueWith
-            (Parser.map (\infixName -> { comments = Rope.empty, syntax = InfixExpose infixName })
-                (Parser.variable
-                    { inner = \c -> c /= ')'
-                    , reserved = Set.empty
-                    , start = \c -> c /= ')'
-                    }
-                )
-            )
+    (Parser.map (\() -> \infixName -> { comments = Rope.empty, syntax = InfixExpose infixName })
+        Tokens.parensStart
+        |= Parser.variable
+            { inner = \c -> c /= ')'
+            , reserved = Set.empty
+            , start = \c -> c /= ')'
+            }
     )
         |. Tokens.parensEnd
 
