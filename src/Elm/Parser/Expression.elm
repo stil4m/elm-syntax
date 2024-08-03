@@ -98,9 +98,7 @@ recordAccess : ( Int, Parser (WithComments ExtensionRight) )
 recordAccess =
     postfix 100
         recordAccessParser
-        (\field ->
-            ExtendRightByRecordAccess field
-        )
+        ExtendRightByRecordAccess
 
 
 recordAccessParser : Parser (Node String)
