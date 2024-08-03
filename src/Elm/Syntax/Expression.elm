@@ -1,6 +1,6 @@
 module Elm.Syntax.Expression exposing
     ( Expression(..), Lambda, LetBlock, LetDeclaration(..), RecordSetter, CaseBlock, Case, Function, FunctionImplementation
-    , functionRange, isLambda, isLet, isIfElse, isCase, isOperation
+    , functionRange
     )
 
 {-| This syntax represents all that you can express in Elm.
@@ -14,7 +14,7 @@ Although it is a easy and simple language, you can express a lot! See the `Expre
 
 ## Functions
 
-@docs functionRange, isLambda, isLet, isIfElse, isCase, isOperation
+@docs functionRange
 
 -}
 
@@ -166,63 +166,3 @@ type alias CaseBlock =
 -}
 type alias Case =
     ( Node Pattern, Node Expression )
-
-
-{-| Check whether an expression is a lambda-expression
--}
-isLambda : Expression -> Bool
-isLambda e =
-    case e of
-        LambdaExpression _ ->
-            True
-
-        _ ->
-            False
-
-
-{-| Check whether an expression is a let-expression
--}
-isLet : Expression -> Bool
-isLet e =
-    case e of
-        Let _ ->
-            True
-
-        _ ->
-            False
-
-
-{-| Check whether an expression is an if-else-expression
--}
-isIfElse : Expression -> Bool
-isIfElse e =
-    case e of
-        If _ _ _ ->
-            True
-
-        _ ->
-            False
-
-
-{-| Check whether an expression is a case-expression
--}
-isCase : Expression -> Bool
-isCase e =
-    case e of
-        Case _ ->
-            True
-
-        _ ->
-            False
-
-
-{-| Check whether an expression is an operator application expression
--}
-isOperation : Expression -> Bool
-isOperation e =
-    case e of
-        Operation _ _ _ ->
-            True
-
-        _ ->
-            False
