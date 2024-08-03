@@ -83,19 +83,9 @@ expression =
 
 recordAccess : ( Int, Parser (WithComments ExtensionRight) )
 recordAccess =
-    postfix 100 recordAccessParser
-
-
-recordAccessParser : Parser (WithComments ExtensionRight)
-recordAccessParser =
-    lookBehindOneCharacterAndThen
-        (\c ->
-            if c == " " || c == "\n" || c == "\u{000D}" then
-                problemRecordAccessStartingWithSpace
-
-            else
-                dotField
-        )
+    postfix 100
+        recordAccessParser
+        ExtendRightByRecordAccess
 
 
 problemRecordAccessStartingWithSpace : ParserFast.Parser a
