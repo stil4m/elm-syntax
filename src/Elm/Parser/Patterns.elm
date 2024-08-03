@@ -468,12 +468,10 @@ recordPattern =
                         |= Tokens.functionName
                         |= Layout.maybeLayout
                     )
-                )
+                |. Tokens.curlyEnd
+            , Parser.map (\() -> Nothing)
                 Tokens.curlyEnd
-            )
-            (ParserFast.symbol "}" Nothing)
-        )
-        |> Node.parser
+            ]
 
 
 patternRecordEmpty : Pattern
