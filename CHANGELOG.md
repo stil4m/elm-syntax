@@ -44,7 +44,9 @@
   - Renamed `isOperatorApplication` to `isOperation`
   - Renamed `RecordExpr` to `Record`
   - Renamed `CaseExpression` to `Case`
-  - Renamed `LetExpression` to `Let`
+  - `LetExpression`
+    - Renamed `LetExpression` to `Let`
+    - Changed `LetFunction` so that it doesn't take an optional documentation, as that is invalid syntax.
   - Renamed `GLSLExpression` to `GLSL`
   - `UnitExpr` -> `TupleExpression []`
   - `ParenthesizedExpression x` -> `TupleExpression [ x ]`

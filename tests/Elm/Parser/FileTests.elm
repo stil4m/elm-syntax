@@ -279,8 +279,7 @@ letWhitespace = let
                                                             { declarations =
                                                                 [ Node { start = { row = 5, column = 19 }, end = { row = 5, column = 26 } }
                                                                     (LetFunction
-                                                                        { documentation = Nothing
-                                                                        , signature = Nothing
+                                                                        { signature = Nothing
                                                                         , declaration =
                                                                             Node { start = { row = 5, column = 19 }, end = { row = 5, column = 26 } }
                                                                                 { name = Node { start = { row = 5, column = 19 }, end = { row = 5, column = 20 } } "b"

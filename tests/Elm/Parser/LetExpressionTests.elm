@@ -25,8 +25,7 @@ all =
                                 { declarations =
                                     [ Node { start = { row = 2, column = 3 }, end = { row = 2, column = 12 } }
                                         (LetFunction
-                                            { documentation = Nothing
-                                            , signature = Nothing
+                                            { signature = Nothing
                                             , declaration =
                                                 Node { start = { row = 2, column = 3 }, end = { row = 2, column = 12 } }
                                                     { name = Node { start = { row = 2, column = 3 }, end = { row = 2, column = 6 } } "foo"
@@ -37,8 +36,7 @@ all =
                                         )
                                     , Node { start = { row = 4, column = 3 }, end = { row = 4, column = 13 } }
                                         (LetFunction
-                                            { documentation = Nothing
-                                            , signature = Nothing
+                                            { signature = Nothing
                                             , declaration =
                                                 Node { start = { row = 4, column = 3 }, end = { row = 4, column = 13 } }
                                                     { name = Node { start = { row = 4, column = 3 }, end = { row = 4, column = 7 } } "john"
@@ -64,8 +62,7 @@ all =
                                 { declarations =
                                     [ Node { start = { row = 2, column = 3 }, end = { row = 2, column = 10 } }
                                         (LetFunction
-                                            { documentation = Nothing
-                                            , signature = Nothing
+                                            { signature = Nothing
                                             , declaration =
                                                 Node { start = { row = 2, column = 3 }, end = { row = 2, column = 10 } }
                                                     { name = Node { start = { row = 2, column = 3 }, end = { row = 2, column = 6 } } "bar"
@@ -106,8 +103,7 @@ all =
                                 { declarations =
                                     [ Node { start = { row = 2, column = 3 }, end = { row = 2, column = 10 } }
                                         (LetFunction
-                                            { documentation = Nothing
-                                            , signature = Nothing
+                                            { signature = Nothing
                                             , declaration =
                                                 Node { start = { row = 2, column = 3 }, end = { row = 2, column = 10 } }
                                                     { name = Node { start = { row = 2, column = 3 }, end = { row = 2, column = 6 } } "bar"
@@ -134,8 +130,7 @@ all =
                                 { declarations =
                                     [ Node { start = { row = 2, column = 5 }, end = { row = 3, column = 12 } }
                                         (LetFunction
-                                            { documentation = Nothing
-                                            , signature =
+                                            { signature =
                                                 Just
                                                     (Node { start = { row = 2, column = 5 }, end = { row = 2, column = 14 } }
                                                         { name = Node { start = { row = 2, column = 5 }, end = { row = 2, column = 8 } } "bar"
@@ -172,8 +167,7 @@ all =
                                 { declarations =
                                     [ Node { start = { row = 2, column = 5 }, end = { row = 5, column = 12 } }
                                         (LetFunction
-                                            { documentation = Nothing
-                                            , signature =
+                                            { signature =
                                                 Just
                                                     (Node { start = { row = 2, column = 5 }, end = { row = 2, column = 14 } }
                                                         { name = Node { start = { row = 2, column = 5 }, end = { row = 2, column = 8 } } "bar"
@@ -228,8 +222,7 @@ all =
                                 { declarations =
                                     [ Node { start = { row = 2, column = 11 }, end = { row = 2, column = 24 } }
                                         (LetFunction
-                                            { documentation = Nothing
-                                            , signature = Nothing
+                                            { signature = Nothing
                                             , declaration =
                                                 Node { start = { row = 2, column = 11 }, end = { row = 2, column = 24 } }
                                                     { name = Node { start = { row = 2, column = 11 }, end = { row = 2, column = 14 } } "bar"
@@ -353,8 +346,7 @@ all =
                                 { declarations =
                                     [ Node { start = { row = 1, column = 5 }, end = { row = 1, column = 29 } }
                                         (LetFunction
-                                            { documentation = Nothing
-                                            , signature = Nothing
+                                            { signature = Nothing
                                             , declaration =
                                                 Node { start = { row = 1, column = 5 }, end = { row = 1, column = 29 } }
                                                     { name = Node { start = { row = 1, column = 5 }, end = { row = 1, column = 11 } } "indent"
@@ -385,8 +377,7 @@ all =
                                 { declarations =
                                     [ Node { start = { row = 2, column = 9 }, end = { row = 2, column = 14 } }
                                         (LetFunction
-                                            { documentation = Nothing
-                                            , signature = Nothing
+                                            { signature = Nothing
                                             , declaration =
                                                 Node { start = { row = 2, column = 9 }, end = { row = 2, column = 14 } }
                                                     { name = Node { start = { row = 2, column = 9 }, end = { row = 2, column = 10 } } "a"
@@ -411,8 +402,7 @@ all =
                                 { declarations =
                                     [ Node { start = { row = 2, column = 9 }, end = { row = 2, column = 14 } }
                                         (LetFunction
-                                            { documentation = Nothing
-                                            , signature = Nothing
+                                            { signature = Nothing
                                             , declaration =
                                                 Node { start = { row = 2, column = 9 }, end = { row = 2, column = 14 } }
                                                     { name = Node { start = { row = 2, column = 9 }, end = { row = 2, column = 10 } } "a"
@@ -437,8 +427,7 @@ all =
                                 { declarations =
                                     [ Node { start = { row = 2, column = 9 }, end = { row = 2, column = 14 } }
                                         (LetFunction
-                                            { documentation = Nothing
-                                            , signature = Nothing
+                                            { signature = Nothing
                                             , declaration =
                                                 Node { start = { row = 2, column = 9 }, end = { row = 2, column = 14 } }
                                                     { name = Node { start = { row = 2, column = 9 }, end = { row = 2, column = 10 } } "a"
