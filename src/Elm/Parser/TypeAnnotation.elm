@@ -219,9 +219,10 @@ recordTypeAnnotation =
                             , Parser.succeed { comments = Rope.empty, syntax = [] }
                             ]
                     ]
-            , Parser.succeed Nothing
+                |. Tokens.curlyEnd
+            , Parser.map (\() -> Nothing)
+                Tokens.curlyEnd
             ]
-        |. Tokens.curlyEnd
 
 
 typeAnnotationRecordEmpty : TypeAnnotation
