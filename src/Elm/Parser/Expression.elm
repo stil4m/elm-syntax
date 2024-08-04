@@ -788,11 +788,10 @@ parameterPatternsEqual : Parser (WithComments (List (Node Pattern)))
 parameterPatternsEqual =
     ParserWithComments.until Tokens.equal
         (CustomParser.map2
-            (\patternResult ->
-                \commentsAfterPattern ->
-                    { comments = patternResult.comments |> Rope.prependTo commentsAfterPattern
-                    , syntax = patternResult.syntax
-                    }
+            (\patternResult commentsAfterPattern ->
+                { comments = patternResult.comments |> Rope.prependTo commentsAfterPattern
+                , syntax = patternResult.syntax
+                }
             )
             Patterns.pattern
             Layout.maybeLayout

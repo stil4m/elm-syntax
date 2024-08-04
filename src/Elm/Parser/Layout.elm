@@ -142,9 +142,8 @@ fromMultilineCommentNodeOrEmptyOnProblem =
 fromMultilineCommentNode : Parser Comments
 fromMultilineCommentNode =
     CustomParser.map2
-        (\comment ->
-            \commentsAfter ->
-                Rope.one comment |> Rope.filledPrependTo commentsAfter
+        (\comment commentsAfter ->
+            Rope.one comment |> Rope.filledPrependTo commentsAfter
         )
         (Node.parserCore Comments.multilineCommentString)
         whitespaceAndCommentsOrEmpty
