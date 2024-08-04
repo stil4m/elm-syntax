@@ -52,17 +52,14 @@ maybeComposedWith : Parser { comments : ParserWithComments.Comments, syntax : Pa
 maybeComposedWith =
     CustomParser.oneOf
         [ CustomParser.map4
-            (\() ->
-                \commentsAfterAs ->
-                    \nameStart ->
-                        \name ->
-                            { comments = commentsAfterAs
-                            , syntax =
-                                PatternComposedWithAs
-                                    (Node.singleLineStringFrom nameStart
-                                        name
-                                    )
-                            }
+            (\() commentsAfterAs nameStart name ->
+                { comments = commentsAfterAs
+                , syntax =
+                    PatternComposedWithAs
+                        (Node.singleLineStringFrom nameStart
+                            name
+                        )
+                }
             )
             Tokens.asToken
             Layout.maybeLayout
