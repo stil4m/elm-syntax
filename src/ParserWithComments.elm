@@ -169,11 +169,10 @@ listEmptyWithComments =
 sepBy1 : String -> Parser (WithComments a) -> Parser (WithComments (List a))
 sepBy1 sep p =
     CustomParser.map2
-        (\head ->
-            \tail ->
-                { comments = head.comments |> Rope.prependTo tail.comments
-                , syntax = head.syntax :: tail.syntax
-                }
+        (\head tail ->
+            { comments = head.comments |> Rope.prependTo tail.comments
+            , syntax = head.syntax :: tail.syntax
+            }
         )
         p
         (many (CustomParser.symbol sep |> CustomParser.Extra.continueWith p))
