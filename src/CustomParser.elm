@@ -7,6 +7,7 @@ module CustomParser exposing
     , getChompedString, chompIf, chompWhile, mapChompedString
     , withIndent, getIndent
     , getPosition, getRow, getCol, getOffset, getSource
+    , map7, map8
     )
 
 {-|
@@ -44,7 +45,6 @@ module CustomParser exposing
 
 -}
 
-import Char
 import CustomParser.Advanced as A
 import Set
 
@@ -325,6 +325,16 @@ map5 =
 map6 : (a -> b -> c -> d -> e -> f -> value) -> Parser a -> Parser b -> Parser c -> Parser d -> Parser e -> Parser f -> Parser value
 map6 =
     A.map6
+
+
+map7 : (a -> b -> c -> d -> e -> f -> g -> value) -> Parser a -> Parser b -> Parser c -> Parser d -> Parser e -> Parser f -> Parser g -> Parser value
+map7 =
+    A.map7
+
+
+map8 : (a -> b -> c -> d -> e -> f -> g -> h -> value) -> Parser a -> Parser b -> Parser c -> Parser d -> Parser e -> Parser f -> Parser g -> Parser h -> Parser value
+map8 =
+    A.map8
 
 
 {-| Indicate that a parser has reached a dead end. "Everything was going fine

@@ -185,9 +185,12 @@ stringLiteralHelper : String -> CustomParser.Parser (CustomParser.Advanced.Step 
 stringLiteralHelper stringSoFar =
     CustomParser.oneOf
         [ doubleQuote |> CustomParser.map (\() -> CustomParser.Advanced.Done stringSoFar)
-        , CustomParser.map (\() -> \v -> CustomParser.Advanced.Loop (stringSoFar ++ String.fromChar v ++ ""))
+        , CustomParser.map2
+            (\() v ->
+                CustomParser.Advanced.Loop (stringSoFar ++ String.fromChar v ++ "")
+            )
             backSlash
-            |> CustomParser.keep escapedCharValue
+            escapedCharValue
         , CustomParser.mapChompedString
             (\value () -> CustomParser.Advanced.Loop (stringSoFar ++ value ++ ""))
             chompWhileIsInsideString
@@ -216,9 +219,12 @@ tripleQuotedStringLiteralStep stringSoFar =
             |> CustomParser.map (\() -> CustomParser.Advanced.Done stringSoFar)
         , doubleQuote
             |> CustomParser.map (\() -> CustomParser.Advanced.Loop (stringSoFar ++ "\""))
-        , CustomParser.map (\() -> \v -> CustomParser.Advanced.Loop (stringSoFar ++ String.fromChar v ++ ""))
+        , CustomParser.map2
+            (\() v ->
+                CustomParser.Advanced.Loop (stringSoFar ++ String.fromChar v ++ "")
+            )
             backSlash
-            |> CustomParser.keep escapedCharValue
+            escapedCharValue
         , CustomParser.mapChompedString
             (\value () -> CustomParser.Advanced.Loop (stringSoFar ++ value ++ ""))
             chompWhileIsInsideString
