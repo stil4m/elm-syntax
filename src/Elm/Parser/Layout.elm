@@ -161,7 +161,7 @@ fromSingleLineCommentNode =
 maybeLayout : Parser Comments
 maybeLayout =
     whitespaceAndCommentsOrEmpty
-        |> CustomParser.ignore (positivelyIndented ())
+        |> CustomParser.ignore positivelyIndented
 
 
 {-| Use to check that the indentation of an already parsed token
@@ -169,19 +169,14 @@ would be valid for [`positivelyIndented`](#positivelyIndented)
 -}
 positivelyIndentedPlus : Int -> CustomParser.Parser ()
 positivelyIndentedPlus extraIndent =
-    CustomParser.andThen
-        (\column ->
-            CustomParser.andThen
-                (\indent ->
-                    if column > indent + extraIndent then
-                        succeedUnit
+    CustomParser.columnIndentAndThen
+        (\column indent ->
+            if column > indent + extraIndent then
+                succeedUnit
 
-                    else
-                        problemPositivelyIndented
-                )
-                CustomParser.getIndent
+            else
+                problemPositivelyIndented
         )
-        CustomParser.getCol
 
 
 positivelyIndentedPlusResultingIn : Int -> res -> CustomParser.Parser res
@@ -191,41 +186,26 @@ positivelyIndentedPlusResultingIn extraIndent res =
         succeedRes =
             CustomParser.succeed res
     in
-    CustomParser.andThen
-        (\column ->
-            CustomParser.andThen
-                (\indent ->
-                    if column > indent + extraIndent then
-                        succeedRes
+    CustomParser.columnIndentAndThen
+        (\column indent ->
+            if column > indent + extraIndent then
+                succeedRes
 
-                    else
-                        problemPositivelyIndented
-                )
-                CustomParser.getIndent
+            else
+                problemPositivelyIndented
         )
-        CustomParser.getCol
 
 
-positivelyIndented : res -> CustomParser.Parser res
-positivelyIndented res =
-    let
-        succeedRes : Parser res
-        succeedRes =
-            CustomParser.succeed res
-    in
-    CustomParser.getCol
-        |> CustomParser.andThen
-            (\column ->
-                CustomParser.andThen
-                    (\indent ->
-                        if column > indent then
-                            succeedRes
+positivelyIndented : CustomParser.Parser ()
+positivelyIndented =
+    CustomParser.columnIndentAndThen
+        (\column indent ->
+            if column > indent then
+                succeedUnit
 
-                        else
-                            problemPositivelyIndented
-                    )
-                    CustomParser.getIndent
-            )
+            else
+                problemPositivelyIndented
+        )
 
 
 succeedUnit : Parser ()
@@ -246,7 +226,7 @@ optimisticLayout =
 layoutStrict : Parser Comments
 layoutStrict =
     optimisticLayout
-        |> CustomParser.ignore (onTopIndentation ())
+        |> CustomParser.ignore onTopIndentation
 
 
 moduleLevelIndentation : res -> Parser res
@@ -272,26 +252,16 @@ problemModuleLevelIndentation =
     CustomParser.problem "must be on module-level indentation"
 
 
-onTopIndentation : res -> Parser res
-onTopIndentation res =
-    let
-        succeedRes : Parser res
-        succeedRes =
-            CustomParser.succeed res
-    in
-    CustomParser.andThen
-        (\column ->
-            CustomParser.andThen
-                (\indent ->
-                    if column == indent then
-                        succeedRes
+onTopIndentation : Parser ()
+onTopIndentation =
+    CustomParser.columnIndentAndThen
+        (\column indent ->
+            if column == indent then
+                succeedUnit
 
-                    else
-                        problemTopIndentation
-                )
-                CustomParser.getIndent
+            else
+                problemTopIndentation
         )
-        CustomParser.getCol
 
 
 problemTopIndentation : CustomParser.Parser a
