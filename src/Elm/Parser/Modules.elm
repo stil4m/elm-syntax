@@ -76,40 +76,33 @@ effectWhereClauses =
 
 effectModuleDefinition : Parser (WithComments Module)
 effectModuleDefinition =
-    CustomParser.map
-        (\() ->
-            \commentsAfterEffect ->
-                \commentsModule ->
-                    \name ->
-                        \commentsAfterName ->
-                            \whereClauses ->
-                                \commentsAfterWhereClauses ->
-                                    \exp ->
-                                        { comments =
-                                            commentsAfterEffect
-                                                |> Rope.prependTo commentsModule
-                                                |> Rope.prependTo commentsAfterName
-                                                |> Rope.prependTo whereClauses.comments
-                                                |> Rope.prependTo commentsAfterWhereClauses
-                                                |> Rope.prependTo exp.comments
-                                        , syntax =
-                                            EffectModule
-                                                { moduleName = name
-                                                , exposingList = exp.syntax
-                                                , command = whereClauses.syntax.command
-                                                , subscription = whereClauses.syntax.subscription
-                                                }
-                                        }
+    CustomParser.map9
+        (\() commentsAfterEffect () commentsModule name commentsAfterName whereClauses commentsAfterWhereClauses exp ->
+            { comments =
+                commentsAfterEffect
+                    |> Rope.prependTo commentsModule
+                    |> Rope.prependTo commentsAfterName
+                    |> Rope.prependTo whereClauses.comments
+                    |> Rope.prependTo commentsAfterWhereClauses
+                    |> Rope.prependTo exp.comments
+            , syntax =
+                EffectModule
+                    { moduleName = name
+                    , exposingList = exp.syntax
+                    , command = whereClauses.syntax.command
+                    , subscription = whereClauses.syntax.subscription
+                    }
+            }
         )
         (CustomParser.keyword "effect")
-        |> CustomParser.keep Layout.maybeLayout
-        |> CustomParser.ignore Tokens.moduleToken
-        |> CustomParser.keep Layout.maybeLayout
-        |> CustomParser.keep moduleName
-        |> CustomParser.keep Layout.maybeLayout
-        |> CustomParser.keep effectWhereClauses
-        |> CustomParser.keep Layout.maybeLayout
-        |> CustomParser.keep (Node.parser exposeDefinition)
+        Layout.maybeLayout
+        Tokens.moduleToken
+        Layout.maybeLayout
+        moduleName
+        Layout.maybeLayout
+        effectWhereClauses
+        Layout.maybeLayout
+        (Node.parser exposeDefinition)
 
 
 normalModuleDefinition : Parser (WithComments Module)
