@@ -1,7 +1,7 @@
 module CustomParser exposing
     ( Parser, DeadEnd, Problem(..), run
     , int, number, symbol, keyword, variable, end
-    , succeed, problem, lazy, map2, keep, ignore, andThen
+    , succeed, problem, lazy, map2, map3, map4, map5, map6, keep, ignore, andThen
     , oneOf, map, backtrackable, token
     , nestableMultiComment
     , getChompedString, chompIf, chompWhile, mapChompedString
@@ -18,7 +18,7 @@ module CustomParser exposing
 
 # Flow
 
-@docs succeed, problem, lazy, map2, keep, ignore, map2, andThen
+@docs succeed, problem, lazy, map2, map3, map4, map5, map6, keep, ignore, andThen
 
 @docs oneOf, map, backtrackable, token
 
@@ -45,6 +45,7 @@ module CustomParser exposing
 -}
 
 import CustomParser.Advanced as A
+import Elm.Syntax.Range exposing (Location)
 import Set
 
 
@@ -304,6 +305,26 @@ andThen =
 map2 : (a -> b -> value) -> Parser a -> Parser b -> Parser value
 map2 =
     A.map2
+
+
+map3 : (a -> b -> c -> value) -> Parser a -> Parser b -> Parser c -> Parser value
+map3 =
+    A.map3
+
+
+map4 : (a -> b -> c -> d -> value) -> Parser a -> Parser b -> Parser c -> Parser d -> Parser value
+map4 =
+    A.map4
+
+
+map5 : (a -> b -> c -> d -> e -> value) -> Parser a -> Parser b -> Parser c -> Parser d -> Parser e -> Parser value
+map5 =
+    A.map5
+
+
+map6 : (a -> b -> c -> d -> e -> f -> value) -> Parser a -> Parser b -> Parser c -> Parser d -> Parser e -> Parser f -> Parser value
+map6 =
+    A.map6
 
 
 {-| Indicate that a parser has reached a dead end. "Everything was going fine
@@ -798,7 +819,7 @@ parsing but before anyone looks at the numbers in a context where tabs may
 equal 2, 4, or 8.
 
 -}
-getPosition : Parser ( Int, Int )
+getPosition : Parser Location
 getPosition =
     A.getPosition
 
