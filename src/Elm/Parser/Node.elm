@@ -1,4 +1,4 @@
-module Elm.Parser.Node exposing (parser, parserCore, parserMapWithComments)
+module Elm.Parser.Node exposing (parser, parserCore, parserMap, parserMapWithComments, singleLineStringFrom, singleLineStringRangeFrom)
 
 import CustomParser exposing (Parser)
 import Elm.Syntax.Node exposing (Node(..))
@@ -49,20 +49,6 @@ parser p =
             , syntax =
                 Node { start = start, end = end } v.syntax
             }
-        )
-        CustomParser.getPosition
-        p
-        CustomParser.getPosition
-
-
-{-| Internally saves 1 CustomParser.map compared to parserCore |> CustomParser.map
--}
-parserCoreMap : (Node a -> b) -> CustomParser.Parser a -> CustomParser.Parser b
-parserCoreMap valueNodeChange p =
-    CustomParser.map3
-        (\start v end ->
-            Node { start = start, end = end } v
-                |> valueNodeChange
         )
         CustomParser.getPosition
         p
