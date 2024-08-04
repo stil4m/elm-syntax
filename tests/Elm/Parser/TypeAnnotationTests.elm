@@ -1,5 +1,6 @@
 module Elm.Parser.TypeAnnotationTests exposing (all)
 
+import CustomParser
 import Elm.Parser.Layout as Layout
 import Elm.Parser.ParserWithCommentsTestUtil as ParserWithCommentsUtil exposing (..)
 import Elm.Parser.TypeAnnotation as Parser

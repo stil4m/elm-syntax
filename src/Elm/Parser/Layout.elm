@@ -13,6 +13,8 @@ module Elm.Parser.Layout exposing
     , positivelyIndentedPlusFollowedBy
     )
 
+import CustomParser exposing (Parser)
+import CustomParser.Extra
 import Elm.Parser.Comments as Comments
 import Elm.Parser.Node as Node
 import ParserFast exposing (Parser)

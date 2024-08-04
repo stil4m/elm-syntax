@@ -1,5 +1,7 @@
 module Elm.Parser.Comments exposing (declarationDocumentation, moduleDocumentation, multilineCommentString, singleLineCommentCore)
 
+import CustomParser exposing (Parser)
+import CustomParser.Extra
 import Elm.Parser.Node as Node
 import Elm.Syntax.Documentation exposing (Documentation)
 import Elm.Syntax.Node exposing (Node)
