@@ -303,17 +303,15 @@ problemTopIndentation =
 
 maybeAroundBothSides : Parser (WithComments b) -> Parser (WithComments b)
 maybeAroundBothSides x =
-    CustomParser.map
-        (\before ->
-            \v ->
-                \after ->
-                    { comments =
-                        before
-                            |> Rope.prependTo v.comments
-                            |> Rope.prependTo after
-                    , syntax = v.syntax
-                    }
+    CustomParser.map3
+        (\before v after ->
+            { comments =
+                before
+                    |> Rope.prependTo v.comments
+                    |> Rope.prependTo after
+            , syntax = v.syntax
+            }
         )
         maybeLayout
-        |> CustomParser.keep x
-        |> CustomParser.keep maybeLayout
+        x
+        maybeLayout

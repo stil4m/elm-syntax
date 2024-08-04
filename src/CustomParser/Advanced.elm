@@ -1,7 +1,7 @@
 module CustomParser.Advanced exposing
     ( Parser, run, DeadEnd, Token(..)
     , number, symbol, keyword, variable, end
-    , map, map2, map3, map4, map5, map6, succeed, keep, ignore, lazy, andThen, problem
+    , map, map2, map3, map4, map5, map6, map7, map8, succeed, keep, ignore, lazy, andThen, problem
     , oneOf, backtrackable, token
     , loop, Step(..)
     , nestableMultiComment
@@ -19,7 +19,7 @@ module CustomParser.Advanced exposing
 
 # Flow
 
-@docs map, map2, map3, map4, map5, map6, succeed, keep, ignore, lazy, andThen, problem
+@docs map, map2, map3, map4, map5, map6, map7, map8, succeed, keep, ignore, lazy, andThen, problem
 
 @docs oneOf, backtrackable, token
 
@@ -352,6 +352,97 @@ map6 func (Parser parseA) (Parser parseB) (Parser parseC) (Parser parseD) (Parse
 
                                                         Good p6 f s6 ->
                                                             Good (p1 || p2 || p3 || p4 || p5 || p6) (func a b c d e f) s6
+        )
+
+
+map7 : (a -> b -> c -> d -> e -> f -> g -> value) -> Parser x a -> Parser x b -> Parser x c -> Parser x d -> Parser x e -> Parser x f -> Parser x g -> Parser x value
+map7 func (Parser parseA) (Parser parseB) (Parser parseC) (Parser parseD) (Parser parseE) (Parser parseF) (Parser parseG) =
+    Parser
+        (\s0 ->
+            case parseA s0 of
+                Bad p x ->
+                    Bad p x
+
+                Good p1 a s1 ->
+                    case parseB s1 of
+                        Bad p2 x ->
+                            Bad (p1 || p2) x
+
+                        Good p2 b s2 ->
+                            case parseC s2 of
+                                Bad p3 x ->
+                                    Bad (p1 || p2 || p3) x
+
+                                Good p3 c s3 ->
+                                    case parseD s3 of
+                                        Bad p4 x ->
+                                            Bad (p1 || p2 || p3 || p4) x
+
+                                        Good p4 d s4 ->
+                                            case parseE s4 of
+                                                Bad p5 x ->
+                                                    Bad (p1 || p2 || p3 || p4 || p5) x
+
+                                                Good p5 e s5 ->
+                                                    case parseF s5 of
+                                                        Bad p6 x ->
+                                                            Bad (p1 || p2 || p3 || p4 || p5 || p6) x
+
+                                                        Good p6 f s6 ->
+                                                            case parseG s6 of
+                                                                Bad p7 x ->
+                                                                    Bad (p1 || p2 || p3 || p4 || p5 || p6 || p7) x
+
+                                                                Good p7 g s7 ->
+                                                                    Good (p1 || p2 || p3 || p4 || p5 || p6 || p7) (func a b c d e f g) s7
+        )
+
+
+map8 : (a -> b -> c -> d -> e -> f -> g -> h -> value) -> Parser x a -> Parser x b -> Parser x c -> Parser x d -> Parser x e -> Parser x f -> Parser x g -> Parser x h -> Parser x value
+map8 func (Parser parseA) (Parser parseB) (Parser parseC) (Parser parseD) (Parser parseE) (Parser parseF) (Parser parseG) (Parser parseH) =
+    Parser
+        (\s0 ->
+            case parseA s0 of
+                Bad p x ->
+                    Bad p x
+
+                Good p1 a s1 ->
+                    case parseB s1 of
+                        Bad p2 x ->
+                            Bad (p1 || p2) x
+
+                        Good p2 b s2 ->
+                            case parseC s2 of
+                                Bad p3 x ->
+                                    Bad (p1 || p2 || p3) x
+
+                                Good p3 c s3 ->
+                                    case parseD s3 of
+                                        Bad p4 x ->
+                                            Bad (p1 || p2 || p3 || p4) x
+
+                                        Good p4 d s4 ->
+                                            case parseE s4 of
+                                                Bad p5 x ->
+                                                    Bad (p1 || p2 || p3 || p4 || p5) x
+
+                                                Good p5 e s5 ->
+                                                    case parseF s5 of
+                                                        Bad p6 x ->
+                                                            Bad (p1 || p2 || p3 || p4 || p5 || p6) x
+
+                                                        Good p6 f s6 ->
+                                                            case parseG s6 of
+                                                                Bad p7 x ->
+                                                                    Bad (p1 || p2 || p3 || p4 || p5 || p6 || p7) x
+
+                                                                Good p7 g s7 ->
+                                                                    case parseH s7 of
+                                                                        Bad p8 x ->
+                                                                            Bad (p1 || p2 || p3 || p4 || p5 || p6 || p7 || p8) x
+
+                                                                        Good p8 h s8 ->
+                                                                            Good (p1 || p2 || p3 || p4 || p5 || p6 || p7 || p8) (func a b c d e f g h) s8
         )
 
 

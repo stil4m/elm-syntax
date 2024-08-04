@@ -170,7 +170,7 @@ listEmptyWithComments =
 
 sepBy1 : String -> Parser (WithComments a) -> Parser (WithComments (List a))
 sepBy1 sep p =
-    CustomParser.map
+    CustomParser.map2
         (\head ->
             \tail ->
                 { comments = head.comments |> Rope.prependTo tail.comments
@@ -178,4 +178,4 @@ sepBy1 sep p =
                 }
         )
         p
-        |> CustomParser.keep (many (CustomParser.symbol sep |> CustomParser.Extra.continueWith p))
+        (many (CustomParser.symbol sep |> CustomParser.Extra.continueWith p))
