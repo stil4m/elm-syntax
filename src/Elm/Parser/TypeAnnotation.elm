@@ -173,12 +173,14 @@ recordTypeAnnotation =
                 Tokens.functionName
                 Layout.maybeLayout
                 (CustomParser.oneOf
-                    [ Tokens.pipe
-                        |> CustomParser.Extra.continueWith
-                            (Node.parserMap
-                                RecordExtensionExpressionAfterName
-                                recordFieldsTypeAnnotation
-                            )
+                    [ CustomParser.map2
+                        (\() extension ->
+                            { comments = extension.comments
+                            , syntax = RecordExtensionExpressionAfterName extension.syntax
+                            }
+                        )
+                        Tokens.pipe
+                        (Node.parser recordFieldsTypeAnnotation)
                     , CustomParser.map5
                         (\() commentsBeforeFirstFieldValue firstFieldValue commentsAfterFirstFieldValue tailFields ->
                             { comments =
