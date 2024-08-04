@@ -1,13 +1,12 @@
 module CustomParser exposing
     ( Parser, DeadEnd, Problem(..), run
     , int, number, symbol, keyword, variable, end
-    , succeed, problem, lazy, map2, map3, map4, map5, map6, keep, ignore, andThen
-    , oneOf, map, backtrackable, commit, token
+    , succeed, problem, lazy, map, map2, map3, map4, map5, map6, map7, map8, map9, map10, map11, ignore, andThen
+    , oneOf, backtrackable, commit, token
     , nestableMultiComment
     , getChompedString, chompIf, chompWhile, mapChompedString
     , withIndent, getIndent
     , getPosition, getRow, getCol, getOffset, getSource
-    , map7, map8
     )
 
 {-|
@@ -19,9 +18,9 @@ module CustomParser exposing
 
 # Flow
 
-@docs succeed, problem, lazy, map2, map3, map4, map5, map6, keep, ignore, andThen
+@docs succeed, problem, lazy, map, map2, map3, map4, map5, map6, map7, map8, map9, map10, map11, ignore, andThen
 
-@docs oneOf, map, backtrackable, commit, token
+@docs oneOf, backtrackable, commit, token
 
 
 # Whitespace
@@ -148,45 +147,12 @@ type Problem
     run (succeed Nothing) "mississippi" == Ok Nothing
 
 Seems weird on its own, but it is very useful in combination with other
-functions. The docs for [`keep`](#keep) and [`andThen`](#andThen) have some neat
-examples.
+functions.
 
 -}
 succeed : a -> Parser a
 succeed =
     A.succeed
-
-
-{-| **Keep** values in a parser pipeline. For example, we could say:
-
-    type alias Point =
-        { x : Float, y : Float }
-
-    point : Parser Point
-    point =
-        succeed Point
-            |> CustomParser.ignore symbol "("
-            |> CustomParser.ignore spaces
-            |= float
-            |> CustomParser.ignore spaces
-            |> CustomParser.ignore symbol ","
-            |> CustomParser.ignore spaces
-            |= float
-            |> CustomParser.ignore spaces
-            |> CustomParser.ignore symbol ")"
-
-All the parsers in this pipeline will chomp characters and produce values. So
-`symbol "("` will chomp one paren and produce a `()` value. Similarly, `float`
-will chomp some digits and produce a `Float` value. The `ignore` and `(|=)`
-operators just decide whether we give the values to the `Point` function.
-
-So in this case, we skip the `()` from `symbol "("`, we skip the `()` from
-`spaces`, we keep the `Float` from `float`, etc.
-
--}
-keep : Parser a -> Parser (a -> b) -> Parser b
-keep argumentParser functionParser =
-    A.keep functionParser argumentParser
 
 
 {-| **Skip** values in a parser pipeline. For example, maybe we want to parse
@@ -335,6 +301,21 @@ map7 =
 map8 : (a -> b -> c -> d -> e -> f -> g -> h -> value) -> Parser a -> Parser b -> Parser c -> Parser d -> Parser e -> Parser f -> Parser g -> Parser h -> Parser value
 map8 =
     A.map8
+
+
+map9 : (a -> b -> c -> d -> e -> f -> g -> h -> i -> value) -> Parser a -> Parser b -> Parser c -> Parser d -> Parser e -> Parser f -> Parser g -> Parser h -> Parser i -> Parser value
+map9 =
+    A.map9
+
+
+map10 : (a -> b -> c -> d -> e -> f -> g -> h -> i -> j -> value) -> Parser a -> Parser b -> Parser c -> Parser d -> Parser e -> Parser f -> Parser g -> Parser h -> Parser i -> Parser j -> Parser value
+map10 =
+    A.map10
+
+
+map11 : (a -> b -> c -> d -> e -> f -> g -> h -> i -> j -> k -> value) -> Parser a -> Parser b -> Parser c -> Parser d -> Parser e -> Parser f -> Parser g -> Parser h -> Parser i -> Parser j -> Parser k -> Parser value
+map11 =
+    A.map11
 
 
 {-| Indicate that a parser has reached a dead end. "Everything was going fine

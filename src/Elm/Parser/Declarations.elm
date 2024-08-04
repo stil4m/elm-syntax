@@ -433,52 +433,41 @@ parameterPatternsEqual =
 
 infixDeclaration : Parser (WithComments (Node Declaration))
 infixDeclaration =
-    CustomParser.map
-        (\() ->
-            \startRow ->
-                \commentsAfterInfix ->
-                    \direction ->
-                        \commentsAfterDirection ->
-                            \precedence ->
-                                \commentsAfterPrecedence ->
-                                    \operator ->
-                                        \commentsAfterOperator ->
-                                            \commentsAfterEqual ->
-                                                \((Node fnRange _) as fn) ->
-                                                    { comments =
-                                                        commentsAfterInfix
-                                                            |> Rope.prependTo commentsAfterDirection
-                                                            |> Rope.prependTo commentsAfterPrecedence
-                                                            |> Rope.prependTo commentsAfterOperator
-                                                            |> Rope.prependTo commentsAfterEqual
-                                                    , syntax =
-                                                        Node
-                                                            { start = { row = startRow, column = 1 }
-                                                            , end = fnRange.end
-                                                            }
-                                                            (Declaration.InfixDeclaration
-                                                                { direction = direction, precedence = precedence, operator = operator, function = fn }
-                                                            )
-                                                    }
+    CustomParser.map11
+        (\() startRow commentsAfterInfix direction commentsAfterDirection precedence commentsAfterPrecedence operator commentsAfterOperator commentsAfterEqual ((Node fnRange _) as fn) ->
+            { comments =
+                commentsAfterInfix
+                    |> Rope.prependTo commentsAfterDirection
+                    |> Rope.prependTo commentsAfterPrecedence
+                    |> Rope.prependTo commentsAfterOperator
+                    |> Rope.prependTo commentsAfterEqual
+            , syntax =
+                Node
+                    { start = { row = startRow, column = 1 }
+                    , end = fnRange.end
+                    }
+                    (Declaration.InfixDeclaration
+                        { direction = direction, precedence = precedence, operator = operator, function = fn }
+                    )
+            }
         )
         (CustomParser.keyword "infix")
-        |> CustomParser.keep CustomParser.getRow
-        |> CustomParser.keep Layout.maybeLayout
-        |> CustomParser.keep (Node.parserCore infixDirection)
-        |> CustomParser.keep Layout.maybeLayout
-        |> CustomParser.keep (Node.parserCore CustomParser.int)
-        |> CustomParser.keep Layout.maybeLayout
-        |> CustomParser.keep
-            (Node.parserCore
-                ((Tokens.parensStart
-                    |> CustomParser.Extra.continueWith Tokens.prefixOperatorToken
-                 )
-                    |> CustomParser.ignore Tokens.parensEnd
-                )
+        CustomParser.getRow
+        Layout.maybeLayout
+        (Node.parserCore infixDirection)
+        Layout.maybeLayout
+        (Node.parserCore CustomParser.int)
+        Layout.maybeLayout
+        (Node.parserCore
+            ((Tokens.parensStart
+                |> CustomParser.Extra.continueWith Tokens.prefixOperatorToken
+             )
+                |> CustomParser.ignore Tokens.parensEnd
             )
-        |> CustomParser.keep (Layout.maybeLayoutUntilIgnored CustomParser.token "=")
-        |> CustomParser.keep Layout.maybeLayout
-        |> CustomParser.keep (Node.parserCore Tokens.functionName)
+        )
+        (Layout.maybeLayoutUntilIgnored CustomParser.token "=")
+        Layout.maybeLayout
+        (Node.parserCore Tokens.functionName)
 
 
 infixDirection : CustomParser.Parser Infix.InfixDirection

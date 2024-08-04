@@ -120,25 +120,23 @@ escapedCharValue =
         , -- Eventhough Elm-format will change \r to a unicode version. When you dont use elm-format, this will not happen.
           CustomParser.map (\() -> '\u{000D}') (CustomParser.symbol "r")
         , CustomParser.map (\() -> '\\') (CustomParser.symbol "\\")
-        , CustomParser.map
-            (\() ->
-                \hex ->
-                    case String.toLower hex |> Hex.fromString of
-                        Ok n ->
-                            Char.fromCode n
+        , CustomParser.map3
+            (\() hex () ->
+                case String.toLower hex |> Hex.fromString of
+                    Ok n ->
+                        Char.fromCode n
 
-                        Err _ ->
-                            '\u{0000}'
+                    Err _ ->
+                        '\u{0000}'
             )
             (CustomParser.symbol "u{")
-            |> CustomParser.keep
-                (CustomParser.variable
-                    { inner = Char.isHexDigit
-                    , reserved = Set.empty
-                    , start = Char.isHexDigit
-                    }
-                )
-            |> CustomParser.ignore (CustomParser.symbol "}")
+            (CustomParser.variable
+                { inner = Char.isHexDigit
+                , reserved = Set.empty
+                , start = Char.isHexDigit
+                }
+            )
+            (CustomParser.symbol "}")
         ]
 
 

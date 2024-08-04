@@ -52,16 +52,13 @@ file =
 fileDeclarations : Parser (WithComments (List (Node Declaration)))
 fileDeclarations =
     ParserWithComments.many
-        (Layout.moduleLevelIndentationFollowedBy
-            (ParserFast.map2
-                (\declarationParsed commentsAfter ->
-                    { comments = declarationParsed.comments |> Rope.prependTo commentsAfter
-                    , syntax = declarationParsed.syntax
-                    }
-                )
-                declaration
-                Layout.optimisticLayout
+        (CustomParser.map3
+            (\() declarationParsed commentsAfter ->
+                { comments = declarationParsed.comments |> Rope.prependTo commentsAfter
+                , syntax = declarationParsed.syntax
+                }
             )
-            |> CustomParser.keep declaration
-            |> CustomParser.keep Layout.optimisticLayout
+            (Layout.moduleLevelIndentation ())
+            declaration
+            Layout.optimisticLayout
         )

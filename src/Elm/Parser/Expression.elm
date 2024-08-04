@@ -577,85 +577,76 @@ caseStatement =
 
 letExpression : Parser (WithComments (Node Expression))
 letExpression =
-    CustomParser.Extra.withIndent
-        (CustomParser.map3
-            (\() commentsAfterLet declarations ->
-                \commentsAfterIn ->
-                    \expressionResult ->
-                        let
-                            ((Node { end } _) as expr) =
-                                expressionResult.syntax
-                        in
-                        { comments =
-                            commentsAfterLet
-                                |> Rope.prependTo declarations.comments
-                                |> Rope.prependTo commentsAfterIn
-                                |> Rope.prependTo expressionResult.comments
-                        , end = end
-                        , expression = LetExpression { declarations = declarations.syntax, expression = expr }
-                        }
+    CustomParser.map4
+        (\declarations () commentsAfterIn expressionResult ->
+            let
+                ((Node { end } _) as expr) =
+                    expressionResult.syntax
+            in
+            { comments =
+                declarations.comments
+                    |> Rope.prependTo commentsAfterIn
+                    |> Rope.prependTo expressionResult.comments
+            , end = end
+            , expression = LetExpression { declarations = declarations.syntax, expression = expr }
+            }
+        )
+        (CustomParser.Extra.withIndent
+            (CustomParser.map3
+                (\() commentsAfterLet declarations ->
+                    { comments =
+                        commentsAfterLet
+                            |> Rope.prependTo declarations.comments
+                    , syntax = declarations.syntax
+                    }
+                )
+                Tokens.letToken
+                Layout.maybeLayout
+                (CustomParser.Extra.withIndent letDeclarationsIn)
             )
-            Tokens.letToken
-            Layout.maybeLayout
-            (CustomParser.Extra.withIndent letDeclarationsIn)
         )
         -- check that the `in` token used as the end parser in letDeclarationsIn is indented correctly
-        |> CustomParser.ignore (Layout.positivelyIndentedPlus 2)
-        |> CustomParser.keep Layout.maybeLayout
-        |> CustomParser.keep expression
+        (Layout.positivelyIndentedPlus 2)
+        Layout.maybeLayout
+        expression
 
 
 letDeclarationsIn : Parser (WithComments (List (Node LetDeclaration)))
 letDeclarationsIn =
-    Layout.onTopIndentationFollowedBy
-        (ParserFast.map3
-            (\headLetResult commentsAfter tailLetResult ->
-                { comments =
-                    headLetResult.comments
-                        |> Rope.prependTo commentsAfter
-                        |> Rope.prependTo tailLetResult.comments
-                , syntax = headLetResult.syntax :: tailLetResult.syntax
-                }
-            )
-            (ParserFast.oneOf2
-                letFunction
-                letDestructuringDeclaration
-            )
-            Layout.optimisticLayout
-            (ParserWithComments.until Tokens.inToken blockElement)
+    CustomParser.map4
+        (\() headLetResult commentsAfter tailLetResult ->
+            { comments =
+                headLetResult.comments
+                    |> Rope.prependTo commentsAfter
+                    |> Rope.prependTo tailLetResult.comments
+            , syntax = headLetResult.syntax :: tailLetResult.syntax
+            }
         )
-        |> CustomParser.keep
-            (CustomParser.oneOf
-                [ letFunction
-                , letDestructuringDeclaration
-                ]
-            )
-        |> CustomParser.keep Layout.optimisticLayout
-        |> CustomParser.keep (ParserWithComments.until Tokens.inToken blockElement)
+        (Layout.onTopIndentation ())
+        (CustomParser.oneOf
+            [ letFunction
+            , letDestructuringDeclaration
+            ]
+        )
+        Layout.optimisticLayout
+        (ParserWithComments.until Tokens.inToken blockElement)
 
 
 blockElement : Parser (WithComments (Node LetDeclaration))
 blockElement =
-    Layout.onTopIndentationFollowedBy
-        (ParserFast.map2
-            (\letDeclarationResult commentsAfter ->
-                { comments = letDeclarationResult.comments |> Rope.prependTo commentsAfter
-                , syntax = letDeclarationResult.syntax
-                }
-            )
-            (ParserFast.oneOf2
-                letFunction
-                letDestructuringDeclaration
-            )
-            Layout.optimisticLayout
+    CustomParser.map3
+        (\() letDeclarationResult commentsAfter ->
+            { comments = letDeclarationResult.comments |> Rope.prependTo commentsAfter
+            , syntax = letDeclarationResult.syntax
+            }
         )
-        |> CustomParser.keep
-            (CustomParser.oneOf
-                [ letFunction
-                , letDestructuringDeclaration
-                ]
-            )
-        |> CustomParser.keep Layout.optimisticLayout
+        (Layout.onTopIndentation ())
+        (CustomParser.oneOf
+            [ letFunction
+            , letDestructuringDeclaration
+            ]
+        )
+        Layout.optimisticLayout
 
 
 letDestructuringDeclaration : Parser (WithComments (Node LetDeclaration))
@@ -810,69 +801,51 @@ parameterPatternsEqual =
 
 numberExpression : Parser (WithComments (Node Expression))
 numberExpression =
-    Elm.Parser.Numbers.forgivingNumber
-        (\n ->
-            \end ->
-                { comments = Rope.empty
-                , end = end
-                , expression = Floatable n
-                }
+    CustomParser.map2
+        (\n end ->
+            { comments = Rope.empty
+            , end = end
+            , expression = n
+            }
         )
-        (\n ->
-            \end ->
-                { comments = Rope.empty
-                , end = end
-                , expression = Integer n
-                }
+        (Elm.Parser.Numbers.forgivingNumber
+            Floatable
+            Integer
+            Hex
         )
-        (\n ->
-            \end ->
-                { comments = Rope.empty
-                , end = end
-                , expression = Hex n
-                }
-        )
-        |> CustomParser.keep CustomParser.getPosition
+        CustomParser.getPosition
 
 
 ifBlockExpression : Parser (WithComments (Node Expression))
 ifBlockExpression =
-    CustomParser.map
-        (\() ->
-            \commentsAfterIf ->
-                \condition ->
-                    \commentsBeforeThen ->
-                        \commentsAfterThen ->
-                            \ifTrue ->
-                                \commentsBeforeElse ->
-                                    \commentsAfterElse ->
-                                        \ifFalse ->
-                                            let
-                                                (Node { end } _) =
-                                                    ifFalse.syntax
-                                            in
-                                            { comments =
-                                                commentsAfterIf
-                                                    |> Rope.prependTo condition.comments
-                                                    |> Rope.prependTo commentsBeforeThen
-                                                    |> Rope.prependTo commentsAfterThen
-                                                    |> Rope.prependTo ifTrue.comments
-                                                    |> Rope.prependTo commentsBeforeElse
-                                                    |> Rope.prependTo commentsAfterElse
-                                                    |> Rope.prependTo ifFalse.comments
-                                            , end = end
-                                            , expression = IfBlock condition.syntax ifTrue.syntax ifFalse.syntax
-                                            }
+    CustomParser.map9
+        (\() commentsAfterIf condition commentsBeforeThen commentsAfterThen ifTrue commentsBeforeElse commentsAfterElse ifFalse ->
+            let
+                (Node { end } _) =
+                    ifFalse.syntax
+            in
+            { comments =
+                commentsAfterIf
+                    |> Rope.prependTo condition.comments
+                    |> Rope.prependTo commentsBeforeThen
+                    |> Rope.prependTo commentsAfterThen
+                    |> Rope.prependTo ifTrue.comments
+                    |> Rope.prependTo commentsBeforeElse
+                    |> Rope.prependTo commentsAfterElse
+                    |> Rope.prependTo ifFalse.comments
+            , end = end
+            , expression = IfBlock condition.syntax ifTrue.syntax ifFalse.syntax
+            }
         )
         Tokens.ifToken
-        |> CustomParser.keep Layout.maybeLayout
-        |> CustomParser.keep expression
-        |> CustomParser.keep (Layout.maybeLayoutUntilIgnored CustomParser.keyword "then")
-        |> CustomParser.keep Layout.maybeLayout
-        |> CustomParser.keep expression
-        |> CustomParser.keep (Layout.maybeLayoutUntilIgnored CustomParser.keyword "else")
-        |> CustomParser.keep Layout.maybeLayout
-        |> CustomParser.keep expression
+        Layout.maybeLayout
+        expression
+        (Layout.maybeLayoutUntilIgnored CustomParser.keyword "then")
+        Layout.maybeLayout
+        expression
+        (Layout.maybeLayoutUntilIgnored CustomParser.keyword "else")
+        Layout.maybeLayout
+        expression
 
 
 negationOperation : Parser { comments : Comments, end : Location, expression : Expression }
