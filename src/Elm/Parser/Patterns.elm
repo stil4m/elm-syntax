@@ -53,24 +53,23 @@ composablePatternTryToCompose =
 maybeComposedWith : Parser { comments : ParserWithComments.Comments, syntax : PatternComposedWith }
 maybeComposedWith =
     CustomParser.oneOf
-        [ CustomParser.map
+        [ CustomParser.map4
             (\() ->
                 \commentsAfterAs ->
-                    \( nameStartRow, nameStartColumn ) ->
+                    \nameStart ->
                         \name ->
                             { comments = commentsAfterAs
                             , syntax =
                                 PatternComposedWithAs
-                                    (Node.singleLineStringFrom
-                                        { row = nameStartRow, column = nameStartColumn }
+                                    (Node.singleLineStringFrom nameStart
                                         name
                                     )
                             }
             )
             Tokens.asToken
-            |> CustomParser.keep Layout.maybeLayout
-            |> CustomParser.keep CustomParser.getPosition
-            |> CustomParser.keep Tokens.functionName
+            Layout.maybeLayout
+            CustomParser.getPosition
+            Tokens.functionName
         , CustomParser.map
             (\() ->
                 \commentsAfterCons ->
@@ -363,7 +362,7 @@ recordPattern =
         |> CustomParser.keep
             (CustomParser.oneOf
                 [ CustomParser.map
-                    (\( headStartRow, headStartEnd ) ->
+                    (\headStart ->
                         \head ->
                             \commentsAfterHead ->
                                 \tail ->
@@ -373,7 +372,7 @@ recordPattern =
                                                 |> Rope.prependTo tail.comments
                                         , syntax =
                                             Node.singleLineStringFrom
-                                                { row = headStartRow, column = headStartEnd }
+                                                headStart
                                                 head
                                                 :: tail.syntax
                                         }
@@ -386,13 +385,12 @@ recordPattern =
                             (CustomParser.map
                                 (\() ->
                                     \beforeName ->
-                                        \( nameStartRow, nameStartColumn ) ->
+                                        \nameStart ->
                                             \name ->
                                                 \afterName ->
                                                     { comments = beforeName |> Rope.prependTo afterName
                                                     , syntax =
-                                                        Node.singleLineStringFrom
-                                                            { row = nameStartRow, column = nameStartColumn }
+                                                        Node.singleLineStringFrom nameStart
                                                             name
                                                     }
                                 )

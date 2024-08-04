@@ -24,92 +24,73 @@ singleLineStringFrom start string =
 
 parserMapWithComments : (WithComments (Node a) -> b) -> Parser (WithComments a) -> Parser b
 parserMapWithComments valueNodeChange p =
-    CustomParser.map
-        (\( startRow, startColumn ) v ( endRow, endColumn ) ->
+    CustomParser.map3
+        (\start v end ->
             { comments = v.comments
             , syntax =
                 Node
-                    { start = { row = startRow, column = startColumn }
-                    , end = { row = endRow, column = endColumn }
+                    { start = start
+                    , end = end
                     }
                     v.syntax
             }
                 |> valueNodeChange
         )
         CustomParser.getPosition
-        |> CustomParser.keep p
-        |> CustomParser.keep CustomParser.getPosition
+        p
+        CustomParser.getPosition
 
 
 parserMap : (Node a -> b) -> Parser (WithComments a) -> Parser (WithComments b)
 parserMap valueNodeChange p =
-    CustomParser.map
-        (\( startRow, startColumn ) v ( endRow, endColumn ) ->
+    CustomParser.map3
+        (\start v end ->
             { comments = v.comments
             , syntax =
-                Node
-                    { start = { row = startRow, column = startColumn }
-                    , end = { row = endRow, column = endColumn }
-                    }
+                Node { start = start, end = end }
                     v.syntax
                     |> valueNodeChange
             }
         )
         CustomParser.getPosition
-        |> CustomParser.keep p
-        |> CustomParser.keep CustomParser.getPosition
+        p
+        CustomParser.getPosition
 
 
 parser : Parser (WithComments a) -> Parser (WithComments (Node a))
 parser p =
-    CustomParser.map
-        (\( startRow, startColumn ) v ( endRow, endColumn ) ->
+    CustomParser.map3
+        (\start v end ->
             { comments = v.comments
             , syntax =
-                Node
-                    { start = { row = startRow, column = startColumn }
-                    , end = { row = endRow, column = endColumn }
-                    }
-                    v.syntax
+                Node { start = start, end = end } v.syntax
             }
         )
         CustomParser.getPosition
-        |> CustomParser.keep p
-        |> CustomParser.keep CustomParser.getPosition
+        p
+        CustomParser.getPosition
 
 
 {-| Internally saves 1 CustomParser.map compared to parserCore |> CustomParser.map
 -}
 parserCoreMap : (Node a -> b) -> CustomParser.Parser a -> CustomParser.Parser b
 parserCoreMap valueNodeChange p =
-    CustomParser.map
-        (\( startRow, startColumn ) ->
-            \v ->
-                \( endRow, endColumn ) ->
-                    Node
-                        { start = { row = startRow, column = startColumn }
-                        , end = { row = endRow, column = endColumn }
-                        }
-                        v
-                        |> valueNodeChange
+    CustomParser.map3
+        (\start v end ->
+            Node { start = start, end = end } v
+                |> valueNodeChange
         )
         CustomParser.getPosition
-        |> CustomParser.keep p
-        |> CustomParser.keep CustomParser.getPosition
+        p
+        CustomParser.getPosition
 
 
 parserCore : CustomParser.Parser a -> CustomParser.Parser (Node a)
 parserCore p =
-    CustomParser.map
-        (\( startRow, startColumn ) ->
-            \v ->
-                \( endRow, endColumn ) ->
-                    Node
-                        { start = { row = startRow, column = startColumn }
-                        , end = { row = endRow, column = endColumn }
-                        }
-                        v
+    CustomParser.map3
+        (\start v end ->
+            Node { start = start, end = end } v
         )
         CustomParser.getPosition
-        |> CustomParser.keep p
-        |> CustomParser.keep CustomParser.getPosition
+        p
+        CustomParser.getPosition

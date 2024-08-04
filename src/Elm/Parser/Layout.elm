@@ -34,24 +34,21 @@ whitespaceAndCommentsUntilEndComments end =
     let
         fromSingleLineCommentUntilEnd : Parser Comments
         fromSingleLineCommentUntilEnd =
-            CustomParser.map
-                (\startColumn ->
-                    \content ->
-                        \( endRow, endColumn ) ->
-                            \commentsAfter ->
-                                Rope.one
-                                    (Node
-                                        { start = { row = endRow, column = startColumn }
-                                        , end = { row = endRow, column = endColumn }
-                                        }
-                                        content
-                                    )
-                                    |> Rope.filledPrependTo commentsAfter
+            CustomParser.map4
+                (\startColumn content endLocation commentsAfter ->
+                    Rope.one
+                        (Node
+                            { start = { row = endLocation.row, column = startColumn }
+                            , end = endLocation
+                            }
+                            content
+                        )
+                        |> Rope.filledPrependTo commentsAfter
                 )
                 CustomParser.getCol
-                |> CustomParser.keep Comments.singleLineCommentCore
-                |> CustomParser.keep CustomParser.getPosition
-                |> CustomParser.keep (CustomParser.lazy (\() -> whitespaceAndCommentsUntilEndComments end))
+                Comments.singleLineCommentCore
+                CustomParser.getPosition
+                (CustomParser.lazy (\() -> whitespaceAndCommentsUntilEndComments end))
 
         fromMultilineCommentNodeUntilEnd : Parser Comments
         fromMultilineCommentNodeUntilEnd =
@@ -146,24 +143,21 @@ fromMultilineCommentNode =
 
 fromSingleLineCommentNode : Parser Comments
 fromSingleLineCommentNode =
-    CustomParser.map
-        (\startColumn ->
-            \content ->
-                \( endRow, endColumn ) ->
-                    \commentsAfter ->
-                        Rope.one
-                            (Node
-                                { start = { row = endRow, column = startColumn }
-                                , end = { row = endRow, column = endColumn }
-                                }
-                                content
-                            )
-                            |> Rope.filledPrependTo commentsAfter
+    CustomParser.map4
+        (\startColumn content end commentsAfter ->
+            Rope.one
+                (Node
+                    { start = { row = end.row, column = startColumn }
+                    , end = end
+                    }
+                    content
+                )
+                |> Rope.filledPrependTo commentsAfter
         )
         CustomParser.getCol
-        |> CustomParser.keep Comments.singleLineCommentCore
-        |> CustomParser.keep CustomParser.getPosition
-        |> CustomParser.keep whitespaceAndCommentsOrEmpty
+        Comments.singleLineCommentCore
+        CustomParser.getPosition
+        whitespaceAndCommentsOrEmpty
 
 
 maybeLayout : Parser Comments
