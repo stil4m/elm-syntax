@@ -316,28 +316,24 @@ maybeDotTypeNamesTuple =
 typedTypeAnnotationWithArguments : Parser (WithComments TypeAnnotation)
 typedTypeAnnotationWithArguments =
     CustomParser.map5
-        (\nameStart ->
-            \startName ->
-                \afterStartName ->
-                    \nameEndColumn ->
-                        \args ->
-                            { comments = args.comments
-                            , syntax =
-                                TypeAnnotation.Typed
-                                    (Node
-                                        { start = nameStart
-                                        , end = { row = nameStart.row, column = nameEndColumn }
-                                        }
-                                        (case afterStartName of
-                                            Nothing ->
-                                                ( [], startName )
+        (\nameStart startName afterStartName nameEndColumn args ->
+            { comments = args.comments
+            , syntax =
+                TypeAnnotation.Typed
+                    (Node
+                        { start = nameStart
+                        , end = { row = nameStart.row, column = nameEndColumn }
+                        }
+                        (case afterStartName of
+                            Nothing ->
+                                ( [], startName )
 
-                                            Just ( qualificationAfterStartName, unqualified ) ->
-                                                ( startName :: qualificationAfterStartName, unqualified )
-                                        )
-                                    )
-                                    args.syntax
-                            }
+                            Just ( qualificationAfterStartName, unqualified ) ->
+                                ( startName :: qualificationAfterStartName, unqualified )
+                        )
+                    )
+                    args.syntax
+            }
         )
         CustomParser.getPosition
         Tokens.typeName
@@ -345,11 +341,10 @@ typedTypeAnnotationWithArguments =
         CustomParser.getCol
         (ParserWithComments.many
             (CustomParser.map2
-                (\commentsBefore ->
-                    \typeAnnotationResult ->
-                        { comments = commentsBefore |> Rope.prependTo typeAnnotationResult.comments
-                        , syntax = typeAnnotationResult.syntax
-                        }
+                (\commentsBefore typeAnnotationResult ->
+                    { comments = commentsBefore |> Rope.prependTo typeAnnotationResult.comments
+                    , syntax = typeAnnotationResult.syntax
+                    }
                 )
                 (Layout.maybeLayout |> CustomParser.backtrackable)
                 typeAnnotationNoFnExcludingTypedWithArguments
