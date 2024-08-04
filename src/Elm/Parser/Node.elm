@@ -25,16 +25,18 @@ singleLineStringFrom start string =
 parserMapWithComments : (WithComments (Node a) -> b) -> Parser (WithComments a) -> Parser b
 parserMapWithComments valueNodeChange p =
     Parser.map
-        (\( startRow, startColumn ) v ( endRow, endColumn ) ->
-            { comments = v.comments
-            , syntax =
-                Node
-                    { start = { row = startRow, column = startColumn }
-                    , end = { row = endRow, column = endColumn }
+        (\( startRow, startColumn ) ->
+            \v ->
+                \( endRow, endColumn ) ->
+                    { comments = v.comments
+                    , syntax =
+                        Node
+                            { start = { row = startRow, column = startColumn }
+                            , end = { row = endRow, column = endColumn }
+                            }
+                            v.syntax
                     }
-                    v.syntax
-            }
-                |> valueNodeChange
+                        |> valueNodeChange
         )
         Parser.getPosition
         |= p
@@ -44,16 +46,18 @@ parserMapWithComments valueNodeChange p =
 parserMap : (Node a -> b) -> Parser (WithComments a) -> Parser (WithComments b)
 parserMap valueNodeChange p =
     Parser.map
-        (\( startRow, startColumn ) v ( endRow, endColumn ) ->
-            { comments = v.comments
-            , syntax =
-                Node
-                    { start = { row = startRow, column = startColumn }
-                    , end = { row = endRow, column = endColumn }
+        (\( startRow, startColumn ) ->
+            \v ->
+                \( endRow, endColumn ) ->
+                    { comments = v.comments
+                    , syntax =
+                        Node
+                            { start = { row = startRow, column = startColumn }
+                            , end = { row = endRow, column = endColumn }
+                            }
+                            v.syntax
+                            |> valueNodeChange
                     }
-                    v.syntax
-                    |> valueNodeChange
-            }
         )
         Parser.getPosition
         |= p
@@ -63,15 +67,17 @@ parserMap valueNodeChange p =
 parser : Parser (WithComments a) -> Parser (WithComments (Node a))
 parser p =
     Parser.map
-        (\( startRow, startColumn ) v ( endRow, endColumn ) ->
-            { comments = v.comments
-            , syntax =
-                Node
-                    { start = { row = startRow, column = startColumn }
-                    , end = { row = endRow, column = endColumn }
+        (\( startRow, startColumn ) ->
+            \v ->
+                \( endRow, endColumn ) ->
+                    { comments = v.comments
+                    , syntax =
+                        Node
+                            { start = { row = startRow, column = startColumn }
+                            , end = { row = endRow, column = endColumn }
+                            }
+                            v.syntax
                     }
-                    v.syntax
-            }
         )
         Parser.getPosition
         |= p
