@@ -52,13 +52,12 @@ whitespaceAndCommentsUntilEndComments end =
 
         fromMultilineCommentNodeUntilEnd : Parser Comments
         fromMultilineCommentNodeUntilEnd =
-            Node.parserCoreMap
-                (\comment ->
-                    \commentsAfter ->
-                        Rope.one comment |> Rope.filledPrependTo commentsAfter
+            CustomParser.map2
+                (\comment commentsAfter ->
+                    Rope.one comment |> Rope.filledPrependTo commentsAfter
                 )
-                Comments.multilineCommentString
-                |> CustomParser.keep (CustomParser.lazy (\() -> whitespaceAndCommentsUntilEndComments end))
+                (Node.parserCore Comments.multilineCommentString)
+                (CustomParser.lazy (\() -> whitespaceAndCommentsUntilEndComments end))
 
         endOrFromCommentElseEmptyThenEnd : Parser Comments
         endOrFromCommentElseEmptyThenEnd =
@@ -132,13 +131,13 @@ fromMultilineCommentNodeOrEmptyOnProblem =
 
 fromMultilineCommentNode : Parser Comments
 fromMultilineCommentNode =
-    Node.parserCoreMap
+    CustomParser.map2
         (\comment ->
             \commentsAfter ->
                 Rope.one comment |> Rope.filledPrependTo commentsAfter
         )
-        Comments.multilineCommentString
-        |> CustomParser.keep whitespaceAndCommentsOrEmpty
+        (Node.parserCore Comments.multilineCommentString)
+        whitespaceAndCommentsOrEmpty
 
 
 fromSingleLineCommentNode : Parser Comments
