@@ -1030,8 +1030,8 @@ subExpressionMap toExtensionRightWith aboveCurrentPrecedenceLayout =
                     )
                     aboveCurrentPrecedenceLayout
                     Layout.optimisticLayout
-                , CustomParser.succeed
-                    (CustomParser.Advanced.Done (toExtensionRightWith leftExpressionResult))
+                , CustomParser.succeedLazy
+                    (\() -> CustomParser.Advanced.Done (toExtensionRightWith leftExpressionResult))
                 ]
     in
     CustomParser.map3

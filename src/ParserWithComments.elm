@@ -78,14 +78,12 @@ many p =
                             )
                     )
                     p
-                , CustomParser.lazy
+                , CustomParser.succeedLazy
                     (\() ->
-                        CustomParser.succeed
-                            (CustomParser.Advanced.Done
-                                { comments = commentsSoFar
-                                , syntax = List.reverse itemsSoFar
-                                }
-                            )
+                        CustomParser.Advanced.Done
+                            { comments = commentsSoFar
+                            , syntax = List.reverse itemsSoFar
+                            }
                     )
                 ]
     in

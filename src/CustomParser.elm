@@ -1,7 +1,7 @@
 module CustomParser exposing
     ( Parser, DeadEnd, Problem(..), run
     , int, number, symbol, keyword, variable, end
-    , succeed, problem, lazy, map, map2, map3, map4, map5, map6, map7, map8, map9, map10, map11, ignore, andThen
+    , succeed, problem, succeedLazy, lazy, map, map2, map3, map4, map5, map6, map7, map8, map9, map10, map11, ignore, andThen
     , oneOf, backtrackable, commit, token
     , nestableMultiComment
     , getChompedString, chompIf, chompWhile, mapChompedString
@@ -18,7 +18,7 @@ module CustomParser exposing
 
 # Flow
 
-@docs succeed, problem, lazy, map, map2, map3, map4, map5, map6, map7, map8, map9, map10, map11, ignore, andThen
+@docs succeed, problem, succeedLazy, lazy, map, map2, map3, map4, map5, map6, map7, map8, map9, map10, map11, ignore, andThen
 
 @docs oneOf, backtrackable, commit, token
 
@@ -153,6 +153,11 @@ functions.
 succeed : a -> Parser a
 succeed =
     A.succeed
+
+
+succeedLazy : (() -> a) -> Parser a
+succeedLazy =
+    A.succeedLazy
 
 
 {-| **Skip** values in a parser pipeline. For example, maybe we want to parse
@@ -585,10 +590,6 @@ operator it is afterwards.
 symbol : String -> Parser ()
 symbol str =
     A.symbol (A.Token str (ExpectingSymbol str))
-
-
-
--- KEYWORD
 
 
 {-| Parse keywords like `let`, `case`, and `type`.
