@@ -1,12 +1,12 @@
 module Elm.Parser.Expose exposing (exposeDefinition)
 
+import CustomParser exposing (Parser )
+import CustomParser.Extra
 import Elm.Parser.Layout as Layout
 import Elm.Parser.Node as Node
 import Elm.Parser.Tokens as Tokens
 import Elm.Syntax.Exposing exposing (Exposing(..), TopLevelExpose(..))
 import Elm.Syntax.Node exposing (Node(..))
-import Parser exposing ((|.), (|=), Parser)
-import Parser.Extra
 import ParserWithComments exposing (WithComments)
 import Rope
 import Set
@@ -14,7 +14,7 @@ import Set
 
 exposeDefinition : Parser (WithComments Exposing)
 exposeDefinition =
-    Parser.map
+    CustomParser.map
         (\() ->
             \commentsAfterExposing ->
                 \commentsBefore ->
@@ -27,16 +27,16 @@ exposeDefinition =
                         }
         )
         Tokens.exposingToken
-        |= Layout.maybeLayoutUntilIgnored Parser.token "("
-        |= Layout.optimisticLayout
-        |= exposingListInner
-        |. Tokens.parensEnd
+        |> CustomParser.keep (Layout.maybeLayoutUntilIgnored CustomParser.token "(")
+        |> CustomParser.keep Layout.optimisticLayout
+        |> CustomParser.keep exposingListInner
+        |> CustomParser.ignore Tokens.parensEnd
 
 
 exposingListInner : Parser (WithComments Exposing)
 exposingListInner =
-    Parser.oneOf
-        [ Parser.map
+    CustomParser.oneOf
+        [ CustomParser.map
             (\( headStartRow, headStartColumn ) ->
                 \headElement ->
                     \( headEndRow, headEndColumn ) ->
@@ -57,16 +57,18 @@ exposingListInner =
                                         )
                                 }
             )
-            Parser.getPosition
-            |= exposable
-            |= Parser.getPosition
-            |= Layout.maybeLayout
-            |= ParserWithComments.many
-                (Tokens.comma
-                    |> Parser.Extra.continueWith
-                        (Layout.maybeAroundBothSides (exposable |> Node.parser))
+            CustomParser.getPosition
+            |> CustomParser.keep exposable
+            |> CustomParser.keep CustomParser.getPosition
+            |> CustomParser.keep Layout.maybeLayout
+            |> CustomParser.keep
+                (ParserWithComments.many
+                    (Tokens.comma
+                        |> CustomParser.Extra.continueWith
+                            (Layout.maybeAroundBothSides (exposable |> Node.parser))
+                    )
                 )
-        , Parser.map
+        , CustomParser.map
             (\( startRow, startColumn ) ->
                 \commentsAfterDotDot ->
                     \( endRow, endColumn ) ->
@@ -78,38 +80,40 @@ exposingListInner =
                                 }
                         }
             )
-            Parser.getPosition
-            |. Tokens.dotDot
-            |= Layout.maybeLayout
-            |= Parser.getPosition
+            CustomParser.getPosition
+            |> CustomParser.ignore Tokens.dotDot
+            |> CustomParser.keep Layout.maybeLayout
+            |> CustomParser.keep CustomParser.getPosition
         ]
 
 
 exposable : Parser (WithComments TopLevelExpose)
 exposable =
-    Parser.oneOf
+    CustomParser.oneOf
         [ functionExpose
         , typeExpose
         , infixExpose
         ]
 
 
-infixExpose : Parser.Parser (WithComments TopLevelExpose)
+infixExpose : CustomParser.Parser (WithComments TopLevelExpose)
 infixExpose =
-    (Parser.map (\() -> \infixName -> { comments = Rope.empty, syntax = InfixExpose infixName })
+    (CustomParser.map (\() -> \infixName -> { comments = Rope.empty, syntax = InfixExpose infixName })
         Tokens.parensStart
-        |= Parser.variable
-            { inner = \c -> c /= ')'
-            , reserved = Set.empty
-            , start = \c -> c /= ')'
-            }
+        |> CustomParser.keep
+            (CustomParser.variable
+                { inner = \c -> c /= ')'
+                , reserved = Set.empty
+                , start = \c -> c /= ')'
+                }
+            )
     )
-        |. Tokens.parensEnd
+        |> CustomParser.ignore Tokens.parensEnd
 
 
 typeExpose : Parser (WithComments TopLevelExpose)
 typeExpose =
-    Parser.map
+    CustomParser.map
         (\typeName ->
             \open ->
                 case open of
@@ -123,32 +127,34 @@ typeExpose =
                         }
         )
         Tokens.typeName
-        |= Parser.oneOf
-            [ Parser.map
-                (\commentsBefore ->
-                    \( startRow, startColumn ) ->
-                        \left ->
-                            \right ->
-                                \( endRow, endColumn ) ->
-                                    Just
-                                        { comments = commentsBefore |> Rope.prependTo left |> Rope.prependTo right
-                                        , syntax =
-                                            { start = { row = startRow, column = startColumn }
-                                            , end = { row = endRow, column = endColumn }
+        |> CustomParser.keep
+            (CustomParser.oneOf
+                [ CustomParser.map
+                    (\commentsBefore ->
+                        \( startRow, startColumn ) ->
+                            \left ->
+                                \right ->
+                                    \( endRow, endColumn ) ->
+                                        Just
+                                            { comments = commentsBefore |> Rope.prependTo left |> Rope.prependTo right
+                                            , syntax =
+                                                { start = { row = startRow, column = startColumn }
+                                                , end = { row = endRow, column = endColumn }
+                                                }
                                             }
-                                        }
-                )
-                (Layout.maybeLayout |> Parser.backtrackable)
-                |= Parser.getPosition
-                |. Tokens.parensStart
-                |= Layout.maybeLayoutUntilIgnored Parser.token ".."
-                |= Layout.maybeLayoutUntilIgnored Parser.token ")"
-                |= Parser.getPosition
-            , Parser.succeed Nothing
-            ]
+                    )
+                    (Layout.maybeLayout |> CustomParser.backtrackable)
+                    |> CustomParser.keep CustomParser.getPosition
+                    |> CustomParser.ignore Tokens.parensStart
+                    |> CustomParser.keep (Layout.maybeLayoutUntilIgnored CustomParser.token "..")
+                    |> CustomParser.keep (Layout.maybeLayoutUntilIgnored CustomParser.token ")")
+                    |> CustomParser.keep CustomParser.getPosition
+                , CustomParser.succeed Nothing
+                ]
+            )
 
 
 functionExpose : Parser (WithComments TopLevelExpose)
 functionExpose =
-    Parser.map (\name -> { comments = Rope.empty, syntax = FunctionExpose name })
+    CustomParser.map (\name -> { comments = Rope.empty, syntax = FunctionExpose name })
         Tokens.functionName

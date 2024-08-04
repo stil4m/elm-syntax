@@ -1,14 +1,14 @@
 module Elm.Parser.Base exposing (moduleName)
 
+import CustomParser
 import Elm.Parser.Tokens as Tokens
 import Elm.Syntax.ModuleName exposing (ModuleName)
 import Elm.Syntax.Node exposing (Node(..))
-import Parser exposing ((|=))
 
 
-moduleName : Parser.Parser (Node ModuleName)
+moduleName : CustomParser.Parser (Node ModuleName)
 moduleName =
-    Parser.map
+    CustomParser.map
         (\( startRow, startColumn ) ->
             \head ->
                 \tail ->
@@ -19,17 +19,17 @@ moduleName =
                             }
                             (head :: tail)
         )
-        Parser.getPosition
-        |= Tokens.typeName
-        |= moduleNameOrEmpty
-        |= Parser.getCol
+        CustomParser.getPosition
+        |> CustomParser.keep Tokens.typeName
+        |> CustomParser.keep moduleNameOrEmpty
+        |> CustomParser.keep CustomParser.getCol
 
 
-moduleNameOrEmpty : Parser.Parser ModuleName
+moduleNameOrEmpty : CustomParser.Parser ModuleName
 moduleNameOrEmpty =
-    Parser.oneOf
-        [ Parser.map (\() -> \head -> \tail -> head :: tail) Tokens.dot
-            |= Tokens.typeName
-            |= Parser.lazy (\() -> moduleNameOrEmpty)
-        , Parser.succeed []
+    CustomParser.oneOf
+        [ CustomParser.map (\() -> \head -> \tail -> head :: tail) Tokens.dot
+            |> CustomParser.keep Tokens.typeName
+            |> CustomParser.keep (CustomParser.lazy (\() -> moduleNameOrEmpty))
+        , CustomParser.succeed []
         ]

@@ -1,5 +1,6 @@
 module Elm.Parser.LayoutTests exposing (all)
 
+import CustomParser
 import Elm.Parser.Layout as Layout
 import Elm.Parser.ParserWithCommentsTestUtil exposing (parseWithState)
 import Expect
@@ -13,7 +14,7 @@ all =
     describe "LayoutTests"
         [ test "empty" <|
             \() ->
-                parse "" (Parser.withIndent 0 Layout.maybeLayout)
+                parse "" (CustomParser.withIndent 0 Layout.maybeLayout)
                     |> Expect.equal (Just ())
         , test "just whitespace" <|
             \() ->
@@ -90,14 +91,14 @@ all =
         ]
 
 
-setIndent : Int -> Parser a -> Parser a
+setIndent : Int -> CustomParser.Parser a -> CustomParser.Parser a
 setIndent x p =
-    Parser.withIndent (x + 1)
+    CustomParser.withIndent (x + 1)
         p
 
 
-parse : String -> Parser Comments -> Maybe ()
+parse : String -> CustomParser.Parser Comments -> Maybe ()
 parse source parser =
     parseWithState source
-        (parser |> Parser.map (\c -> { comments = c, syntax = () }))
+        (parser |> CustomParser.map (\c -> { comments = c, syntax = () }))
         |> Maybe.map .syntax

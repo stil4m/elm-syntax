@@ -12,12 +12,12 @@ all =
     describe "BaseTest"
         [ test "moduleName" <|
             \() ->
-                TestUtil.parse "Foo" Parser.moduleName
-                    |> Maybe.map Node.value
-                    |> Expect.equal (Just [ "Foo" ])
+                TestUtil.parseToResult "Foo" Parser.moduleName
+                    |> Result.map Node.value
+                    |> Expect.equal (Ok [ "Foo" ])
         , test "moduleNameDir" <|
             \() ->
-                TestUtil.parse "Foo.Bar" Parser.moduleName
-                    |> Maybe.map Node.value
-                    |> Expect.equal (Just [ "Foo", "Bar" ])
+                TestUtil.parseToResult "Foo.Bar" Parser.moduleName
+                    |> Result.map Node.value
+                    |> Expect.equal (Ok [ "Foo", "Bar" ])
         ]
