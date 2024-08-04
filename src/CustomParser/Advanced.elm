@@ -1,7 +1,7 @@
 module CustomParser.Advanced exposing
     ( Parser, run, DeadEnd, Token(..)
     , number, symbol, keyword, variable, end
-    , map, map2, succeed, keep, ignore, lazy, andThen, problem
+    , map, map2, map3, map4, map5, map6, succeed, keep, ignore, lazy, andThen, problem
     , oneOf, backtrackable, commit, token
     , loop, Step(..)
     , nestableMultiComment
@@ -19,7 +19,7 @@ module CustomParser.Advanced exposing
 
 # Flow
 
-@docs map, map2, succeed, keep, ignore, lazy, andThen, problem
+@docs map, map2, map3, map4, map5, map6, succeed, keep, ignore, lazy, andThen, problem
 
 @docs oneOf, backtrackable, commit, token
 
@@ -203,20 +203,21 @@ problem x =
 
 map : (a -> b) -> Parser x a -> Parser x b
 map func (Parser parse) =
-    Parser <|
-        \s0 ->
+    Parser
+        (\s0 ->
             case parse s0 of
                 Good p a s1 ->
                     Good p (func a) s1
 
                 Bad p x ->
                     Bad p x
+        )
 
 
 map2 : (a -> b -> value) -> Parser x a -> Parser x b -> Parser x value
 map2 func (Parser parseA) (Parser parseB) =
-    Parser <|
-        \s0 ->
+    Parser
+        (\s0 ->
             case parseA s0 of
                 Bad p x ->
                     Bad p x
@@ -228,6 +229,129 @@ map2 func (Parser parseA) (Parser parseB) =
 
                         Good p2 b s2 ->
                             Good (p1 || p2) (func a b) s2
+        )
+
+
+map3 : (a -> b -> c -> value) -> Parser x a -> Parser x b -> Parser x c -> Parser x value
+map3 func (Parser parseA) (Parser parseB) (Parser parseC) =
+    Parser
+        (\s0 ->
+            case parseA s0 of
+                Bad p x ->
+                    Bad p x
+
+                Good p1 a s1 ->
+                    case parseB s1 of
+                        Bad p2 x ->
+                            Bad (p1 || p2) x
+
+                        Good p2 b s2 ->
+                            case parseC s2 of
+                                Bad p3 x ->
+                                    Bad (p1 || p2 || p3) x
+
+                                Good p3 c s3 ->
+                                    Good (p1 || p2 || p3) (func a b c) s3
+        )
+
+
+map4 : (a -> b -> c -> d -> value) -> Parser x a -> Parser x b -> Parser x c -> Parser x d -> Parser x value
+map4 func (Parser parseA) (Parser parseB) (Parser parseC) (Parser parseD) =
+    Parser
+        (\s0 ->
+            case parseA s0 of
+                Bad p x ->
+                    Bad p x
+
+                Good p1 a s1 ->
+                    case parseB s1 of
+                        Bad p2 x ->
+                            Bad (p1 || p2) x
+
+                        Good p2 b s2 ->
+                            case parseC s2 of
+                                Bad p3 x ->
+                                    Bad (p1 || p2 || p3) x
+
+                                Good p3 c s3 ->
+                                    case parseD s3 of
+                                        Bad p4 x ->
+                                            Bad (p1 || p2 || p3 || p4) x
+
+                                        Good p4 d s4 ->
+                                            Good (p1 || p2 || p3 || p4) (func a b c d) s4
+        )
+
+
+map5 : (a -> b -> c -> d -> e -> value) -> Parser x a -> Parser x b -> Parser x c -> Parser x d -> Parser x e -> Parser x value
+map5 func (Parser parseA) (Parser parseB) (Parser parseC) (Parser parseD) (Parser parseE) =
+    Parser
+        (\s0 ->
+            case parseA s0 of
+                Bad p x ->
+                    Bad p x
+
+                Good p1 a s1 ->
+                    case parseB s1 of
+                        Bad p2 x ->
+                            Bad (p1 || p2) x
+
+                        Good p2 b s2 ->
+                            case parseC s2 of
+                                Bad p3 x ->
+                                    Bad (p1 || p2 || p3) x
+
+                                Good p3 c s3 ->
+                                    case parseD s3 of
+                                        Bad p4 x ->
+                                            Bad (p1 || p2 || p3 || p4) x
+
+                                        Good p4 d s4 ->
+                                            case parseE s4 of
+                                                Bad p5 x ->
+                                                    Bad (p1 || p2 || p3 || p4 || p5) x
+
+                                                Good p5 e s5 ->
+                                                    Good (p1 || p2 || p3 || p4 || p5) (func a b c d e) s5
+        )
+
+
+map6 : (a -> b -> c -> d -> e -> f -> value) -> Parser x a -> Parser x b -> Parser x c -> Parser x d -> Parser x e -> Parser x f -> Parser x value
+map6 func (Parser parseA) (Parser parseB) (Parser parseC) (Parser parseD) (Parser parseE) (Parser parseF) =
+    Parser
+        (\s0 ->
+            case parseA s0 of
+                Bad p x ->
+                    Bad p x
+
+                Good p1 a s1 ->
+                    case parseB s1 of
+                        Bad p2 x ->
+                            Bad (p1 || p2) x
+
+                        Good p2 b s2 ->
+                            case parseC s2 of
+                                Bad p3 x ->
+                                    Bad (p1 || p2 || p3) x
+
+                                Good p3 c s3 ->
+                                    case parseD s3 of
+                                        Bad p4 x ->
+                                            Bad (p1 || p2 || p3 || p4) x
+
+                                        Good p4 d s4 ->
+                                            case parseE s4 of
+                                                Bad p5 x ->
+                                                    Bad (p1 || p2 || p3 || p4 || p5) x
+
+                                                Good p5 e s5 ->
+                                                    case parseF s5 of
+                                                        Bad p6 x ->
+                                                            Bad (p1 || p2 || p3 || p4 || p5 || p6) x
+
+                                                        Good p6 f s6 ->
+                                                            Good (p1 || p2 || p3 || p4 || p5 || p6) (func a b c d e f) s6
+        )
 
 
 keep : Parser x (a -> b) -> Parser x a -> Parser x b
@@ -751,14 +875,14 @@ changeIndent newIndent s =
     }
 
 
-getPosition : Parser x ( Int, Int )
+getPosition : Parser x { row : Int, column : Int }
 getPosition =
-    Parser <| \s -> Good False ( s.row, s.col ) s
+    Parser (\s -> Good False { row = s.row, column = s.col } s)
 
 
 getRow : Parser x Int
 getRow =
-    Parser <| \s -> Good False s.row s
+    Parser (\s -> Good False s.row s)
 
 
 getCol : Parser x Int

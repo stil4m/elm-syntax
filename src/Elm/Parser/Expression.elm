@@ -1,6 +1,6 @@
 module Elm.Parser.Expression exposing (expression)
 
-import CustomParser exposing (Parser, ignore, keep)
+import CustomParser exposing (Parser)
 import CustomParser.Advanced
 import CustomParser.Extra
 import Elm.Parser.Layout as Layout
@@ -1007,6 +1007,10 @@ tupledExpressionInnerAfterOpeningParens =
                     expression
                     Layout.maybeLayout
                 )
+                Tokens.comma
+                |> CustomParser.keep Layout.maybeLayout
+                |> CustomParser.keep expression
+                |> CustomParser.keep Layout.maybeLayout
             )
         )
 
