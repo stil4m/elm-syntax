@@ -1,6 +1,6 @@
 module Elm.Parser.File exposing (file)
 
-import CustomParser exposing (Parser )
+import CustomParser exposing (Parser)
 import Elm.Parser.Comments as Comments
 import Elm.Parser.Declarations exposing (declaration)
 import Elm.Parser.Imports exposing (importDefinition)
@@ -16,44 +16,37 @@ import Rope
 
 file : CustomParser.Parser File
 file =
-    CustomParser.map
-        (\commentsBeforeModuleDefinition ->
-            \moduleDefinition ->
-                \commentsAfterModuleDefinition ->
-                    \moduleComments ->
-                        \imports ->
-                            \declarations ->
-                                { moduleDefinition = moduleDefinition.syntax
-                                , imports = imports.syntax
-                                , declarations = declarations.syntax
-                                , comments =
-                                    commentsBeforeModuleDefinition
-                                        |> Rope.prependTo moduleDefinition.comments
-                                        |> Rope.prependTo commentsAfterModuleDefinition
-                                        |> Rope.prependTo moduleComments
-                                        |> Rope.prependTo imports.comments
-                                        |> Rope.prependTo declarations.comments
-                                        |> Rope.toList
-                                }
+    CustomParser.map7
+        (\commentsBeforeModuleDefinition moduleDefinition commentsAfterModuleDefinition moduleComments imports declarations () ->
+            { moduleDefinition = moduleDefinition.syntax
+            , imports = imports.syntax
+            , declarations = declarations.syntax
+            , comments =
+                commentsBeforeModuleDefinition
+                    |> Rope.prependTo moduleDefinition.comments
+                    |> Rope.prependTo commentsAfterModuleDefinition
+                    |> Rope.prependTo moduleComments
+                    |> Rope.prependTo imports.comments
+                    |> Rope.prependTo declarations.comments
+                    |> Rope.toList
+            }
         )
         Layout.layoutStrict
-        |> CustomParser.keep (Node.parser moduleDefinition)
-        |> CustomParser.keep Layout.layoutStrict
-        |> CustomParser.keep
-            (CustomParser.oneOf
-                [ CustomParser.map
-                    (\moduleDocumentation ->
-                        \commentsAfter ->
-                            Rope.one moduleDocumentation |> Rope.filledPrependTo commentsAfter
-                    )
-                    Comments.moduleDocumentation
-                    |> CustomParser.keep Layout.layoutStrict
-                , CustomParser.succeed Rope.empty
-                ]
-            )
-        |> CustomParser.keep (ParserWithComments.many importDefinition)
-        |> CustomParser.keep fileDeclarations
-        |> CustomParser.ignore CustomParser.end
+        (Node.parser moduleDefinition)
+        Layout.layoutStrict
+        (CustomParser.oneOf
+            [ CustomParser.map2
+                (\moduleDocumentation commentsAfter ->
+                    Rope.one moduleDocumentation |> Rope.filledPrependTo commentsAfter
+                )
+                Comments.moduleDocumentation
+                Layout.layoutStrict
+            , CustomParser.succeed Rope.empty
+            ]
+        )
+        (ParserWithComments.many importDefinition)
+        fileDeclarations
+        CustomParser.end
 
 
 fileDeclarations : Parser (WithComments (List (Node Declaration)))

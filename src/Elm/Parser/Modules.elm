@@ -24,62 +24,54 @@ moduleDefinition =
 
 effectWhereClause : Parser (WithComments ( String, Node String ))
 effectWhereClause =
-    CustomParser.map
-        (\fnName ->
-            \commentsAfterFnName ->
-                \commentsAfterEqual ->
-                    \typeName_ ->
-                        { comments = commentsAfterFnName |> Rope.prependTo commentsAfterEqual
-                        , syntax = ( fnName, typeName_ )
-                        }
+    CustomParser.map4
+        (\fnName commentsAfterFnName commentsAfterEqual typeName_ ->
+            { comments = commentsAfterFnName |> Rope.prependTo commentsAfterEqual
+            , syntax = ( fnName, typeName_ )
+            }
         )
         Tokens.functionName
-        |> CustomParser.keep (Layout.maybeLayoutUntilIgnored CustomParser.token "=")
-        |> CustomParser.keep Layout.maybeLayout
-        |> CustomParser.keep (Node.parserCore Tokens.typeName)
+        (Layout.maybeLayoutUntilIgnored CustomParser.token "=")
+        Layout.maybeLayout
+        (Node.parserCore Tokens.typeName)
 
 
 whereBlock : Parser (WithComments { command : Maybe (Node String), subscription : Maybe (Node String) })
 whereBlock =
-    (CustomParser.map
-        (\() ->
-            \pairs ->
-                { comments = pairs.comments
-                , syntax =
-                    { command =
-                        pairs.syntax
-                            |> List.Extra.find (\( fnName, _ ) -> fnName == "command")
-                            |> Maybe.map Tuple.second
-                    , subscription =
-                        pairs.syntax
-                            |> List.Extra.find (\( fnName, _ ) -> fnName == "subscription")
-                            |> Maybe.map Tuple.second
-                    }
+    CustomParser.map3
+        (\() pairs () ->
+            { comments = pairs.comments
+            , syntax =
+                { command =
+                    pairs.syntax
+                        |> List.Extra.find (\( fnName, _ ) -> fnName == "command")
+                        |> Maybe.map Tuple.second
+                , subscription =
+                    pairs.syntax
+                        |> List.Extra.find (\( fnName, _ ) -> fnName == "subscription")
+                        |> Maybe.map Tuple.second
                 }
+            }
         )
         Tokens.curlyStart
-        |> CustomParser.keep
-            (ParserWithComments.sepBy1
-                ","
-                (Layout.maybeAroundBothSides effectWhereClause)
-            )
-    )
-        |> CustomParser.ignore Tokens.curlyEnd
+        (ParserWithComments.sepBy1
+            ","
+            (Layout.maybeAroundBothSides effectWhereClause)
+        )
+        Tokens.curlyEnd
 
 
 effectWhereClauses : Parser (WithComments { command : Maybe (Node String), subscription : Maybe (Node String) })
 effectWhereClauses =
-    CustomParser.map
-        (\() ->
-            \commentsBefore ->
-                \whereResult ->
-                    { comments = commentsBefore |> Rope.prependTo whereResult.comments
-                    , syntax = whereResult.syntax
-                    }
+    CustomParser.map3
+        (\() commentsBefore whereResult ->
+            { comments = commentsBefore |> Rope.prependTo whereResult.comments
+            , syntax = whereResult.syntax
+            }
         )
         Tokens.whereToken
-        |> CustomParser.keep Layout.maybeLayout
-        |> CustomParser.keep whereBlock
+        Layout.maybeLayout
+        whereBlock
 
 
 effectModuleDefinition : Parser (WithComments Module)
@@ -122,51 +114,42 @@ effectModuleDefinition =
 
 normalModuleDefinition : Parser (WithComments Module)
 normalModuleDefinition =
-    CustomParser.map
-        (\() ->
-            \commentsAfterModule ->
-                \moduleName ->
-                    \commentsAfterModuleName ->
-                        \exposingList ->
-                            { comments =
-                                commentsAfterModule
-                                    |> Rope.prependTo commentsAfterModuleName
-                                    |> Rope.prependTo exposingList.comments
-                            , syntax =
-                                NormalModule
-                                    { moduleName = moduleName
-                                    , exposingList = exposingList.syntax
-                                    }
-                            }
+    CustomParser.map5
+        (\() commentsAfterModule moduleName commentsAfterModuleName exposingList ->
+            { comments =
+                commentsAfterModule
+                    |> Rope.prependTo commentsAfterModuleName
+                    |> Rope.prependTo exposingList.comments
+            , syntax =
+                NormalModule
+                    { moduleName = moduleName
+                    , exposingList = exposingList.syntax
+                    }
+            }
         )
         Tokens.moduleToken
-        |> CustomParser.keep Layout.maybeLayout
-        |> CustomParser.keep moduleName
-        |> CustomParser.keep Layout.maybeLayout
-        |> CustomParser.keep (Node.parser exposeDefinition)
+        Layout.maybeLayout
+        moduleName
+        Layout.maybeLayout
+        (Node.parser exposeDefinition)
 
 
 portModuleDefinition : Parser (WithComments Module)
 portModuleDefinition =
-    CustomParser.map
-        (\() ->
-            \commentsAfterPort ->
-                \commentsAfterModule ->
-                    \moduleName ->
-                        \commentsAfterModuleName ->
-                            \exposingList ->
-                                { comments =
-                                    commentsAfterPort
-                                        |> Rope.prependTo commentsAfterModule
-                                        |> Rope.prependTo commentsAfterModuleName
-                                        |> Rope.prependTo exposingList.comments
-                                , syntax = PortModule { moduleName = moduleName, exposingList = exposingList.syntax }
-                                }
+    CustomParser.map7
+        (\() commentsAfterPort () commentsAfterModule moduleName commentsAfterModuleName exposingList ->
+            { comments =
+                commentsAfterPort
+                    |> Rope.prependTo commentsAfterModule
+                    |> Rope.prependTo commentsAfterModuleName
+                    |> Rope.prependTo exposingList.comments
+            , syntax = PortModule { moduleName = moduleName, exposingList = exposingList.syntax }
+            }
         )
         Tokens.portToken
-        |> CustomParser.keep Layout.maybeLayout
-        |> CustomParser.ignore Tokens.moduleToken
-        |> CustomParser.keep Layout.maybeLayout
-        |> CustomParser.keep moduleName
-        |> CustomParser.keep Layout.maybeLayout
-        |> CustomParser.keep (Node.parser exposeDefinition)
+        Layout.maybeLayout
+        Tokens.moduleToken
+        Layout.maybeLayout
+        moduleName
+        Layout.maybeLayout
+        (Node.parser exposeDefinition)

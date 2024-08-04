@@ -14,73 +14,63 @@ import Set
 
 exposeDefinition : Parser (WithComments Exposing)
 exposeDefinition =
-    CustomParser.map
-        (\() ->
-            \commentsAfterExposing ->
-                \commentsBefore ->
-                    \exposingListInnerResult ->
-                        { comments =
-                            commentsAfterExposing
-                                |> Rope.prependTo commentsBefore
-                                |> Rope.prependTo exposingListInnerResult.comments
-                        , syntax = exposingListInnerResult.syntax
-                        }
+    CustomParser.map5
+        (\() commentsAfterExposing commentsBefore exposingListInnerResult () ->
+            { comments =
+                commentsAfterExposing
+                    |> Rope.prependTo commentsBefore
+                    |> Rope.prependTo exposingListInnerResult.comments
+            , syntax = exposingListInnerResult.syntax
+            }
         )
         Tokens.exposingToken
-        |> CustomParser.keep (Layout.maybeLayoutUntilIgnored CustomParser.token "(")
-        |> CustomParser.keep Layout.optimisticLayout
-        |> CustomParser.keep exposingListInner
-        |> CustomParser.ignore Tokens.parensEnd
+        (Layout.maybeLayoutUntilIgnored CustomParser.token "(")
+        Layout.optimisticLayout
+        exposingListInner
+        Tokens.parensEnd
 
 
 exposingListInner : Parser (WithComments Exposing)
 exposingListInner =
     CustomParser.oneOf
-        [ CustomParser.map
-            (\headStart ->
-                \headElement ->
-                    \headEnd ->
-                        \commentsAfterHeadElement ->
-                            \tailElements ->
-                                { comments =
-                                    headElement.comments
-                                        |> Rope.prependTo commentsAfterHeadElement
-                                        |> Rope.prependTo tailElements.comments
-                                , syntax =
-                                    Explicit
-                                        (Node
-                                            { start = headStart
-                                            , end = headEnd
-                                            }
-                                            headElement.syntax
-                                            :: tailElements.syntax
-                                        )
-                                }
+        [ CustomParser.map5
+            (\headStart headElement headEnd commentsAfterHeadElement tailElements ->
+                { comments =
+                    headElement.comments
+                        |> Rope.prependTo commentsAfterHeadElement
+                        |> Rope.prependTo tailElements.comments
+                , syntax =
+                    Explicit
+                        (Node
+                            { start = headStart
+                            , end = headEnd
+                            }
+                            headElement.syntax
+                            :: tailElements.syntax
+                        )
+                }
             )
             CustomParser.getPosition
-            |> CustomParser.keep exposable
-            |> CustomParser.keep CustomParser.getPosition
-            |> CustomParser.keep Layout.maybeLayout
-            |> CustomParser.keep
-                (ParserWithComments.many
-                    (Tokens.comma
-                        |> CustomParser.Extra.continueWith
-                            (Layout.maybeAroundBothSides (exposable |> Node.parser))
-                    )
+            exposable
+            CustomParser.getPosition
+            Layout.maybeLayout
+            (ParserWithComments.many
+                (Tokens.comma
+                    |> CustomParser.Extra.continueWith
+                        (Layout.maybeAroundBothSides (exposable |> Node.parser))
                 )
-        , CustomParser.map
-            (\start ->
-                \commentsAfterDotDot ->
-                    \end ->
-                        { comments = commentsAfterDotDot
-                        , syntax =
-                            All { start = start, end = end }
-                        }
+            )
+        , CustomParser.map4
+            (\start () commentsAfterDotDot end ->
+                { comments = commentsAfterDotDot
+                , syntax =
+                    All { start = start, end = end }
+                }
             )
             CustomParser.getPosition
-            |> CustomParser.ignore Tokens.dotDot
-            |> CustomParser.keep Layout.maybeLayout
-            |> CustomParser.keep CustomParser.getPosition
+            Tokens.dotDot
+            Layout.maybeLayout
+            CustomParser.getPosition
         ]
 
 
@@ -95,57 +85,49 @@ exposable =
 
 infixExpose : CustomParser.Parser (WithComments TopLevelExpose)
 infixExpose =
-    (CustomParser.map (\() -> \infixName -> { comments = Rope.empty, syntax = InfixExpose infixName })
+    CustomParser.map3 (\() infixName () -> { comments = Rope.empty, syntax = InfixExpose infixName })
         Tokens.parensStart
-        |> CustomParser.keep
-            (CustomParser.variable
-                { inner = \c -> c /= ')'
-                , reserved = Set.empty
-                , start = \c -> c /= ')'
-                }
-            )
-    )
-        |> CustomParser.ignore Tokens.parensEnd
+        (CustomParser.variable
+            { inner = \c -> c /= ')'
+            , reserved = Set.empty
+            , start = \c -> c /= ')'
+            }
+        )
+        Tokens.parensEnd
 
 
 typeExpose : Parser (WithComments TopLevelExpose)
 typeExpose =
-    CustomParser.map
-        (\typeName ->
-            \open ->
-                case open of
-                    Nothing ->
-                        { comments = Rope.empty, syntax = TypeOrAliasExpose typeName }
+    CustomParser.map2
+        (\typeName open ->
+            case open of
+                Nothing ->
+                    { comments = Rope.empty, syntax = TypeOrAliasExpose typeName }
 
-                    Just openRange ->
-                        { comments = openRange.comments
-                        , syntax =
-                            TypeExpose { name = typeName, open = Just openRange.syntax }
-                        }
+                Just openRange ->
+                    { comments = openRange.comments
+                    , syntax =
+                        TypeExpose { name = typeName, open = Just openRange.syntax }
+                    }
         )
         Tokens.typeName
-        |> CustomParser.keep
-            (CustomParser.oneOf
-                [ CustomParser.map
-                    (\commentsBefore ->
-                        \start ->
-                            \left ->
-                                \right ->
-                                    \end ->
-                                        Just
-                                            { comments = commentsBefore |> Rope.prependTo left |> Rope.prependTo right
-                                            , syntax = { start = start, end = end }
-                                            }
-                    )
-                    (Layout.maybeLayout |> CustomParser.backtrackable)
-                    |> CustomParser.keep CustomParser.getPosition
-                    |> CustomParser.ignore Tokens.parensStart
-                    |> CustomParser.keep (Layout.maybeLayoutUntilIgnored CustomParser.token "..")
-                    |> CustomParser.keep (Layout.maybeLayoutUntilIgnored CustomParser.token ")")
-                    |> CustomParser.keep CustomParser.getPosition
-                , CustomParser.succeed Nothing
-                ]
-            )
+        (CustomParser.oneOf
+            [ CustomParser.map6
+                (\commentsBefore start () left right end ->
+                    Just
+                        { comments = commentsBefore |> Rope.prependTo left |> Rope.prependTo right
+                        , syntax = { start = start, end = end }
+                        }
+                )
+                (Layout.maybeLayout |> CustomParser.backtrackable)
+                CustomParser.getPosition
+                Tokens.parensStart
+                (Layout.maybeLayoutUntilIgnored CustomParser.token "..")
+                (Layout.maybeLayoutUntilIgnored CustomParser.token ")")
+                CustomParser.getPosition
+            , CustomParser.succeed Nothing
+            ]
+        )
 
 
 functionExpose : Parser (WithComments TopLevelExpose)
