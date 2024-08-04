@@ -1,9 +1,13 @@
-module Elm.Parser.TestUtil exposing (parse)
+module Elm.Parser.TestUtil exposing (parse, parseToResult)
 
-import Parser exposing ((|.))
+import CustomParser
 
 
-parse : String -> Parser.Parser a -> Maybe a
+parse : String -> CustomParser.Parser a -> Maybe a
 parse source p =
-    Parser.run (p |. Parser.end) source
-        |> Result.toMaybe
+    parseToResult source p |> Result.toMaybe
+
+
+parseToResult : String -> CustomParser.Parser a -> Result (List CustomParser.DeadEnd) a
+parseToResult source p =
+    CustomParser.run (p |> CustomParser.ignore CustomParser.end) source

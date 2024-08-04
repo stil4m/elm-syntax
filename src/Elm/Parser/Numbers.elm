@@ -1,11 +1,11 @@
 module Elm.Parser.Numbers exposing (forgivingNumber, number)
 
-import Parser
+import CustomParser
 
 
-raw : Maybe (Float -> a) -> (Int -> a) -> (Int -> a) -> Parser.Parser a
+raw : Maybe (Float -> a) -> (Int -> a) -> (Int -> a) -> CustomParser.Parser a
 raw floatf intf hexf =
-    Parser.number
+    CustomParser.number
         { binary = Nothing
         , float = floatf
         , hex = Just hexf
@@ -14,13 +14,13 @@ raw floatf intf hexf =
         }
 
 
-{-| Parser.number bug: consumes leading '.' or 'e'
+{-| CustomParser.number bug: consumes leading '.' or 'e'
 -}
-forgivingNumber : (Float -> a) -> (Int -> a) -> (Int -> a) -> Parser.Parser a
+forgivingNumber : (Float -> a) -> (Int -> a) -> (Int -> a) -> CustomParser.Parser a
 forgivingNumber floatf intf hexf =
-    Parser.backtrackable (raw (Just floatf) intf hexf)
+    CustomParser.backtrackable (raw (Just floatf) intf hexf)
 
 
-number : (Int -> a) -> (Int -> a) -> Parser.Parser a
+number : (Int -> a) -> (Int -> a) -> CustomParser.Parser a
 number intf hexf =
     raw Nothing intf hexf

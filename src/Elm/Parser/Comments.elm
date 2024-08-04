@@ -1,28 +1,28 @@
 module Elm.Parser.Comments exposing (declarationDocumentation, moduleDocumentation, multilineCommentString, singleLineCommentCore)
 
+import CustomParser exposing (Parser)
+import CustomParser.Extra
 import Elm.Parser.Node as Node
 import Elm.Syntax.Documentation exposing (Documentation)
 import Elm.Syntax.Node exposing (Node)
-import Parser exposing ((|.), Nestable(..), Parser)
-import Parser.Extra
 
 
-singleLineCommentCore : Parser.Parser String
+singleLineCommentCore : CustomParser.Parser String
 singleLineCommentCore =
-    Parser.symbol "--"
-        |. Parser.chompWhile (\c -> c /= '\u{000D}' && c /= '\n')
-        |> Parser.getChompedString
+    CustomParser.symbol "--"
+        |> CustomParser.ignore (CustomParser.chompWhile (\c -> c /= '\u{000D}' && c /= '\n'))
+        |> CustomParser.getChompedString
 
 
-multilineCommentString : Parser.Parser String
+multilineCommentString : CustomParser.Parser String
 multilineCommentString =
-    Parser.oneOf
-        [ Parser.symbol "{-|"
-            |> Parser.Extra.continueWith (Parser.problem "unexpected documentation comment")
-        , Parser.multiComment "{-" "-}" Nestable
-            |> Parser.getChompedString
+    CustomParser.oneOf
+        [ CustomParser.symbol "{-|"
+            |> CustomParser.Extra.continueWith (CustomParser.problem "unexpected documentation comment")
+        , CustomParser.nestableMultiComment "{-" "-}"
+            |> CustomParser.getChompedString
         ]
-        |> Parser.backtrackable
+        |> CustomParser.backtrackable
 
 
 moduleDocumentation : Parser (Node String)
@@ -30,22 +30,22 @@ moduleDocumentation =
     declarationDocumentation
 
 
-declarationDocumentation : Parser.Parser (Node Documentation)
+declarationDocumentation : CustomParser.Parser (Node Documentation)
 declarationDocumentation =
     -- technically making the whole parser fail on multi-line comments would be "correct"
     -- but in practice, all declaration comments allow layout before which already handles
     -- these.
     -- Here's how a "safe" version would look:
-    -- Parser.oneOf
+    -- CustomParser.oneOf
     --[ -- if the next symbol isn't "{-|", we commit to failure
-    --  (Parser.symbol "{-" |. Parser.chompIf (\c -> c /= '|'))
-    --    |> Parser.backtrackable
-    --    |> Parser.Extra.continueWith (Parser.problem "multiline comment should be documentation comment")
-    --, Parser.multiComment "{-" "-}" Nestable
-    --    |> Parser.getChompedString
+    --  (CustomParser.symbol "{-" |> CustomParser.ignore CustomParser.chompIf (\c -> c /= '|'))
+    --    |> CustomParser.backtrackable
+    --    |> CustomParser.Extra.continueWith (CustomParser.problem "multiline comment should be documentation comment")
+    --, CustomParser.multiComment "{-" "-}" Nestable
+    --    |> CustomParser.getChompedString
     --    |> Node.parserCore
     --]
-    --    |> Parser.backtrackable
-    Parser.multiComment "{-" "-}" Nestable
-        |> Parser.getChompedString
+    --    |> CustomParser.backtrackable
+    CustomParser.nestableMultiComment "{-" "-}"
+        |> CustomParser.getChompedString
         |> Node.parserCore

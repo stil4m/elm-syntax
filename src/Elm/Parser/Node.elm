@@ -1,8 +1,8 @@
 module Elm.Parser.Node exposing (parser, parserCore, parserCoreMap, parserMap, parserMapWithComments, singleLineStringFrom, singleLineStringRangeFrom)
 
+import CustomParser exposing (Parser)
 import Elm.Syntax.Node exposing (Node(..))
 import Elm.Syntax.Range exposing (Location, Range)
-import Parser exposing ((|=), Parser)
 import ParserWithComments exposing (WithComments)
 
 
@@ -24,7 +24,7 @@ singleLineStringFrom start string =
 
 parserMapWithComments : (WithComments (Node a) -> b) -> Parser (WithComments a) -> Parser b
 parserMapWithComments valueNodeChange p =
-    Parser.map
+    CustomParser.map
         (\( startRow, startColumn ) v ( endRow, endColumn ) ->
             { comments = v.comments
             , syntax =
@@ -36,14 +36,14 @@ parserMapWithComments valueNodeChange p =
             }
                 |> valueNodeChange
         )
-        Parser.getPosition
-        |= p
-        |= Parser.getPosition
+        CustomParser.getPosition
+        |> CustomParser.keep p
+        |> CustomParser.keep CustomParser.getPosition
 
 
 parserMap : (Node a -> b) -> Parser (WithComments a) -> Parser (WithComments b)
 parserMap valueNodeChange p =
-    Parser.map
+    CustomParser.map
         (\( startRow, startColumn ) v ( endRow, endColumn ) ->
             { comments = v.comments
             , syntax =
@@ -55,14 +55,14 @@ parserMap valueNodeChange p =
                     |> valueNodeChange
             }
         )
-        Parser.getPosition
-        |= p
-        |= Parser.getPosition
+        CustomParser.getPosition
+        |> CustomParser.keep p
+        |> CustomParser.keep CustomParser.getPosition
 
 
 parser : Parser (WithComments a) -> Parser (WithComments (Node a))
 parser p =
-    Parser.map
+    CustomParser.map
         (\( startRow, startColumn ) v ( endRow, endColumn ) ->
             { comments = v.comments
             , syntax =
@@ -73,16 +73,16 @@ parser p =
                     v.syntax
             }
         )
-        Parser.getPosition
-        |= p
-        |= Parser.getPosition
+        CustomParser.getPosition
+        |> CustomParser.keep p
+        |> CustomParser.keep CustomParser.getPosition
 
 
-{-| Internally saves 1 Parser.map compared to parserCore |> Parser.map
+{-| Internally saves 1 CustomParser.map compared to parserCore |> CustomParser.map
 -}
-parserCoreMap : (Node a -> b) -> Parser.Parser a -> Parser.Parser b
+parserCoreMap : (Node a -> b) -> CustomParser.Parser a -> CustomParser.Parser b
 parserCoreMap valueNodeChange p =
-    Parser.map
+    CustomParser.map
         (\( startRow, startColumn ) ->
             \v ->
                 \( endRow, endColumn ) ->
@@ -93,14 +93,14 @@ parserCoreMap valueNodeChange p =
                         v
                         |> valueNodeChange
         )
-        Parser.getPosition
-        |= p
-        |= Parser.getPosition
+        CustomParser.getPosition
+        |> CustomParser.keep p
+        |> CustomParser.keep CustomParser.getPosition
 
 
-parserCore : Parser.Parser a -> Parser.Parser (Node a)
+parserCore : CustomParser.Parser a -> CustomParser.Parser (Node a)
 parserCore p =
-    Parser.map
+    CustomParser.map
         (\( startRow, startColumn ) ->
             \v ->
                 \( endRow, endColumn ) ->
@@ -110,6 +110,6 @@ parserCore p =
                         }
                         v
         )
-        Parser.getPosition
-        |= p
-        |= Parser.getPosition
+        CustomParser.getPosition
+        |> CustomParser.keep p
+        |> CustomParser.keep CustomParser.getPosition

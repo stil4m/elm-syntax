@@ -1,12 +1,12 @@
 module Elm.Parser.TypeAnnotationTests exposing (all)
 
+import CustomParser
 import Elm.Parser.Layout as Layout
 import Elm.Parser.ParserWithCommentsTestUtil as ParserWithCommentsUtil exposing (..)
 import Elm.Parser.TypeAnnotation as Parser
 import Elm.Syntax.Node exposing (Node(..))
 import Elm.Syntax.TypeAnnotation exposing (..)
 import Expect
-import Parser exposing ((|.))
 import Test exposing (..)
 
 
@@ -70,7 +70,7 @@ all =
                         )
         , test "types with and without spacing should parse to the same" <|
             \() ->
-                parse "Bar " (Parser.typeAnnotation |. Layout.maybeLayout)
+                parse "Bar " (Parser.typeAnnotation |> CustomParser.ignore Layout.maybeLayout)
                     |> Expect.equal (parse "Bar" Parser.typeAnnotation)
         , test "typedTypeReference 1" <|
             \() ->

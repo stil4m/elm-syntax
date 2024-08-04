@@ -1,5 +1,7 @@
 module Elm.Parser.Declarations exposing (declaration)
 
+import CustomParser exposing (Parser )
+import CustomParser.Extra
 import Elm.Parser.Comments as Comments
 import Elm.Parser.Expression exposing (expression)
 import Elm.Parser.Layout as Layout
@@ -16,15 +18,13 @@ import Elm.Syntax.Range exposing (Location, Range)
 import Elm.Syntax.Signature exposing (Signature)
 import Elm.Syntax.Type exposing (ValueConstructor)
 import Elm.Syntax.TypeAnnotation exposing (TypeAnnotation)
-import Parser exposing ((|.), (|=), Parser)
-import Parser.Extra
 import ParserWithComments exposing (Comments, WithComments)
 import Rope
 
 
 declaration : Parser (WithComments (Node Declaration))
 declaration =
-    Parser.oneOf
+    CustomParser.oneOf
         [ functionDeclarationWithoutDocumentation
         , declarationWithDocumentation
         , typeOrTypeAliasDefinitionWithoutDocumentation
@@ -35,7 +35,7 @@ declaration =
 
 declarationWithDocumentation : Parser (WithComments (Node Declaration))
 declarationWithDocumentation =
-    Parser.map
+    CustomParser.map
         (\documentation ->
             \commentsAfterDocumentation ->
                 \afterDocumentation ->
@@ -83,10 +83,10 @@ declarationWithDocumentation =
                                                     }
                                                 )
                                         }
-                                            |> Parser.succeed
+                                            |> CustomParser.succeed
 
                                     else
-                                        Parser.problem
+                                        CustomParser.problem
                                             ("Expected to find the declaration for " ++ startName ++ " but found " ++ implementationName)
 
                                 Nothing ->
@@ -111,7 +111,7 @@ declarationWithDocumentation =
                                                 }
                                             )
                                     }
-                                        |> Parser.succeed
+                                        |> CustomParser.succeed
 
                         TypeDeclarationAfterDocumentation typeDeclarationAfterDocumentation ->
                             let
@@ -143,7 +143,7 @@ declarationWithDocumentation =
                                         }
                                     )
                             }
-                                |> Parser.succeed
+                                |> CustomParser.succeed
 
                         TypeAliasDeclarationAfterDocumentation typeAliasDeclarationAfterDocumentation ->
                             let
@@ -163,7 +163,7 @@ declarationWithDocumentation =
                                         }
                                     )
                             }
-                                |> Parser.succeed
+                                |> CustomParser.succeed
 
                         PortDeclarationAfterDocumentation portDeclarationAfterName ->
                             let
@@ -186,16 +186,18 @@ declarationWithDocumentation =
                                         }
                                     )
                             }
-                                |> Parser.succeed
+                                |> CustomParser.succeed
         )
         Comments.declarationDocumentation
-        |= Layout.layoutStrict
-        |= Parser.oneOf
-            [ functionAfterDocumentation
-            , typeOrTypeAliasDefinitionAfterDocumentation
-            , portDeclarationAfterDocumentation
-            ]
-        |> Parser.andThen identity
+        |> CustomParser.keep Layout.layoutStrict
+        |> CustomParser.keep
+            (CustomParser.oneOf
+                [ functionAfterDocumentation
+                , typeOrTypeAliasDefinitionAfterDocumentation
+                , portDeclarationAfterDocumentation
+                ]
+            )
+        |> CustomParser.andThen identity
 
 
 type DeclarationAfterDocumentation
@@ -243,7 +245,7 @@ type TypeOrTypeAliasDeclarationWithoutDocumentation
 
 functionAfterDocumentation : Parser (WithComments DeclarationAfterDocumentation)
 functionAfterDocumentation =
-    Parser.map
+    CustomParser.map
         (\( startNameStartRow, startNameStartColumn ) ->
             \startName ->
                 \commentsAfterStartName ->
@@ -275,50 +277,52 @@ functionAfterDocumentation =
                                             }
                                     }
         )
-        Parser.getPosition
+        CustomParser.getPosition
         -- infix declarations itself don't have documentation
-        |= Tokens.functionName
-        |= Layout.maybeLayout
-        |= Parser.oneOf
-            [ Parser.map
-                (\() ->
-                    \commentsBeforeTypeAnnotation ->
-                        \typeAnnotationResult ->
-                            \commentsAfterTypeAnnotation ->
-                                \( implementationNameStartRow, implementationNameStartColumn ) ->
-                                    \implementationName ->
-                                        \afterImplementationName ->
-                                            Just
-                                                { comments =
-                                                    commentsBeforeTypeAnnotation
-                                                        |> Rope.prependTo typeAnnotationResult.comments
-                                                        |> Rope.prependTo commentsAfterTypeAnnotation
-                                                        |> Rope.prependTo afterImplementationName
-                                                , syntax =
-                                                    { implementationName =
-                                                        Node.singleLineStringFrom { row = implementationNameStartRow, column = implementationNameStartColumn }
-                                                            implementationName
-                                                    , typeAnnotation = typeAnnotationResult.syntax
+        |> CustomParser.keep Tokens.functionName
+        |> CustomParser.keep Layout.maybeLayout
+        |> CustomParser.keep
+            (CustomParser.oneOf
+                [ CustomParser.map
+                    (\() ->
+                        \commentsBeforeTypeAnnotation ->
+                            \typeAnnotationResult ->
+                                \commentsAfterTypeAnnotation ->
+                                    \( implementationNameStartRow, implementationNameStartColumn ) ->
+                                        \implementationName ->
+                                            \afterImplementationName ->
+                                                Just
+                                                    { comments =
+                                                        commentsBeforeTypeAnnotation
+                                                            |> Rope.prependTo typeAnnotationResult.comments
+                                                            |> Rope.prependTo commentsAfterTypeAnnotation
+                                                            |> Rope.prependTo afterImplementationName
+                                                    , syntax =
+                                                        { implementationName =
+                                                            Node.singleLineStringFrom { row = implementationNameStartRow, column = implementationNameStartColumn }
+                                                                implementationName
+                                                        , typeAnnotation = typeAnnotationResult.syntax
+                                                        }
                                                     }
-                                                }
-                )
-                Tokens.colon
-                |= Layout.maybeLayout
-                |= TypeAnnotation.typeAnnotation
-                |= Layout.layoutStrict
-                |= Parser.getPosition
-                |= Tokens.functionName
-                |= Layout.maybeLayout
-            , Parser.succeed Nothing
-            ]
-        |= parameterPatternsEqual
-        |= Layout.maybeLayout
-        |= expression
+                    )
+                    Tokens.colon
+                    |> CustomParser.keep Layout.maybeLayout
+                    |> CustomParser.keep TypeAnnotation.typeAnnotation
+                    |> CustomParser.keep Layout.layoutStrict
+                    |> CustomParser.keep CustomParser.getPosition
+                    |> CustomParser.keep Tokens.functionName
+                    |> CustomParser.keep Layout.maybeLayout
+                , CustomParser.succeed Nothing
+                ]
+            )
+        |> CustomParser.keep parameterPatternsEqual
+        |> CustomParser.keep Layout.maybeLayout
+        |> CustomParser.keep expression
 
 
 functionDeclarationWithoutDocumentation : Parser (WithComments (Node Declaration))
 functionDeclarationWithoutDocumentation =
-    Parser.map
+    CustomParser.map
         (\( startNameStartRow, startNameStartColumn ) ->
             \startName ->
                 \commentsAfterStartName ->
@@ -372,7 +376,7 @@ functionDeclarationWithoutDocumentation =
                                                         }
                                                     )
                                             }
-                                                |> Parser.succeed
+                                                |> CustomParser.succeed
 
                                         Just signature ->
                                             let
@@ -399,55 +403,57 @@ functionDeclarationWithoutDocumentation =
                                                             }
                                                         )
                                                 }
-                                                    |> Parser.succeed
+                                                    |> CustomParser.succeed
 
                                             else
-                                                Parser.problem
+                                                CustomParser.problem
                                                     ("Expected to find the declaration for " ++ startName ++ " but found " ++ implementationName)
         )
-        Parser.getPosition
-        |= Tokens.functionNameNotInfix
-        |= Layout.maybeLayout
-        |= Parser.oneOf
-            [ Parser.map
-                (\() ->
-                    \commentsBeforeTypeAnnotation ->
-                        \typeAnnotationResult ->
-                            \commentsAfterTypeAnnotation ->
-                                \( implementationNameStartRow, implementationNameStartColumn ) ->
-                                    \implementationName ->
-                                        \afterImplementationName ->
-                                            Just
-                                                { comments =
-                                                    commentsBeforeTypeAnnotation
-                                                        |> Rope.prependTo typeAnnotationResult.comments
-                                                        |> Rope.prependTo commentsAfterTypeAnnotation
-                                                        |> Rope.prependTo afterImplementationName
-                                                , implementationName =
-                                                    Node.singleLineStringFrom { row = implementationNameStartRow, column = implementationNameStartColumn }
-                                                        implementationName
-                                                , typeAnnotation = typeAnnotationResult.syntax
-                                                }
-                )
-                Tokens.colon
-                |= Layout.maybeLayout
-                |= TypeAnnotation.typeAnnotation
-                |= Layout.layoutStrict
-                |= Parser.getPosition
-                |= Tokens.functionName
-                |= Layout.maybeLayout
-            , Parser.succeed Nothing
-            ]
-        |= parameterPatternsEqual
-        |= Layout.maybeLayout
-        |= expression
-        |> Parser.andThen identity
+        CustomParser.getPosition
+        |> CustomParser.keep Tokens.functionNameNotInfix
+        |> CustomParser.keep Layout.maybeLayout
+        |> CustomParser.keep
+            (CustomParser.oneOf
+                [ CustomParser.map
+                    (\() ->
+                        \commentsBeforeTypeAnnotation ->
+                            \typeAnnotationResult ->
+                                \commentsAfterTypeAnnotation ->
+                                    \( implementationNameStartRow, implementationNameStartColumn ) ->
+                                        \implementationName ->
+                                            \afterImplementationName ->
+                                                Just
+                                                    { comments =
+                                                        commentsBeforeTypeAnnotation
+                                                            |> Rope.prependTo typeAnnotationResult.comments
+                                                            |> Rope.prependTo commentsAfterTypeAnnotation
+                                                            |> Rope.prependTo afterImplementationName
+                                                    , implementationName =
+                                                        Node.singleLineStringFrom { row = implementationNameStartRow, column = implementationNameStartColumn }
+                                                            implementationName
+                                                    , typeAnnotation = typeAnnotationResult.syntax
+                                                    }
+                    )
+                    Tokens.colon
+                    |> CustomParser.keep Layout.maybeLayout
+                    |> CustomParser.keep TypeAnnotation.typeAnnotation
+                    |> CustomParser.keep Layout.layoutStrict
+                    |> CustomParser.keep CustomParser.getPosition
+                    |> CustomParser.keep Tokens.functionName
+                    |> CustomParser.keep Layout.maybeLayout
+                , CustomParser.succeed Nothing
+                ]
+            )
+        |> CustomParser.keep parameterPatternsEqual
+        |> CustomParser.keep Layout.maybeLayout
+        |> CustomParser.keep expression
+        |> CustomParser.andThen identity
 
 
 parameterPatternsEqual : Parser (WithComments (List (Node Pattern)))
 parameterPatternsEqual =
     ParserWithComments.until Tokens.equal
-        (Parser.map
+        (CustomParser.map
             (\patternResult ->
                 \commentsAfterPattern ->
                     { comments = patternResult.comments |> Rope.prependTo commentsAfterPattern
@@ -455,13 +461,13 @@ parameterPatternsEqual =
                     }
             )
             Patterns.pattern
-            |= Layout.maybeLayout
+            |> CustomParser.keep Layout.maybeLayout
         )
 
 
 infixDeclaration : Parser (WithComments (Node Declaration))
 infixDeclaration =
-    Parser.map
+    CustomParser.map
         (\() ->
             \startRow ->
                 \commentsAfterInfix ->
@@ -489,39 +495,41 @@ infixDeclaration =
                                                             )
                                                     }
         )
-        (Parser.keyword "infix")
-        |= Parser.getRow
-        |= Layout.maybeLayout
-        |= Node.parserCore infixDirection
-        |= Layout.maybeLayout
-        |= Node.parserCore Parser.int
-        |= Layout.maybeLayout
-        |= Node.parserCore
-            ((Tokens.parensStart
-                |> Parser.Extra.continueWith Tokens.prefixOperatorToken
-             )
-                |. Tokens.parensEnd
+        (CustomParser.keyword "infix")
+        |> CustomParser.keep CustomParser.getRow
+        |> CustomParser.keep Layout.maybeLayout
+        |> CustomParser.keep (Node.parserCore infixDirection)
+        |> CustomParser.keep Layout.maybeLayout
+        |> CustomParser.keep (Node.parserCore CustomParser.int)
+        |> CustomParser.keep Layout.maybeLayout
+        |> CustomParser.keep
+            (Node.parserCore
+                ((Tokens.parensStart
+                    |> CustomParser.Extra.continueWith Tokens.prefixOperatorToken
+                 )
+                    |> CustomParser.ignore Tokens.parensEnd
+                )
             )
-        |= Layout.maybeLayoutUntilIgnored Parser.token "="
-        |= Layout.maybeLayout
-        |= Node.parserCore Tokens.functionName
+        |> CustomParser.keep (Layout.maybeLayoutUntilIgnored CustomParser.token "=")
+        |> CustomParser.keep Layout.maybeLayout
+        |> CustomParser.keep (Node.parserCore Tokens.functionName)
 
 
-infixDirection : Parser.Parser Infix.InfixDirection
+infixDirection : CustomParser.Parser Infix.InfixDirection
 infixDirection =
-    Parser.oneOf
-        [ Parser.keyword "right"
-            |> Parser.map (\() -> Infix.Right)
-        , Parser.keyword "left"
-            |> Parser.map (\() -> Infix.Left)
-        , Parser.keyword "non"
-            |> Parser.map (\() -> Infix.Non)
+    CustomParser.oneOf
+        [ CustomParser.keyword "right"
+            |> CustomParser.map (\() -> Infix.Right)
+        , CustomParser.keyword "left"
+            |> CustomParser.map (\() -> Infix.Left)
+        , CustomParser.keyword "non"
+            |> CustomParser.map (\() -> Infix.Non)
         ]
 
 
 portDeclarationAfterDocumentation : Parser (WithComments DeclarationAfterDocumentation)
 portDeclarationAfterDocumentation =
-    Parser.map
+    CustomParser.map
         (\() ->
             \startRow ->
                 \commentsAfterPort ->
@@ -546,18 +554,18 @@ portDeclarationAfterDocumentation =
                                         }
         )
         Tokens.portToken
-        |= Parser.getRow
-        |= Layout.maybeLayout
-        |= Parser.getPosition
-        |= Tokens.functionName
-        |= Layout.maybeLayoutUntilIgnored Parser.token ":"
-        |= Layout.maybeLayout
-        |= typeAnnotation
+        |> CustomParser.keep CustomParser.getRow
+        |> CustomParser.keep Layout.maybeLayout
+        |> CustomParser.keep CustomParser.getPosition
+        |> CustomParser.keep Tokens.functionName
+        |> CustomParser.keep (Layout.maybeLayoutUntilIgnored CustomParser.token ":")
+        |> CustomParser.keep Layout.maybeLayout
+        |> CustomParser.keep typeAnnotation
 
 
 portDeclarationWithoutDocumentation : Parser (WithComments (Node Declaration))
 portDeclarationWithoutDocumentation =
-    Parser.map
+    CustomParser.map
         (\() ->
             \startRow ->
                 \commentsAfterPort ->
@@ -590,18 +598,18 @@ portDeclarationWithoutDocumentation =
                                         }
         )
         Tokens.portToken
-        |= Parser.getRow
-        |= Layout.maybeLayout
-        |= Parser.getPosition
-        |= Tokens.functionName
-        |= Layout.maybeLayoutUntilIgnored Parser.token ":"
-        |= Layout.maybeLayout
-        |= typeAnnotation
+        |> CustomParser.keep CustomParser.getRow
+        |> CustomParser.keep Layout.maybeLayout
+        |> CustomParser.keep CustomParser.getPosition
+        |> CustomParser.keep Tokens.functionName
+        |> CustomParser.keep (Layout.maybeLayoutUntilIgnored CustomParser.token ":")
+        |> CustomParser.keep Layout.maybeLayout
+        |> CustomParser.keep typeAnnotation
 
 
 typeOrTypeAliasDefinitionAfterDocumentation : Parser (WithComments DeclarationAfterDocumentation)
 typeOrTypeAliasDefinitionAfterDocumentation =
-    Parser.map
+    CustomParser.map
         (\() ->
             \commentsAfterType ->
                 \declarationAfterDocumentation ->
@@ -609,17 +617,19 @@ typeOrTypeAliasDefinitionAfterDocumentation =
                     , syntax = declarationAfterDocumentation.syntax
                     }
         )
-        (Parser.keyword "type")
-        |= Layout.maybeLayout
-        |= Parser.oneOf
-            [ typeAliasDefinitionAfterDocumentationAfterTypePrefix
-            , customTypeDefinitionAfterDocumentationAfterTypePrefix
-            ]
+        (CustomParser.keyword "type")
+        |> CustomParser.keep Layout.maybeLayout
+        |> CustomParser.keep
+            (CustomParser.oneOf
+                [ typeAliasDefinitionAfterDocumentationAfterTypePrefix
+                , customTypeDefinitionAfterDocumentationAfterTypePrefix
+                ]
+            )
 
 
 typeAliasDefinitionAfterDocumentationAfterTypePrefix : Parser (WithComments DeclarationAfterDocumentation)
 typeAliasDefinitionAfterDocumentationAfterTypePrefix =
-    Parser.map
+    CustomParser.map
         (\() ->
             \commentsAfterAlias ->
                 \( nameStartRow, nameStartColumn ) ->
@@ -645,18 +655,18 @@ typeAliasDefinitionAfterDocumentationAfterTypePrefix =
                                         }
         )
         Tokens.aliasToken
-        |= Layout.maybeLayout
-        |= Parser.getPosition
-        |= Tokens.typeName
-        |= Layout.maybeLayout
-        |= typeGenericListEquals
-        |= Layout.maybeLayout
-        |= typeAnnotation
+        |> CustomParser.keep Layout.maybeLayout
+        |> CustomParser.keep CustomParser.getPosition
+        |> CustomParser.keep Tokens.typeName
+        |> CustomParser.keep Layout.maybeLayout
+        |> CustomParser.keep typeGenericListEquals
+        |> CustomParser.keep Layout.maybeLayout
+        |> CustomParser.keep typeAnnotation
 
 
 customTypeDefinitionAfterDocumentationAfterTypePrefix : Parser (WithComments DeclarationAfterDocumentation)
 customTypeDefinitionAfterDocumentationAfterTypePrefix =
-    Parser.map
+    CustomParser.map
         (\( nameStartRow, nameStartColumn ) ->
             \name ->
                 \commentsAfterName ->
@@ -681,33 +691,35 @@ customTypeDefinitionAfterDocumentationAfterTypePrefix =
                                             }
                                     }
         )
-        Parser.getPosition
-        |= Tokens.typeName
-        |= Layout.maybeLayout
-        |= typeGenericListEquals
-        |= Layout.maybeLayout
-        |= valueConstructor
-        |= ParserWithComments.manyWithoutReverse
-            (Parser.map
-                (\commentsBeforePipe ->
-                    \commentsAfterPipe ->
-                        \variantResult ->
-                            { comments =
-                                commentsBeforePipe
-                                    |> Rope.prependTo commentsAfterPipe
-                                    |> Rope.prependTo variantResult.comments
-                            , syntax = variantResult.syntax
-                            }
+        CustomParser.getPosition
+        |> CustomParser.keep Tokens.typeName
+        |> CustomParser.keep Layout.maybeLayout
+        |> CustomParser.keep typeGenericListEquals
+        |> CustomParser.keep Layout.maybeLayout
+        |> CustomParser.keep valueConstructor
+        |> CustomParser.keep
+            (ParserWithComments.manyWithoutReverse
+                (CustomParser.map
+                    (\commentsBeforePipe ->
+                        \commentsAfterPipe ->
+                            \variantResult ->
+                                { comments =
+                                    commentsBeforePipe
+                                        |> Rope.prependTo commentsAfterPipe
+                                        |> Rope.prependTo variantResult.comments
+                                , syntax = variantResult.syntax
+                                }
+                    )
+                    (Layout.maybeLayoutUntilIgnored CustomParser.token "|" |> CustomParser.backtrackable)
+                    |> CustomParser.keep Layout.maybeLayout
+                    |> CustomParser.keep valueConstructor
                 )
-                (Layout.maybeLayoutUntilIgnored Parser.token "|" |> Parser.backtrackable)
-                |= Layout.maybeLayout
-                |= valueConstructor
             )
 
 
 typeOrTypeAliasDefinitionWithoutDocumentation : Parser (WithComments (Node Declaration.Declaration))
 typeOrTypeAliasDefinitionWithoutDocumentation =
-    Parser.map
+    CustomParser.map
         (\() ->
             \startRow ->
                 let
@@ -761,18 +773,20 @@ typeOrTypeAliasDefinitionWithoutDocumentation =
                                         )
                         }
         )
-        (Parser.keyword "type")
-        |= Parser.getRow
-        |= Layout.maybeLayout
-        |= Parser.oneOf
-            [ typeAliasDefinitionWithoutDocumentationAfterTypePrefix
-            , customTypeDefinitionWithoutDocumentationAfterTypePrefix
-            ]
+        (CustomParser.keyword "type")
+        |> CustomParser.keep CustomParser.getRow
+        |> CustomParser.keep Layout.maybeLayout
+        |> CustomParser.keep
+            (CustomParser.oneOf
+                [ typeAliasDefinitionWithoutDocumentationAfterTypePrefix
+                , customTypeDefinitionWithoutDocumentationAfterTypePrefix
+                ]
+            )
 
 
 typeAliasDefinitionWithoutDocumentationAfterTypePrefix : Parser (WithComments TypeOrTypeAliasDeclarationWithoutDocumentation)
 typeAliasDefinitionWithoutDocumentationAfterTypePrefix =
-    Parser.map
+    CustomParser.map
         (\() ->
             \commentsAfterAlias ->
                 \( nameStartRow, nameStartColumn ) ->
@@ -798,18 +812,18 @@ typeAliasDefinitionWithoutDocumentationAfterTypePrefix =
                                         }
         )
         Tokens.aliasToken
-        |= Layout.maybeLayout
-        |= Parser.getPosition
-        |= Tokens.typeName
-        |= Layout.maybeLayout
-        |= typeGenericListEquals
-        |= Layout.maybeLayout
-        |= typeAnnotation
+        |> CustomParser.keep Layout.maybeLayout
+        |> CustomParser.keep CustomParser.getPosition
+        |> CustomParser.keep Tokens.typeName
+        |> CustomParser.keep Layout.maybeLayout
+        |> CustomParser.keep typeGenericListEquals
+        |> CustomParser.keep Layout.maybeLayout
+        |> CustomParser.keep typeAnnotation
 
 
 customTypeDefinitionWithoutDocumentationAfterTypePrefix : Parser (WithComments TypeOrTypeAliasDeclarationWithoutDocumentation)
 customTypeDefinitionWithoutDocumentationAfterTypePrefix =
-    Parser.map
+    CustomParser.map
         (\( nameStartRow, nameStartColumn ) ->
             \name ->
                 \commentsAfterName ->
@@ -835,33 +849,35 @@ customTypeDefinitionWithoutDocumentationAfterTypePrefix =
                                             }
                                     }
         )
-        Parser.getPosition
-        |= Tokens.typeName
-        |= Layout.maybeLayout
-        |= typeGenericListEquals
-        |= Layout.maybeLayout
-        |= valueConstructor
-        |= ParserWithComments.manyWithoutReverse
-            (Parser.map
-                (\commentsBeforePipe ->
-                    \commentsAfterPipe ->
-                        \variantResult ->
-                            { comments =
-                                commentsBeforePipe
-                                    |> Rope.prependTo commentsAfterPipe
-                                    |> Rope.prependTo variantResult.comments
-                            , syntax = variantResult.syntax
-                            }
+        CustomParser.getPosition
+        |> CustomParser.keep Tokens.typeName
+        |> CustomParser.keep Layout.maybeLayout
+        |> CustomParser.keep typeGenericListEquals
+        |> CustomParser.keep Layout.maybeLayout
+        |> CustomParser.keep valueConstructor
+        |> CustomParser.keep
+            (ParserWithComments.manyWithoutReverse
+                (CustomParser.map
+                    (\commentsBeforePipe ->
+                        \commentsAfterPipe ->
+                            \variantResult ->
+                                { comments =
+                                    commentsBeforePipe
+                                        |> Rope.prependTo commentsAfterPipe
+                                        |> Rope.prependTo variantResult.comments
+                                , syntax = variantResult.syntax
+                                }
+                    )
+                    (Layout.maybeLayoutUntilIgnored CustomParser.token "|" |> CustomParser.backtrackable)
+                    |> CustomParser.keep Layout.maybeLayout
+                    |> CustomParser.keep valueConstructor
                 )
-                (Layout.maybeLayoutUntilIgnored Parser.token "|" |> Parser.backtrackable)
-                |= Layout.maybeLayout
-                |= valueConstructor
             )
 
 
 valueConstructor : Parser (WithComments (Node ValueConstructor))
 valueConstructor =
-    Parser.map
+    CustomParser.map
         (\( nameStartRow, nameStartColumn ) ->
             \name ->
                 \argumentsReverse ->
@@ -891,24 +907,26 @@ valueConstructor =
                             }
                     }
         )
-        Parser.getPosition
-        |= Tokens.typeName
-        |= ParserWithComments.manyWithoutReverse
-            (Parser.map
-                (\commentsBefore typeAnnotationResult ->
-                    { comments = commentsBefore |> Rope.prependTo typeAnnotationResult.comments
-                    , syntax = typeAnnotationResult.syntax
-                    }
+        CustomParser.getPosition
+        |> CustomParser.keep Tokens.typeName
+        |> CustomParser.keep
+            (ParserWithComments.manyWithoutReverse
+                (CustomParser.map
+                    (\commentsBefore typeAnnotationResult ->
+                        { comments = commentsBefore |> Rope.prependTo typeAnnotationResult.comments
+                        , syntax = typeAnnotationResult.syntax
+                        }
+                    )
+                    (Layout.maybeLayout |> CustomParser.backtrackable)
+                    |> CustomParser.keep typeAnnotationNoFnExcludingTypedWithArguments
                 )
-                (Layout.maybeLayout |> Parser.backtrackable)
-                |= typeAnnotationNoFnExcludingTypedWithArguments
             )
 
 
 typeGenericListEquals : Parser (WithComments (List (Node String)))
 typeGenericListEquals =
     ParserWithComments.until Tokens.equal
-        (Parser.map
+        (CustomParser.map
             (\( nameStartRow, nameStartColumn ) ->
                 \name ->
                     \commentsAfterName ->
@@ -919,7 +937,7 @@ typeGenericListEquals =
                                 name
                         }
             )
-            Parser.getPosition
-            |= Tokens.functionName
-            |= Layout.maybeLayout
+            CustomParser.getPosition
+            |> CustomParser.keep Tokens.functionName
+            |> CustomParser.keep Layout.maybeLayout
         )
