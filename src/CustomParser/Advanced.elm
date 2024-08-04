@@ -190,23 +190,17 @@ bagToList bag list =
 
 succeedLazy : (() -> a) -> Parser x a
 succeedLazy res =
-    Parser <|
-        \s ->
-            Good False (res ()) s
+    Parser (\s -> Good False (res ()) s)
 
 
 succeed : a -> Parser x a
 succeed a =
-    Parser <|
-        \s ->
-            Good False a s
+    Parser (\s -> Good False a s)
 
 
 problem : x -> Parser x a
 problem x =
-    Parser <|
-        \s ->
-            Bad False (fromState s x)
+    Parser (\s -> Bad False (fromState s x))
 
 
 map : (a -> b) -> Parser x a -> Parser x b
@@ -634,8 +628,8 @@ ignore keepParser ignoreParser =
 
 andThen : (a -> Parser x b) -> Parser x a -> Parser x b
 andThen callback (Parser parseA) =
-    Parser <|
-        \s0 ->
+    Parser
+        (\s0 ->
             case parseA s0 of
                 Bad p x ->
                     Bad p x
@@ -651,33 +645,36 @@ andThen callback (Parser parseA) =
 
                         Good p2 b s2 ->
                             Good (p1 || p2) b s2
+        )
 
 
 columnIndentAndThen : (Int -> Int -> Parser x b) -> Parser x b
 columnIndentAndThen callback =
-    Parser <|
-        \s0 ->
+    Parser
+        (\s0 ->
             let
                 (Parser parse) =
                     callback s0.col s0.indent
             in
             parse s0
+        )
 
 
 lazy : (() -> Parser x a) -> Parser x a
 lazy thunk =
-    Parser <|
-        \s ->
+    Parser
+        (\s ->
             let
                 (Parser parse) =
                     thunk ()
             in
             parse s
+        )
 
 
 oneOf : List (Parser x a) -> Parser x a
 oneOf parsers =
-    Parser <| \s -> oneOfHelp s Empty parsers
+    Parser (\s -> oneOfHelp s Empty parsers)
 
 
 oneOfHelp : State -> Bag x -> List (Parser x a) -> PStep x a
@@ -761,9 +758,8 @@ elimination, allowing you to parse however many repeats you want.
 -}
 loop : state -> (state -> Parser x (Step state a)) -> Parser x a
 loop state callback =
-    Parser <|
-        \s ->
-            loopHelp False state callback s
+    Parser
+        (\s -> loopHelp False state callback s)
 
 
 loopHelp : Bool -> state -> (state -> Parser x (Step state a)) -> State -> PStep x a
@@ -787,14 +783,15 @@ loopHelp p state callback s0 =
 
 backtrackable : Parser x a -> Parser x a
 backtrackable (Parser parse) =
-    Parser <|
-        \s0 ->
+    Parser
+        (\s0 ->
             case parse s0 of
                 Bad _ x ->
                     Bad False x
 
                 Good _ a s1 ->
                     Good False a s1
+        )
 
 
 symbol : Token x -> Parser x ()
@@ -809,8 +806,8 @@ keyword (Token kwd expecting) =
         progress =
             not (String.isEmpty kwd)
     in
-    Parser <|
-        \s ->
+    Parser
+        (\s ->
             let
                 ( newOffset, newRow, newCol ) =
                     isSubString kwd s.offset s.row s.col s.src
@@ -827,6 +824,7 @@ keyword (Token kwd expecting) =
                     , row = newRow
                     , col = newCol
                     }
+        )
 
 
 type Token x
@@ -840,8 +838,8 @@ token (Token str expecting) =
         progress =
             not (String.isEmpty str)
     in
-    Parser <|
-        \s ->
+    Parser
+        (\s ->
             let
                 ( newOffset, newRow, newCol ) =
                     isSubString str s.offset s.row s.col s.src
@@ -858,6 +856,7 @@ token (Token str expecting) =
                     , row = newRow
                     , col = newCol
                     }
+        )
 
 
 number :
@@ -878,14 +877,15 @@ number c =
                 (Parser.Advanced.number c)
                 |= Parser.Advanced.getOffset
     in
-    Parser <|
-        \state ->
+    Parser
+        (\state ->
             case Parser.Advanced.run parserAdvancedNumberAndStringLength (String.dropLeft state.offset state.src) of
                 Ok result ->
                     Good False result.number (bumpOffset (state.offset + result.length) state)
 
                 Err _ ->
                     Bad False (fromState state c.invalid)
+        )
 
 
 bumpOffset : Int -> State -> State
@@ -900,13 +900,14 @@ bumpOffset newOffset s =
 
 end : x -> Parser x ()
 end x =
-    Parser <|
-        \s ->
+    Parser
+        (\s ->
             if String.length s.src == s.offset then
                 Good False () s
 
             else
                 Bad False (fromState s x)
+        )
 
 
 getChompedString : Parser x a -> Parser x String
@@ -916,20 +917,21 @@ getChompedString parser =
 
 mapChompedString : (String -> a -> b) -> Parser x a -> Parser x b
 mapChompedString func (Parser parse) =
-    Parser <|
-        \s0 ->
+    Parser
+        (\s0 ->
             case parse s0 of
                 Bad p x ->
                     Bad p x
 
                 Good p a s1 ->
                     Good p (func (String.slice s0.offset s1.offset s0.src) a) s1
+        )
 
 
 chompIf : (Char -> Bool) -> x -> Parser x ()
 chompIf isGood expecting =
-    Parser <|
-        \s ->
+    Parser
+        (\s ->
             let
                 newOffset : Int
                 newOffset =
@@ -960,13 +962,13 @@ chompIf isGood expecting =
                     , row = s.row
                     , col = s.col + 1
                     }
+        )
 
 
 chompWhile : (Char -> Bool) -> Parser x ()
 chompWhile isGood =
-    Parser <|
-        \s ->
-            chompWhileHelp isGood s.offset s.row s.col s
+    Parser
+        (\s -> chompWhileHelp isGood s.offset s.row s.col s)
 
 
 chompWhileHelp : (Char -> Bool) -> Int -> Int -> Int -> State -> PStep x ()
@@ -1004,8 +1006,8 @@ variable :
     }
     -> Parser x String
 variable i =
-    Parser <|
-        \s ->
+    Parser
+        (\s ->
             let
                 firstOffset : Int
                 firstOffset =
@@ -1033,6 +1035,7 @@ variable i =
 
                 else
                     Good True name s1
+        )
 
 
 varHelp : (Char -> Bool) -> Int -> Int -> Int -> String -> Int -> State
@@ -1093,28 +1096,29 @@ nestableMultiComment ((Token oStr oX) as open) ((Token cStr cX) as close) =
 
 nestableHelp : (Char -> Bool) -> Parser x () -> Parser x () -> x -> Int -> Parser x ()
 nestableHelp isNotRelevant open close expectingClose nestLevel =
-    skip (chompWhile isNotRelevant) <|
-        oneOf
+    skip (chompWhile isNotRelevant)
+        (oneOf
             [ if nestLevel == 1 then
                 close
 
               else
                 close
-                    |> andThen (\_ -> nestableHelp isNotRelevant open close expectingClose (nestLevel - 1))
+                    |> andThen (\() -> nestableHelp isNotRelevant open close expectingClose (nestLevel - 1))
             , open
-                |> andThen (\_ -> nestableHelp isNotRelevant open close expectingClose (nestLevel + 1))
+                |> andThen (\() -> nestableHelp isNotRelevant open close expectingClose (nestLevel + 1))
             , ignore (chompIf isNotRelevant expectingClose)
                 (chompWhile isNotRelevant)
                 |> andThen
-                    (\_ ->
+                    (\() ->
                         nestableHelp isNotRelevant open close expectingClose nestLevel
                     )
             , chompIf isChar expectingClose
                 |> andThen
-                    (\_ ->
+                    (\() ->
                         nestableHelp isNotRelevant open close expectingClose nestLevel
                     )
             ]
+        )
 
 
 isChar : Char -> Bool
@@ -1124,19 +1128,20 @@ isChar _ =
 
 getIndent : Parser x Int
 getIndent =
-    Parser <| \s -> Good False s.indent s
+    Parser (\s -> Good False s.indent s)
 
 
 withIndent : Int -> Parser x a -> Parser x a
 withIndent newIndent (Parser parse) =
-    Parser <|
-        \s0 ->
+    Parser
+        (\s0 ->
             case parse (changeIndent newIndent s0) of
                 Good p a s1 ->
                     Good p a (changeIndent s0.indent s1)
 
                 Bad p x ->
                     Bad p x
+        )
 
 
 changeIndent : Int -> State -> State
@@ -1161,17 +1166,17 @@ getRow =
 
 getCol : Parser x Int
 getCol =
-    Parser <| \s -> Good False s.col s
+    Parser (\s -> Good False s.col s)
 
 
 getOffset : Parser x Int
 getOffset =
-    Parser <| \s -> Good False s.offset s
+    Parser (\s -> Good False s.offset s)
 
 
 getSource : Parser x String
 getSource =
-    Parser <| \s -> Good False s.src s
+    Parser (\s -> Good False s.src s)
 
 
 
