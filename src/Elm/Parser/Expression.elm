@@ -399,6 +399,8 @@ lambdaExpression =
                     Patterns.patternNotDirectlyComposing
                     Layout.maybeLayout
                 )
+                Patterns.pattern
+                Layout.maybeLayout
             )
             expression
         )
@@ -1008,9 +1010,9 @@ tupledExpressionInnerAfterOpeningParens =
                     Layout.maybeLayout
                 )
                 Tokens.comma
-                |> CustomParser.keep Layout.maybeLayout
-                |> CustomParser.keep expression
-                |> CustomParser.keep Layout.maybeLayout
+                Layout.maybeLayout
+                expression
+                Layout.maybeLayout
             )
         )
 

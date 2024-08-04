@@ -1,6 +1,6 @@
 module Elm.Parser.File exposing (file)
 
-import CustomParser exposing (Parser )
+import CustomParser exposing (Parser)
 import Elm.Parser.Comments as Comments
 import Elm.Parser.Declarations exposing (declaration)
 import Elm.Parser.Imports exposing (importDefinition)
