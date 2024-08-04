@@ -271,17 +271,12 @@ layoutStrict =
         |> CustomParser.ignore onTopIndentation
 
 
-moduleLevelIndentation : res -> Parser res
-moduleLevelIndentation res =
-    let
-        succeedRes : Parser res
-        succeedRes =
-            CustomParser.succeed res
-    in
+moduleLevelIndentation : Parser ()
+moduleLevelIndentation =
     CustomParser.andThen
         (\column ->
             if column == 1 then
-                nextParser
+                succeedUnit
 
             else
                 problemModuleLevelIndentation

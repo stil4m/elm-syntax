@@ -58,7 +58,7 @@ fileDeclarations =
                 , syntax = declarationParsed.syntax
                 }
             )
-            (Layout.moduleLevelIndentation ())
+            Layout.moduleLevelIndentation
             declaration
             Layout.optimisticLayout
         )
