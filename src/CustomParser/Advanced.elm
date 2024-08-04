@@ -1,7 +1,7 @@
 module CustomParser.Advanced exposing
     ( Parser, run, DeadEnd, Token(..)
     , number, symbol, keyword, variable, end
-    , problem, lazy, map, map2, map3, map4, map5, map6, map7, map8, map9, map10, map11, succeed, andThen, keep, ignore
+    , problem, lazy, map, map2, map3, map4, map5, map6, map7, map8, map9, map10, map11, succeed, andThen, ignore
     , oneOf, backtrackable, token
     , loop, Step(..)
     , nestableMultiComment
@@ -19,7 +19,7 @@ module CustomParser.Advanced exposing
 
 # Flow
 
-@docs problem, lazy, map, map2, map3, map4, map5, map6, map7, map8, map9, map10, map11, succeed, andThen, keep, ignore
+@docs problem, lazy, map, map2, map3, map4, map5, map6, map7, map8, map9, map10, map11, succeed, andThen, ignore
 
 @docs oneOf, backtrackable, token
 
@@ -618,11 +618,6 @@ map11 func (Parser parseA) (Parser parseB) (Parser parseC) (Parser parseD) (Pars
                                                                                                 Good p11 k s11 ->
                                                                                                     Good (p1 || p2 || p3 || p4 || p5 || p6 || p7 || p8 || p9 || p10 || p11) (func a b c d e f g h i j k) s11
         )
-
-
-keep : Parser x (a -> b) -> Parser x a -> Parser x b
-keep parseFunc parseArg =
-    map2 (<|) parseFunc parseArg
 
 
 ignore : Parser x keep -> Parser x ignore -> Parser x keep
