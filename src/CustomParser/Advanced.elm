@@ -1,7 +1,7 @@
 module CustomParser.Advanced exposing
     ( Parser, run, DeadEnd, Token(..)
     , number, symbol, keyword, variable, end
-    , problem, lazy, map, map2, map3, map4, map5, map6, map7, map8, map9, map10, map11, succeed, andThen, ignore
+    , succeed, problem, succeedLazy, lazy, map, map2, map3, map4, map5, map6, map7, map8, map9, map10, map11, andThen, ignore
     , oneOf, backtrackable, commit, token
     , loop, Step(..)
     , nestableMultiComment
@@ -19,7 +19,7 @@ module CustomParser.Advanced exposing
 
 # Flow
 
-@docs problem, lazy, map, map2, map3, map4, map5, map6, map7, map8, map9, map10, map11, succeed, andThen, ignore
+@docs succeed, problem, succeedLazy, lazy, map, map2, map3, map4, map5, map6, map7, map8, map9, map10, map11, andThen, ignore
 
 @docs oneOf, backtrackable, commit, token
 
@@ -185,6 +185,13 @@ bagToList bag list =
 
         Append bag1 bag2 ->
             bagToList bag1 (bagToList bag2 list)
+
+
+succeedLazy : (() -> a) -> Parser x a
+succeedLazy res =
+    Parser <|
+        \s ->
+            Good False (res ()) s
 
 
 succeed : a -> Parser x a
