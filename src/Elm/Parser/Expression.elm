@@ -135,7 +135,7 @@ functionCall : ( Int, Parser (WithComments ExtensionRight) )
 functionCall =
     infixHelp 90
         (CustomParser.lazy (\() -> abovePrecedence90))
-        (Layout.positivelyIndented ())
+        Layout.positivelyIndented
         ExtendRightByApplication
 
 
@@ -517,7 +517,7 @@ caseStatement =
             }
         )
         (Layout.optimisticLayout |> CustomParser.backtrackable)
-        (Layout.onTopIndentation ())
+        Layout.onTopIndentation
         Patterns.pattern
         (Layout.maybeLayoutUntilIgnored CustomParser.token "->")
         Layout.maybeLayout
@@ -575,7 +575,7 @@ letDeclarationsIn =
             , syntax = headLetResult.syntax :: tailLetResult.syntax
             }
         )
-        (Layout.onTopIndentation ())
+        Layout.onTopIndentation
         (CustomParser.oneOf
             [ letFunction
             , letDestructuringDeclaration
@@ -593,7 +593,7 @@ blockElement =
             , syntax = letDeclarationResult.syntax
             }
         )
-        (Layout.onTopIndentation ())
+        Layout.onTopIndentation
         (CustomParser.oneOf
             [ letFunction
             , letDestructuringDeclaration
