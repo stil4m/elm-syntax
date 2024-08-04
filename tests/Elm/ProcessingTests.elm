@@ -1,5 +1,6 @@
 module Elm.ProcessingTests exposing (suite, suiteDeprecated)
 
+import CustomParser
 import Elm.Parser as Parser
 import Elm.Processing as Processing
 import Elm.Syntax.Declaration exposing (..)
@@ -12,7 +13,6 @@ import Elm.Syntax.Node exposing (Node(..))
 import Elm.Syntax.Pattern exposing (Pattern(..))
 import Elm.Syntax.TypeAnnotation exposing (..)
 import Expect
-import Parser
 import Test exposing (..)
 
 
@@ -76,7 +76,7 @@ testCases =
     ]
 
 
-context : Result (List Parser.DeadEnd) Processing.ProcessContext
+context : Result (List CustomParser.DeadEnd) Processing.ProcessContext
 context =
     """
 module Basics exposing ((+), (-), (*), (/), (//), (^), (==), (/=), (<), (>), (<=), (>=), (&&), (||), (++), (<|), (|>), (<<), (>>))

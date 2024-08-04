@@ -1,12 +1,11 @@
 module Elm.Parser.CommentTest exposing (all)
 
+import CustomParser
 import Elm.Parser.Comments as Parser
 import Elm.Parser.Node as Node
 import Elm.Parser.ParserWithCommentsTestUtil exposing (..)
 import Elm.Syntax.Node exposing (Node(..))
 import Expect
-import Parser
-import ParserFast
 import Rope
 import Test exposing (..)
 
@@ -53,32 +52,32 @@ all =
                     |> Expect.err
         , test "module documentation" <|
             \() ->
-                parseWithState "{-|foo\nbar-}" (Parser.moduleDocumentation |> ParserFast.map (\c -> { comments = Just (Rope.one c), syntax = () }))
+                parseWithState "{-|foo\nbar-}" (Parser.moduleDocumentation |> CustomParser.map (\c -> { comments = Just (Rope.one c), syntax = () }))
                     |> Maybe.map .comments
                     |> Expect.equal
                         (Just [ Node { start = { row = 1, column = 1 }, end = { row = 2, column = 6 } } "{-|foo\nbar-}" ])
         , test "module documentation can handle nested comments" <|
             \() ->
-                parseWithState "{-| {- hello -} -}" (Parser.moduleDocumentation |> ParserFast.map (\c -> { comments = Just (Rope.one c), syntax = () }))
+                parseWithState "{-| {- hello -} -}" (Parser.moduleDocumentation |> CustomParser.map (\c -> { comments = Just (Rope.one c), syntax = () }))
                     |> Maybe.map .comments
                     |> Expect.equal
                         (Just [ Node { start = { row = 1, column = 1 }, end = { row = 1, column = 19 } } "{-| {- hello -} -}" ])
         ]
 
 
-parseSingleLineComment : String -> Result (List Parser.DeadEnd) (Node String)
+parseSingleLineComment : String -> Result (List CustomParser.DeadEnd) (Node String)
 parseSingleLineComment source =
-    ParserFast.run
-        ((Parser.singleLineCommentCore |> ParserFast.getChompedString |> Node.parserCore)
-            |> ParserFast.ignore ParserFast.end
+    CustomParser.run
+        ((Parser.singleLineCommentCore |> CustomParser.getChompedString |> Node.parserCore)
+            |> CustomParser.ignore CustomParser.end
         )
         source
 
 
-parseMultiLineComment : String -> Result (List Parser.DeadEnd) (Node String)
+parseMultiLineComment : String -> Result (List CustomParser.DeadEnd) (Node String)
 parseMultiLineComment source =
-    ParserFast.run
+    CustomParser.run
         ((Parser.multilineCommentString |> Node.parserCore)
-            |> ParserFast.ignore ParserFast.end
+            |> CustomParser.ignore CustomParser.end
         )
         source

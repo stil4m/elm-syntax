@@ -10,21 +10,21 @@ module Elm.Parser.Layout exposing
     , positivelyIndentedPlusFollowedBy
     )
 
+import CustomParser exposing (Parser)
+import CustomParser.Extra
 import Elm.Parser.Comments as Comments
 import Elm.Parser.Node as Node
 import Elm.Syntax.Node exposing (Node(..))
-import Parser exposing ((|.), (|=), Parser)
-import Parser.Extra
 import ParserWithComments exposing (Comments, WithComments)
 import Rope
 import Set
 
 
-maybeLayoutUntilIgnored : (String -> Parser ()) -> String -> Parser.Parser Comments
+maybeLayoutUntilIgnored : (String -> Parser ()) -> String -> CustomParser.Parser Comments
 maybeLayoutUntilIgnored endParser endSymbol =
     whitespaceAndCommentsUntilEndComments
         (endParser endSymbol
-            |> Parser.Extra.continueWith
+            |> CustomParser.Extra.continueWith
                 (positivelyIndentedPlusResultingIn (String.length endSymbol) Rope.empty)
         )
 
@@ -34,7 +34,7 @@ whitespaceAndCommentsUntilEndComments end =
     let
         fromSingleLineCommentUntilEnd : Parser Comments
         fromSingleLineCommentUntilEnd =
-            Parser.map
+            CustomParser.map
                 (\startColumn ->
                     \content ->
                         \( endRow, endColumn ) ->
@@ -48,10 +48,10 @@ whitespaceAndCommentsUntilEndComments end =
                                     )
                                     |> Rope.filledPrependTo commentsAfter
                 )
-                Parser.getCol
-                |= Comments.singleLineCommentCore
-                |= Parser.getPosition
-                |= Parser.lazy (\() -> whitespaceAndCommentsUntilEndComments end)
+                CustomParser.getCol
+                |> CustomParser.keep Comments.singleLineCommentCore
+                |> CustomParser.keep CustomParser.getPosition
+                |> CustomParser.keep (CustomParser.lazy (\() -> whitespaceAndCommentsUntilEndComments end))
 
         fromMultilineCommentNodeUntilEnd : Parser Comments
         fromMultilineCommentNodeUntilEnd =
@@ -61,33 +61,32 @@ whitespaceAndCommentsUntilEndComments end =
                         Rope.one comment |> Rope.filledPrependTo commentsAfter
                 )
                 Comments.multilineCommentString
-                |= Parser.lazy (\() -> whitespaceAndCommentsUntilEndComments end)
+                |> CustomParser.keep (CustomParser.lazy (\() -> whitespaceAndCommentsUntilEndComments end))
 
         endOrFromCommentElseEmptyThenEnd : Parser Comments
         endOrFromCommentElseEmptyThenEnd =
-            Parser.oneOf
+            CustomParser.oneOf
                 [ end
                 , fromSingleLineCommentUntilEnd
                 , fromMultilineCommentNodeUntilEnd
                 ]
     in
-    Parser.oneOf
+    CustomParser.oneOf
         [ whitespace
-            |> Parser.andThen (\_ -> endOrFromCommentElseEmptyThenEnd)
+            |> CustomParser.andThen (\_ -> endOrFromCommentElseEmptyThenEnd)
         , end
         , fromSingleLineCommentUntilEnd
         , fromMultilineCommentNodeUntilEnd
         ]
 
 
-whitespaceAndCommentsOrEmpty : Parser.Parser Comments
+whitespaceAndCommentsOrEmpty : CustomParser.Parser Comments
 whitespaceAndCommentsOrEmpty =
-    Parser.oneOf
+    CustomParser.oneOf
         [ whitespace
-            |> ParserFast.andThen (\_ -> endOrFromCommentElseEmptyThenEnd)
-        , end
-        , fromSingleLineCommentUntilEnd
-        , fromMultilineCommentNodeUntilEnd
+            -- whitespace can't be followed by more whitespace
+            |> CustomParser.andThen (\_ -> fromCommentElseEmpty)
+        , fromCommentElseEmpty
         ]
 
 
@@ -103,7 +102,7 @@ whitespaceAndCommentsOrEmpty =
 
 whitespace : Parser String
 whitespace =
-    ParserFast.variable
+    CustomParser.variable
         { inner = \c -> c == ' ' || c == '\n' || c == '\u{000D}'
         , reserved = Set.empty
         , start = \c -> c == ' ' || c == '\n' || c == '\u{000D}'
@@ -114,29 +113,34 @@ fromCommentElseEmpty : Parser Comments
 fromCommentElseEmpty =
     -- since comments are comparatively rare
     -- but expensive to check for, we allow shortcutting to dead end
-    ParserFast.offsetSourceAndThen
-        (\offset source ->
-            case source |> String.slice offset (offset + 2) of
-                "--" ->
-                    -- this will always succeed from here, so no need to fall back to Rope.empty
-                    fromSingleLineCommentNode
+    CustomParser.andThen
+        (\source ->
+            CustomParser.andThen
+                (\offset ->
+                    case source |> String.slice offset (offset + 2) of
+                        "--" ->
+                            -- this will always succeed from here, so no need to fall back to Rope.empty
+                            fromSingleLineCommentNode
 
                 "{-" ->
                     fromMultilineCommentNodeOrEmptyOnProblem
 
-                _ ->
-                    succeedRopeEmpty
+                        _ ->
+                            succeedRopeEmpty
+                )
+                CustomParser.getOffset
         )
+        CustomParser.getSource
 
 
 succeedRopeEmpty : Parser Comments
 succeedRopeEmpty =
-    ParserFast.succeed Rope.empty
+    CustomParser.succeed Rope.empty
 
 
 fromMultilineCommentNodeOrEmptyOnProblem : Parser Comments
 fromMultilineCommentNodeOrEmptyOnProblem =
-    ParserFast.orSucceed fromMultilineCommentNode Rope.empty
+    CustomParser.oneOf [ fromMultilineCommentNode, CustomParser.succeed Rope.empty ]
 
 
 fromMultilineCommentNode : Parser Comments
@@ -145,13 +149,13 @@ fromMultilineCommentNode =
         (\comment commentsAfter ->
             Rope.one comment |> Rope.filledPrependTo commentsAfter
         )
-        (Node.parserCore Comments.multilineCommentString)
-        whitespaceAndCommentsOrEmpty
+        Comments.multilineCommentString
+        |> CustomParser.keep whitespaceAndCommentsOrEmpty
 
 
 fromSingleLineCommentNode : Parser Comments
 fromSingleLineCommentNode =
-    Parser.map
+    CustomParser.map
         (\startColumn ->
             \content ->
                 \( endRow, endColumn ) ->
@@ -165,43 +169,48 @@ fromSingleLineCommentNode =
                             )
                             |> Rope.filledPrependTo commentsAfter
         )
-        Parser.getCol
-        |= Comments.singleLineCommentCore
-        |= Parser.getPosition
-        |= whitespaceAndCommentsOrEmpty
+        CustomParser.getCol
+        |> CustomParser.keep Comments.singleLineCommentCore
+        |> CustomParser.keep CustomParser.getPosition
+        |> CustomParser.keep whitespaceAndCommentsOrEmpty
 
 
 maybeLayout : Parser Comments
 maybeLayout =
     whitespaceAndCommentsOrEmpty
-        |. positivelyIndented ()
+        |> CustomParser.ignore (positivelyIndented ())
 
 
 {-| Check that the indentation of an already parsed token
 would be valid after [`maybeLayout`](#maybeLayout)
 -}
-positivelyIndentedPlusFollowedBy : Int -> Parser a -> Parser a
-positivelyIndentedPlusFollowedBy extraIndent nextParser =
-    ParserFast.columnIndentAndThen
-        (\column indent ->
-            if column > indent + extraIndent then
-                nextParser
+positivelyIndentedPlus : Int -> CustomParser.Parser ()
+positivelyIndentedPlus extraIndent =
+    CustomParser.andThen
+        (\column ->
+            CustomParser.andThen
+                (\indent ->
+                    if column > indent + extraIndent then
+                        succeedUnit
 
-            else
-                problemPositivelyIndented
+                    else
+                        problemPositivelyIndented
+                )
+                CustomParser.getIndent
         )
+        CustomParser.getCol
 
 
-positivelyIndentedPlusResultingIn : Int -> res -> Parser.Parser res
+positivelyIndentedPlusResultingIn : Int -> res -> CustomParser.Parser res
 positivelyIndentedPlusResultingIn extraIndent res =
     let
         succeedRes : Parser res
         succeedRes =
-            Parser.succeed res
+            CustomParser.succeed res
     in
-    Parser.andThen
+    CustomParser.andThen
         (\column ->
-            Parser.andThen
+            CustomParser.andThen
                 (\indent ->
                     if column > indent + extraIndent then
                         succeedRes
@@ -209,34 +218,41 @@ positivelyIndentedPlusResultingIn extraIndent res =
                     else
                         problemPositivelyIndented
                 )
-                Parser.getIndent
+                CustomParser.getIndent
         )
-        Parser.getCol
+        CustomParser.getCol
 
 
-positivelyIndented : res -> Parser.Parser res
+positivelyIndented : res -> CustomParser.Parser res
 positivelyIndented res =
     let
         succeedRes : Parser res
         succeedRes =
-            Parser.succeed res
+            CustomParser.succeed res
     in
-    Parser.getCol
-        |> Parser.andThen
+    CustomParser.getCol
+        |> CustomParser.andThen
             (\column ->
-                Parser.andThen
+                CustomParser.andThen
                     (\indent ->
                         if column > indent then
                             succeedRes
 
-            else
-                problemPositivelyIndented
-        )
+                        else
+                            problemPositivelyIndented
+                    )
+                    CustomParser.getIndent
+            )
+
+
+succeedUnit : Parser ()
+succeedUnit =
+    CustomParser.succeed ()
 
 
 problemPositivelyIndented : Parser a
 problemPositivelyIndented =
-    Parser.problem "must be positively indented"
+    CustomParser.problem "must be positively indented"
 
 
 optimisticLayout : Parser Comments
@@ -278,14 +294,18 @@ layoutStrictFollowedBy nextParser =
 
 layoutStrict : Parser Comments
 layoutStrict =
-    ParserFast.map2 (\commentsBefore () -> commentsBefore)
-        optimisticLayout
-        (onTopIndentationFollowedBy (ParserFast.succeed ()))
+    optimisticLayout
+        |> CustomParser.ignore (onTopIndentation ())
 
 
-moduleLevelIndentationFollowedBy : Parser a -> Parser a
-moduleLevelIndentationFollowedBy nextParser =
-    ParserFast.columnAndThen
+moduleLevelIndentation : res -> Parser res
+moduleLevelIndentation res =
+    let
+        succeedRes : Parser res
+        succeedRes =
+            CustomParser.succeed res
+    in
+    CustomParser.andThen
         (\column ->
             if column == 1 then
                 nextParser
@@ -293,41 +313,54 @@ moduleLevelIndentationFollowedBy nextParser =
             else
                 problemModuleLevelIndentation
         )
+        CustomParser.getCol
 
 
-problemModuleLevelIndentation : Parser a
+problemModuleLevelIndentation : CustomParser.Parser a
 problemModuleLevelIndentation =
-    ParserFast.problem "must be on module-level indentation"
+    CustomParser.problem "must be on module-level indentation"
 
 
-onTopIndentationFollowedBy : Parser a -> Parser a
-onTopIndentationFollowedBy nextParser =
-    ParserFast.columnIndentAndThen
-        (\column indent ->
-            if column - indent == 0 then
-                nextParser
+onTopIndentation : res -> Parser res
+onTopIndentation res =
+    let
+        succeedRes : Parser res
+        succeedRes =
+            CustomParser.succeed res
+    in
+    CustomParser.andThen
+        (\column ->
+            CustomParser.andThen
+                (\indent ->
+                    if column == indent then
+                        succeedRes
 
-            else
-                problemTopIndentation
+                    else
+                        problemTopIndentation
+                )
+                CustomParser.getIndent
         )
+        CustomParser.getCol
 
 
-problemTopIndentation : Parser a
+problemTopIndentation : CustomParser.Parser a
 problemTopIndentation =
-    ParserFast.problem "must be on top indentation"
+    CustomParser.problem "must be on top indentation"
 
 
 maybeAroundBothSides : Parser (WithComments b) -> Parser (WithComments b)
 maybeAroundBothSides x =
-    ParserFast.map3
-        (\before v after ->
-            { comments =
-                before
-                    |> Rope.prependTo v.comments
-                    |> Rope.prependTo after
-            , syntax = v.syntax
-            }
+    CustomParser.map
+        (\before ->
+            \v ->
+                \after ->
+                    { comments =
+                        before
+                            |> Rope.prependTo v.comments
+                            |> Rope.prependTo after
+                    , syntax = v.syntax
+                    }
         )
         maybeLayout
-        x
-        maybeLayout
+        |> CustomParser.keep x
+        |> CustomParser.keep maybeLayout

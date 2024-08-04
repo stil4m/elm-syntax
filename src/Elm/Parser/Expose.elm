@@ -1,11 +1,12 @@
 module Elm.Parser.Expose exposing (exposeDefinition)
 
+import CustomParser exposing (Parser )
+import CustomParser.Extra
 import Elm.Parser.Layout as Layout
 import Elm.Parser.Node as Node
 import Elm.Parser.Tokens as Tokens
 import Elm.Syntax.Exposing exposing (Exposing(..), TopLevelExpose(..))
 import Elm.Syntax.Node exposing (Node(..))
-import ParserFast exposing (Parser)
 import ParserWithComments exposing (WithComments)
 import Rope
 import Set
@@ -13,7 +14,7 @@ import Set
 
 exposeDefinition : Parser (WithComments Exposing)
 exposeDefinition =
-    Parser.map
+    CustomParser.map
         (\() ->
             \commentsAfterExposing ->
                 \commentsBefore ->
@@ -26,76 +27,98 @@ exposeDefinition =
                         }
         )
         Tokens.exposingToken
-        |= Layout.maybeLayoutUntilIgnored Parser.token "("
-        |= Layout.optimisticLayout
-        |= exposingListInner
-        |. Tokens.parensEnd
+        |> CustomParser.keep (Layout.maybeLayoutUntilIgnored CustomParser.token "(")
+        |> CustomParser.keep Layout.optimisticLayout
+        |> CustomParser.keep exposingListInner
+        |> CustomParser.ignore Tokens.parensEnd
 
 
 exposingListInner : Parser (WithComments Exposing)
 exposingListInner =
-    ParserFast.oneOf2
-        (ParserFast.map3
-            (\headElement commentsAfterHeadElement tailElements ->
-                { comments =
-                    headElement.comments
-                        |> Rope.prependTo commentsAfterHeadElement
-                        |> Rope.prependTo tailElements.comments
-                , syntax =
-                    Explicit
-                        (headElement.syntax
-                            :: tailElements.syntax
-                        )
-                }
+    CustomParser.oneOf
+        [ CustomParser.map
+            (\( headStartRow, headStartColumn ) ->
+                \headElement ->
+                    \( headEndRow, headEndColumn ) ->
+                        \commentsAfterHeadElement ->
+                            \tailElements ->
+                                { comments =
+                                    headElement.comments
+                                        |> Rope.prependTo commentsAfterHeadElement
+                                        |> Rope.prependTo tailElements.comments
+                                , syntax =
+                                    Explicit
+                                        (Node
+                                            { start = { row = headStartRow, column = headStartColumn }
+                                            , end = { row = headEndRow, column = headEndColumn }
+                                            }
+                                            headElement.syntax
+                                            :: tailElements.syntax
+                                        )
+                                }
             )
-            exposable
-            Layout.maybeLayout
-            (ParserWithComments.many
-                (ParserFast.symbolFollowedBy ","
-                    (Layout.maybeAroundBothSides exposable)
+            CustomParser.getPosition
+            |> CustomParser.keep exposable
+            |> CustomParser.keep CustomParser.getPosition
+            |> CustomParser.keep Layout.maybeLayout
+            |> CustomParser.keep
+                (ParserWithComments.many
+                    (Tokens.comma
+                        |> CustomParser.Extra.continueWith
+                            (Layout.maybeAroundBothSides (exposable |> Node.parser))
+                    )
                 )
+        , CustomParser.map
+            (\( startRow, startColumn ) ->
+                \commentsAfterDotDot ->
+                    \( endRow, endColumn ) ->
+                        { comments = commentsAfterDotDot
+                        , syntax =
+                            All
+                                { start = { row = startRow, column = startColumn }
+                                , end = { row = endRow, column = endColumn }
+                                }
+                        }
             )
-        )
-        (ParserFast.mapWithStartAndEndPosition
-            (\start commentsAfterDotDot end ->
-                { comments = commentsAfterDotDot
-                , syntax =
-                    All { start = start, end = end }
-                }
-            )
-            (ParserFast.symbolFollowedBy ".." Layout.maybeLayout)
-        )
+            CustomParser.getPosition
+            |> CustomParser.ignore Tokens.dotDot
+            |> CustomParser.keep Layout.maybeLayout
+            |> CustomParser.keep CustomParser.getPosition
+        ]
 
 
 exposable : Parser (WithComments (Node TopLevelExpose))
 exposable =
-    ParserFast.oneOf
+    CustomParser.oneOf
         [ functionExpose
         , typeExpose
         , infixExpose
         ]
 
 
-infixExpose : ParserFast.Parser (WithComments (Node TopLevelExpose))
+infixExpose : CustomParser.Parser (WithComments TopLevelExpose)
 infixExpose =
-    (Parser.map (\() -> \infixName -> { comments = Rope.empty, syntax = InfixExpose infixName })
+    (CustomParser.map (\() -> \infixName -> { comments = Rope.empty, syntax = InfixExpose infixName })
         Tokens.parensStart
-        |= Parser.variable
-            { inner = \c -> c /= ')'
-            , reserved = Set.empty
-            , start = \c -> c /= ')'
-            }
+        |> CustomParser.keep
+            (CustomParser.variable
+                { inner = \c -> c /= ')'
+                , reserved = Set.empty
+                , start = \c -> c /= ')'
+                }
+            )
     )
-        |. Tokens.parensEnd
+        |> CustomParser.ignore Tokens.parensEnd
 
 
 typeExpose : Parser (WithComments (Node TopLevelExpose))
 typeExpose =
-    ParserFast.map2
-        (\typeName open ->
-            case open of
-                Nothing ->
-                    { comments = Rope.empty, syntax = TypeOrAliasExpose typeName }
+    CustomParser.map
+        (\typeName ->
+            \open ->
+                case open of
+                    Nothing ->
+                        { comments = Rope.empty, syntax = TypeOrAliasExpose typeName }
 
                 Just openRange ->
                     { comments = openRange.comments
@@ -104,32 +127,34 @@ typeExpose =
                     }
         )
         Tokens.typeName
-        (ParserFast.orSucceed
-            (ParserFast.map2
-                (\commentsBefore all ->
-                    Just
-                        { comments = commentsBefore |> Rope.prependTo all.comments
-                        , syntax = all.range
-                        }
-                )
-                (Layout.maybeLayout |> Parser.backtrackable)
-                |= Parser.getPosition
-                |. Tokens.parensStart
-                |= Layout.maybeLayoutUntilIgnored Parser.token ".."
-                |= Layout.maybeLayoutUntilIgnored Parser.token ")"
-                |= Parser.getPosition
-            , Parser.succeed Nothing
-            ]
+        |> CustomParser.keep
+            (CustomParser.oneOf
+                [ CustomParser.map
+                    (\commentsBefore ->
+                        \( startRow, startColumn ) ->
+                            \left ->
+                                \right ->
+                                    \( endRow, endColumn ) ->
+                                        Just
+                                            { comments = commentsBefore |> Rope.prependTo left |> Rope.prependTo right
+                                            , syntax =
+                                                { start = { row = startRow, column = startColumn }
+                                                , end = { row = endRow, column = endColumn }
+                                                }
+                                            }
+                    )
+                    (Layout.maybeLayout |> CustomParser.backtrackable)
+                    |> CustomParser.keep CustomParser.getPosition
+                    |> CustomParser.ignore Tokens.parensStart
+                    |> CustomParser.keep (Layout.maybeLayoutUntilIgnored CustomParser.token "..")
+                    |> CustomParser.keep (Layout.maybeLayoutUntilIgnored CustomParser.token ")")
+                    |> CustomParser.keep CustomParser.getPosition
+                , CustomParser.succeed Nothing
+                ]
+            )
 
 
 functionExpose : Parser (WithComments (Node TopLevelExpose))
 functionExpose =
-    ParserFast.mapWithStartAndEndPosition
-        (\start name end ->
-            { comments = Rope.empty
-            , syntax =
-                Node { start = start, end = end }
-                    (FunctionExpose name)
-            }
-        )
+    CustomParser.map (\name -> { comments = Rope.empty, syntax = FunctionExpose name })
         Tokens.functionName

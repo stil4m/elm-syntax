@@ -1,5 +1,6 @@
 module Elm.Parser.Modules exposing (moduleDefinition)
 
+import CustomParser exposing (Parser)
 import Elm.Parser.Base exposing (moduleName)
 import Elm.Parser.Expose exposing (exposeDefinition)
 import Elm.Parser.Layout as Layout
@@ -8,14 +9,13 @@ import Elm.Parser.Tokens as Tokens
 import Elm.Syntax.Module exposing (Module(..))
 import Elm.Syntax.Node exposing (Node)
 import List.Extra
-import Parser exposing ((|.), (|=), Parser)
 import ParserWithComments exposing (WithComments)
 import Rope
 
 
 moduleDefinition : Parser (WithComments Module)
 moduleDefinition =
-    ParserFast.oneOf
+    CustomParser.oneOf
         [ normalModuleDefinition
         , portModuleDefinition
         , effectModuleDefinition
@@ -24,21 +24,24 @@ moduleDefinition =
 
 effectWhereClause : Parser (WithComments ( String, Node String ))
 effectWhereClause =
-    ParserFast.map4
-        (\fnName commentsAfterFnName commentsAfterEqual typeName_ ->
-            { comments = commentsAfterFnName |> Rope.prependTo commentsAfterEqual
-            , syntax = ( fnName, typeName_ )
-            }
+    CustomParser.map
+        (\fnName ->
+            \commentsAfterFnName ->
+                \commentsAfterEqual ->
+                    \typeName_ ->
+                        { comments = commentsAfterFnName |> Rope.prependTo commentsAfterEqual
+                        , syntax = ( fnName, typeName_ )
+                        }
         )
         Tokens.functionName
-        |= Layout.maybeLayoutUntilIgnored Parser.token "="
-        |= Layout.maybeLayout
-        |= Node.parserCore Tokens.typeName
+        |> CustomParser.keep (Layout.maybeLayoutUntilIgnored CustomParser.token "=")
+        |> CustomParser.keep Layout.maybeLayout
+        |> CustomParser.keep (Node.parserCore Tokens.typeName)
 
 
 whereBlock : Parser (WithComments { command : Maybe (Node String), subscription : Maybe (Node String) })
 whereBlock =
-    (Parser.map
+    (CustomParser.map
         (\() ->
             \pairs ->
                 { comments = pairs.comments
@@ -55,15 +58,18 @@ whereBlock =
                 }
         )
         Tokens.curlyStart
-        |= ParserWithComments.sepBy1 ","
-            (Layout.maybeAroundBothSides effectWhereClause)
+        |> CustomParser.keep
+            (ParserWithComments.sepBy1
+                ","
+                (Layout.maybeAroundBothSides effectWhereClause)
+            )
     )
-        |. Tokens.curlyEnd
+        |> CustomParser.ignore Tokens.curlyEnd
 
 
 effectWhereClauses : Parser (WithComments { command : Maybe (Node String), subscription : Maybe (Node String) })
 effectWhereClauses =
-    Parser.map
+    CustomParser.map
         (\() ->
             \commentsBefore ->
                 \whereResult ->
@@ -72,13 +78,13 @@ effectWhereClauses =
                     }
         )
         Tokens.whereToken
-        |= Layout.maybeLayout
-        |= whereBlock
+        |> CustomParser.keep Layout.maybeLayout
+        |> CustomParser.keep whereBlock
 
 
 effectModuleDefinition : Parser (WithComments Module)
 effectModuleDefinition =
-    Parser.map
+    CustomParser.map
         (\() ->
             \commentsAfterEffect ->
                 \commentsModule ->
@@ -103,20 +109,20 @@ effectModuleDefinition =
                                                 }
                                         }
         )
-        (Parser.keyword "effect")
-        |= Layout.maybeLayout
-        |. Tokens.moduleToken
-        |= Layout.maybeLayout
-        |= moduleName
-        |= Layout.maybeLayout
-        |= effectWhereClauses
-        |= Layout.maybeLayout
-        |= Node.parser exposeDefinition
+        (CustomParser.keyword "effect")
+        |> CustomParser.keep Layout.maybeLayout
+        |> CustomParser.ignore Tokens.moduleToken
+        |> CustomParser.keep Layout.maybeLayout
+        |> CustomParser.keep moduleName
+        |> CustomParser.keep Layout.maybeLayout
+        |> CustomParser.keep effectWhereClauses
+        |> CustomParser.keep Layout.maybeLayout
+        |> CustomParser.keep (Node.parser exposeDefinition)
 
 
 normalModuleDefinition : Parser (WithComments Module)
 normalModuleDefinition =
-    Parser.map
+    CustomParser.map
         (\() ->
             \commentsAfterModule ->
                 \moduleName ->
@@ -134,15 +140,15 @@ normalModuleDefinition =
                             }
         )
         Tokens.moduleToken
-        |= Layout.maybeLayout
-        |= moduleName
-        |= Layout.maybeLayout
-        |= Node.parser exposeDefinition
+        |> CustomParser.keep Layout.maybeLayout
+        |> CustomParser.keep moduleName
+        |> CustomParser.keep Layout.maybeLayout
+        |> CustomParser.keep (Node.parser exposeDefinition)
 
 
 portModuleDefinition : Parser (WithComments Module)
 portModuleDefinition =
-    Parser.map
+    CustomParser.map
         (\() ->
             \commentsAfterPort ->
                 \commentsAfterModule ->
@@ -158,9 +164,9 @@ portModuleDefinition =
                                 }
         )
         Tokens.portToken
-        |= Layout.maybeLayout
-        |. Tokens.moduleToken
-        |= Layout.maybeLayout
-        |= moduleName
-        |= Layout.maybeLayout
-        |= Node.parser exposeDefinition
+        |> CustomParser.keep Layout.maybeLayout
+        |> CustomParser.ignore Tokens.moduleToken
+        |> CustomParser.keep Layout.maybeLayout
+        |> CustomParser.keep moduleName
+        |> CustomParser.keep Layout.maybeLayout
+        |> CustomParser.keep (Node.parser exposeDefinition)

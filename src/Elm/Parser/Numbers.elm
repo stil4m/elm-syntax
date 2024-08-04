@@ -1,11 +1,11 @@
 module Elm.Parser.Numbers exposing (floatOrIntOrHex, intOrHex)
 
-import ParserFast
+import CustomParser
 
 
-floatOrIntOrHex : (Float -> a) -> (Int -> a) -> (Int -> a) -> ParserFast.Parser a
-floatOrIntOrHex floatf intf hexf =
-    ParserFast.number
+raw : Maybe (Float -> a) -> (Int -> a) -> (Int -> a) -> CustomParser.Parser a
+raw floatf intf hexf =
+    CustomParser.number
         { binary = Nothing
         , float = Just floatf
         , hex = Just hexf
@@ -14,12 +14,13 @@ floatOrIntOrHex floatf intf hexf =
         }
 
 
-intOrHex : (Int -> a) -> (Int -> a) -> ParserFast.Parser a
-intOrHex intf hexf =
-    ParserFast.number
-        { binary = Nothing
-        , float = Nothing
-        , hex = Just hexf
-        , int = Just intf
-        , octal = Nothing
-        }
+{-| CustomParser.number bug: consumes leading '.' or 'e'
+-}
+forgivingNumber : (Float -> a) -> (Int -> a) -> (Int -> a) -> CustomParser.Parser a
+forgivingNumber floatf intf hexf =
+    CustomParser.backtrackable (raw (Just floatf) intf hexf)
+
+
+number : (Int -> a) -> (Int -> a) -> CustomParser.Parser a
+number intf hexf =
+    raw Nothing intf hexf

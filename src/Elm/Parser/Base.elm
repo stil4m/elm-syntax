@@ -1,25 +1,35 @@
 module Elm.Parser.Base exposing (moduleName)
 
-import Elm.Parser.Node as Node
+import CustomParser
 import Elm.Parser.Tokens as Tokens
 import Elm.Syntax.ModuleName exposing (ModuleName)
 import Elm.Syntax.Node exposing (Node(..))
-import Parser exposing ((|=))
 
 
-moduleName : ParserFast.Parser (Node ModuleName)
+moduleName : CustomParser.Parser (Node ModuleName)
 moduleName =
-    ParserFast.map2 (\head tail -> head :: tail)
-        Tokens.typeName
-        moduleNameOrEmpty
-        |> Node.parserCore
+    CustomParser.map
+        (\( startRow, startColumn ) ->
+            \head ->
+                \tail ->
+                    \endColumn ->
+                        Node
+                            { start = { row = startRow, column = startColumn }
+                            , end = { row = startRow, column = endColumn }
+                            }
+                            (head :: tail)
+        )
+        CustomParser.getPosition
+        |> CustomParser.keep Tokens.typeName
+        |> CustomParser.keep moduleNameOrEmpty
+        |> CustomParser.keep CustomParser.getCol
 
 
-moduleNameOrEmpty : Parser.Parser ModuleName
+moduleNameOrEmpty : CustomParser.Parser ModuleName
 moduleNameOrEmpty =
-    Parser.oneOf
-        [ Parser.map (\() -> \head -> \tail -> head :: tail) Tokens.dot
-            |= Tokens.typeName
-            |= Parser.lazy (\() -> moduleNameOrEmpty)
-        , Parser.succeed []
+    CustomParser.oneOf
+        [ CustomParser.map (\() -> \head -> \tail -> head :: tail) Tokens.dot
+            |> CustomParser.keep Tokens.typeName
+            |> CustomParser.keep (CustomParser.lazy (\() -> moduleNameOrEmpty))
+        , CustomParser.succeed []
         ]

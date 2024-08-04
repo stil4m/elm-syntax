@@ -1,5 +1,6 @@
 module Elm.Parser.File exposing (file)
 
+import CustomParser exposing (Parser )
 import Elm.Parser.Comments as Comments
 import Elm.Parser.Declarations exposing (declaration)
 import Elm.Parser.Imports exposing (importDefinition)
@@ -9,44 +10,50 @@ import Elm.Parser.Node as Node
 import Elm.Syntax.Declaration exposing (Declaration)
 import Elm.Syntax.File exposing (File)
 import Elm.Syntax.Node exposing (Node)
-import ParserFast exposing (Parser)
 import ParserWithComments exposing (WithComments)
 import Rope
 
 
-file : ParserFast.Parser File
+file : CustomParser.Parser File
 file =
-    ParserFast.map5
-        (\moduleDefinition moduleComments imports declarations () ->
-            { moduleDefinition = moduleDefinition.syntax
-            , imports = imports.syntax
-            , declarations = declarations.syntax
-            , comments =
-                moduleDefinition.comments
-                    |> Rope.prependTo moduleComments
-                    |> Rope.prependTo imports.comments
-                    |> Rope.prependTo declarations.comments
-                    |> Rope.toList
-            }
+    CustomParser.map
+        (\commentsBeforeModuleDefinition ->
+            \moduleDefinition ->
+                \commentsAfterModuleDefinition ->
+                    \moduleComments ->
+                        \imports ->
+                            \declarations ->
+                                { moduleDefinition = moduleDefinition.syntax
+                                , imports = imports.syntax
+                                , declarations = declarations.syntax
+                                , comments =
+                                    commentsBeforeModuleDefinition
+                                        |> Rope.prependTo moduleDefinition.comments
+                                        |> Rope.prependTo commentsAfterModuleDefinition
+                                        |> Rope.prependTo moduleComments
+                                        |> Rope.prependTo imports.comments
+                                        |> Rope.prependTo declarations.comments
+                                        |> Rope.toList
+                                }
         )
-        (Layout.layoutStrictFollowedByWithComments
-            (Node.parser moduleDefinition)
-        )
-        (Layout.layoutStrictFollowedByComments
-            (ParserFast.orSucceed
-                (ParserFast.map2
-                    (\moduleDocumentation commentsAfter ->
-                        Rope.one moduleDocumentation |> Rope.filledPrependTo commentsAfter
+        Layout.layoutStrict
+        |> CustomParser.keep (Node.parser moduleDefinition)
+        |> CustomParser.keep Layout.layoutStrict
+        |> CustomParser.keep
+            (CustomParser.oneOf
+                [ CustomParser.map
+                    (\moduleDocumentation ->
+                        \commentsAfter ->
+                            Rope.one moduleDocumentation |> Rope.filledPrependTo commentsAfter
                     )
                     Comments.moduleDocumentation
-                    Layout.layoutStrict
-                )
-                Rope.empty
+                    |> CustomParser.keep Layout.layoutStrict
+                , CustomParser.succeed Rope.empty
+                ]
             )
-        )
-        (ParserWithComments.many importDefinition)
-        fileDeclarations
-        ParserFast.end
+        |> CustomParser.keep (ParserWithComments.many importDefinition)
+        |> CustomParser.keep fileDeclarations
+        |> CustomParser.ignore CustomParser.end
 
 
 fileDeclarations : Parser (WithComments (List (Node Declaration)))
@@ -62,4 +69,6 @@ fileDeclarations =
                 declaration
                 Layout.optimisticLayout
             )
+            |> CustomParser.keep declaration
+            |> CustomParser.keep Layout.optimisticLayout
         )

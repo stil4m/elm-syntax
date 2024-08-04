@@ -1,5 +1,6 @@
 module Elm.Parser.FileTests exposing (all)
 
+import CustomParser
 import Elm.Internal.RawFile as InternalRawFile
 import Elm.Parser
 import Elm.Parser.File as Parser
@@ -28,7 +29,7 @@ all =
                 (\( n, s ) ->
                     test ("sample " ++ String.fromInt n) <|
                         \() ->
-                            case ParserFast.run Parser.file s of
+                            case CustomParser.run Parser.file s of
                                 Err error ->
                                     Expect.fail (error |> Debug.toString)
 
@@ -61,7 +62,7 @@ all =
                                 let
                                     parsed : Maybe RawFile
                                     parsed =
-                                        ParserFast.run Parser.file s
+                                        CustomParser.run Parser.file s
                                             |> Result.toMaybe
                                             |> Maybe.map InternalRawFile.Raw
 

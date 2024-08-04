@@ -1,5 +1,6 @@
 module Elm.Parser.Imports exposing (importDefinition)
 
+import CustomParser exposing (Parser)
 import Elm.Parser.Base exposing (moduleName)
 import Elm.Parser.Expose exposing (exposeDefinition)
 import Elm.Parser.Layout as Layout
@@ -8,14 +9,13 @@ import Elm.Parser.Tokens as Tokens
 import Elm.Syntax.Import exposing (Import)
 import Elm.Syntax.Node exposing (Node(..))
 import Elm.Syntax.Range exposing (Range)
-import Parser exposing ((|=), Parser)
 import ParserWithComments exposing (WithComments)
 import Rope
 
 
 importDefinition : Parser (WithComments (Node Import))
 importDefinition =
-    Parser.map
+    CustomParser.map
         (\() ->
             \startRow ->
                 \commentsAfterImport ->
@@ -77,37 +77,41 @@ importDefinition =
                                         }
         )
         Tokens.importToken
-        |= Parser.getRow
-        |= Layout.maybeLayout
-        |= moduleName
-        |= Layout.optimisticLayout
-        |= Parser.oneOf
-            [ Parser.map
-                (\() ->
-                    \commentsBefore ->
-                        \( moduleAliasStartRow, moduleAliasStartColumn ) ->
-                            \moduleAlias ->
-                                \commentsAfter ->
-                                    Just
-                                        { comments = commentsBefore |> Rope.prependTo commentsAfter
-                                        , syntax =
-                                            Node
-                                                (Node.singleLineStringRangeFrom
-                                                    { row = moduleAliasStartRow, column = moduleAliasStartColumn }
-                                                    moduleAlias
-                                                )
-                                                [ moduleAlias ]
-                                        }
-                )
-                Tokens.asToken
-                |= Layout.maybeLayout
-                |= Parser.getPosition
-                |= Tokens.typeName
-                |= Layout.optimisticLayout
-            , Parser.succeed Nothing
-            ]
-        |= Parser.oneOf
-            [ Node.parserMapWithComments Just exposeDefinition
-            , Parser.succeed Nothing
-            ]
-        |= Layout.optimisticLayout
+        |> CustomParser.keep CustomParser.getRow
+        |> CustomParser.keep Layout.maybeLayout
+        |> CustomParser.keep moduleName
+        |> CustomParser.keep Layout.optimisticLayout
+        |> CustomParser.keep
+            (CustomParser.oneOf
+                [ CustomParser.map
+                    (\() ->
+                        \commentsBefore ->
+                            \( moduleAliasStartRow, moduleAliasStartColumn ) ->
+                                \moduleAlias ->
+                                    \commentsAfter ->
+                                        Just
+                                            { comments = commentsBefore |> Rope.prependTo commentsAfter
+                                            , syntax =
+                                                Node
+                                                    (Node.singleLineStringRangeFrom
+                                                        { row = moduleAliasStartRow, column = moduleAliasStartColumn }
+                                                        moduleAlias
+                                                    )
+                                                    [ moduleAlias ]
+                                            }
+                    )
+                    Tokens.asToken
+                    |> CustomParser.keep Layout.maybeLayout
+                    |> CustomParser.keep CustomParser.getPosition
+                    |> CustomParser.keep Tokens.typeName
+                    |> CustomParser.keep Layout.optimisticLayout
+                , CustomParser.succeed Nothing
+                ]
+            )
+        |> CustomParser.keep
+            (CustomParser.oneOf
+                [ Node.parserMapWithComments Just exposeDefinition
+                , CustomParser.succeed Nothing
+                ]
+            )
+        |> CustomParser.keep Layout.optimisticLayout
