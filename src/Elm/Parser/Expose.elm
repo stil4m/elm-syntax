@@ -1,6 +1,6 @@
 module Elm.Parser.Expose exposing (exposeDefinition)
 
-import CustomParser exposing (Parser )
+import CustomParser exposing (Parser)
 import CustomParser.Extra
 import Elm.Parser.Layout as Layout
 import Elm.Parser.Node as Node
@@ -37,9 +37,9 @@ exposingListInner : Parser (WithComments Exposing)
 exposingListInner =
     CustomParser.oneOf
         [ CustomParser.map
-            (\( headStartRow, headStartColumn ) ->
+            (\headStart ->
                 \headElement ->
-                    \( headEndRow, headEndColumn ) ->
+                    \headEnd ->
                         \commentsAfterHeadElement ->
                             \tailElements ->
                                 { comments =
@@ -49,8 +49,8 @@ exposingListInner =
                                 , syntax =
                                     Explicit
                                         (Node
-                                            { start = { row = headStartRow, column = headStartColumn }
-                                            , end = { row = headEndRow, column = headEndColumn }
+                                            { start = headStart
+                                            , end = headEnd
                                             }
                                             headElement.syntax
                                             :: tailElements.syntax
@@ -69,15 +69,12 @@ exposingListInner =
                     )
                 )
         , CustomParser.map
-            (\( startRow, startColumn ) ->
+            (\start ->
                 \commentsAfterDotDot ->
-                    \( endRow, endColumn ) ->
+                    \end ->
                         { comments = commentsAfterDotDot
                         , syntax =
-                            All
-                                { start = { row = startRow, column = startColumn }
-                                , end = { row = endRow, column = endColumn }
-                                }
+                            All { start = start, end = end }
                         }
             )
             CustomParser.getPosition
@@ -131,16 +128,13 @@ typeExpose =
             (CustomParser.oneOf
                 [ CustomParser.map
                     (\commentsBefore ->
-                        \( startRow, startColumn ) ->
+                        \start ->
                             \left ->
                                 \right ->
-                                    \( endRow, endColumn ) ->
+                                    \end ->
                                         Just
                                             { comments = commentsBefore |> Rope.prependTo left |> Rope.prependTo right
-                                            , syntax =
-                                                { start = { row = startRow, column = startColumn }
-                                                , end = { row = endRow, column = endColumn }
-                                                }
+                                            , syntax = { start = start, end = end }
                                             }
                     )
                     (Layout.maybeLayout |> CustomParser.backtrackable)

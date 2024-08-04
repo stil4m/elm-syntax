@@ -86,7 +86,7 @@ importDefinition =
                 [ CustomParser.map
                     (\() ->
                         \commentsBefore ->
-                            \( moduleAliasStartRow, moduleAliasStartColumn ) ->
+                            \moduleAliasStart ->
                                 \moduleAlias ->
                                     \commentsAfter ->
                                         Just
@@ -94,7 +94,7 @@ importDefinition =
                                             , syntax =
                                                 Node
                                                     (Node.singleLineStringRangeFrom
-                                                        { row = moduleAliasStartRow, column = moduleAliasStartColumn }
+                                                        moduleAliasStart
                                                         moduleAlias
                                                     )
                                                     [ moduleAlias ]

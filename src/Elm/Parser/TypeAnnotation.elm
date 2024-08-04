@@ -211,15 +211,14 @@ recordTypeAnnotation =
         |> CustomParser.keep
             (CustomParser.oneOf
                 [ CustomParser.map
-                    (\( firstNameStartRow, firstNameStartColumn ) ->
+                    (\firstNameStart ->
                         \firstName ->
                             \commentsAfterFirstName ->
                                 \afterFirstName ->
                                     let
                                         firstNameNode : Node String
                                         firstNameNode =
-                                            Node.singleLineStringFrom
-                                                { row = firstNameStartRow, column = firstNameStartColumn }
+                                            Node.singleLineStringFrom firstNameStart
                                                 firstName
                                     in
                                     Just
@@ -313,7 +312,7 @@ recordFieldDefinition : Parser (WithComments TypeAnnotation.RecordField)
 recordFieldDefinition =
     CustomParser.map
         (\commentsBeforeFunctionName ->
-            \( nameStartRow, nameStartColumn ) ->
+            \nameStart ->
                 \name ->
                     \commentsAfterFunctionName ->
                         \commentsAfterColon ->
@@ -326,8 +325,7 @@ recordFieldDefinition =
                                             |> Rope.prependTo value.comments
                                             |> Rope.prependTo commentsAfterValue
                                     , syntax =
-                                        ( Node.singleLineStringFrom
-                                            { row = nameStartRow, column = nameStartColumn }
+                                        ( Node.singleLineStringFrom nameStart
                                             name
                                         , value.syntax
                                         )
@@ -346,33 +344,30 @@ recordFieldDefinition =
 
 typedTypeAnnotationWithoutArguments : Parser (WithComments (Node TypeAnnotation))
 typedTypeAnnotationWithoutArguments =
-    CustomParser.map
-        (\( nameStartRow, nameStartColumn ) ->
-            \startName ->
-                \afterStartName ->
-                    \nameEndColumn ->
-                        { comments = Rope.empty
-                        , syntax =
-                            TypeAnnotation.Typed
-                                (Node
-                                    { start = { row = nameStartRow, column = nameStartColumn }
-                                    , end = { row = nameStartRow, column = nameEndColumn }
-                                    }
-                                    (case afterStartName of
-                                        Nothing ->
-                                            ( [], startName )
-
-                                        Just ( qualificationAfterStartName, unqualified ) ->
-                                            ( startName :: qualificationAfterStartName, unqualified )
-                                    )
-                                )
-                                []
+    CustomParser.map4
+        (\nameStart startName afterStartName nameEndColumn ->
+            { comments = Rope.empty
+            , syntax =
+                TypeAnnotation.Typed
+                    (Node
+                        { start = nameStart
+                        , end = { row = nameStart.row, column = nameEndColumn }
                         }
+                        (case afterStartName of
+                            Nothing ->
+                                ( [], startName )
+
+                            Just ( qualificationAfterStartName, unqualified ) ->
+                                ( startName :: qualificationAfterStartName, unqualified )
+                        )
+                    )
+                    []
+            }
         )
         CustomParser.getPosition
-        |> CustomParser.keep Tokens.typeName
-        |> CustomParser.keep maybeDotTypeNamesTuple
-        |> CustomParser.keep CustomParser.getCol
+        Tokens.typeName
+        maybeDotTypeNamesTuple
+        CustomParser.getCol
 
 
 maybeDotTypeNamesTuple : CustomParser.Parser (Maybe ( List String, String ))
@@ -398,8 +393,8 @@ maybeDotTypeNamesTuple =
 
 typedTypeAnnotationWithArguments : Parser (WithComments TypeAnnotation)
 typedTypeAnnotationWithArguments =
-    CustomParser.map
-        (\( nameStartRow, nameStartColumn ) ->
+    CustomParser.map5
+        (\nameStart ->
             \startName ->
                 \afterStartName ->
                     \nameEndColumn ->
@@ -408,8 +403,8 @@ typedTypeAnnotationWithArguments =
                             , syntax =
                                 TypeAnnotation.Typed
                                     (Node
-                                        { start = { row = nameStartRow, column = nameStartColumn }
-                                        , end = { row = nameStartRow, column = nameEndColumn }
+                                        { start = nameStart
+                                        , end = { row = nameStart.row, column = nameEndColumn }
                                         }
                                         (case afterStartName of
                                             Nothing ->
@@ -423,80 +418,18 @@ typedTypeAnnotationWithArguments =
                             }
         )
         CustomParser.getPosition
-        |> CustomParser.keep Tokens.typeName
-        |> CustomParser.keep maybeDotTypeNamesTuple
-        |> CustomParser.keep CustomParser.getCol
-        |> CustomParser.keep
-            (ParserWithComments.many
-                (CustomParser.map
-                    (\commentsBefore ->
-                        \typeAnnotationResult ->
-                            { comments = commentsBefore |> Rope.prependTo typeAnnotationResult.comments
-                            , syntax = typeAnnotationResult.syntax
-                            }
-                    )
-                    (Layout.maybeLayout |> CustomParser.backtrackable)
-                    |> CustomParser.keep typeAnnotationNoFnExcludingTypedWithArguments
-                )
-            )
-            Tokens.typeName
-            maybeDotTypeNamesTuple
-        )
-
-
-maybeDotTypeNamesTuple : ParserFast.Parser (Maybe ( List String, String ))
-maybeDotTypeNamesTuple =
-    ParserFast.orSucceed
-        (ParserFast.map2
-            (\firstName afterFirstName ->
-                case afterFirstName of
-                    Nothing ->
-                        Just ( [], firstName )
-
-                    Just ( qualificationAfter, unqualified ) ->
-                        Just ( firstName :: qualificationAfter, unqualified )
-            )
-            (ParserFast.symbolFollowedBy "." Tokens.typeName)
-            (ParserFast.lazy (\() -> maybeDotTypeNamesTuple))
-        )
-        Nothing
-
-
-typedTypeAnnotationWithArguments : Parser (WithComments (Node TypeAnnotation))
-typedTypeAnnotationWithArguments =
-    ParserFast.map2
-        (\nameNode args ->
-            { comments = args.comments
-            , syntax = TypeAnnotation.Typed nameNode args.syntax
-            }
-        )
-        (ParserFast.mapWithStartAndEndPosition
-            (\nameStart name nameEnd ->
-                Node { start = nameStart, end = nameEnd }
-                    name
-            )
-            (ParserFast.map2
-                (\startName afterStartName ->
-                    case afterStartName of
-                        Nothing ->
-                            ( [], startName )
-
-                        Just ( qualificationAfterStartName, unqualified ) ->
-                            ( startName :: qualificationAfterStartName, unqualified )
-                )
-                Tokens.typeName
-                maybeDotTypeNamesTuple
-            )
-        )
+        Tokens.typeName
+        maybeDotTypeNamesTuple
+        CustomParser.getCol
         (ParserWithComments.many
-            (ParserFast.map2
-                (\commentsBefore typeAnnotationResult ->
-                    { comments = commentsBefore |> Rope.prependTo typeAnnotationResult.comments
-                    , syntax = typeAnnotationResult.syntax
-                    }
+            (CustomParser.map
+                (\commentsBefore ->
+                    \typeAnnotationResult ->
+                        { comments = commentsBefore |> Rope.prependTo typeAnnotationResult.comments
+                        , syntax = typeAnnotationResult.syntax
+                        }
                 )
-                (Layout.maybeLayout |> ParserFast.backtrackable)
-                typeAnnotationNoFnExcludingTypedWithArguments
+                (Layout.maybeLayout |> CustomParser.backtrackable)
+                |> CustomParser.keep typeAnnotationNoFnExcludingTypedWithArguments
             )
         )
-        |> Node.parser

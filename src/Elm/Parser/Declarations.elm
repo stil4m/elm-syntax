@@ -1,6 +1,6 @@
 module Elm.Parser.Declarations exposing (declaration)
 
-import CustomParser exposing (Parser )
+import CustomParser exposing (Parser)
 import CustomParser.Extra
 import Elm.Parser.Comments as Comments
 import Elm.Parser.Expression exposing (expression)
@@ -271,7 +271,7 @@ type TypeOrTypeAliasDeclarationWithoutDocumentation
 functionAfterDocumentation : Parser (WithComments DeclarationAfterDocumentation)
 functionAfterDocumentation =
     CustomParser.map
-        (\( startNameStartRow, startNameStartColumn ) ->
+        (\startNameStart ->
             \startName ->
                 \commentsAfterStartName ->
                     \maybeSignature ->
@@ -294,7 +294,7 @@ functionAfterDocumentation =
                                     , syntax =
                                         FunctionDeclarationAfterDocumentation
                                             { startName =
-                                                Node.singleLineStringFrom { row = startNameStartRow, column = startNameStartColumn }
+                                                Node.singleLineStringFrom startNameStart
                                                     startName
                                             , signature = maybeSignature |> Maybe.map .syntax
                                             , arguments = arguments.syntax
@@ -313,7 +313,7 @@ functionAfterDocumentation =
                         \commentsBeforeTypeAnnotation ->
                             \typeAnnotationResult ->
                                 \commentsAfterTypeAnnotation ->
-                                    \( implementationNameStartRow, implementationNameStartColumn ) ->
+                                    \implementationNameStart ->
                                         \implementationName ->
                                             \afterImplementationName ->
                                                 Just
@@ -324,7 +324,7 @@ functionAfterDocumentation =
                                                             |> Rope.prependTo afterImplementationName
                                                     , syntax =
                                                         { implementationName =
-                                                            Node.singleLineStringFrom { row = implementationNameStartRow, column = implementationNameStartColumn }
+                                                            Node.singleLineStringFrom implementationNameStart
                                                                 implementationName
                                                         , typeAnnotation = typeAnnotationResult.syntax
                                                         }
@@ -348,7 +348,7 @@ functionAfterDocumentation =
 functionDeclarationWithoutDocumentation : Parser (WithComments (Node Declaration))
 functionDeclarationWithoutDocumentation =
     CustomParser.map
-        (\( startNameStartRow, startNameStartColumn ) ->
+        (\startNameStart ->
             \startName ->
                 \commentsAfterStartName ->
                     \maybeSignature ->
@@ -371,54 +371,31 @@ functionDeclarationWithoutDocumentation =
                         |> Rope.prependTo commentsAfterEqual
                         |> Rope.prependTo result.comments
 
-                startNameStart : Location
-                startNameStart =
-                    startNameRange.start
-            in
-            case maybeSignature of
-                Nothing ->
-                    let
-                        (Node expressionRange _) =
-                            result.syntax
-                    in
-                    { comments = allComments
-                    , syntax =
-                        Node { start = startNameStart, end = expressionRange.end }
-                            (Declaration.FunctionDeclaration
-                                { documentation = Nothing
-                                , signature = Nothing
-                                , declaration =
-                                    Node { start = startNameStart, end = expressionRange.end }
-                                        { name = startNameNode
-                                        , arguments = arguments.syntax
-                                        , expression = result.syntax
-                                        }
-                                }
-                            )
-                    }
-                        |> ParserFast.succeed
-
-                Just signature ->
-                    let
-                        (Node implementationNameRange implementationName) =
-                            signature.implementationName
-                    in
-                    if implementationName == startName ++ "" then
-                        let
-                            (Node expressionRange _) =
-                                result.syntax
-                        in
-                        { comments = allComments
-                        , syntax =
-                            Node { start = startNameStart, end = expressionRange.end }
-                                (Declaration.FunctionDeclaration
-                                    { documentation = Nothing
-                                    , signature = Just (Node.combine Signature startNameNode signature.typeAnnotation)
-                                    , declaration =
-                                        Node { start = implementationNameRange.start, end = expressionRange.end }
-                                            { name = signature.implementationName
-                                            , arguments = arguments.syntax
-                                            , expression = result.syntax
+                                        startNameNode : Node String
+                                        startNameNode =
+                                            Node.singleLineStringFrom startNameStart
+                                                startName
+                                    in
+                                    case maybeSignature of
+                                        Nothing ->
+                                            let
+                                                (Node expressionRange _) =
+                                                    result.syntax
+                                            in
+                                            { comments = allComments
+                                            , syntax =
+                                                Node { start = startNameStart, end = expressionRange.end }
+                                                    (Declaration.FunctionDeclaration
+                                                        { documentation = Nothing
+                                                        , signature = Nothing
+                                                        , declaration =
+                                                            Node { start = startNameStart, end = expressionRange.end }
+                                                                { name = startNameNode
+                                                                , arguments = arguments.syntax
+                                                                , expression = result.syntax
+                                                                }
+                                                        }
+                                                    )
                                             }
                                                 |> CustomParser.succeed
 
@@ -434,7 +411,7 @@ functionDeclarationWithoutDocumentation =
                                                 in
                                                 { comments = allComments
                                                 , syntax =
-                                                    Node { start = start, end = expressionRange.end }
+                                                    Node { start = startNameStart, end = expressionRange.end }
                                                         (Declaration.FunctionDeclaration
                                                             { documentation = Nothing
                                                             , signature = Just (Node.combine Signature startNameNode signature.typeAnnotation)
@@ -463,7 +440,7 @@ functionDeclarationWithoutDocumentation =
                         \commentsBeforeTypeAnnotation ->
                             \typeAnnotationResult ->
                                 \commentsAfterTypeAnnotation ->
-                                    \( implementationNameStartRow, implementationNameStartColumn ) ->
+                                    \implementationNameStart ->
                                         \implementationName ->
                                             \afterImplementationName ->
                                                 Just
@@ -473,7 +450,7 @@ functionDeclarationWithoutDocumentation =
                                                             |> Rope.prependTo commentsAfterTypeAnnotation
                                                             |> Rope.prependTo afterImplementationName
                                                     , implementationName =
-                                                        Node.singleLineStringFrom { row = implementationNameStartRow, column = implementationNameStartColumn }
+                                                        Node.singleLineStringFrom implementationNameStart
                                                             implementationName
                                                     , typeAnnotation = typeAnnotationResult.syntax
                                                     }
@@ -577,7 +554,7 @@ portDeclarationAfterDocumentation =
         (\() ->
             \startRow ->
                 \commentsAfterPort ->
-                    \( nameStartRow, nameStartColumn ) ->
+                    \nameStart ->
                         \name ->
                             \commentsAfterName ->
                                 \commentsAfterColon ->
@@ -591,7 +568,7 @@ portDeclarationAfterDocumentation =
                                             PortDeclarationAfterDocumentation
                                                 { startLocation = { row = startRow, column = 1 }
                                                 , name =
-                                                    Node.singleLineStringFrom { row = nameStartRow, column = nameStartColumn }
+                                                    Node.singleLineStringFrom nameStart
                                                         name
                                                 , typeAnnotation = typeAnnotationResult.syntax
                                                 }
@@ -613,7 +590,7 @@ portDeclarationWithoutDocumentation =
         (\() ->
             \startRow ->
                 \commentsAfterPort ->
-                    \( nameStartRow, nameStartColumn ) ->
+                    \nameStart ->
                         \name ->
                             \commentsAfterName ->
                                 \commentsAfterColon ->
@@ -634,7 +611,7 @@ portDeclarationWithoutDocumentation =
                                                 }
                                                 (Declaration.PortDeclaration
                                                     { name =
-                                                        Node.singleLineStringFrom { row = nameStartRow, column = nameStartColumn }
+                                                        Node.singleLineStringFrom nameStart
                                                             name
                                                     , typeAnnotation = typeAnnotationResult.syntax
                                                     }
@@ -676,7 +653,7 @@ typeAliasDefinitionAfterDocumentationAfterTypePrefix =
     CustomParser.map
         (\() ->
             \commentsAfterAlias ->
-                \( nameStartRow, nameStartColumn ) ->
+                \nameStart ->
                     \name ->
                         \commentsAfterName ->
                             \parameters ->
@@ -691,7 +668,7 @@ typeAliasDefinitionAfterDocumentationAfterTypePrefix =
                                         , syntax =
                                             TypeAliasDeclarationAfterDocumentation
                                                 { name =
-                                                    Node.singleLineStringFrom { row = nameStartRow, column = nameStartColumn }
+                                                    Node.singleLineStringFrom nameStart
                                                         name
                                                 , parameters = parameters.syntax
                                                 , typeAnnotation = typeAnnotationResult.syntax
@@ -711,7 +688,7 @@ typeAliasDefinitionAfterDocumentationAfterTypePrefix =
 customTypeDefinitionAfterDocumentationAfterTypePrefix : Parser (WithComments DeclarationAfterDocumentation)
 customTypeDefinitionAfterDocumentationAfterTypePrefix =
     CustomParser.map
-        (\( nameStartRow, nameStartColumn ) ->
+        (\nameStart ->
             \name ->
                 \commentsAfterName ->
                     \parameters ->
@@ -727,7 +704,7 @@ customTypeDefinitionAfterDocumentationAfterTypePrefix =
                                     , syntax =
                                         TypeDeclarationAfterDocumentation
                                             { name =
-                                                Node.singleLineStringFrom { row = nameStartRow, column = nameStartColumn }
+                                                Node.singleLineStringFrom nameStart
                                                     name
                                             , parameters = parameters.syntax
                                             , headVariant = headVariant.syntax
@@ -834,7 +811,7 @@ typeAliasDefinitionWithoutDocumentationAfterTypePrefix =
     CustomParser.map
         (\() ->
             \commentsAfterAlias ->
-                \( nameStartRow, nameStartColumn ) ->
+                \nameStart ->
                     \name ->
                         \commentsAfterName ->
                             \parameters ->
@@ -849,7 +826,7 @@ typeAliasDefinitionWithoutDocumentationAfterTypePrefix =
                                         , syntax =
                                             TypeAliasDeclarationWithoutDocumentation
                                                 { name =
-                                                    Node.singleLineStringFrom { row = nameStartRow, column = nameStartColumn }
+                                                    Node.singleLineStringFrom nameStart
                                                         name
                                                 , parameters = parameters.syntax
                                                 , typeAnnotation = typeAnnotationResult.syntax
@@ -869,7 +846,7 @@ typeAliasDefinitionWithoutDocumentationAfterTypePrefix =
 customTypeDefinitionWithoutDocumentationAfterTypePrefix : Parser (WithComments TypeOrTypeAliasDeclarationWithoutDocumentation)
 customTypeDefinitionWithoutDocumentationAfterTypePrefix =
     CustomParser.map
-        (\( nameStartRow, nameStartColumn ) ->
+        (\nameStart ->
             \name ->
                 \commentsAfterName ->
                     \parameters ->
@@ -885,8 +862,7 @@ customTypeDefinitionWithoutDocumentationAfterTypePrefix =
                                     , syntax =
                                         TypeDeclarationWithoutDocumentation
                                             { name =
-                                                Node.singleLineStringFrom
-                                                    { row = nameStartRow, column = nameStartColumn }
+                                                Node.singleLineStringFrom nameStart
                                                     name
                                             , parameters = parameters.syntax
                                             , headVariant = headVariant.syntax
@@ -924,22 +900,29 @@ customTypeDefinitionWithoutDocumentationAfterTypePrefix =
 valueConstructor : Parser (WithComments (Node ValueConstructor))
 valueConstructor =
     CustomParser.map
-        (\( nameStartRow, nameStartColumn ) ->
+        (\nameStart ->
             \name ->
                 \argumentsReverse ->
                     let
-                        nameStart : Location
-                        nameStart =
-                            { row = nameStartRow, column = nameStartColumn }
+                        nameRange : Range
+                        nameRange =
+                            Node.singleLineStringRangeFrom nameStart name
 
-                        [] ->
-                            nameRange.end
-            in
-            { comments = argumentsReverse.comments
-            , syntax =
-                Node { start = nameRange.start, end = fullEnd }
-                    { name = name
-                    , arguments = List.reverse argumentsReverse.syntax
+                        fullEnd : Location
+                        fullEnd =
+                            case argumentsReverse.syntax of
+                                (Node lastArgRange _) :: _ ->
+                                    lastArgRange.end
+
+                                [] ->
+                                    nameRange.end
+                    in
+                    { comments = argumentsReverse.comments
+                    , syntax =
+                        Node { start = nameStart, end = fullEnd }
+                            { name = Node nameRange name
+                            , arguments = List.reverse argumentsReverse.syntax
+                            }
                     }
             }
         )
@@ -964,13 +947,12 @@ typeGenericListEquals : Parser (WithComments (List (Node String)))
 typeGenericListEquals =
     ParserWithComments.until Tokens.equal
         (CustomParser.map
-            (\( nameStartRow, nameStartColumn ) ->
+            (\nameStart ->
                 \name ->
                     \commentsAfterName ->
                         { comments = commentsAfterName
                         , syntax =
-                            Node.singleLineStringFrom
-                                { row = nameStartRow, column = nameStartColumn }
+                            Node.singleLineStringFrom nameStart
                                 name
                         }
             )
