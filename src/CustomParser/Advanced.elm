@@ -8,6 +8,7 @@ module CustomParser.Advanced exposing
     , getChompedString, chompIf, chompWhile, mapChompedString
     , withIndent
     , columnAndThen, columnIndentAndThen, offsetSourceAndThen, mapWithStartPosition, mapWithEndPosition, mapWithStartAndEndPosition
+    , withIndentSetToColumn
     )
 
 {-|
@@ -1261,6 +1262,19 @@ withIndent newIndent (Parser parse) =
     Parser
         (\s0 ->
             case parse (changeIndent newIndent s0) of
+                Good p a s1 ->
+                    Good p a (changeIndent s0.indent s1)
+
+                Bad p x ->
+                    Bad p x
+        )
+
+
+withIndentSetToColumn : Parser x a -> Parser x a
+withIndentSetToColumn (Parser parse) =
+    Parser
+        (\s0 ->
+            case parse (changeIndent s0.col s0) of
                 Good p a s1 ->
                     Good p a (changeIndent s0.indent s1)
 

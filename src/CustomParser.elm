@@ -7,6 +7,7 @@ module CustomParser exposing
     , getChompedString, chompIf, chompWhile, mapChompedString
     , withIndent
     , mapWithStartPosition, mapWithEndPosition, mapWithStartAndEndPosition, columnAndThen, columnIndentAndThen, offsetSourceAndThen
+    , withIndentSetToColumn
     )
 
 {-|
@@ -696,6 +697,13 @@ cares about spaces sometimes. `withIndent` and `getIndent` allow you to manage
 withIndent : Int -> Parser a -> Parser a
 withIndent =
     A.withIndent
+
+
+{-| For a given ParserWithComments.Parser, take the current start column as indentation for the whole block
+-}
+withIndentSetToColumn : Parser a -> Parser a
+withIndentSetToColumn =
+    A.withIndentSetToColumn
 
 
 mapWithStartPosition :
