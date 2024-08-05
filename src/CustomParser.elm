@@ -483,6 +483,7 @@ int =
 
 
 {-| Parse symbols like `(` and `,`.
+Make sure to never call with String "", as this will then always commit.
 
     run (symbol "[") "[" == Ok ()
     run (symbol "[") "4" == Err ... (ExpectingSymbol "[") ...
@@ -507,6 +508,7 @@ symbolFollowedBy str nextParser =
 
 
 {-| Parse keywords like `let`, `case`, and `type`.
+Make sure to never call with String "", as this will then always commit.
 
     run (keyword "let") "let"     == Ok ()
     run (keyword "let") "var"     == Err ... (ExpectingKeyword "let") ...
