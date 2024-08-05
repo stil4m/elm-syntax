@@ -48,6 +48,7 @@ module CustomParser.Advanced exposing
 -}
 
 import Char
+import Char.Extra
 import Parser.Advanced exposing ((|=))
 import Set
 
@@ -796,7 +797,7 @@ keyword kwd expecting res =
                 ( newOffset, newRow, newCol ) =
                     isSubString kwd s.offset s.row s.col s.src
             in
-            if newOffset == -1 || 0 <= isSubChar (\c -> Char.isAlphaNum c || c == '_') newOffset s.src then
+            if newOffset == -1 || 0 <= isSubChar (\c -> Char.Extra.isAlphaNumFast c || c == '_') newOffset s.src then
                 Bad False (fromState s expecting)
 
             else
@@ -821,7 +822,7 @@ keywordFollowedBy kwd expecting (Parser parseNext) =
                 ( newOffset, newRow, newCol ) =
                     isSubString kwd s.offset s.row s.col s.src
             in
-            if newOffset == -1 || 0 <= isSubChar (\c -> Char.isAlphaNum c || c == '_') newOffset s.src then
+            if newOffset == -1 || 0 <= isSubChar (\c -> Char.Extra.isAlphaNumFast c || c == '_') newOffset s.src then
                 Bad False (fromState s expecting)
 
             else
