@@ -34,15 +34,15 @@ file =
         Layout.layoutStrict
         (Node.parser moduleDefinition)
         Layout.layoutStrict
-        (CustomParser.oneOf
-            [ CustomParser.map2
+        (CustomParser.orSucceed
+            (CustomParser.map2
                 (\moduleDocumentation commentsAfter ->
                     Rope.one moduleDocumentation |> Rope.filledPrependTo commentsAfter
                 )
                 Comments.moduleDocumentation
                 Layout.layoutStrict
-            , CustomParser.succeed Rope.empty
-            ]
+            )
+            Rope.empty
         )
         (ParserWithComments.many importDefinition)
         fileDeclarations

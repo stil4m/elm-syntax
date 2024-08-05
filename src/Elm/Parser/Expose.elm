@@ -32,8 +32,8 @@ exposeDefinition =
 
 exposingListInner : Parser (WithComments Exposing)
 exposingListInner =
-    CustomParser.oneOf
-        [ CustomParser.map3
+    CustomParser.oneOf2
+        (CustomParser.map3
             (\headElement commentsAfterHeadElement tailElements ->
                 { comments =
                     headElement.comments
@@ -53,7 +53,8 @@ exposingListInner =
                     (Layout.maybeAroundBothSides exposable)
                 )
             )
-        , CustomParser.mapWithStartAndEndPosition
+        )
+        (CustomParser.mapWithStartAndEndPosition
             (\start commentsAfterDotDot end ->
                 { comments = commentsAfterDotDot
                 , syntax =
@@ -61,7 +62,7 @@ exposingListInner =
                 }
             )
             (CustomParser.symbolFollowedBy ".." Layout.maybeLayout)
-        ]
+        )
 
 
 exposable : Parser (WithComments (Node TopLevelExpose))
@@ -103,8 +104,8 @@ typeExpose =
                     }
         )
         Tokens.typeName
-        (CustomParser.oneOf
-            [ CustomParser.map2
+        (CustomParser.orSucceed
+            (CustomParser.map2
                 (\commentsBefore all ->
                     Just
                         { comments = commentsBefore |> Rope.prependTo all.comments
@@ -123,8 +124,8 @@ typeExpose =
                         (Layout.maybeLayoutUntilIgnored CustomParser.symbolFollowedBy ")")
                     )
                 )
-            , CustomParser.succeed Nothing
-            ]
+            )
+            Nothing
         )
         |> Node.parser
 

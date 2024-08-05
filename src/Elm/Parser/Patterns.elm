@@ -82,8 +82,8 @@ parensPattern =
         )
         (CustomParser.symbolFollowedBy "(" Layout.maybeLayout)
         -- yes, (  ) is a valid pattern but not a valid type or expression
-        (CustomParser.oneOf
-            [ CustomParser.map3
+        (CustomParser.oneOf2
+            (CustomParser.map3
                 (\headResult commentsAfterHead tailResult ->
                     { comments =
                         headResult.comments
@@ -106,8 +106,8 @@ parensPattern =
                         (Layout.maybeAroundBothSides pattern)
                     )
                 )
-            , CustomParser.symbol ")" { comments = Rope.empty, syntax = UnitPattern }
-            ]
+            )
+            (CustomParser.symbol ")" { comments = Rope.empty, syntax = UnitPattern })
         )
         |> Node.parser
 
@@ -157,9 +157,9 @@ listPattern =
                     }
         )
         (CustomParser.symbolFollowedBy "[" Layout.maybeLayout)
-        (CustomParser.oneOf
-            [ CustomParser.symbol "]" Nothing
-            , CustomParser.map4
+        (CustomParser.oneOf2
+            (CustomParser.symbol "]" Nothing)
+            (CustomParser.map4
                 (\head commentsAfterHead tail () ->
                     Just
                         { comments =
@@ -177,7 +177,7 @@ listPattern =
                     )
                 )
                 Tokens.squareEnd
-            ]
+            )
         )
         |> Node.parser
 
@@ -245,8 +245,8 @@ stringPattern =
 
 maybeDotTypeNamesTuple : CustomParser.Parser (Maybe ( List String, String ))
 maybeDotTypeNamesTuple =
-    CustomParser.oneOf
-        [ CustomParser.map2
+    CustomParser.orSucceed
+        (CustomParser.map2
             (\startName afterStartName ->
                 case afterStartName of
                     Nothing ->
@@ -257,8 +257,8 @@ maybeDotTypeNamesTuple =
             )
             (CustomParser.symbolFollowedBy "." Tokens.typeName)
             (CustomParser.lazy (\() -> maybeDotTypeNamesTuple))
-        , CustomParser.succeed Nothing
-        ]
+        )
+        Nothing
 
 
 qualifiedPatternWithConsumeArgs : Parser (WithComments (Node Pattern))
@@ -333,8 +333,8 @@ recordPattern =
                     }
         )
         (CustomParser.symbolFollowedBy "{" Layout.maybeLayout)
-        (CustomParser.oneOf
-            [ CustomParser.map4
+        (CustomParser.oneOf2
+            (CustomParser.map4
                 (\head commentsAfterHead tail () ->
                     Just
                         { comments =
@@ -358,8 +358,8 @@ recordPattern =
                     )
                 )
                 Tokens.curlyEnd
-            , CustomParser.symbol "}" Nothing
-            ]
+            )
+            (CustomParser.symbol "}" Nothing)
         )
         |> Node.parser
 

@@ -34,8 +34,8 @@ until end p =
                         (WithComments (List a))
                     )
         step ( commentsSoFar, itemsSoFar ) =
-            CustomParser.oneOf
-                [ CustomParser.map
+            CustomParser.oneOf2
+                (CustomParser.map
                     (\() ->
                         CustomParser.Advanced.Done
                             { comments = commentsSoFar
@@ -43,7 +43,8 @@ until end p =
                             }
                     )
                     end
-                , CustomParser.map
+                )
+                (CustomParser.map
                     (\pResult ->
                         CustomParser.Advanced.Loop
                             ( commentsSoFar |> Rope.prependTo pResult.comments
@@ -51,7 +52,7 @@ until end p =
                             )
                     )
                     p
-                ]
+                )
     in
     CustomParser.Advanced.loop listEmptyWithCommentsTuple step
 
@@ -68,8 +69,8 @@ many p =
                         (WithComments (List a))
                     )
         step ( commentsSoFar, itemsSoFar ) =
-            CustomParser.oneOf
-                [ CustomParser.map
+            CustomParser.orSucceedLazy
+                (CustomParser.map
                     (\pResult ->
                         CustomParser.Advanced.Loop
                             ( commentsSoFar |> Rope.prependTo pResult.comments
@@ -77,14 +78,13 @@ many p =
                             )
                     )
                     p
-                , CustomParser.succeedLazy
-                    (\() ->
-                        CustomParser.Advanced.Done
-                            { comments = commentsSoFar
-                            , syntax = List.reverse itemsSoFar
-                            }
-                    )
-                ]
+                )
+                (\() ->
+                    CustomParser.Advanced.Done
+                        { comments = commentsSoFar
+                        , syntax = List.reverse itemsSoFar
+                        }
+                )
     in
     CustomParser.Advanced.loop listEmptyWithCommentsTuple step
 
@@ -145,8 +145,8 @@ manyWithoutReverse p =
                         (WithComments (List a))
                     )
         withoutReverseStep soFar =
-            CustomParser.oneOf
-                [ CustomParser.map
+            CustomParser.orSucceed
+                (CustomParser.map
                     (\pResult ->
                         CustomParser.Advanced.Loop
                             { comments = soFar.comments |> Rope.prependTo pResult.comments
@@ -154,8 +154,8 @@ manyWithoutReverse p =
                             }
                     )
                     p
-                , CustomParser.succeed (CustomParser.Advanced.Done soFar)
-                ]
+                )
+                (CustomParser.Advanced.Done soFar)
     in
     CustomParser.Advanced.loop listEmptyWithComments withoutReverseStep
 

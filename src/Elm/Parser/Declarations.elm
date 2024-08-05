@@ -268,8 +268,8 @@ functionAfterDocumentation =
         -- infix declarations itself don't have documentation
         (Node.parserCore Tokens.functionName)
         Layout.maybeLayout
-        (CustomParser.oneOf
-            [ CustomParser.map5
+        (CustomParser.orSucceed
+            (CustomParser.map5
                 (\commentsBeforeTypeAnnotation typeAnnotationResult commentsAfterTypeAnnotation implementationName afterImplementationName ->
                     Just
                         { comments =
@@ -288,8 +288,8 @@ functionAfterDocumentation =
                 Layout.layoutStrict
                 (Node.parserCore Tokens.functionName)
                 Layout.maybeLayout
-            , CustomParser.succeed Nothing
-            ]
+            )
+            Nothing
         )
         parameterPatternsEqual
         Layout.maybeLayout
@@ -376,8 +376,8 @@ functionDeclarationWithoutDocumentation =
         )
         (Node.parserCore Tokens.functionNameNotInfix)
         Layout.maybeLayout
-        (CustomParser.oneOf
-            [ CustomParser.map5
+        (CustomParser.orSucceed
+            (CustomParser.map5
                 (\commentsBeforeTypeAnnotation typeAnnotationResult commentsAfterTypeAnnotation implementationName afterImplementationName ->
                     Just
                         { comments =
@@ -394,8 +394,8 @@ functionDeclarationWithoutDocumentation =
                 Layout.layoutStrict
                 (Node.parserCore Tokens.functionName)
                 Layout.maybeLayout
-            , CustomParser.succeed Nothing
-            ]
+            )
+            Nothing
         )
         parameterPatternsEqual
         Layout.maybeLayout
@@ -524,10 +524,9 @@ typeOrTypeAliasDefinitionAfterDocumentation =
             }
         )
         (CustomParser.keywordFollowedBy "type" Layout.maybeLayout)
-        (CustomParser.oneOf
-            [ typeAliasDefinitionAfterDocumentationAfterTypePrefix
-            , customTypeDefinitionAfterDocumentationAfterTypePrefix
-            ]
+        (CustomParser.oneOf2
+            typeAliasDefinitionAfterDocumentationAfterTypePrefix
+            customTypeDefinitionAfterDocumentationAfterTypePrefix
         )
 
 
@@ -661,10 +660,9 @@ typeOrTypeAliasDefinitionWithoutDocumentation =
                         }
             )
             (CustomParser.keywordFollowedBy "type" Layout.maybeLayout)
-            (CustomParser.oneOf
-                [ typeAliasDefinitionWithoutDocumentationAfterTypePrefix
-                , customTypeDefinitionWithoutDocumentationAfterTypePrefix
-                ]
+            (CustomParser.oneOf2
+                typeAliasDefinitionWithoutDocumentationAfterTypePrefix
+                customTypeDefinitionWithoutDocumentationAfterTypePrefix
             )
         )
 

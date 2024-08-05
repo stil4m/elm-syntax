@@ -102,10 +102,9 @@ characterLiteral =
     CustomParser.map2
         (\res () -> res)
         (CustomParser.symbolFollowedBy "'"
-            (CustomParser.oneOf
-                [ slashEscapedCharValue
-                , CustomParser.Extra.anyChar
-                ]
+            (CustomParser.oneOf2
+                slashEscapedCharValue
+                CustomParser.Extra.anyChar
             )
         )
         (CustomParser.symbol "'" ())
@@ -114,11 +113,11 @@ characterLiteral =
 singleOrTripleQuotedStringLiteral : CustomParser.Parser String
 singleOrTripleQuotedStringLiteral =
     CustomParser.symbolFollowedBy "\""
-        (CustomParser.oneOf
-            [ CustomParser.symbolFollowedBy "\"\""
+        (CustomParser.oneOf2
+            (CustomParser.symbolFollowedBy "\"\""
                 (CustomParser.Advanced.loop "" tripleQuotedStringLiteralStep)
-            , CustomParser.Advanced.loop "" stringLiteralHelper
-            ]
+            )
+            (CustomParser.Advanced.loop "" stringLiteralHelper)
         )
 
 
