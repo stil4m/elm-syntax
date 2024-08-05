@@ -382,7 +382,7 @@ lambdaExpression =
                 }
             )
             (CustomParser.symbolFollowedBy "\\" Layout.maybeLayout)
-            Patterns.pattern
+            Patterns.patternNotDirectlyComposing
             Layout.maybeLayout
             (ParserWithComments.until
                 Tokens.arrowRight
@@ -394,7 +394,7 @@ lambdaExpression =
                         , syntax = patternResult.syntax
                         }
                     )
-                    Patterns.pattern
+                    Patterns.patternNotDirectlyComposing
                     Layout.maybeLayout
                 )
             )
@@ -613,7 +613,7 @@ letDestructuringDeclaration =
                     (LetDestructuring pattern.syntax expressionResult.syntax)
             }
         )
-        Patterns.argPattern
+        Patterns.patternNotDirectlyComposing
         Layout.maybeLayout
         (CustomParser.symbolFollowedBy "=" Layout.maybeLayout)
         expression
@@ -735,7 +735,7 @@ parameterPatternsEqual =
                 , syntax = patternResult.syntax
                 }
             )
-            Patterns.pattern
+            Patterns.patternNotDirectlyComposing
             Layout.maybeLayout
         )
 

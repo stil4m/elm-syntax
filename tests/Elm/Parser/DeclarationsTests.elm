@@ -818,6 +818,10 @@ type Color = Blue String | Red | Green"""
     3
     b = 4"""
                     |> expectInvalid
+        , test "fail if function declaration argument is `as` without parenthesis" <|
+            \() ->
+                """a foo as bar = f3"""
+                    |> expectInvalid
         , test "regression test for disallowing ( +)" <|
             \() ->
                 "a = ( +)"
