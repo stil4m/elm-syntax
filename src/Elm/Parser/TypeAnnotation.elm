@@ -5,6 +5,7 @@ import Elm.Parser.Layout as Layout
 import Elm.Parser.Node as Node
 import Elm.Parser.Tokens as Tokens
 import Elm.Syntax.Node as Node exposing (Node(..))
+import Elm.Syntax.Range exposing (Range)
 import Elm.Syntax.TypeAnnotation as TypeAnnotation exposing (RecordDefinition, RecordField, TypeAnnotation)
 import ParserWithComments exposing (WithComments)
 import Rope
@@ -53,7 +54,6 @@ typeAnnotationNoFnExcludingTypedWithArguments =
         , genericTypeAnnotation
         , recordTypeAnnotation
         ]
-        |> Node.parser
 
 
 typeAnnotationNoFnIncludingTypedWithArguments : Parser (WithComments (Node TypeAnnotation))
@@ -64,10 +64,9 @@ typeAnnotationNoFnIncludingTypedWithArguments =
         , genericTypeAnnotation
         , recordTypeAnnotation
         ]
-        |> Node.parser
 
 
-parensTypeAnnotation : Parser (WithComments TypeAnnotation)
+parensTypeAnnotation : Parser (WithComments (Node TypeAnnotation))
 parensTypeAnnotation =
     CustomParser.symbolFollowedBy "("
         (CustomParser.oneOf
@@ -113,15 +112,23 @@ parensTypeAnnotation =
                 )
             ]
         )
+        |> Node.parser
 
 
-genericTypeAnnotation : Parser (WithComments TypeAnnotation)
+genericTypeAnnotation : Parser (WithComments (Node TypeAnnotation))
 genericTypeAnnotation =
     Tokens.functionName
-        |> CustomParser.map (\var -> { comments = Rope.empty, syntax = TypeAnnotation.GenericType var })
+        |> CustomParser.mapWithStartAndEndPosition
+            (\start var end ->
+                { comments = Rope.empty
+                , syntax =
+                    Node { start = start, end = end }
+                        (TypeAnnotation.GenericType var)
+                }
+            )
 
 
-recordTypeAnnotation : Parser (WithComments TypeAnnotation)
+recordTypeAnnotation : Parser (WithComments (Node TypeAnnotation))
 recordTypeAnnotation =
     CustomParser.map2
         (\commentsBefore afterCurly ->
@@ -195,6 +202,7 @@ recordTypeAnnotation =
             , CustomParser.symbol "}" Nothing
             ]
         )
+        |> Node.parser
 
 
 typeAnnotationRecordEmpty : TypeAnnotation
@@ -244,17 +252,19 @@ recordFieldDefinition =
         Layout.maybeLayout
 
 
-typedTypeAnnotationWithoutArguments : Parser (WithComments TypeAnnotation)
+typedTypeAnnotationWithoutArguments : Parser (WithComments (Node TypeAnnotation))
 typedTypeAnnotationWithoutArguments =
     CustomParser.mapWithStartAndEndPosition
         (\nameStart name nameEnd ->
+            let
+                range : Range
+                range =
+                    { start = nameStart, end = nameEnd }
+            in
             { comments = Rope.empty
             , syntax =
-                TypeAnnotation.Typed
-                    (Node { start = nameStart, end = nameEnd }
-                        name
-                    )
-                    []
+                Node range
+                    (TypeAnnotation.Typed (Node range name) [])
             }
         )
         (CustomParser.map2
@@ -289,7 +299,7 @@ maybeDotTypeNamesTuple =
         ]
 
 
-typedTypeAnnotationWithArguments : Parser (WithComments TypeAnnotation)
+typedTypeAnnotationWithArguments : Parser (WithComments (Node TypeAnnotation))
 typedTypeAnnotationWithArguments =
     CustomParser.map2
         (\nameNode args ->
@@ -326,3 +336,4 @@ typedTypeAnnotationWithArguments =
                 typeAnnotationNoFnExcludingTypedWithArguments
             )
         )
+        |> Node.parser
