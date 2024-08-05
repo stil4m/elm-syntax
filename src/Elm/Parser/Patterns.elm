@@ -1,4 +1,4 @@
-module Elm.Parser.Patterns exposing (pattern, patternNotDirectlyComposing)
+module Elm.Parser.Patterns exposing (argPattern, pattern)
 
 import CustomParser exposing (Parser)
 import Elm.Parser.Layout as Layout
@@ -203,8 +203,8 @@ composablePattern =
         ]
 
 
-qualifiedPatternArg : Parser (WithComments (Node Pattern))
-qualifiedPatternArg =
+argPattern : Parser (WithComments (Node Pattern))
+argPattern =
     CustomParser.oneOf
         [ varPattern
         , qualifiedPatternWithoutConsumeArgs
@@ -288,7 +288,7 @@ qualifiedPatternWithConsumeArgs =
                     }
                 )
                 (Layout.maybeLayout |> CustomParser.backtrackable)
-                qualifiedPatternArg
+                argPattern
             )
         )
         |> Node.parser

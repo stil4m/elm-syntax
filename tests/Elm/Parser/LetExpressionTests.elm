@@ -254,6 +254,20 @@ all =
   in
   bar"""
                     |> expectInvalid
+        , test "should not parse let destructuring with `as` not surrounded by parentheses" <|
+            \() ->
+                """let
+    foo as bar = 1
+  in
+  bar"""
+                    |> expectInvalid
+        , test "should not parse let destructuring with variant + arguments not surrounded by parentheses" <|
+            \() ->
+                """let
+    Foo bar = 1
+  in
+  bar"""
+                    |> expectInvalid
         , test "should not parse let destructuring with non-positive layout before =" <|
             \() ->
                 """let
