@@ -2,7 +2,7 @@ module CustomParser.Advanced exposing
     ( Parser, run
     , number, symbol, symbolFollowedBy, keyword, keywordFollowedBy, variable, end
     , succeed, problem, succeedLazy, lazy, map, map2, map3, map4, map5, map6, map7, map8, map9, map10, map11, andThen, ignore
-    , oneOf, backtrackable
+    , orSucceed, orSucceedLazy, oneOf2, oneOf, backtrackable
     , loop, Step(..)
     , nestableMultiComment
     , getChompedString, chompIf, chompWhile, mapChompedString
@@ -21,7 +21,7 @@ module CustomParser.Advanced exposing
 
 @docs succeed, problem, succeedLazy, lazy, map, map2, map3, map4, map5, map6, map7, map8, map9, map10, map11, andThen, ignore
 
-@docs oneOf, backtrackable
+@docs orSucceed, orSucceedLazy, oneOf2, oneOf, backtrackable
 
 @docs loop, Step
 
@@ -694,6 +694,66 @@ lazy thunk =
                     thunk ()
             in
             parse s
+        )
+
+
+oneOf2 : Parser x a -> Parser x a -> Parser x a
+oneOf2 (Parser attemptFirst) (Parser attemptSecond) =
+    Parser
+        (\s ->
+            case attemptFirst s of
+                (Good _ _ _) as firstPStep ->
+                    firstPStep
+
+                (Bad p0 firstX) as firstPStep ->
+                    if p0 then
+                        firstPStep
+
+                    else
+                        case attemptSecond s of
+                            (Good _ _ _) as secondPStep ->
+                                secondPStep
+
+                            (Bad secondCommitted secondX) as secondPStep ->
+                                if secondCommitted then
+                                    secondPStep
+
+                                else
+                                    Bad False (Append (Append Empty firstX) secondX)
+        )
+
+
+orSucceed : Parser x a -> a -> Parser x a
+orSucceed (Parser attemptFirst) secondRes =
+    Parser
+        (\s ->
+            case attemptFirst s of
+                (Good _ _ _) as firstPStep ->
+                    firstPStep
+
+                (Bad p0 _) as firstPStep ->
+                    if p0 then
+                        firstPStep
+
+                    else
+                        Good False secondRes s
+        )
+
+
+orSucceedLazy : Parser x a -> (() -> a) -> Parser x a
+orSucceedLazy (Parser attemptFirst) createSecondRes =
+    Parser
+        (\s ->
+            case attemptFirst s of
+                (Good _ _ _) as firstPStep ->
+                    firstPStep
+
+                (Bad p0 _) as firstPStep ->
+                    if p0 then
+                        firstPStep
+
+                    else
+                        Good False (createSecondRes ()) s
         )
 
 

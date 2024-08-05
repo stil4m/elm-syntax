@@ -79,8 +79,8 @@ importDefinition =
             (CustomParser.keywordFollowedBy "import" Layout.maybeLayout)
             moduleName
             Layout.optimisticLayout
-            (CustomParser.oneOf
-                [ CustomParser.map3
+            (CustomParser.orSucceed
+                (CustomParser.map3
                     (\commentsBefore moduleAliasNode commentsAfter ->
                         Just
                             { comments = commentsBefore |> Rope.prependTo commentsAfter
@@ -96,13 +96,12 @@ importDefinition =
                         Tokens.typeName
                     )
                     Layout.optimisticLayout
-                , CustomParser.succeed Nothing
-                ]
+                )
+                Nothing
             )
-            (CustomParser.oneOf
-                [ Node.parserMapWithComments Just exposeDefinition
-                , CustomParser.succeed Nothing
-                ]
+            (CustomParser.orSucceed
+                (Node.parserMapWithComments Just exposeDefinition)
+                Nothing
             )
             Layout.optimisticLayout
         )
