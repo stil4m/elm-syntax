@@ -6,8 +6,8 @@ module CustomParser.Advanced exposing
     , loop, Step(..)
     , nestableMultiComment
     , getChompedString, chompIf, chompWhile, mapChompedString
-    , withIndent, getIndent
-    , getPosition, getRow, getCol, getOffset, getSource, columnAndThen, columnIndentAndThen, offsetSourceAndThen, mapWithStartPosition, mapWithEndPosition, mapWithStartAndEndPosition
+    , withIndent
+    , columnAndThen, columnIndentAndThen, offsetSourceAndThen, mapWithStartPosition, mapWithEndPosition, mapWithStartAndEndPosition
     )
 
 {-|
@@ -38,12 +38,12 @@ module CustomParser.Advanced exposing
 
 # Indentation
 
-@docs withIndent, getIndent
+@docs withIndent
 
 
 # Positions
 
-@docs getPosition, getRow, getCol, getOffset, getSource, columnAndThen, columnIndentAndThen, offsetSourceAndThen, mapWithStartPosition, mapWithEndPosition, mapWithStartAndEndPosition
+@docs columnAndThen, columnIndentAndThen, offsetSourceAndThen, mapWithStartPosition, mapWithEndPosition, mapWithStartAndEndPosition
 
 -}
 
@@ -1196,11 +1196,6 @@ isChar _ =
     True
 
 
-getIndent : Parser x Int
-getIndent =
-    Parser (\s -> Good False s.indent s)
-
-
 withIndent : Int -> Parser x a -> Parser x a
 withIndent newIndent (Parser parse) =
     Parser
@@ -1270,31 +1265,6 @@ mapWithStartAndEndPosition combineStartAndResult (Parser parse) =
                 Bad p x ->
                     Bad p x
         )
-
-
-getPosition : Parser x Location
-getPosition =
-    Parser (\s -> Good False { row = s.row, column = s.col } s)
-
-
-getRow : Parser x Int
-getRow =
-    Parser (\s -> Good False s.row s)
-
-
-getCol : Parser x Int
-getCol =
-    Parser (\s -> Good False s.col s)
-
-
-getOffset : Parser x Int
-getOffset =
-    Parser (\s -> Good False s.offset s)
-
-
-getSource : Parser x String
-getSource =
-    Parser (\s -> Good False s.src s)
 
 
 
