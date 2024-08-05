@@ -5,8 +5,7 @@ module CustomParser exposing
     , oneOf, backtrackable, commit
     , nestableMultiComment
     , getChompedString, chompIf, chompWhile, mapChompedString
-    , withIndent, getIndent
-    , getPosition, getRow, getCol, getOffset, getSource
+    , withIndent
     , mapWithStartPosition, mapWithEndPosition, mapWithStartAndEndPosition, columnAndThen, columnIndentAndThen, offsetSourceAndThen
     )
 
@@ -36,12 +35,11 @@ module CustomParser exposing
 
 # Indentation
 
-@docs withIndent, getIndent
+@docs withIndent
 
 
 # Positions
 
-@docs getPosition, getRow, getCol, getOffset, getSource
 @docs mapWithStartPosition, mapWithEndPosition, mapWithStartAndEndPosition, columnAndThen, columnIndentAndThen, offsetSourceAndThen
 
 -}
@@ -234,11 +232,39 @@ columnAndThen =
     A.columnAndThen
 
 
+{-| Can be used to verify the current indentation like this:
+
+    checkIndent : Parser ()
+    checkIndent =
+        columnIndentAndThen (\indent column -> checkIndentHelp (indent <= column))
+
+    checkIndentHelp : Bool -> Parser ()
+    checkIndentHelp isIndented =
+        if isIndented then
+            succeed ()
+
+        else
+            problem "expecting more spaces"
+
+So the `checkIndent` parser only succeeds when you are "deeper" than the
+current indent level. You could use this to parse Elm-style `let` expressions.
+
+-}
 columnIndentAndThen : (Int -> Int -> Parser b) -> Parser b
 columnIndentAndThen =
     A.columnIndentAndThen
 
 
+{-| Editors think of code as a grid, but behind the scenes it is just a flat
+array of UTF-16 characters. `getOffset` tells you your index in that flat
+array. So if you chomp `"\n\n\n\n"` you are on row 5, column 1, and offset 4.
+
+**Note:** JavaScript uses a somewhat odd version of UTF-16 strings, so a single
+character may take two slots. So in JavaScript, `'abc'.length === 3` but
+`'🙈🙉🙊'.length === 6`. Try it out! And since Elm runs in JavaScript, the offset
+moves by those rules.
+
+-}
 offsetSourceAndThen : (Int -> String -> Parser a) -> Parser a
 offsetSourceAndThen =
     A.offsetSourceAndThen
@@ -588,17 +614,6 @@ need to parse [valid PHP variables][php] like `$x` and `$txt`:
 The idea is that you create a bunch of chompers that validate the underlying
 characters. Then `getChompedString` extracts the underlying `String` efficiently.
 
-**Note:** Maybe it is helpful to see how you can use [`getOffset`](#getOffset)
-and [`getSource`](#getSource) to implement this function:
-
-    getChompedString : Parser a -> Parser String
-    getChompedString parser =
-        succeed String.slice
-            |= getOffset
-            |> CustomParser.ignore parser
-            |= getOffset
-            |= getSource
-
 [php]: https://www.w3schools.com/php/php_variables.asp
 
 -}
@@ -676,82 +691,6 @@ withIndent =
     A.withIndent
 
 
-{-| When someone said `withIndent` earlier, what number did they put in there?
-
-  - `getIndent` results in `0`, the default value
-  - `withIndent 4 getIndent` results in `4`
-
-So you are just asking about things you said earlier. These numbers do not leak
-out of `withIndent`, so say we have:
-
-    succeed Tuple.pair
-        |= withIndent 4 getIndent
-        |= getIndent
-
-Assuming there are no `withIndent` above this, you would get `(4,0)` from this.
-
--}
-getIndent : Parser Int
-getIndent =
-    A.getIndent
-
-
-{-| Code editors treat code like a grid, with rows and columns. The start is
-`row=1` and `col=1`. As you chomp characters, the `col` increments. When you
-run into a `\n` character, the `row` increments and `col` goes back to `1`.
-
-In the Elm compiler, I track the start and end position of every expression
-like this:
-
-    type alias Located a =
-        { start : ( Int, Int )
-        , value : a
-        , end : ( Int, Int )
-        }
-
-    located : Parser a -> Parser (Located a)
-    located parser =
-        succeed Located
-            |= getPosition
-            |= parser
-            |= getPosition
-
-So if there is a problem during type inference, I use this saved position
-information to underline the exact problem!
-
-**Note:** Tabs count as one character, so if you are parsing something like
-Python, I recommend sorting that out _after_ parsing. So if I wanted the `^^^^`
-underline like in Elm, I would find the `row` in the source code and do
-something like this:
-
-    makeUnderline : String -> Int -> Int -> String
-    makeUnderline row minCol maxCol =
-        String.toList row
-            |> List.indexedMap (toUnderlineChar minCol maxCol)
-            |> String.fromList
-
-    toUnderlineChar : Int -> Int -> Int -> Char -> Char
-    toUnderlineChar minCol maxCol col char =
-        if minCol <= col && col <= maxCol then
-            '^'
-
-        else if char == '\t' then
-            '\t'
-
-        else
-            ' '
-
-So it would preserve any tabs from the source line. There are tons of other
-ways to do this though. The point is just that you handle the tabs after
-parsing but before anyone looks at the numbers in a context where tabs may
-equal 2, 4, or 8.
-
--}
-getPosition : Parser { row : Int, column : Int }
-getPosition =
-    A.getPosition
-
-
 mapWithStartPosition :
     ({ row : Int, column : Int } -> a -> b)
     -> Parser a
@@ -774,77 +713,6 @@ mapWithStartAndEndPosition :
     -> Parser b
 mapWithStartAndEndPosition =
     A.mapWithStartAndEndPosition
-
-
-{-| This is a more efficient version of `map Tuple.first getPosition`. Maybe
-you just want to track the line number for some reason? This lets you do that.
-
-See [`getPosition`](#getPosition) for an explanation of rows and columns.
-
--}
-getRow : Parser Int
-getRow =
-    A.getRow
-
-
-{-| This is a more efficient version of `map Tuple.second getPosition`. This
-can be useful in combination with [`withIndent`](#withIndent) and
-[`getIndent`](#getIndent), like this:
-
-    checkIndent : Parser ()
-    checkIndent =
-        succeed (\indent column -> indent <= column)
-            |= getIndent
-            |= getCol
-            |> andThen checkIndentHelp
-
-    checkIndentHelp : Bool -> Parser ()
-    checkIndentHelp isIndented =
-        if isIndented then
-            succeed ()
-
-        else
-            problem "expecting more spaces"
-
-So the `checkIndent` parser only succeeds when you are "deeper" than the
-current indent level. You could use this to parse Elm-style `let` expressions.
-
--}
-getCol : Parser Int
-getCol =
-    A.getCol
-
-
-{-| Editors think of code as a grid, but behind the scenes it is just a flat
-array of UTF-16 characters. `getOffset` tells you your index in that flat
-array. So if you chomp `"\n\n\n\n"` you are on row 5, column 1, and offset 4.
-
-**Note:** JavaScript uses a somewhat odd version of UTF-16 strings, so a single
-character may take two slots. So in JavaScript, `'abc'.length === 3` but
-`'🙈🙉🙊'.length === 6`. Try it out! And since Elm runs in JavaScript, the offset
-moves by those rules.
-
--}
-getOffset : Parser Int
-getOffset =
-    A.getOffset
-
-
-{-| Get the full string that is being parsed. You could use this to define
-`getChompedString` or `mapChompedString` if you wanted:
-
-    getChompedString : Parser a -> Parser String
-    getChompedString parser =
-        succeed String.slice
-            |= getOffset
-            |> CustomParser.ignore parser
-            |= getOffset
-            |= getSource
-
--}
-getSource : Parser String
-getSource =
-    A.getSource
 
 
 {-| Create a parser for variables. If we wanted to parse type variables in Elm,

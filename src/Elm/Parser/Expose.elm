@@ -104,20 +104,25 @@ typeExpose =
         )
         Tokens.typeName
         (CustomParser.oneOf
-            [ CustomParser.map5
-                (\commentsBefore start left right end ->
+            [ CustomParser.map2
+                (\commentsBefore all ->
                     Just
-                        { comments = commentsBefore |> Rope.prependTo left |> Rope.prependTo right
-                        , syntax = { start = start, end = end }
+                        { comments = commentsBefore |> Rope.prependTo all.comments
+                        , syntax = all.range
                         }
                 )
                 (Layout.maybeLayout |> CustomParser.backtrackable)
-                CustomParser.getPosition
-                (CustomParser.symbolFollowedBy "("
-                    (Layout.maybeLayoutUntilIgnored CustomParser.symbolFollowedBy "..")
+                (CustomParser.mapWithStartAndEndPosition
+                    (\start comments end ->
+                        { comments = comments, range = { start = start, end = end } }
+                    )
+                    (CustomParser.map2 (\left right -> left |> Rope.prependTo right)
+                        (CustomParser.symbolFollowedBy "("
+                            (Layout.maybeLayoutUntilIgnored CustomParser.symbolFollowedBy "..")
+                        )
+                        (Layout.maybeLayoutUntilIgnored CustomParser.symbolFollowedBy ")")
+                    )
                 )
-                (Layout.maybeLayoutUntilIgnored CustomParser.symbolFollowedBy ")")
-                CustomParser.getPosition
             , CustomParser.succeed Nothing
             ]
         )
