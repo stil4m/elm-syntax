@@ -140,7 +140,7 @@ value. The `ignore` operators are saying to still chomp all the characters, but
 skip the two `()` values that get produced. No one cares about them.
 
 -}
-ignore : Parser ignore -> Parser keep -> Parser keep
+ignore : Parser () -> Parser keep -> Parser keep
 ignore ignored kept =
     A.ignore kept ignored
 
