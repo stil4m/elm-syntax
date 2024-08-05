@@ -1,7 +1,6 @@
 module Elm.Parser.Comments exposing (declarationDocumentation, moduleDocumentation, multilineCommentString, singleLineCommentCore)
 
 import CustomParser exposing (Parser)
-import CustomParser.Extra
 import Elm.Parser.Node as Node
 import Elm.Syntax.Documentation exposing (Documentation)
 import Elm.Syntax.Node exposing (Node)
@@ -17,8 +16,8 @@ singleLineCommentCore =
 multilineCommentString : CustomParser.Parser String
 multilineCommentString =
     CustomParser.oneOf
-        [ CustomParser.symbol "{-|" ()
-            |> CustomParser.Extra.continueWith (CustomParser.problem "unexpected documentation comment")
+        [ CustomParser.symbolFollowedBy "{-|"
+            (CustomParser.problem "unexpected documentation comment")
         , CustomParser.nestableMultiComment "{-" "-}"
             |> CustomParser.getChompedString
         ]

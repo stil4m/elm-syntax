@@ -1,6 +1,6 @@
 module CustomParser exposing
     ( Parser, run
-    , int, number, symbol, keyword, variable, end
+    , int, number, symbol, symbolFollowedBy, keyword, keywordFollowedBy, variable, end
     , succeed, problem, succeedLazy, lazy, map, map2, map3, map4, map5, map6, map7, map8, map9, map10, map11, ignore, andThen
     , oneOf, backtrackable
     , nestableMultiComment
@@ -14,7 +14,7 @@ module CustomParser exposing
 
 @docs Parser, run
 
-@docs int, number, symbol, keyword, variable, end
+@docs int, number, symbol, symbolFollowedBy, keyword, keywordFollowedBy, variable, end
 
 
 # Flow
@@ -499,6 +499,13 @@ symbol str res =
     A.symbol str (Parser.ExpectingSymbol str) res
 
 
+{-| Make sure to never call with symbol "", as this will then always commit.
+-}
+symbolFollowedBy : String -> Parser next -> Parser next
+symbolFollowedBy str nextParser =
+    A.symbolFollowedBy str (Parser.ExpectingSymbol str) nextParser
+
+
 {-| Parse keywords like `let`, `case`, and `type`.
 
     run (keyword "let") "let"     == Ok ()
@@ -527,8 +534,11 @@ keyword kwd res =
     A.keyword kwd (Parser.ExpectingKeyword kwd) res
 
 
-
--- END
+{-| Make sure to never call with String "", as this will then always commit.
+-}
+keywordFollowedBy : String -> Parser next -> Parser next
+keywordFollowedBy kwd nextParser =
+    A.keywordFollowedBy kwd (Parser.ExpectingKeyword kwd) nextParser
 
 
 {-| Check if you have reached the end of the string you are parsing.
@@ -805,10 +815,6 @@ getOffset =
 getSource : Parser String
 getSource =
     A.getSource
-
-
-
--- VARIABLES
 
 
 {-| Create a parser for variables. If we wanted to parse type variables in Elm,

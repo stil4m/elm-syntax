@@ -1,7 +1,6 @@
 module Elm.Parser.TypeAnnotation exposing (typeAnnotation, typeAnnotationNoFnExcludingTypedWithArguments)
 
 import CustomParser exposing (Parser)
-import CustomParser.Extra
 import Elm.Parser.Layout as Layout
 import Elm.Parser.Node as Node
 import Elm.Parser.Tokens as Tokens
@@ -36,7 +35,9 @@ typeAnnotation =
                         , syntax = typeAnnotationResult.syntax
                         }
                 )
-                (Layout.maybeLayoutUntilIgnored CustomParser.symbol "->" |> CustomParser.backtrackable)
+                (Layout.maybeLayoutUntilIgnored CustomParser.symbolFollowedBy "->"
+                    |> CustomParser.backtrackable
+                )
                 Layout.maybeLayout
                 (CustomParser.lazy (\() -> typeAnnotation))
             , CustomParser.succeed Nothing
@@ -68,58 +69,51 @@ typeAnnotationNoFnIncludingTypedWithArguments =
 
 parensTypeAnnotation : Parser (WithComments TypeAnnotation)
 parensTypeAnnotation =
-    Tokens.parensStart
-        |> CustomParser.Extra.continueWith
-            (CustomParser.oneOf
-                [ Tokens.parensEnd
-                    |> CustomParser.map (\() -> unitWithComments)
-                , CustomParser.map4
-                    (\commentsBeforeFirstPart firstPart commentsAfterFirstPart lastToSecondPart ->
-                        { comments =
-                            commentsBeforeFirstPart
-                                |> Rope.prependTo firstPart.comments
-                                |> Rope.prependTo commentsAfterFirstPart
-                                |> Rope.prependTo lastToSecondPart.comments
-                        , syntax =
-                            case lastToSecondPart.syntax of
-                                [] ->
-                                    let
-                                        (Node _ firstPartValue) =
-                                            firstPart.syntax
-                                    in
-                                    firstPartValue
+    CustomParser.symbolFollowedBy "("
+        (CustomParser.oneOf
+            [ CustomParser.symbol ")" { comments = Rope.empty, syntax = TypeAnnotation.Unit }
+            , CustomParser.map4
+                (\commentsBeforeFirstPart firstPart commentsAfterFirstPart lastToSecondPart ->
+                    { comments =
+                        commentsBeforeFirstPart
+                            |> Rope.prependTo firstPart.comments
+                            |> Rope.prependTo commentsAfterFirstPart
+                            |> Rope.prependTo lastToSecondPart.comments
+                    , syntax =
+                        case lastToSecondPart.syntax of
+                            [] ->
+                                let
+                                    (Node _ firstPartValue) =
+                                        firstPart.syntax
+                                in
+                                firstPartValue
 
-                                _ ->
-                                    TypeAnnotation.Tupled (firstPart.syntax :: List.reverse lastToSecondPart.syntax)
-                        }
-                    )
-                    Layout.maybeLayout
-                    typeAnnotation
-                    Layout.maybeLayout
-                    (ParserWithComments.untilWithoutReverse
-                        Tokens.parensEnd
-                        (CustomParser.map4
-                            (\() commentsBefore typeAnnotationResult commentsAfter ->
-                                { comments =
-                                    commentsBefore
-                                        |> Rope.prependTo typeAnnotationResult.comments
-                                        |> Rope.prependTo commentsAfter
-                                , syntax = typeAnnotationResult.syntax
-                                }
-                            )
-                            Tokens.comma
-                            Layout.maybeLayout
-                            typeAnnotation
-                            Layout.maybeLayout
+                            _ ->
+                                TypeAnnotation.Tupled (firstPart.syntax :: List.reverse lastToSecondPart.syntax)
+                    }
+                )
+                Layout.maybeLayout
+                typeAnnotation
+                Layout.maybeLayout
+                (ParserWithComments.untilWithoutReverse
+                    Tokens.parensEnd
+                    (CustomParser.map4
+                        (\() commentsBefore typeAnnotationResult commentsAfter ->
+                            { comments =
+                                commentsBefore
+                                    |> Rope.prependTo typeAnnotationResult.comments
+                                    |> Rope.prependTo commentsAfter
+                            , syntax = typeAnnotationResult.syntax
+                            }
                         )
+                        Tokens.comma
+                        Layout.maybeLayout
+                        typeAnnotation
+                        Layout.maybeLayout
                     )
-                ]
-            )
-
-
-unitWithComments : WithComments TypeAnnotation
-unitWithComments =
-    { comments = Rope.empty, syntax = TypeAnnotation.Unit }
+                )
+            ]
+        )
 
 
 genericTypeAnnotation : Parser (WithComments TypeAnnotation)
@@ -200,8 +194,7 @@ recordTypeAnnotation =
                         typeAnnotation
                         Layout.maybeLayout
                         (CustomParser.oneOf
-                            [ Tokens.comma
-                                |> CustomParser.Extra.continueWith recordFieldsTypeAnnotation
+                            [ CustomParser.symbolFollowedBy "," recordFieldsTypeAnnotation
                             , CustomParser.succeed { comments = Rope.empty, syntax = [] }
                             ]
                         )
@@ -258,7 +251,7 @@ recordFieldDefinition =
         Layout.maybeLayout
         CustomParser.getPosition
         Tokens.functionName
-        (Layout.maybeLayoutUntilIgnored CustomParser.symbol ":")
+        (Layout.maybeLayoutUntilIgnored CustomParser.symbolFollowedBy ":")
         Layout.maybeLayout
         typeAnnotation
         -- This extra whitespace is just included for compatibility with earlier version
