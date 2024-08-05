@@ -2,7 +2,7 @@ module CustomParser exposing
     ( Parser, run
     , int, number, symbol, keyword, variable, end
     , succeed, problem, succeedLazy, lazy, map, map2, map3, map4, map5, map6, map7, map8, map9, map10, map11, ignore, andThen
-    , oneOf, backtrackable, commit, token
+    , oneOf, backtrackable, commit
     , nestableMultiComment
     , getChompedString, chompIf, chompWhile, mapChompedString
     , withIndent, getIndent
@@ -21,7 +21,7 @@ module CustomParser exposing
 
 @docs succeed, problem, succeedLazy, lazy, map, map2, map3, map4, map5, map6, map7, map8, map9, map10, map11, ignore, andThen
 
-@docs oneOf, backtrackable, commit, token
+@docs oneOf, backtrackable, commit
 
 
 # Whitespace
@@ -418,47 +418,6 @@ commit =
     A.commit
 
 
-{-| Parse exactly the given string, without any regard to what comes next.
-
-A potential pitfall when parsing keywords is getting tricked by variables that
-start with a keyword, like `let` in `letters` or `import` in `important`. This
-is especially likely if you have a whitespace parser that can consume zero
-charcters. So the [`keyword`](#keyword) parser is defined with `token` and a
-trick to peek ahead a bit:
-
-    keyword : String -> Parser ()
-    keyword kwd =
-        succeed identity
-            |> CustomParser.ignore backtrackable (token kwd)
-            |= oneOf
-                [ map (\_ -> True) (backtrackable (chompIf isVarChar))
-                , succeed False
-                ]
-            |> andThen (checkEnding kwd)
-
-    checkEnding : String -> Bool -> Parser ()
-    checkEnding kwd isBadEnding =
-        if isBadEnding then
-            problem ("expecting the `" ++ kwd ++ "` keyword")
-
-        else
-            commit ()
-
-    isVarChar : Char -> Bool
-    isVarChar char =
-        Char.isAlphaNum char || char == '_'
-
-This definition is specially designed so that (1) if you really see `let` you
-commit to that path and (2) if you see `letters` instead you can backtrack and
-try other options. If I had just put a `backtrackable` around the whole thing
-you would not get (1) anymore.
-
--}
-token : String -> Parser ()
-token str =
-    A.symbol (toToken str)
-
-
 toToken : String -> A.Token Problem
 toToken str =
     A.Token str (Parser.Expecting str)
@@ -581,9 +540,9 @@ I have had better luck with `chompWhile isSymbol` and sorting out which
 operator it is afterwards.
 
 -}
-symbol : String -> Parser ()
-symbol str =
-    A.symbol (A.Token str (Parser.ExpectingSymbol str))
+symbol : String -> res -> Parser res
+symbol str res =
+    A.symbol (A.Token str (Parser.ExpectingSymbol str)) res
 
 
 {-| Parse keywords like `let`, `case`, and `type`.
@@ -609,9 +568,9 @@ be parsed as `let ters` and then wonder where the equals sign is! Check out the
 [`token`](#token) docs if you need to customize this!
 
 -}
-keyword : String -> Parser ()
-keyword kwd =
-    A.keyword (A.Token kwd (Parser.ExpectingKeyword kwd))
+keyword : String -> res -> Parser res
+keyword kwd res =
+    A.keyword (A.Token kwd (Parser.ExpectingKeyword kwd)) res
 
 
 

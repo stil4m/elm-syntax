@@ -9,7 +9,7 @@ import Elm.Syntax.Node exposing (Node)
 
 singleLineCommentCore : CustomParser.Parser String
 singleLineCommentCore =
-    CustomParser.symbol "--"
+    CustomParser.symbol "--" ()
         |> CustomParser.ignore (CustomParser.chompWhile (\c -> c /= '\u{000D}' && c /= '\n'))
         |> CustomParser.getChompedString
 
@@ -17,7 +17,7 @@ singleLineCommentCore =
 multilineCommentString : CustomParser.Parser String
 multilineCommentString =
     CustomParser.oneOf
-        [ CustomParser.symbol "{-|"
+        [ CustomParser.symbol "{-|" ()
             |> CustomParser.Extra.continueWith (CustomParser.problem "unexpected documentation comment")
         , CustomParser.nestableMultiComment "{-" "-}"
             |> CustomParser.getChompedString

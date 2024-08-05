@@ -57,69 +57,69 @@ reservedList =
 
 portToken : CustomParser.Parser ()
 portToken =
-    CustomParser.keyword "port"
+    CustomParser.keyword "port" ()
 
 
 moduleToken : CustomParser.Parser ()
 moduleToken =
-    CustomParser.keyword "module"
+    CustomParser.keyword "module" ()
 
 
 whereToken : CustomParser.Parser ()
 whereToken =
-    CustomParser.keyword "where"
+    CustomParser.keyword "where" ()
 
 
 exposingToken : CustomParser.Parser ()
 exposingToken =
-    CustomParser.symbol "exposing"
+    CustomParser.symbol "exposing" ()
 
 
 importToken : CustomParser.Parser ()
 importToken =
-    CustomParser.keyword "import"
+    CustomParser.keyword "import" ()
 
 
 asToken : CustomParser.Parser ()
 asToken =
-    CustomParser.keyword "as"
+    CustomParser.keyword "as" ()
 
 
 ifToken : CustomParser.Parser ()
 ifToken =
-    CustomParser.keyword "if"
+    CustomParser.keyword "if" ()
 
 
 caseToken : CustomParser.Parser ()
 caseToken =
-    CustomParser.keyword "case"
+    CustomParser.keyword "case" ()
 
 
 letToken : CustomParser.Parser ()
 letToken =
-    CustomParser.keyword "let"
+    CustomParser.keyword "let" ()
 
 
 inToken : CustomParser.Parser ()
 inToken =
-    CustomParser.keyword "in"
+    CustomParser.keyword "in" ()
 
 
 aliasToken : CustomParser.Parser ()
 aliasToken =
-    CustomParser.keyword "alias"
+    CustomParser.keyword "alias" ()
 
 
 escapedCharValue : CustomParser.Parser Char
 escapedCharValue =
     CustomParser.oneOf
-        [ CustomParser.map (\() -> '\'') (CustomParser.symbol "'")
-        , CustomParser.map (\() -> '"') (CustomParser.symbol "\"")
-        , CustomParser.map (\() -> '\n') (CustomParser.symbol "n")
-        , CustomParser.map (\() -> '\t') (CustomParser.symbol "t")
+        [ CustomParser.symbol "'" '\''
+        , CustomParser.symbol "\"" '"'
+        , CustomParser.symbol "n" '\n'
+        , CustomParser.symbol "t" '\t'
         , -- Eventhough Elm-format will change \r to a unicode version. When you dont use elm-format, this will not happen.
-          CustomParser.map (\() -> '\u{000D}') (CustomParser.symbol "r")
-        , CustomParser.map (\() -> '\\') (CustomParser.symbol "\\")
+          CustomParser.symbol "r" '\u{000D}'
+        , CustomParser.symbol "\\" '\\'
         , CustomParser.map3
             (\() hex () ->
                 case String.toLower hex |> Hex.fromString of
@@ -129,20 +129,20 @@ escapedCharValue =
                     Err _ ->
                         '\u{0000}'
             )
-            (CustomParser.symbol "u{")
+            (CustomParser.symbol "u{" ())
             (CustomParser.variable
                 { inner = Char.isHexDigit
                 , reserved = Set.empty
                 , start = Char.isHexDigit
                 }
             )
-            (CustomParser.symbol "}")
+            (CustomParser.symbol "}" ())
         ]
 
 
 slashEscapedCharValue : CustomParser.Parser Char
 slashEscapedCharValue =
-    CustomParser.symbol "\\"
+    CustomParser.symbol "\\" ()
         |> CustomParser.Extra.continueWith escapedCharValue
 
 
@@ -150,18 +150,18 @@ characterLiteral : CustomParser.Parser Char
 characterLiteral =
     CustomParser.map3
         (\() res () -> res)
-        (CustomParser.symbol "'")
+        (CustomParser.symbol "'" ())
         (CustomParser.oneOf
             [ slashEscapedCharValue
             , CustomParser.Extra.anyChar
             ]
         )
-        (CustomParser.symbol "'")
+        (CustomParser.symbol "'" ())
 
 
 singleOrTripleQuotedStringLiteral : CustomParser.Parser String
 singleOrTripleQuotedStringLiteral =
-    doubleQuote
+    CustomParser.symbol "\"" ()
         |> CustomParser.Extra.continueWith
             (CustomParser.oneOf
                 [ twoDoubleQuotes
@@ -172,15 +172,10 @@ singleOrTripleQuotedStringLiteral =
             )
 
 
-doubleQuote : CustomParser.Parser ()
-doubleQuote =
-    CustomParser.symbol "\""
-
-
 stringLiteralHelper : String -> CustomParser.Parser (CustomParser.Advanced.Step String String)
 stringLiteralHelper stringSoFar =
     CustomParser.oneOf
-        [ doubleQuote |> CustomParser.map (\() -> CustomParser.Advanced.Done stringSoFar)
+        [ CustomParser.symbol "\"" (CustomParser.Advanced.Done stringSoFar)
         , CustomParser.map2
             (\() v ->
                 CustomParser.Advanced.Loop (stringSoFar ++ String.fromChar v ++ "")
@@ -200,21 +195,14 @@ chompWhileIsInsideString =
 
 twoDoubleQuotes : CustomParser.Parser ()
 twoDoubleQuotes =
-    CustomParser.symbol "\"\""
-
-
-tripleDoubleQuote : CustomParser.Parser ()
-tripleDoubleQuote =
-    CustomParser.symbol "\"\"\""
+    CustomParser.symbol "\"\"" ()
 
 
 tripleQuotedStringLiteralStep : String -> CustomParser.Parser (CustomParser.Advanced.Step String String)
 tripleQuotedStringLiteralStep stringSoFar =
     CustomParser.oneOf
-        [ tripleDoubleQuote
-            |> CustomParser.map (\() -> CustomParser.Advanced.Done stringSoFar)
-        , doubleQuote
-            |> CustomParser.map (\() -> CustomParser.Advanced.Loop (stringSoFar ++ "\""))
+        [ CustomParser.symbol "\"\"\"" (CustomParser.Advanced.Done stringSoFar)
+        , CustomParser.symbol "\"" (CustomParser.Advanced.Loop (stringSoFar ++ "\""))
         , CustomParser.map2
             (\() v ->
                 CustomParser.Advanced.Loop (stringSoFar ++ String.fromChar v ++ "")
@@ -324,94 +312,94 @@ allowedOperatorTokens =
 prefixOperatorToken : CustomParser.Parser String
 prefixOperatorToken =
     allowedOperatorTokens
-        |> List.map (\token -> CustomParser.symbol token |> CustomParser.map (\() -> token))
+        |> List.map (\token -> CustomParser.symbol token token)
         |> CustomParser.oneOf
 
 
 minus : CustomParser.Parser ()
 minus =
-    CustomParser.symbol "-"
+    CustomParser.symbol "-" ()
 
 
 minusSymbols : CustomParser.Parser ()
 minusSymbols =
     CustomParser.oneOf
-        [ CustomParser.symbol "- "
-        , CustomParser.symbol "-\n"
-        , CustomParser.symbol "-\u{000D}"
+        [ CustomParser.symbol "- " ()
+        , CustomParser.symbol "-\n" ()
+        , CustomParser.symbol "-\u{000D}" ()
         ]
 
 
 dot : CustomParser.Parser ()
 dot =
-    CustomParser.symbol "."
+    CustomParser.symbol "." ()
 
 
 dotDot : CustomParser.Parser ()
 dotDot =
-    CustomParser.symbol ".."
+    CustomParser.symbol ".." ()
 
 
 squareStart : CustomParser.Parser ()
 squareStart =
-    CustomParser.symbol "["
+    CustomParser.symbol "[" ()
 
 
 squareEnd : CustomParser.Parser ()
 squareEnd =
-    CustomParser.symbol "]"
+    CustomParser.symbol "]" ()
 
 
 curlyStart : CustomParser.Parser ()
 curlyStart =
-    CustomParser.symbol "{"
+    CustomParser.symbol "{" ()
 
 
 curlyEnd : CustomParser.Parser ()
 curlyEnd =
-    CustomParser.symbol "}"
+    CustomParser.symbol "}" ()
 
 
 pipe : CustomParser.Parser ()
 pipe =
-    CustomParser.symbol "|"
+    CustomParser.symbol "|" ()
 
 
 backSlash : CustomParser.Parser ()
 backSlash =
-    CustomParser.symbol "\\"
+    CustomParser.symbol "\\" ()
 
 
 arrowRight : CustomParser.Parser ()
 arrowRight =
-    CustomParser.symbol "->"
+    CustomParser.symbol "->" ()
 
 
 equal : CustomParser.Parser ()
 equal =
-    CustomParser.symbol "="
+    CustomParser.symbol "=" ()
 
 
 comma : CustomParser.Parser ()
 comma =
-    CustomParser.symbol ","
+    CustomParser.symbol "," ()
 
 
 parensStart : CustomParser.Parser ()
 parensStart =
-    CustomParser.symbol "("
+    CustomParser.symbol "(" ()
 
 
 parensEnd : CustomParser.Parser ()
 parensEnd =
-    CustomParser.symbol ")"
+    CustomParser.symbol ")" ()
 
 
 colon : CustomParser.Parser ()
 colon =
-    CustomParser.symbol ":"
+    CustomParser.symbol ":" ()
 
 
 cons : CustomParser.Parser ()
 cons =
-    CustomParser.symbol "::"
+    CustomParser.symbol "::" ()

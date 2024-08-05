@@ -450,7 +450,7 @@ infixDeclaration =
                     )
             }
         )
-        (CustomParser.keyword "infix")
+        (CustomParser.keyword "infix" ())
         CustomParser.getRow
         Layout.maybeLayout
         (Node.parserCore infixDirection)
@@ -465,7 +465,7 @@ infixDeclaration =
                 Tokens.parensEnd
             )
         )
-        (Layout.maybeLayoutUntilIgnored CustomParser.token "=")
+        (Layout.maybeLayoutUntilIgnored CustomParser.symbol "=")
         Layout.maybeLayout
         (Node.parserCore Tokens.functionName)
 
@@ -473,12 +473,9 @@ infixDeclaration =
 infixDirection : CustomParser.Parser Infix.InfixDirection
 infixDirection =
     CustomParser.oneOf
-        [ CustomParser.keyword "right"
-            |> CustomParser.map (\() -> Infix.Right)
-        , CustomParser.keyword "left"
-            |> CustomParser.map (\() -> Infix.Left)
-        , CustomParser.keyword "non"
-            |> CustomParser.map (\() -> Infix.Non)
+        [ CustomParser.keyword "right" Infix.Right
+        , CustomParser.keyword "left" Infix.Left
+        , CustomParser.keyword "non" Infix.Non
         ]
 
 
@@ -506,7 +503,7 @@ portDeclarationAfterDocumentation =
         Layout.maybeLayout
         CustomParser.getPosition
         Tokens.functionName
-        (Layout.maybeLayoutUntilIgnored CustomParser.token ":")
+        (Layout.maybeLayoutUntilIgnored CustomParser.symbol ":")
         Layout.maybeLayout
         typeAnnotation
 
@@ -543,7 +540,7 @@ portDeclarationWithoutDocumentation =
         Layout.maybeLayout
         CustomParser.getPosition
         Tokens.functionName
-        (Layout.maybeLayoutUntilIgnored CustomParser.token ":")
+        (Layout.maybeLayoutUntilIgnored CustomParser.symbol ":")
         Layout.maybeLayout
         typeAnnotation
 
@@ -556,7 +553,7 @@ typeOrTypeAliasDefinitionAfterDocumentation =
             , syntax = declarationAfterDocumentation.syntax
             }
         )
-        (CustomParser.keyword "type")
+        (CustomParser.keyword "type" ())
         Layout.maybeLayout
         (CustomParser.oneOf
             [ typeAliasDefinitionAfterDocumentationAfterTypePrefix
@@ -632,7 +629,7 @@ customTypeDefinitionAfterDocumentationAfterTypePrefix =
                     , syntax = variantResult.syntax
                     }
                 )
-                (Layout.maybeLayoutUntilIgnored CustomParser.token "|" |> CustomParser.backtrackable)
+                (Layout.maybeLayoutUntilIgnored CustomParser.symbol "|" |> CustomParser.backtrackable)
                 Layout.maybeLayout
                 valueConstructor
             )
@@ -692,7 +689,7 @@ typeOrTypeAliasDefinitionWithoutDocumentation =
                             )
             }
         )
-        (CustomParser.keyword "type")
+        (CustomParser.keyword "type" ())
         CustomParser.getRow
         Layout.maybeLayout
         (CustomParser.oneOf
@@ -769,7 +766,7 @@ customTypeDefinitionWithoutDocumentationAfterTypePrefix =
                     , syntax = variantResult.syntax
                     }
                 )
-                (Layout.maybeLayoutUntilIgnored CustomParser.token "|" |> CustomParser.backtrackable)
+                (Layout.maybeLayoutUntilIgnored CustomParser.symbol "|" |> CustomParser.backtrackable)
                 Layout.maybeLayout
                 valueConstructor
             )

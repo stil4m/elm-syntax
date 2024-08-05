@@ -24,7 +24,7 @@ exposeDefinition =
             }
         )
         Tokens.exposingToken
-        (Layout.maybeLayoutUntilIgnored CustomParser.token "(")
+        (Layout.maybeLayoutUntilIgnored CustomParser.symbol "(")
         Layout.optimisticLayout
         exposingListInner
         Tokens.parensEnd
@@ -122,8 +122,8 @@ typeExpose =
                 (Layout.maybeLayout |> CustomParser.backtrackable)
                 CustomParser.getPosition
                 Tokens.parensStart
-                (Layout.maybeLayoutUntilIgnored CustomParser.token "..")
-                (Layout.maybeLayoutUntilIgnored CustomParser.token ")")
+                (Layout.maybeLayoutUntilIgnored CustomParser.symbol "..")
+                (Layout.maybeLayoutUntilIgnored CustomParser.symbol ")")
                 CustomParser.getPosition
             , CustomParser.succeed Nothing
             ]

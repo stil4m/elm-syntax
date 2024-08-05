@@ -175,4 +175,4 @@ sepBy1 sep p =
             }
         )
         p
-        (many (CustomParser.symbol sep |> CustomParser.Extra.continueWith p))
+        (many (CustomParser.symbol sep () |> CustomParser.Extra.continueWith p))
