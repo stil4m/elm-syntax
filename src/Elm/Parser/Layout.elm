@@ -237,7 +237,7 @@ onTopIndentation : Parser ()
 onTopIndentation =
     CustomParser.columnIndentAndThen
         (\column indent ->
-            if column == indent then
+            if column - indent == 0 then
                 succeedUnit
 
             else

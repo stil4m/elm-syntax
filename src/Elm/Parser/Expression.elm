@@ -670,7 +670,7 @@ letFunction =
                         (Node implementationNameRange implementationName) =
                             signature.implementationName
                     in
-                    if implementationName == startName then
+                    if implementationName == startName ++ "" then
                         let
                             (Node expressionRange _) =
                                 expressionResult.syntax
