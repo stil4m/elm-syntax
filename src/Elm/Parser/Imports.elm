@@ -76,22 +76,21 @@ importDefinition =
         moduleName
         Layout.optimisticLayout
         (CustomParser.oneOf
-            [ CustomParser.map4
-                (\commentsBefore moduleAliasStart moduleAlias commentsAfter ->
+            [ CustomParser.map3
+                (\commentsBefore moduleAliasNode commentsAfter ->
                     Just
                         { comments = commentsBefore |> Rope.prependTo commentsAfter
-                        , syntax =
-                            Node
-                                (Node.singleLineStringRangeFrom
-                                    moduleAliasStart
-                                    moduleAlias
-                                )
-                                [ moduleAlias ]
+                        , syntax = moduleAliasNode
                         }
                 )
                 (CustomParser.keywordFollowedBy "as" Layout.maybeLayout)
-                CustomParser.getPosition
-                Tokens.typeName
+                (CustomParser.mapWithStartAndEndPosition
+                    (\start moduleAlias end ->
+                        Node { start = start, end = end }
+                            [ moduleAlias ]
+                    )
+                    Tokens.typeName
+                )
                 Layout.optimisticLayout
             , CustomParser.succeed Nothing
             ]

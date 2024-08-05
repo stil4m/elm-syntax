@@ -13,7 +13,6 @@ module Elm.Parser.Layout exposing
 import CustomParser exposing (Parser)
 import Elm.Parser.Comments as Comments
 import Elm.Parser.Node as Node
-import Elm.Syntax.Node exposing (Node(..))
 import ParserWithComments exposing (Comments, WithComments)
 import Rope
 import Set
@@ -32,20 +31,12 @@ whitespaceAndCommentsUntilEndComments end =
     let
         fromSingleLineCommentUntilEnd : Parser Comments
         fromSingleLineCommentUntilEnd =
-            CustomParser.map4
-                (\startColumn content endLocation commentsAfter ->
-                    Rope.one
-                        (Node
-                            { start = { row = endLocation.row, column = startColumn }
-                            , end = endLocation
-                            }
-                            content
-                        )
+            CustomParser.map2
+                (\content commentsAfter ->
+                    Rope.one content
                         |> Rope.filledPrependTo commentsAfter
                 )
-                CustomParser.getCol
-                Comments.singleLineCommentCore
-                CustomParser.getPosition
+                (Node.parserCore Comments.singleLineCommentCore)
                 (CustomParser.lazy (\() -> whitespaceAndCommentsUntilEndComments end))
 
         fromMultilineCommentNodeUntilEnd : Parser Comments
@@ -144,20 +135,11 @@ fromMultilineCommentNode =
 
 fromSingleLineCommentNode : Parser Comments
 fromSingleLineCommentNode =
-    CustomParser.map4
-        (\startColumn content end commentsAfter ->
-            Rope.one
-                (Node
-                    { start = { row = end.row, column = startColumn }
-                    , end = end
-                    }
-                    content
-                )
-                |> Rope.filledPrependTo commentsAfter
+    CustomParser.map2
+        (\content commentsAfter ->
+            Rope.one content |> Rope.filledPrependTo commentsAfter
         )
-        CustomParser.getCol
-        Comments.singleLineCommentCore
-        CustomParser.getPosition
+        (Node.parserCore Comments.singleLineCommentCore)
         whitespaceAndCommentsOrEmpty
 
 

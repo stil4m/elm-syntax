@@ -8,7 +8,7 @@ import ParserWithComments exposing (WithComments)
 
 parserMapWithComments : (WithComments (Node a) -> b) -> Parser (WithComments a) -> Parser b
 parserMapWithComments valueNodeChange p =
-    CustomParser.map3
+    CustomParser.mapWithStartAndEndPosition
         (\start v end ->
             { comments = v.comments
             , syntax =
@@ -20,31 +20,25 @@ parserMapWithComments valueNodeChange p =
             }
                 |> valueNodeChange
         )
-        CustomParser.getPosition
         p
-        CustomParser.getPosition
 
 
 parser : Parser (WithComments a) -> Parser (WithComments (Node a))
 parser p =
-    CustomParser.map3
+    CustomParser.mapWithStartAndEndPosition
         (\start v end ->
             { comments = v.comments
             , syntax =
                 Node { start = start, end = end } v.syntax
             }
         )
-        CustomParser.getPosition
         p
-        CustomParser.getPosition
 
 
 parserCore : CustomParser.Parser a -> CustomParser.Parser (Node a)
 parserCore p =
-    CustomParser.map3
+    CustomParser.mapWithStartAndEndPosition
         (\start v end ->
             Node { start = start, end = end } v
         )
-        CustomParser.getPosition
         p
-        CustomParser.getPosition
