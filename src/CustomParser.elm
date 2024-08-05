@@ -60,7 +60,7 @@ complex scenarios.
 
 -}
 type alias Parser a =
-    A.Parser Problem a
+    A.Parser Parser.Problem a
 
 
 {-| Try a parser. Here are some examples using the [`keyword`](#keyword)
@@ -89,40 +89,7 @@ run parser source =
             Ok a
 
         Err problems ->
-            Err (List.map problemToDeadEnd problems)
-
-
-problemToDeadEnd : A.DeadEnd Problem -> DeadEnd
-problemToDeadEnd p =
-    { row = p.row, col = p.col, problem = p.problem }
-
-
-{-| A parser can run into situations where there is no way to make progress.
-When that happens, I record the `row` and `col` where you got stuck and the
-particular `problem` you ran into. That is a `DeadEnd`!
-
-**Note:** I count rows and columns like a text editor. The beginning is `row=1`
-and `col=1`. As I chomp characters, the `col` increments. When I reach a `\n`
-character, I increment the `row` and set `col=1`.
-
--}
-type alias DeadEnd =
-    Parser.DeadEnd
-
-
-{-| When you run into a `DeadEnd`, I record some information about why you
-got stuck. This data is useful for producing helpful error messages.
-
-**Note:** If you feel limited by this type (i.e. having to represent custom
-problems as strings) I highly recommend switching to `Parser.Advanced`. It
-lets you define your own `Problem` type. It can also track "context" which
-can improve error messages a ton! This is how the Elm compiler produces
-relatively nice parse errors, and I am excited to see those techniques applied
-elsewhere!
-
--}
-type alias Problem =
-    Parser.Problem
+            Err problems
 
 
 {-| A parser that succeeds without chomping any characters.

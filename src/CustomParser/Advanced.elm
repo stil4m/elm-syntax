@@ -1,5 +1,5 @@
 module CustomParser.Advanced exposing
-    ( Parser, run, DeadEnd
+    ( Parser, run
     , number, symbol, keyword, variable, end
     , succeed, problem, succeedLazy, lazy, map, map2, map3, map4, map5, map6, map7, map8, map9, map10, map11, andThen, ignore
     , oneOf, backtrackable, commit
@@ -12,7 +12,7 @@ module CustomParser.Advanced exposing
 
 {-|
 
-@docs Parser, run, DeadEnd
+@docs Parser, run
 
 @docs number, symbol, keyword, variable, end
 
