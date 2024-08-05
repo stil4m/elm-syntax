@@ -21,6 +21,7 @@ module Elm.Parser.Tokens exposing
 -}
 
 import Char
+import Char.Extra
 import CustomParser
 import CustomParser.Advanced
 import CustomParser.Extra
@@ -163,7 +164,7 @@ functionName =
         { inner =
             \c ->
                 -- checking for these common ranges early is much faster
-                charIsAlphaNumFast c || c == '_' || Unicode.isAlphaNum c
+                Char.Extra.isAlphaNumFast c || c == '_' || Unicode.isAlphaNum c
         , reserved = reservedList
         , start =
             \c -> Char.isLower c || Unicode.isLower c
@@ -176,37 +177,11 @@ functionNameNotInfix =
         { inner =
             \c ->
                 -- checking for these common ranges early is much faster
-                charIsAlphaNumFast c || c == '_' || Unicode.isAlphaNum c
+                Char.Extra.isAlphaNumFast c || c == '_' || Unicode.isAlphaNum c
         , reserved = Set.insert "infix" reservedList
         , start =
             \c -> Char.isLower c || Unicode.isLower c
         }
-
-
-charIsAlphaNumFast : Char -> Bool
-charIsAlphaNumFast char =
-    -- Char.isAlphaNum does not reuse the same Char.toCode and is therefore slightly slower
-    let
-        charCode : Int
-        charCode =
-            char |> Char.toCode
-    in
-    charCodeIsLower charCode || charCodeIsUpper charCode || charCodeIsDigit charCode
-
-
-charCodeIsLower : Int -> Bool
-charCodeIsLower code =
-    0x61 <= code && code <= 0x7A
-
-
-charCodeIsUpper : Int -> Bool
-charCodeIsUpper code =
-    code <= 0x5A && 0x41 <= code
-
-
-charCodeIsDigit : Int -> Bool
-charCodeIsDigit code =
-    code <= 0x39 && 0x30 <= code
 
 
 typeName : CustomParser.Parser String
@@ -215,7 +190,7 @@ typeName =
         { inner =
             \c ->
                 -- checking for these common ranges early is much faster
-                charIsAlphaNumFast c || c == '_' || Unicode.isAlphaNum c
+                Char.Extra.isAlphaNumFast c || c == '_' || Unicode.isAlphaNum c
         , reserved = Set.empty
         , start =
             \c -> Char.isUpper c || Unicode.isUpper c
