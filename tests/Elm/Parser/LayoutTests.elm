@@ -4,7 +4,6 @@ import CustomParser
 import Elm.Parser.Layout as Layout
 import Elm.Parser.ParserWithCommentsTestUtil exposing (parseWithState)
 import Expect
-import ParserFast
 import ParserWithComments exposing (Comments)
 import Test exposing (..)
 
