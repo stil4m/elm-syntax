@@ -412,10 +412,6 @@ commit =
     A.commit
 
 
-
--- TOKEN
-
-
 {-| Parse exactly the given string, without any regard to what comes next.
 
 A potential pitfall when parsing keywords is getting tricked by variables that
@@ -460,10 +456,6 @@ token str =
 toToken : String -> A.Token Problem
 toToken str =
     A.Token str (Expecting str)
-
-
-
--- NUMBER
 
 
 {-| Parse a bunch of different kinds of numbers without backtracking. A parser
