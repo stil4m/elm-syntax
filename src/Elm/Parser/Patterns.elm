@@ -109,28 +109,39 @@ parensPattern =
             , CustomParser.symbol ")" { comments = Rope.empty, syntax = UnitPattern }
             ]
         )
+        |> Node.parser
 
 
-variablePart : Parser (WithComments Pattern)
-variablePart =
+varPattern : Parser (WithComments (Node Pattern))
+varPattern =
     Tokens.functionName
-        |> CustomParser.map (\var -> { comments = Rope.empty, syntax = VarPattern var })
+        |> CustomParser.mapWithStartAndEndPosition
+            (\start var end ->
+                { comments = Rope.empty
+                , syntax =
+                    Node { start = start, end = end } (VarPattern var)
+                }
+            )
 
 
-numberPart : Parser (WithComments Pattern)
+numberPart : Parser (WithComments (Node Pattern))
 numberPart =
     Elm.Parser.Numbers.intOrHex
         (\n -> { comments = Rope.empty, syntax = IntPattern n })
         (\n -> { comments = Rope.empty, syntax = HexPattern n })
+        |> Node.parser
 
 
-charPattern : Parser (WithComments Pattern)
+charPattern : Parser (WithComments (Node Pattern))
 charPattern =
     Tokens.characterLiteral
-        |> CustomParser.map (\char -> { comments = Rope.empty, syntax = CharPattern char })
+        |> CustomParser.mapWithStartAndEndPosition
+            (\start char end ->
+                { comments = Rope.empty, syntax = Node { start = start, end = end } (CharPattern char) }
+            )
 
 
-listPattern : Parser (WithComments Pattern)
+listPattern : Parser (WithComments (Node Pattern))
 listPattern =
     CustomParser.map2
         (\commentsBeforeElements maybeElements ->
@@ -168,6 +179,7 @@ listPattern =
                 Tokens.squareEnd
             ]
         )
+        |> Node.parser
 
 
 patternListEmpty : Pattern
@@ -178,7 +190,7 @@ patternListEmpty =
 composablePattern : Parser (WithComments (Node Pattern))
 composablePattern =
     CustomParser.oneOf
-        [ variablePart
+        [ varPattern
         , qualifiedPatternWithConsumeArgs
         , allPattern
         , unitPattern
@@ -194,7 +206,7 @@ composablePattern =
 qualifiedPatternArg : Parser (WithComments (Node Pattern))
 qualifiedPatternArg =
     CustomParser.oneOf
-        [ variablePart
+        [ varPattern
         , qualifiedPatternWithoutConsumeArgs
         , allPattern
         , unitPattern
@@ -209,24 +221,26 @@ qualifiedPatternArg =
 
 allPattern : Parser (WithComments (Node Pattern))
 allPattern =
-    ParserFast.symbol "_" { comments = Rope.empty, syntax = AllPattern }
+    CustomParser.symbol "_" { comments = Rope.empty, syntax = AllPattern }
         |> Node.parser
 
 
-allPattern : Parser (WithComments Pattern)
-allPattern =
-    CustomParser.symbol "_" { comments = Rope.empty, syntax = AllPattern }
-
-
-unitPattern : Parser (WithComments Pattern)
+unitPattern : Parser (WithComments (Node Pattern))
 unitPattern =
     CustomParser.symbol "()" { comments = Rope.empty, syntax = UnitPattern }
+        |> Node.parser
 
 
-stringPattern : Parser (WithComments Pattern)
+stringPattern : Parser (WithComments (Node Pattern))
 stringPattern =
     Tokens.singleOrTripleQuotedStringLiteral
-        |> CustomParser.map (\string -> { comments = Rope.empty, syntax = StringPattern string })
+        |> CustomParser.mapWithStartAndEndPosition
+            (\start string end ->
+                { comments = Rope.empty
+                , syntax =
+                    Node { start = start, end = end } (StringPattern string)
+                }
+            )
 
 
 maybeDotTypeNamesTuple : CustomParser.Parser (Maybe ( List String, String ))
@@ -247,7 +261,7 @@ maybeDotTypeNamesTuple =
         ]
 
 
-qualifiedPatternWithConsumeArgs : Parser (WithComments Pattern)
+qualifiedPatternWithConsumeArgs : Parser (WithComments (Node Pattern))
 qualifiedPatternWithConsumeArgs =
     CustomParser.map3
         (\startName afterStartName args ->
@@ -277,28 +291,33 @@ qualifiedPatternWithConsumeArgs =
                 qualifiedPatternArg
             )
         )
+        |> Node.parser
 
 
-qualifiedPatternWithoutConsumeArgs : Parser (WithComments Pattern)
+qualifiedPatternWithoutConsumeArgs : Parser (WithComments (Node Pattern))
 qualifiedPatternWithoutConsumeArgs =
-    CustomParser.map2
-        (\firstName after ->
-            case after of
-                Nothing ->
-                    { comments = Rope.empty
-                    , syntax = NamedPattern { moduleName = [], name = firstName } []
-                    }
-
-                Just ( qualificationAfter, unqualified ) ->
-                    { comments = Rope.empty
-                    , syntax = NamedPattern { moduleName = firstName :: qualificationAfter, name = unqualified } []
-                    }
+    CustomParser.mapWithStartAndEndPosition
+        (\start name end ->
+            { comments = Rope.empty
+            , syntax =
+                Node { start = start, end = end } (NamedPattern name [])
+            }
         )
-        Tokens.typeName
-        maybeDotTypeNamesTuple
+        (CustomParser.map2
+            (\firstName after ->
+                case after of
+                    Nothing ->
+                        { moduleName = [], name = firstName }
+
+                    Just ( qualificationAfter, unqualified ) ->
+                        { moduleName = firstName :: qualificationAfter, name = unqualified }
+            )
+            Tokens.typeName
+            maybeDotTypeNamesTuple
+        )
 
 
-recordPattern : Parser (WithComments Pattern)
+recordPattern : Parser (WithComments (Node Pattern))
 recordPattern =
     CustomParser.map2
         (\commentsBeforeElements maybeElements ->
@@ -342,6 +361,7 @@ recordPattern =
             , CustomParser.symbol "}" Nothing
             ]
         )
+        |> Node.parser
 
 
 patternRecordEmpty : Pattern
