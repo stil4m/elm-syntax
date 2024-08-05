@@ -7,7 +7,7 @@ module CustomParser exposing
     , getChompedString, chompIf, chompWhile, mapChompedString
     , withIndent, getIndent
     , getPosition, getRow, getCol, getOffset, getSource
-    , columnIndentAndThen, offsetSourceAndThen
+    , columnAndThen, columnIndentAndThen, offsetSourceAndThen
     )
 
 {-|
@@ -42,7 +42,7 @@ module CustomParser exposing
 # Positions
 
 @docs getPosition, getRow, getCol, getOffset, getSource
-@docs columnIndentAndThen, offsetSourceAndThen
+@docs columnAndThen, columnIndentAndThen, offsetSourceAndThen
 
 -}
 
@@ -271,6 +271,11 @@ out the [`CustomParser.Advanced.loop`](CustomParser-Advanced#loop) function to l
 andThen : (a -> Parser b) -> Parser a -> Parser b
 andThen =
     A.andThen
+
+
+columnAndThen : (Int -> Parser a) -> Parser a
+columnAndThen =
+    A.columnAndThen
 
 
 columnIndentAndThen : (Int -> Int -> Parser b) -> Parser b

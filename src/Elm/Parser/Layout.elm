@@ -226,7 +226,7 @@ layoutStrict =
 
 moduleLevelIndentation : Parser ()
 moduleLevelIndentation =
-    CustomParser.andThen
+    CustomParser.columnAndThen
         (\column ->
             if column == 1 then
                 succeedUnit
@@ -234,7 +234,6 @@ moduleLevelIndentation =
             else
                 problemModuleLevelIndentation
         )
-        CustomParser.getCol
 
 
 problemModuleLevelIndentation : CustomParser.Parser a

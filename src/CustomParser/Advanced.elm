@@ -7,7 +7,7 @@ module CustomParser.Advanced exposing
     , nestableMultiComment
     , getChompedString, chompIf, chompWhile, mapChompedString
     , withIndent, getIndent
-    , getPosition, getRow, getCol, getOffset, getSource, columnIndentAndThen, offsetSourceAndThen
+    , getPosition, getRow, getCol, getOffset, getSource, columnAndThen, columnIndentAndThen, offsetSourceAndThen
     )
 
 {-|
@@ -43,7 +43,7 @@ module CustomParser.Advanced exposing
 
 # Positions
 
-@docs getPosition, getRow, getCol, getOffset, getSource, columnIndentAndThen, offsetSourceAndThen
+@docs getPosition, getRow, getCol, getOffset, getSource, columnAndThen, columnIndentAndThen, offsetSourceAndThen
 
 -}
 
@@ -644,6 +644,18 @@ andThen callback (Parser parseA) =
 
                         Good p2 b s2 ->
                             Good (p1 || p2) b s2
+        )
+
+
+columnAndThen : (Int -> Parser x a) -> Parser x a
+columnAndThen callback =
+    Parser
+        (\s ->
+            let
+                (Parser parse) =
+                    callback s.col
+            in
+            parse s
         )
 
 
