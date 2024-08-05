@@ -2,7 +2,7 @@ module CustomParser exposing
     ( Parser, run
     , int, number, symbol, symbolFollowedBy, keyword, keywordFollowedBy, variable, end
     , succeed, problem, succeedLazy, lazy, map, map2, map3, map4, map5, map6, map7, map8, map9, map10, map11, ignore, andThen
-    , oneOf, backtrackable, commit
+    , orSucceed, orSucceedLazy, oneOf2, oneOf, backtrackable, commit
     , nestableMultiComment
     , getChompedString, chompIf, chompWhile, mapChompedString
     , withIndent, getIndent
@@ -20,7 +20,7 @@ module CustomParser exposing
 
 @docs succeed, problem, succeedLazy, lazy, map, map2, map3, map4, map5, map6, map7, map8, map9, map10, map11, ignore, andThen
 
-@docs oneOf, backtrackable, commit
+@docs orSucceed, orSucceedLazy, oneOf2, oneOf, backtrackable, commit
 
 
 # Whitespace
@@ -286,6 +286,21 @@ an example usage.
 problem : String -> Parser a
 problem msg =
     A.problem (Parser.Problem msg)
+
+
+orSucceed : Parser a -> a -> Parser a
+orSucceed =
+    A.orSucceed
+
+
+orSucceedLazy : Parser a -> (() -> a) -> Parser a
+orSucceedLazy =
+    A.orSucceedLazy
+
+
+oneOf2 : Parser a -> Parser a -> Parser a
+oneOf2 =
+    A.oneOf2
 
 
 {-| If you are parsing JSON, the values can be strings, floats, booleans,
