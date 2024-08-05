@@ -103,15 +103,14 @@ recordAccess =
 
 recordAccessParser : Parser (Node String)
 recordAccessParser =
-    lookBehindOneCharacter
-        |> CustomParser.andThen
-            (\c ->
-                if c == " " || c == "\n" || c == "\u{000D}" then
-                    problemRecordAccessStartingWithSpace
+    lookBehindOneCharacterAndThen
+        (\c ->
+            if c == " " || c == "\n" || c == "\u{000D}" then
+                problemRecordAccessStartingWithSpace
 
-                else
-                    dotField
-            )
+            else
+                dotField
+        )
 
 
 problemRecordAccessStartingWithSpace : CustomParser.Parser a
@@ -1179,27 +1178,27 @@ infixRight precedence possibilitiesForPrecedenceMinus1 symbol =
         )
 
 
-lookBehindOneCharacter : CustomParser.Parser String
-lookBehindOneCharacter =
-    CustomParser.map2 (\offset source -> String.slice (offset - 1) offset source)
-        CustomParser.getOffset
-        CustomParser.getSource
+lookBehindOneCharacterAndThen : (String -> Parser res) -> Parser res
+lookBehindOneCharacterAndThen callback =
+    CustomParser.offsetSourceAndThen
+        (\offset source ->
+            callback (String.slice (offset - 1) offset source)
+        )
 
 
 infixLeftSubtraction : Int -> Parser (WithComments ExtensionRight) -> ( Int, Parser (WithComments ExtensionRight) )
 infixLeftSubtraction precedence possibilitiesForPrecedence =
     infixHelp precedence
         possibilitiesForPrecedence
-        (lookBehindOneCharacter
-            |> CustomParser.andThen
-                (\c ->
-                    -- 'a-b', 'a - b' and 'a- b' are subtractions, but 'a -b' is an application on a negation
-                    if c == " " || c == "\n" || c == "\u{000D}" then
-                        Tokens.minusSymbols
+        (lookBehindOneCharacterAndThen
+            (\c ->
+                -- 'a-b', 'a - b' and 'a- b' are subtractions, but 'a -b' is an application on a negation
+                if c == " " || c == "\n" || c == "\u{000D}" then
+                    Tokens.minusSymbols
 
-                    else
-                        Tokens.minus
-                )
+                else
+                    Tokens.minus
+            )
         )
         (\right ->
             ExtendRightByOperation { symbol = "-", direction = Infix.Left, expression = right }

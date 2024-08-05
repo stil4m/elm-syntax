@@ -7,7 +7,7 @@ module CustomParser exposing
     , getChompedString, chompIf, chompWhile, mapChompedString
     , withIndent, getIndent
     , getPosition, getRow, getCol, getOffset, getSource
-    , columnIndentAndThen
+    , columnIndentAndThen, offsetSourceAndThen
     )
 
 {-|
@@ -42,7 +42,7 @@ module CustomParser exposing
 # Positions
 
 @docs getPosition, getRow, getCol, getOffset, getSource
-@docs columnIndentAndThen
+@docs columnIndentAndThen, offsetSourceAndThen
 
 -}
 
@@ -277,6 +277,11 @@ andThen =
 columnIndentAndThen : (Int -> Int -> Parser b) -> Parser b
 columnIndentAndThen =
     A.columnIndentAndThen
+
+
+offsetSourceAndThen : (Int -> String -> Parser a) -> Parser a
+offsetSourceAndThen =
+    A.offsetSourceAndThen
 
 
 {-| Parse 2 parser in sequence and combine their results
@@ -560,10 +565,6 @@ int =
         , invalid = ExpectingInt
         , octal = Err ExpectingInt
         }
-
-
-
--- SYMBOL
 
 
 {-| Parse symbols like `(` and `,`.

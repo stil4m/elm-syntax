@@ -7,7 +7,7 @@ module CustomParser.Advanced exposing
     , nestableMultiComment
     , getChompedString, chompIf, chompWhile, mapChompedString
     , withIndent, getIndent
-    , getPosition, getRow, getCol, getOffset, getSource, columnIndentAndThen
+    , getPosition, getRow, getCol, getOffset, getSource, columnIndentAndThen, offsetSourceAndThen
     )
 
 {-|
@@ -43,7 +43,7 @@ module CustomParser.Advanced exposing
 
 # Positions
 
-@docs getPosition, getRow, getCol, getOffset, getSource, columnIndentAndThen
+@docs getPosition, getRow, getCol, getOffset, getSource, columnIndentAndThen, offsetSourceAndThen
 
 -}
 
@@ -648,15 +648,27 @@ andThen callback (Parser parseA) =
         )
 
 
-columnIndentAndThen : (Int -> Int -> Parser x b) -> Parser x b
+columnIndentAndThen : (Int -> Int -> Parser x a) -> Parser x a
 columnIndentAndThen callback =
     Parser
-        (\s0 ->
+        (\s ->
             let
                 (Parser parse) =
-                    callback s0.col s0.indent
+                    callback s.col s.indent
             in
-            parse s0
+            parse s
+        )
+
+
+offsetSourceAndThen : (Int -> String -> Parser x a) -> Parser x a
+offsetSourceAndThen callback =
+    Parser
+        (\s ->
+            let
+                (Parser parse) =
+                    callback s.offset s.src
+            in
+            parse s
         )
 
 
