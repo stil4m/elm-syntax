@@ -10,11 +10,12 @@ module Elm.Parser exposing
 
 -}
 
-import CustomParser exposing (DeadEnd)
+import CustomParser
 import Elm.Internal.RawFile as InternalRawFile
 import Elm.Parser.File exposing (file)
 import Elm.RawFile exposing (RawFile)
 import Elm.Syntax.File exposing (File)
+import Parser
 
 
 {-| **@deprecated** Use [`parseToFile`](#parseToFile) instead, which is simpler and doesn't require post-processing.
@@ -27,7 +28,7 @@ This `RawFile` will require some post-processing to properly setup documentation
 To process a `RawFile`, check out the `Processing` module.
 
 -}
-parse : String -> Result (List DeadEnd) RawFile
+parse : String -> Result (List Parser.DeadEnd) RawFile
 parse input =
     parseToFile input
         |> Result.map InternalRawFile.fromFile
@@ -36,6 +37,6 @@ parse input =
 {-| Parse some text as if it is an Elm source file.
 When parsing fails, the result will contain a list of errors indicating what went wrong (and/or where).
 -}
-parseToFile : String -> Result (List DeadEnd) File
+parseToFile : String -> Result (List Parser.DeadEnd) File
 parseToFile input =
     CustomParser.run file input
