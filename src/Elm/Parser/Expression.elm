@@ -21,34 +21,22 @@ import Rope
 
 subExpression : Parser (WithComments (Node Expression))
 subExpression =
-    CustomParser.mapWithStartPosition
-        (\start expressionAndEnd ->
-            { comments = expressionAndEnd.comments
-            , syntax =
-                Node
-                    { start = start
-                    , end = expressionAndEnd.end
-                    }
-                    expressionAndEnd.expression
-            }
-        )
-        (CustomParser.oneOf
-            [ qualifiedOrVariantOrRecordConstructorReferenceExpression
-            , unqualifiedFunctionReferenceExpression
-            , literalExpression
-            , numberExpression
-            , tupledExpression
-            , CustomParser.symbolFollowedBy "[" expressionAfterOpeningSquareBracket
-            , recordExpression
-            , caseExpression
-            , lambdaExpression
-            , letExpression
-            , ifBlockExpression
-            , recordAccessFunctionExpression
-            , negationOperation
-            , charLiteralExpression
-            ]
-        )
+    CustomParser.oneOf
+        [ qualifiedOrVariantOrRecordConstructorReferenceExpression
+        , unqualifiedFunctionReferenceExpression
+        , literalExpression
+        , numberExpression
+        , tupledExpression
+        , listOrGlslExpression
+        , recordExpression
+        , caseExpression
+        , lambdaExpression
+        , letExpression
+        , ifBlockExpression
+        , recordAccessFunctionExpression
+        , negationOperation
+        , charLiteralExpression
+        ]
 
 
 andThenOneOf : List ( Int, Parser (WithComments ExtensionRight) )
@@ -138,35 +126,29 @@ functionCall =
         ExtendRightByApplication
 
 
-glslExpressionAfterOpeningSquareBracket : Parser { comments : Comments, end : Location, expression : Expression }
+glslExpressionAfterOpeningSquareBracket : Parser (WithComments (Node Expression))
 glslExpressionAfterOpeningSquareBracket =
-    CustomParser.mapWithEndPosition
-        (\s end ->
-            { comments = Rope.empty
-            , -- TODO for v8: don't include glslEnd in range
-              end = { row = end.row, column = end.column + glslEndSymbolLength }
-            , expression = GLSLExpression s
-            }
-        )
-        (CustomParser.symbolFollowedBy "glsl|"
+    CustomParser.symbolFollowedBy "glsl|"
+        (CustomParser.mapWithStartAndEndPosition
+            (\start s end ->
+                { comments = Rope.empty
+                , syntax =
+                    Node
+                        -- TODO for v8: don't include extra end width (from bug in elm/parser) in range
+                        { start = { row = start.row, column = start.column - 6 }
+                        , end = { row = end.row, column = end.column + 2 }
+                        }
+                        (GLSLExpression s)
+                }
+            )
             (CustomParser.Advanced.loop "" untilGlslEnd)
         )
-
-
-glslEndSymbolLength : Int
-glslEndSymbolLength =
-    String.length glslEndSymbol
-
-
-glslEndSymbol : String
-glslEndSymbol =
-    "|]"
 
 
 untilGlslEnd : String -> Parser (CustomParser.Advanced.Step String String)
 untilGlslEnd soFar =
     CustomParser.oneOf
-        [ CustomParser.symbol glslEndSymbol (CustomParser.Advanced.Done soFar)
+        [ CustomParser.symbol "|]" (CustomParser.Advanced.Done soFar)
         , CustomParser.mapChompedString
             (\beforeVerticalBar () ->
                 CustomParser.Advanced.Loop (soFar ++ beforeVerticalBar)
@@ -179,75 +161,75 @@ untilGlslEnd soFar =
         ]
 
 
-expressionAfterOpeningSquareBracket : Parser { comments : Comments, end : Location, expression : Expression }
+listOrGlslExpression : Parser (WithComments (Node Expression))
+listOrGlslExpression =
+    CustomParser.symbolFollowedBy "[" expressionAfterOpeningSquareBracket
+
+
+expressionAfterOpeningSquareBracket : Parser (WithComments (Node Expression))
 expressionAfterOpeningSquareBracket =
     CustomParser.oneOf
         [ glslExpressionAfterOpeningSquareBracket
-        , CustomParser.map3
-            (\commentsBefore maybeElements end ->
-                case maybeElements of
-                    Nothing ->
-                        { comments = commentsBefore
+        , CustomParser.mapWithStartAndEndPosition
+            (\start elements end ->
+                { comments = elements.comments
+                , syntax =
+                    Node
+                        { start = { row = start.row, column = start.column - 1 }
                         , end = end
-                        , expression = expressionListEmpty
                         }
-
-                    Just elements ->
-                        { comments = commentsBefore |> Rope.prependTo elements.comments
-                        , end = end
-                        , expression = ListExpr elements.syntax
-                        }
+                        elements.syntax
+                }
             )
-            Layout.maybeLayout
-            (CustomParser.oneOf
-                [ CustomParser.symbol "]" Nothing
-                , CustomParser.map4
-                    (\head commentsAfterHead tail () ->
-                        Just
+            (CustomParser.map2
+                (\commentsBefore elements ->
+                    { comments = commentsBefore |> Rope.prependTo elements.comments
+                    , syntax = elements.syntax
+                    }
+                )
+                Layout.maybeLayout
+                (CustomParser.oneOf
+                    [ CustomParser.symbol "]" { comments = Rope.empty, syntax = ListExpr [] }
+                    , CustomParser.map4
+                        (\head commentsAfterHead tail () ->
                             { comments =
                                 head.comments
                                     |> Rope.prependTo commentsAfterHead
                                     |> Rope.prependTo tail.comments
-                            , syntax = head.syntax :: tail.syntax
+                            , syntax = ListExpr (head.syntax :: tail.syntax)
                             }
-                    )
-                    expression
-                    Layout.maybeLayout
-                    (ParserWithComments.many
-                        (CustomParser.symbolFollowedBy ","
-                            (Layout.maybeAroundBothSides expression)
                         )
-                    )
-                    Tokens.squareEnd
-                ]
+                        expression
+                        Layout.maybeLayout
+                        (ParserWithComments.many
+                            (CustomParser.symbolFollowedBy ","
+                                (Layout.maybeAroundBothSides expression)
+                            )
+                        )
+                        Tokens.squareEnd
+                    ]
+                )
             )
-            CustomParser.getPosition
         ]
-
-
-expressionListEmpty : Expression
-expressionListEmpty =
-    ListExpr []
 
 
 
 -- recordExpression
 
 
-recordExpression : Parser { comments : Comments, end : Location, expression : Expression }
+recordExpression : Parser (WithComments (Node Expression))
 recordExpression =
-    CustomParser.map3
-        (\commentsBefore afterCurly end ->
+    CustomParser.map2
+        (\commentsBefore afterCurly ->
             { comments =
                 commentsBefore
                     |> Rope.prependTo afterCurly.comments
-            , end = end
-            , expression = afterCurly.syntax
+            , syntax = afterCurly.syntax
             }
         )
         (CustomParser.symbolFollowedBy "{" Layout.maybeLayout)
         recordContentsCurlyEnd
-        CustomParser.getPosition
+        |> Node.parser
 
 
 recordContentsCurlyEnd : Parser (WithComments Expression)
@@ -343,25 +325,23 @@ recordSetterNodeWithLayout =
         )
 
 
-literalExpression : Parser { comments : Comments, end : Location, expression : Expression }
+literalExpression : Parser (WithComments (Node Expression))
 literalExpression =
-    CustomParser.mapWithEndPosition
-        (\string end ->
+    CustomParser.mapWithStartAndEndPosition
+        (\start string end ->
             { comments = Rope.empty
-            , end = end
-            , expression = Literal string
+            , syntax = Node { start = start, end = end } (Literal string)
             }
         )
         Tokens.singleOrTripleQuotedStringLiteral
 
 
-charLiteralExpression : Parser { comments : Comments, end : Location, expression : Expression }
+charLiteralExpression : Parser (WithComments (Node Expression))
 charLiteralExpression =
-    CustomParser.mapWithEndPosition
-        (\char end ->
+    CustomParser.mapWithStartAndEndPosition
+        (\start char end ->
             { comments = Rope.empty
-            , end = end
-            , expression = CharLiteral char
+            , syntax = Node { start = start, end = end } (CharLiteral char)
             }
         )
         Tokens.characterLiteral
@@ -371,85 +351,111 @@ charLiteralExpression =
 -- lambda
 
 
-lambdaExpression : Parser { comments : Comments, end : Location, expression : Expression }
+lambdaExpression : Parser (WithComments (Node Expression))
 lambdaExpression =
-    CustomParser.map5
-        (\commentsAfterBackslash firstArg commentsAfterFirstArg secondUpArgs expressionResult ->
+    CustomParser.mapWithStartPosition
+        (\start lambda ->
             let
-                (Node { end } _) =
-                    expressionResult.syntax
+                (Node expressionRange _) =
+                    lambda.expression
             in
-            { comments =
-                commentsAfterBackslash
-                    |> Rope.prependTo firstArg.comments
-                    |> Rope.prependTo commentsAfterFirstArg
-                    |> Rope.prependTo secondUpArgs.comments
-                    |> Rope.prependTo expressionResult.comments
-            , end = end
-            , expression =
-                { args = firstArg.syntax :: secondUpArgs.syntax
-                , expression = expressionResult.syntax
-                }
-                    |> LambdaExpression
+            { comments = lambda.comments
+            , syntax =
+                Node { start = start, end = expressionRange.end }
+                    (LambdaExpression
+                        { args = lambda.args
+                        , expression = lambda.expression
+                        }
+                    )
             }
         )
-        (CustomParser.symbolFollowedBy "\\" Layout.maybeLayout)
-        Patterns.pattern
-        Layout.maybeLayout
-        (ParserWithComments.until
-            Tokens.arrowRight
-            (CustomParser.map2
-                (\patternResult commentsAfter ->
-                    { comments =
-                        patternResult.comments
-                            |> Rope.prependTo commentsAfter
-                    , syntax = patternResult.syntax
-                    }
-                )
-                Patterns.pattern
-                Layout.maybeLayout
+        (CustomParser.map5
+            (\commentsAfterBackslash firstArg commentsAfterFirstArg secondUpArgs expressionResult ->
+                { args = firstArg.syntax :: secondUpArgs.syntax
+                , comments =
+                    commentsAfterBackslash
+                        |> Rope.prependTo firstArg.comments
+                        |> Rope.prependTo commentsAfterFirstArg
+                        |> Rope.prependTo secondUpArgs.comments
+                        |> Rope.prependTo expressionResult.comments
+                , expression = expressionResult.syntax
+                }
             )
+            (CustomParser.symbolFollowedBy "\\" Layout.maybeLayout)
+            Patterns.pattern
+            Layout.maybeLayout
+            (ParserWithComments.until
+                Tokens.arrowRight
+                (CustomParser.map2
+                    (\patternResult commentsAfter ->
+                        { comments =
+                            patternResult.comments
+                                |> Rope.prependTo commentsAfter
+                        , syntax = patternResult.syntax
+                        }
+                    )
+                    Patterns.pattern
+                    Layout.maybeLayout
+                )
+            )
+            expression
         )
-        expression
 
 
 
 -- Case Expression
 
 
-caseExpression : Parser { comments : Comments, end : Location, expression : Expression }
+caseExpression : Parser (WithComments (Node Expression))
 caseExpression =
-    CustomParser.map5
-        (\commentsAfterCase casedExpressionResult commentsBeforeOf commentsAfterOf casesResult ->
-            let
-                ( ( _, Node firstCaseExpressionRange _ ) as firstCase, lastToSecondCase ) =
-                    casesResult.syntax
-            in
-            { comments =
-                commentsAfterCase
-                    |> Rope.prependTo casedExpressionResult.comments
-                    |> Rope.prependTo commentsBeforeOf
-                    |> Rope.prependTo commentsAfterOf
-                    |> Rope.prependTo casesResult.comments
-            , end =
-                case lastToSecondCase of
-                    [] ->
-                        firstCaseExpressionRange.end
+    CustomParser.mapWithStartPosition
+        (\start caseBlock ->
+            { comments = caseBlock.comments
+            , syntax =
+                Node
+                    { start = start
+                    , end =
+                        case caseBlock.lastToSecondCase of
+                            ( _, Node lastCaseExpressionRange _ ) :: _ ->
+                                lastCaseExpressionRange.end
 
-                    ( _, Node lastCaseExpressionRange _ ) :: _ ->
-                        lastCaseExpressionRange.end
-            , expression =
-                CaseExpression
-                    { expression = casedExpressionResult.syntax
-                    , cases = firstCase :: List.reverse lastToSecondCase
+                            [] ->
+                                let
+                                    ( _, Node firstCaseExpressionRange _ ) =
+                                        caseBlock.firstCase
+                                in
+                                firstCaseExpressionRange.end
                     }
+                    (CaseExpression
+                        { expression = caseBlock.casedExpression
+                        , cases = caseBlock.firstCase :: List.reverse caseBlock.lastToSecondCase
+                        }
+                    )
             }
         )
-        (CustomParser.keywordFollowedBy "case" Layout.maybeLayout)
-        expression
-        (Layout.maybeLayoutUntilIgnored CustomParser.keywordFollowedBy "of")
-        Layout.maybeLayout
-        (CustomParser.Extra.withIndent caseStatements)
+        (CustomParser.map5
+            (\commentsAfterCase casedExpressionResult commentsBeforeOf commentsAfterOf casesResult ->
+                let
+                    ( firstCase, lastToSecondCase ) =
+                        casesResult.syntax
+                in
+                { casedExpression = casedExpressionResult.syntax
+                , comments =
+                    commentsAfterCase
+                        |> Rope.prependTo casedExpressionResult.comments
+                        |> Rope.prependTo commentsBeforeOf
+                        |> Rope.prependTo commentsAfterOf
+                        |> Rope.prependTo casesResult.comments
+                , firstCase = firstCase
+                , lastToSecondCase = lastToSecondCase
+                }
+            )
+            (CustomParser.keywordFollowedBy "case" Layout.maybeLayout)
+            expression
+            (Layout.maybeLayoutUntilIgnored CustomParser.keywordFollowedBy "of")
+            Layout.maybeLayout
+            (CustomParser.Extra.withIndent caseStatements)
+        )
 
 
 caseStatements : Parser (WithComments ( Case, List Case ))
@@ -500,39 +506,52 @@ caseStatement =
 -- Let Expression
 
 
-letExpression : Parser { comments : Comments, end : Location, expression : Expression }
+letExpression : Parser (WithComments (Node Expression))
 letExpression =
-    CustomParser.map4
-        (\declarations () commentsAfterIn expressionResult ->
+    CustomParser.mapWithStartPosition
+        (\start letBlock ->
             let
-                ((Node { end } _) as expr) =
-                    expressionResult.syntax
+                (Node expressionRange _) =
+                    letBlock.expression
             in
-            { comments =
-                declarations.comments
-                    |> Rope.prependTo commentsAfterIn
-                    |> Rope.prependTo expressionResult.comments
-            , end = end
-            , expression = LetExpression { declarations = declarations.syntax, expression = expr }
+            { comments = letBlock.comments
+            , syntax =
+                Node { start = start, end = expressionRange.end }
+                    (LetExpression
+                        { declarations = letBlock.declarations
+                        , expression = letBlock.expression
+                        }
+                    )
             }
         )
-        (CustomParser.Extra.withIndent
-            (CustomParser.map2
-                (\commentsAfterLet declarations ->
-                    { comments =
-                        commentsAfterLet
-                            |> Rope.prependTo declarations.comments
-                    , syntax = declarations.syntax
-                    }
-                )
-                (CustomParser.keywordFollowedBy "let" Layout.maybeLayout)
-                (CustomParser.Extra.withIndent letDeclarationsIn)
+        (CustomParser.map4
+            (\declarations () commentsAfterIn expressionResult ->
+                { comments =
+                    declarations.comments
+                        |> Rope.prependTo commentsAfterIn
+                        |> Rope.prependTo expressionResult.comments
+                , declarations = declarations.syntax
+                , expression = expressionResult.syntax
+                }
             )
+            (CustomParser.Extra.withIndent
+                (CustomParser.map2
+                    (\commentsAfterLet declarations ->
+                        { comments =
+                            commentsAfterLet
+                                |> Rope.prependTo declarations.comments
+                        , syntax = declarations.syntax
+                        }
+                    )
+                    (CustomParser.keywordFollowedBy "let" Layout.maybeLayout)
+                    (CustomParser.Extra.withIndent letDeclarationsIn)
+                )
+            )
+            -- check that the `in` token used as the end parser in letDeclarationsIn is indented correctly
+            (Layout.positivelyIndentedPlus 2)
+            Layout.maybeLayout
+            expression
         )
-        -- check that the `in` token used as the end parser in letDeclarationsIn is indented correctly
-        (Layout.positivelyIndentedPlus 2)
-        Layout.maybeLayout
-        expression
 
 
 letDeclarationsIn : Parser (WithComments (List (Node LetDeclaration)))
@@ -715,13 +734,12 @@ parameterPatternsEqual =
         )
 
 
-numberExpression : Parser { comments : Comments, end : Location, expression : Expression }
+numberExpression : Parser (WithComments (Node Expression))
 numberExpression =
-    CustomParser.mapWithEndPosition
-        (\n end ->
+    CustomParser.mapWithStartAndEndPosition
+        (\start n end ->
             { comments = Rope.empty
-            , end = end
-            , expression = n
+            , syntax = Node { start = start, end = end } n
             }
         )
         (Elm.Parser.Numbers.floatOrIntOrHex
@@ -731,81 +749,102 @@ numberExpression =
         )
 
 
-ifBlockExpression : Parser { comments : Comments, end : Location, expression : Expression }
+ifBlockExpression : Parser (WithComments (Node Expression))
 ifBlockExpression =
-    CustomParser.map8
-        (\commentsAfterIf condition commentsBeforeThen commentsAfterThen ifTrue commentsBeforeElse commentsAfterElse ifFalse ->
+    CustomParser.mapWithStartPosition
+        (\start ifBlock ->
             let
-                (Node { end } _) =
-                    ifFalse.syntax
+                (Node ifFalseRange _) =
+                    ifBlock.ifFalse
             in
-            { comments =
-                commentsAfterIf
-                    |> Rope.prependTo condition.comments
-                    |> Rope.prependTo commentsBeforeThen
-                    |> Rope.prependTo commentsAfterThen
-                    |> Rope.prependTo ifTrue.comments
-                    |> Rope.prependTo commentsBeforeElse
-                    |> Rope.prependTo commentsAfterElse
-                    |> Rope.prependTo ifFalse.comments
-            , end = end
-            , expression = IfBlock condition.syntax ifTrue.syntax ifFalse.syntax
+            { comments = ifBlock.comments
+            , syntax =
+                Node { start = start, end = ifFalseRange.end }
+                    (IfBlock
+                        ifBlock.condition
+                        ifBlock.ifTrue
+                        ifBlock.ifFalse
+                    )
             }
         )
-        (CustomParser.keywordFollowedBy "if" Layout.maybeLayout)
-        expression
-        (Layout.maybeLayoutUntilIgnored CustomParser.keywordFollowedBy "then")
-        Layout.maybeLayout
-        expression
-        (Layout.maybeLayoutUntilIgnored CustomParser.keywordFollowedBy "else")
-        Layout.maybeLayout
-        expression
+        (CustomParser.map8
+            (\commentsAfterIf condition commentsBeforeThen commentsAfterThen ifTrue commentsBeforeElse commentsAfterElse ifFalse ->
+                { comments =
+                    commentsAfterIf
+                        |> Rope.prependTo condition.comments
+                        |> Rope.prependTo commentsBeforeThen
+                        |> Rope.prependTo commentsAfterThen
+                        |> Rope.prependTo ifTrue.comments
+                        |> Rope.prependTo commentsBeforeElse
+                        |> Rope.prependTo commentsAfterElse
+                        |> Rope.prependTo ifFalse.comments
+                , condition = condition.syntax
+                , ifFalse = ifFalse.syntax
+                , ifTrue = ifTrue.syntax
+                }
+            )
+            (CustomParser.keywordFollowedBy "if" Layout.maybeLayout)
+            expression
+            (Layout.maybeLayoutUntilIgnored CustomParser.keywordFollowedBy "then")
+            Layout.maybeLayout
+            expression
+            (Layout.maybeLayoutUntilIgnored CustomParser.keywordFollowedBy "else")
+            Layout.maybeLayout
+            expression
+        )
 
 
-negationOperation : Parser { comments : Comments, end : Location, expression : Expression }
+negationOperation : Parser (WithComments (Node Expression))
 negationOperation =
-    CustomParser.map2
-        (\() subExpressionResult ->
+    CustomParser.mapWithStartPosition
+        (\start subExpressionResult ->
             let
-                (Node { end } _) =
+                (Node subExpressionRange _) =
                     subExpressionResult.syntax
             in
             { comments = subExpressionResult.comments
-            , end = end
-            , expression = Negation subExpressionResult.syntax
+            , syntax =
+                Node { start = start, end = subExpressionRange.end }
+                    (Negation subExpressionResult.syntax)
             }
         )
-        (CustomParser.symbol "-" () |> CustomParser.backtrackable)
-        (extendedSubExpressionWithoutInitialLayout abovePrecedence95)
+        (CustomParser.map2
+            (\() subExpressionResult -> subExpressionResult)
+            (CustomParser.symbol "-" () |> CustomParser.backtrackable)
+            (extendedSubExpressionWithoutInitialLayout abovePrecedence95)
+        )
 
 
-qualifiedOrVariantOrRecordConstructorReferenceExpression : Parser { comments : Comments, end : Location, expression : Expression }
+qualifiedOrVariantOrRecordConstructorReferenceExpression : Parser (WithComments (Node Expression))
 qualifiedOrVariantOrRecordConstructorReferenceExpression =
-    CustomParser.map3
-        (\firstName after end ->
+    CustomParser.mapWithStartAndEndPosition
+        (\start reference end ->
             { comments = Rope.empty
-            , end = end
-            , expression =
+            , syntax = Node { start = start, end = end } reference
+            }
+        )
+        (CustomParser.map2
+            (\firstName after ->
                 case after of
                     Nothing ->
                         FunctionOrValue [] firstName
 
                     Just ( qualificationAfter, unqualified ) ->
                         FunctionOrValue (firstName :: qualificationAfter) unqualified
-            }
+            )
+            Tokens.typeName
+            maybeDotReferenceExpressionTuple
         )
-        Tokens.typeName
-        maybeDotReferenceExpressionTuple
-        CustomParser.getPosition
 
 
-unqualifiedFunctionReferenceExpression : Parser { comments : Comments, end : Location, expression : Expression }
+unqualifiedFunctionReferenceExpression : Parser (WithComments (Node Expression))
 unqualifiedFunctionReferenceExpression =
-    CustomParser.mapWithEndPosition
-        (\unqualified end ->
+    CustomParser.mapWithStartAndEndPosition
+        (\start unqualified end ->
             { comments = Rope.empty
-            , end = end
-            , expression = FunctionOrValue [] unqualified
+            , syntax =
+                Node { start = start, end = end }
+                    (FunctionOrValue [] unqualified)
             }
         )
         Tokens.functionName
@@ -836,27 +875,29 @@ maybeDotReferenceExpressionTuple =
         ]
 
 
-recordAccessFunctionExpression : Parser { comments : Comments, end : Location, expression : Expression }
+recordAccessFunctionExpression : Parser (WithComments (Node Expression))
 recordAccessFunctionExpression =
-    CustomParser.mapWithEndPosition
-        (\field end ->
+    CustomParser.mapWithStartAndEndPosition
+        (\start field end ->
             { comments = Rope.empty
-            , end = end
-            , expression = RecordAccessFunction ("." ++ field)
+            , syntax =
+                Node { start = start, end = end }
+                    (RecordAccessFunction ("." ++ field))
             }
         )
         (CustomParser.symbolFollowedBy "." Tokens.functionName)
 
 
-tupledExpression : Parser { comments : Comments, end : Location, expression : Expression }
+tupledExpression : Parser (WithComments (Node Expression))
 tupledExpression =
     CustomParser.symbolFollowedBy "("
         (CustomParser.oneOf
             (CustomParser.mapWithEndPosition
                 (\() end ->
                     { comments = Rope.empty
-                    , end = end
-                    , expression = UnitExpr
+                    , syntax =
+                        Node { start = { row = end.row, column = end.column - 2 }, end = end }
+                            UnitExpr
                     }
                 )
                 (CustomParser.symbol ")" ())
@@ -865,8 +906,9 @@ tupledExpression =
                    CustomParser.mapWithEndPosition
                     (\() end ->
                         { comments = Rope.empty
-                        , end = end
-                        , expression = expressionPrefixOperatorMinus
+                        , syntax =
+                            Node { start = { row = end.row, column = end.column - 3 }, end = end }
+                                expressionPrefixOperatorMinus
                         }
                     )
                     (CustomParser.symbol "-)" ())
@@ -883,59 +925,71 @@ expressionPrefixOperatorMinus =
     PrefixOperator "-"
 
 
-allowedPrefixOperatorExceptMinusThenClosingParensOneOf : List (Parser { comments : Comments, end : Location, expression : Expression })
+allowedPrefixOperatorExceptMinusThenClosingParensOneOf : List (Parser (WithComments (Node Expression)))
 allowedPrefixOperatorExceptMinusThenClosingParensOneOf =
     Tokens.allowedOperatorTokens
         |> List.filter (\token -> token /= "-")
         |> List.map
             (\allowedOperatorToken ->
+                let
+                    prefixOperatorLength : Int
+                    prefixOperatorLength =
+                        2 + String.length allowedOperatorToken
+                in
                 CustomParser.mapWithEndPosition
                     (\() end ->
                         { comments = Rope.empty
-                        , end = end
-                        , expression = PrefixOperator allowedOperatorToken
+                        , syntax =
+                            Node { start = { row = end.row, column = end.column - prefixOperatorLength }, end = end }
+                                (PrefixOperator allowedOperatorToken)
                         }
                     )
                     (CustomParser.symbol (allowedOperatorToken ++ ")") ())
             )
 
 
-tupledExpressionInnerAfterOpeningParens : Parser { comments : Comments, end : Location, expression : Expression }
+tupledExpressionInnerAfterOpeningParens : Parser (WithComments (Node Expression))
 tupledExpressionInnerAfterOpeningParens =
-    CustomParser.map4
-        (\firstPart commentsAfterFirstPart tailPartsReverse end ->
-            case tailPartsReverse.syntax of
-                [] ->
-                    { comments = firstPart.comments |> Rope.prependTo commentsAfterFirstPart
-                    , end = end
-                    , expression = ParenthesizedExpression firstPart.syntax
-                    }
-
-                _ ->
-                    { comments = firstPart.comments |> Rope.prependTo tailPartsReverse.comments
-                    , end = end
-                    , expression = TupledExpression (firstPart.syntax :: List.reverse tailPartsReverse.syntax)
-                    }
+    CustomParser.mapWithStartAndEndPosition
+        (\start tupled end ->
+            { comments = tupled.comments
+            , syntax =
+                Node { start = { row = start.row, column = start.column - 1 }, end = end }
+                    tupled.syntax
+            }
         )
-        expression
-        Layout.maybeLayout
-        (ParserWithComments.untilWithoutReverse
-            Tokens.parensEnd
-            (CustomParser.map3
-                (\commentsBefore partResult commentsAfter ->
-                    { comments =
-                        commentsBefore
-                            |> Rope.prependTo partResult.comments
-                            |> Rope.prependTo commentsAfter
-                    , syntax = partResult.syntax
-                    }
+        (CustomParser.map3
+            (\firstPart commentsAfterFirstPart tailPartsReverse ->
+                case tailPartsReverse.syntax of
+                    [] ->
+                        { comments = firstPart.comments |> Rope.prependTo commentsAfterFirstPart
+                        , syntax = ParenthesizedExpression firstPart.syntax
+                        }
+
+                    _ ->
+                        { comments = firstPart.comments |> Rope.prependTo tailPartsReverse.comments
+                        , syntax = TupledExpression (firstPart.syntax :: List.reverse tailPartsReverse.syntax)
+                        }
+            )
+            expression
+            Layout.maybeLayout
+            (ParserWithComments.untilWithoutReverse
+                Tokens.parensEnd
+                (CustomParser.map3
+                    (\commentsBefore partResult commentsAfter ->
+                        { comments =
+                            commentsBefore
+                                |> Rope.prependTo partResult.comments
+                                |> Rope.prependTo commentsAfter
+                        , syntax = partResult.syntax
+                        }
+                    )
+                    (CustomParser.symbolFollowedBy "," Layout.maybeLayout)
+                    expression
+                    Layout.maybeLayout
                 )
-                (CustomParser.symbolFollowedBy "," Layout.maybeLayout)
-                expression
-                Layout.maybeLayout
             )
         )
-        CustomParser.getPosition
 
 
 
