@@ -6,6 +6,7 @@ import Elm.Parser.Node as Node
 import Elm.Parser.ParserWithCommentsTestUtil exposing (..)
 import Elm.Syntax.Node exposing (Node(..))
 import Expect
+import Parser
 import Rope
 import Test exposing (..)
 
@@ -65,7 +66,7 @@ all =
         ]
 
 
-parseSingleLineComment : String -> Result (List CustomParser.DeadEnd) (Node String)
+parseSingleLineComment : String -> Result (List Parser.DeadEnd) (Node String)
 parseSingleLineComment source =
     CustomParser.run
         ((Parser.singleLineCommentCore |> CustomParser.getChompedString |> Node.parserCore)
@@ -74,7 +75,7 @@ parseSingleLineComment source =
         source
 
 
-parseMultiLineComment : String -> Result (List CustomParser.DeadEnd) (Node String)
+parseMultiLineComment : String -> Result (List Parser.DeadEnd) (Node String)
 parseMultiLineComment source =
     CustomParser.run
         ((Parser.multilineCommentString |> Node.parserCore)
