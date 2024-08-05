@@ -17,7 +17,6 @@ import Elm.Syntax.TypeAnnotation exposing (TypeAnnotation(..))
 import Expect
 import Json.Decode
 import Json.Encode
-import Parser
 import Test exposing (..)
 
 
