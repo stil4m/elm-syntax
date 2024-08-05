@@ -410,11 +410,6 @@ backtrackable =
 -- TOKEN
 
 
-toToken : String -> A.Token Problem
-toToken str =
-    A.Token str (Parser.Expecting str)
-
-
 {-| Parse a bunch of different kinds of numbers without backtracking. A parser
 for Elm would need to handle integers, floats, and hexadecimal like this:
 
@@ -534,7 +529,7 @@ operator it is afterwards.
 -}
 symbol : String -> res -> Parser res
 symbol str res =
-    A.symbol (A.Token str (Parser.ExpectingSymbol str)) res
+    A.symbol str (Parser.ExpectingSymbol str) res
 
 
 {-| Parse keywords like `let`, `case`, and `type`.
@@ -557,12 +552,12 @@ to help with parsers like this:
 The trouble is that `spaces` may chomp zero characters (to handle expressions
 like `[1,2]` and `[ 1 , 2 ]`) and in this case, it would mean `letters` could
 be parsed as `let ters` and then wonder where the equals sign is! Check out the
-[`token`](#token) docs if you need to customize this!
+[`symbol`](#symbol) docs if you need to customize this!
 
 -}
 keyword : String -> res -> Parser res
 keyword kwd res =
-    A.keyword (A.Token kwd (Parser.ExpectingKeyword kwd)) res
+    A.keyword kwd (Parser.ExpectingKeyword kwd) res
 
 
 
@@ -931,4 +926,4 @@ to consume.
 -}
 nestableMultiComment : String -> String -> Parser ()
 nestableMultiComment open close =
-    A.nestableMultiComment (toToken open) (toToken close)
+    A.nestableMultiComment open (Parser.Expecting open) close (Parser.Expecting close)
