@@ -455,7 +455,7 @@ caseExpression =
             expression
             (Layout.maybeLayoutUntilIgnored CustomParser.keywordFollowedBy "of")
             Layout.maybeLayout
-            (CustomParser.Extra.withIndent caseStatements)
+            (CustomParser.withIndentSetToColumn caseStatements)
         )
 
 
@@ -535,7 +535,7 @@ letExpression =
                 , expression = expressionResult.syntax
                 }
             )
-            (CustomParser.Extra.withIndent
+            (CustomParser.withIndentSetToColumn
                 (CustomParser.map2
                     (\commentsAfterLet declarations ->
                         { comments =
@@ -545,7 +545,7 @@ letExpression =
                         }
                     )
                     (CustomParser.keywordFollowedBy "let" Layout.maybeLayout)
-                    (CustomParser.Extra.withIndent letDeclarationsIn)
+                    (CustomParser.withIndentSetToColumn letDeclarationsIn)
                 )
             )
             -- check that the `in` token used as the end parser in letDeclarationsIn is indented correctly
