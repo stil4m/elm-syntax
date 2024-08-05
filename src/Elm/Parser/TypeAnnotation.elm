@@ -68,55 +68,6 @@ typeAnnotationNoFnIncludingTypedWithArguments =
 
 parensTypeAnnotation : Parser (WithComments (Node TypeAnnotation))
 parensTypeAnnotation =
-    ParserFast.symbolFollowedBy "("
-        (ParserFast.oneOf2
-            (ParserFast.symbol ")" { comments = Rope.empty, syntax = TypeAnnotation.Unit })
-            (ParserFast.map4
-                (\commentsBeforeFirstPart firstPart commentsAfterFirstPart lastToSecondPart ->
-                    { comments =
-                        commentsBeforeFirstPart
-                            |> Rope.prependTo firstPart.comments
-                            |> Rope.prependTo commentsAfterFirstPart
-                            |> Rope.prependTo lastToSecondPart.comments
-                    , syntax =
-                        case lastToSecondPart.syntax of
-                            [] ->
-                                let
-                                    (Node _ firstPartValue) =
-                                        firstPart.syntax
-                                in
-                                firstPartValue
-
-                            _ ->
-                                TypeAnnotation.Tupled (firstPart.syntax :: List.reverse lastToSecondPart.syntax)
-                    }
-                )
-                Layout.maybeLayout
-                typeAnnotation
-                Layout.maybeLayout
-                (ParserWithComments.untilWithoutReverse
-                    Tokens.parensEnd
-                    (ParserFast.map3
-                        (\commentsBefore typeAnnotationResult commentsAfter ->
-                            { comments =
-                                commentsBefore
-                                    |> Rope.prependTo typeAnnotationResult.comments
-                                    |> Rope.prependTo commentsAfter
-                            , syntax = typeAnnotationResult.syntax
-                            }
-                        )
-                        (ParserFast.symbolFollowedBy "," Layout.maybeLayout)
-                        typeAnnotation
-                        Layout.maybeLayout
-                    )
-                )
-            )
-        )
-        |> Node.parser
-
-
-parensTypeAnnotation : Parser (WithComments TypeAnnotation)
-parensTypeAnnotation =
     CustomParser.symbolFollowedBy "("
         (CustomParser.oneOf
             [ CustomParser.symbol ")" { comments = Rope.empty, syntax = TypeAnnotation.Unit }
@@ -161,15 +112,23 @@ parensTypeAnnotation =
                 )
             ]
         )
+        |> Node.parser
 
 
-genericTypeAnnotation : Parser (WithComments TypeAnnotation)
+genericTypeAnnotation : Parser (WithComments (Node TypeAnnotation))
 genericTypeAnnotation =
     Tokens.functionName
-        |> CustomParser.map (\var -> { comments = Rope.empty, syntax = TypeAnnotation.GenericType var })
+        |> CustomParser.mapWithStartAndEndPosition
+            (\start var end ->
+                { comments = Rope.empty
+                , syntax =
+                    Node { start = start, end = end }
+                        (TypeAnnotation.GenericType var)
+                }
+            )
 
 
-recordTypeAnnotation : Parser (WithComments TypeAnnotation)
+recordTypeAnnotation : Parser (WithComments (Node TypeAnnotation))
 recordTypeAnnotation =
     CustomParser.map2
         (\commentsBefore afterCurly ->
@@ -243,6 +202,7 @@ recordTypeAnnotation =
             , CustomParser.symbol "}" Nothing
             ]
         )
+        |> Node.parser
 
 
 typeAnnotationRecordEmpty : TypeAnnotation
@@ -296,13 +256,15 @@ typedTypeAnnotationWithoutArguments : Parser (WithComments (Node TypeAnnotation)
 typedTypeAnnotationWithoutArguments =
     CustomParser.mapWithStartAndEndPosition
         (\nameStart name nameEnd ->
+            let
+                range : Range
+                range =
+                    { start = nameStart, end = nameEnd }
+            in
             { comments = Rope.empty
             , syntax =
-                TypeAnnotation.Typed
-                    (Node { start = nameStart, end = nameEnd }
-                        name
-                    )
-                    []
+                Node range
+                    (TypeAnnotation.Typed (Node range name) [])
             }
         )
         (CustomParser.map2
@@ -337,7 +299,7 @@ maybeDotTypeNamesTuple =
         ]
 
 
-typedTypeAnnotationWithArguments : Parser (WithComments TypeAnnotation)
+typedTypeAnnotationWithArguments : Parser (WithComments (Node TypeAnnotation))
 typedTypeAnnotationWithArguments =
     CustomParser.map2
         (\nameNode args ->
@@ -374,3 +336,4 @@ typedTypeAnnotationWithArguments =
                 typeAnnotationNoFnExcludingTypedWithArguments
             )
         )
+        |> Node.parser
