@@ -138,7 +138,7 @@ functionCall : ( Int, Parser (WithComments ExtensionRight) )
 functionCall =
     infixHelp 90
         (CustomParser.lazy (\() -> abovePrecedence90))
-        Layout.positivelyIndented
+        Layout.positivelyIndentedFollowedBy
         ExtendRightByApplication
 
 
@@ -1136,7 +1136,7 @@ infixLeft : Int -> Parser (WithComments ExtensionRight) -> String -> ( Int, Pars
 infixLeft precedence possibilitiesForPrecedence symbol =
     infixHelp precedence
         possibilitiesForPrecedence
-        (CustomParser.symbol symbol ())
+        (CustomParser.symbolFollowedBy symbol)
         (\right ->
             ExtendRightByOperation { symbol = symbol, direction = Infix.Left, expression = right }
         )
@@ -1146,7 +1146,7 @@ infixNonAssociative : Int -> Parser (WithComments ExtensionRight) -> String -> (
 infixNonAssociative precedence possibilitiesForPrecedence symbol =
     infixHelp precedence
         possibilitiesForPrecedence
-        (CustomParser.symbol symbol ())
+        (CustomParser.symbolFollowedBy symbol)
         (\right ->
             ExtendRightByOperation { symbol = symbol, direction = Infix.Non, expression = right }
         )
@@ -1159,7 +1159,7 @@ infixRight : Int -> Parser (WithComments ExtensionRight) -> String -> ( Int, Par
 infixRight precedence possibilitiesForPrecedenceMinus1 symbol =
     infixHelp precedence
         possibilitiesForPrecedenceMinus1
-        (CustomParser.symbol symbol ())
+        (CustomParser.symbolFollowedBy symbol)
         (\right ->
             ExtendRightByOperation { symbol = symbol, direction = Infix.Right, expression = right }
         )
@@ -1177,15 +1177,16 @@ infixLeftSubtraction : Int -> Parser (WithComments ExtensionRight) -> ( Int, Par
 infixLeftSubtraction precedence possibilitiesForPrecedence =
     infixHelp precedence
         possibilitiesForPrecedence
-        (lookBehindOneCharacterAndThen
-            (\c ->
-                -- 'a-b', 'a - b' and 'a- b' are subtractions, but 'a -b' is an application on a negation
-                if c == " " || c == "\n" || c == "\u{000D}" then
-                    Tokens.minusSymbols
+        (\next ->
+            lookBehindOneCharacterAndThen
+                (\c ->
+                    -- 'a-b', 'a - b' and 'a- b' are subtractions, but 'a -b' is an application on a negation
+                    if c == " " || c == "\n" || c == "\u{000D}" then
+                        Tokens.minusFollowedBySingleWhitespace next
 
-                else
-                    Tokens.minus
-            )
+                    else
+                        CustomParser.symbolFollowedBy "-" next
+                )
         )
         (\right ->
             ExtendRightByOperation { symbol = "-", direction = Infix.Left, expression = right }
@@ -1195,19 +1196,20 @@ infixLeftSubtraction precedence possibilitiesForPrecedence =
 infixHelp :
     Int
     -> Parser (WithComments ExtensionRight)
-    -> Parser ()
+    -> (Parser (WithComments (Node Expression)) -> Parser (WithComments (Node Expression)))
     -> (Node Expression -> ExtensionRight)
     -> ( Int, Parser (WithComments ExtensionRight) )
-infixHelp leftPrecedence rightPrecedence operator apply =
+infixHelp leftPrecedence rightPrecedence operatorFollowedBy apply =
     ( leftPrecedence
-    , CustomParser.map2
-        (\() e ->
+    , CustomParser.map
+        (\e ->
             { comments = e.comments
             , syntax = apply e.syntax
             }
         )
-        operator
-        (subExpressionMap rightPrecedence)
+        (operatorFollowedBy
+            (subExpressionMap rightPrecedence)
+        )
     )
 
 
