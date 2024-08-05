@@ -148,15 +148,15 @@ slashEscapedCharValue =
 
 characterLiteral : CustomParser.Parser Char
 characterLiteral =
-    (CustomParser.symbol "'"
-        |> CustomParser.Extra.continueWith
-            (CustomParser.oneOf
-                [ slashEscapedCharValue
-                , CustomParser.Extra.anyChar
-                ]
-            )
-    )
-        |> CustomParser.ignore (CustomParser.symbol "'")
+    CustomParser.map3
+        (\() res () -> res)
+        (CustomParser.symbol "'")
+        (CustomParser.oneOf
+            [ slashEscapedCharValue
+            , CustomParser.Extra.anyChar
+            ]
+        )
+        (CustomParser.symbol "'")
 
 
 singleOrTripleQuotedStringLiteral : CustomParser.Parser String
