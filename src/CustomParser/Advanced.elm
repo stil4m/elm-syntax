@@ -822,8 +822,8 @@ commit a =
     Parser (\s -> Good True a s)
 
 
-keyword : Token x -> Parser x ()
-keyword (Token kwd expecting) =
+keyword : Token x -> res -> Parser x res
+keyword (Token kwd expecting) res =
     let
         progress : Bool
         progress =
@@ -840,7 +840,7 @@ keyword (Token kwd expecting) =
 
             else
                 Good progress
-                    ()
+                    res
                     { src = s.src
                     , offset = newOffset
                     , indent = s.indent
@@ -854,8 +854,8 @@ type Token x
     = Token String x
 
 
-symbol : Token x -> Parser x ()
-symbol (Token str expecting) =
+symbol : Token x -> res -> Parser x res
+symbol (Token str expecting) res =
     let
         progress : Bool
         progress =
@@ -872,7 +872,7 @@ symbol (Token str expecting) =
 
             else
                 Good progress
-                    ()
+                    res
                     { src = s.src
                     , offset = newOffset
                     , indent = s.indent
@@ -1112,9 +1112,9 @@ nestableMultiComment ((Token oStr oX) as open) ((Token cStr cX) as close) =
 
                         chompOpen : Parser x ()
                         chompOpen =
-                            symbol open
+                            symbol open ()
                     in
-                    ignore chompOpen (nestableHelp isNotRelevant chompOpen (symbol close) cX 1)
+                    ignore chompOpen (nestableHelp isNotRelevant chompOpen (symbol close ()) cX 1)
 
 
 nestableHelp : (Char -> Bool) -> Parser x () -> Parser x () -> x -> Int -> Parser x ()

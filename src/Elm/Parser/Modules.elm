@@ -31,7 +31,7 @@ effectWhereClause =
             }
         )
         Tokens.functionName
-        (Layout.maybeLayoutUntilIgnored CustomParser.token "=")
+        (Layout.maybeLayoutUntilIgnored CustomParser.symbol "=")
         Layout.maybeLayout
         (Node.parserCore Tokens.typeName)
 
@@ -94,7 +94,7 @@ effectModuleDefinition =
                     }
             }
         )
-        (CustomParser.keyword "effect")
+        (CustomParser.keyword "effect" ())
         Layout.maybeLayout
         Tokens.moduleToken
         Layout.maybeLayout

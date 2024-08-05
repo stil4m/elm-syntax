@@ -148,7 +148,7 @@ glslExpressionAfterOpeningSquareBracket =
             , expression = GLSLExpression s
             }
         )
-        (CustomParser.symbol "glsl|")
+        (CustomParser.symbol "glsl|" ())
         (CustomParser.Advanced.loop "" untilGlslEnd)
         CustomParser.getPosition
 
@@ -166,8 +166,7 @@ glslEndSymbol =
 untilGlslEnd : String -> Parser (CustomParser.Advanced.Step String String)
 untilGlslEnd soFar =
     CustomParser.oneOf
-        [ CustomParser.map (\() -> CustomParser.Advanced.Done soFar)
-            (CustomParser.symbol glslEndSymbol)
+        [ CustomParser.symbol glslEndSymbol (CustomParser.Advanced.Done soFar)
         , CustomParser.mapChompedString
             (\beforeVerticalBar () ->
                 CustomParser.Advanced.Loop (soFar ++ beforeVerticalBar)
@@ -176,9 +175,7 @@ untilGlslEnd soFar =
                 |> CustomParser.ignore
                     (CustomParser.chompWhile (\c -> c /= '|'))
             )
-        , CustomParser.map
-            (\() -> CustomParser.Advanced.Loop (soFar ++ "|"))
-            (CustomParser.symbol "|")
+        , CustomParser.symbol "|" (CustomParser.Advanced.Loop (soFar ++ "|"))
         ]
 
 
@@ -203,7 +200,7 @@ expressionAfterOpeningSquareBracket =
             )
             Layout.maybeLayout
             (CustomParser.oneOf
-                [ CustomParser.map (\() -> Nothing) Tokens.squareEnd
+                [ CustomParser.symbol "]" Nothing
                 , CustomParser.map4
                     (\head commentsAfterHead tail () ->
                         Just
@@ -301,11 +298,6 @@ recordExpression =
         CustomParser.getPosition
 
 
-expressionRecordEmptyWithComments : WithComments Expression
-expressionRecordEmptyWithComments =
-    { comments = Rope.empty, syntax = RecordExpr [] }
-
-
 recordContentsCurlyEnd : Parser (WithComments Expression)
 recordContentsCurlyEnd =
     CustomParser.oneOf
@@ -360,8 +352,8 @@ recordContentsCurlyEnd =
                 ]
             )
             recordFields
-            (Layout.maybeLayoutUntilIgnored CustomParser.token "}")
-        , CustomParser.map (\() -> expressionRecordEmptyWithComments) Tokens.curlyEnd
+            (Layout.maybeLayoutUntilIgnored CustomParser.symbol "}")
+        , CustomParser.symbol "}" { comments = Rope.empty, syntax = RecordExpr [] }
         ]
 
 
@@ -404,7 +396,7 @@ recordSetterNodeWithLayout =
         )
         CustomParser.getPosition
         Tokens.functionName
-        (Layout.maybeLayoutUntilIgnored CustomParser.token "=")
+        (Layout.maybeLayoutUntilIgnored CustomParser.symbol "=")
         Layout.maybeLayout
         expression
         Layout.maybeLayout
@@ -543,7 +535,7 @@ caseStatements =
             }
         )
         Patterns.pattern
-        (Layout.maybeLayoutUntilIgnored CustomParser.token "->")
+        (Layout.maybeLayoutUntilIgnored CustomParser.symbol "->")
         Layout.maybeLayout
         expression
         (ParserWithComments.manyWithoutReverse caseStatement)
@@ -565,7 +557,7 @@ caseStatement =
         (Layout.optimisticLayout |> CustomParser.backtrackable)
         Layout.onTopIndentation
         Patterns.pattern
-        (Layout.maybeLayoutUntilIgnored CustomParser.token "->")
+        (Layout.maybeLayoutUntilIgnored CustomParser.symbol "->")
         Layout.maybeLayout
         expression
 
@@ -972,7 +964,7 @@ tupledExpression =
                             , expression = expressionPrefixOperatorMinus
                             }
                         )
-                        (CustomParser.symbol "-)")
+                        (CustomParser.symbol "-)" ())
                         CustomParser.getPosition
                     :: tupledExpressionInnerAfterOpeningParens
                     -- and since prefix operators are much more rare than e.g. parenthesized
@@ -1047,7 +1039,7 @@ allowedPrefixOperatorExceptMinusThenClosingParensOneOf =
                         , expression = PrefixOperator allowedOperatorToken
                         }
                     )
-                    (CustomParser.symbol (allowedOperatorToken ++ ")"))
+                    (CustomParser.symbol (allowedOperatorToken ++ ")") ())
                     CustomParser.getPosition
             )
 
@@ -1245,7 +1237,7 @@ infixLeft : Int -> Parser (WithComments ExtensionRight) -> String -> ( Int, Pars
 infixLeft precedence possibilitiesForPrecedence symbol =
     infixHelp precedence
         possibilitiesForPrecedence
-        (CustomParser.symbol symbol)
+        (CustomParser.symbol symbol ())
         (\right ->
             ExtendRightByOperation { symbol = symbol, direction = Infix.Left, expression = right }
         )
@@ -1255,7 +1247,7 @@ infixNonAssociative : Int -> Parser (WithComments ExtensionRight) -> String -> (
 infixNonAssociative precedence possibilitiesForPrecedence symbol =
     infixHelp precedence
         possibilitiesForPrecedence
-        (CustomParser.symbol symbol)
+        (CustomParser.symbol symbol ())
         (\right ->
             ExtendRightByOperation { symbol = symbol, direction = Infix.Non, expression = right }
         )
@@ -1268,7 +1260,7 @@ infixRight : Int -> Parser (WithComments ExtensionRight) -> String -> ( Int, Par
 infixRight precedence possibilitiesForPrecedenceMinus1 symbol =
     infixHelp precedence
         possibilitiesForPrecedenceMinus1
-        (CustomParser.symbol symbol)
+        (CustomParser.symbol symbol ())
         (\right ->
             ExtendRightByOperation { symbol = symbol, direction = Infix.Right, expression = right }
         )
@@ -1304,7 +1296,7 @@ infixLeftSubtraction precedence possibilitiesForPrecedence =
 infixHelp :
     Int
     -> Parser (WithComments ExtensionRight)
-    -> CustomParser.Parser ()
+    -> Parser ()
     -> (Node Expression -> ExtensionRight)
     -> ( Int, Parser (WithComments ExtensionRight) )
 infixHelp leftPrecedence rightPrecedence operatorFollowedBy apply =
