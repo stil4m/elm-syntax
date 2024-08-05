@@ -109,24 +109,19 @@ fromCommentElseEmpty : Parser Comments
 fromCommentElseEmpty =
     -- since comments are comparatively rare
     -- but expensive to check for, we allow shortcutting to dead end
-    CustomParser.andThen
-        (\source ->
-            CustomParser.andThen
-                (\offset ->
-                    case source |> String.slice offset (offset + 2) of
-                        "--" ->
-                            -- this will always succeed from here, so no need to fall back to Rope.empty
-                            fromSingleLineCommentNode
+    CustomParser.offsetSourceAndThen
+        (\offset source ->
+            case source |> String.slice offset (offset + 2) of
+                "--" ->
+                    -- this will always succeed from here, so no need to fall back to Rope.empty
+                    fromSingleLineCommentNode
 
                 "{-" ->
                     fromMultilineCommentNodeOrEmptyOnProblem
 
-                        _ ->
-                            succeedRopeEmpty
-                )
-                CustomParser.getOffset
+                _ ->
+                    succeedRopeEmpty
         )
-        CustomParser.getSource
 
 
 succeedRopeEmpty : Parser Comments
