@@ -1,6 +1,5 @@
 module Elm.ProcessingTests exposing (suite, suiteDeprecated)
 
-import CustomParser
 import Elm.Parser as Parser
 import Elm.Processing as Processing
 import Elm.Syntax.Declaration exposing (..)
