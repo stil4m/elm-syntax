@@ -1,7 +1,7 @@
 module Elm.Parser.Tokens exposing
     ( inToken
     , squareEnd, curlyEnd, arrowRight, equal, parensEnd
-    , minus, minusSymbols
+    , minusFollowedBySingleWhitespace
     , prefixOperatorToken, allowedOperatorTokens
     , characterLiteral, singleOrTripleQuotedStringLiteral
     , functionName, functionNameNotInfix, typeName
@@ -12,7 +12,7 @@ module Elm.Parser.Tokens exposing
 @docs inToken
 
 @docs squareEnd, curlyEnd, arrowRight, equal, parensEnd
-@docs minus, minusSymbols
+@docs minusFollowedBySingleWhitespace
 @docs prefixOperatorToken, allowedOperatorTokens
 
 @docs characterLiteral, singleOrTripleQuotedStringLiteral
@@ -271,17 +271,12 @@ prefixOperatorToken =
         |> CustomParser.oneOf
 
 
-minus : CustomParser.Parser ()
-minus =
-    CustomParser.symbol "-" ()
-
-
-minusSymbols : CustomParser.Parser ()
-minusSymbols =
+minusFollowedBySingleWhitespace : CustomParser.Parser res -> CustomParser.Parser res
+minusFollowedBySingleWhitespace next =
     CustomParser.oneOf
-        [ CustomParser.symbol "- " ()
-        , CustomParser.symbol "-\n" ()
-        , CustomParser.symbol "-\u{000D}" ()
+        [ CustomParser.symbolFollowedBy "- " next
+        , CustomParser.symbolFollowedBy "-\n" next
+        , CustomParser.symbolFollowedBy "-\u{000D}" next
         ]
 
 

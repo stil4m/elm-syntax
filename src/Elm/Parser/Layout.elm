@@ -7,7 +7,7 @@ module Elm.Parser.Layout exposing
     , onTopIndentation
     , optimisticLayout
     , positivelyIndentedFollowedBy
-    , positivelyIndentedPlusFollowedBy
+    , positivelyIndentedPlus
     )
 
 import CustomParser exposing (Parser)
@@ -193,6 +193,18 @@ positivelyIndentedPlusResultingIn extraIndent res =
         (\column indent ->
             if column > indent + extraIndent then
                 succeedRes
+
+            else
+                problemPositivelyIndented
+        )
+
+
+positivelyIndentedFollowedBy : CustomParser.Parser res -> CustomParser.Parser res
+positivelyIndentedFollowedBy nextParser =
+    CustomParser.columnIndentAndThen
+        (\column indent ->
+            if column > indent then
+                nextParser
 
             else
                 problemPositivelyIndented
