@@ -188,8 +188,8 @@ recordTypeAnnotation =
         )
         (CustomParser.symbolFollowedBy "{" Layout.maybeLayout)
         (CustomParser.oneOf
-            [ CustomParser.map4
-                (\firstNameStart firstName commentsAfterFirstName afterFirstName ->
+            [ CustomParser.map5
+                (\firstNameStart firstName commentsAfterFirstName afterFirstName () ->
                     let
                         firstNameNode : Node String
                         firstNameNode =
@@ -246,7 +246,7 @@ recordTypeAnnotation =
                         )
                     ]
                 )
-                |> CustomParser.ignore Tokens.curlyEnd
+                Tokens.curlyEnd
             , CustomParser.symbol "}" Nothing
             ]
         )
