@@ -38,7 +38,7 @@ module CustomParser.Advanced exposing
 
 # Indentation
 
-@docs withIndent, getIndent
+@docs withIndent
 
 
 # Positions
@@ -1164,11 +1164,6 @@ isChar _ =
     True
 
 
-getIndent : Parser x Int
-getIndent =
-    Parser (\s -> Good False s.indent s)
-
-
 withIndent : Int -> Parser x a -> Parser x a
 withIndent newIndent (Parser parse) =
     Parser
@@ -1238,31 +1233,6 @@ mapWithStartAndEndPosition combineStartAndResult (Parser parse) =
                 Bad p x ->
                     Bad p x
         )
-
-
-getPosition : Parser x { row : Int, column : Int }
-getPosition =
-    Parser (\s -> Good False { row = s.row, column = s.col } s)
-
-
-getRow : Parser x Int
-getRow =
-    Parser (\s -> Good False s.row s)
-
-
-getCol : Parser x Int
-getCol =
-    Parser (\s -> Good False s.col s)
-
-
-getOffset : Parser x Int
-getOffset =
-    Parser (\s -> Good False s.offset s)
-
-
-getSource : Parser x String
-getSource =
-    Parser (\s -> Good False s.src s)
 
 
 
