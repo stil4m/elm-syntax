@@ -53,7 +53,7 @@ declarationWithDocumentation =
                                 (Node implementationNameRange implementationName) =
                                     signature.implementationName
                             in
-                            if implementationName == startName then
+                            if implementationName == startName ++ "" then
                                 let
                                     (Node expressionRange _) =
                                         functionDeclarationAfterDocumentation.expression
@@ -348,7 +348,7 @@ functionDeclarationWithoutDocumentation =
                         (Node implementationNameRange implementationName) =
                             signature.implementationName
                     in
-                    if implementationName == startName then
+                    if implementationName == startName ++ "" then
                         let
                             (Node expressionRange _) =
                                 result.syntax
