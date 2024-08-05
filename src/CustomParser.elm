@@ -12,7 +12,7 @@ module CustomParser exposing
 
 {-|
 
-@docs Parser, DeadEnd, Problem, run
+@docs Parser, run
 
 @docs int, number, symbol, keyword, variable, end
 
@@ -456,7 +456,7 @@ you would not get (1) anymore.
 -}
 token : String -> Parser ()
 token str =
-    A.token (toToken str)
+    A.symbol (toToken str)
 
 
 toToken : String -> A.Token Problem
