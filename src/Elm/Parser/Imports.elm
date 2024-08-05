@@ -15,8 +15,8 @@ import Rope
 
 importDefinition : Parser (WithComments (Node Import))
 importDefinition =
-    CustomParser.map8
-        (\() startRow commentsAfterImport ((Node modRange _) as mod) commentsAfterModuleName maybeModuleAlias maybeExposingList commentsAfterEverything ->
+    CustomParser.map7
+        (\startRow commentsAfterImport ((Node modRange _) as mod) commentsAfterModuleName maybeModuleAlias maybeExposingList commentsAfterEverything ->
             let
                 endRange : Range
                 endRange =
@@ -69,14 +69,15 @@ importDefinition =
                     }
             }
         )
-        Tokens.importToken
-        CustomParser.getRow
+        (CustomParser.keywordFollowedBy "import"
+            CustomParser.getRow
+        )
         Layout.maybeLayout
         moduleName
         Layout.optimisticLayout
         (CustomParser.oneOf
-            [ CustomParser.map5
-                (\() commentsBefore moduleAliasStart moduleAlias commentsAfter ->
+            [ CustomParser.map4
+                (\commentsBefore moduleAliasStart moduleAlias commentsAfter ->
                     Just
                         { comments = commentsBefore |> Rope.prependTo commentsAfter
                         , syntax =
@@ -88,8 +89,7 @@ importDefinition =
                                 [ moduleAlias ]
                         }
                 )
-                Tokens.asToken
-                Layout.maybeLayout
+                (CustomParser.keywordFollowedBy "as" Layout.maybeLayout)
                 CustomParser.getPosition
                 Tokens.typeName
                 Layout.optimisticLayout

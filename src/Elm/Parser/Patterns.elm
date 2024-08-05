@@ -50,8 +50,8 @@ composablePatternTryToCompose =
 maybeComposedWith : Parser { comments : ParserWithComments.Comments, syntax : PatternComposedWith }
 maybeComposedWith =
     CustomParser.oneOf
-        [ CustomParser.map4
-            (\() commentsAfterAs nameStart name ->
+        [ CustomParser.map3
+            (\commentsAfterAs nameStart name ->
                 { comments = commentsAfterAs
                 , syntax =
                     PatternComposedWithAs
@@ -60,18 +60,16 @@ maybeComposedWith =
                         )
                 }
             )
-            Tokens.asToken
-            Layout.maybeLayout
+            (CustomParser.keywordFollowedBy "as" Layout.maybeLayout)
             CustomParser.getPosition
             Tokens.functionName
-        , CustomParser.map3
-            (\() commentsAfterCons patternResult ->
+        , CustomParser.map2
+            (\commentsAfterCons patternResult ->
                 { comments = patternResult.comments |> Rope.prependTo commentsAfterCons
                 , syntax = PatternComposedWithCons patternResult.syntax
                 }
             )
-            Tokens.cons
-            Layout.maybeLayout
+            (CustomParser.symbolFollowedBy "::" Layout.maybeLayout)
             pattern
         , CustomParser.succeed { comments = Rope.empty, syntax = PatternComposedWithNothing () }
         ]
@@ -79,16 +77,15 @@ maybeComposedWith =
 
 parensPattern : Parser (WithComments Pattern)
 parensPattern =
-    CustomParser.map3
-        (\() commentsBeforeHead contentResult ->
+    CustomParser.map2
+        (\commentsBeforeHead contentResult ->
             { comments =
                 commentsBeforeHead
                     |> Rope.prependTo contentResult.comments
             , syntax = contentResult.syntax
             }
         )
-        Tokens.parensStart
-        Layout.maybeLayout
+        (CustomParser.symbolFollowedBy "(" Layout.maybeLayout)
         -- yes, (  ) is a valid pattern but not a valid type or expression
         (CustomParser.oneOf
             [ CustomParser.map3
@@ -140,8 +137,8 @@ charPattern =
 
 listPattern : Parser (WithComments Pattern)
 listPattern =
-    CustomParser.map3
-        (\() commentsBeforeElements maybeElements ->
+    CustomParser.map2
+        (\commentsBeforeElements maybeElements ->
             case maybeElements of
                 Nothing ->
                     { comments = commentsBeforeElements
@@ -153,10 +150,9 @@ listPattern =
                     , syntax = ListPattern elements.syntax
                     }
         )
-        Tokens.squareStart
-        Layout.maybeLayout
+        (CustomParser.symbolFollowedBy "[" Layout.maybeLayout)
         (CustomParser.oneOf
-            [ CustomParser.map (\() -> Nothing) Tokens.squareEnd
+            [ CustomParser.symbol "]" Nothing
             , CustomParser.map4
                 (\head commentsAfterHead tail () ->
                     Just
@@ -237,8 +233,8 @@ stringPattern =
 maybeDotTypeNamesTuple : CustomParser.Parser (Maybe ( List String, String ))
 maybeDotTypeNamesTuple =
     CustomParser.oneOf
-        [ CustomParser.map3
-            (\() startName afterStartName ->
+        [ CustomParser.map2
+            (\startName afterStartName ->
                 case afterStartName of
                     Nothing ->
                         Just ( [], startName )
@@ -246,8 +242,7 @@ maybeDotTypeNamesTuple =
                     Just ( qualificationAfter, unqualified ) ->
                         Just ( startName :: qualificationAfter, unqualified )
             )
-            Tokens.dot
-            Tokens.typeName
+            (CustomParser.symbolFollowedBy "." Tokens.typeName)
             (CustomParser.lazy (\() -> maybeDotTypeNamesTuple))
         , CustomParser.succeed Nothing
         ]
@@ -306,8 +301,8 @@ qualifiedPatternWithoutConsumeArgs =
 
 recordPattern : Parser (WithComments Pattern)
 recordPattern =
-    CustomParser.map3
-        (\() commentsBeforeElements maybeElements ->
+    CustomParser.map2
+        (\commentsBeforeElements maybeElements ->
             case maybeElements of
                 Nothing ->
                     { comments = commentsBeforeElements
@@ -319,11 +314,10 @@ recordPattern =
                     , syntax = RecordPattern elements.syntax
                     }
         )
-        Tokens.curlyStart
-        Layout.maybeLayout
+        (CustomParser.symbolFollowedBy "{" Layout.maybeLayout)
         (CustomParser.oneOf
-            [ CustomParser.map4
-                (\headStart head commentsAfterHead tail ->
+            [ CustomParser.map5
+                (\headStart head commentsAfterHead tail () ->
                     Just
                         { comments =
                             commentsAfterHead
@@ -339,24 +333,22 @@ recordPattern =
                 Tokens.functionName
                 Layout.maybeLayout
                 (ParserWithComments.many
-                    (CustomParser.map5
-                        (\() beforeName nameStart name afterName ->
+                    (CustomParser.map4
+                        (\beforeName nameStart name afterName ->
                             { comments = beforeName |> Rope.prependTo afterName
                             , syntax =
                                 Node.singleLineStringFrom nameStart
                                     name
                             }
                         )
-                        Tokens.comma
-                        Layout.maybeLayout
+                        (CustomParser.symbolFollowedBy "," Layout.maybeLayout)
                         CustomParser.getPosition
                         Tokens.functionName
                         Layout.maybeLayout
                     )
                 )
-                |> CustomParser.ignore Tokens.curlyEnd
-            , CustomParser.map (\() -> Nothing)
                 Tokens.curlyEnd
+            , CustomParser.symbol "}" Nothing
             ]
         )
 

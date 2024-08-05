@@ -25,9 +25,8 @@ moduleName =
 moduleNameOrEmpty : CustomParser.Parser ModuleName
 moduleNameOrEmpty =
     CustomParser.oneOf
-        [ CustomParser.map3 (\() head tail -> head :: tail)
-            Tokens.dot
-            Tokens.typeName
+        [ CustomParser.map2 (\head tail -> head :: tail)
+            (CustomParser.symbolFollowedBy "." Tokens.typeName)
             (CustomParser.lazy (\() -> moduleNameOrEmpty))
         , CustomParser.succeed []
         ]
