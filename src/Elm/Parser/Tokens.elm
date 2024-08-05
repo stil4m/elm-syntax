@@ -142,8 +142,7 @@ escapedCharValue =
 
 slashEscapedCharValue : CustomParser.Parser Char
 slashEscapedCharValue =
-    CustomParser.symbol "\\" ()
-        |> CustomParser.Extra.continueWith escapedCharValue
+    CustomParser.symbolFollowedBy "\\" escapedCharValue
 
 
 characterLiteral : CustomParser.Parser Char
@@ -161,16 +160,12 @@ characterLiteral =
 
 singleOrTripleQuotedStringLiteral : CustomParser.Parser String
 singleOrTripleQuotedStringLiteral =
-    CustomParser.symbol "\"" ()
-        |> CustomParser.Extra.continueWith
-            (CustomParser.oneOf
-                [ twoDoubleQuotes
-                    |> CustomParser.Extra.continueWith
-                        (CustomParser.Advanced.loop "" tripleQuotedStringLiteralStep)
-                , CustomParser.Advanced.loop "" stringLiteralHelper
-                ]
-            )
-            (ParserFast.Advanced.loop "" stringLiteralHelper)
+    CustomParser.symbolFollowedBy "\""
+        (CustomParser.oneOf
+            [ CustomParser.symbolFollowedBy "\"\""
+                (CustomParser.Advanced.loop "" tripleQuotedStringLiteralStep)
+            , CustomParser.Advanced.loop "" stringLiteralHelper
+            ]
         )
 
 
@@ -193,11 +188,6 @@ stringLiteralHelper stringSoFar =
 chompWhileIsInsideString : CustomParser.Parser ()
 chompWhileIsInsideString =
     CustomParser.chompWhile (\c -> c /= '"' && c /= '\\')
-
-
-twoDoubleQuotes : CustomParser.Parser ()
-twoDoubleQuotes =
-    CustomParser.symbol "\"\"" ()
 
 
 tripleQuotedStringLiteralStep : String -> CustomParser.Parser (CustomParser.Advanced.Step String String)

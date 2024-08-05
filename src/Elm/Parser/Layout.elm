@@ -11,7 +11,6 @@ module Elm.Parser.Layout exposing
     )
 
 import CustomParser exposing (Parser)
-import CustomParser.Extra
 import Elm.Parser.Comments as Comments
 import Elm.Parser.Node as Node
 import Elm.Syntax.Node exposing (Node(..))
@@ -20,12 +19,11 @@ import Rope
 import Set
 
 
-maybeLayoutUntilIgnored : (String -> () -> Parser ()) -> String -> CustomParser.Parser Comments
+maybeLayoutUntilIgnored : (String -> Parser Comments -> Parser Comments) -> String -> CustomParser.Parser Comments
 maybeLayoutUntilIgnored endParser endSymbol =
     whitespaceAndCommentsUntilEndComments
-        (endParser endSymbol ()
-            |> CustomParser.Extra.continueWith
-                (positivelyIndentedPlusResultingIn (String.length endSymbol) Rope.empty)
+        (endParser endSymbol
+            (positivelyIndentedPlusResultingIn (String.length endSymbol) Rope.empty)
         )
 
 

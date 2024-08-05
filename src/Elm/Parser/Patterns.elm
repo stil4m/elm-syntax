@@ -1,7 +1,6 @@
 module Elm.Parser.Patterns exposing (pattern, patternNotDirectlyComposing)
 
 import CustomParser exposing (Parser)
-import CustomParser.Extra
 import Elm.Parser.Layout as Layout
 import Elm.Parser.Node as Node
 import Elm.Parser.Numbers
@@ -111,7 +110,9 @@ parensPattern =
                 Layout.maybeLayout
                 (ParserWithComments.until
                     Tokens.parensEnd
-                    (Tokens.comma |> CustomParser.Extra.continueWith (Layout.maybeAroundBothSides pattern))
+                    (CustomParser.symbolFollowedBy ","
+                        (Layout.maybeAroundBothSides pattern)
+                    )
                 )
             , CustomParser.symbol ")" { comments = Rope.empty, syntax = UnitPattern }
             ]
@@ -169,9 +170,8 @@ listPattern =
                 pattern
                 Layout.maybeLayout
                 (ParserWithComments.many
-                    (Tokens.comma
-                        |> CustomParser.Extra.continueWith
-                            (Layout.maybeAroundBothSides pattern)
+                    (CustomParser.symbolFollowedBy ","
+                        (Layout.maybeAroundBothSides pattern)
                     )
                 )
                 Tokens.squareEnd

@@ -10,7 +10,6 @@ module ParserWithComments exposing
 
 import CustomParser exposing (Parser)
 import CustomParser.Advanced
-import CustomParser.Extra
 import Elm.Syntax.Node exposing (Node)
 import Rope exposing (Rope)
 
@@ -175,4 +174,4 @@ sepBy1 sep p =
             }
         )
         p
-        (many (CustomParser.symbol sep () |> CustomParser.Extra.continueWith p))
+        (many (CustomParser.symbolFollowedBy sep p))

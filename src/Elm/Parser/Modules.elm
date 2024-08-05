@@ -31,7 +31,7 @@ effectWhereClause =
             }
         )
         Tokens.functionName
-        (Layout.maybeLayoutUntilIgnored CustomParser.symbol "=")
+        (Layout.maybeLayoutUntilIgnored CustomParser.symbolFollowedBy "=")
         Layout.maybeLayout
         (Node.parserCore Tokens.typeName)
 

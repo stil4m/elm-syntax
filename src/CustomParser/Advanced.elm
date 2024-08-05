@@ -1,6 +1,6 @@
 module CustomParser.Advanced exposing
     ( Parser, run
-    , number, symbol, keyword, variable, end
+    , number, symbol, symbolFollowedBy, keyword, keywordFollowedBy, variable, end
     , succeed, problem, succeedLazy, lazy, map, map2, map3, map4, map5, map6, map7, map8, map9, map10, map11, andThen, ignore
     , oneOf, backtrackable, commit
     , loop, Step(..)
@@ -14,7 +14,7 @@ module CustomParser.Advanced exposing
 
 @docs Parser, run
 
-@docs number, symbol, keyword, variable, end
+@docs number, symbol, symbolFollowedBy, keyword, keywordFollowedBy, variable, end
 
 
 # Flow
@@ -850,6 +850,31 @@ keyword kwd expecting res =
         )
 
 
+{-| Make sure to never call with String "", as this will then always commit.
+-}
+keywordFollowedBy : String -> x -> Parser x next -> Parser x next
+keywordFollowedBy kwd expecting (Parser parseNext) =
+    Parser
+        (\s ->
+            let
+                ( newOffset, newRow, newCol ) =
+                    isSubString kwd s.offset s.row s.col s.src
+            in
+            if newOffset == -1 || 0 <= isSubChar (\c -> Char.isAlphaNum c || c == '_') newOffset s.src then
+                Bad False (fromState s expecting)
+
+            else
+                parseNext
+                    { src = s.src
+                    , offset = newOffset
+                    , indent = s.indent
+                    , row = newRow
+                    , col = newCol
+                    }
+                    |> pStepCommit
+        )
+
+
 symbol : String -> x -> res -> Parser x res
 symbol str expecting res =
     let
@@ -876,6 +901,41 @@ symbol str expecting res =
                     , col = newCol
                     }
         )
+
+
+{-| Make sure to never call with String "", as this will then always commit.
+-}
+symbolFollowedBy : String -> x -> Parser x next -> Parser x next
+symbolFollowedBy str expecting (Parser parseNext) =
+    Parser
+        (\s ->
+            let
+                ( newOffset, newRow, newCol ) =
+                    isSubString str s.offset s.row s.col s.src
+            in
+            if newOffset == -1 then
+                Bad False (fromState s expecting)
+
+            else
+                parseNext
+                    { src = s.src
+                    , offset = newOffset
+                    , indent = s.indent
+                    , row = newRow
+                    , col = newCol
+                    }
+                    |> pStepCommit
+        )
+
+
+pStepCommit : PStep x a -> PStep x a
+pStepCommit pStep =
+    case pStep of
+        Good _ a state ->
+            Good True a state
+
+        Bad _ errors ->
+            Bad True errors
 
 
 number :

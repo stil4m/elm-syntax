@@ -1,7 +1,6 @@
 module Elm.Parser.Expose exposing (exposeDefinition)
 
 import CustomParser exposing (Parser)
-import CustomParser.Extra
 import Elm.Parser.Layout as Layout
 import Elm.Parser.Node as Node
 import Elm.Parser.Tokens as Tokens
@@ -24,7 +23,7 @@ exposeDefinition =
             }
         )
         Tokens.exposingToken
-        (Layout.maybeLayoutUntilIgnored CustomParser.symbol "(")
+        (Layout.maybeLayoutUntilIgnored CustomParser.symbolFollowedBy "(")
         Layout.optimisticLayout
         exposingListInner
         Tokens.parensEnd
@@ -55,9 +54,8 @@ exposingListInner =
             CustomParser.getPosition
             Layout.maybeLayout
             (ParserWithComments.many
-                (Tokens.comma
-                    |> CustomParser.Extra.continueWith
-                        (Layout.maybeAroundBothSides (exposable |> Node.parser))
+                (CustomParser.symbolFollowedBy ","
+                    (Layout.maybeAroundBothSides (exposable |> Node.parser))
                 )
             )
         , CustomParser.map4
@@ -122,8 +120,8 @@ typeExpose =
                 (Layout.maybeLayout |> CustomParser.backtrackable)
                 CustomParser.getPosition
                 Tokens.parensStart
-                (Layout.maybeLayoutUntilIgnored CustomParser.symbol "..")
-                (Layout.maybeLayoutUntilIgnored CustomParser.symbol ")")
+                (Layout.maybeLayoutUntilIgnored CustomParser.symbolFollowedBy "..")
+                (Layout.maybeLayoutUntilIgnored CustomParser.symbolFollowedBy ")")
                 CustomParser.getPosition
             , CustomParser.succeed Nothing
             ]
