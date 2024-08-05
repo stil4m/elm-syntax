@@ -96,12 +96,10 @@ expression =
 
 recordAccess : ( Int, Parser (WithComments ExtensionRight) )
 recordAccess =
-    postfix 100
-        recordAccessParser
-        ExtendRightByRecordAccess
+    postfix 100 recordAccessParser
 
 
-recordAccessParser : Parser (Node String)
+recordAccessParser : Parser (WithComments ExtensionRight)
 recordAccessParser =
     lookBehindOneCharacterAndThen
         (\c ->
@@ -118,12 +116,17 @@ problemRecordAccessStartingWithSpace =
     CustomParser.problem "Record access can't start with a space"
 
 
-dotField : CustomParser.Parser (Node String)
+dotField : CustomParser.Parser (WithComments ExtensionRight)
 dotField =
     CustomParser.map3
         (\() nameStart name ->
-            Node.singleLineStringFrom nameStart
-                name
+            { comments = Rope.empty
+            , syntax =
+                ExtendRightByRecordAccess
+                    (Node.singleLineStringFrom nameStart
+                        name
+                    )
+            }
         )
         Tokens.dot
         CustomParser.getPosition
@@ -1315,13 +1318,7 @@ infixHelp leftPrecedence rightPrecedence operatorFollowedBy apply =
 postfix : Int -> Parser (WithComments ExtensionRight) -> ( Int, Parser (WithComments ExtensionRight) )
 postfix precedence operator =
     ( precedence
-    , CustomParser.map
-        (\right ->
-            { comments = Rope.empty
-            , syntax = apply right
-            }
-        )
-        operator
+    , operator
     )
 
 
