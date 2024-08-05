@@ -457,10 +457,6 @@ toToken str =
     A.Token str (Expecting str)
 
 
-
--- NUMBER
-
-
 {-| Parse a bunch of different kinds of numbers without backtracking. A parser
 for Elm would need to handle integers, floats, and hexadecimal like this:
 
