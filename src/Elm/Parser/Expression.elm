@@ -118,14 +118,12 @@ problemRecordAccessStartingWithSpace =
 dotField : CustomParser.Parser (WithComments ExtensionRight)
 dotField =
     CustomParser.symbolFollowedBy "."
-        (CustomParser.mapWithStartPosition
-            (\nameStart name ->
+        (CustomParser.mapWithStartAndEndPosition
+            (\nameStart name nameEnd ->
                 { comments = Rope.empty
                 , syntax =
                     ExtendRightByRecordAccess
-                        (Node.singleLineStringFrom nameStart
-                            name
-                        )
+                        (Node { start = nameStart, end = nameEnd } name)
                 }
             )
             Tokens.functionName
@@ -645,8 +643,8 @@ letDestructuringDeclaration =
 
 letFunction : Parser (WithComments (Node LetDeclaration))
 letFunction =
-    CustomParser.map7
-        (\startNameStart startName commentsAfterStartName maybeSignature arguments commentsAfterEqual expressionResult ->
+    CustomParser.map6
+        (\((Node startNameRange startName) as startNameNode) commentsAfterStartName maybeSignature arguments commentsAfterEqual expressionResult ->
             let
                 allComments : Comments
                 allComments =
@@ -663,10 +661,9 @@ letFunction =
                         |> Rope.prependTo commentsAfterEqual
                         |> Rope.prependTo expressionResult.comments
 
-                startNameNode : Node String
-                startNameNode =
-                    Node.singleLineStringFrom startNameStart
-                        startName
+                startNameStart : Location
+                startNameStart =
+                    startNameRange.start
             in
             case maybeSignature of
                 Nothing ->
@@ -722,8 +719,7 @@ letFunction =
                         CustomParser.problem
                             ("Expected to find the declaration for " ++ startName ++ " but found " ++ implementationName)
         )
-        CustomParser.getPosition
-        Tokens.functionName
+        (Node.parserCore Tokens.functionName)
         Layout.maybeLayout
         (CustomParser.oneOf
             [ CustomParser.map5

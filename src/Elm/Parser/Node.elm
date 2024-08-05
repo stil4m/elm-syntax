@@ -1,8 +1,7 @@
-module Elm.Parser.Node exposing (parser, parserCore, parserMapWithComments, singleLineStringFrom, singleLineStringRangeFrom)
+module Elm.Parser.Node exposing (parser, parserCore, parserMapWithComments)
 
 import CustomParser exposing (Parser)
 import Elm.Syntax.Node exposing (Node(..))
-import Elm.Syntax.Range exposing (Location, Range)
 import ParserWithComments exposing (WithComments)
 
 
