@@ -799,20 +799,8 @@ negationOperation =
             , expression = Negation subExpressionResult.syntax
             }
         )
-        minusNotFollowedBySpace
-        (subExpressionMap abovePrecedence95)
-
-
-minusNotFollowedBySpace : CustomParser.Parser ()
-minusNotFollowedBySpace =
-    CustomParser.symbolFollowedBy "-"
-        (CustomParser.oneOf
-            [ CustomParser.chompIf (\next -> next == '\u{000D}' || next == '\n' || next == ' ')
-                |> CustomParser.Extra.continueWith (CustomParser.problem "negation sign cannot be followed by a space")
-            , CustomParser.succeed ()
-            ]
-        )
-        |> CustomParser.backtrackable
+        (CustomParser.symbol "-" () |> CustomParser.backtrackable)
+        (extendedSubExpressionWithoutInitialLayout abovePrecedence95)
 
 
 qualifiedOrVariantOrRecordConstructorReferenceExpression : Parser { comments : Comments, end : Location, expression : Expression }
@@ -1000,24 +988,7 @@ subExpressionMap aboveCurrentPrecedenceLayout =
                         (WithComments (Node Expression))
                     )
         step leftExpressionResult =
-            CustomParser.oneOf
-                [ CustomParser.map2
-                    (\extensionRight commentsAfter ->
-                        { comments =
-                            leftExpressionResult.comments
-                                |> Rope.prependTo extensionRight.comments
-                                |> Rope.prependTo commentsAfter
-                        , syntax =
-                            leftExpressionResult.syntax
-                                |> applyExtensionRight extensionRight.syntax
-                        }
-                            |> CustomParser.Advanced.Loop
-                    )
-                    aboveCurrentPrecedenceLayout
-                    Layout.optimisticLayout
-                , CustomParser.succeed
-                    (CustomParser.Advanced.Done leftExpressionResult)
-                ]
+            subExpressionLoopStep aboveCurrentPrecedenceLayout leftExpressionResult
     in
     CustomParser.map3
         (\commentsBefore leftExpressionResult commentsAfter ->
@@ -1033,6 +1004,66 @@ subExpressionMap aboveCurrentPrecedenceLayout =
         Layout.optimisticLayout
         |> CustomParser.andThen
             (\leftExpression -> CustomParser.Advanced.loop leftExpression step)
+
+
+extendedSubExpressionWithoutInitialLayout :
+    Parser (WithComments ExtensionRight)
+    -> Parser (WithComments (Node Expression))
+extendedSubExpressionWithoutInitialLayout aboveCurrentPrecedenceLayout =
+    let
+        step :
+            WithComments (Node Expression)
+            ->
+                Parser
+                    (CustomParser.Advanced.Step
+                        (WithComments (Node Expression))
+                        (WithComments (Node Expression))
+                    )
+        step leftExpressionResult =
+            subExpressionLoopStep aboveCurrentPrecedenceLayout leftExpressionResult
+    in
+    CustomParser.map2
+        (\leftExpressionResult commentsAfter ->
+            { comments =
+                leftExpressionResult.comments
+                    |> Rope.prependTo commentsAfter
+            , syntax = leftExpressionResult.syntax
+            }
+        )
+        (CustomParser.lazy (\() -> subExpression))
+        Layout.optimisticLayout
+        |> CustomParser.andThen
+            (\leftExpression -> CustomParser.Advanced.loop leftExpression step)
+
+
+subExpressionLoopStep :
+    Parser (WithComments ExtensionRight)
+    -> WithComments (Node Expression)
+    ->
+        Parser
+            (CustomParser.Advanced.Step
+                (WithComments (Node Expression))
+                (WithComments (Node Expression))
+            )
+subExpressionLoopStep aboveCurrentPrecedenceLayout leftExpressionResult =
+    CustomParser.oneOf
+        [ CustomParser.map2
+            (\extensionRight commentsAfter ->
+                { comments =
+                    leftExpressionResult.comments
+                        |> Rope.prependTo extensionRight.comments
+                        |> Rope.prependTo commentsAfter
+                , syntax =
+                    leftExpressionResult.syntax
+                        |> applyExtensionRight extensionRight.syntax
+                }
+                    |> CustomParser.Advanced.Loop
+            )
+            aboveCurrentPrecedenceLayout
+            Layout.optimisticLayout
+        , CustomParser.succeed
+            (CustomParser.Advanced.Done leftExpressionResult)
+        ]
 
 
 applyExtensionRight : ExtensionRight -> Node Expression -> Node Expression
