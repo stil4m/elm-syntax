@@ -1032,7 +1032,7 @@ end : x -> Parser x ()
 end x =
     Parser
         (\s ->
-            if String.length s.src == s.offset then
+            if String.length s.src == s.offset + 0 then
                 Good False () s
 
             else
@@ -1377,7 +1377,7 @@ isSubString smallString offset row col bigString =
         offsetAfter =
             offset + smallStringLength
     in
-    if String.slice offset offsetAfter bigString == smallString then
+    if String.slice offset offsetAfter bigString == smallString ++ "" then
         ( offsetAfter, row, col + smallStringLength )
 
     else
