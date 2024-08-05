@@ -419,8 +419,8 @@ parameterPatternsEqual =
 
 infixDeclaration : Parser (WithComments (Node Declaration))
 infixDeclaration =
-    CustomParser.map10
-        (\startRow commentsAfterInfix direction commentsAfterDirection precedence commentsAfterPrecedence operator commentsAfterOperator commentsAfterEqual ((Node fnRange _) as fn) ->
+    CustomParser.map9
+        (\commentsAfterInfix direction commentsAfterDirection precedence commentsAfterPrecedence operator commentsAfterOperator commentsAfterEqual fn ->
             { comments =
                 commentsAfterInfix
                     |> Rope.prependTo commentsAfterDirection
@@ -428,17 +428,11 @@ infixDeclaration =
                     |> Rope.prependTo commentsAfterOperator
                     |> Rope.prependTo commentsAfterEqual
             , syntax =
-                Node
-                    { start = { row = startRow, column = 1 }
-                    , end = fnRange.end
-                    }
-                    (Declaration.InfixDeclaration
-                        { direction = direction, precedence = precedence, operator = operator, function = fn }
-                    )
+                Declaration.InfixDeclaration
+                    { direction = direction, precedence = precedence, operator = operator, function = fn }
             }
         )
-        (CustomParser.keywordFollowedBy "infix" CustomParser.getRow)
-        Layout.maybeLayout
+        (CustomParser.keywordFollowedBy "infix" Layout.maybeLayout)
         (Node.parserCore infixDirection)
         Layout.maybeLayout
         (Node.parserCore CustomParser.int)
@@ -453,6 +447,7 @@ infixDeclaration =
         (Layout.maybeLayoutUntilIgnored CustomParser.symbolFollowedBy "=")
         Layout.maybeLayout
         (Node.parserCore Tokens.functionName)
+        |> Node.parser
 
 
 infixDirection : CustomParser.Parser Infix.InfixDirection
@@ -605,15 +600,21 @@ customTypeDefinitionAfterDocumentationAfterTypePrefix =
 
 typeOrTypeAliasDefinitionWithoutDocumentation : Parser (WithComments (Node Declaration.Declaration))
 typeOrTypeAliasDefinitionWithoutDocumentation =
-    CustomParser.map3
-        (\startRow commentsAfterType afterStart ->
-            let
-                start : Location
-                start =
-                    { row = startRow, column = 1 }
-            in
-            { comments = commentsAfterType |> Rope.prependTo afterStart.comments
+    CustomParser.mapWithStartPosition
+        (\start result ->
+            { comments = result.comments
             , syntax =
+                Node { start = start, end = result.end }
+                    result.declaration
+            }
+        )
+        (CustomParser.map2
+            (\commentsAfterType afterStart ->
+                let
+                    allComments : Comments
+                    allComments =
+                        commentsAfterType |> Rope.prependTo afterStart.comments
+                in
                 case afterStart.syntax of
                     TypeDeclarationWithoutDocumentation typeDeclarationAfterDocumentation ->
                         let
@@ -630,8 +631,9 @@ typeOrTypeAliasDefinitionWithoutDocumentation =
                                         in
                                         headVariantRange.end
                         in
-                        Node { start = start, end = end }
-                            (Declaration.CustomTypeDeclaration
+                        { comments = allComments
+                        , declaration =
+                            Declaration.CustomTypeDeclaration
                                 { documentation = Nothing
                                 , name = typeDeclarationAfterDocumentation.name
                                 , generics = typeDeclarationAfterDocumentation.parameters
@@ -639,29 +641,31 @@ typeOrTypeAliasDefinitionWithoutDocumentation =
                                     typeDeclarationAfterDocumentation.headVariant
                                         :: List.reverse typeDeclarationAfterDocumentation.tailVariantsReverse
                                 }
-                            )
+                        , end = end
+                        }
 
                     TypeAliasDeclarationWithoutDocumentation typeAliasDeclarationAfterDocumentation ->
                         let
                             (Node typeAnnotationRange _) =
                                 typeAliasDeclarationAfterDocumentation.typeAnnotation
                         in
-                        Node { start = start, end = typeAnnotationRange.end }
-                            (Declaration.AliasDeclaration
+                        { comments = allComments
+                        , declaration =
+                            Declaration.AliasDeclaration
                                 { documentation = Nothing
                                 , name = typeAliasDeclarationAfterDocumentation.name
                                 , generics = typeAliasDeclarationAfterDocumentation.parameters
                                 , typeAnnotation = typeAliasDeclarationAfterDocumentation.typeAnnotation
                                 }
-                            )
-            }
-        )
-        (CustomParser.keywordFollowedBy "type" CustomParser.getRow)
-        Layout.maybeLayout
-        (CustomParser.oneOf
-            [ typeAliasDefinitionWithoutDocumentationAfterTypePrefix
-            , customTypeDefinitionWithoutDocumentationAfterTypePrefix
-            ]
+                        , end = typeAnnotationRange.end
+                        }
+            )
+            (CustomParser.keywordFollowedBy "type" Layout.maybeLayout)
+            (CustomParser.oneOf
+                [ typeAliasDefinitionWithoutDocumentationAfterTypePrefix
+                , customTypeDefinitionWithoutDocumentationAfterTypePrefix
+                ]
+            )
         )
 
 
