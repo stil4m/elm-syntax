@@ -613,7 +613,7 @@ letDestructuringDeclaration =
                     (LetDestructuring pattern.syntax expressionResult.syntax)
             }
         )
-        Patterns.pattern
+        Patterns.argPattern
         Layout.maybeLayout
         (CustomParser.symbolFollowedBy "=" Layout.maybeLayout)
         expression
