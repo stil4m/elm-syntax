@@ -189,7 +189,7 @@ expressionAfterOpeningSquareBracket =
                 )
                 Layout.maybeLayout
                 (CustomParser.oneOf
-                    [ CustomParser.symbol "]" { syntax = ListExpr [], comments = Rope.empty }
+                    [ CustomParser.symbol "]" { comments = Rope.empty, syntax = ListExpr [] }
                     , CustomParser.map4
                         (\head commentsAfterHead tail () ->
                             { comments =
@@ -371,13 +371,13 @@ lambdaExpression =
         )
         (CustomParser.map5
             (\commentsAfterBackslash firstArg commentsAfterFirstArg secondUpArgs expressionResult ->
-                { comments =
+                { args = firstArg.syntax :: secondUpArgs.syntax
+                , comments =
                     commentsAfterBackslash
                         |> Rope.prependTo firstArg.comments
                         |> Rope.prependTo commentsAfterFirstArg
                         |> Rope.prependTo secondUpArgs.comments
                         |> Rope.prependTo expressionResult.comments
-                , args = firstArg.syntax :: secondUpArgs.syntax
                 , expression = expressionResult.syntax
                 }
             )
@@ -439,13 +439,13 @@ caseExpression =
                     ( firstCase, lastToSecondCase ) =
                         casesResult.syntax
                 in
-                { comments =
+                { casedExpression = casedExpressionResult.syntax
+                , comments =
                     commentsAfterCase
                         |> Rope.prependTo casedExpressionResult.comments
                         |> Rope.prependTo commentsBeforeOf
                         |> Rope.prependTo commentsAfterOf
                         |> Rope.prependTo casesResult.comments
-                , casedExpression = casedExpressionResult.syntax
                 , firstCase = firstCase
                 , lastToSecondCase = lastToSecondCase
                 }
@@ -779,8 +779,8 @@ ifBlockExpression =
                         |> Rope.prependTo commentsAfterElse
                         |> Rope.prependTo ifFalse.comments
                 , condition = condition.syntax
-                , ifTrue = ifTrue.syntax
                 , ifFalse = ifFalse.syntax
+                , ifTrue = ifTrue.syntax
                 }
             )
             (CustomParser.keywordFollowedBy "if" Layout.maybeLayout)
