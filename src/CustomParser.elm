@@ -560,10 +560,6 @@ end =
     A.end Parser.ExpectingEnd
 
 
-
--- CHOMPED STRINGS
-
-
 {-| Sometimes parsers like `int` or `variable` cannot do exactly what you
 need. The "chomping" family of functions is meant for that case! Maybe you
 need to parse [valid PHP variables][php] like `$x` and `$txt`:
@@ -741,6 +737,30 @@ equal 2, 4, or 8.
 getPosition : Parser { row : Int, column : Int }
 getPosition =
     A.getPosition
+
+
+mapWithStartPosition :
+    ({ row : Int, column : Int } -> a -> b)
+    -> Parser a
+    -> Parser b
+mapWithStartPosition =
+    A.mapWithStartPosition
+
+
+mapWithEndPosition :
+    (a -> { row : Int, column : Int } -> b)
+    -> Parser a
+    -> Parser b
+mapWithEndPosition =
+    A.mapWithEndPosition
+
+
+mapWithStartAndEndPosition :
+    ({ row : Int, column : Int } -> a -> { row : Int, column : Int } -> b)
+    -> Parser a
+    -> Parser b
+mapWithStartAndEndPosition =
+    A.mapWithStartAndEndPosition
 
 
 {-| This is a more efficient version of `map Tuple.first getPosition`. Maybe

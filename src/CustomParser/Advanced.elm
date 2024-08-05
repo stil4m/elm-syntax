@@ -1192,6 +1192,54 @@ changeIndent newIndent s =
     }
 
 
+mapWithStartPosition :
+    ({ row : Int, column : Int } -> a -> b)
+    -> Parser x a
+    -> Parser x b
+mapWithStartPosition combineStartAndResult (Parser parse) =
+    Parser
+        (\s0 ->
+            case parse s0 of
+                Good p a s1 ->
+                    Good p (combineStartAndResult { row = s0.row, column = s0.col } a) s1
+
+                Bad p x ->
+                    Bad p x
+        )
+
+
+mapWithEndPosition :
+    (a -> { row : Int, column : Int } -> b)
+    -> Parser x a
+    -> Parser x b
+mapWithEndPosition combineStartAndResult (Parser parse) =
+    Parser
+        (\s0 ->
+            case parse s0 of
+                Good p a s1 ->
+                    Good p (combineStartAndResult a { row = s1.row, column = s1.col }) s1
+
+                Bad p x ->
+                    Bad p x
+        )
+
+
+mapWithStartAndEndPosition :
+    ({ row : Int, column : Int } -> a -> { row : Int, column : Int } -> b)
+    -> Parser x a
+    -> Parser x b
+mapWithStartAndEndPosition combineStartAndResult (Parser parse) =
+    Parser
+        (\s0 ->
+            case parse s0 of
+                Good p a s1 ->
+                    Good p (combineStartAndResult { row = s0.row, column = s0.col } a { row = s1.row, column = s1.col }) s1
+
+                Bad p x ->
+                    Bad p x
+        )
+
+
 getPosition : Parser x { row : Int, column : Int }
 getPosition =
     Parser (\s -> Good False { row = s.row, column = s.col } s)
