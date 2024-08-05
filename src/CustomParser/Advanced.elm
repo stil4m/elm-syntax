@@ -1,5 +1,5 @@
 module CustomParser.Advanced exposing
-    ( Parser, run, DeadEnd, Token(..)
+    ( Parser, run, DeadEnd
     , number, symbol, keyword, variable, end
     , succeed, problem, succeedLazy, lazy, map, map2, map3, map4, map5, map6, map7, map8, map9, map10, map11, andThen, ignore
     , oneOf, backtrackable, commit
@@ -12,7 +12,7 @@ module CustomParser.Advanced exposing
 
 {-|
 
-@docs Parser, run, DeadEnd, Token
+@docs Parser, run, DeadEnd
 
 @docs number, symbol, keyword, variable, end
 
@@ -786,8 +786,8 @@ commit a =
     Parser (\s -> Good True a s)
 
 
-keyword : Token x -> res -> Parser x res
-keyword (Token kwd expecting) res =
+keyword : String -> x -> res -> Parser x res
+keyword kwd expecting res =
     let
         progress : Bool
         progress =
@@ -814,12 +814,8 @@ keyword (Token kwd expecting) res =
         )
 
 
-type Token x
-    = Token String x
-
-
-symbol : Token x -> res -> Parser x res
-symbol (Token str expecting) res =
+symbol : String -> x -> res -> Parser x res
+symbol str expecting res =
     let
         progress : Bool
         progress =
@@ -1057,8 +1053,8 @@ revAlways _ b =
     b
 
 
-nestableMultiComment : Token x -> Token x -> Parser x ()
-nestableMultiComment ((Token oStr oX) as open) ((Token cStr cX) as close) =
+nestableMultiComment : String -> x -> String -> x -> Parser x ()
+nestableMultiComment oStr oX cStr cX =
     case String.uncons oStr of
         Nothing ->
             problem oX
@@ -1076,9 +1072,9 @@ nestableMultiComment ((Token oStr oX) as open) ((Token cStr cX) as close) =
 
                         chompOpen : Parser x ()
                         chompOpen =
-                            symbol open ()
+                            symbol oStr oX ()
                     in
-                    ignore chompOpen (nestableHelp isNotRelevant chompOpen (symbol close ()) cX 1)
+                    ignore chompOpen (nestableHelp isNotRelevant chompOpen (symbol cStr cX ()) cX 1)
 
 
 nestableHelp : (Char -> Bool) -> Parser x () -> Parser x () -> x -> Int -> Parser x ()
