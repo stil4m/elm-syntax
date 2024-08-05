@@ -13,8 +13,8 @@ import Set
 
 exposeDefinition : Parser (WithComments Exposing)
 exposeDefinition =
-    CustomParser.map5
-        (\() commentsAfterExposing commentsBefore exposingListInnerResult () ->
+    CustomParser.map4
+        (\commentsAfterExposing commentsBefore exposingListInnerResult () ->
             { comments =
                 commentsAfterExposing
                     |> Rope.prependTo commentsBefore
@@ -22,8 +22,9 @@ exposeDefinition =
             , syntax = exposingListInnerResult.syntax
             }
         )
-        Tokens.exposingToken
-        (Layout.maybeLayoutUntilIgnored CustomParser.symbolFollowedBy "(")
+        (CustomParser.symbolFollowedBy "exposing"
+            (Layout.maybeLayoutUntilIgnored CustomParser.symbolFollowedBy "(")
+        )
         Layout.optimisticLayout
         exposingListInner
         Tokens.parensEnd
@@ -58,16 +59,15 @@ exposingListInner =
                     (Layout.maybeAroundBothSides (exposable |> Node.parser))
                 )
             )
-        , CustomParser.map4
-            (\start () commentsAfterDotDot end ->
+        , CustomParser.map3
+            (\start commentsAfterDotDot end ->
                 { comments = commentsAfterDotDot
                 , syntax =
                     All { start = start, end = end }
                 }
             )
             CustomParser.getPosition
-            Tokens.dotDot
-            Layout.maybeLayout
+            (CustomParser.symbolFollowedBy ".." Layout.maybeLayout)
             CustomParser.getPosition
         ]
 
@@ -83,13 +83,14 @@ exposable =
 
 infixExpose : CustomParser.Parser (WithComments TopLevelExpose)
 infixExpose =
-    CustomParser.map3 (\() infixName () -> { comments = Rope.empty, syntax = InfixExpose infixName })
-        Tokens.parensStart
-        (CustomParser.variable
-            { inner = \c -> c /= ')'
-            , reserved = Set.empty
-            , start = \c -> c /= ')'
-            }
+    CustomParser.map2 (\infixName () -> { comments = Rope.empty, syntax = InfixExpose infixName })
+        (CustomParser.symbolFollowedBy "("
+            (CustomParser.variable
+                { inner = \c -> c /= ')'
+                , reserved = Set.empty
+                , start = \c -> c /= ')'
+                }
+            )
         )
         Tokens.parensEnd
 
@@ -110,8 +111,8 @@ typeExpose =
         )
         Tokens.typeName
         (CustomParser.oneOf
-            [ CustomParser.map6
-                (\commentsBefore start () left right end ->
+            [ CustomParser.map5
+                (\commentsBefore start left right end ->
                     Just
                         { comments = commentsBefore |> Rope.prependTo left |> Rope.prependTo right
                         , syntax = { start = start, end = end }
@@ -119,8 +120,9 @@ typeExpose =
                 )
                 (Layout.maybeLayout |> CustomParser.backtrackable)
                 CustomParser.getPosition
-                Tokens.parensStart
-                (Layout.maybeLayoutUntilIgnored CustomParser.symbolFollowedBy "..")
+                (CustomParser.symbolFollowedBy "("
+                    (Layout.maybeLayoutUntilIgnored CustomParser.symbolFollowedBy "..")
+                )
                 (Layout.maybeLayoutUntilIgnored CustomParser.symbolFollowedBy ")")
                 CustomParser.getPosition
             , CustomParser.succeed Nothing

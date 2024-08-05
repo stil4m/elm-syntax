@@ -38,8 +38,8 @@ effectWhereClause =
 
 whereBlock : Parser (WithComments { command : Maybe (Node String), subscription : Maybe (Node String) })
 whereBlock =
-    CustomParser.map3
-        (\() pairs () ->
+    CustomParser.map2
+        (\pairs () ->
             { comments = pairs.comments
             , syntax =
                 { command =
@@ -53,34 +53,34 @@ whereBlock =
                 }
             }
         )
-        Tokens.curlyStart
-        (ParserWithComments.sepBy1
-            ","
-            (Layout.maybeAroundBothSides effectWhereClause)
+        (CustomParser.symbolFollowedBy "{"
+            (ParserWithComments.sepBy1
+                ","
+                (Layout.maybeAroundBothSides effectWhereClause)
+            )
         )
         Tokens.curlyEnd
 
 
 effectWhereClauses : Parser (WithComments { command : Maybe (Node String), subscription : Maybe (Node String) })
 effectWhereClauses =
-    CustomParser.map3
-        (\() commentsBefore whereResult ->
+    CustomParser.map2
+        (\commentsBefore whereResult ->
             { comments = commentsBefore |> Rope.prependTo whereResult.comments
             , syntax = whereResult.syntax
             }
         )
-        Tokens.whereToken
-        Layout.maybeLayout
+        (CustomParser.keywordFollowedBy "where" Layout.maybeLayout)
         whereBlock
 
 
 effectModuleDefinition : Parser (WithComments Module)
 effectModuleDefinition =
-    CustomParser.map9
-        (\() commentsAfterEffect () commentsModule name commentsAfterName whereClauses commentsAfterWhereClauses exp ->
+    CustomParser.map7
+        (\commentsAfterEffect commentsAfterModule name commentsAfterName whereClauses commentsAfterWhereClauses exp ->
             { comments =
                 commentsAfterEffect
-                    |> Rope.prependTo commentsModule
+                    |> Rope.prependTo commentsAfterModule
                     |> Rope.prependTo commentsAfterName
                     |> Rope.prependTo whereClauses.comments
                     |> Rope.prependTo commentsAfterWhereClauses
@@ -94,10 +94,8 @@ effectModuleDefinition =
                     }
             }
         )
-        (CustomParser.keyword "effect" ())
-        Layout.maybeLayout
-        Tokens.moduleToken
-        Layout.maybeLayout
+        (CustomParser.keywordFollowedBy "effect" Layout.maybeLayout)
+        (CustomParser.keywordFollowedBy "module" Layout.maybeLayout)
         moduleName
         Layout.maybeLayout
         effectWhereClauses
@@ -107,8 +105,8 @@ effectModuleDefinition =
 
 normalModuleDefinition : Parser (WithComments Module)
 normalModuleDefinition =
-    CustomParser.map5
-        (\() commentsAfterModule moduleName commentsAfterModuleName exposingList ->
+    CustomParser.map4
+        (\commentsAfterModule moduleName commentsAfterModuleName exposingList ->
             { comments =
                 commentsAfterModule
                     |> Rope.prependTo commentsAfterModuleName
@@ -120,8 +118,7 @@ normalModuleDefinition =
                     }
             }
         )
-        Tokens.moduleToken
-        Layout.maybeLayout
+        (CustomParser.keywordFollowedBy "module" Layout.maybeLayout)
         moduleName
         Layout.maybeLayout
         (Node.parser exposeDefinition)
@@ -129,8 +126,8 @@ normalModuleDefinition =
 
 portModuleDefinition : Parser (WithComments Module)
 portModuleDefinition =
-    CustomParser.map7
-        (\() commentsAfterPort () commentsAfterModule moduleName commentsAfterModuleName exposingList ->
+    CustomParser.map5
+        (\commentsAfterPort commentsAfterModule moduleName commentsAfterModuleName exposingList ->
             { comments =
                 commentsAfterPort
                     |> Rope.prependTo commentsAfterModule
@@ -139,10 +136,8 @@ portModuleDefinition =
             , syntax = PortModule { moduleName = moduleName, exposingList = exposingList.syntax }
             }
         )
-        Tokens.portToken
-        Layout.maybeLayout
-        Tokens.moduleToken
-        Layout.maybeLayout
+        (CustomParser.keywordFollowedBy "port" Layout.maybeLayout)
+        (CustomParser.keywordFollowedBy "module" Layout.maybeLayout)
         moduleName
         Layout.maybeLayout
         (Node.parser exposeDefinition)
