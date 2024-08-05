@@ -594,8 +594,8 @@ blockElement =
 
 letDestructuringDeclaration : Parser (WithComments (Node LetDeclaration))
 letDestructuringDeclaration =
-    CustomParser.map2
-        (\pattern expressionResult ->
+    CustomParser.map4
+        (\pattern commentsAfterPattern commentsAfterEquals expressionResult ->
             let
                 (Node { start } _) =
                     pattern.syntax
@@ -603,14 +603,20 @@ letDestructuringDeclaration =
                 (Node { end } _) =
                     expressionResult.syntax
             in
-            { comments = pattern.comments |> Rope.prependTo expressionResult.comments
+            { comments =
+                pattern.comments
+                    |> Rope.prependTo commentsAfterPattern
+                    |> Rope.prependTo commentsAfterEquals
+                    |> Rope.prependTo expressionResult.comments
             , syntax =
                 Node { start = start, end = end }
                     (LetDestructuring pattern.syntax expressionResult.syntax)
             }
         )
         Patterns.pattern
-        (CustomParser.symbolFollowedBy "=" expression)
+        Layout.maybeLayout
+        (CustomParser.symbolFollowedBy "=" Layout.maybeLayout)
+        expression
 
 
 letFunction : Parser (WithComments (Node LetDeclaration))

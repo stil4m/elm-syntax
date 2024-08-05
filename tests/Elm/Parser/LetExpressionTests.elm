@@ -226,6 +226,22 @@ all =
   in
   bar"""
                     |> expectInvalid
+        , test "should not parse let destructuring with non-positive layout before =" <|
+            \() ->
+                """let
+    (bar)
+    =     1
+  in
+  bar"""
+                    |> expectInvalid
+        , test "should not parse let destructuring with non-positive layout before expression" <|
+            \() ->
+                """let
+    (bar) =
+    1
+  in
+  bar"""
+                    |> expectInvalid
         , test "should not parse let type annotation without a declaration" <|
             \() ->
                 """let
