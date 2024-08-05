@@ -67,12 +67,12 @@ whitespaceAndCommentsUntilEndComments end =
 
 whitespaceAndCommentsOrEmpty : CustomParser.Parser Comments
 whitespaceAndCommentsOrEmpty =
-    CustomParser.oneOf
-        [ whitespace
+    CustomParser.oneOf2
+        (whitespace
             -- whitespace can't be followed by more whitespace
             |> CustomParser.andThen (\_ -> fromCommentElseEmpty)
-        , fromCommentElseEmpty
-        ]
+        )
+        fromCommentElseEmpty
 
 
 whitespaceAndCommentsOrEmpty : Parser Comments
@@ -120,7 +120,7 @@ succeedRopeEmpty =
 
 fromMultilineCommentNodeOrEmptyOnProblem : Parser Comments
 fromMultilineCommentNodeOrEmptyOnProblem =
-    CustomParser.oneOf [ fromMultilineCommentNode, CustomParser.succeed Rope.empty ]
+    CustomParser.orSucceed fromMultilineCommentNode Rope.empty
 
 
 fromMultilineCommentNode : Parser Comments

@@ -168,9 +168,9 @@ listOrGlslExpression =
 
 expressionAfterOpeningSquareBracket : Parser (WithComments (Node Expression))
 expressionAfterOpeningSquareBracket =
-    CustomParser.oneOf
-        [ glslExpressionAfterOpeningSquareBracket
-        , CustomParser.mapWithStartAndEndPosition
+    CustomParser.oneOf2
+        glslExpressionAfterOpeningSquareBracket
+        (CustomParser.mapWithStartAndEndPosition
             (\start elements end ->
                 { comments = elements.comments
                 , syntax =
@@ -188,9 +188,9 @@ expressionAfterOpeningSquareBracket =
                     }
                 )
                 Layout.maybeLayout
-                (CustomParser.oneOf
-                    [ CustomParser.symbol "]" { comments = Rope.empty, syntax = ListExpr [] }
-                    , CustomParser.map4
+                (CustomParser.oneOf2
+                    (CustomParser.symbol "]" { comments = Rope.empty, syntax = ListExpr [] })
+                    (CustomParser.map4
                         (\head commentsAfterHead tail () ->
                             { comments =
                                 head.comments
@@ -207,10 +207,10 @@ expressionAfterOpeningSquareBracket =
                             )
                         )
                         Tokens.squareEnd
-                    ]
+                    )
                 )
             )
-        ]
+        )
 
 
 
@@ -234,8 +234,8 @@ recordExpression =
 
 recordContentsCurlyEnd : Parser (WithComments Expression)
 recordContentsCurlyEnd =
-    CustomParser.oneOf
-        [ CustomParser.map5
+    CustomParser.oneOf2
+        (CustomParser.map5
             (\nameNode commentsAfterFunctionName afterNameBeforeFields tailFields commentsBeforeClosingCurly ->
                 { comments =
                     commentsAfterFunctionName
@@ -253,8 +253,8 @@ recordContentsCurlyEnd =
             )
             (Node.parserCore Tokens.functionName)
             Layout.maybeLayout
-            (CustomParser.oneOf
-                [ CustomParser.map2
+            (CustomParser.oneOf2
+                (CustomParser.map2
                     (\commentsBefore setterResult ->
                         { comments = commentsBefore |> Rope.prependTo setterResult.comments
                         , syntax = RecordUpdateFirstSetter setterResult.syntax
@@ -262,7 +262,8 @@ recordContentsCurlyEnd =
                     )
                     (CustomParser.symbolFollowedBy "|" Layout.maybeLayout)
                     recordSetterNodeWithLayout
-                , CustomParser.map3
+                )
+                (CustomParser.map3
                     (\commentsBefore expressionResult commentsAfter ->
                         { comments =
                             commentsBefore
@@ -274,12 +275,12 @@ recordContentsCurlyEnd =
                     (CustomParser.symbolFollowedBy "=" Layout.maybeLayout)
                     expression
                     Layout.maybeLayout
-                ]
+                )
             )
             recordFields
             (Layout.maybeLayoutUntilIgnored CustomParser.symbolFollowedBy "}")
-        , CustomParser.symbol "}" { comments = Rope.empty, syntax = RecordExpr [] }
-        ]
+        )
+        (CustomParser.symbol "}" { comments = Rope.empty, syntax = RecordExpr [] })
 
 
 type RecordFieldsOrUpdateAfterName
@@ -566,10 +567,9 @@ letDeclarationsIn =
             }
         )
         Layout.onTopIndentation
-        (CustomParser.oneOf
-            [ letFunction
-            , letDestructuringDeclaration
-            ]
+        (CustomParser.oneOf2
+            letFunction
+            letDestructuringDeclaration
         )
         Layout.optimisticLayout
         (ParserWithComments.until Tokens.inToken blockElement)
@@ -584,10 +584,9 @@ blockElement =
             }
         )
         Layout.onTopIndentation
-        (CustomParser.oneOf
-            [ letFunction
-            , letDestructuringDeclaration
-            ]
+        (CustomParser.oneOf2
+            letFunction
+            letDestructuringDeclaration
         )
         Layout.optimisticLayout
 
@@ -699,8 +698,8 @@ letFunction =
         )
         (Node.parserCore Tokens.functionName)
         Layout.maybeLayout
-        (CustomParser.oneOf
-            [ CustomParser.map5
+        (CustomParser.orSucceed
+            (CustomParser.map5
                 (\commentsBeforeTypeAnnotation typeAnnotationResult commentsAfterTypeAnnotation implementationName afterImplementationName ->
                     Just
                         { comments =
@@ -717,8 +716,8 @@ letFunction =
                 Layout.layoutStrict
                 (Node.parserCore Tokens.functionName)
                 Layout.maybeLayout
-            , CustomParser.succeed Nothing
-            ]
+            )
+            Nothing
         )
         parameterPatternsEqual
         Layout.maybeLayout
@@ -858,10 +857,10 @@ unqualifiedFunctionReferenceExpression =
 
 maybeDotReferenceExpressionTuple : CustomParser.Parser (Maybe ( List String, String ))
 maybeDotReferenceExpressionTuple =
-    CustomParser.oneOf
-        [ CustomParser.symbolFollowedBy "."
-            (CustomParser.oneOf
-                [ CustomParser.map2
+    CustomParser.orSucceed
+        (CustomParser.symbolFollowedBy "."
+            (CustomParser.oneOf2
+                (CustomParser.map2
                     (\firstName after ->
                         Just
                             (case after of
@@ -874,11 +873,13 @@ maybeDotReferenceExpressionTuple =
                     )
                     Tokens.typeName
                     (CustomParser.lazy (\() -> maybeDotReferenceExpressionTuple))
-                , CustomParser.map (\unqualified -> Just ( [], unqualified )) Tokens.functionName
-                ]
+                )
+                (CustomParser.map (\unqualified -> Just ( [], unqualified ))
+                    Tokens.functionName
+                )
             )
-        , CustomParser.succeed Nothing
-        ]
+        )
+        Nothing
 
 
 recordAccessFunctionExpression : Parser (WithComments (Node Expression))
@@ -1074,8 +1075,8 @@ subExpressionLoopStep :
                 (WithComments (Node Expression))
             )
 subExpressionLoopStep aboveCurrentPrecedenceLayout leftExpressionResult =
-    CustomParser.oneOf
-        [ CustomParser.map2
+    CustomParser.orSucceed
+        (CustomParser.map2
             (\extensionRight commentsAfter ->
                 { comments =
                     leftExpressionResult.comments
@@ -1089,9 +1090,8 @@ subExpressionLoopStep aboveCurrentPrecedenceLayout leftExpressionResult =
             )
             aboveCurrentPrecedenceLayout
             Layout.optimisticLayout
-        , CustomParser.succeed
-            (CustomParser.Advanced.Done leftExpressionResult)
-        ]
+        )
+        (CustomParser.Advanced.Done leftExpressionResult)
 
 
 applyExtensionRight : ExtensionRight -> Node Expression -> Node Expression
