@@ -97,8 +97,8 @@ parensTypeAnnotation =
                 Layout.maybeLayout
                 (ParserWithComments.untilWithoutReverse
                     Tokens.parensEnd
-                    (CustomParser.map4
-                        (\() commentsBefore typeAnnotationResult commentsAfter ->
+                    (CustomParser.map3
+                        (\commentsBefore typeAnnotationResult commentsAfter ->
                             { comments =
                                 commentsBefore
                                     |> Rope.prependTo typeAnnotationResult.comments
@@ -106,8 +106,7 @@ parensTypeAnnotation =
                             , syntax = typeAnnotationResult.syntax
                             }
                         )
-                        Tokens.comma
-                        Layout.maybeLayout
+                        (CustomParser.symbolFollowedBy "," Layout.maybeLayout)
                         typeAnnotation
                         Layout.maybeLayout
                     )
@@ -124,8 +123,8 @@ genericTypeAnnotation =
 
 recordTypeAnnotation : Parser (WithComments TypeAnnotation)
 recordTypeAnnotation =
-    CustomParser.map3
-        (\() commentsBefore afterCurly ->
+    CustomParser.map2
+        (\commentsBefore afterCurly ->
             case afterCurly of
                 Nothing ->
                     { comments = commentsBefore
@@ -139,8 +138,7 @@ recordTypeAnnotation =
                     , syntax = afterCurlyResult.syntax
                     }
         )
-        Tokens.curlyStart
-        Layout.maybeLayout
+        (CustomParser.symbolFollowedBy "{" Layout.maybeLayout)
         (CustomParser.oneOf
             [ CustomParser.map4
                 (\firstNameStart firstName commentsAfterFirstName afterFirstName ->
@@ -167,16 +165,17 @@ recordTypeAnnotation =
                 Tokens.functionName
                 Layout.maybeLayout
                 (CustomParser.oneOf
-                    [ CustomParser.map2
-                        (\() extension ->
+                    [ CustomParser.map
+                        (\extension ->
                             { comments = extension.comments
                             , syntax = RecordExtensionExpressionAfterName extension.syntax
                             }
                         )
-                        Tokens.pipe
-                        (Node.parser recordFieldsTypeAnnotation)
-                    , CustomParser.map5
-                        (\() commentsBeforeFirstFieldValue firstFieldValue commentsAfterFirstFieldValue tailFields ->
+                        (CustomParser.symbolFollowedBy "|"
+                            (Node.parser recordFieldsTypeAnnotation)
+                        )
+                    , CustomParser.map4
+                        (\commentsBeforeFirstFieldValue firstFieldValue commentsAfterFirstFieldValue tailFields ->
                             { comments =
                                 commentsBeforeFirstFieldValue
                                     |> Rope.prependTo firstFieldValue.comments
@@ -189,8 +188,7 @@ recordTypeAnnotation =
                                     }
                             }
                         )
-                        Tokens.colon
-                        Layout.maybeLayout
+                        (CustomParser.symbolFollowedBy ":" Layout.maybeLayout)
                         typeAnnotation
                         Layout.maybeLayout
                         (CustomParser.oneOf
@@ -201,8 +199,7 @@ recordTypeAnnotation =
                     ]
                 )
                 |> CustomParser.ignore Tokens.curlyEnd
-            , CustomParser.map (\() -> Nothing)
-                Tokens.curlyEnd
+            , CustomParser.symbol "}" Nothing
             ]
         )
 
@@ -290,8 +287,8 @@ typedTypeAnnotationWithoutArguments =
 maybeDotTypeNamesTuple : CustomParser.Parser (Maybe ( List String, String ))
 maybeDotTypeNamesTuple =
     CustomParser.oneOf
-        [ CustomParser.map3
-            (\() firstName afterFirstName ->
+        [ CustomParser.map2
+            (\firstName afterFirstName ->
                 case afterFirstName of
                     Nothing ->
                         Just ( [], firstName )
@@ -299,8 +296,7 @@ maybeDotTypeNamesTuple =
                     Just ( qualificationAfter, unqualified ) ->
                         Just ( firstName :: qualificationAfter, unqualified )
             )
-            Tokens.dot
-            Tokens.typeName
+            (CustomParser.symbolFollowedBy "." Tokens.typeName)
             (CustomParser.lazy (\() -> maybeDotTypeNamesTuple))
         , CustomParser.succeed Nothing
         ]

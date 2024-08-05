@@ -120,8 +120,8 @@ escapedCharValue =
         , -- Eventhough Elm-format will change \r to a unicode version. When you dont use elm-format, this will not happen.
           CustomParser.symbol "r" '\u{000D}'
         , CustomParser.symbol "\\" '\\'
-        , CustomParser.map3
-            (\() hex () ->
+        , CustomParser.map2
+            (\hex () ->
                 case String.toLower hex |> Hex.fromString of
                     Ok n ->
                         Char.fromCode n
@@ -129,12 +129,13 @@ escapedCharValue =
                     Err _ ->
                         '\u{0000}'
             )
-            (CustomParser.symbol "u{" ())
-            (CustomParser.variable
-                { inner = Char.isHexDigit
-                , reserved = Set.empty
-                , start = Char.isHexDigit
-                }
+            (CustomParser.symbolFollowedBy "u{"
+                (CustomParser.variable
+                    { inner = Char.isHexDigit
+                    , reserved = Set.empty
+                    , start = Char.isHexDigit
+                    }
+                )
             )
             (CustomParser.symbol "}" ())
         ]
@@ -147,13 +148,14 @@ slashEscapedCharValue =
 
 characterLiteral : CustomParser.Parser Char
 characterLiteral =
-    CustomParser.map3
-        (\() res () -> res)
-        (CustomParser.symbol "'" ())
-        (CustomParser.oneOf
-            [ slashEscapedCharValue
-            , CustomParser.Extra.anyChar
-            ]
+    CustomParser.map2
+        (\res () -> res)
+        (CustomParser.symbolFollowedBy "'"
+            (CustomParser.oneOf
+                [ slashEscapedCharValue
+                , CustomParser.Extra.anyChar
+                ]
+            )
         )
         (CustomParser.symbol "'" ())
 
@@ -173,12 +175,11 @@ stringLiteralHelper : String -> CustomParser.Parser (CustomParser.Advanced.Step 
 stringLiteralHelper stringSoFar =
     CustomParser.oneOf
         [ CustomParser.symbol "\"" (CustomParser.Advanced.Done stringSoFar)
-        , CustomParser.map2
-            (\() v ->
+        , CustomParser.map
+            (\v ->
                 CustomParser.Advanced.Loop (stringSoFar ++ String.fromChar v ++ "")
             )
-            backSlash
-            escapedCharValue
+            (CustomParser.symbolFollowedBy "\\" escapedCharValue)
         , CustomParser.mapChompedString
             (\value () -> CustomParser.Advanced.Loop (stringSoFar ++ value ++ ""))
             chompWhileIsInsideString
@@ -195,12 +196,11 @@ tripleQuotedStringLiteralStep stringSoFar =
     CustomParser.oneOf
         [ CustomParser.symbol "\"\"\"" (CustomParser.Advanced.Done stringSoFar)
         , CustomParser.symbol "\"" (CustomParser.Advanced.Loop (stringSoFar ++ "\""))
-        , CustomParser.map2
-            (\() v ->
+        , CustomParser.map
+            (\v ->
                 CustomParser.Advanced.Loop (stringSoFar ++ String.fromChar v ++ "")
             )
-            backSlash
-            escapedCharValue
+            (CustomParser.symbolFollowedBy "\\" escapedCharValue)
         , CustomParser.mapChompedString
             (\value () -> CustomParser.Advanced.Loop (stringSoFar ++ value ++ ""))
             chompWhileIsInsideString
