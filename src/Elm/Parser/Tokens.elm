@@ -1,6 +1,6 @@
 module Elm.Parser.Tokens exposing
-    ( asToken, caseToken, exposingToken, ifToken, importToken, inToken, letToken, moduleToken, whereToken, portToken, aliasToken
-    , dot, dotDot, squareStart, squareEnd, curlyStart, curlyEnd, pipe, backSlash, arrowRight, equal, comma, parensStart, parensEnd, colon, cons
+    ( inToken
+    , squareEnd, curlyEnd, arrowRight, equal, parensEnd
     , minus, minusSymbols
     , prefixOperatorToken, allowedOperatorTokens
     , characterLiteral, singleOrTripleQuotedStringLiteral
@@ -9,10 +9,10 @@ module Elm.Parser.Tokens exposing
 
 {-|
 
-@docs asToken, caseToken, exposingToken, ifToken, importToken, inToken, letToken, moduleToken, whereToken, portToken, aliasToken
+@docs inToken
 
 @docs squareEnd, curlyEnd, arrowRight, equal, parensEnd
-@docs minusFollowedBySingleWhitespace
+@docs minus, minusSymbols
 @docs prefixOperatorToken, allowedOperatorTokens
 
 @docs characterLiteral, singleOrTripleQuotedStringLiteral
@@ -55,59 +55,9 @@ reservedList =
         |> Set.fromList
 
 
-portToken : CustomParser.Parser ()
-portToken =
-    CustomParser.keyword "port" ()
-
-
-moduleToken : CustomParser.Parser ()
-moduleToken =
-    CustomParser.keyword "module" ()
-
-
-whereToken : CustomParser.Parser ()
-whereToken =
-    CustomParser.keyword "where" ()
-
-
-exposingToken : CustomParser.Parser ()
-exposingToken =
-    CustomParser.symbol "exposing" ()
-
-
-importToken : CustomParser.Parser ()
-importToken =
-    CustomParser.keyword "import" ()
-
-
-asToken : CustomParser.Parser ()
-asToken =
-    CustomParser.keyword "as" ()
-
-
-ifToken : CustomParser.Parser ()
-ifToken =
-    CustomParser.keyword "if" ()
-
-
-caseToken : CustomParser.Parser ()
-caseToken =
-    CustomParser.keyword "case" ()
-
-
-letToken : CustomParser.Parser ()
-letToken =
-    CustomParser.keyword "let" ()
-
-
 inToken : CustomParser.Parser ()
 inToken =
     CustomParser.keyword "in" ()
-
-
-aliasToken : CustomParser.Parser ()
-aliasToken =
-    CustomParser.keyword "alias" ()
 
 
 escapedCharValue : CustomParser.Parser Char
@@ -335,44 +285,14 @@ minusSymbols =
         ]
 
 
-dot : CustomParser.Parser ()
-dot =
-    CustomParser.symbol "." ()
-
-
-dotDot : CustomParser.Parser ()
-dotDot =
-    CustomParser.symbol ".." ()
-
-
-squareStart : CustomParser.Parser ()
-squareStart =
-    CustomParser.symbol "[" ()
-
-
 squareEnd : CustomParser.Parser ()
 squareEnd =
     CustomParser.symbol "]" ()
 
 
-curlyStart : CustomParser.Parser ()
-curlyStart =
-    CustomParser.symbol "{" ()
-
-
 curlyEnd : CustomParser.Parser ()
 curlyEnd =
     CustomParser.symbol "}" ()
-
-
-pipe : CustomParser.Parser ()
-pipe =
-    CustomParser.symbol "|" ()
-
-
-backSlash : CustomParser.Parser ()
-backSlash =
-    CustomParser.symbol "\\" ()
 
 
 arrowRight : CustomParser.Parser ()
@@ -385,26 +305,6 @@ equal =
     CustomParser.symbol "=" ()
 
 
-comma : CustomParser.Parser ()
-comma =
-    CustomParser.symbol "," ()
-
-
-parensStart : CustomParser.Parser ()
-parensStart =
-    CustomParser.symbol "(" ()
-
-
 parensEnd : CustomParser.Parser ()
 parensEnd =
     CustomParser.symbol ")" ()
-
-
-colon : CustomParser.Parser ()
-colon =
-    CustomParser.symbol ":" ()
-
-
-cons : CustomParser.Parser ()
-cons =
-    CustomParser.symbol "::" ()
