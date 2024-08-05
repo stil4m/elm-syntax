@@ -1,4 +1,4 @@
-module CustomParser.Extra exposing (anyChar, withIndent)
+module CustomParser.Extra exposing (anyChar)
 
 import CustomParser
 
@@ -21,10 +21,3 @@ anyChar =
 problemAnyCharacter : CustomParser.Parser a
 problemAnyCharacter =
     CustomParser.problem "expected any character"
-
-
-{-| For a given ParserWithComments.Parser, take the current start column as indentation for the whole block
--}
-withIndent : CustomParser.Parser a -> CustomParser.Parser a
-withIndent p =
-    CustomParser.withIndentSetToColumn p
