@@ -10,7 +10,6 @@ module ParserWithComments exposing
 
 import CustomParser exposing (Parser)
 import CustomParser.Advanced
-import CustomParser.Extra
 import Elm.Syntax.Node exposing (Node)
 import ParserFast exposing (Parser)
 import ParserFast.Advanced
