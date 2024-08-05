@@ -2,7 +2,7 @@ module CustomParser.Advanced exposing
     ( Parser, run, DeadEnd, Token(..)
     , number, symbol, keyword, variable, end
     , succeed, problem, succeedLazy, lazy, map, map2, map3, map4, map5, map6, map7, map8, map9, map10, map11, andThen, ignore
-    , oneOf, backtrackable, commit, token
+    , oneOf, backtrackable, commit
     , loop, Step(..)
     , nestableMultiComment
     , getChompedString, chompIf, chompWhile, mapChompedString
@@ -21,7 +21,7 @@ module CustomParser.Advanced exposing
 
 @docs succeed, problem, succeedLazy, lazy, map, map2, map3, map4, map5, map6, map7, map8, map9, map10, map11, andThen, ignore
 
-@docs oneOf, backtrackable, commit, token
+@docs oneOf, backtrackable, commit
 
 @docs loop, Step
 
@@ -822,11 +822,6 @@ commit a =
     Parser (\s -> Good True a s)
 
 
-symbol : Token x -> Parser x ()
-symbol =
-    token
-
-
 keyword : Token x -> Parser x ()
 keyword (Token kwd expecting) =
     let
@@ -859,8 +854,8 @@ type Token x
     = Token String x
 
 
-token : Token x -> Parser x ()
-token (Token str expecting) =
+symbol : Token x -> Parser x ()
+symbol (Token str expecting) =
     let
         progress : Bool
         progress =
@@ -1117,9 +1112,9 @@ nestableMultiComment ((Token oStr oX) as open) ((Token cStr cX) as close) =
 
                         chompOpen : Parser x ()
                         chompOpen =
-                            token open
+                            symbol open
                     in
-                    ignore chompOpen (nestableHelp isNotRelevant chompOpen (token close) cX 1)
+                    ignore chompOpen (nestableHelp isNotRelevant chompOpen (symbol close) cX 1)
 
 
 nestableHelp : (Char -> Bool) -> Parser x () -> Parser x () -> x -> Int -> Parser x ()
