@@ -5,6 +5,7 @@ import Elm.Parser.Layout as Layout
 import Elm.Parser.Node as Node
 import Elm.Parser.Tokens as Tokens
 import Elm.Syntax.Exposing exposing (Exposing(..), TopLevelExpose(..))
+import Elm.Syntax.Node exposing (Node(..))
 import ParserWithComments exposing (WithComments)
 import Rope
 import Set
@@ -45,11 +46,11 @@ exposingListInner =
                         )
                 }
             )
-            (Node.parser exposable)
+            exposable
             Layout.maybeLayout
             (ParserWithComments.many
                 (CustomParser.symbolFollowedBy ","
-                    (Layout.maybeAroundBothSides (exposable |> Node.parser))
+                    (Layout.maybeAroundBothSides exposable)
                 )
             )
         , CustomParser.mapWithStartAndEndPosition
@@ -63,7 +64,7 @@ exposingListInner =
         ]
 
 
-exposable : Parser (WithComments TopLevelExpose)
+exposable : Parser (WithComments (Node TopLevelExpose))
 exposable =
     CustomParser.oneOf
         [ functionExpose
@@ -72,7 +73,7 @@ exposable =
         ]
 
 
-infixExpose : CustomParser.Parser (WithComments TopLevelExpose)
+infixExpose : CustomParser.Parser (WithComments (Node TopLevelExpose))
 infixExpose =
     CustomParser.map2 (\infixName () -> { comments = Rope.empty, syntax = InfixExpose infixName })
         (CustomParser.symbolFollowedBy "("
@@ -84,9 +85,10 @@ infixExpose =
             )
         )
         Tokens.parensEnd
+        |> Node.parser
 
 
-typeExpose : Parser (WithComments TopLevelExpose)
+typeExpose : Parser (WithComments (Node TopLevelExpose))
 typeExpose =
     CustomParser.map2
         (\typeName open ->
@@ -119,9 +121,17 @@ typeExpose =
             , CustomParser.succeed Nothing
             ]
         )
+        |> Node.parser
 
 
-functionExpose : Parser (WithComments TopLevelExpose)
+functionExpose : Parser (WithComments (Node TopLevelExpose))
 functionExpose =
-    CustomParser.map (\name -> { comments = Rope.empty, syntax = FunctionExpose name })
+    CustomParser.mapWithStartAndEndPosition
+        (\start name end ->
+            { comments = Rope.empty
+            , syntax =
+                Node { start = start, end = end }
+                    (FunctionExpose name)
+            }
+        )
         Tokens.functionName
