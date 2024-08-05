@@ -20,10 +20,10 @@ import Rope
 import Set
 
 
-maybeLayoutUntilIgnored : (String -> Parser ()) -> String -> CustomParser.Parser Comments
+maybeLayoutUntilIgnored : (String -> () -> Parser ()) -> String -> CustomParser.Parser Comments
 maybeLayoutUntilIgnored endParser endSymbol =
     whitespaceAndCommentsUntilEndComments
-        (endParser endSymbol
+        (endParser endSymbol ()
             |> CustomParser.Extra.continueWith
                 (positivelyIndentedPlusResultingIn (String.length endSymbol) Rope.empty)
         )

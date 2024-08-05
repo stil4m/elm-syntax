@@ -113,7 +113,7 @@ parensPattern =
                     Tokens.parensEnd
                     (Tokens.comma |> CustomParser.Extra.continueWith (Layout.maybeAroundBothSides pattern))
                 )
-            , CustomParser.map (\() -> unitPatternWithComments) Tokens.parensEnd
+            , CustomParser.symbol ")" { comments = Rope.empty, syntax = UnitPattern }
             ]
         )
 
@@ -220,22 +220,12 @@ qualifiedPatternArg =
 
 allPattern : Parser (WithComments Pattern)
 allPattern =
-    CustomParser.map (\() -> allPatternWithComments) (CustomParser.symbol "_")
-
-
-allPatternWithComments : WithComments Pattern
-allPatternWithComments =
-    { comments = Rope.empty, syntax = AllPattern }
+    CustomParser.symbol "_" { comments = Rope.empty, syntax = AllPattern }
 
 
 unitPattern : Parser (WithComments Pattern)
 unitPattern =
-    CustomParser.map (\() -> unitPatternWithComments) (CustomParser.symbol "()")
-
-
-unitPatternWithComments : WithComments Pattern
-unitPatternWithComments =
-    { comments = Rope.empty, syntax = UnitPattern }
+    CustomParser.symbol "()" { comments = Rope.empty, syntax = UnitPattern }
 
 
 stringPattern : Parser (WithComments Pattern)
