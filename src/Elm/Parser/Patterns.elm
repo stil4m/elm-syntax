@@ -50,19 +50,14 @@ composablePatternTryToCompose =
 maybeComposedWith : Parser { comments : ParserWithComments.Comments, syntax : PatternComposedWith }
 maybeComposedWith =
     CustomParser.oneOf
-        [ CustomParser.map3
-            (\commentsAfterAs nameStart name ->
+        [ CustomParser.map2
+            (\commentsAfterAs name ->
                 { comments = commentsAfterAs
-                , syntax =
-                    PatternComposedWithAs
-                        (Node.singleLineStringFrom nameStart
-                            name
-                        )
+                , syntax = PatternComposedWithAs name
                 }
             )
             (CustomParser.keywordFollowedBy "as" Layout.maybeLayout)
-            CustomParser.getPosition
-            Tokens.functionName
+            (Node.parserCore Tokens.functionName)
         , CustomParser.map2
             (\commentsAfterCons patternResult ->
                 { comments = patternResult.comments |> Rope.prependTo commentsAfterCons
@@ -316,34 +311,26 @@ recordPattern =
         )
         (CustomParser.symbolFollowedBy "{" Layout.maybeLayout)
         (CustomParser.oneOf
-            [ CustomParser.map5
-                (\headStart head commentsAfterHead tail () ->
+            [ CustomParser.map4
+                (\head commentsAfterHead tail () ->
                     Just
                         { comments =
                             commentsAfterHead
                                 |> Rope.prependTo tail.comments
-                        , syntax =
-                            Node.singleLineStringFrom
-                                headStart
-                                head
-                                :: tail.syntax
+                        , syntax = head :: tail.syntax
                         }
                 )
-                CustomParser.getPosition
-                Tokens.functionName
+                (Node.parserCore Tokens.functionName)
                 Layout.maybeLayout
                 (ParserWithComments.many
-                    (CustomParser.map4
-                        (\beforeName nameStart name afterName ->
+                    (CustomParser.map3
+                        (\beforeName name afterName ->
                             { comments = beforeName |> Rope.prependTo afterName
-                            , syntax =
-                                Node.singleLineStringFrom nameStart
-                                    name
+                            , syntax = name
                             }
                         )
                         (CustomParser.symbolFollowedBy "," Layout.maybeLayout)
-                        CustomParser.getPosition
-                        Tokens.functionName
+                        (Node.parserCore Tokens.functionName)
                         Layout.maybeLayout
                     )
                 )

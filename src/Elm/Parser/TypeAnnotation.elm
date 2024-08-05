@@ -140,14 +140,8 @@ recordTypeAnnotation =
         )
         (CustomParser.symbolFollowedBy "{" Layout.maybeLayout)
         (CustomParser.oneOf
-            [ CustomParser.map5
-                (\firstNameStart firstName commentsAfterFirstName afterFirstName () ->
-                    let
-                        firstNameNode : Node String
-                        firstNameNode =
-                            Node.singleLineStringFrom firstNameStart
-                                firstName
-                    in
+            [ CustomParser.map4
+                (\firstNameNode commentsAfterFirstName afterFirstName () ->
                     Just
                         { comments =
                             commentsAfterFirstName
@@ -161,8 +155,7 @@ recordTypeAnnotation =
                                     TypeAnnotation.Record (Node.combine Tuple.pair firstNameNode fieldsAfterName.firstFieldValue :: fieldsAfterName.tailFields)
                         }
                 )
-                CustomParser.getPosition
-                Tokens.functionName
+                (Node.parserCore Tokens.functionName)
                 Layout.maybeLayout
                 (CustomParser.oneOf
                     [ CustomParser.map
@@ -230,24 +223,19 @@ recordFieldsTypeAnnotation =
 
 recordFieldDefinition : Parser (WithComments TypeAnnotation.RecordField)
 recordFieldDefinition =
-    CustomParser.map7
-        (\commentsBeforeFunctionName nameStart name commentsAfterFunctionName commentsAfterColon value commentsAfterValue ->
+    CustomParser.map6
+        (\commentsBeforeFunctionName name commentsAfterFunctionName commentsAfterColon value commentsAfterValue ->
             { comments =
                 commentsBeforeFunctionName
                     |> Rope.prependTo commentsAfterFunctionName
                     |> Rope.prependTo commentsAfterColon
                     |> Rope.prependTo value.comments
                     |> Rope.prependTo commentsAfterValue
-            , syntax =
-                ( Node.singleLineStringFrom nameStart
-                    name
-                , value.syntax
-                )
+            , syntax = ( name, value.syntax )
             }
         )
         Layout.maybeLayout
-        CustomParser.getPosition
-        Tokens.functionName
+        (Node.parserCore Tokens.functionName)
         (Layout.maybeLayoutUntilIgnored CustomParser.symbolFollowedBy ":")
         Layout.maybeLayout
         typeAnnotation
@@ -258,30 +246,29 @@ recordFieldDefinition =
 
 typedTypeAnnotationWithoutArguments : Parser (WithComments TypeAnnotation)
 typedTypeAnnotationWithoutArguments =
-    CustomParser.map4
-        (\nameStart startName afterStartName nameEndColumn ->
+    CustomParser.mapWithStartAndEndPosition
+        (\nameStart name nameEnd ->
             { comments = Rope.empty
             , syntax =
                 TypeAnnotation.Typed
-                    (Node
-                        { start = nameStart
-                        , end = { row = nameStart.row, column = nameEndColumn }
-                        }
-                        (case afterStartName of
-                            Nothing ->
-                                ( [], startName )
-
-                            Just ( qualificationAfterStartName, unqualified ) ->
-                                ( startName :: qualificationAfterStartName, unqualified )
-                        )
+                    (Node { start = nameStart, end = nameEnd }
+                        name
                     )
                     []
             }
         )
-        CustomParser.getPosition
-        Tokens.typeName
-        maybeDotTypeNamesTuple
-        CustomParser.getCol
+        (CustomParser.map2
+            (\startName afterStartName ->
+                case afterStartName of
+                    Nothing ->
+                        ( [], startName )
+
+                    Just ( qualificationAfterStartName, unqualified ) ->
+                        ( startName :: qualificationAfterStartName, unqualified )
+            )
+            Tokens.typeName
+            maybeDotTypeNamesTuple
+        )
 
 
 maybeDotTypeNamesTuple : CustomParser.Parser (Maybe ( List String, String ))
@@ -304,30 +291,30 @@ maybeDotTypeNamesTuple =
 
 typedTypeAnnotationWithArguments : Parser (WithComments TypeAnnotation)
 typedTypeAnnotationWithArguments =
-    CustomParser.map5
-        (\nameStart startName afterStartName nameEndColumn args ->
+    CustomParser.map2
+        (\nameNode args ->
             { comments = args.comments
-            , syntax =
-                TypeAnnotation.Typed
-                    (Node
-                        { start = nameStart
-                        , end = { row = nameStart.row, column = nameEndColumn }
-                        }
-                        (case afterStartName of
-                            Nothing ->
-                                ( [], startName )
-
-                            Just ( qualificationAfterStartName, unqualified ) ->
-                                ( startName :: qualificationAfterStartName, unqualified )
-                        )
-                    )
-                    args.syntax
+            , syntax = TypeAnnotation.Typed nameNode args.syntax
             }
         )
-        CustomParser.getPosition
-        Tokens.typeName
-        maybeDotTypeNamesTuple
-        CustomParser.getCol
+        (CustomParser.mapWithStartAndEndPosition
+            (\nameStart name nameEnd ->
+                Node { start = nameStart, end = nameEnd }
+                    name
+            )
+            (CustomParser.map2
+                (\startName afterStartName ->
+                    case afterStartName of
+                        Nothing ->
+                            ( [], startName )
+
+                        Just ( qualificationAfterStartName, unqualified ) ->
+                            ( startName :: qualificationAfterStartName, unqualified )
+                )
+                Tokens.typeName
+                maybeDotTypeNamesTuple
+            )
+        )
         (ParserWithComments.many
             (CustomParser.map2
                 (\commentsBefore typeAnnotationResult ->
