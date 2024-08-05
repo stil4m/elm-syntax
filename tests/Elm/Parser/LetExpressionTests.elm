@@ -209,15 +209,43 @@ all =
   in
   bar"""
                     |> expectInvalid
-
-        -- TODO Make this pass
-        --      , test "should fail to parse `as` pattern not surrounded by parentheses" <|
-        --          \() ->
-        --              """let
-        --  bar n as m = 1
-        --in
-        --bar"""
-        --                  |> expectInvalid
+        , test "should fail to parse `as` pattern not surrounded by parentheses" <|
+            \() ->
+                """let
+          bar n as m = 1
+        in
+        bar"""
+                    |> expectInvalid
+        , test "correctly parse variant + args pattern not surrounded by parentheses" <|
+            \() ->
+                """let
+          bar Bar m = 1
+        in
+        bar"""
+                    |> expectAst
+                        (Node { start = { row = 1, column = 1 }, end = { row = 4, column = 12 } }
+                            (LetExpression
+                                { declarations =
+                                    [ Node { start = { row = 2, column = 11 }, end = { row = 2, column = 24 } }
+                                        (LetFunction
+                                            { documentation = Nothing
+                                            , signature = Nothing
+                                            , declaration =
+                                                Node { start = { row = 2, column = 11 }, end = { row = 2, column = 24 } }
+                                                    { name = Node { start = { row = 2, column = 11 }, end = { row = 2, column = 14 } } "bar"
+                                                    , arguments =
+                                                        [ Node { start = { row = 2, column = 15 }, end = { row = 2, column = 18 } } (NamedPattern { moduleName = [], name = "Bar" } [])
+                                                        , Node { start = { row = 2, column = 19 }, end = { row = 2, column = 20 } } (VarPattern "m")
+                                                        ]
+                                                    , expression = Node { start = { row = 2, column = 23 }, end = { row = 2, column = 24 } } (Integer 1)
+                                                    }
+                                            }
+                                        )
+                                    ]
+                                , expression = Node { start = { row = 4, column = 9 }, end = { row = 4, column = 12 } } (FunctionOrValue [] "bar")
+                                }
+                            )
+                        )
         , test "should not parse let destructuring with a type annotation" <|
             \() ->
                 """let

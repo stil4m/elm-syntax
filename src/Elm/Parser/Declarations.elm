@@ -412,7 +412,7 @@ parameterPatternsEqual =
                 , syntax = patternResult.syntax
                 }
             )
-            Patterns.pattern
+            Patterns.patternNotDirectlyComposing
             Layout.maybeLayout
         )
 
