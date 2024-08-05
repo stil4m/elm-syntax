@@ -1,25 +1,8 @@
-module Elm.Parser.Node exposing (parser, parserCore, parserMapWithComments, singleLineStringFrom, singleLineStringRangeFrom)
+module Elm.Parser.Node exposing (parser, parserCore, parserMapWithComments)
 
 import CustomParser exposing (Parser)
 import Elm.Syntax.Node exposing (Node(..))
-import Elm.Syntax.Range exposing (Location, Range)
 import ParserWithComments exposing (WithComments)
-
-
-singleLineStringRangeFrom : Location -> String -> Range
-singleLineStringRangeFrom start string =
-    { start = start
-    , end = { row = start.row, column = start.column + String.length string }
-    }
-
-
-singleLineStringFrom : Location -> String -> Node String
-singleLineStringFrom start string =
-    Node
-        { start = start
-        , end = { row = start.row, column = start.column + String.length string }
-        }
-        string
 
 
 parserMapWithComments : (WithComments (Node a) -> b) -> Parser (WithComments a) -> Parser b
