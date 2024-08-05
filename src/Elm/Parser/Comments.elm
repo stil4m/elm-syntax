@@ -8,8 +8,8 @@ import Elm.Syntax.Node exposing (Node)
 
 singleLineCommentCore : CustomParser.Parser String
 singleLineCommentCore =
-    CustomParser.symbol "--" ()
-        |> CustomParser.ignore (CustomParser.chompWhile (\c -> c /= '\u{000D}' && c /= '\n'))
+    CustomParser.symbolFollowedBy "--"
+        (CustomParser.chompWhile (\c -> c /= '\u{000D}' && c /= '\n'))
         |> CustomParser.getChompedString
 
 
