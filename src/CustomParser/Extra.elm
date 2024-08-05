@@ -27,4 +27,4 @@ problemAnyCharacter =
 -}
 withIndent : CustomParser.Parser a -> CustomParser.Parser a
 withIndent p =
-    CustomParser.columnAndThen (\column -> CustomParser.withIndent column p)
+    CustomParser.withIndentSetToColumn p
