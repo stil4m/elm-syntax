@@ -848,21 +848,19 @@ ifBlockExpression =
 
 negationOperation : Parser { comments : Comments, end : Location, expression : Expression }
 negationOperation =
-    minusNotFollowedBySpace
-        |> CustomParser.Extra.continueWith
-            (subExpressionMap
-                (\subExpressionResult ->
-                    let
-                        (Node { end } _) =
-                            subExpressionResult.syntax
-                    in
-                    { comments = subExpressionResult.comments
-                    , end = end
-                    , expression = Negation subExpressionResult.syntax
-                    }
-                )
-                abovePrecedence95
-            )
+    CustomParser.map2
+        (\() subExpressionResult ->
+            let
+                (Node { end } _) =
+                    subExpressionResult.syntax
+            in
+            { comments = subExpressionResult.comments
+            , end = end
+            , expression = Negation subExpressionResult.syntax
+            }
+        )
+        minusNotFollowedBySpace
+        (subExpressionMap abovePrecedence95)
 
 
 minusNotFollowedBySpace : CustomParser.Parser ()
@@ -1104,7 +1102,12 @@ subExpressionMap aboveCurrentPrecedenceLayout =
     let
         step :
             WithComments (Node Expression)
-            -> Parser (CustomParser.Advanced.Step (WithComments (Node Expression)) a)
+            ->
+                Parser
+                    (CustomParser.Advanced.Step
+                        (WithComments (Node Expression))
+                        (WithComments (Node Expression))
+                    )
         step leftExpressionResult =
             CustomParser.oneOf
                 [ CustomParser.map2
@@ -1121,8 +1124,8 @@ subExpressionMap aboveCurrentPrecedenceLayout =
                     )
                     aboveCurrentPrecedenceLayout
                     Layout.optimisticLayout
-                , CustomParser.succeedLazy
-                    (\() -> CustomParser.Advanced.Done (toExtensionRightWith leftExpressionResult))
+                , CustomParser.succeed
+                    (CustomParser.Advanced.Done leftExpressionResult)
                 ]
     in
     CustomParser.map3
@@ -1306,16 +1309,14 @@ infixHelp :
     -> ( Int, Parser (WithComments ExtensionRight) )
 infixHelp leftPrecedence rightPrecedence operatorFollowedBy apply =
     ( leftPrecedence
-    , operator
-        |> CustomParser.Extra.continueWith
-            (subExpressionMap
-                (\e ->
-                    { comments = e.comments
-                    , syntax = apply e.syntax
-                    }
-                )
-                rightPrecedence
-            )
+    , CustomParser.map2
+        (\() e ->
+            { comments = e.comments
+            , syntax = apply e.syntax
+            }
+        )
+        operator
+        (subExpressionMap rightPrecedence)
     )
 
 

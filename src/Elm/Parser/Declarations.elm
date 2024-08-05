@@ -459,10 +459,11 @@ infixDeclaration =
         (Node.parserCore CustomParser.int)
         Layout.maybeLayout
         (Node.parserCore
-            ((Tokens.parensStart
-                |> CustomParser.Extra.continueWith Tokens.prefixOperatorToken
-             )
-                |> CustomParser.ignore Tokens.parensEnd
+            (CustomParser.map3
+                (\() prefixOperator () -> prefixOperator)
+                Tokens.parensStart
+                Tokens.prefixOperatorToken
+                Tokens.parensEnd
             )
         )
         (Layout.maybeLayoutUntilIgnored CustomParser.token "=")
