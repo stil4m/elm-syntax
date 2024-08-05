@@ -760,7 +760,7 @@ numberExpression =
             , expression = n
             }
         )
-        (Elm.Parser.Numbers.forgivingNumber
+        (Elm.Parser.Numbers.floatOrIntOrHex
             Floatable
             Integer
             Hex
