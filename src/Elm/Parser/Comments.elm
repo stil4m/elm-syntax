@@ -15,13 +15,26 @@ singleLineCommentCore =
 
 multilineCommentString : CustomParser.Parser String
 multilineCommentString =
-    CustomParser.oneOf
-        [ CustomParser.symbolFollowedBy "{-|"
-            (CustomParser.problem "unexpected documentation comment")
-        , CustomParser.nestableMultiComment "{-" "-}"
-            |> CustomParser.getChompedString
-        ]
-        |> CustomParser.backtrackable
+    CustomParser.offsetSourceAndThen
+        (\offset source ->
+            case source |> String.slice offset (offset + 3) of
+                "{-|" ->
+                    problemUnexpectedDocumentation
+
+                _ ->
+                    multiLineCommentStringNoCheck
+        )
+
+
+problemUnexpectedDocumentation : Parser a
+problemUnexpectedDocumentation =
+    CustomParser.problem "unexpected documentation comment"
+
+
+multiLineCommentStringNoCheck : Parser String
+multiLineCommentStringNoCheck =
+    CustomParser.nestableMultiComment "{-" "-}"
+        |> CustomParser.getChompedString
 
 
 moduleDocumentation : Parser (Node String)
