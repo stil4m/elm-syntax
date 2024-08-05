@@ -1237,6 +1237,19 @@ withIndent newIndent (Parser parse) =
         )
 
 
+withIndentSetToColumn : Parser x a -> Parser x a
+withIndentSetToColumn (Parser parse) =
+    Parser
+        (\s0 ->
+            case parse (changeIndent s0.col s0) of
+                Good p a s1 ->
+                    Good p a (changeIndent s0.indent s1)
+
+                Bad p x ->
+                    Bad p x
+        )
+
+
 changeIndent : Int -> State -> State
 changeIndent newIndent s =
     { src = s.src

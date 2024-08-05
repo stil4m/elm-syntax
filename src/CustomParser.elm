@@ -667,6 +667,13 @@ withIndent =
     A.withIndent
 
 
+{-| For a given ParserWithComments.Parser, take the current start column as indentation for the whole block
+-}
+withIndentSetToColumn : Parser a -> Parser a
+withIndentSetToColumn =
+    A.withIndentSetToColumn
+
+
 mapWithStartPosition :
     ({ row : Int, column : Int } -> a -> b)
     -> Parser a
