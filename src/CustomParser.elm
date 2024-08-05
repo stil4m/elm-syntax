@@ -1,5 +1,5 @@
 module CustomParser exposing
-    ( Parser, DeadEnd, Problem(..), run
+    ( Parser, run
     , int, number, symbol, keyword, variable, end
     , succeed, problem, succeedLazy, lazy, map, map2, map3, map4, map5, map6, map7, map8, map9, map10, map11, ignore, andThen
     , oneOf, backtrackable, commit, token
@@ -45,6 +45,7 @@ module CustomParser exposing
 -}
 
 import CustomParser.Advanced as A
+import Parser
 import Set
 
 
@@ -77,8 +78,11 @@ Notice the last case! A `Parser` will chomp as much as possible and not worry
 about the rest. Use the [`end`](#end) parser to ensure you made it to the end
 of the string!
 
+Currently reuses the `elm/parser` `DeadEnd` type to report problems
+to avoid breaking changes
+
 -}
-run : Parser a -> String -> Result (List DeadEnd) a
+run : Parser a -> String -> Result (List Parser.DeadEnd) a
 run parser source =
     case A.run parser source of
         Ok a ->
@@ -90,7 +94,7 @@ run parser source =
 
 problemToDeadEnd : A.DeadEnd Problem -> DeadEnd
 problemToDeadEnd p =
-    DeadEnd p.row p.col p.problem
+    { row = p.row, col = p.col, problem = p.problem }
 
 
 {-| A parser can run into situations where there is no way to make progress.
@@ -103,10 +107,7 @@ character, I increment the `row` and set `col=1`.
 
 -}
 type alias DeadEnd =
-    { row : Int
-    , col : Int
-    , problem : Problem
-    }
+    Parser.DeadEnd
 
 
 {-| When you run into a `DeadEnd`, I record some information about why you
@@ -120,20 +121,8 @@ relatively nice parse errors, and I am excited to see those techniques applied
 elsewhere!
 
 -}
-type Problem
-    = Expecting String
-    | ExpectingInt
-    | ExpectingHex
-    | ExpectingOctal
-    | ExpectingBinary
-    | ExpectingFloat
-    | ExpectingNumber
-    | ExpectingVariable
-    | ExpectingSymbol String
-    | ExpectingKeyword String
-    | ExpectingEnd
-    | UnexpectedChar
-    | Problem String
+type alias Problem =
+    Parser.Problem
 
 
 {-| A parser that succeeds without chomping any characters.
@@ -329,7 +318,7 @@ an example usage.
 -}
 problem : String -> Parser a
 problem msg =
-    A.problem (Problem msg)
+    A.problem (Parser.Problem msg)
 
 
 {-| If you are parsing JSON, the values can be strings, floats, booleans,
@@ -455,7 +444,7 @@ token str =
 
 toToken : String -> A.Token Problem
 toToken str =
-    A.Token str (Expecting str)
+    A.Token str (Parser.Expecting str)
 
 
 {-| Parse a bunch of different kinds of numbers without backtracking. A parser
@@ -511,13 +500,13 @@ number :
     -> Parser a
 number i =
     A.number
-        { int = Result.fromMaybe ExpectingInt i.int
-        , hex = Result.fromMaybe ExpectingHex i.hex
-        , octal = Result.fromMaybe ExpectingOctal i.octal
-        , binary = Result.fromMaybe ExpectingBinary i.binary
-        , float = Result.fromMaybe ExpectingFloat i.float
-        , invalid = ExpectingNumber
-        , expecting = ExpectingNumber
+        { int = Result.fromMaybe Parser.ExpectingInt i.int
+        , hex = Result.fromMaybe Parser.ExpectingHex i.hex
+        , octal = Result.fromMaybe Parser.ExpectingOctal i.octal
+        , binary = Result.fromMaybe Parser.ExpectingBinary i.binary
+        , float = Result.fromMaybe Parser.ExpectingFloat i.float
+        , invalid = Parser.ExpectingNumber
+        , expecting = Parser.ExpectingNumber
         }
 
 
@@ -554,12 +543,12 @@ int : Parser Int
 int =
     A.number
         { int = Ok identity
-        , hex = Err ExpectingInt
-        , octal = Err ExpectingInt
-        , binary = Err ExpectingInt
-        , float = Err ExpectingInt
-        , invalid = ExpectingInt
-        , expecting = ExpectingInt
+        , hex = Err Parser.ExpectingInt
+        , octal = Err Parser.ExpectingInt
+        , binary = Err Parser.ExpectingInt
+        , float = Err Parser.ExpectingInt
+        , invalid = Parser.ExpectingInt
+        , expecting = Parser.ExpectingInt
         }
 
 
@@ -581,7 +570,7 @@ operator it is afterwards.
 -}
 symbol : String -> Parser ()
 symbol str =
-    A.symbol (A.Token str (ExpectingSymbol str))
+    A.symbol (A.Token str (Parser.ExpectingSymbol str))
 
 
 {-| Parse keywords like `let`, `case`, and `type`.
@@ -609,7 +598,7 @@ be parsed as `let ters` and then wonder where the equals sign is! Check out the
 -}
 keyword : String -> Parser ()
 keyword kwd =
-    A.keyword (A.Token kwd (ExpectingKeyword kwd))
+    A.keyword (A.Token kwd (Parser.ExpectingKeyword kwd))
 
 
 
@@ -635,7 +624,7 @@ with `end` guarantees that you have successfully parsed the whole string.
 -}
 end : Parser ()
 end =
-    A.end ExpectingEnd
+    A.end Parser.ExpectingEnd
 
 
 
@@ -707,7 +696,7 @@ So this can chomp a character like `T` and produces a `()` value.
 -}
 chompIf : (Char -> Bool) -> Parser ()
 chompIf isGood =
-    A.chompIf isGood UnexpectedChar
+    A.chompIf isGood Parser.UnexpectedChar
 
 
 {-| Chomp zero or more characters if they pass the test. This is commonly
@@ -927,7 +916,7 @@ variable i =
         { start = i.start
         , inner = i.inner
         , reserved = i.reserved
-        , expecting = ExpectingVariable
+        , expecting = Parser.ExpectingVariable
         }
 
 
