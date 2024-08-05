@@ -39,7 +39,7 @@ subExpression =
             , literalExpression
             , numberExpression
             , tupledExpression
-            , Tokens.squareStart |> CustomParser.Extra.continueWith expressionAfterOpeningSquareBracket
+            , CustomParser.symbolFollowedBy "[" expressionAfterOpeningSquareBracket
             , recordExpression
             , caseExpression
             , lambdaExpression
@@ -217,8 +217,8 @@ expressionAfterOpeningSquareBracket =
                     expression
                     Layout.maybeLayout
                     (ParserWithComments.many
-                        (Tokens.comma
-                            |> CustomParser.Extra.continueWith (Layout.maybeAroundBothSides expression)
+                        (CustomParser.symbolFollowedBy ","
+                            (Layout.maybeAroundBothSides expression)
                         )
                     )
                     Tokens.squareEnd
@@ -308,7 +308,7 @@ recordContentsCurlyEnd =
                 ]
             )
             recordFields
-            (Layout.maybeLayoutUntilIgnored CustomParser.symbol "}")
+            (Layout.maybeLayoutUntilIgnored CustomParser.symbolFollowedBy "}")
         , CustomParser.symbol "}" { comments = Rope.empty, syntax = RecordExpr [] }
         ]
 
@@ -352,7 +352,7 @@ recordSetterNodeWithLayout =
         )
         CustomParser.getPosition
         Tokens.functionName
-        (Layout.maybeLayoutUntilIgnored CustomParser.symbol "=")
+        (Layout.maybeLayoutUntilIgnored CustomParser.symbolFollowedBy "=")
         Layout.maybeLayout
         expression
         Layout.maybeLayout
@@ -469,7 +469,7 @@ caseExpression =
         Tokens.caseToken
         Layout.maybeLayout
         expression
-        (Layout.maybeLayoutUntilIgnored CustomParser.keyword "of")
+        (Layout.maybeLayoutUntilIgnored CustomParser.keywordFollowedBy "of")
         Layout.maybeLayout
         (CustomParser.Extra.withIndent caseStatements)
 
@@ -491,7 +491,7 @@ caseStatements =
             }
         )
         Patterns.pattern
-        (Layout.maybeLayoutUntilIgnored CustomParser.symbol "->")
+        (Layout.maybeLayoutUntilIgnored CustomParser.symbolFollowedBy "->")
         Layout.maybeLayout
         expression
         (ParserWithComments.manyWithoutReverse caseStatement)
@@ -513,7 +513,7 @@ caseStatement =
         (Layout.optimisticLayout |> CustomParser.backtrackable)
         Layout.onTopIndentation
         Patterns.pattern
-        (Layout.maybeLayoutUntilIgnored CustomParser.symbol "->")
+        (Layout.maybeLayoutUntilIgnored CustomParser.symbolFollowedBy "->")
         Layout.maybeLayout
         expression
 
@@ -786,10 +786,10 @@ ifBlockExpression =
         Tokens.ifToken
         Layout.maybeLayout
         expression
-        (Layout.maybeLayoutUntilIgnored CustomParser.keyword "then")
+        (Layout.maybeLayoutUntilIgnored CustomParser.keywordFollowedBy "then")
         Layout.maybeLayout
         expression
-        (Layout.maybeLayoutUntilIgnored CustomParser.keyword "else")
+        (Layout.maybeLayoutUntilIgnored CustomParser.keywordFollowedBy "else")
         Layout.maybeLayout
         expression
 
@@ -813,14 +813,13 @@ negationOperation =
 
 minusNotFollowedBySpace : CustomParser.Parser ()
 minusNotFollowedBySpace =
-    Tokens.minus
-        |> CustomParser.Extra.continueWith
-            (CustomParser.oneOf
-                [ CustomParser.chompIf (\next -> next == '\u{000D}' || next == '\n' || next == ' ')
-                    |> CustomParser.Extra.continueWith (CustomParser.problem "negation sign cannot be followed by a space")
-                , CustomParser.succeed ()
-                ]
-            )
+    CustomParser.symbolFollowedBy "-"
+        (CustomParser.oneOf
+            [ CustomParser.chompIf (\next -> next == '\u{000D}' || next == '\n' || next == ' ')
+                |> CustomParser.Extra.continueWith (CustomParser.problem "negation sign cannot be followed by a space")
+            , CustomParser.succeed ()
+            ]
+        )
         |> CustomParser.backtrackable
 
 
@@ -860,25 +859,24 @@ unqualifiedFunctionReferenceExpression =
 maybeDotReferenceExpressionTuple : CustomParser.Parser (Maybe ( List String, String ))
 maybeDotReferenceExpressionTuple =
     CustomParser.oneOf
-        [ Tokens.dot
-            |> CustomParser.Extra.continueWith
-                (CustomParser.oneOf
-                    [ CustomParser.map2
-                        (\firstName after ->
-                            Just
-                                (case after of
-                                    Nothing ->
-                                        ( [], firstName )
+        [ CustomParser.symbolFollowedBy "."
+            (CustomParser.oneOf
+                [ CustomParser.map2
+                    (\firstName after ->
+                        Just
+                            (case after of
+                                Nothing ->
+                                    ( [], firstName )
 
-                                    Just ( qualificationAfter, unqualified ) ->
-                                        ( firstName :: qualificationAfter, unqualified )
-                                )
-                        )
-                        Tokens.typeName
-                        (CustomParser.lazy (\() -> maybeDotReferenceExpressionTuple))
-                    , CustomParser.map (\unqualified -> Just ( [], unqualified )) Tokens.functionName
-                    ]
-                )
+                                Just ( qualificationAfter, unqualified ) ->
+                                    ( firstName :: qualificationAfter, unqualified )
+                            )
+                    )
+                    Tokens.typeName
+                    (CustomParser.lazy (\() -> maybeDotReferenceExpressionTuple))
+                , CustomParser.map (\unqualified -> Just ( [], unqualified )) Tokens.functionName
+                ]
+            )
         , CustomParser.succeed Nothing
         ]
 
@@ -899,35 +897,34 @@ recordAccessFunctionExpression =
 
 tupledExpression : Parser { comments : Comments, end : Location, expression : Expression }
 tupledExpression =
-    Tokens.parensStart
-        |> CustomParser.Extra.continueWith
-            (CustomParser.oneOf
-                (CustomParser.map2
+    CustomParser.symbolFollowedBy "("
+        (CustomParser.oneOf
+            (CustomParser.map2
+                (\() end ->
+                    { comments = Rope.empty
+                    , end = end
+                    , expression = UnitExpr
+                    }
+                )
+                Tokens.parensEnd
+                CustomParser.getPosition
+                :: -- since `-` alone  could indicate negation or prefix operator,
+                   -- we check for `-)` first
+                   CustomParser.map2
                     (\() end ->
                         { comments = Rope.empty
                         , end = end
-                        , expression = UnitExpr
+                        , expression = expressionPrefixOperatorMinus
                         }
                     )
-                    Tokens.parensEnd
+                    (CustomParser.symbol "-)" ())
                     CustomParser.getPosition
-                    :: -- since `-` alone  could indicate negation or prefix operator,
-                       -- we check for `-)` first
-                       CustomParser.map2
-                        (\() end ->
-                            { comments = Rope.empty
-                            , end = end
-                            , expression = expressionPrefixOperatorMinus
-                            }
-                        )
-                        (CustomParser.symbol "-)" ())
-                        CustomParser.getPosition
-                    :: tupledExpressionInnerAfterOpeningParens
-                    -- and since prefix operators are much more rare than e.g. parenthesized
-                    -- we check those later
-                    :: allowedPrefixOperatorExceptMinusThenClosingParensOneOf
-                )
+                :: tupledExpressionInnerAfterOpeningParens
+                -- and since prefix operators are much more rare than e.g. parenthesized
+                -- we check those later
+                :: allowedPrefixOperatorExceptMinusThenClosingParensOneOf
             )
+        )
 
 
 expressionPrefixOperatorMinus : Expression

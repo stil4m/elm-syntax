@@ -465,7 +465,7 @@ infixDeclaration =
                 Tokens.parensEnd
             )
         )
-        (Layout.maybeLayoutUntilIgnored CustomParser.symbol "=")
+        (Layout.maybeLayoutUntilIgnored CustomParser.symbolFollowedBy "=")
         Layout.maybeLayout
         (Node.parserCore Tokens.functionName)
 
@@ -503,7 +503,7 @@ portDeclarationAfterDocumentation =
         Layout.maybeLayout
         CustomParser.getPosition
         Tokens.functionName
-        (Layout.maybeLayoutUntilIgnored CustomParser.symbol ":")
+        (Layout.maybeLayoutUntilIgnored CustomParser.symbolFollowedBy ":")
         Layout.maybeLayout
         typeAnnotation
 
@@ -540,7 +540,7 @@ portDeclarationWithoutDocumentation =
         Layout.maybeLayout
         CustomParser.getPosition
         Tokens.functionName
-        (Layout.maybeLayoutUntilIgnored CustomParser.symbol ":")
+        (Layout.maybeLayoutUntilIgnored CustomParser.symbolFollowedBy ":")
         Layout.maybeLayout
         typeAnnotation
 
@@ -629,7 +629,7 @@ customTypeDefinitionAfterDocumentationAfterTypePrefix =
                     , syntax = variantResult.syntax
                     }
                 )
-                (Layout.maybeLayoutUntilIgnored CustomParser.symbol "|" |> CustomParser.backtrackable)
+                (Layout.maybeLayoutUntilIgnored CustomParser.symbolFollowedBy "|" |> CustomParser.backtrackable)
                 Layout.maybeLayout
                 valueConstructor
             )
@@ -766,7 +766,7 @@ customTypeDefinitionWithoutDocumentationAfterTypePrefix =
                     , syntax = variantResult.syntax
                     }
                 )
-                (Layout.maybeLayoutUntilIgnored CustomParser.symbol "|" |> CustomParser.backtrackable)
+                (Layout.maybeLayoutUntilIgnored CustomParser.symbolFollowedBy "|" |> CustomParser.backtrackable)
                 Layout.maybeLayout
                 valueConstructor
             )
