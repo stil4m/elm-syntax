@@ -3,6 +3,7 @@ module Elm.Parser.ParserWithCommentsTestUtil exposing (expectAst, expectAstWithC
 import CustomParser
 import Elm.Syntax.Node exposing (Node)
 import Expect
+import Parser
 import ParserWithComments exposing (WithComments)
 import Rope
 
@@ -26,7 +27,7 @@ parse s p =
         |> Maybe.map .syntax
 
 
-parseWithFailure : String -> CustomParser.Parser (WithComments a) -> Result (List CustomParser.DeadEnd) a
+parseWithFailure : String -> CustomParser.Parser (WithComments a) -> Result (List Parser.DeadEnd) a
 parseWithFailure s p =
     case CustomParser.run (p |> CustomParser.ignore CustomParser.end) s of
         Err deadEnds ->
