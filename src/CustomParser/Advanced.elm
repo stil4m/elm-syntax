@@ -7,7 +7,7 @@ module CustomParser.Advanced exposing
     , nestableMultiComment
     , getChompedString, chompIf, chompWhile, mapChompedString
     , withIndent, getIndent
-    , getPosition, getRow, getCol, getOffset, getSource, columnAndThen, columnIndentAndThen, offsetSourceAndThen
+    , getPosition, getRow, getCol, getOffset, getSource, columnAndThen, columnIndentAndThen, offsetSourceAndThen, mapWithStartPosition, mapWithEndPosition, mapWithStartAndEndPosition
     )
 
 {-|
@@ -43,7 +43,7 @@ module CustomParser.Advanced exposing
 
 # Positions
 
-@docs getPosition, getRow, getCol, getOffset, getSource, columnAndThen, columnIndentAndThen, offsetSourceAndThen
+@docs getPosition, getRow, getCol, getOffset, getSource, columnAndThen, columnIndentAndThen, offsetSourceAndThen, mapWithStartPosition, mapWithEndPosition, mapWithStartAndEndPosition
 
 -}
 
@@ -1222,6 +1222,54 @@ changeIndent newIndent s =
     , row = s.row
     , col = s.col
     }
+
+
+mapWithStartPosition :
+    (Location -> a -> b)
+    -> Parser x a
+    -> Parser x b
+mapWithStartPosition combineStartAndResult (Parser parse) =
+    Parser
+        (\s0 ->
+            case parse s0 of
+                Good p a s1 ->
+                    Good p (combineStartAndResult { row = s0.row, column = s0.col } a) s1
+
+                Bad p x ->
+                    Bad p x
+        )
+
+
+mapWithEndPosition :
+    (a -> Location -> b)
+    -> Parser x a
+    -> Parser x b
+mapWithEndPosition combineStartAndResult (Parser parse) =
+    Parser
+        (\s0 ->
+            case parse s0 of
+                Good p a s1 ->
+                    Good p (combineStartAndResult a { row = s1.row, column = s1.col }) s1
+
+                Bad p x ->
+                    Bad p x
+        )
+
+
+mapWithStartAndEndPosition :
+    (Location -> a -> Location -> b)
+    -> Parser x a
+    -> Parser x b
+mapWithStartAndEndPosition combineStartAndResult (Parser parse) =
+    Parser
+        (\s0 ->
+            case parse s0 of
+                Good p a s1 ->
+                    Good p (combineStartAndResult { row = s0.row, column = s0.col } a { row = s1.row, column = s1.col }) s1
+
+                Bad p x ->
+                    Bad p x
+        )
 
 
 getPosition : Parser x Location

@@ -7,7 +7,7 @@ module CustomParser exposing
     , getChompedString, chompIf, chompWhile, mapChompedString
     , withIndent, getIndent
     , getPosition, getRow, getCol, getOffset, getSource
-    , columnAndThen, columnIndentAndThen, offsetSourceAndThen
+    , mapWithStartPosition, mapWithEndPosition, mapWithStartAndEndPosition, columnAndThen, columnIndentAndThen, offsetSourceAndThen
     )
 
 {-|
@@ -42,7 +42,7 @@ module CustomParser exposing
 # Positions
 
 @docs getPosition, getRow, getCol, getOffset, getSource
-@docs columnAndThen, columnIndentAndThen, offsetSourceAndThen
+@docs mapWithStartPosition, mapWithEndPosition, mapWithStartAndEndPosition, columnAndThen, columnIndentAndThen, offsetSourceAndThen
 
 -}
 
@@ -565,10 +565,6 @@ end =
     A.end Parser.ExpectingEnd
 
 
-
--- CHOMPED STRINGS
-
-
 {-| Sometimes parsers like `int` or `variable` cannot do exactly what you
 need. The "chomping" family of functions is meant for that case! Maybe you
 need to parse [valid PHP variables][php] like `$x` and `$txt`:
@@ -746,6 +742,30 @@ equal 2, 4, or 8.
 getPosition : Parser Location
 getPosition =
     A.getPosition
+
+
+mapWithStartPosition :
+    (Location -> a -> b)
+    -> Parser a
+    -> Parser b
+mapWithStartPosition =
+    A.mapWithStartPosition
+
+
+mapWithEndPosition :
+    (a -> Location -> b)
+    -> Parser a
+    -> Parser b
+mapWithEndPosition =
+    A.mapWithEndPosition
+
+
+mapWithStartAndEndPosition :
+    (Location -> a -> Location -> b)
+    -> Parser a
+    -> Parser b
+mapWithStartAndEndPosition =
+    A.mapWithStartAndEndPosition
 
 
 {-| This is a more efficient version of `map Tuple.first getPosition`. Maybe

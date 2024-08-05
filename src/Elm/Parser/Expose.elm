@@ -5,7 +5,6 @@ import Elm.Parser.Layout as Layout
 import Elm.Parser.Node as Node
 import Elm.Parser.Tokens as Tokens
 import Elm.Syntax.Exposing exposing (Exposing(..), TopLevelExpose(..))
-import Elm.Syntax.Node exposing (Node(..))
 import ParserWithComments exposing (WithComments)
 import Rope
 import Set
@@ -33,42 +32,34 @@ exposeDefinition =
 exposingListInner : Parser (WithComments Exposing)
 exposingListInner =
     CustomParser.oneOf
-        [ CustomParser.map5
-            (\headStart headElement headEnd commentsAfterHeadElement tailElements ->
+        [ CustomParser.map3
+            (\headElement commentsAfterHeadElement tailElements ->
                 { comments =
                     headElement.comments
                         |> Rope.prependTo commentsAfterHeadElement
                         |> Rope.prependTo tailElements.comments
                 , syntax =
                     Explicit
-                        (Node
-                            { start = headStart
-                            , end = headEnd
-                            }
-                            headElement.syntax
+                        (headElement.syntax
                             :: tailElements.syntax
                         )
                 }
             )
-            CustomParser.getPosition
-            exposable
-            CustomParser.getPosition
+            (Node.parser exposable)
             Layout.maybeLayout
             (ParserWithComments.many
                 (CustomParser.symbolFollowedBy ","
                     (Layout.maybeAroundBothSides (exposable |> Node.parser))
                 )
             )
-        , CustomParser.map3
+        , CustomParser.mapWithStartAndEndPosition
             (\start commentsAfterDotDot end ->
                 { comments = commentsAfterDotDot
                 , syntax =
                     All { start = start, end = end }
                 }
             )
-            CustomParser.getPosition
             (CustomParser.symbolFollowedBy ".." Layout.maybeLayout)
-            CustomParser.getPosition
         ]
 
 
