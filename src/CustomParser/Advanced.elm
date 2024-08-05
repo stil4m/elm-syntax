@@ -822,13 +822,10 @@ commit a =
     Parser (\s -> Good True a s)
 
 
+{-| Make sure to never call with String "", as this will then always commit.
+-}
 keyword : String -> x -> res -> Parser x res
 keyword kwd expecting res =
-    let
-        progress : Bool
-        progress =
-            not (String.isEmpty kwd)
-    in
     Parser
         (\s ->
             let
@@ -839,7 +836,7 @@ keyword kwd expecting res =
                 Bad False (fromState s expecting)
 
             else
-                Good progress
+                Good True
                     res
                     { src = s.src
                     , offset = newOffset
@@ -875,13 +872,10 @@ keywordFollowedBy kwd expecting (Parser parseNext) =
         )
 
 
+{-| Make sure to never call with String "", as this will then always commit.
+-}
 symbol : String -> x -> res -> Parser x res
 symbol str expecting res =
-    let
-        progress : Bool
-        progress =
-            not (String.isEmpty str)
-    in
     Parser
         (\s ->
             let
@@ -892,7 +886,7 @@ symbol str expecting res =
                 Bad False (fromState s expecting)
 
             else
-                Good progress
+                Good True
                     res
                     { src = s.src
                     , offset = newOffset
@@ -1332,6 +1326,7 @@ isSubChar predicate offset string =
 
         _ ->
             if charStringIsUtf16HighSurrogate actualChar then
+                -- String.all iterates over code points (so here just one Char)
                 if String.all predicate (String.slice offset (offset + 2) string) then
                     offset + 2
 
