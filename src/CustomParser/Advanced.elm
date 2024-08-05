@@ -887,11 +887,16 @@ commit a =
 -}
 keyword : String -> x -> res -> Parser x res
 keyword kwd expecting res =
+    let
+        kwdLength : Int
+        kwdLength =
+            String.length kwd
+    in
     Parser
         (\s ->
             let
                 ( newOffset, newRow, newCol ) =
-                    isSubString kwd s.offset s.row s.col s.src
+                    isSubString kwdLength kwd s.offset s.row s.col s.src
             in
             if newOffset == -1 || 0 <= isSubChar (\c -> Char.Extra.isAlphaNumFast c || c == '_') newOffset s.src then
                 Bad False (fromState s expecting)
@@ -912,11 +917,16 @@ keyword kwd expecting res =
 -}
 keywordFollowedBy : String -> x -> Parser x next -> Parser x next
 keywordFollowedBy kwd expecting (Parser parseNext) =
+    let
+        kwdLength : Int
+        kwdLength =
+            String.length kwd
+    in
     Parser
         (\s ->
             let
                 ( newOffset, newRow, newCol ) =
-                    isSubString kwd s.offset s.row s.col s.src
+                    isSubString kwdLength kwd s.offset s.row s.col s.src
             in
             if newOffset == -1 || 0 <= isSubChar (\c -> Char.Extra.isAlphaNumFast c || c == '_') newOffset s.src then
                 Bad False (fromState s expecting)
@@ -937,11 +947,16 @@ keywordFollowedBy kwd expecting (Parser parseNext) =
 -}
 symbol : String -> x -> res -> Parser x res
 symbol str expecting res =
+    let
+        strLength : Int
+        strLength =
+            String.length str
+    in
     Parser
         (\s ->
             let
                 ( newOffset, newRow, newCol ) =
-                    isSubString str s.offset s.row s.col s.src
+                    isSubString strLength str s.offset s.row s.col s.src
             in
             if newOffset == -1 then
                 Bad False (fromState s expecting)
@@ -962,11 +977,16 @@ symbol str expecting res =
 -}
 symbolFollowedBy : String -> x -> Parser x next -> Parser x next
 symbolFollowedBy str expecting (Parser parseNext) =
+    let
+        strLength : Int
+        strLength =
+            String.length str
+    in
     Parser
         (\s ->
             let
                 ( newOffset, newRow, newCol ) =
-                    isSubString str s.offset s.row s.col s.src
+                    isSubString strLength str s.offset s.row s.col s.src
             in
             if newOffset == -1 then
                 Bad False (fromState s expecting)
@@ -1355,15 +1375,11 @@ two words wide, so even if there are no newlines, `offset` and `col`
 may not be equal.
 
 -}
-isSubString : String -> Int -> Int -> Int -> String -> ( Int, Int, Int )
-isSubString smallString offset row col bigString =
+isSubString : Int -> String -> Int -> Int -> Int -> String -> ( Int, Int, Int )
+isSubString smallStringLength smallString offset row col bigString =
     -- TODO currently assumes smallString does not contain line \n
     -- TODO currently assumes smallString does not contain UTF-16 characters
     let
-        smallStringLength : Int
-        smallStringLength =
-            String.length smallString
-
         offsetAfter : Int
         offsetAfter =
             offset + smallStringLength
