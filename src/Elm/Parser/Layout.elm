@@ -18,7 +18,7 @@ import Rope
 import Set
 
 
-maybeLayoutUntilIgnored : (String -> Parser Comments -> Parser Comments) -> String -> CustomParser.Parser Comments
+maybeLayoutUntilIgnored : (String -> Parser Comments -> Parser Comments) -> String -> Parser Comments
 maybeLayoutUntilIgnored endParser endSymbol =
     whitespaceAndCommentsUntilEndComments
         (endParser endSymbol
@@ -65,7 +65,7 @@ whitespaceAndCommentsUntilEndComments end =
         ]
 
 
-whitespaceAndCommentsOrEmpty : CustomParser.Parser Comments
+whitespaceAndCommentsOrEmpty : Parser Comments
 whitespaceAndCommentsOrEmpty =
     CustomParser.oneOf2
         (whitespace
@@ -103,7 +103,7 @@ fromCommentElseEmpty =
         )
 
 
-succeedRopeEmpty : Parser (Rope.Rope a)
+succeedRopeEmpty : Parser Comments
 succeedRopeEmpty =
     CustomParser.succeed Rope.empty
 
@@ -154,7 +154,7 @@ positivelyIndentedPlusFollowedBy extraIndent nextParser =
         )
 
 
-positivelyIndentedPlusResultingIn : Int -> res -> CustomParser.Parser res
+positivelyIndentedPlusResultingIn : Int -> res -> Parser res
 positivelyIndentedPlusResultingIn extraIndent res =
     let
         succeedRes : Parser res
@@ -211,7 +211,7 @@ moduleLevelIndentationFollowedBy nextParser =
         )
 
 
-problemModuleLevelIndentation : CustomParser.Parser a
+problemModuleLevelIndentation : Parser a
 problemModuleLevelIndentation =
     CustomParser.problem "must be on module-level indentation"
 
@@ -228,7 +228,7 @@ onTopIndentationFollowedBy nextParser =
         )
 
 
-problemTopIndentation : CustomParser.Parser a
+problemTopIndentation : Parser a
 problemTopIndentation =
     CustomParser.problem "must be on top indentation"
 
