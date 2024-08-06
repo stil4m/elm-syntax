@@ -5,7 +5,7 @@ module CustomParser.Advanced exposing
     , orSucceed, orSucceedLazy, oneOf2, oneOf, backtrackable
     , loop, Step(..)
     , nestableMultiComment
-    , getChompedString, chompIf, chompWhile, mapChompedString
+    , getChompedString, chompIf, chompIfFollowedBy, chompWhile, mapChompedString
     , withIndent, withIndentSetToColumn
     , columnAndThen, columnIndentAndThen, offsetSourceAndThen, mapWithStartPosition, mapWithEndPosition, mapWithStartAndEndPosition
     )
@@ -33,7 +33,7 @@ module CustomParser.Advanced exposing
 
 # Chompers
 
-@docs getChompedString, chompIf, chompWhile, mapChompedString
+@docs getChompedString, chompIf, chompIfFollowedBy, chompWhile, mapChompedString
 
 
 # Indentation, Positions and Source
@@ -1054,6 +1054,43 @@ mapChompedString func (Parser parse) =
         )
 
 
+chompIfFollowedBy : (Char -> Bool) -> x -> Parser x a -> Parser x a
+chompIfFollowedBy isGood expecting (Parser parseNext) =
+    Parser
+        (\s ->
+            let
+                newOffset : Int
+                newOffset =
+                    isSubChar isGood s.offset s.src
+            in
+            if newOffset == -1 then
+                -- not found
+                Bad False (fromState s expecting) ()
+
+            else if newOffset == -2 then
+                -- newline
+                parseNext
+                    { src = s.src
+                    , offset = s.offset + 1
+                    , indent = s.indent
+                    , row = s.row + 1
+                    , col = 1
+                    }
+                    |> pStepCommit
+
+            else
+                -- found
+                parseNext
+                    { src = s.src
+                    , offset = newOffset
+                    , indent = s.indent
+                    , row = s.row
+                    , col = s.col + 1
+                    }
+                    |> pStepCommit
+        )
+
+
 chompIf : (Char -> Bool) -> x -> Parser x ()
 chompIf isGood expecting =
     Parser
@@ -1232,12 +1269,6 @@ nestableHelp isNotRelevant open close expectingClose nestLevel =
                     |> andThen (\() -> nestableHelp isNotRelevant open close expectingClose (nestLevel - 1))
             , open
                 |> andThen (\() -> nestableHelp isNotRelevant open close expectingClose (nestLevel + 1))
-            , ignore (chompIf isNotRelevant expectingClose)
-                (chompWhile isNotRelevant)
-                |> andThen
-                    (\() ->
-                        nestableHelp isNotRelevant open close expectingClose nestLevel
-                    )
             , chompIf isChar expectingClose
                 |> andThen
                     (\() ->
