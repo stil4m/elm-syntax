@@ -5,9 +5,8 @@ module CustomParser exposing
     , orSucceed, orSucceedLazy, oneOf2, oneOf, backtrackable, commit
     , nestableMultiComment
     , getChompedString, chompIf, chompWhile, mapChompedString
-    , withIndent
-    , mapWithStartPosition, mapWithEndPosition, mapWithStartAndEndPosition, columnAndThen, columnIndentAndThen, offsetSourceAndThen
-    , withIndentSetToColumn
+    , withIndentSetToColumn, withIndent, columnIndentAndThen
+    , mapWithStartPosition, mapWithEndPosition, mapWithStartAndEndPosition, columnAndThen, offsetSourceAndThen
     )
 
 {-|
@@ -34,14 +33,10 @@ module CustomParser exposing
 @docs getChompedString, chompIf, chompWhile, mapChompedString
 
 
-# Indentation
+# Indentation, Positions and source
 
-@docs withIndent
-
-
-# Positions
-
-@docs mapWithStartPosition, mapWithEndPosition, mapWithStartAndEndPosition, columnAndThen, columnIndentAndThen, offsetSourceAndThen
+@docs withIndentSetToColumn, withIndent, columnIndentAndThen
+@docs mapWithStartPosition, mapWithEndPosition, mapWithStartAndEndPosition, columnAndThen, offsetSourceAndThen
 
 -}
 

@@ -6,9 +6,8 @@ module CustomParser.Advanced exposing
     , loop, Step(..)
     , nestableMultiComment
     , getChompedString, chompIf, chompWhile, mapChompedString
-    , withIndent
+    , withIndent, withIndentSetToColumn
     , columnAndThen, columnIndentAndThen, offsetSourceAndThen, mapWithStartPosition, mapWithEndPosition, mapWithStartAndEndPosition
-    , withIndentSetToColumn
     )
 
 {-|
@@ -37,13 +36,9 @@ module CustomParser.Advanced exposing
 @docs getChompedString, chompIf, chompWhile, mapChompedString
 
 
-# Indentation
+# Indentation, Positions and Source
 
-@docs withIndent
-
-
-# Positions
-
+@docs withIndent, withIndentSetToColumn
 @docs columnAndThen, columnIndentAndThen, offsetSourceAndThen, mapWithStartPosition, mapWithEndPosition, mapWithStartAndEndPosition
 
 -}
