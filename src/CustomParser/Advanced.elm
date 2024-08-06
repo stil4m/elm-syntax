@@ -825,9 +825,9 @@ them only once we are `Done`. This is a very common pattern with `loop`!
 Check out [`examples/DoubleQuoteString.elm`](https://github.com/elm/parser/blob/master/examples/DoubleQuoteString.elm)
 for another example.
 
-**IMPORTANT NOTE:** Parsers like `succeed ()` and `chompWhile Char.isAlpha` can
-succeed without consuming any characters. So in some cases you may want to use
-[`getOffset`](#getOffset) to ensure that each step actually consumed characters.
+**IMPORTANT NOTE:** Parsers like `chompWhile Char.isAlpha` can
+succeed without consuming any characters. So in some cases you may want to e.g.
+prepend a [`chompIfFollowedBy`](#chompIfFollowedBy) to ensure that each step actually consumed characters.
 Otherwise you could end up in an infinite loop!
 
 **Note:** Anything you can write with `loop`, you can also write as a parser
