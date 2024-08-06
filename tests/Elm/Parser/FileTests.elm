@@ -468,4 +468,17 @@ port sendResponse : String -> Cmd msg
                             , comments = [ Node { start = { row = 6, column = 1 }, end = { row = 7, column = 3 } } "{-| foo\n-}" ]
                             }
                         )
+        , test "A file with a large number of comments should not create a stack overflow" <|
+            \() ->
+                let
+                    comments : String
+                    comments =
+                        String.repeat 3000 "-- a\n"
+                in
+                ("""module Foo exposing (..)
+a = 1
+""" ++ comments)
+                    |> Elm.Parser.parseToFile
+                    |> Result.map (\ast -> List.length ast.comments)
+                    |> Expect.equal (Ok 3000)
         ]
