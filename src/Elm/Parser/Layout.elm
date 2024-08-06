@@ -4,7 +4,7 @@ module Elm.Parser.Layout exposing
     , maybeLayout
     , maybeLayoutUntilIgnored
     , moduleLevelIndentation
-    , onTopIndentation
+    , onTopIndentationFollowedBy
     , optimisticLayout
     , positivelyIndentedFollowedBy
     , positivelyIndentedPlus
@@ -213,7 +213,7 @@ optimisticLayout =
 layoutStrict : Parser Comments
 layoutStrict =
     optimisticLayout
-        |> CustomParser.ignore onTopIndentation
+        |> CustomParser.ignore (onTopIndentationFollowedBy (CustomParser.succeed ()))
 
 
 moduleLevelIndentation : Parser ()
@@ -233,12 +233,12 @@ problemModuleLevelIndentation =
     CustomParser.problem "must be on module-level indentation"
 
 
-onTopIndentation : Parser ()
-onTopIndentation =
+onTopIndentationFollowedBy : Parser a -> Parser a
+onTopIndentationFollowedBy nextParser =
     CustomParser.columnIndentAndThen
         (\column indent ->
             if column - indent == 0 then
-                succeedUnit
+                nextParser
 
             else
                 problemTopIndentation
