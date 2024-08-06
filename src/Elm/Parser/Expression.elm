@@ -1,7 +1,5 @@
 module Elm.Parser.Expression exposing (expression)
 
-import CustomParser exposing (Parser)
-import CustomParser.Advanced
 import Elm.Parser.Layout as Layout
 import Elm.Parser.Node as Node
 import Elm.Parser.Numbers

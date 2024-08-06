@@ -1,6 +1,5 @@
 module Elm.Parser.Patterns exposing (pattern, patternNotDirectlyComposing)
 
-import CustomParser exposing (Parser)
 import Elm.Parser.Layout as Layout
 import Elm.Parser.Node as Node
 import Elm.Parser.Numbers

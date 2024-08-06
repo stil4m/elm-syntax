@@ -1,6 +1,5 @@
 module Elm.Parser.Imports exposing (importDefinition)
 
-import CustomParser exposing (Parser)
 import Elm.Parser.Base exposing (moduleName)
 import Elm.Parser.Expose exposing (exposeDefinition)
 import Elm.Parser.Layout as Layout

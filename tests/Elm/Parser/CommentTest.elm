@@ -1,6 +1,5 @@
 module Elm.Parser.CommentTest exposing (all)
 
-import CustomParser
 import Elm.Parser.Comments as Parser
 import Elm.Parser.Node as Node
 import Elm.Parser.ParserWithCommentsTestUtil exposing (..)

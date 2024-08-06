@@ -1,6 +1,5 @@
 module Elm.Parser.Node exposing (parser, parserCore, parserMapWithComments)
 
-import CustomParser exposing (Parser)
 import Elm.Syntax.Node exposing (Node(..))
 import ParserFast exposing (Parser)
 import ParserWithComments exposing (WithComments)

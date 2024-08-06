@@ -1,6 +1,5 @@
 module Elm.Parser.ParserWithCommentsTestUtil exposing (expectAst, expectAstWithComments, expectInvalid, parse, parseWithState)
 
-import CustomParser
 import Elm.Syntax.Node exposing (Node)
 import Expect
 import Parser

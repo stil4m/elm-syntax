@@ -10,7 +10,6 @@ module Elm.Parser exposing
 
 -}
 
-import CustomParser
 import Elm.Internal.RawFile as InternalRawFile
 import Elm.Parser.File exposing (file)
 import Elm.RawFile exposing (RawFile)

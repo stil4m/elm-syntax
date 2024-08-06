@@ -1,6 +1,5 @@
 module Elm.Parser.FileTests exposing (all)
 
-import CustomParser
 import Elm.Internal.RawFile as InternalRawFile
 import Elm.Parser
 import Elm.Parser.File as Parser

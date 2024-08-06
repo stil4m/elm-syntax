@@ -1,6 +1,5 @@
 module Elm.Parser.LayoutTests exposing (all)
 
-import CustomParser
 import Elm.Parser.Layout as Layout
 import Elm.Parser.ParserWithCommentsTestUtil exposing (parseWithState)
 import Expect

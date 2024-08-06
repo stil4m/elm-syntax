@@ -1,6 +1,5 @@
 module Elm.Parser.Declarations exposing (declaration)
 
-import CustomParser exposing (Parser)
 import Elm.Parser.Comments as Comments
 import Elm.Parser.Expression exposing (expression)
 import Elm.Parser.Layout as Layout

@@ -1,6 +1,5 @@
 module Elm.Parser.ModuleTests exposing (all)
 
-import CustomParser
 import Elm.Parser.File as File
 import Elm.Parser.Modules as Parser
 import Elm.Parser.ParserWithCommentsTestUtil as ParserWithCommentsUtil exposing (..)
