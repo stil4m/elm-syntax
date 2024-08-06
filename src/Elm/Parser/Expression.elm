@@ -2,7 +2,6 @@ module Elm.Parser.Expression exposing (expression)
 
 import CustomParser exposing (Parser)
 import CustomParser.Advanced
-import CustomParser.Extra
 import Elm.Parser.Layout as Layout
 import Elm.Parser.Node as Node
 import Elm.Parser.Numbers
@@ -484,23 +483,22 @@ caseStatements =
 
 caseStatement : Parser (WithComments Case)
 caseStatement =
-    CustomParser.map6
-        (\commentsBeforeCase () pattern commentsBeforeArrowRight commentsAfterArrowRight expr ->
-            { comments =
-                commentsBeforeCase
-                    |> Rope.prependTo pattern.comments
-                    |> Rope.prependTo commentsBeforeArrowRight
-                    |> Rope.prependTo commentsAfterArrowRight
-                    |> Rope.prependTo expr.comments
-            , syntax = ( pattern.syntax, expr.syntax )
-            }
+    Layout.onTopIndentationFollowedBy
+        (CustomParser.map4
+            (\pattern commentsBeforeArrowRight commentsAfterArrowRight expr ->
+                { comments =
+                    pattern.comments
+                        |> Rope.prependTo commentsBeforeArrowRight
+                        |> Rope.prependTo commentsAfterArrowRight
+                        |> Rope.prependTo expr.comments
+                , syntax = ( pattern.syntax, expr.syntax )
+                }
+            )
+            Patterns.pattern
+            (Layout.maybeLayoutUntilIgnored CustomParser.symbolFollowedBy "->")
+            Layout.maybeLayout
+            expression
         )
-        (Layout.optimisticLayout |> CustomParser.backtrackable)
-        Layout.onTopIndentation
-        Patterns.pattern
-        (Layout.maybeLayoutUntilIgnored CustomParser.symbolFollowedBy "->")
-        Layout.maybeLayout
-        expression
 
 
 
@@ -557,38 +555,40 @@ letExpression =
 
 letDeclarationsIn : Parser (WithComments (List (Node LetDeclaration)))
 letDeclarationsIn =
-    CustomParser.map4
-        (\() headLetResult commentsAfter tailLetResult ->
-            { comments =
-                headLetResult.comments
-                    |> Rope.prependTo commentsAfter
-                    |> Rope.prependTo tailLetResult.comments
-            , syntax = headLetResult.syntax :: tailLetResult.syntax
-            }
+    Layout.onTopIndentationFollowedBy
+        (CustomParser.map3
+            (\headLetResult commentsAfter tailLetResult ->
+                { comments =
+                    headLetResult.comments
+                        |> Rope.prependTo commentsAfter
+                        |> Rope.prependTo tailLetResult.comments
+                , syntax = headLetResult.syntax :: tailLetResult.syntax
+                }
+            )
+            (CustomParser.oneOf2
+                letFunction
+                letDestructuringDeclaration
+            )
+            Layout.optimisticLayout
+            (ParserWithComments.until Tokens.inToken blockElement)
         )
-        Layout.onTopIndentation
-        (CustomParser.oneOf2
-            letFunction
-            letDestructuringDeclaration
-        )
-        Layout.optimisticLayout
-        (ParserWithComments.until Tokens.inToken blockElement)
 
 
 blockElement : Parser (WithComments (Node LetDeclaration))
 blockElement =
-    CustomParser.map3
-        (\() letDeclarationResult commentsAfter ->
-            { comments = letDeclarationResult.comments |> Rope.prependTo commentsAfter
-            , syntax = letDeclarationResult.syntax
-            }
+    Layout.onTopIndentationFollowedBy
+        (CustomParser.map2
+            (\letDeclarationResult commentsAfter ->
+                { comments = letDeclarationResult.comments |> Rope.prependTo commentsAfter
+                , syntax = letDeclarationResult.syntax
+                }
+            )
+            (CustomParser.oneOf2
+                letFunction
+                letDestructuringDeclaration
+            )
+            Layout.optimisticLayout
         )
-        Layout.onTopIndentation
-        (CustomParser.oneOf2
-            letFunction
-            letDestructuringDeclaration
-        )
-        Layout.optimisticLayout
 
 
 letDestructuringDeclaration : Parser (WithComments (Node LetDeclaration))
