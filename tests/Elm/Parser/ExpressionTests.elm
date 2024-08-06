@@ -755,7 +755,17 @@ x"""
 in
 x"""
                     |> expectInvalid
-        , test "fail if tuple part not positively indented" <|
+        , test "fail if first tuple part not positively indented" <|
+            \() ->
+                """let
+    x =
+        (
+    0   , 1
+        )
+in
+x"""
+                    |> expectInvalid
+        , test "fail if second tuple part not positively indented" <|
             \() ->
                 """let
     x =

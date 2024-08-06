@@ -966,19 +966,27 @@ tupledExpressionInnerAfterOpeningParens =
                     tupled.syntax
             }
         )
-        (CustomParser.map3
-            (\firstPart commentsAfterFirstPart tailPartsReverse ->
+        (CustomParser.map4
+            (\commentsBeforeFirstPart firstPart commentsAfterFirstPart tailPartsReverse ->
                 case tailPartsReverse.syntax of
                     [] ->
-                        { comments = firstPart.comments |> Rope.prependTo commentsAfterFirstPart
+                        { comments =
+                            commentsBeforeFirstPart
+                                |> Rope.prependTo firstPart.comments
+                                |> Rope.prependTo commentsAfterFirstPart
                         , syntax = ParenthesizedExpression firstPart.syntax
                         }
 
                     _ ->
-                        { comments = firstPart.comments |> Rope.prependTo tailPartsReverse.comments
+                        { comments =
+                            commentsBeforeFirstPart
+                                |> Rope.prependTo firstPart.comments
+                                |> Rope.prependTo commentsAfterFirstPart
+                                |> Rope.prependTo tailPartsReverse.comments
                         , syntax = TupledExpression (firstPart.syntax :: List.reverse tailPartsReverse.syntax)
                         }
             )
+            Layout.maybeLayout
             expression
             Layout.maybeLayout
             (ParserWithComments.untilWithoutReverse
