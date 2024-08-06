@@ -146,7 +146,7 @@ fromSingleLineCommentNode =
 maybeLayout : Parser Comments
 maybeLayout =
     whitespaceAndCommentsOrEmpty
-        |> CustomParser.ignore positivelyIndented
+        |> CustomParser.ignore (positivelyIndentedFollowedBy (CustomParser.succeed ()))
 
 
 {-| Check that the indentation of an already parsed token
@@ -181,24 +181,12 @@ positivelyIndentedPlusResultingIn extraIndent res =
         )
 
 
-positivelyIndentedFollowedBy : CustomParser.Parser res -> CustomParser.Parser res
+positivelyIndentedFollowedBy : Parser a -> Parser a
 positivelyIndentedFollowedBy nextParser =
     CustomParser.columnIndentAndThen
         (\column indent ->
             if column > indent then
                 nextParser
-
-            else
-                problemPositivelyIndented
-        )
-
-
-positivelyIndented : CustomParser.Parser ()
-positivelyIndented =
-    CustomParser.columnIndentAndThen
-        (\column indent ->
-            if column > indent then
-                succeedUnit
 
             else
                 problemPositivelyIndented
