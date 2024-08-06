@@ -22,7 +22,9 @@ maybeLayoutUntilIgnored : (String -> Parser Comments -> Parser Comments) -> Stri
 maybeLayoutUntilIgnored endParser endSymbol =
     whitespaceAndCommentsUntilEndComments
         (endParser endSymbol
-            (positivelyIndentedPlusResultingIn (String.length endSymbol) Rope.empty)
+            (positivelyIndentedPlusFollowedBy (String.length endSymbol)
+                (CustomParser.succeed Rope.empty)
+            )
         )
 
 
@@ -148,23 +150,6 @@ positivelyIndentedPlusFollowedBy extraIndent nextParser =
         (\column indent ->
             if column > indent + extraIndent then
                 nextParser
-
-            else
-                problemPositivelyIndented
-        )
-
-
-positivelyIndentedPlusResultingIn : Int -> res -> Parser res
-positivelyIndentedPlusResultingIn extraIndent res =
-    let
-        succeedRes : Parser res
-        succeedRes =
-            CustomParser.succeed res
-    in
-    CustomParser.columnIndentAndThen
-        (\column indent ->
-            if column > indent + extraIndent then
-                succeedRes
 
             else
                 problemPositivelyIndented
