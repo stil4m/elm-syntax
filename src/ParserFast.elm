@@ -1,7 +1,7 @@
 module ParserFast exposing
     ( Parser, run
     , int, number, symbol, symbolFollowedBy, keyword, keywordFollowedBy, variable, end
-    , succeed, problem, succeedLazy, lazy, map, map2, map3, map4, map5, map6, map7, map8, map9, map10, map11, ignore, andThen
+    , succeed, problem, lazy, map, map2, map3, map4, map5, map6, map7, map8, map9, ignore, andThen
     , orSucceed, orSucceedLazy, oneOf2, oneOf, backtrackable
     , nestableMultiComment
     , getChompedString, chompIf, chompIfFollowedBy, chompWhile, mapChompedString
@@ -18,7 +18,7 @@ module ParserFast exposing
 
 # Flow
 
-@docs succeed, problem, succeedLazy, lazy, map, map2, map3, map4, map5, map6, map7, map8, map9, map10, map11, ignore, andThen
+@docs succeed, problem, lazy, map, map2, map3, map4, map5, map6, map7, map8, map9, ignore, andThen
 
 @docs orSucceed, orSucceedLazy, oneOf2, oneOf, backtrackable
 
@@ -106,11 +106,6 @@ functions.
 succeed : a -> Parser a
 succeed =
     A.succeed
-
-
-succeedLazy : (() -> a) -> Parser a
-succeedLazy =
-    A.succeedLazy
 
 
 {-| **Skip** values in a parser pipeline. For example, maybe we want to parse
@@ -307,16 +302,6 @@ map8 =
 map9 : (a -> b -> c -> d -> e -> f -> g -> h -> i -> value) -> Parser a -> Parser b -> Parser c -> Parser d -> Parser e -> Parser f -> Parser g -> Parser h -> Parser i -> Parser value
 map9 =
     A.map9
-
-
-map10 : (a -> b -> c -> d -> e -> f -> g -> h -> i -> j -> value) -> Parser a -> Parser b -> Parser c -> Parser d -> Parser e -> Parser f -> Parser g -> Parser h -> Parser i -> Parser j -> Parser value
-map10 =
-    A.map10
-
-
-map11 : (a -> b -> c -> d -> e -> f -> g -> h -> i -> j -> k -> value) -> Parser a -> Parser b -> Parser c -> Parser d -> Parser e -> Parser f -> Parser g -> Parser h -> Parser i -> Parser j -> Parser k -> Parser value
-map11 =
-    A.map11
 
 
 {-| Indicate that a parser has reached a dead end. "Everything was going fine
