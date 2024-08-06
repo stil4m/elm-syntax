@@ -30,7 +30,7 @@ module CustomParser exposing
 
 # Chompers
 
-@docs getChompedString, chompIf, chompWhile, mapChompedString
+@docs getChompedString, chompIf, chompIfFollowedBy, chompWhile, mapChompedString
 
 
 # Indentation, Positions and source
@@ -630,6 +630,11 @@ So this can chomp a character like `T` and produces a `()` value.
 chompIf : (Char -> Bool) -> Parser ()
 chompIf isGood =
     A.chompIf isGood Parser.UnexpectedChar
+
+
+chompIfFollowedBy : (Char -> Bool) -> Parser a -> Parser a
+chompIfFollowedBy isGood nextParser =
+    A.chompIfFollowedBy isGood Parser.UnexpectedChar nextParser
 
 
 {-| Chomp zero or more characters if they pass the test. This is commonly
