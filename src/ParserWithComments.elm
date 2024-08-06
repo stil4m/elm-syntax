@@ -112,9 +112,9 @@ untilWithoutReverse end p =
                         (WithComments (List a))
                     )
         withoutReverseStep soFar =
-            ParserFast.oneOf
-                [ ParserFast.map (\() -> ParserFast.Advanced.Done soFar) end
-                , ParserFast.map
+            ParserFast.oneOf2
+                (ParserFast.map (\() -> ParserFast.Advanced.Done soFar) end)
+                (ParserFast.map
                     (\pResult ->
                         ParserFast.Advanced.Loop
                             { comments = soFar.comments |> Rope.prependTo pResult.comments
