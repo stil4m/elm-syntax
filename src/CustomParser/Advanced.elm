@@ -36,12 +36,7 @@ module CustomParser.Advanced exposing
 @docs getChompedString, chompIf, chompWhile, mapChompedString
 
 
-# Indentation
-
-@docs withIndent
-
-
-# Positions
+# Indentation, Positions and Source
 
 @docs getPosition, getRow, getCol, getOffset, getSource
 
