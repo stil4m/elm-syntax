@@ -1,13 +1,13 @@
 module Elm.Parser.Node exposing (parser, parserCore, parserMapWithComments)
 
-import CustomParser exposing (Parser)
 import Elm.Syntax.Node exposing (Node(..))
+import ParserFast exposing (Parser)
 import ParserWithComments exposing (WithComments)
 
 
 parserMapWithComments : (WithComments (Node a) -> b) -> Parser (WithComments a) -> Parser b
 parserMapWithComments valueNodeChange p =
-    CustomParser.mapWithStartAndEndPosition
+    ParserFast.mapWithStartAndEndPosition
         (\start v end ->
             { comments = v.comments
             , syntax =
@@ -24,7 +24,7 @@ parserMapWithComments valueNodeChange p =
 
 parser : Parser (WithComments a) -> Parser (WithComments (Node a))
 parser p =
-    CustomParser.mapWithStartAndEndPosition
+    ParserFast.mapWithStartAndEndPosition
         (\start v end ->
             { comments = v.comments
             , syntax =
@@ -34,9 +34,9 @@ parser p =
         p
 
 
-parserCore : CustomParser.Parser a -> CustomParser.Parser (Node a)
+parserCore : ParserFast.Parser a -> ParserFast.Parser (Node a)
 parserCore p =
-    CustomParser.mapWithStartAndEndPosition
+    ParserFast.mapWithStartAndEndPosition
         (\start v end ->
             Node { start = start, end = end } v
         )

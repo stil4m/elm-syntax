@@ -1,6 +1,5 @@
 module Elm.Parser.Declarations exposing (declaration)
 
-import CustomParser exposing (Parser)
 import Elm.Parser.Comments as Comments
 import Elm.Parser.Expression exposing (expression)
 import Elm.Parser.Layout as Layout
@@ -17,13 +16,14 @@ import Elm.Syntax.Range exposing (Location)
 import Elm.Syntax.Signature exposing (Signature)
 import Elm.Syntax.Type exposing (ValueConstructor)
 import Elm.Syntax.TypeAnnotation exposing (TypeAnnotation)
+import ParserFast exposing (Parser)
 import ParserWithComments exposing (Comments, WithComments)
 import Rope
 
 
 declaration : Parser (WithComments (Node Declaration))
 declaration =
-    CustomParser.oneOf
+    ParserFast.oneOf
         [ functionDeclarationWithoutDocumentation
         , declarationWithDocumentation
         , typeOrTypeAliasDefinitionWithoutDocumentation
@@ -34,7 +34,7 @@ declaration =
 
 declarationWithDocumentation : Parser (WithComments (Node Declaration))
 declarationWithDocumentation =
-    CustomParser.map2
+    ParserFast.map2
         (\documentation afterDocumentation ->
             let
                 start : Location
@@ -78,10 +78,10 @@ declarationWithDocumentation =
                                             }
                                         )
                                 }
-                                    |> CustomParser.succeed
+                                    |> ParserFast.succeed
 
                             else
-                                CustomParser.problem
+                                ParserFast.problem
                                     ("Expected to find the declaration for " ++ startName ++ " but found " ++ implementationName)
 
                         Nothing ->
@@ -104,7 +104,7 @@ declarationWithDocumentation =
                                         }
                                     )
                             }
-                                |> CustomParser.succeed
+                                |> ParserFast.succeed
 
                 TypeDeclarationAfterDocumentation typeDeclarationAfterDocumentation ->
                     let
@@ -134,7 +134,7 @@ declarationWithDocumentation =
                                 }
                             )
                     }
-                        |> CustomParser.succeed
+                        |> ParserFast.succeed
 
                 TypeAliasDeclarationAfterDocumentation typeAliasDeclarationAfterDocumentation ->
                     let
@@ -152,7 +152,7 @@ declarationWithDocumentation =
                                 }
                             )
                     }
-                        |> CustomParser.succeed
+                        |> ParserFast.succeed
 
                 PortDeclarationAfterDocumentation portDeclarationAfterName ->
                     let
@@ -173,18 +173,18 @@ declarationWithDocumentation =
                                 }
                             )
                     }
-                        |> CustomParser.succeed
+                        |> ParserFast.succeed
         )
         Comments.declarationDocumentation
         (Layout.layoutStrictFollowedByWithComments
-            (CustomParser.oneOf
+            (ParserFast.oneOf
                 [ functionAfterDocumentation
                 , typeOrTypeAliasDefinitionAfterDocumentation
                 , portDeclarationAfterDocumentation
                 ]
             )
         )
-        |> CustomParser.andThen identity
+        |> ParserFast.andThen identity
 
 
 type DeclarationAfterDocumentation
@@ -232,7 +232,7 @@ type TypeOrTypeAliasDeclarationWithoutDocumentation
 
 functionAfterDocumentation : Parser (WithComments DeclarationAfterDocumentation)
 functionAfterDocumentation =
-    CustomParser.map6
+    ParserFast.map6
         (\startName commentsAfterStartName maybeSignature arguments commentsAfterEqual result ->
             { comments =
                 commentsAfterStartName
@@ -259,8 +259,8 @@ functionAfterDocumentation =
         -- infix declarations itself don't have documentation
         (Node.parserCore Tokens.functionName)
         Layout.maybeLayout
-        (CustomParser.orSucceed
-            (CustomParser.map4
+        (ParserFast.orSucceed
+            (ParserFast.map4
                 (\commentsBeforeTypeAnnotation typeAnnotationResult implementationName afterImplementationName ->
                     Just
                         { comments =
@@ -274,7 +274,7 @@ functionAfterDocumentation =
                             }
                         }
                 )
-                (CustomParser.symbolFollowedBy ":" Layout.maybeLayout)
+                (ParserFast.symbolFollowedBy ":" Layout.maybeLayout)
                 TypeAnnotation.typeAnnotation
                 (Layout.layoutStrictFollowedBy
                     (Node.parserCore Tokens.functionName)
@@ -290,7 +290,7 @@ functionAfterDocumentation =
 
 functionDeclarationWithoutDocumentation : Parser (WithComments (Node Declaration))
 functionDeclarationWithoutDocumentation =
-    CustomParser.map6
+    ParserFast.map6
         (\((Node startNameRange startName) as startNameNode) commentsAfterStartName maybeSignature arguments commentsAfterEqual result ->
             let
                 allComments : Comments
@@ -333,7 +333,7 @@ functionDeclarationWithoutDocumentation =
                                 }
                             )
                     }
-                        |> CustomParser.succeed
+                        |> ParserFast.succeed
 
                 Just signature ->
                     let
@@ -360,16 +360,16 @@ functionDeclarationWithoutDocumentation =
                                     }
                                 )
                         }
-                            |> CustomParser.succeed
+                            |> ParserFast.succeed
 
                     else
-                        CustomParser.problem
+                        ParserFast.problem
                             ("Expected to find the declaration for " ++ startName ++ " but found " ++ implementationName)
         )
         (Node.parserCore Tokens.functionNameNotInfix)
         Layout.maybeLayout
-        (CustomParser.orSucceed
-            (CustomParser.map4
+        (ParserFast.orSucceed
+            (ParserFast.map4
                 (\commentsBeforeTypeAnnotation typeAnnotationResult implementationName afterImplementationName ->
                     Just
                         { comments =
@@ -381,7 +381,7 @@ functionDeclarationWithoutDocumentation =
                         , typeAnnotation = typeAnnotationResult.syntax
                         }
                 )
-                (CustomParser.symbolFollowedBy ":" Layout.maybeLayout)
+                (ParserFast.symbolFollowedBy ":" Layout.maybeLayout)
                 TypeAnnotation.typeAnnotation
                 (Layout.layoutStrictFollowedBy
                     (Node.parserCore Tokens.functionName)
@@ -393,13 +393,13 @@ functionDeclarationWithoutDocumentation =
         parameterPatternsEqual
         Layout.maybeLayout
         expression
-        |> CustomParser.andThen identity
+        |> ParserFast.andThen identity
 
 
 parameterPatternsEqual : Parser (WithComments (List (Node Pattern)))
 parameterPatternsEqual =
     ParserWithComments.until Tokens.equal
-        (CustomParser.map2
+        (ParserFast.map2
             (\patternResult commentsAfterPattern ->
                 { comments = patternResult.comments |> Rope.prependTo commentsAfterPattern
                 , syntax = patternResult.syntax
@@ -412,7 +412,7 @@ parameterPatternsEqual =
 
 infixDeclaration : Parser (WithComments (Node Declaration))
 infixDeclaration =
-    CustomParser.map9
+    ParserFast.map9
         (\commentsAfterInfix direction commentsAfterDirection precedence commentsAfterPrecedence operator commentsAfterOperator commentsAfterEqual fn ->
             { comments =
                 commentsAfterInfix
@@ -425,36 +425,36 @@ infixDeclaration =
                     { direction = direction, precedence = precedence, operator = operator, function = fn }
             }
         )
-        (CustomParser.keywordFollowedBy "infix" Layout.maybeLayout)
+        (ParserFast.keywordFollowedBy "infix" Layout.maybeLayout)
         (Node.parserCore infixDirection)
         Layout.maybeLayout
-        (Node.parserCore CustomParser.int)
+        (Node.parserCore ParserFast.int)
         Layout.maybeLayout
         (Node.parserCore
-            (CustomParser.map2
+            (ParserFast.map2
                 (\prefixOperator () -> prefixOperator)
-                (CustomParser.symbolFollowedBy "(" Tokens.prefixOperatorToken)
+                (ParserFast.symbolFollowedBy "(" Tokens.prefixOperatorToken)
                 Tokens.parensEnd
             )
         )
-        (Layout.maybeLayoutUntilIgnored CustomParser.symbolFollowedBy "=")
+        (Layout.maybeLayoutUntilIgnored ParserFast.symbolFollowedBy "=")
         Layout.maybeLayout
         (Node.parserCore Tokens.functionName)
         |> Node.parser
 
 
-infixDirection : CustomParser.Parser Infix.InfixDirection
+infixDirection : ParserFast.Parser Infix.InfixDirection
 infixDirection =
-    CustomParser.oneOf
-        [ CustomParser.keyword "right" Infix.Right
-        , CustomParser.keyword "left" Infix.Left
-        , CustomParser.keyword "non" Infix.Non
+    ParserFast.oneOf
+        [ ParserFast.keyword "right" Infix.Right
+        , ParserFast.keyword "left" Infix.Left
+        , ParserFast.keyword "non" Infix.Non
         ]
 
 
 portDeclarationAfterDocumentation : Parser (WithComments DeclarationAfterDocumentation)
 portDeclarationAfterDocumentation =
-    CustomParser.map5
+    ParserFast.map5
         (\commentsAfterPort ((Node nameRange _) as name) commentsAfterName commentsAfterColon typeAnnotationResult ->
             { comments =
                 commentsAfterPort
@@ -469,16 +469,16 @@ portDeclarationAfterDocumentation =
                     }
             }
         )
-        (CustomParser.keywordFollowedBy "port" Layout.maybeLayout)
+        (ParserFast.keywordFollowedBy "port" Layout.maybeLayout)
         (Node.parserCore Tokens.functionName)
-        (Layout.maybeLayoutUntilIgnored CustomParser.symbolFollowedBy ":")
+        (Layout.maybeLayoutUntilIgnored ParserFast.symbolFollowedBy ":")
         Layout.maybeLayout
         typeAnnotation
 
 
 portDeclarationWithoutDocumentation : Parser (WithComments (Node Declaration))
 portDeclarationWithoutDocumentation =
-    CustomParser.map5
+    ParserFast.map5
         (\commentsAfterPort ((Node nameRange _) as name) commentsAfterName commentsAfterColon typeAnnotationResult ->
             let
                 (Node { end } _) =
@@ -501,23 +501,23 @@ portDeclarationWithoutDocumentation =
                     )
             }
         )
-        (CustomParser.keywordFollowedBy "port" Layout.maybeLayout)
+        (ParserFast.keywordFollowedBy "port" Layout.maybeLayout)
         (Node.parserCore Tokens.functionName)
-        (Layout.maybeLayoutUntilIgnored CustomParser.symbolFollowedBy ":")
+        (Layout.maybeLayoutUntilIgnored ParserFast.symbolFollowedBy ":")
         Layout.maybeLayout
         typeAnnotation
 
 
 typeOrTypeAliasDefinitionAfterDocumentation : Parser (WithComments DeclarationAfterDocumentation)
 typeOrTypeAliasDefinitionAfterDocumentation =
-    CustomParser.map2
+    ParserFast.map2
         (\commentsAfterType declarationAfterDocumentation ->
             { comments = commentsAfterType |> Rope.prependTo declarationAfterDocumentation.comments
             , syntax = declarationAfterDocumentation.syntax
             }
         )
-        (CustomParser.keywordFollowedBy "type" Layout.maybeLayout)
-        (CustomParser.oneOf2
+        (ParserFast.keywordFollowedBy "type" Layout.maybeLayout)
+        (ParserFast.oneOf2
             typeAliasDefinitionAfterDocumentationAfterTypePrefix
             customTypeDefinitionAfterDocumentationAfterTypePrefix
         )
@@ -525,7 +525,7 @@ typeOrTypeAliasDefinitionAfterDocumentation =
 
 typeAliasDefinitionAfterDocumentationAfterTypePrefix : Parser (WithComments DeclarationAfterDocumentation)
 typeAliasDefinitionAfterDocumentationAfterTypePrefix =
-    CustomParser.map6
+    ParserFast.map6
         (\commentsAfterAlias name commentsAfterName parameters commentsAfterEquals typeAnnotationResult ->
             { comments =
                 commentsAfterAlias
@@ -541,7 +541,7 @@ typeAliasDefinitionAfterDocumentationAfterTypePrefix =
                     }
             }
         )
-        (CustomParser.keywordFollowedBy "alias" Layout.maybeLayout)
+        (ParserFast.keywordFollowedBy "alias" Layout.maybeLayout)
         (Node.parserCore Tokens.typeName)
         Layout.maybeLayout
         typeGenericListEquals
@@ -551,7 +551,7 @@ typeAliasDefinitionAfterDocumentationAfterTypePrefix =
 
 customTypeDefinitionAfterDocumentationAfterTypePrefix : Parser (WithComments DeclarationAfterDocumentation)
 customTypeDefinitionAfterDocumentationAfterTypePrefix =
-    CustomParser.map6
+    ParserFast.map6
         (\name commentsAfterName parameters commentsAfterEqual headVariant tailVariantsReverse ->
             { comments =
                 commentsAfterName
@@ -574,7 +574,7 @@ customTypeDefinitionAfterDocumentationAfterTypePrefix =
         Layout.maybeLayout
         valueConstructor
         (ParserWithComments.manyWithoutReverse
-            (CustomParser.map3
+            (ParserFast.map3
                 (\commentsBeforePipe commentsAfterPipe variantResult ->
                     { comments =
                         commentsBeforePipe
@@ -583,7 +583,7 @@ customTypeDefinitionAfterDocumentationAfterTypePrefix =
                     , syntax = variantResult.syntax
                     }
                 )
-                (Layout.maybeLayoutUntilIgnored CustomParser.symbolFollowedBy "|" |> CustomParser.backtrackable)
+                (Layout.maybeLayoutUntilIgnored ParserFast.symbolFollowedBy "|" |> ParserFast.backtrackable)
                 Layout.maybeLayout
                 valueConstructor
             )
@@ -592,7 +592,7 @@ customTypeDefinitionAfterDocumentationAfterTypePrefix =
 
 typeOrTypeAliasDefinitionWithoutDocumentation : Parser (WithComments (Node Declaration.Declaration))
 typeOrTypeAliasDefinitionWithoutDocumentation =
-    CustomParser.mapWithStartPosition
+    ParserFast.mapWithStartPosition
         (\start result ->
             { comments = result.comments
             , syntax =
@@ -600,7 +600,7 @@ typeOrTypeAliasDefinitionWithoutDocumentation =
                     result.declaration
             }
         )
-        (CustomParser.map2
+        (ParserFast.map2
             (\commentsAfterType afterStart ->
                 let
                     allComments : Comments
@@ -652,8 +652,8 @@ typeOrTypeAliasDefinitionWithoutDocumentation =
                         , end = typeAnnotationRange.end
                         }
             )
-            (CustomParser.keywordFollowedBy "type" Layout.maybeLayout)
-            (CustomParser.oneOf2
+            (ParserFast.keywordFollowedBy "type" Layout.maybeLayout)
+            (ParserFast.oneOf2
                 typeAliasDefinitionWithoutDocumentationAfterTypePrefix
                 customTypeDefinitionWithoutDocumentationAfterTypePrefix
             )
@@ -662,7 +662,7 @@ typeOrTypeAliasDefinitionWithoutDocumentation =
 
 typeAliasDefinitionWithoutDocumentationAfterTypePrefix : Parser (WithComments TypeOrTypeAliasDeclarationWithoutDocumentation)
 typeAliasDefinitionWithoutDocumentationAfterTypePrefix =
-    CustomParser.map6
+    ParserFast.map6
         (\commentsAfterAlias name commentsAfterName parameters commentsAfterEqual typeAnnotationResult ->
             { comments =
                 commentsAfterAlias
@@ -678,7 +678,7 @@ typeAliasDefinitionWithoutDocumentationAfterTypePrefix =
                     }
             }
         )
-        (CustomParser.keywordFollowedBy "alias" Layout.maybeLayout)
+        (ParserFast.keywordFollowedBy "alias" Layout.maybeLayout)
         (Node.parserCore Tokens.typeName)
         Layout.maybeLayout
         typeGenericListEquals
@@ -688,7 +688,7 @@ typeAliasDefinitionWithoutDocumentationAfterTypePrefix =
 
 customTypeDefinitionWithoutDocumentationAfterTypePrefix : Parser (WithComments TypeOrTypeAliasDeclarationWithoutDocumentation)
 customTypeDefinitionWithoutDocumentationAfterTypePrefix =
-    CustomParser.map6
+    ParserFast.map6
         (\name commentsAfterName parameters commentsAfterEqual headVariant tailVariantsReverse ->
             { comments =
                 commentsAfterName
@@ -711,7 +711,7 @@ customTypeDefinitionWithoutDocumentationAfterTypePrefix =
         Layout.maybeLayout
         valueConstructor
         (ParserWithComments.manyWithoutReverse
-            (CustomParser.map3
+            (ParserFast.map3
                 (\commentsBeforePipe commentsAfterPipe variantResult ->
                     { comments =
                         commentsBeforePipe
@@ -720,7 +720,7 @@ customTypeDefinitionWithoutDocumentationAfterTypePrefix =
                     , syntax = variantResult.syntax
                     }
                 )
-                (Layout.maybeLayoutUntilIgnored CustomParser.symbolFollowedBy "|" |> CustomParser.backtrackable)
+                (Layout.maybeLayoutUntilIgnored ParserFast.symbolFollowedBy "|" |> ParserFast.backtrackable)
                 Layout.maybeLayout
                 valueConstructor
             )
@@ -729,7 +729,7 @@ customTypeDefinitionWithoutDocumentationAfterTypePrefix =
 
 valueConstructor : Parser (WithComments (Node ValueConstructor))
 valueConstructor =
-    CustomParser.map2
+    ParserFast.map2
         (\((Node nameRange _) as name) argumentsReverse ->
             let
                 fullEnd : Location
@@ -751,13 +751,13 @@ valueConstructor =
         )
         (Node.parserCore Tokens.typeName)
         (ParserWithComments.manyWithoutReverse
-            (CustomParser.map2
+            (ParserFast.map2
                 (\commentsBefore typeAnnotationResult ->
                     { comments = commentsBefore |> Rope.prependTo typeAnnotationResult.comments
                     , syntax = typeAnnotationResult.syntax
                     }
                 )
-                (Layout.maybeLayout |> CustomParser.backtrackable)
+                (Layout.maybeLayout |> ParserFast.backtrackable)
                 typeAnnotationNoFnExcludingTypedWithArguments
             )
         )
@@ -766,7 +766,7 @@ valueConstructor =
 typeGenericListEquals : Parser (WithComments (List (Node String)))
 typeGenericListEquals =
     ParserWithComments.until Tokens.equal
-        (CustomParser.map2
+        (ParserFast.map2
             (\name commentsAfterName ->
                 { comments = commentsAfterName
                 , syntax = name

@@ -1,6 +1,5 @@
 module Elm.Parser.Imports exposing (importDefinition)
 
-import CustomParser exposing (Parser)
 import Elm.Parser.Base exposing (moduleName)
 import Elm.Parser.Expose exposing (exposeDefinition)
 import Elm.Parser.Layout as Layout
@@ -9,13 +8,14 @@ import Elm.Parser.Tokens as Tokens
 import Elm.Syntax.Import exposing (Import)
 import Elm.Syntax.Node exposing (Node(..))
 import Elm.Syntax.Range exposing (Range)
+import ParserFast exposing (Parser)
 import ParserWithComments exposing (WithComments)
 import Rope
 
 
 importDefinition : Parser (WithComments (Node Import))
 importDefinition =
-    CustomParser.mapWithStartPosition
+    ParserFast.mapWithStartPosition
         (\start importResult ->
             { comments = importResult.comments
             , syntax =
@@ -23,7 +23,7 @@ importDefinition =
                     importResult.import_
             }
         )
-        (CustomParser.map6
+        (ParserFast.map6
             (\commentsAfterImport ((Node modRange _) as mod) commentsAfterModuleName maybeModuleAlias maybeExposingList commentsAfterEverything ->
                 let
                     endRange : Range
@@ -76,19 +76,19 @@ importDefinition =
                     }
                 }
             )
-            (CustomParser.keywordFollowedBy "import" Layout.maybeLayout)
+            (ParserFast.keywordFollowedBy "import" Layout.maybeLayout)
             moduleName
             Layout.optimisticLayout
-            (CustomParser.orSucceed
-                (CustomParser.map3
+            (ParserFast.orSucceed
+                (ParserFast.map3
                     (\commentsBefore moduleAliasNode commentsAfter ->
                         Just
                             { comments = commentsBefore |> Rope.prependTo commentsAfter
                             , syntax = moduleAliasNode
                             }
                     )
-                    (CustomParser.keywordFollowedBy "as" Layout.maybeLayout)
-                    (CustomParser.mapWithStartAndEndPosition
+                    (ParserFast.keywordFollowedBy "as" Layout.maybeLayout)
+                    (ParserFast.mapWithStartAndEndPosition
                         (\start moduleAlias end ->
                             Node { start = start, end = end }
                                 [ moduleAlias ]
@@ -99,7 +99,7 @@ importDefinition =
                 )
                 Nothing
             )
-            (CustomParser.orSucceed
+            (ParserFast.orSucceed
                 (Node.parserMapWithComments Just exposeDefinition)
                 Nothing
             )

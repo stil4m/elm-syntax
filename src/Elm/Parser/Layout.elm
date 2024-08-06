@@ -13,9 +13,9 @@ module Elm.Parser.Layout exposing
     , positivelyIndentedPlusFollowedBy
     )
 
-import CustomParser exposing (Parser)
 import Elm.Parser.Comments as Comments
 import Elm.Parser.Node as Node
+import ParserFast exposing (Parser)
 import ParserWithComments exposing (Comments, WithComments)
 import Rope
 import Set
@@ -26,7 +26,7 @@ maybeLayoutUntilIgnored endParser endSymbol =
     whitespaceAndCommentsUntilEndComments
         (endParser endSymbol
             (positivelyIndentedPlusFollowedBy (String.length endSymbol)
-                (CustomParser.succeed Rope.empty)
+                (ParserFast.succeed Rope.empty)
             )
         )
 
@@ -36,34 +36,34 @@ whitespaceAndCommentsUntilEndComments end =
     let
         fromSingleLineCommentUntilEnd : Parser Comments
         fromSingleLineCommentUntilEnd =
-            CustomParser.map2
+            ParserFast.map2
                 (\content commentsAfter ->
                     Rope.one content
                         |> Rope.filledPrependTo commentsAfter
                 )
                 (Node.parserCore Comments.singleLineCommentCore)
-                (CustomParser.lazy (\() -> whitespaceAndCommentsUntilEndComments end))
+                (ParserFast.lazy (\() -> whitespaceAndCommentsUntilEndComments end))
 
         fromMultilineCommentNodeUntilEnd : Parser Comments
         fromMultilineCommentNodeUntilEnd =
-            CustomParser.map2
+            ParserFast.map2
                 (\comment commentsAfter ->
                     Rope.one comment |> Rope.filledPrependTo commentsAfter
                 )
                 (Node.parserCore Comments.multilineCommentString)
-                (CustomParser.lazy (\() -> whitespaceAndCommentsUntilEndComments end))
+                (ParserFast.lazy (\() -> whitespaceAndCommentsUntilEndComments end))
 
         endOrFromCommentElseEmptyThenEnd : Parser Comments
         endOrFromCommentElseEmptyThenEnd =
-            CustomParser.oneOf
+            ParserFast.oneOf
                 [ end
                 , fromSingleLineCommentUntilEnd
                 , fromMultilineCommentNodeUntilEnd
                 ]
     in
-    CustomParser.oneOf
+    ParserFast.oneOf
         [ whitespace
-            |> CustomParser.andThen (\_ -> endOrFromCommentElseEmptyThenEnd)
+            |> ParserFast.andThen (\_ -> endOrFromCommentElseEmptyThenEnd)
         , end
         , fromSingleLineCommentUntilEnd
         , fromMultilineCommentNodeUntilEnd
@@ -72,17 +72,17 @@ whitespaceAndCommentsUntilEndComments end =
 
 whitespaceAndCommentsOrEmpty : Parser Comments
 whitespaceAndCommentsOrEmpty =
-    CustomParser.oneOf2
+    ParserFast.oneOf2
         (whitespace
             -- whitespace can't be followed by more whitespace
-            |> CustomParser.andThen (\_ -> fromCommentElseEmpty)
+            |> ParserFast.andThen (\_ -> fromCommentElseEmpty)
         )
         fromCommentElseEmpty
 
 
 whitespace : Parser String
 whitespace =
-    CustomParser.variable
+    ParserFast.variable
         { inner = \c -> c == ' ' || c == '\n' || c == '\u{000D}'
         , reserved = Set.empty
         , start = \c -> c == ' ' || c == '\n' || c == '\u{000D}'
@@ -93,7 +93,7 @@ fromCommentElseEmpty : Parser Comments
 fromCommentElseEmpty =
     -- since comments are comparatively rare
     -- but expensive to check for, we allow shortcutting to dead end
-    CustomParser.offsetSourceAndThen
+    ParserFast.offsetSourceAndThen
         (\offset source ->
             case source |> String.slice offset (offset + 2) of
                 "--" ->
@@ -110,17 +110,17 @@ fromCommentElseEmpty =
 
 succeedRopeEmpty : Parser Comments
 succeedRopeEmpty =
-    CustomParser.succeed Rope.empty
+    ParserFast.succeed Rope.empty
 
 
 fromMultilineCommentNodeOrEmptyOnProblem : Parser Comments
 fromMultilineCommentNodeOrEmptyOnProblem =
-    CustomParser.orSucceed fromMultilineCommentNode Rope.empty
+    ParserFast.orSucceed fromMultilineCommentNode Rope.empty
 
 
 fromMultilineCommentNode : Parser Comments
 fromMultilineCommentNode =
-    CustomParser.map2
+    ParserFast.map2
         (\comment commentsAfter ->
             Rope.one comment |> Rope.filledPrependTo commentsAfter
         )
@@ -130,7 +130,7 @@ fromMultilineCommentNode =
 
 fromSingleLineCommentNode : Parser Comments
 fromSingleLineCommentNode =
-    CustomParser.map2
+    ParserFast.map2
         (\content commentsAfter ->
             Rope.one content |> Rope.filledPrependTo commentsAfter
         )
@@ -141,7 +141,7 @@ fromSingleLineCommentNode =
 maybeLayout : Parser Comments
 maybeLayout =
     whitespaceAndCommentsOrEmpty
-        |> CustomParser.ignore (positivelyIndentedFollowedBy (CustomParser.succeed ()))
+        |> ParserFast.ignore (positivelyIndentedFollowedBy (ParserFast.succeed ()))
 
 
 {-| Check that the indentation of an already parsed token
@@ -149,7 +149,7 @@ would be valid after [`maybeLayout`](#maybeLayout)
 -}
 positivelyIndentedPlusFollowedBy : Int -> Parser a -> Parser a
 positivelyIndentedPlusFollowedBy extraIndent nextParser =
-    CustomParser.columnIndentAndThen
+    ParserFast.columnIndentAndThen
         (\column indent ->
             if column > indent + extraIndent then
                 nextParser
@@ -161,7 +161,7 @@ positivelyIndentedPlusFollowedBy extraIndent nextParser =
 
 positivelyIndentedFollowedBy : Parser a -> Parser a
 positivelyIndentedFollowedBy nextParser =
-    CustomParser.columnIndentAndThen
+    ParserFast.columnIndentAndThen
         (\column indent ->
             if column > indent then
                 nextParser
@@ -173,7 +173,7 @@ positivelyIndentedFollowedBy nextParser =
 
 problemPositivelyIndented : Parser a
 problemPositivelyIndented =
-    CustomParser.problem "must be positively indented"
+    ParserFast.problem "must be positively indented"
 
 
 optimisticLayout : Parser Comments
@@ -183,7 +183,7 @@ optimisticLayout =
 
 layoutStrictFollowedByComments : Parser Comments -> Parser Comments
 layoutStrictFollowedByComments nextParser =
-    CustomParser.map2
+    ParserFast.map2
         (\commentsBefore afterComments ->
             commentsBefore |> Rope.prependTo afterComments
         )
@@ -193,7 +193,7 @@ layoutStrictFollowedByComments nextParser =
 
 layoutStrictFollowedByWithComments : Parser (WithComments syntax) -> Parser (WithComments syntax)
 layoutStrictFollowedByWithComments nextParser =
-    CustomParser.map2
+    ParserFast.map2
         (\commentsBefore after ->
             { comments = commentsBefore |> Rope.prependTo after.comments
             , syntax = after.syntax
@@ -205,7 +205,7 @@ layoutStrictFollowedByWithComments nextParser =
 
 layoutStrictFollowedBy : Parser syntax -> Parser (WithComments syntax)
 layoutStrictFollowedBy nextParser =
-    CustomParser.map2
+    ParserFast.map2
         (\commentsBefore after ->
             { comments = commentsBefore, syntax = after }
         )
@@ -215,14 +215,14 @@ layoutStrictFollowedBy nextParser =
 
 layoutStrict : Parser Comments
 layoutStrict =
-    CustomParser.map2 (\commentsBefore () -> commentsBefore)
+    ParserFast.map2 (\commentsBefore () -> commentsBefore)
         optimisticLayout
-        (onTopIndentationFollowedBy (CustomParser.succeed ()))
+        (onTopIndentationFollowedBy (ParserFast.succeed ()))
 
 
 moduleLevelIndentationFollowedBy : Parser a -> Parser a
 moduleLevelIndentationFollowedBy nextParser =
-    CustomParser.columnAndThen
+    ParserFast.columnAndThen
         (\column ->
             if column == 1 then
                 nextParser
@@ -234,12 +234,12 @@ moduleLevelIndentationFollowedBy nextParser =
 
 problemModuleLevelIndentation : Parser a
 problemModuleLevelIndentation =
-    CustomParser.problem "must be on module-level indentation"
+    ParserFast.problem "must be on module-level indentation"
 
 
 onTopIndentationFollowedBy : Parser a -> Parser a
 onTopIndentationFollowedBy nextParser =
-    CustomParser.columnIndentAndThen
+    ParserFast.columnIndentAndThen
         (\column indent ->
             if column - indent == 0 then
                 nextParser
@@ -251,12 +251,12 @@ onTopIndentationFollowedBy nextParser =
 
 problemTopIndentation : Parser a
 problemTopIndentation =
-    CustomParser.problem "must be on top indentation"
+    ParserFast.problem "must be on top indentation"
 
 
 maybeAroundBothSides : Parser (WithComments b) -> Parser (WithComments b)
 maybeAroundBothSides x =
-    CustomParser.map3
+    ParserFast.map3
         (\before v after ->
             { comments =
                 before

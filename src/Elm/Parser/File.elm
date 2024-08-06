@@ -1,6 +1,5 @@
 module Elm.Parser.File exposing (file)
 
-import CustomParser exposing (Parser)
 import Elm.Parser.Comments as Comments
 import Elm.Parser.Declarations exposing (declaration)
 import Elm.Parser.Imports exposing (importDefinition)
@@ -10,13 +9,14 @@ import Elm.Parser.Node as Node
 import Elm.Syntax.Declaration exposing (Declaration)
 import Elm.Syntax.File exposing (File)
 import Elm.Syntax.Node exposing (Node)
+import ParserFast exposing (Parser)
 import ParserWithComments exposing (WithComments)
 import Rope
 
 
-file : CustomParser.Parser File
+file : ParserFast.Parser File
 file =
-    CustomParser.map5
+    ParserFast.map5
         (\moduleDefinition moduleComments imports declarations () ->
             { moduleDefinition = moduleDefinition.syntax
             , imports = imports.syntax
@@ -33,8 +33,8 @@ file =
             (Node.parser moduleDefinition)
         )
         (Layout.layoutStrictFollowedByComments
-            (CustomParser.orSucceed
-                (CustomParser.map2
+            (ParserFast.orSucceed
+                (ParserFast.map2
                     (\moduleDocumentation commentsAfter ->
                         Rope.one moduleDocumentation |> Rope.filledPrependTo commentsAfter
                     )
@@ -46,14 +46,14 @@ file =
         )
         (ParserWithComments.many importDefinition)
         fileDeclarations
-        CustomParser.end
+        ParserFast.end
 
 
 fileDeclarations : Parser (WithComments (List (Node Declaration)))
 fileDeclarations =
     ParserWithComments.many
         (Layout.moduleLevelIndentationFollowedBy
-            (CustomParser.map2
+            (ParserFast.map2
                 (\declarationParsed commentsAfter ->
                     { comments = declarationParsed.comments |> Rope.prependTo commentsAfter
                     , syntax = declarationParsed.syntax

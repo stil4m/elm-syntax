@@ -1,11 +1,11 @@
 module Elm.Parser.Numbers exposing (floatOrIntOrHex, intOrHex)
 
-import CustomParser
+import ParserFast
 
 
-floatOrIntOrHex : (Float -> a) -> (Int -> a) -> (Int -> a) -> CustomParser.Parser a
+floatOrIntOrHex : (Float -> a) -> (Int -> a) -> (Int -> a) -> ParserFast.Parser a
 floatOrIntOrHex floatf intf hexf =
-    CustomParser.number
+    ParserFast.number
         { binary = Nothing
         , float = Just floatf
         , hex = Just hexf
@@ -14,9 +14,9 @@ floatOrIntOrHex floatf intf hexf =
         }
 
 
-intOrHex : (Int -> a) -> (Int -> a) -> CustomParser.Parser a
+intOrHex : (Int -> a) -> (Int -> a) -> ParserFast.Parser a
 intOrHex intf hexf =
-    CustomParser.number
+    ParserFast.number
         { binary = Nothing
         , float = Nothing
         , hex = Just hexf

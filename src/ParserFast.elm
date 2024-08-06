@@ -1,4 +1,4 @@
-module CustomParser exposing
+module ParserFast exposing
     ( Parser, run
     , int, number, symbol, symbolFollowedBy, keyword, keywordFollowedBy, variable, end
     , succeed, problem, succeedLazy, lazy, map, map2, map3, map4, map5, map6, map7, map8, map9, map10, map11, ignore, andThen
@@ -40,9 +40,9 @@ module CustomParser exposing
 
 -}
 
-import CustomParser.Advanced as A
 import Elm.Syntax.Range exposing (Location)
 import Parser
+import ParserFast.Advanced as A
 import Set
 
 
@@ -120,8 +120,8 @@ some JavaScript variables:
     var =
         getChompedString <|
             succeed ()
-                |> CustomParser.ignore chompIf isStartChar
-                |> CustomParser.ignore chompWhile isInnerChar
+                |> ParserFast.ignore chompIf isStartChar
+                |> ParserFast.ignore chompWhile isInnerChar
 
     isStartChar : Char -> Bool
     isStartChar char =
@@ -165,19 +165,19 @@ That means we will want to define our parser in terms of itself:
     boolean =
         oneOf
             [ succeed MyTrue
-                |> CustomParser.ignore keyword "true"
+                |> ParserFast.ignore keyword "true"
             , succeed MyFalse
-                |> CustomParser.ignore keyword "false"
+                |> ParserFast.ignore keyword "false"
             , succeed MyOr
-                |> CustomParser.ignore symbol "("
-                |> CustomParser.ignore spaces
+                |> ParserFast.ignore symbol "("
+                |> ParserFast.ignore spaces
                 |= lazy (\_ -> boolean)
-                |> CustomParser.ignore spaces
-                |> CustomParser.ignore symbol "||"
-                |> CustomParser.ignore spaces
+                |> ParserFast.ignore spaces
+                |> ParserFast.ignore symbol "||"
+                |> ParserFast.ignore spaces
                 |= lazy (\_ -> boolean)
-                |> CustomParser.ignore spaces
-                |> CustomParser.ignore symbol ")"
+                |> ParserFast.ignore spaces
+                |> ParserFast.ignore symbol ")"
             ]
 
 **Notice that `boolean` uses `boolean` in its definition!** In Elm, you can
@@ -216,7 +216,7 @@ Check out [`examples/DoubleQuoteString.elm`](https://github.com/elm/parser/blob/
 for another example, this time using `andThen` to verify unicode code points.
 
 **Note:** If you are using `andThen` recursively and blowing the stack, check
-out the [`CustomParser.Advanced.loop`](CustomParser-Advanced#loop) function to limit stack usage.
+out the [`ParserFast.Advanced.loop`](ParserFast-Advanced#loop) function to limit stack usage.
 
 -}
 andThen : (a -> Parser b) -> Parser a -> Parser b
@@ -496,7 +496,7 @@ parser like this:
     myInt =
         oneOf
             [ succeed negate
-                |> CustomParser.ignore symbol "-"
+                |> ParserFast.ignore symbol "-"
                 |= int
             , int
             ]
@@ -556,11 +556,11 @@ character to make sure it is not a letter, number, or underscore. The goal is
 to help with parsers like this:
 
     succeed identity
-        |> CustomParser.ignore keyword "let"
-        |> CustomParser.ignore spaces
+        |> ParserFast.ignore keyword "let"
+        |> ParserFast.ignore spaces
         |= elmVar
-        |> CustomParser.ignore spaces
-        |> CustomParser.ignore symbol "="
+        |> ParserFast.ignore spaces
+        |> ParserFast.ignore symbol "="
 
 The trouble is that `spaces` may chomp zero characters (to handle expressions
 like `[1,2]` and `[ 1 , 2 ]`) and in this case, it would mean `letters` could
@@ -587,7 +587,7 @@ keywordFollowedBy kwd nextParser =
     justAnInt =
         succeed identity
             |= int
-            |> CustomParser.ignore end
+            |> ParserFast.ignore end
 
     -- run justAnInt "90210" == Ok 90210
     -- run justAnInt "1 + 2" == Err ...
@@ -610,9 +610,9 @@ need to parse [valid PHP variables][php] like `$x` and `$txt`:
     php =
         getChompedString <|
             succeed ()
-                |> CustomParser.ignore chompIf (\c -> c == '$')
-                |> CustomParser.ignore chompIf (\c -> Char.isAlpha c || c == '_')
-                |> CustomParser.ignore chompWhile (\c -> Char.isAlphaNum c || c == '_')
+                |> ParserFast.ignore chompIf (\c -> c == '$')
+                |> ParserFast.ignore chompIf (\c -> Char.isAlpha c || c == '_')
+                |> ParserFast.ignore chompWhile (\c -> Char.isAlphaNum c || c == '_')
 
 The idea is that you create a bunch of chompers that validate the underlying
 characters. Then `getChompedString` extracts the underlying `String` efficiently.
@@ -675,8 +675,8 @@ useful for chomping whitespace or variable names:
     elmVar =
         getChompedString <|
             succeed ()
-                |> CustomParser.ignore chompIf Char.isLower
-                |> CustomParser.ignore chompWhile (\c -> Char.isAlphaNum c || c == '_')
+                |> ParserFast.ignore chompIf Char.isLower
+                |> ParserFast.ignore chompWhile (\c -> Char.isAlphaNum c || c == '_')
 
 **Note:** a `chompWhile` parser always succeeds! This can lead to tricky
 situations, especially if you define your whitespace with it. In that case,
@@ -734,7 +734,7 @@ mapWithStartAndEndPosition =
 we could try something like this:
 
     import Char
-    import CustomParser exposing (..)
+    import ParserFast exposing (..)
     import Set
 
     typeVar : Parser String
@@ -791,7 +791,7 @@ JS whitespace, you could say:
     ifProgress : Parser a -> Int -> Parser (Step Int ())
     ifProgress parser offset =
         succeed identity
-            |> CustomParser.ignore parser
+            |> ParserFast.ignore parser
             |= getOffset
             |> map
                 (\newOffset ->

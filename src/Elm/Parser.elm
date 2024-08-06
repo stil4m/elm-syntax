@@ -10,12 +10,12 @@ module Elm.Parser exposing
 
 -}
 
-import CustomParser
 import Elm.Internal.RawFile as InternalRawFile
 import Elm.Parser.File exposing (file)
 import Elm.RawFile exposing (RawFile)
 import Elm.Syntax.File exposing (File)
 import Parser
+import ParserFast
 
 
 {-| **@deprecated** Use [`parseToFile`](#parseToFile) instead, which is simpler and doesn't require post-processing.
@@ -39,4 +39,4 @@ When parsing fails, the result will contain a list of errors indicating what wen
 -}
 parseToFile : String -> Result (List Parser.DeadEnd) File
 parseToFile input =
-    CustomParser.run file input
+    ParserFast.run file input

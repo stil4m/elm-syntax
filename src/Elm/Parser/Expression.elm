@@ -1,7 +1,5 @@
 module Elm.Parser.Expression exposing (expression)
 
-import CustomParser exposing (Parser)
-import CustomParser.Advanced
 import Elm.Parser.Layout as Layout
 import Elm.Parser.Node as Node
 import Elm.Parser.Numbers
@@ -14,13 +12,15 @@ import Elm.Syntax.Node as Node exposing (Node(..))
 import Elm.Syntax.Pattern exposing (Pattern)
 import Elm.Syntax.Range exposing (Location)
 import Elm.Syntax.Signature exposing (Signature)
+import ParserFast exposing (Parser)
+import ParserFast.Advanced
 import ParserWithComments exposing (Comments, WithComments)
 import Rope
 
 
 subExpression : Parser (WithComments (Node Expression))
 subExpression =
-    CustomParser.oneOf
+    ParserFast.oneOf
         [ qualifiedOrVariantOrRecordConstructorReferenceExpression
         , unqualifiedFunctionReferenceExpression
         , literalExpression
@@ -44,30 +44,30 @@ andThenOneOf =
     -- TODO Report a syntax error when encountering multiple of the comparison operators
     -- `a < b < c` is not valid Elm syntax
     [ recordAccess
-    , infixLeft 1 (CustomParser.lazy (\() -> abovePrecedence1)) "|>"
-    , infixRight 5 (CustomParser.lazy (\() -> abovePrecedence4)) "++"
-    , infixRight 1 (CustomParser.lazy (\() -> abovePrecedence0)) "<|"
-    , infixRight 9 (CustomParser.lazy (\() -> abovePrecedence8)) ">>"
-    , infixNonAssociative 4 (CustomParser.lazy (\() -> abovePrecedence4)) "=="
-    , infixLeft 7 (CustomParser.lazy (\() -> abovePrecedence7)) "*"
-    , infixRight 5 (CustomParser.lazy (\() -> abovePrecedence4)) "::"
-    , infixLeft 6 (CustomParser.lazy (\() -> abovePrecedence6)) "+"
-    , infixLeftSubtraction 6 (CustomParser.lazy (\() -> abovePrecedence6))
-    , infixLeft 6 (CustomParser.lazy (\() -> abovePrecedence6)) "|."
-    , infixRight 3 (CustomParser.lazy (\() -> abovePrecedence2)) "&&"
-    , infixLeft 5 (CustomParser.lazy (\() -> abovePrecedence5)) "|="
-    , infixLeft 9 (CustomParser.lazy (\() -> abovePrecedence9)) "<<"
-    , infixNonAssociative 4 (CustomParser.lazy (\() -> abovePrecedence4)) "/="
-    , infixLeft 7 (CustomParser.lazy (\() -> abovePrecedence7)) "//"
-    , infixLeft 7 (CustomParser.lazy (\() -> abovePrecedence7)) "/"
-    , infixRight 7 (CustomParser.lazy (\() -> abovePrecedence6)) "</>"
-    , infixRight 2 (CustomParser.lazy (\() -> abovePrecedence1)) "||"
-    , infixNonAssociative 4 (CustomParser.lazy (\() -> abovePrecedence4)) "<="
-    , infixNonAssociative 4 (CustomParser.lazy (\() -> abovePrecedence4)) ">="
-    , infixNonAssociative 4 (CustomParser.lazy (\() -> abovePrecedence4)) ">"
-    , infixLeft 8 (CustomParser.lazy (\() -> abovePrecedence8)) "<?>"
-    , infixNonAssociative 4 (CustomParser.lazy (\() -> abovePrecedence4)) "<"
-    , infixRight 8 (CustomParser.lazy (\() -> abovePrecedence7)) "^"
+    , infixLeft 1 (ParserFast.lazy (\() -> abovePrecedence1)) "|>"
+    , infixRight 5 (ParserFast.lazy (\() -> abovePrecedence4)) "++"
+    , infixRight 1 (ParserFast.lazy (\() -> abovePrecedence0)) "<|"
+    , infixRight 9 (ParserFast.lazy (\() -> abovePrecedence8)) ">>"
+    , infixNonAssociative 4 (ParserFast.lazy (\() -> abovePrecedence4)) "=="
+    , infixLeft 7 (ParserFast.lazy (\() -> abovePrecedence7)) "*"
+    , infixRight 5 (ParserFast.lazy (\() -> abovePrecedence4)) "::"
+    , infixLeft 6 (ParserFast.lazy (\() -> abovePrecedence6)) "+"
+    , infixLeftSubtraction 6 (ParserFast.lazy (\() -> abovePrecedence6))
+    , infixLeft 6 (ParserFast.lazy (\() -> abovePrecedence6)) "|."
+    , infixRight 3 (ParserFast.lazy (\() -> abovePrecedence2)) "&&"
+    , infixLeft 5 (ParserFast.lazy (\() -> abovePrecedence5)) "|="
+    , infixLeft 9 (ParserFast.lazy (\() -> abovePrecedence9)) "<<"
+    , infixNonAssociative 4 (ParserFast.lazy (\() -> abovePrecedence4)) "/="
+    , infixLeft 7 (ParserFast.lazy (\() -> abovePrecedence7)) "//"
+    , infixLeft 7 (ParserFast.lazy (\() -> abovePrecedence7)) "/"
+    , infixRight 7 (ParserFast.lazy (\() -> abovePrecedence6)) "</>"
+    , infixRight 2 (ParserFast.lazy (\() -> abovePrecedence1)) "||"
+    , infixNonAssociative 4 (ParserFast.lazy (\() -> abovePrecedence4)) "<="
+    , infixNonAssociative 4 (ParserFast.lazy (\() -> abovePrecedence4)) ">="
+    , infixNonAssociative 4 (ParserFast.lazy (\() -> abovePrecedence4)) ">"
+    , infixLeft 8 (ParserFast.lazy (\() -> abovePrecedence8)) "<?>"
+    , infixNonAssociative 4 (ParserFast.lazy (\() -> abovePrecedence4)) "<"
+    , infixRight 8 (ParserFast.lazy (\() -> abovePrecedence7)) "^"
 
     -- function application must be last
     -- TODO validate function application arguments (issue #209)
@@ -97,15 +97,15 @@ recordAccessParser =
         )
 
 
-problemRecordAccessStartingWithSpace : CustomParser.Parser a
+problemRecordAccessStartingWithSpace : ParserFast.Parser a
 problemRecordAccessStartingWithSpace =
-    CustomParser.problem "Record access can't start with a space"
+    ParserFast.problem "Record access can't start with a space"
 
 
-dotField : CustomParser.Parser (WithComments ExtensionRight)
+dotField : ParserFast.Parser (WithComments ExtensionRight)
 dotField =
-    CustomParser.symbolFollowedBy "."
-        (CustomParser.mapWithStartAndEndPosition
+    ParserFast.symbolFollowedBy "."
+        (ParserFast.mapWithStartAndEndPosition
             (\nameStart name nameEnd ->
                 { comments = Rope.empty
                 , syntax =
@@ -120,15 +120,15 @@ dotField =
 functionCall : ( Int, Parser (WithComments ExtensionRight) )
 functionCall =
     infixHelp 90
-        (CustomParser.lazy (\() -> abovePrecedence90))
+        (ParserFast.lazy (\() -> abovePrecedence90))
         Layout.positivelyIndentedFollowedBy
         ExtendRightByApplication
 
 
 glslExpressionAfterOpeningSquareBracket : Parser (WithComments (Node Expression))
 glslExpressionAfterOpeningSquareBracket =
-    CustomParser.symbolFollowedBy "glsl|"
-        (CustomParser.mapWithStartAndEndPosition
+    ParserFast.symbolFollowedBy "glsl|"
+        (ParserFast.mapWithStartAndEndPosition
             (\start s end ->
                 { comments = Rope.empty
                 , syntax =
@@ -140,35 +140,35 @@ glslExpressionAfterOpeningSquareBracket =
                         (GLSLExpression s)
                 }
             )
-            (CustomParser.Advanced.loop "" untilGlslEnd)
+            (ParserFast.Advanced.loop "" untilGlslEnd)
         )
 
 
-untilGlslEnd : String -> Parser (CustomParser.Advanced.Step String String)
+untilGlslEnd : String -> Parser (ParserFast.Advanced.Step String String)
 untilGlslEnd soFar =
-    CustomParser.oneOf
-        [ CustomParser.symbol "|]" (CustomParser.Advanced.Done soFar)
-        , CustomParser.mapChompedString
+    ParserFast.oneOf
+        [ ParserFast.symbol "|]" (ParserFast.Advanced.Done soFar)
+        , ParserFast.mapChompedString
             (\beforeVerticalBar () ->
-                CustomParser.Advanced.Loop (soFar ++ beforeVerticalBar)
+                ParserFast.Advanced.Loop (soFar ++ beforeVerticalBar)
             )
-            (CustomParser.chompIfFollowedBy (\c -> c /= '|')
-                (CustomParser.chompWhile (\c -> c /= '|'))
+            (ParserFast.chompIfFollowedBy (\c -> c /= '|')
+                (ParserFast.chompWhile (\c -> c /= '|'))
             )
-        , CustomParser.symbol "|" (CustomParser.Advanced.Loop (soFar ++ "|"))
+        , ParserFast.symbol "|" (ParserFast.Advanced.Loop (soFar ++ "|"))
         ]
 
 
 listOrGlslExpression : Parser (WithComments (Node Expression))
 listOrGlslExpression =
-    CustomParser.symbolFollowedBy "[" expressionAfterOpeningSquareBracket
+    ParserFast.symbolFollowedBy "[" expressionAfterOpeningSquareBracket
 
 
 expressionAfterOpeningSquareBracket : Parser (WithComments (Node Expression))
 expressionAfterOpeningSquareBracket =
-    CustomParser.oneOf2
+    ParserFast.oneOf2
         glslExpressionAfterOpeningSquareBracket
-        (CustomParser.mapWithStartAndEndPosition
+        (ParserFast.mapWithStartAndEndPosition
             (\start elements end ->
                 { comments = elements.comments
                 , syntax =
@@ -179,16 +179,16 @@ expressionAfterOpeningSquareBracket =
                         elements.syntax
                 }
             )
-            (CustomParser.map2
+            (ParserFast.map2
                 (\commentsBefore elements ->
                     { comments = commentsBefore |> Rope.prependTo elements.comments
                     , syntax = elements.syntax
                     }
                 )
                 Layout.maybeLayout
-                (CustomParser.oneOf2
-                    (CustomParser.symbol "]" { comments = Rope.empty, syntax = ListExpr [] })
-                    (CustomParser.map4
+                (ParserFast.oneOf2
+                    (ParserFast.symbol "]" { comments = Rope.empty, syntax = ListExpr [] })
+                    (ParserFast.map4
                         (\head commentsAfterHead tail () ->
                             { comments =
                                 head.comments
@@ -200,7 +200,7 @@ expressionAfterOpeningSquareBracket =
                         expression
                         Layout.maybeLayout
                         (ParserWithComments.many
-                            (CustomParser.symbolFollowedBy ","
+                            (ParserFast.symbolFollowedBy ","
                                 (Layout.maybeAroundBothSides expression)
                             )
                         )
@@ -217,7 +217,7 @@ expressionAfterOpeningSquareBracket =
 
 recordExpression : Parser (WithComments (Node Expression))
 recordExpression =
-    CustomParser.map2
+    ParserFast.map2
         (\commentsBefore afterCurly ->
             { comments =
                 commentsBefore
@@ -225,15 +225,15 @@ recordExpression =
             , syntax = afterCurly.syntax
             }
         )
-        (CustomParser.symbolFollowedBy "{" Layout.maybeLayout)
+        (ParserFast.symbolFollowedBy "{" Layout.maybeLayout)
         recordContentsCurlyEnd
         |> Node.parser
 
 
 recordContentsCurlyEnd : Parser (WithComments Expression)
 recordContentsCurlyEnd =
-    CustomParser.oneOf2
-        (CustomParser.map5
+    ParserFast.oneOf2
+        (ParserFast.map5
             (\nameNode commentsAfterFunctionName afterNameBeforeFields tailFields commentsBeforeClosingCurly ->
                 { comments =
                     commentsAfterFunctionName
@@ -251,17 +251,17 @@ recordContentsCurlyEnd =
             )
             (Node.parserCore Tokens.functionName)
             Layout.maybeLayout
-            (CustomParser.oneOf2
-                (CustomParser.map2
+            (ParserFast.oneOf2
+                (ParserFast.map2
                     (\commentsBefore setterResult ->
                         { comments = commentsBefore |> Rope.prependTo setterResult.comments
                         , syntax = RecordUpdateFirstSetter setterResult.syntax
                         }
                     )
-                    (CustomParser.symbolFollowedBy "|" Layout.maybeLayout)
+                    (ParserFast.symbolFollowedBy "|" Layout.maybeLayout)
                     recordSetterNodeWithLayout
                 )
-                (CustomParser.map3
+                (ParserFast.map3
                     (\commentsBefore expressionResult commentsAfter ->
                         { comments =
                             commentsBefore
@@ -270,15 +270,15 @@ recordContentsCurlyEnd =
                         , syntax = FieldsFirstValue expressionResult.syntax
                         }
                     )
-                    (CustomParser.symbolFollowedBy "=" Layout.maybeLayout)
+                    (ParserFast.symbolFollowedBy "=" Layout.maybeLayout)
                     expression
                     Layout.maybeLayout
                 )
             )
             recordFields
-            (Layout.maybeLayoutUntilIgnored CustomParser.symbolFollowedBy "}")
+            (Layout.maybeLayoutUntilIgnored ParserFast.symbolFollowedBy "}")
         )
-        (CustomParser.symbol "}" { comments = Rope.empty, syntax = RecordExpr [] })
+        (ParserFast.symbol "}" { comments = Rope.empty, syntax = RecordExpr [] })
 
 
 type RecordFieldsOrUpdateAfterName
@@ -289,13 +289,13 @@ type RecordFieldsOrUpdateAfterName
 recordFields : Parser (WithComments (List (Node RecordSetter)))
 recordFields =
     ParserWithComments.many
-        (CustomParser.map2
+        (ParserFast.map2
             (\commentsBefore setterResult ->
                 { comments = commentsBefore |> Rope.prependTo setterResult.comments
                 , syntax = setterResult.syntax
                 }
             )
-            (CustomParser.symbolFollowedBy "," Layout.maybeLayout)
+            (ParserFast.symbolFollowedBy "," Layout.maybeLayout)
             recordSetterNodeWithLayout
         )
 
@@ -303,7 +303,7 @@ recordFields =
 recordSetterNodeWithLayout : Parser (WithComments (Node RecordSetter))
 recordSetterNodeWithLayout =
     Node.parser
-        (CustomParser.map5
+        (ParserFast.map5
             (\name commentsAfterFunctionName commentsAfterEquals expressionResult commentsAfterExpression ->
                 { comments =
                     commentsAfterFunctionName
@@ -315,7 +315,7 @@ recordSetterNodeWithLayout =
                 }
             )
             (Node.parserCore Tokens.functionName)
-            (Layout.maybeLayoutUntilIgnored CustomParser.symbolFollowedBy "=")
+            (Layout.maybeLayoutUntilIgnored ParserFast.symbolFollowedBy "=")
             Layout.maybeLayout
             expression
             -- This extra whitespace is just included for compatibility with earlier version
@@ -326,7 +326,7 @@ recordSetterNodeWithLayout =
 
 literalExpression : Parser (WithComments (Node Expression))
 literalExpression =
-    CustomParser.mapWithStartAndEndPosition
+    ParserFast.mapWithStartAndEndPosition
         (\start string end ->
             { comments = Rope.empty
             , syntax = Node { start = start, end = end } (Literal string)
@@ -337,7 +337,7 @@ literalExpression =
 
 charLiteralExpression : Parser (WithComments (Node Expression))
 charLiteralExpression =
-    CustomParser.mapWithStartAndEndPosition
+    ParserFast.mapWithStartAndEndPosition
         (\start char end ->
             { comments = Rope.empty
             , syntax = Node { start = start, end = end } (CharLiteral char)
@@ -352,7 +352,7 @@ charLiteralExpression =
 
 lambdaExpression : Parser (WithComments (Node Expression))
 lambdaExpression =
-    CustomParser.mapWithStartPosition
+    ParserFast.mapWithStartPosition
         (\start lambda ->
             let
                 (Node expressionRange _) =
@@ -368,7 +368,7 @@ lambdaExpression =
                     )
             }
         )
-        (CustomParser.map5
+        (ParserFast.map5
             (\commentsAfterBackslash firstArg commentsAfterFirstArg secondUpArgs expressionResult ->
                 { args = firstArg.syntax :: secondUpArgs.syntax
                 , comments =
@@ -380,12 +380,12 @@ lambdaExpression =
                 , expression = expressionResult.syntax
                 }
             )
-            (CustomParser.symbolFollowedBy "\\" Layout.maybeLayout)
+            (ParserFast.symbolFollowedBy "\\" Layout.maybeLayout)
             Patterns.patternNotDirectlyComposing
             Layout.maybeLayout
             (ParserWithComments.until
                 Tokens.arrowRight
-                (CustomParser.map2
+                (ParserFast.map2
                     (\patternResult commentsAfter ->
                         { comments =
                             patternResult.comments
@@ -407,7 +407,7 @@ lambdaExpression =
 
 caseExpression : Parser (WithComments (Node Expression))
 caseExpression =
-    CustomParser.mapWithStartPosition
+    ParserFast.mapWithStartPosition
         (\start caseBlock ->
             { comments = caseBlock.comments
             , syntax =
@@ -432,7 +432,7 @@ caseExpression =
                     )
             }
         )
-        (CustomParser.map5
+        (ParserFast.map5
             (\commentsAfterCase casedExpressionResult commentsBeforeOf commentsAfterOf casesResult ->
                 let
                     ( firstCase, lastToSecondCase ) =
@@ -449,17 +449,17 @@ caseExpression =
                 , lastToSecondCase = lastToSecondCase
                 }
             )
-            (CustomParser.keywordFollowedBy "case" Layout.maybeLayout)
+            (ParserFast.keywordFollowedBy "case" Layout.maybeLayout)
             expression
-            (Layout.maybeLayoutUntilIgnored CustomParser.keywordFollowedBy "of")
+            (Layout.maybeLayoutUntilIgnored ParserFast.keywordFollowedBy "of")
             Layout.maybeLayout
-            (CustomParser.withIndentSetToColumn caseStatements)
+            (ParserFast.withIndentSetToColumn caseStatements)
         )
 
 
 caseStatements : Parser (WithComments ( Case, List Case ))
 caseStatements =
-    CustomParser.map5
+    ParserFast.map5
         (\firstCasePatternResult commentsAfterFirstCasePattern commentsAfterFirstCaseArrowRight firstCaseExpressionResult lastToSecondCase ->
             { comments =
                 firstCasePatternResult.comments
@@ -474,7 +474,7 @@ caseStatements =
             }
         )
         Patterns.pattern
-        (Layout.maybeLayoutUntilIgnored CustomParser.symbolFollowedBy "->")
+        (Layout.maybeLayoutUntilIgnored ParserFast.symbolFollowedBy "->")
         Layout.maybeLayout
         expression
         (ParserWithComments.manyWithoutReverse caseStatement)
@@ -483,7 +483,7 @@ caseStatements =
 caseStatement : Parser (WithComments Case)
 caseStatement =
     Layout.onTopIndentationFollowedBy
-        (CustomParser.map4
+        (ParserFast.map4
             (\pattern commentsBeforeArrowRight commentsAfterArrowRight expr ->
                 { comments =
                     pattern.comments
@@ -494,7 +494,7 @@ caseStatement =
                 }
             )
             Patterns.pattern
-            (Layout.maybeLayoutUntilIgnored CustomParser.symbolFollowedBy "->")
+            (Layout.maybeLayoutUntilIgnored ParserFast.symbolFollowedBy "->")
             Layout.maybeLayout
             expression
         )
@@ -506,7 +506,7 @@ caseStatement =
 
 letExpression : Parser (WithComments (Node Expression))
 letExpression =
-    CustomParser.mapWithStartPosition
+    ParserFast.mapWithStartPosition
         (\start letBlock ->
             let
                 (Node expressionRange _) =
@@ -522,7 +522,7 @@ letExpression =
                     )
             }
         )
-        (CustomParser.map3
+        (ParserFast.map3
             (\declarations commentsAfterIn expressionResult ->
                 { comments =
                     declarations.comments
@@ -532,8 +532,8 @@ letExpression =
                 , expression = expressionResult.syntax
                 }
             )
-            (CustomParser.withIndentSetToColumn
-                (CustomParser.map2
+            (ParserFast.withIndentSetToColumn
+                (ParserFast.map2
                     (\commentsAfterLet declarations ->
                         { comments =
                             commentsAfterLet
@@ -541,8 +541,8 @@ letExpression =
                         , syntax = declarations.syntax
                         }
                     )
-                    (CustomParser.keywordFollowedBy "let" Layout.maybeLayout)
-                    (CustomParser.withIndentSetToColumn letDeclarationsIn)
+                    (ParserFast.keywordFollowedBy "let" Layout.maybeLayout)
+                    (ParserFast.withIndentSetToColumn letDeclarationsIn)
                 )
             )
             -- check that the `in` token used as the end parser in letDeclarationsIn is indented correctly
@@ -556,7 +556,7 @@ letExpression =
 letDeclarationsIn : Parser (WithComments (List (Node LetDeclaration)))
 letDeclarationsIn =
     Layout.onTopIndentationFollowedBy
-        (CustomParser.map3
+        (ParserFast.map3
             (\headLetResult commentsAfter tailLetResult ->
                 { comments =
                     headLetResult.comments
@@ -565,7 +565,7 @@ letDeclarationsIn =
                 , syntax = headLetResult.syntax :: tailLetResult.syntax
                 }
             )
-            (CustomParser.oneOf2
+            (ParserFast.oneOf2
                 letFunction
                 letDestructuringDeclaration
             )
@@ -577,13 +577,13 @@ letDeclarationsIn =
 blockElement : Parser (WithComments (Node LetDeclaration))
 blockElement =
     Layout.onTopIndentationFollowedBy
-        (CustomParser.map2
+        (ParserFast.map2
             (\letDeclarationResult commentsAfter ->
                 { comments = letDeclarationResult.comments |> Rope.prependTo commentsAfter
                 , syntax = letDeclarationResult.syntax
                 }
             )
-            (CustomParser.oneOf2
+            (ParserFast.oneOf2
                 letFunction
                 letDestructuringDeclaration
             )
@@ -593,7 +593,7 @@ blockElement =
 
 letDestructuringDeclaration : Parser (WithComments (Node LetDeclaration))
 letDestructuringDeclaration =
-    CustomParser.map4
+    ParserFast.map4
         (\pattern commentsAfterPattern commentsAfterEquals expressionResult ->
             let
                 (Node { start } _) =
@@ -614,13 +614,13 @@ letDestructuringDeclaration =
         )
         Patterns.patternNotDirectlyComposing
         Layout.maybeLayout
-        (CustomParser.symbolFollowedBy "=" Layout.maybeLayout)
+        (ParserFast.symbolFollowedBy "=" Layout.maybeLayout)
         expression
 
 
 letFunction : Parser (WithComments (Node LetDeclaration))
 letFunction =
-    CustomParser.map6
+    ParserFast.map6
         (\((Node startNameRange startName) as startNameNode) commentsAfterStartName maybeSignature arguments commentsAfterEqual expressionResult ->
             let
                 allComments : Comments
@@ -663,7 +663,7 @@ letFunction =
                                 }
                             )
                     }
-                        |> CustomParser.succeed
+                        |> ParserFast.succeed
 
                 Just signature ->
                     let
@@ -690,16 +690,16 @@ letFunction =
                                     }
                                 )
                         }
-                            |> CustomParser.succeed
+                            |> ParserFast.succeed
 
                     else
-                        CustomParser.problem
+                        ParserFast.problem
                             ("Expected to find the declaration for " ++ startName ++ " but found " ++ implementationName)
         )
         (Node.parserCore Tokens.functionName)
         Layout.maybeLayout
-        (CustomParser.orSucceed
-            (CustomParser.map4
+        (ParserFast.orSucceed
+            (ParserFast.map4
                 (\commentsBeforeTypeAnnotation typeAnnotationResult implementationName afterImplementationName ->
                     Just
                         { comments =
@@ -711,7 +711,7 @@ letFunction =
                         , typeAnnotation = typeAnnotationResult.syntax
                         }
                 )
-                (CustomParser.symbolFollowedBy ":" Layout.maybeLayout)
+                (ParserFast.symbolFollowedBy ":" Layout.maybeLayout)
                 TypeAnnotation.typeAnnotation
                 (Layout.layoutStrictFollowedBy
                     (Node.parserCore Tokens.functionName)
@@ -723,13 +723,13 @@ letFunction =
         parameterPatternsEqual
         Layout.maybeLayout
         expression
-        |> CustomParser.andThen identity
+        |> ParserFast.andThen identity
 
 
 parameterPatternsEqual : Parser (WithComments (List (Node Pattern)))
 parameterPatternsEqual =
     ParserWithComments.until Tokens.equal
-        (CustomParser.map2
+        (ParserFast.map2
             (\patternResult commentsAfterPattern ->
                 { comments = patternResult.comments |> Rope.prependTo commentsAfterPattern
                 , syntax = patternResult.syntax
@@ -742,7 +742,7 @@ parameterPatternsEqual =
 
 numberExpression : Parser (WithComments (Node Expression))
 numberExpression =
-    CustomParser.mapWithStartAndEndPosition
+    ParserFast.mapWithStartAndEndPosition
         (\start n end ->
             { comments = Rope.empty
             , syntax = Node { start = start, end = end } n
@@ -757,7 +757,7 @@ numberExpression =
 
 ifBlockExpression : Parser (WithComments (Node Expression))
 ifBlockExpression =
-    CustomParser.mapWithStartPosition
+    ParserFast.mapWithStartPosition
         (\start ifBlock ->
             let
                 (Node ifFalseRange _) =
@@ -773,7 +773,7 @@ ifBlockExpression =
                     )
             }
         )
-        (CustomParser.map8
+        (ParserFast.map8
             (\commentsAfterIf condition commentsBeforeThen commentsAfterThen ifTrue commentsBeforeElse commentsAfterElse ifFalse ->
                 { comments =
                     commentsAfterIf
@@ -789,12 +789,12 @@ ifBlockExpression =
                 , ifTrue = ifTrue.syntax
                 }
             )
-            (CustomParser.keywordFollowedBy "if" Layout.maybeLayout)
+            (ParserFast.keywordFollowedBy "if" Layout.maybeLayout)
             expression
-            (Layout.maybeLayoutUntilIgnored CustomParser.keywordFollowedBy "then")
+            (Layout.maybeLayoutUntilIgnored ParserFast.keywordFollowedBy "then")
             Layout.maybeLayout
             expression
-            (Layout.maybeLayoutUntilIgnored CustomParser.keywordFollowedBy "else")
+            (Layout.maybeLayoutUntilIgnored ParserFast.keywordFollowedBy "else")
             Layout.maybeLayout
             expression
         )
@@ -802,7 +802,7 @@ ifBlockExpression =
 
 negationOperation : Parser (WithComments (Node Expression))
 negationOperation =
-    CustomParser.mapWithStartPosition
+    ParserFast.mapWithStartPosition
         (\start subExpressionResult ->
             let
                 (Node subExpressionRange _) =
@@ -814,22 +814,22 @@ negationOperation =
                     (Negation subExpressionResult.syntax)
             }
         )
-        (CustomParser.map2
+        (ParserFast.map2
             (\() subExpressionResult -> subExpressionResult)
-            (CustomParser.symbol "-" () |> CustomParser.backtrackable)
+            (ParserFast.symbol "-" () |> ParserFast.backtrackable)
             (extendedSubExpressionWithoutInitialLayout abovePrecedence95)
         )
 
 
 qualifiedOrVariantOrRecordConstructorReferenceExpression : Parser (WithComments (Node Expression))
 qualifiedOrVariantOrRecordConstructorReferenceExpression =
-    CustomParser.mapWithStartAndEndPosition
+    ParserFast.mapWithStartAndEndPosition
         (\start reference end ->
             { comments = Rope.empty
             , syntax = Node { start = start, end = end } reference
             }
         )
-        (CustomParser.map2
+        (ParserFast.map2
             (\firstName after ->
                 case after of
                     Nothing ->
@@ -845,7 +845,7 @@ qualifiedOrVariantOrRecordConstructorReferenceExpression =
 
 unqualifiedFunctionReferenceExpression : Parser (WithComments (Node Expression))
 unqualifiedFunctionReferenceExpression =
-    CustomParser.mapWithStartAndEndPosition
+    ParserFast.mapWithStartAndEndPosition
         (\start unqualified end ->
             { comments = Rope.empty
             , syntax =
@@ -856,12 +856,12 @@ unqualifiedFunctionReferenceExpression =
         Tokens.functionName
 
 
-maybeDotReferenceExpressionTuple : CustomParser.Parser (Maybe ( List String, String ))
+maybeDotReferenceExpressionTuple : ParserFast.Parser (Maybe ( List String, String ))
 maybeDotReferenceExpressionTuple =
-    CustomParser.orSucceed
-        (CustomParser.symbolFollowedBy "."
-            (CustomParser.oneOf2
-                (CustomParser.map2
+    ParserFast.orSucceed
+        (ParserFast.symbolFollowedBy "."
+            (ParserFast.oneOf2
+                (ParserFast.map2
                     (\firstName after ->
                         Just
                             (case after of
@@ -873,9 +873,9 @@ maybeDotReferenceExpressionTuple =
                             )
                     )
                     Tokens.typeName
-                    (CustomParser.lazy (\() -> maybeDotReferenceExpressionTuple))
+                    (ParserFast.lazy (\() -> maybeDotReferenceExpressionTuple))
                 )
-                (CustomParser.map (\unqualified -> Just ( [], unqualified ))
+                (ParserFast.map (\unqualified -> Just ( [], unqualified ))
                     Tokens.functionName
                 )
             )
@@ -885,7 +885,7 @@ maybeDotReferenceExpressionTuple =
 
 recordAccessFunctionExpression : Parser (WithComments (Node Expression))
 recordAccessFunctionExpression =
-    CustomParser.mapWithStartAndEndPosition
+    ParserFast.mapWithStartAndEndPosition
         (\start field end ->
             { comments = Rope.empty
             , syntax =
@@ -893,14 +893,14 @@ recordAccessFunctionExpression =
                     (RecordAccessFunction ("." ++ field))
             }
         )
-        (CustomParser.symbolFollowedBy "." Tokens.functionName)
+        (ParserFast.symbolFollowedBy "." Tokens.functionName)
 
 
 tupledExpression : Parser (WithComments (Node Expression))
 tupledExpression =
-    CustomParser.symbolFollowedBy "("
-        (CustomParser.oneOf
-            (CustomParser.mapWithEndPosition
+    ParserFast.symbolFollowedBy "("
+        (ParserFast.oneOf
+            (ParserFast.mapWithEndPosition
                 (\() end ->
                     { comments = Rope.empty
                     , syntax =
@@ -908,10 +908,10 @@ tupledExpression =
                             UnitExpr
                     }
                 )
-                (CustomParser.symbol ")" ())
+                (ParserFast.symbol ")" ())
                 :: -- since `-` alone  could indicate negation or prefix operator,
                    -- we check for `-)` first
-                   CustomParser.mapWithEndPosition
+                   ParserFast.mapWithEndPosition
                     (\() end ->
                         { comments = Rope.empty
                         , syntax =
@@ -919,7 +919,7 @@ tupledExpression =
                                 expressionPrefixOperatorMinus
                         }
                     )
-                    (CustomParser.symbol "-)" ())
+                    (ParserFast.symbol "-)" ())
                 :: tupledExpressionInnerAfterOpeningParens
                 -- and since prefix operators are much more rare than e.g. parenthesized
                 -- we check those later
@@ -944,7 +944,7 @@ allowedPrefixOperatorExceptMinusThenClosingParensOneOf =
                     prefixOperatorLength =
                         2 + String.length allowedOperatorToken
                 in
-                CustomParser.mapWithEndPosition
+                ParserFast.mapWithEndPosition
                     (\() end ->
                         { comments = Rope.empty
                         , syntax =
@@ -952,13 +952,13 @@ allowedPrefixOperatorExceptMinusThenClosingParensOneOf =
                                 (PrefixOperator allowedOperatorToken)
                         }
                     )
-                    (CustomParser.symbol (allowedOperatorToken ++ ")") ())
+                    (ParserFast.symbol (allowedOperatorToken ++ ")") ())
             )
 
 
 tupledExpressionInnerAfterOpeningParens : Parser (WithComments (Node Expression))
 tupledExpressionInnerAfterOpeningParens =
-    CustomParser.mapWithStartAndEndPosition
+    ParserFast.mapWithStartAndEndPosition
         (\start tupled end ->
             { comments = tupled.comments
             , syntax =
@@ -966,7 +966,7 @@ tupledExpressionInnerAfterOpeningParens =
                     tupled.syntax
             }
         )
-        (CustomParser.map4
+        (ParserFast.map4
             (\commentsBeforeFirstPart firstPart commentsAfterFirstPart tailPartsReverse ->
                 case tailPartsReverse.syntax of
                     [] ->
@@ -991,7 +991,7 @@ tupledExpressionInnerAfterOpeningParens =
             Layout.maybeLayout
             (ParserWithComments.untilWithoutReverse
                 Tokens.parensEnd
-                (CustomParser.map3
+                (ParserFast.map3
                     (\commentsBefore partResult commentsAfter ->
                         { comments =
                             commentsBefore
@@ -1000,7 +1000,7 @@ tupledExpressionInnerAfterOpeningParens =
                         , syntax = partResult.syntax
                         }
                     )
-                    (CustomParser.symbolFollowedBy "," Layout.maybeLayout)
+                    (ParserFast.symbolFollowedBy "," Layout.maybeLayout)
                     expression
                     Layout.maybeLayout
                 )
@@ -1021,14 +1021,14 @@ subExpressionMap aboveCurrentPrecedenceLayout =
             WithComments (Node Expression)
             ->
                 Parser
-                    (CustomParser.Advanced.Step
+                    (ParserFast.Advanced.Step
                         (WithComments (Node Expression))
                         (WithComments (Node Expression))
                     )
         step leftExpressionResult =
             subExpressionLoopStep aboveCurrentPrecedenceLayout leftExpressionResult
     in
-    CustomParser.map3
+    ParserFast.map3
         (\commentsBefore leftExpressionResult commentsAfter ->
             { comments =
                 commentsBefore
@@ -1038,10 +1038,10 @@ subExpressionMap aboveCurrentPrecedenceLayout =
             }
         )
         Layout.optimisticLayout
-        (CustomParser.lazy (\() -> subExpression))
+        (ParserFast.lazy (\() -> subExpression))
         Layout.optimisticLayout
-        |> CustomParser.andThen
-            (\leftExpression -> CustomParser.Advanced.loop leftExpression step)
+        |> ParserFast.andThen
+            (\leftExpression -> ParserFast.Advanced.loop leftExpression step)
 
 
 extendedSubExpressionWithoutInitialLayout :
@@ -1053,14 +1053,14 @@ extendedSubExpressionWithoutInitialLayout aboveCurrentPrecedenceLayout =
             WithComments (Node Expression)
             ->
                 Parser
-                    (CustomParser.Advanced.Step
+                    (ParserFast.Advanced.Step
                         (WithComments (Node Expression))
                         (WithComments (Node Expression))
                     )
         step leftExpressionResult =
             subExpressionLoopStep aboveCurrentPrecedenceLayout leftExpressionResult
     in
-    CustomParser.map2
+    ParserFast.map2
         (\leftExpressionResult commentsAfter ->
             { comments =
                 leftExpressionResult.comments
@@ -1068,10 +1068,10 @@ extendedSubExpressionWithoutInitialLayout aboveCurrentPrecedenceLayout =
             , syntax = leftExpressionResult.syntax
             }
         )
-        (CustomParser.lazy (\() -> subExpression))
+        (ParserFast.lazy (\() -> subExpression))
         Layout.optimisticLayout
-        |> CustomParser.andThen
-            (\leftExpression -> CustomParser.Advanced.loop leftExpression step)
+        |> ParserFast.andThen
+            (\leftExpression -> ParserFast.Advanced.loop leftExpression step)
 
 
 subExpressionLoopStep :
@@ -1079,13 +1079,13 @@ subExpressionLoopStep :
     -> WithComments (Node Expression)
     ->
         Parser
-            (CustomParser.Advanced.Step
+            (ParserFast.Advanced.Step
                 (WithComments (Node Expression))
                 (WithComments (Node Expression))
             )
 subExpressionLoopStep aboveCurrentPrecedenceLayout leftExpressionResult =
-    CustomParser.orSucceed
-        (CustomParser.map2
+    ParserFast.orSucceed
+        (ParserFast.map2
             (\extensionRight commentsAfter ->
                 { comments =
                     leftExpressionResult.comments
@@ -1095,12 +1095,12 @@ subExpressionLoopStep aboveCurrentPrecedenceLayout leftExpressionResult =
                     leftExpressionResult.syntax
                         |> applyExtensionRight extensionRight.syntax
                 }
-                    |> CustomParser.Advanced.Loop
+                    |> ParserFast.Advanced.Loop
             )
             aboveCurrentPrecedenceLayout
             Layout.optimisticLayout
         )
-        (CustomParser.Advanced.Done leftExpressionResult)
+        (ParserFast.Advanced.Done leftExpressionResult)
 
 
 applyExtensionRight : ExtensionRight -> Node Expression -> Node Expression
@@ -1197,14 +1197,14 @@ computeAbovePrecedence currentPrecedence =
                 else
                     Nothing
             )
-        |> CustomParser.oneOf
+        |> ParserFast.oneOf
 
 
 infixLeft : Int -> Parser (WithComments ExtensionRight) -> String -> ( Int, Parser (WithComments ExtensionRight) )
 infixLeft precedence possibilitiesForPrecedence symbol =
     infixHelp precedence
         possibilitiesForPrecedence
-        (CustomParser.symbolFollowedBy symbol)
+        (ParserFast.symbolFollowedBy symbol)
         (\right ->
             ExtendRightByOperation { symbol = symbol, direction = Infix.Left, expression = right }
         )
@@ -1214,7 +1214,7 @@ infixNonAssociative : Int -> Parser (WithComments ExtensionRight) -> String -> (
 infixNonAssociative precedence possibilitiesForPrecedence symbol =
     infixHelp precedence
         possibilitiesForPrecedence
-        (CustomParser.symbolFollowedBy symbol)
+        (ParserFast.symbolFollowedBy symbol)
         (\right ->
             ExtendRightByOperation { symbol = symbol, direction = Infix.Non, expression = right }
         )
@@ -1227,7 +1227,7 @@ infixRight : Int -> Parser (WithComments ExtensionRight) -> String -> ( Int, Par
 infixRight precedence possibilitiesForPrecedenceMinus1 symbol =
     infixHelp precedence
         possibilitiesForPrecedenceMinus1
-        (CustomParser.symbolFollowedBy symbol)
+        (ParserFast.symbolFollowedBy symbol)
         (\right ->
             ExtendRightByOperation { symbol = symbol, direction = Infix.Right, expression = right }
         )
@@ -1235,7 +1235,7 @@ infixRight precedence possibilitiesForPrecedenceMinus1 symbol =
 
 lookBehindOneCharacterAndThen : (String -> Parser res) -> Parser res
 lookBehindOneCharacterAndThen callback =
-    CustomParser.offsetSourceAndThen
+    ParserFast.offsetSourceAndThen
         (\offset source ->
             callback (String.slice (offset - 1) offset source)
         )
@@ -1253,7 +1253,7 @@ infixLeftSubtraction precedence possibilitiesForPrecedence =
                         Tokens.minusFollowedBySingleWhitespace next
 
                     else
-                        CustomParser.symbolFollowedBy "-" next
+                        ParserFast.symbolFollowedBy "-" next
                 )
         )
         (\right ->
@@ -1269,7 +1269,7 @@ infixHelp :
     -> ( Int, Parser (WithComments ExtensionRight) )
 infixHelp leftPrecedence rightPrecedence operatorFollowedBy apply =
     ( leftPrecedence
-    , CustomParser.map
+    , ParserFast.map
         (\e ->
             { comments = e.comments
             , syntax = apply e.syntax

@@ -8,9 +8,9 @@ module ParserWithComments exposing
     , untilWithoutReverse
     )
 
-import CustomParser exposing (Parser)
-import CustomParser.Advanced
 import Elm.Syntax.Node exposing (Node)
+import ParserFast exposing (Parser)
+import ParserFast.Advanced
 import Rope exposing (Rope)
 
 
@@ -28,25 +28,25 @@ until end p =
         step :
             ( Comments, List a )
             ->
-                CustomParser.Parser
-                    (CustomParser.Advanced.Step
+                ParserFast.Parser
+                    (ParserFast.Advanced.Step
                         ( Comments, List a )
                         (WithComments (List a))
                     )
         step ( commentsSoFar, itemsSoFar ) =
-            CustomParser.oneOf2
-                (CustomParser.map
+            ParserFast.oneOf2
+                (ParserFast.map
                     (\() ->
-                        CustomParser.Advanced.Done
+                        ParserFast.Advanced.Done
                             { comments = commentsSoFar
                             , syntax = List.reverse itemsSoFar
                             }
                     )
                     end
                 )
-                (CustomParser.map
+                (ParserFast.map
                     (\pResult ->
-                        CustomParser.Advanced.Loop
+                        ParserFast.Advanced.Loop
                             ( commentsSoFar |> Rope.prependTo pResult.comments
                             , pResult.syntax :: itemsSoFar
                             )
@@ -54,7 +54,7 @@ until end p =
                     p
                 )
     in
-    CustomParser.Advanced.loop listEmptyWithCommentsTuple step
+    ParserFast.Advanced.loop listEmptyWithCommentsTuple step
 
 
 many : Parser (WithComments a) -> Parser (WithComments (List a))
@@ -63,16 +63,16 @@ many p =
         step :
             ( Comments, List a )
             ->
-                CustomParser.Parser
-                    (CustomParser.Advanced.Step
+                ParserFast.Parser
+                    (ParserFast.Advanced.Step
                         ( Comments, List a )
                         (WithComments (List a))
                     )
         step ( commentsSoFar, itemsSoFar ) =
-            CustomParser.orSucceedLazy
-                (CustomParser.map
+            ParserFast.orSucceedLazy
+                (ParserFast.map
                     (\pResult ->
-                        CustomParser.Advanced.Loop
+                        ParserFast.Advanced.Loop
                             ( commentsSoFar |> Rope.prependTo pResult.comments
                             , pResult.syntax :: itemsSoFar
                             )
@@ -80,13 +80,13 @@ many p =
                     p
                 )
                 (\() ->
-                    CustomParser.Advanced.Done
+                    ParserFast.Advanced.Done
                         { comments = commentsSoFar
                         , syntax = List.reverse itemsSoFar
                         }
                 )
     in
-    CustomParser.Advanced.loop listEmptyWithCommentsTuple step
+    ParserFast.Advanced.loop listEmptyWithCommentsTuple step
 
 
 listEmptyWithCommentsTuple : ( Rope a, List b )
@@ -106,17 +106,17 @@ untilWithoutReverse end p =
         withoutReverseStep :
             WithComments (List a)
             ->
-                CustomParser.Parser
-                    (CustomParser.Advanced.Step
+                ParserFast.Parser
+                    (ParserFast.Advanced.Step
                         (WithComments (List a))
                         (WithComments (List a))
                     )
         withoutReverseStep soFar =
-            CustomParser.oneOf
-                [ CustomParser.map (\() -> CustomParser.Advanced.Done soFar) end
-                , CustomParser.map
+            ParserFast.oneOf
+                [ ParserFast.map (\() -> ParserFast.Advanced.Done soFar) end
+                , ParserFast.map
                     (\pResult ->
-                        CustomParser.Advanced.Loop
+                        ParserFast.Advanced.Loop
                             { comments = soFar.comments |> Rope.prependTo pResult.comments
                             , syntax = pResult.syntax :: soFar.syntax
                             }
@@ -124,7 +124,7 @@ untilWithoutReverse end p =
                     p
                 ]
     in
-    CustomParser.Advanced.loop listEmptyWithComments withoutReverseStep
+    ParserFast.Advanced.loop listEmptyWithComments withoutReverseStep
 
 
 {-| Same as [`many`](#many), except that it doesn't reverse the list.
@@ -139,25 +139,25 @@ manyWithoutReverse p =
         withoutReverseStep :
             WithComments (List a)
             ->
-                CustomParser.Parser
-                    (CustomParser.Advanced.Step
+                ParserFast.Parser
+                    (ParserFast.Advanced.Step
                         (WithComments (List a))
                         (WithComments (List a))
                     )
         withoutReverseStep soFar =
-            CustomParser.orSucceed
-                (CustomParser.map
+            ParserFast.orSucceed
+                (ParserFast.map
                     (\pResult ->
-                        CustomParser.Advanced.Loop
+                        ParserFast.Advanced.Loop
                             { comments = soFar.comments |> Rope.prependTo pResult.comments
                             , syntax = pResult.syntax :: soFar.syntax
                             }
                     )
                     p
                 )
-                (CustomParser.Advanced.Done soFar)
+                (ParserFast.Advanced.Done soFar)
     in
-    CustomParser.Advanced.loop listEmptyWithComments withoutReverseStep
+    ParserFast.Advanced.loop listEmptyWithComments withoutReverseStep
 
 
 listEmptyWithComments : WithComments (List b)
@@ -167,11 +167,11 @@ listEmptyWithComments =
 
 sepBy1 : String -> Parser (WithComments a) -> Parser (WithComments (List a))
 sepBy1 sep p =
-    CustomParser.map2
+    ParserFast.map2
         (\head tail ->
             { comments = head.comments |> Rope.prependTo tail.comments
             , syntax = head.syntax :: tail.syntax
             }
         )
         p
-        (many (CustomParser.symbolFollowedBy sep p))
+        (many (ParserFast.symbolFollowedBy sep p))

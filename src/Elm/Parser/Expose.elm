@@ -1,11 +1,11 @@
 module Elm.Parser.Expose exposing (exposeDefinition)
 
-import CustomParser exposing (Parser)
 import Elm.Parser.Layout as Layout
 import Elm.Parser.Node as Node
 import Elm.Parser.Tokens as Tokens
 import Elm.Syntax.Exposing exposing (Exposing(..), TopLevelExpose(..))
 import Elm.Syntax.Node exposing (Node(..))
+import ParserFast exposing (Parser)
 import ParserWithComments exposing (WithComments)
 import Rope
 import Set
@@ -13,7 +13,7 @@ import Set
 
 exposeDefinition : Parser (WithComments Exposing)
 exposeDefinition =
-    CustomParser.map4
+    ParserFast.map4
         (\commentsAfterExposing commentsBefore exposingListInnerResult () ->
             { comments =
                 commentsAfterExposing
@@ -22,8 +22,8 @@ exposeDefinition =
             , syntax = exposingListInnerResult.syntax
             }
         )
-        (CustomParser.symbolFollowedBy "exposing"
-            (Layout.maybeLayoutUntilIgnored CustomParser.symbolFollowedBy "(")
+        (ParserFast.symbolFollowedBy "exposing"
+            (Layout.maybeLayoutUntilIgnored ParserFast.symbolFollowedBy "(")
         )
         Layout.optimisticLayout
         exposingListInner
@@ -32,8 +32,8 @@ exposeDefinition =
 
 exposingListInner : Parser (WithComments Exposing)
 exposingListInner =
-    CustomParser.oneOf2
-        (CustomParser.map3
+    ParserFast.oneOf2
+        (ParserFast.map3
             (\headElement commentsAfterHeadElement tailElements ->
                 { comments =
                     headElement.comments
@@ -49,36 +49,36 @@ exposingListInner =
             exposable
             Layout.maybeLayout
             (ParserWithComments.many
-                (CustomParser.symbolFollowedBy ","
+                (ParserFast.symbolFollowedBy ","
                     (Layout.maybeAroundBothSides exposable)
                 )
             )
         )
-        (CustomParser.mapWithStartAndEndPosition
+        (ParserFast.mapWithStartAndEndPosition
             (\start commentsAfterDotDot end ->
                 { comments = commentsAfterDotDot
                 , syntax =
                     All { start = start, end = end }
                 }
             )
-            (CustomParser.symbolFollowedBy ".." Layout.maybeLayout)
+            (ParserFast.symbolFollowedBy ".." Layout.maybeLayout)
         )
 
 
 exposable : Parser (WithComments (Node TopLevelExpose))
 exposable =
-    CustomParser.oneOf
+    ParserFast.oneOf
         [ functionExpose
         , typeExpose
         , infixExpose
         ]
 
 
-infixExpose : CustomParser.Parser (WithComments (Node TopLevelExpose))
+infixExpose : ParserFast.Parser (WithComments (Node TopLevelExpose))
 infixExpose =
-    CustomParser.map2 (\infixName () -> { comments = Rope.empty, syntax = InfixExpose infixName })
-        (CustomParser.symbolFollowedBy "("
-            (CustomParser.variable
+    ParserFast.map2 (\infixName () -> { comments = Rope.empty, syntax = InfixExpose infixName })
+        (ParserFast.symbolFollowedBy "("
+            (ParserFast.variable
                 { inner = \c -> c /= ')'
                 , reserved = Set.empty
                 , start = \c -> c /= ')'
@@ -91,7 +91,7 @@ infixExpose =
 
 typeExpose : Parser (WithComments (Node TopLevelExpose))
 typeExpose =
-    CustomParser.map2
+    ParserFast.map2
         (\typeName open ->
             case open of
                 Nothing ->
@@ -104,24 +104,24 @@ typeExpose =
                     }
         )
         Tokens.typeName
-        (CustomParser.orSucceed
-            (CustomParser.map2
+        (ParserFast.orSucceed
+            (ParserFast.map2
                 (\commentsBefore all ->
                     Just
                         { comments = commentsBefore |> Rope.prependTo all.comments
                         , syntax = all.range
                         }
                 )
-                (Layout.maybeLayout |> CustomParser.backtrackable)
-                (CustomParser.mapWithStartAndEndPosition
+                (Layout.maybeLayout |> ParserFast.backtrackable)
+                (ParserFast.mapWithStartAndEndPosition
                     (\start comments end ->
                         { comments = comments, range = { start = start, end = end } }
                     )
-                    (CustomParser.map2 (\left right -> left |> Rope.prependTo right)
-                        (CustomParser.symbolFollowedBy "("
-                            (Layout.maybeLayoutUntilIgnored CustomParser.symbolFollowedBy "..")
+                    (ParserFast.map2 (\left right -> left |> Rope.prependTo right)
+                        (ParserFast.symbolFollowedBy "("
+                            (Layout.maybeLayoutUntilIgnored ParserFast.symbolFollowedBy "..")
                         )
-                        (Layout.maybeLayoutUntilIgnored CustomParser.symbolFollowedBy ")")
+                        (Layout.maybeLayoutUntilIgnored ParserFast.symbolFollowedBy ")")
                     )
                 )
             )
@@ -132,7 +132,7 @@ typeExpose =
 
 functionExpose : Parser (WithComments (Node TopLevelExpose))
 functionExpose =
-    CustomParser.mapWithStartAndEndPosition
+    ParserFast.mapWithStartAndEndPosition
         (\start name end ->
             { comments = Rope.empty
             , syntax =

@@ -1,4 +1,4 @@
-module CustomParser.Advanced exposing
+module ParserFast.Advanced exposing
     ( Parser, run
     , number, symbol, symbolFollowedBy, keyword, keywordFollowedBy, variable, end
     , succeed, problem, succeedLazy, lazy, map, map2, map3, map4, map5, map6, map7, map8, map9, map10, map11, andThen, ignore
@@ -54,12 +54,12 @@ import Set
 -- PARSERS
 
 
-{-| An advanced `CustomParser` gives a way to improve your error messages: `problem`;
+{-| An advanced `ParserFast` gives a way to improve your error messages: `problem`;
 Instead of all errors being a `String`, you can create a
 custom type like `type Problem = BadIndent | BadKeyword String` and track
 problems much more precisely.
 
-I recommend starting with the simpler [`CustomParser`](CustomParser) module though, and
+I recommend starting with the simpler [`ParserFast`](ParserFast) module though, and
 when you feel comfortable and want better error messages, you can create a type
 alias like this:
 
@@ -77,7 +77,7 @@ alias like this:
         = BadIndent
         | BadKeyword String
 
-All of the functions from `CustomParser` should exist in `CustomParser.Advanced` in some
+All of the functions from `ParserFast` should exist in `ParserFast.Advanced` in some
 form, allowing you to switch over pretty easily.
 
 -}
@@ -103,7 +103,7 @@ type alias State =
 -- RUN
 
 
-{-| This works just like [`CustomParser.run`](CustomParser#run).
+{-| This works just like [`ParserFast.run`](ParserFast#run).
 The only difference is that when it fails, it has much more precise information
 for each dead end.
 -}
@@ -810,9 +810,9 @@ repeated structures, like a bunch of statements:
         oneOf
             [ succeed (\stmt -> Loop (stmt :: revStmts))
                 |= statement
-                |> CustomParser.ignore spaces
-                |> CustomParser.ignore symbol ";"
-                |> CustomParser.ignore spaces
+                |> ParserFast.ignore spaces
+                |> ParserFast.ignore symbol ";"
+                |> ParserFast.ignore spaces
             , succeed ()
                 |> map (\_ -> Done (List.reverse revStmts))
             ]
