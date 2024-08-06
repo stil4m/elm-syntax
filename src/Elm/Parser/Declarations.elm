@@ -34,8 +34,8 @@ declaration =
 
 declarationWithDocumentation : Parser (WithComments (Node Declaration))
 declarationWithDocumentation =
-    CustomParser.map3
-        (\documentation commentsAfterDocumentation afterDocumentation ->
+    CustomParser.map2
+        (\documentation afterDocumentation ->
             let
                 start : Location
                 start =
@@ -58,9 +58,7 @@ declarationWithDocumentation =
                                     (Node expressionRange _) =
                                         functionDeclarationAfterDocumentation.expression
                                 in
-                                { comments =
-                                    commentsAfterDocumentation
-                                        |> Rope.prependTo afterDocumentation.comments
+                                { comments = afterDocumentation.comments
                                 , syntax =
                                     Node { start = start, end = expressionRange.end }
                                         (Declaration.FunctionDeclaration
@@ -91,9 +89,7 @@ declarationWithDocumentation =
                                 (Node expressionRange _) =
                                     functionDeclarationAfterDocumentation.expression
                             in
-                            { comments =
-                                commentsAfterDocumentation
-                                    |> Rope.prependTo afterDocumentation.comments
+                            { comments = afterDocumentation.comments
                             , syntax =
                                 Node { start = start, end = expressionRange.end }
                                     (Declaration.FunctionDeclaration
@@ -125,9 +121,7 @@ declarationWithDocumentation =
                                     in
                                     headVariantRange.end
                     in
-                    { comments =
-                        commentsAfterDocumentation
-                            |> Rope.prependTo afterDocumentation.comments
+                    { comments = afterDocumentation.comments
                     , syntax =
                         Node { start = start, end = end }
                             (Declaration.CustomTypeDeclaration
@@ -147,9 +141,7 @@ declarationWithDocumentation =
                         (Node typeAnnotationRange _) =
                             typeAliasDeclarationAfterDocumentation.typeAnnotation
                     in
-                    { comments =
-                        commentsAfterDocumentation
-                            |> Rope.prependTo afterDocumentation.comments
+                    { comments = afterDocumentation.comments
                     , syntax =
                         Node { start = start, end = typeAnnotationRange.end }
                             (Declaration.AliasDeclaration
@@ -169,9 +161,7 @@ declarationWithDocumentation =
                     in
                     { comments =
                         Rope.one documentation
-                            |> Rope.filledPrependTo
-                                commentsAfterDocumentation
-                            |> Rope.prependTo afterDocumentation.comments
+                            |> Rope.filledPrependTo afterDocumentation.comments
                     , syntax =
                         Node
                             { start = portDeclarationAfterName.startLocation
@@ -186,12 +176,13 @@ declarationWithDocumentation =
                         |> CustomParser.succeed
         )
         Comments.declarationDocumentation
-        Layout.layoutStrict
-        (CustomParser.oneOf
-            [ functionAfterDocumentation
-            , typeOrTypeAliasDefinitionAfterDocumentation
-            , portDeclarationAfterDocumentation
-            ]
+        (Layout.layoutStrictFollowedByWithComments
+            (CustomParser.oneOf
+                [ functionAfterDocumentation
+                , typeOrTypeAliasDefinitionAfterDocumentation
+                , portDeclarationAfterDocumentation
+                ]
+            )
         )
         |> CustomParser.andThen identity
 
@@ -269,24 +260,25 @@ functionAfterDocumentation =
         (Node.parserCore Tokens.functionName)
         Layout.maybeLayout
         (CustomParser.orSucceed
-            (CustomParser.map5
-                (\commentsBeforeTypeAnnotation typeAnnotationResult commentsAfterTypeAnnotation implementationName afterImplementationName ->
+            (CustomParser.map4
+                (\commentsBeforeTypeAnnotation typeAnnotationResult implementationName afterImplementationName ->
                     Just
                         { comments =
                             commentsBeforeTypeAnnotation
                                 |> Rope.prependTo typeAnnotationResult.comments
-                                |> Rope.prependTo commentsAfterTypeAnnotation
+                                |> Rope.prependTo implementationName.comments
                                 |> Rope.prependTo afterImplementationName
                         , syntax =
-                            { implementationName = implementationName
+                            { implementationName = implementationName.syntax
                             , typeAnnotation = typeAnnotationResult.syntax
                             }
                         }
                 )
                 (CustomParser.symbolFollowedBy ":" Layout.maybeLayout)
                 TypeAnnotation.typeAnnotation
-                Layout.layoutStrict
-                (Node.parserCore Tokens.functionName)
+                (Layout.layoutStrictFollowedBy
+                    (Node.parserCore Tokens.functionName)
+                )
                 Layout.maybeLayout
             )
             Nothing
@@ -377,22 +369,23 @@ functionDeclarationWithoutDocumentation =
         (Node.parserCore Tokens.functionNameNotInfix)
         Layout.maybeLayout
         (CustomParser.orSucceed
-            (CustomParser.map5
-                (\commentsBeforeTypeAnnotation typeAnnotationResult commentsAfterTypeAnnotation implementationName afterImplementationName ->
+            (CustomParser.map4
+                (\commentsBeforeTypeAnnotation typeAnnotationResult implementationName afterImplementationName ->
                     Just
                         { comments =
                             commentsBeforeTypeAnnotation
                                 |> Rope.prependTo typeAnnotationResult.comments
-                                |> Rope.prependTo commentsAfterTypeAnnotation
+                                |> Rope.prependTo implementationName.comments
                                 |> Rope.prependTo afterImplementationName
-                        , implementationName = implementationName
+                        , implementationName = implementationName.syntax
                         , typeAnnotation = typeAnnotationResult.syntax
                         }
                 )
                 (CustomParser.symbolFollowedBy ":" Layout.maybeLayout)
                 TypeAnnotation.typeAnnotation
-                Layout.layoutStrict
-                (Node.parserCore Tokens.functionName)
+                (Layout.layoutStrictFollowedBy
+                    (Node.parserCore Tokens.functionName)
+                )
                 Layout.maybeLayout
             )
             Nothing

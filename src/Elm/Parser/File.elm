@@ -16,33 +16,33 @@ import Rope
 
 file : CustomParser.Parser File
 file =
-    CustomParser.map7
-        (\commentsBeforeModuleDefinition moduleDefinition commentsAfterModuleDefinition moduleComments imports declarations () ->
+    CustomParser.map5
+        (\moduleDefinition moduleComments imports declarations () ->
             { moduleDefinition = moduleDefinition.syntax
             , imports = imports.syntax
             , declarations = declarations.syntax
             , comments =
-                commentsBeforeModuleDefinition
-                    |> Rope.prependTo moduleDefinition.comments
-                    |> Rope.prependTo commentsAfterModuleDefinition
+                moduleDefinition.comments
                     |> Rope.prependTo moduleComments
                     |> Rope.prependTo imports.comments
                     |> Rope.prependTo declarations.comments
                     |> Rope.toList
             }
         )
-        Layout.layoutStrict
-        (Node.parser moduleDefinition)
-        Layout.layoutStrict
-        (CustomParser.orSucceed
-            (CustomParser.map2
-                (\moduleDocumentation commentsAfter ->
-                    Rope.one moduleDocumentation |> Rope.filledPrependTo commentsAfter
+        (Layout.layoutStrictFollowedByWithComments
+            (Node.parser moduleDefinition)
+        )
+        (Layout.layoutStrictFollowedByComments
+            (CustomParser.orSucceed
+                (CustomParser.map2
+                    (\moduleDocumentation commentsAfter ->
+                        Rope.one moduleDocumentation |> Rope.filledPrependTo commentsAfter
+                    )
+                    Comments.moduleDocumentation
+                    Layout.layoutStrict
                 )
-                Comments.moduleDocumentation
-                Layout.layoutStrict
+                Rope.empty
             )
-            Rope.empty
         )
         (ParserWithComments.many importDefinition)
         fileDeclarations

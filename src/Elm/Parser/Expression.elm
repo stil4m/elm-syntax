@@ -700,22 +700,23 @@ letFunction =
         (Node.parserCore Tokens.functionName)
         Layout.maybeLayout
         (CustomParser.orSucceed
-            (CustomParser.map5
-                (\commentsBeforeTypeAnnotation typeAnnotationResult commentsAfterTypeAnnotation implementationName afterImplementationName ->
+            (CustomParser.map4
+                (\commentsBeforeTypeAnnotation typeAnnotationResult implementationName afterImplementationName ->
                     Just
                         { comments =
                             commentsBeforeTypeAnnotation
                                 |> Rope.prependTo typeAnnotationResult.comments
-                                |> Rope.prependTo commentsAfterTypeAnnotation
+                                |> Rope.prependTo implementationName.comments
                                 |> Rope.prependTo afterImplementationName
-                        , implementationName = implementationName
+                        , implementationName = implementationName.syntax
                         , typeAnnotation = typeAnnotationResult.syntax
                         }
                 )
                 (CustomParser.symbolFollowedBy ":" Layout.maybeLayout)
                 TypeAnnotation.typeAnnotation
-                Layout.layoutStrict
-                (Node.parserCore Tokens.functionName)
+                (Layout.layoutStrictFollowedBy
+                    (Node.parserCore Tokens.functionName)
+                )
                 Layout.maybeLayout
             )
             Nothing
