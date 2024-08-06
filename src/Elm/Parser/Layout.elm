@@ -1,5 +1,8 @@
 module Elm.Parser.Layout exposing
     ( layoutStrict
+    , layoutStrictFollowedBy
+    , layoutStrictFollowedByComments
+    , layoutStrictFollowedByWithComments
     , maybeAroundBothSides
     , maybeLayout
     , maybeLayoutUntilIgnored
@@ -190,7 +193,7 @@ optimisticLayout =
 
 layoutStrictFollowedByComments : Parser Comments -> Parser Comments
 layoutStrictFollowedByComments nextParser =
-    ParserFast.map2
+    CustomParser.map2
         (\commentsBefore afterComments ->
             commentsBefore |> Rope.prependTo afterComments
         )
@@ -200,7 +203,7 @@ layoutStrictFollowedByComments nextParser =
 
 layoutStrictFollowedByWithComments : Parser (WithComments syntax) -> Parser (WithComments syntax)
 layoutStrictFollowedByWithComments nextParser =
-    ParserFast.map2
+    CustomParser.map2
         (\commentsBefore after ->
             { comments = commentsBefore |> Rope.prependTo after.comments
             , syntax = after.syntax
@@ -212,7 +215,7 @@ layoutStrictFollowedByWithComments nextParser =
 
 layoutStrictFollowedBy : Parser syntax -> Parser (WithComments syntax)
 layoutStrictFollowedBy nextParser =
-    ParserFast.map2
+    CustomParser.map2
         (\commentsBefore after ->
             { comments = commentsBefore, syntax = after }
         )
@@ -222,8 +225,9 @@ layoutStrictFollowedBy nextParser =
 
 layoutStrict : Parser Comments
 layoutStrict =
-    optimisticLayout
-        |> CustomParser.ignore (onTopIndentationFollowedBy (CustomParser.succeed ()))
+    CustomParser.map2 (\commentsBefore () -> commentsBefore)
+        optimisticLayout
+        (onTopIndentationFollowedBy (CustomParser.succeed ()))
 
 
 moduleLevelIndentationFollowedBy : Parser a -> Parser a
