@@ -3,7 +3,7 @@ module Elm.Parser.Layout exposing
     , maybeAroundBothSides
     , maybeLayout
     , maybeLayoutUntilIgnored
-    , moduleLevelIndentation
+    , moduleLevelIndentationFollowedBy
     , onTopIndentationFollowedBy
     , optimisticLayout
     , positivelyIndentedFollowedBy
@@ -216,12 +216,12 @@ layoutStrict =
         |> CustomParser.ignore (onTopIndentationFollowedBy (CustomParser.succeed ()))
 
 
-moduleLevelIndentation : Parser ()
-moduleLevelIndentation =
+moduleLevelIndentationFollowedBy : Parser a -> Parser a
+moduleLevelIndentationFollowedBy nextParser =
     CustomParser.columnAndThen
         (\column ->
             if column == 1 then
-                succeedUnit
+                nextParser
 
             else
                 problemModuleLevelIndentation
