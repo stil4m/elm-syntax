@@ -1,25 +1,25 @@
 module Elm.Parser.Base exposing (moduleName)
 
-import CustomParser
 import Elm.Parser.Node as Node
 import Elm.Parser.Tokens as Tokens
 import Elm.Syntax.ModuleName exposing (ModuleName)
 import Elm.Syntax.Node exposing (Node)
+import ParserFast
 
 
-moduleName : CustomParser.Parser (Node ModuleName)
+moduleName : ParserFast.Parser (Node ModuleName)
 moduleName =
-    CustomParser.map2 (\head tail -> head :: tail)
+    ParserFast.map2 (\head tail -> head :: tail)
         Tokens.typeName
         moduleNameOrEmpty
         |> Node.parserCore
 
 
-moduleNameOrEmpty : CustomParser.Parser ModuleName
+moduleNameOrEmpty : ParserFast.Parser ModuleName
 moduleNameOrEmpty =
-    CustomParser.orSucceed
-        (CustomParser.map2 (\head tail -> head :: tail)
-            (CustomParser.symbolFollowedBy "." Tokens.typeName)
-            (CustomParser.lazy (\() -> moduleNameOrEmpty))
+    ParserFast.orSucceed
+        (ParserFast.map2 (\head tail -> head :: tail)
+            (ParserFast.symbolFollowedBy "." Tokens.typeName)
+            (ParserFast.lazy (\() -> moduleNameOrEmpty))
         )
         []

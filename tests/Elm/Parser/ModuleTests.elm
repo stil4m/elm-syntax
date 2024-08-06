@@ -1,6 +1,5 @@
 module Elm.Parser.ModuleTests exposing (all)
 
-import CustomParser
 import Elm.Parser.File as File
 import Elm.Parser.Modules as Parser
 import Elm.Parser.ParserWithCommentsTestUtil as ParserWithCommentsUtil exposing (..)
@@ -13,6 +12,7 @@ import Elm.Syntax.Node exposing (Node(..))
 import Elm.Syntax.Pattern exposing (Pattern(..))
 import Elm.Syntax.TypeAnnotation exposing (TypeAnnotation(..))
 import Expect
+import ParserFast
 import Test exposing (..)
 
 
@@ -500,9 +500,9 @@ expectAst =
     ParserWithCommentsUtil.expectAst Parser.moduleDefinition
 
 
-parseCore : String -> CustomParser.Parser a -> Maybe a
+parseCore : String -> ParserFast.Parser a -> Maybe a
 parseCore source parser =
-    case CustomParser.run (parser |> CustomParser.ignore CustomParser.end) source of
+    case ParserFast.run (parser |> ParserFast.ignore ParserFast.end) source of
         Err _ ->
             Nothing
 
@@ -512,7 +512,7 @@ parseCore source parser =
 
 expectInvalid : String -> Expect.Expectation
 expectInvalid source =
-    case CustomParser.run File.file source of
+    case ParserFast.run File.file source of
         Err _ ->
             Expect.pass
 

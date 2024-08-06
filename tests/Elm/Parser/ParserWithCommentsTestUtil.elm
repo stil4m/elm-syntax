@@ -1,16 +1,16 @@
 module Elm.Parser.ParserWithCommentsTestUtil exposing (expectAst, expectAstWithComments, expectInvalid, parse, parseWithState)
 
-import CustomParser
 import Elm.Syntax.Node exposing (Node)
 import Expect
 import Parser
+import ParserFast
 import ParserWithComments exposing (WithComments)
 import Rope
 
 
-parseWithState : String -> CustomParser.Parser (WithComments a) -> Maybe { comments : List (Node String), syntax : a }
+parseWithState : String -> ParserFast.Parser (WithComments a) -> Maybe { comments : List (Node String), syntax : a }
 parseWithState s p =
-    case CustomParser.run (p |> CustomParser.ignore CustomParser.end) s of
+    case ParserFast.run (p |> ParserFast.ignore ParserFast.end) s of
         Err _ ->
             Nothing
 
@@ -21,15 +21,15 @@ parseWithState s p =
                 |> Just
 
 
-parse : String -> CustomParser.Parser (WithComments a) -> Maybe a
+parse : String -> ParserFast.Parser (WithComments a) -> Maybe a
 parse s p =
     parseWithState s p
         |> Maybe.map .syntax
 
 
-parseWithFailure : String -> CustomParser.Parser (WithComments a) -> Result (List Parser.DeadEnd) a
+parseWithFailure : String -> ParserFast.Parser (WithComments a) -> Result (List Parser.DeadEnd) a
 parseWithFailure s p =
-    case CustomParser.run (p |> CustomParser.ignore CustomParser.end) s of
+    case ParserFast.run (p |> ParserFast.ignore ParserFast.end) s of
         Err deadEnds ->
             Err deadEnds
 
@@ -37,10 +37,10 @@ parseWithFailure s p =
             commentsAndSyntax.syntax |> Ok
 
 
-expectAst : CustomParser.Parser (WithComments a) -> a -> String -> Expect.Expectation
+expectAst : ParserFast.Parser (WithComments a) -> a -> String -> Expect.Expectation
 expectAst parser =
     \expected source ->
-        case CustomParser.run (parser |> CustomParser.ignore CustomParser.end) source of
+        case ParserFast.run (parser |> ParserFast.ignore ParserFast.end) source of
             Err error ->
                 Expect.fail ("Expected the source to be parsed correctly:\n" ++ Debug.toString error)
 
@@ -56,10 +56,10 @@ expectAst parser =
                     ()
 
 
-expectAstWithComments : CustomParser.Parser (WithComments a) -> { ast : a, comments : List (Node String) } -> String -> Expect.Expectation
+expectAstWithComments : ParserFast.Parser (WithComments a) -> { ast : a, comments : List (Node String) } -> String -> Expect.Expectation
 expectAstWithComments parser =
     \expected source ->
-        case CustomParser.run (parser |> CustomParser.ignore CustomParser.end) source of
+        case ParserFast.run (parser |> ParserFast.ignore ParserFast.end) source of
             Err error ->
                 Expect.fail ("Expected the source to be parsed correctly:\n" ++ Debug.toString error)
 
@@ -71,7 +71,7 @@ expectAstWithComments parser =
                     ()
 
 
-expectInvalid : CustomParser.Parser (WithComments a) -> String -> Expect.Expectation
+expectInvalid : ParserFast.Parser (WithComments a) -> String -> Expect.Expectation
 expectInvalid parser =
     \source ->
         case parseWithFailure source parser of

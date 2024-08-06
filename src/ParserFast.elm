@@ -1,8 +1,8 @@
 module ParserFast exposing
     ( Parser, run
     , int, number, symbol, symbolFollowedBy, keyword, keywordFollowedBy, variable, end
-    , succeed, problem, lazy, map, map2, map3, map4, map5, map6, map7, map8, map9, ignore, andThen
-    , orSucceed, orSucceedLazy, oneOf2, oneOf, backtrackable
+    , succeed, problem, succeedLazy, lazy, map, map2, map3, map4, map5, map6, map7, map8, map9, map10, map11, ignore, andThen
+    , orSucceed, orSucceedLazy, oneOf2, oneOf, backtrackable, commit
     , nestableMultiComment
     , getChompedString, chompIf, chompIfFollowedBy, chompWhile, mapChompedString
     , withIndentSetToColumn, withIndent, columnIndentAndThen
@@ -18,9 +18,9 @@ module ParserFast exposing
 
 # Flow
 
-@docs succeed, problem, lazy, map, map2, map3, map4, map5, map6, map7, map8, map9, ignore, andThen
+@docs succeed, problem, succeedLazy, lazy, map, map2, map3, map4, map5, map6, map7, map8, map9, map10, map11, ignore, andThen
 
-@docs orSucceed, orSucceedLazy, oneOf2, oneOf, backtrackable
+@docs orSucceed, orSucceedLazy, oneOf2, oneOf, backtrackable, commit
 
 
 # Whitespace
@@ -40,7 +40,6 @@ module ParserFast exposing
 
 -}
 
-import Elm.Syntax.Range exposing (Location)
 import Parser
 import ParserFast.Advanced as A
 import Set
@@ -106,6 +105,11 @@ functions.
 succeed : a -> Parser a
 succeed =
     A.succeed
+
+
+succeedLazy : (() -> a) -> Parser a
+succeedLazy =
+    A.succeedLazy
 
 
 {-| **Skip** values in a parser pipeline. For example, maybe we want to parse
@@ -304,6 +308,16 @@ map9 =
     A.map9
 
 
+map10 : (a -> b -> c -> d -> e -> f -> g -> h -> i -> j -> value) -> Parser a -> Parser b -> Parser c -> Parser d -> Parser e -> Parser f -> Parser g -> Parser h -> Parser i -> Parser j -> Parser value
+map10 =
+    A.map10
+
+
+map11 : (a -> b -> c -> d -> e -> f -> g -> h -> i -> j -> k -> value) -> Parser a -> Parser b -> Parser c -> Parser d -> Parser e -> Parser f -> Parser g -> Parser h -> Parser i -> Parser j -> Parser k -> Parser value
+map11 =
+    A.map11
+
+
 {-| Indicate that a parser has reached a dead end. "Everything was going fine
 until I ran into this problem." Check out the [`andThen`](#andThen) docs to see
 an example usage.
@@ -395,8 +409,17 @@ backtrackable =
     A.backtrackable
 
 
+{-| `commit` is almost always paired with `backtrackable` in some way, and it
+is tricky to use well.
 
--- TOKEN
+Read [this document](https://github.com/elm/parser/blob/master/semantics.md)
+to learn how `oneOf`, `backtrackable`, and `commit` work and interact with
+each other. It is subtle and important!
+
+-}
+commit : a -> Parser a
+commit =
+    A.commit
 
 
 {-| Parse a bunch of different kinds of numbers without backtracking. A parser
@@ -443,22 +466,22 @@ other cases.
 
 -}
 number :
-    { binary : Maybe (Int -> a)
-    , float : Maybe (Float -> a)
+    { int : Maybe (Int -> a)
     , hex : Maybe (Int -> a)
-    , int : Maybe (Int -> a)
     , octal : Maybe (Int -> a)
+    , binary : Maybe (Int -> a)
+    , float : Maybe (Float -> a)
     }
     -> Parser a
 number i =
     A.number
-        { binary = Result.fromMaybe Parser.ExpectingBinary i.binary
-        , expecting = Parser.ExpectingNumber
-        , float = Result.fromMaybe Parser.ExpectingFloat i.float
+        { int = Result.fromMaybe Parser.ExpectingInt i.int
         , hex = Result.fromMaybe Parser.ExpectingHex i.hex
-        , int = Result.fromMaybe Parser.ExpectingInt i.int
-        , invalid = Parser.ExpectingNumber
         , octal = Result.fromMaybe Parser.ExpectingOctal i.octal
+        , binary = Result.fromMaybe Parser.ExpectingBinary i.binary
+        , float = Result.fromMaybe Parser.ExpectingFloat i.float
+        , invalid = Parser.ExpectingNumber
+        , expecting = Parser.ExpectingNumber
         }
 
 
@@ -494,13 +517,13 @@ parser like this:
 int : Parser Int
 int =
     A.number
-        { binary = Err Parser.ExpectingInt
-        , expecting = Parser.ExpectingInt
-        , float = Err Parser.ExpectingInt
+        { int = Ok identity
         , hex = Err Parser.ExpectingInt
-        , int = Ok identity
-        , invalid = Parser.ExpectingInt
         , octal = Err Parser.ExpectingInt
+        , binary = Err Parser.ExpectingInt
+        , float = Err Parser.ExpectingInt
+        , invalid = Parser.ExpectingInt
+        , expecting = Parser.ExpectingInt
         }
 
 
@@ -678,9 +701,6 @@ chompWhile =
 {-| Some languages are indentation sensitive. Python cares about tabs. Elm
 cares about spaces sometimes. `withIndent` and `getIndent` allow you to manage
 "indentation state" yourself, however is necessary in your scenario.
-
-@test-helper
-
 -}
 withIndent : Int -> Parser a -> Parser a
 withIndent =
@@ -695,7 +715,7 @@ withIndentSetToColumn =
 
 
 mapWithStartPosition :
-    (Location -> a -> b)
+    ({ row : Int, column : Int } -> a -> b)
     -> Parser a
     -> Parser b
 mapWithStartPosition =
@@ -703,7 +723,7 @@ mapWithStartPosition =
 
 
 mapWithEndPosition :
-    (a -> Location -> b)
+    (a -> { row : Int, column : Int } -> b)
     -> Parser a
     -> Parser b
 mapWithEndPosition =
@@ -711,7 +731,7 @@ mapWithEndPosition =
 
 
 mapWithStartAndEndPosition :
-    (Location -> a -> Location -> b)
+    ({ row : Int, column : Int } -> a -> { row : Int, column : Int } -> b)
     -> Parser a
     -> Parser b
 mapWithStartAndEndPosition =
@@ -739,17 +759,17 @@ you run into any of these reserved names, it is definitely not a variable.
 
 -}
 variable :
-    { inner : Char -> Bool
+    { start : Char -> Bool
+    , inner : Char -> Bool
     , reserved : Set.Set String
-    , start : Char -> Bool
     }
     -> Parser String
 variable i =
     A.variable
-        { expecting = Parser.ExpectingVariable
+        { start = i.start
         , inner = i.inner
         , reserved = i.reserved
-        , start = i.start
+        , expecting = Parser.ExpectingVariable
         }
 
 

@@ -1,19 +1,19 @@
 module Elm.Parser.TypeAnnotation exposing (typeAnnotation, typeAnnotationNoFnExcludingTypedWithArguments)
 
-import CustomParser exposing (Parser)
 import Elm.Parser.Layout as Layout
 import Elm.Parser.Node as Node
 import Elm.Parser.Tokens as Tokens
 import Elm.Syntax.Node as Node exposing (Node(..))
 import Elm.Syntax.Range exposing (Range)
 import Elm.Syntax.TypeAnnotation as TypeAnnotation exposing (RecordDefinition, RecordField, TypeAnnotation)
+import ParserFast exposing (Parser)
 import ParserWithComments exposing (WithComments)
 import Rope
 
 
 typeAnnotation : Parser (WithComments (Node TypeAnnotation))
 typeAnnotation =
-    CustomParser.map2
+    ParserFast.map2
         (\ta afterTa ->
             case afterTa of
                 Nothing ->
@@ -24,9 +24,9 @@ typeAnnotation =
                     , syntax = Node.combine TypeAnnotation.FunctionTypeAnnotation ta.syntax out.syntax
                     }
         )
-        (CustomParser.lazy (\() -> typeAnnotationNoFnIncludingTypedWithArguments))
-        (CustomParser.orSucceed
-            (CustomParser.map3
+        (ParserFast.lazy (\() -> typeAnnotationNoFnIncludingTypedWithArguments))
+        (ParserFast.orSucceed
+            (ParserFast.map3
                 (\commentsBeforeArrow commentsAfterArrow typeAnnotationResult ->
                     Just
                         { comments =
@@ -36,11 +36,11 @@ typeAnnotation =
                         , syntax = typeAnnotationResult.syntax
                         }
                 )
-                (Layout.maybeLayoutUntilIgnored CustomParser.symbolFollowedBy "->"
-                    |> CustomParser.backtrackable
+                (Layout.maybeLayoutUntilIgnored ParserFast.symbolFollowedBy "->"
+                    |> ParserFast.backtrackable
                 )
                 Layout.maybeLayout
-                (CustomParser.lazy (\() -> typeAnnotation))
+                (ParserFast.lazy (\() -> typeAnnotation))
             )
             Nothing
         )
@@ -48,7 +48,7 @@ typeAnnotation =
 
 typeAnnotationNoFnExcludingTypedWithArguments : Parser (WithComments (Node TypeAnnotation))
 typeAnnotationNoFnExcludingTypedWithArguments =
-    CustomParser.oneOf
+    ParserFast.oneOf
         [ parensTypeAnnotation
         , typedTypeAnnotationWithoutArguments
         , genericTypeAnnotation
@@ -58,7 +58,7 @@ typeAnnotationNoFnExcludingTypedWithArguments =
 
 typeAnnotationNoFnIncludingTypedWithArguments : Parser (WithComments (Node TypeAnnotation))
 typeAnnotationNoFnIncludingTypedWithArguments =
-    CustomParser.oneOf
+    ParserFast.oneOf
         [ parensTypeAnnotation
         , typedTypeAnnotationWithArguments
         , genericTypeAnnotation
@@ -68,10 +68,10 @@ typeAnnotationNoFnIncludingTypedWithArguments =
 
 parensTypeAnnotation : Parser (WithComments (Node TypeAnnotation))
 parensTypeAnnotation =
-    CustomParser.symbolFollowedBy "("
-        (CustomParser.oneOf2
-            (CustomParser.symbol ")" { comments = Rope.empty, syntax = TypeAnnotation.Unit })
-            (CustomParser.map4
+    ParserFast.symbolFollowedBy "("
+        (ParserFast.oneOf2
+            (ParserFast.symbol ")" { comments = Rope.empty, syntax = TypeAnnotation.Unit })
+            (ParserFast.map4
                 (\commentsBeforeFirstPart firstPart commentsAfterFirstPart lastToSecondPart ->
                     { comments =
                         commentsBeforeFirstPart
@@ -96,7 +96,7 @@ parensTypeAnnotation =
                 Layout.maybeLayout
                 (ParserWithComments.untilWithoutReverse
                     Tokens.parensEnd
-                    (CustomParser.map3
+                    (ParserFast.map3
                         (\commentsBefore typeAnnotationResult commentsAfter ->
                             { comments =
                                 commentsBefore
@@ -105,7 +105,7 @@ parensTypeAnnotation =
                             , syntax = typeAnnotationResult.syntax
                             }
                         )
-                        (CustomParser.symbolFollowedBy "," Layout.maybeLayout)
+                        (ParserFast.symbolFollowedBy "," Layout.maybeLayout)
                         typeAnnotation
                         Layout.maybeLayout
                     )
@@ -118,7 +118,7 @@ parensTypeAnnotation =
 genericTypeAnnotation : Parser (WithComments (Node TypeAnnotation))
 genericTypeAnnotation =
     Tokens.functionName
-        |> CustomParser.mapWithStartAndEndPosition
+        |> ParserFast.mapWithStartAndEndPosition
             (\start var end ->
                 { comments = Rope.empty
                 , syntax =
@@ -130,7 +130,7 @@ genericTypeAnnotation =
 
 recordTypeAnnotation : Parser (WithComments (Node TypeAnnotation))
 recordTypeAnnotation =
-    CustomParser.map2
+    ParserFast.map2
         (\commentsBefore afterCurly ->
             case afterCurly of
                 Nothing ->
@@ -145,9 +145,9 @@ recordTypeAnnotation =
                     , syntax = afterCurlyResult.syntax
                     }
         )
-        (CustomParser.symbolFollowedBy "{" Layout.maybeLayout)
-        (CustomParser.oneOf2
-            (CustomParser.map4
+        (ParserFast.symbolFollowedBy "{" Layout.maybeLayout)
+        (ParserFast.oneOf2
+            (ParserFast.map4
                 (\firstNameNode commentsAfterFirstName afterFirstName () ->
                     Just
                         { comments =
@@ -164,18 +164,18 @@ recordTypeAnnotation =
                 )
                 (Node.parserCore Tokens.functionName)
                 Layout.maybeLayout
-                (CustomParser.oneOf2
-                    (CustomParser.map
+                (ParserFast.oneOf2
+                    (ParserFast.map
                         (\extension ->
                             { comments = extension.comments
                             , syntax = RecordExtensionExpressionAfterName extension.syntax
                             }
                         )
-                        (CustomParser.symbolFollowedBy "|"
+                        (ParserFast.symbolFollowedBy "|"
                             (Node.parser recordFieldsTypeAnnotation)
                         )
                     )
-                    (CustomParser.map4
+                    (ParserFast.map4
                         (\commentsBeforeFirstFieldValue firstFieldValue commentsAfterFirstFieldValue tailFields ->
                             { comments =
                                 commentsBeforeFirstFieldValue
@@ -189,18 +189,18 @@ recordTypeAnnotation =
                                     }
                             }
                         )
-                        (CustomParser.symbolFollowedBy ":" Layout.maybeLayout)
+                        (ParserFast.symbolFollowedBy ":" Layout.maybeLayout)
                         typeAnnotation
                         Layout.maybeLayout
-                        (CustomParser.orSucceed
-                            (CustomParser.symbolFollowedBy "," recordFieldsTypeAnnotation)
+                        (ParserFast.orSucceed
+                            (ParserFast.symbolFollowedBy "," recordFieldsTypeAnnotation)
                             { comments = Rope.empty, syntax = [] }
                         )
                     )
                 )
                 Tokens.curlyEnd
             )
-            (CustomParser.symbol "}" Nothing)
+            (ParserFast.symbol "}" Nothing)
         )
         |> Node.parser
 
@@ -218,7 +218,7 @@ type RecordFieldsOrExtensionAfterName
 recordFieldsTypeAnnotation : Parser (WithComments TypeAnnotation.RecordDefinition)
 recordFieldsTypeAnnotation =
     ParserWithComments.sepBy1 ","
-        (CustomParser.map2
+        (ParserFast.map2
             (\commentsBefore fields ->
                 { comments = commentsBefore |> Rope.prependTo fields.comments
                 , syntax = fields.syntax
@@ -231,7 +231,7 @@ recordFieldsTypeAnnotation =
 
 recordFieldDefinition : Parser (WithComments TypeAnnotation.RecordField)
 recordFieldDefinition =
-    CustomParser.map6
+    ParserFast.map6
         (\commentsBeforeFunctionName name commentsAfterFunctionName commentsAfterColon value commentsAfterValue ->
             { comments =
                 commentsBeforeFunctionName
@@ -244,7 +244,7 @@ recordFieldDefinition =
         )
         Layout.maybeLayout
         (Node.parserCore Tokens.functionName)
-        (Layout.maybeLayoutUntilIgnored CustomParser.symbolFollowedBy ":")
+        (Layout.maybeLayoutUntilIgnored ParserFast.symbolFollowedBy ":")
         Layout.maybeLayout
         typeAnnotation
         -- This extra whitespace is just included for compatibility with earlier version
@@ -254,7 +254,7 @@ recordFieldDefinition =
 
 typedTypeAnnotationWithoutArguments : Parser (WithComments (Node TypeAnnotation))
 typedTypeAnnotationWithoutArguments =
-    CustomParser.mapWithStartAndEndPosition
+    ParserFast.mapWithStartAndEndPosition
         (\nameStart name nameEnd ->
             let
                 range : Range
@@ -267,7 +267,7 @@ typedTypeAnnotationWithoutArguments =
                     (TypeAnnotation.Typed (Node range name) [])
             }
         )
-        (CustomParser.map2
+        (ParserFast.map2
             (\startName afterStartName ->
                 case afterStartName of
                     Nothing ->
@@ -281,10 +281,10 @@ typedTypeAnnotationWithoutArguments =
         )
 
 
-maybeDotTypeNamesTuple : CustomParser.Parser (Maybe ( List String, String ))
+maybeDotTypeNamesTuple : ParserFast.Parser (Maybe ( List String, String ))
 maybeDotTypeNamesTuple =
-    CustomParser.orSucceed
-        (CustomParser.map2
+    ParserFast.orSucceed
+        (ParserFast.map2
             (\firstName afterFirstName ->
                 case afterFirstName of
                     Nothing ->
@@ -293,26 +293,26 @@ maybeDotTypeNamesTuple =
                     Just ( qualificationAfter, unqualified ) ->
                         Just ( firstName :: qualificationAfter, unqualified )
             )
-            (CustomParser.symbolFollowedBy "." Tokens.typeName)
-            (CustomParser.lazy (\() -> maybeDotTypeNamesTuple))
+            (ParserFast.symbolFollowedBy "." Tokens.typeName)
+            (ParserFast.lazy (\() -> maybeDotTypeNamesTuple))
         )
         Nothing
 
 
 typedTypeAnnotationWithArguments : Parser (WithComments (Node TypeAnnotation))
 typedTypeAnnotationWithArguments =
-    CustomParser.map2
+    ParserFast.map2
         (\nameNode args ->
             { comments = args.comments
             , syntax = TypeAnnotation.Typed nameNode args.syntax
             }
         )
-        (CustomParser.mapWithStartAndEndPosition
+        (ParserFast.mapWithStartAndEndPosition
             (\nameStart name nameEnd ->
                 Node { start = nameStart, end = nameEnd }
                     name
             )
-            (CustomParser.map2
+            (ParserFast.map2
                 (\startName afterStartName ->
                     case afterStartName of
                         Nothing ->
@@ -326,13 +326,13 @@ typedTypeAnnotationWithArguments =
             )
         )
         (ParserWithComments.many
-            (CustomParser.map2
+            (ParserFast.map2
                 (\commentsBefore typeAnnotationResult ->
                     { comments = commentsBefore |> Rope.prependTo typeAnnotationResult.comments
                     , syntax = typeAnnotationResult.syntax
                     }
                 )
-                (Layout.maybeLayout |> CustomParser.backtrackable)
+                (Layout.maybeLayout |> ParserFast.backtrackable)
                 typeAnnotationNoFnExcludingTypedWithArguments
             )
         )

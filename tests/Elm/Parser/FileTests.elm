@@ -1,6 +1,5 @@
 module Elm.Parser.FileTests exposing (all)
 
-import CustomParser
 import Elm.Internal.RawFile as InternalRawFile
 import Elm.Parser
 import Elm.Parser.File as Parser
@@ -17,6 +16,7 @@ import Elm.Syntax.TypeAnnotation exposing (TypeAnnotation(..))
 import Expect
 import Json.Decode
 import Json.Encode
+import ParserFast
 import Test exposing (..)
 
 
@@ -28,7 +28,7 @@ all =
                 (\( n, s ) ->
                     test ("sample " ++ String.fromInt n) <|
                         \() ->
-                            case CustomParser.run Parser.file s of
+                            case ParserFast.run Parser.file s of
                                 Err error ->
                                     Expect.fail (error |> Debug.toString)
 
@@ -61,7 +61,7 @@ all =
                                 let
                                     parsed : Maybe RawFile
                                     parsed =
-                                        CustomParser.run Parser.file s
+                                        ParserFast.run Parser.file s
                                             |> Result.toMaybe
                                             |> Maybe.map InternalRawFile.Raw
 

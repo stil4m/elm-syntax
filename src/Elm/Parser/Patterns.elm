@@ -1,12 +1,12 @@
 module Elm.Parser.Patterns exposing (pattern, patternNotDirectlyComposing)
 
-import CustomParser exposing (Parser)
 import Elm.Parser.Layout as Layout
 import Elm.Parser.Node as Node
 import Elm.Parser.Numbers
 import Elm.Parser.Tokens as Tokens
 import Elm.Syntax.Node as Node exposing (Node(..))
 import Elm.Syntax.Pattern as Pattern exposing (Pattern(..))
+import ParserFast exposing (Parser)
 import ParserWithComments exposing (WithComments)
 import Rope
 
@@ -19,12 +19,12 @@ type PatternComposedWith
 
 pattern : Parser (WithComments (Node Pattern))
 pattern =
-    CustomParser.lazy (\() -> composablePatternTryToCompose)
+    ParserFast.lazy (\() -> composablePatternTryToCompose)
 
 
 composablePatternTryToCompose : Parser (WithComments (Node Pattern))
 composablePatternTryToCompose =
-    CustomParser.map3
+    ParserFast.map3
         (\x commentsAfterLeft maybeComposedWithResult ->
             { comments =
                 x.comments
@@ -49,30 +49,30 @@ composablePatternTryToCompose =
 
 maybeComposedWith : Parser { comments : ParserWithComments.Comments, syntax : PatternComposedWith }
 maybeComposedWith =
-    CustomParser.oneOf
-        [ CustomParser.map2
+    ParserFast.oneOf
+        [ ParserFast.map2
             (\commentsAfterAs name ->
                 { comments = commentsAfterAs
                 , syntax = PatternComposedWithAs name
                 }
             )
-            (CustomParser.keywordFollowedBy "as" Layout.maybeLayout)
+            (ParserFast.keywordFollowedBy "as" Layout.maybeLayout)
             (Node.parserCore Tokens.functionName)
-        , CustomParser.map2
+        , ParserFast.map2
             (\commentsAfterCons patternResult ->
                 { comments = patternResult.comments |> Rope.prependTo commentsAfterCons
                 , syntax = PatternComposedWithCons patternResult.syntax
                 }
             )
-            (CustomParser.symbolFollowedBy "::" Layout.maybeLayout)
+            (ParserFast.symbolFollowedBy "::" Layout.maybeLayout)
             pattern
-        , CustomParser.succeed { comments = Rope.empty, syntax = PatternComposedWithNothing () }
+        , ParserFast.succeed { comments = Rope.empty, syntax = PatternComposedWithNothing () }
         ]
 
 
 parensPattern : Parser (WithComments (Node Pattern))
 parensPattern =
-    CustomParser.map2
+    ParserFast.map2
         (\commentsBeforeHead contentResult ->
             { comments =
                 commentsBeforeHead
@@ -80,10 +80,10 @@ parensPattern =
             , syntax = contentResult.syntax
             }
         )
-        (CustomParser.symbolFollowedBy "(" Layout.maybeLayout)
+        (ParserFast.symbolFollowedBy "(" Layout.maybeLayout)
         -- yes, (  ) is a valid pattern but not a valid type or expression
-        (CustomParser.oneOf2
-            (CustomParser.map3
+        (ParserFast.oneOf2
+            (ParserFast.map3
                 (\headResult commentsAfterHead tailResult ->
                     { comments =
                         headResult.comments
@@ -102,12 +102,12 @@ parensPattern =
                 Layout.maybeLayout
                 (ParserWithComments.until
                     Tokens.parensEnd
-                    (CustomParser.symbolFollowedBy ","
+                    (ParserFast.symbolFollowedBy ","
                         (Layout.maybeAroundBothSides pattern)
                     )
                 )
             )
-            (CustomParser.symbol ")" { comments = Rope.empty, syntax = UnitPattern })
+            (ParserFast.symbol ")" { comments = Rope.empty, syntax = UnitPattern })
         )
         |> Node.parser
 
@@ -115,7 +115,7 @@ parensPattern =
 varPattern : Parser (WithComments (Node Pattern))
 varPattern =
     Tokens.functionName
-        |> CustomParser.mapWithStartAndEndPosition
+        |> ParserFast.mapWithStartAndEndPosition
             (\start var end ->
                 { comments = Rope.empty
                 , syntax =
@@ -135,7 +135,7 @@ numberPart =
 charPattern : Parser (WithComments (Node Pattern))
 charPattern =
     Tokens.characterLiteral
-        |> CustomParser.mapWithStartAndEndPosition
+        |> ParserFast.mapWithStartAndEndPosition
             (\start char end ->
                 { comments = Rope.empty, syntax = Node { start = start, end = end } (CharPattern char) }
             )
@@ -143,7 +143,7 @@ charPattern =
 
 listPattern : Parser (WithComments (Node Pattern))
 listPattern =
-    CustomParser.map2
+    ParserFast.map2
         (\commentsBeforeElements maybeElements ->
             case maybeElements of
                 Nothing ->
@@ -156,10 +156,10 @@ listPattern =
                     , syntax = ListPattern elements.syntax
                     }
         )
-        (CustomParser.symbolFollowedBy "[" Layout.maybeLayout)
-        (CustomParser.oneOf2
-            (CustomParser.symbol "]" Nothing)
-            (CustomParser.map4
+        (ParserFast.symbolFollowedBy "[" Layout.maybeLayout)
+        (ParserFast.oneOf2
+            (ParserFast.symbol "]" Nothing)
+            (ParserFast.map4
                 (\head commentsAfterHead tail () ->
                     Just
                         { comments =
@@ -172,7 +172,7 @@ listPattern =
                 pattern
                 Layout.maybeLayout
                 (ParserWithComments.many
-                    (CustomParser.symbolFollowedBy ","
+                    (ParserFast.symbolFollowedBy ","
                         (Layout.maybeAroundBothSides pattern)
                     )
                 )
@@ -189,7 +189,7 @@ patternListEmpty =
 
 composablePattern : Parser (WithComments (Node Pattern))
 composablePattern =
-    CustomParser.oneOf
+    ParserFast.oneOf
         [ varPattern
         , qualifiedPatternWithConsumeArgs
         , allPattern
@@ -205,7 +205,7 @@ composablePattern =
 
 patternNotDirectlyComposing : Parser (WithComments (Node Pattern))
 patternNotDirectlyComposing =
-    CustomParser.oneOf
+    ParserFast.oneOf
         [ varPattern
         , qualifiedPatternWithoutConsumeArgs
         , allPattern
@@ -221,20 +221,20 @@ patternNotDirectlyComposing =
 
 allPattern : Parser (WithComments (Node Pattern))
 allPattern =
-    CustomParser.symbol "_" { comments = Rope.empty, syntax = AllPattern }
+    ParserFast.symbol "_" { comments = Rope.empty, syntax = AllPattern }
         |> Node.parser
 
 
 unitPattern : Parser (WithComments (Node Pattern))
 unitPattern =
-    CustomParser.symbol "()" { comments = Rope.empty, syntax = UnitPattern }
+    ParserFast.symbol "()" { comments = Rope.empty, syntax = UnitPattern }
         |> Node.parser
 
 
 stringPattern : Parser (WithComments (Node Pattern))
 stringPattern =
     Tokens.singleOrTripleQuotedStringLiteral
-        |> CustomParser.mapWithStartAndEndPosition
+        |> ParserFast.mapWithStartAndEndPosition
             (\start string end ->
                 { comments = Rope.empty
                 , syntax =
@@ -243,10 +243,10 @@ stringPattern =
             )
 
 
-maybeDotTypeNamesTuple : CustomParser.Parser (Maybe ( List String, String ))
+maybeDotTypeNamesTuple : ParserFast.Parser (Maybe ( List String, String ))
 maybeDotTypeNamesTuple =
-    CustomParser.orSucceed
-        (CustomParser.map2
+    ParserFast.orSucceed
+        (ParserFast.map2
             (\startName afterStartName ->
                 case afterStartName of
                     Nothing ->
@@ -255,15 +255,15 @@ maybeDotTypeNamesTuple =
                     Just ( qualificationAfter, unqualified ) ->
                         Just ( startName :: qualificationAfter, unqualified )
             )
-            (CustomParser.symbolFollowedBy "." Tokens.typeName)
-            (CustomParser.lazy (\() -> maybeDotTypeNamesTuple))
+            (ParserFast.symbolFollowedBy "." Tokens.typeName)
+            (ParserFast.lazy (\() -> maybeDotTypeNamesTuple))
         )
         Nothing
 
 
 qualifiedPatternWithConsumeArgs : Parser (WithComments (Node Pattern))
 qualifiedPatternWithConsumeArgs =
-    CustomParser.map3
+    ParserFast.map3
         (\startName afterStartName args ->
             { comments = args.comments
             , syntax =
@@ -281,13 +281,13 @@ qualifiedPatternWithConsumeArgs =
         Tokens.typeName
         maybeDotTypeNamesTuple
         (ParserWithComments.many
-            (CustomParser.map2
+            (ParserFast.map2
                 (\commentsBefore arg ->
                     { comments = arg.comments |> Rope.prependTo commentsBefore
                     , syntax = arg.syntax
                     }
                 )
-                (Layout.maybeLayout |> CustomParser.backtrackable)
+                (Layout.maybeLayout |> ParserFast.backtrackable)
                 patternNotDirectlyComposing
             )
         )
@@ -296,14 +296,14 @@ qualifiedPatternWithConsumeArgs =
 
 qualifiedPatternWithoutConsumeArgs : Parser (WithComments (Node Pattern))
 qualifiedPatternWithoutConsumeArgs =
-    CustomParser.mapWithStartAndEndPosition
+    ParserFast.mapWithStartAndEndPosition
         (\start name end ->
             { comments = Rope.empty
             , syntax =
                 Node { start = start, end = end } (NamedPattern name [])
             }
         )
-        (CustomParser.map2
+        (ParserFast.map2
             (\firstName after ->
                 case after of
                     Nothing ->
@@ -319,7 +319,7 @@ qualifiedPatternWithoutConsumeArgs =
 
 recordPattern : Parser (WithComments (Node Pattern))
 recordPattern =
-    CustomParser.map2
+    ParserFast.map2
         (\commentsBeforeElements maybeElements ->
             case maybeElements of
                 Nothing ->
@@ -332,9 +332,9 @@ recordPattern =
                     , syntax = RecordPattern elements.syntax
                     }
         )
-        (CustomParser.symbolFollowedBy "{" Layout.maybeLayout)
-        (CustomParser.oneOf2
-            (CustomParser.map4
+        (ParserFast.symbolFollowedBy "{" Layout.maybeLayout)
+        (ParserFast.oneOf2
+            (ParserFast.map4
                 (\head commentsAfterHead tail () ->
                     Just
                         { comments =
@@ -346,20 +346,20 @@ recordPattern =
                 (Node.parserCore Tokens.functionName)
                 Layout.maybeLayout
                 (ParserWithComments.many
-                    (CustomParser.map3
+                    (ParserFast.map3
                         (\beforeName name afterName ->
                             { comments = beforeName |> Rope.prependTo afterName
                             , syntax = name
                             }
                         )
-                        (CustomParser.symbolFollowedBy "," Layout.maybeLayout)
+                        (ParserFast.symbolFollowedBy "," Layout.maybeLayout)
                         (Node.parserCore Tokens.functionName)
                         Layout.maybeLayout
                     )
                 )
                 Tokens.curlyEnd
             )
-            (CustomParser.symbol "}" Nothing)
+            (ParserFast.symbol "}" Nothing)
         )
         |> Node.parser
 
