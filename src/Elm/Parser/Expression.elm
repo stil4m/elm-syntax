@@ -523,8 +523,8 @@ letExpression =
                     )
             }
         )
-        (CustomParser.map4
-            (\declarations () commentsAfterIn expressionResult ->
+        (CustomParser.map3
+            (\declarations commentsAfterIn expressionResult ->
                 { comments =
                     declarations.comments
                         |> Rope.prependTo commentsAfterIn
@@ -547,8 +547,9 @@ letExpression =
                 )
             )
             -- check that the `in` token used as the end parser in letDeclarationsIn is indented correctly
-            (Layout.positivelyIndentedPlus 2)
-            Layout.maybeLayout
+            (Layout.positivelyIndentedPlusFollowedBy 2
+                Layout.maybeLayout
+            )
             expression
         )
 

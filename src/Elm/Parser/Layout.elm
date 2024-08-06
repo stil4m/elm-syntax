@@ -7,7 +7,7 @@ module Elm.Parser.Layout exposing
     , onTopIndentationFollowedBy
     , optimisticLayout
     , positivelyIndentedFollowedBy
-    , positivelyIndentedPlus
+    , positivelyIndentedPlusFollowedBy
     )
 
 import CustomParser exposing (Parser)
@@ -142,12 +142,12 @@ maybeLayout =
 {-| Check that the indentation of an already parsed token
 would be valid after [`maybeLayout`](#maybeLayout)
 -}
-positivelyIndentedPlus : Int -> CustomParser.Parser ()
-positivelyIndentedPlus extraIndent =
+positivelyIndentedPlusFollowedBy : Int -> Parser a -> Parser a
+positivelyIndentedPlusFollowedBy extraIndent nextParser =
     CustomParser.columnIndentAndThen
         (\column indent ->
             if column > indent + extraIndent then
-                succeedUnit
+                nextParser
 
             else
                 problemPositivelyIndented
@@ -181,11 +181,6 @@ positivelyIndentedFollowedBy nextParser =
             else
                 problemPositivelyIndented
         )
-
-
-succeedUnit : Parser ()
-succeedUnit =
-    CustomParser.succeed ()
 
 
 problemPositivelyIndented : Parser a
