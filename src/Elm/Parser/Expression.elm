@@ -152,9 +152,8 @@ untilGlslEnd soFar =
             (\beforeVerticalBar () ->
                 CustomParser.Advanced.Loop (soFar ++ beforeVerticalBar)
             )
-            (CustomParser.chompIf (\c -> c /= '|')
-                |> CustomParser.ignore
-                    (CustomParser.chompWhile (\c -> c /= '|'))
+            (CustomParser.chompIfFollowedBy (\c -> c /= '|')
+                (CustomParser.chompWhile (\c -> c /= '|'))
             )
         , CustomParser.symbol "|" (CustomParser.Advanced.Loop (soFar ++ "|"))
         ]

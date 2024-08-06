@@ -4,7 +4,7 @@ module CustomParser exposing
     , succeed, problem, succeedLazy, lazy, map, map2, map3, map4, map5, map6, map7, map8, map9, map10, map11, ignore, andThen
     , orSucceed, orSucceedLazy, oneOf2, oneOf, backtrackable, commit
     , nestableMultiComment
-    , getChompedString, chompIf, chompWhile, mapChompedString
+    , getChompedString, chompIf, chompIfFollowedBy, chompWhile, mapChompedString
     , withIndentSetToColumn, withIndent, columnIndentAndThen
     , mapWithStartPosition, mapWithEndPosition, mapWithStartAndEndPosition, columnAndThen, offsetSourceAndThen
     )
@@ -30,7 +30,7 @@ module CustomParser exposing
 
 # Chompers
 
-@docs getChompedString, chompIf, chompWhile, mapChompedString
+@docs getChompedString, chompIf, chompIfFollowedBy, chompWhile, mapChompedString
 
 
 # Indentation, Positions and source
@@ -665,6 +665,11 @@ So this can chomp a character like `T` and produces a `()` value.
 chompIf : (Char -> Bool) -> Parser ()
 chompIf isGood =
     A.chompIf isGood Parser.UnexpectedChar
+
+
+chompIfFollowedBy : (Char -> Bool) -> Parser a -> Parser a
+chompIfFollowedBy isGood nextParser =
+    A.chompIfFollowedBy isGood Parser.UnexpectedChar nextParser
 
 
 {-| Chomp zero or more characters if they pass the test. This is commonly
