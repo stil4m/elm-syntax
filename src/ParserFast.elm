@@ -678,6 +678,9 @@ chompWhile =
 {-| Some languages are indentation sensitive. Python cares about tabs. Elm
 cares about spaces sometimes. `withIndent` and `getIndent` allow you to manage
 "indentation state" yourself, however is necessary in your scenario.
+
+@test-helper
+
 -}
 withIndent : Int -> Parser a -> Parser a
 withIndent =
