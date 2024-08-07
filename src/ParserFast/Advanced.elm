@@ -168,7 +168,7 @@ type Bag x
 
 fromState : State -> x -> Bag x
 fromState s x =
-    AddRight Empty (DeadEnd s.row s.col x)
+    AddRight Empty { row = s.row, col = s.col, problem = x }
 
 
 bagToList : Bag x -> List (DeadEnd x) -> List (DeadEnd x)
