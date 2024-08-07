@@ -358,19 +358,19 @@ lambdaExpression =
                 (Node expressionRange _) =
                     expressionResult.syntax
             in
-            { syntax =
+            { comments =
+                backslash.commentsAfter
+                    |> Rope.prependTo firstArg.comments
+                    |> Rope.prependTo commentsAfterFirstArg
+                    |> Rope.prependTo secondUpArgs.comments
+                    |> Rope.prependTo expressionResult.comments
+            , syntax =
                 Node { start = backslash.start, end = expressionRange.end }
                     (LambdaExpression
                         { args = firstArg.syntax :: secondUpArgs.syntax
                         , expression = expressionResult.syntax
                         }
                     )
-            , comments =
-                backslash.commentsAfter
-                    |> Rope.prependTo firstArg.comments
-                    |> Rope.prependTo commentsAfterFirstArg
-                    |> Rope.prependTo secondUpArgs.comments
-                    |> Rope.prependTo expressionResult.comments
             }
         )
         (ParserFast.mapWithStartPosition (\start commentsAfter -> { commentsAfter = commentsAfter, start = start })

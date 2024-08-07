@@ -879,15 +879,16 @@ commit a =
     Parser (\s -> Good True a s)
 
 
-{-| Make sure to never call with String "", as this will then always commit.
+{-| Make sure the given String isn't empty and does not contain \\n
+or 2-part UTF-16 characters
 -}
 keyword : String -> x -> res -> Parser x res
 keyword kwd expecting res =
     Parser
         (\s ->
             let
-                ( newOffset, newRow, newCol ) =
-                    isSubString kwd s.offset s.row s.col s.src
+                ( newOffset, newCol ) =
+                    isSubString kwd s.offset s.col s.src
             in
             if newOffset == -1 || 0 <= isSubChar (\c -> Char.Extra.isAlphaNumFast c || c == '_') newOffset s.src then
                 Bad False (fromState s expecting) ()
@@ -898,21 +899,22 @@ keyword kwd expecting res =
                     { src = s.src
                     , offset = newOffset
                     , indent = s.indent
-                    , row = newRow
+                    , row = s.row
                     , col = newCol
                     }
         )
 
 
-{-| Make sure to never call with String "", as this will then always commit.
+{-| Make sure the given String isn't empty and does not contain \\n
+or 2-part UTF-16 characters
 -}
 keywordFollowedBy : String -> x -> Parser x next -> Parser x next
 keywordFollowedBy kwd expecting (Parser parseNext) =
     Parser
         (\s ->
             let
-                ( newOffset, newRow, newCol ) =
-                    isSubString kwd s.offset s.row s.col s.src
+                ( newOffset, newCol ) =
+                    isSubString kwd s.offset s.col s.src
             in
             if newOffset == -1 || 0 <= isSubChar (\c -> Char.Extra.isAlphaNumFast c || c == '_') newOffset s.src then
                 Bad False (fromState s expecting) ()
@@ -922,22 +924,23 @@ keywordFollowedBy kwd expecting (Parser parseNext) =
                     { src = s.src
                     , offset = newOffset
                     , indent = s.indent
-                    , row = newRow
+                    , row = s.row
                     , col = newCol
                     }
                     |> pStepCommit
         )
 
 
-{-| Make sure to never call with String "", as this will then always commit.
+{-| Make sure the given String isn't empty and does not contain \\n
+or 2-part UTF-16 characters
 -}
 symbol : String -> x -> res -> Parser x res
 symbol str expecting res =
     Parser
         (\s ->
             let
-                ( newOffset, newRow, newCol ) =
-                    isSubString str s.offset s.row s.col s.src
+                ( newOffset, newCol ) =
+                    isSubString str s.offset s.col s.src
             in
             if newOffset == -1 then
                 Bad False (fromState s expecting) ()
@@ -948,21 +951,22 @@ symbol str expecting res =
                     { src = s.src
                     , offset = newOffset
                     , indent = s.indent
-                    , row = newRow
+                    , row = s.row
                     , col = newCol
                     }
         )
 
 
-{-| Make sure to never call with String "", as this will then always commit.
+{-| Make sure the given String isn't empty and does not contain \\n
+or 2-part UTF-16 characters
 -}
 symbolFollowedBy : String -> x -> Parser x next -> Parser x next
 symbolFollowedBy str expecting (Parser parseNext) =
     Parser
         (\s ->
             let
-                ( newOffset, newRow, newCol ) =
-                    isSubString str s.offset s.row s.col s.src
+                ( newOffset, newCol ) =
+                    isSubString str s.offset s.col s.src
             in
             if newOffset == -1 then
                 Bad False (fromState s expecting) ()
@@ -972,7 +976,7 @@ symbolFollowedBy str expecting (Parser parseNext) =
                     { src = s.src
                     , offset = newOffset
                     , indent = s.indent
-                    , row = newRow
+                    , row = s.row
                     , col = newCol
                     }
                     |> pStepCommit
@@ -1388,17 +1392,12 @@ You are looking for `"let"` at a given `offset`. On failure, the
 `newOffset` is `-1`. On success, the `newOffset` is the new offset. With
 our `"let"` example, it would be `offset + 3`.
 
-You also provide the current `row` and `col` which do not align with
-`offset` in a clean way. For example, when you see a `\n` you are at
-`row = row + 1` and `col = 1`. Furthermore, some UTF16 characters are
-two words wide, so even if there are no newlines, `offset` and `col`
-may not be equal.
+**Important note:** Assumes smallString does not contain \\n
+or 2-part UTF-16 characters
 
 -}
-isSubString : String -> Int -> Int -> Int -> String -> ( Int, Int, Int )
-isSubString smallString offset row col bigString =
-    -- TODO currently assumes smallString does not contain line \n
-    -- TODO currently assumes smallString does not contain UTF-16 characters
+isSubString : String -> Int -> Int -> String -> ( Int, Int )
+isSubString smallString offset col bigString =
     let
         smallStringLength : Int
         smallStringLength =
@@ -1409,10 +1408,10 @@ isSubString smallString offset row col bigString =
             offset + smallStringLength
     in
     if String.slice offset offsetAfter bigString == smallString ++ "" then
-        ( offsetAfter, row, col + smallStringLength )
+        ( offsetAfter, col + smallStringLength )
 
     else
-        ( -1, row, col )
+        ( -1, col )
 
 
 {-| Again, when parsing, you want to allocate as little as possible.
