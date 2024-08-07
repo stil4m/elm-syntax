@@ -71,20 +71,15 @@ whitespaceAndCommentsUntilEndComments end =
 
 whitespaceAndCommentsOrEmpty : Parser Comments
 whitespaceAndCommentsOrEmpty =
-    ParserFast.oneOf2
-        (whitespace
-            -- whitespace can't be followed by more whitespace
-            |> ParserFast.andThen (\_ -> fromCommentElseEmpty)
-        )
-        fromCommentElseEmpty
+    whitespace
+        -- whitespace can't be followed by more whitespace
+        |> ParserFast.andThen (\() -> fromCommentElseEmpty)
 
 
-whitespace : Parser String
+whitespace : Parser ()
 whitespace =
-    ParserFast.variableWithoutReserved
-        { inner = \c -> c == ' ' || c == '\n' || c == '\u{000D}'
-        , start = \c -> c == ' ' || c == '\n' || c == '\u{000D}'
-        }
+    ParserFast.chompWhile
+        (\c -> c == ' ' || c == '\n' || c == '\u{000D}')
 
 
 fromCommentElseEmpty : Parser Comments

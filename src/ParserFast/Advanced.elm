@@ -1032,10 +1032,15 @@ chompIf isGood expecting =
 chompWhile : (Char -> Bool) -> Parser x ()
 chompWhile isGood =
     Parser
-        (\s ->
-            Good True
+        (\s0 ->
+            let
+                s1 : State
+                s1 =
+                    chompWhileHelp isGood s0.offset s0.row s0.col s0.src s0.indent
+            in
+            Good (s1.offset > s0.offset)
                 ()
-                (chompWhileHelp isGood s.offset s.row s.col s.src s.indent)
+                s1
         )
 
 
