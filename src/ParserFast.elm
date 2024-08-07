@@ -3,7 +3,7 @@ module ParserFast exposing
     , int, number, symbol, symbolFollowedBy, keyword, keywordFollowedBy, variable, variableWithoutReserved, end
     , succeed, problem, succeedLazy, lazy, map, map2, map3, map4, map5, map6, map7, map8, map9, map10, map11, ignore, andThen
     , orSucceed, orSucceedLazy, oneOf2, oneOf, backtrackable, commit
-    , nestableMultiComment
+    , chompWhileWhitespace, nestableMultiComment
     , getChompedString, chompIf, chompIfFollowedBy, chompWhile, mapChompedString
     , withIndentSetToColumn, withIndent, columnIndentAndThen
     , mapWithStartPosition, mapWithEndPosition, mapWithStartAndEndPosition, columnAndThen, offsetSourceAndThen
@@ -25,7 +25,7 @@ module ParserFast exposing
 
 # Whitespace
 
-@docs nestableMultiComment
+@docs chompWhileWhitespace, nestableMultiComment
 
 
 # Chompers
@@ -700,6 +700,14 @@ parsers peek ahead, making sure they are not followed by anything unexpected.
 chompWhile : (Char -> Bool) -> Parser ()
 chompWhile =
     A.chompWhile
+
+
+{-| Specialized `chompWhile (\c -> c == " " || c == "\n" || c == "\r")`
+optimized for speed
+-}
+chompWhileWhitespace : Parser ()
+chompWhileWhitespace =
+    A.chompWhileWhitespace
 
 
 {-| Some languages are indentation sensitive. Python cares about tabs. Elm

@@ -61,7 +61,7 @@ whitespaceAndCommentsUntilEndComments end =
                 ]
     in
     ParserFast.oneOf
-        [ whitespace
+        [ ParserFast.chompWhileWhitespace
             |> ParserFast.andThen (\_ -> endOrFromCommentElseEmptyThenEnd)
         , end
         , fromSingleLineCommentUntilEnd
@@ -71,15 +71,9 @@ whitespaceAndCommentsUntilEndComments end =
 
 whitespaceAndCommentsOrEmpty : Parser Comments
 whitespaceAndCommentsOrEmpty =
-    whitespace
+    ParserFast.chompWhileWhitespace
         -- whitespace can't be followed by more whitespace
         |> ParserFast.andThen (\() -> fromCommentElseEmpty)
-
-
-whitespace : Parser ()
-whitespace =
-    ParserFast.chompWhile
-        (\c -> c == ' ' || c == '\n' || c == '\u{000D}')
 
 
 fromCommentElseEmpty : Parser Comments
