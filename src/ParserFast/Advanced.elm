@@ -1032,34 +1032,11 @@ chompIf isGood expecting =
 chompWhile : (Char -> Bool) -> Parser x ()
 chompWhile isGood =
     Parser
-        (\s -> chompWhileHelp isGood s.offset s.row s.col s)
-
-
-chompWhileHelp : (Char -> Bool) -> Int -> Int -> Int -> State -> PStep x ()
-chompWhileHelp isGood offset row col s0 =
-    let
-        newOffset : Int
-        newOffset =
-            isSubChar isGood offset s0.src
-    in
-    if newOffset == -1 then
-        -- no match
-        Good (s0.offset < offset)
-            ()
-            { src = s0.src
-            , offset = offset
-            , indent = s0.indent
-            , row = row
-            , col = col
-            }
-
-    else if newOffset == -2 then
-        -- matched a newline
-        chompWhileHelp isGood (offset + 1) (row + 1) 1 s0
-
-    else
-        -- normal match
-        chompWhileHelp isGood newOffset row (col + 1) s0
+        (\s ->
+            Good True
+                ()
+                (chompWhileHelp isGood s.offset s.row s.col s.src s.indent)
+        )
 
 
 variable :
@@ -1085,10 +1062,10 @@ variable i =
                     s1 : State
                     s1 =
                         if firstOffset == -2 then
-                            varHelp i.inner (s.offset + 1) (s.row + 1) 1 s.src s.indent
+                            chompWhileHelp i.inner (s.offset + 1) (s.row + 1) 1 s.src s.indent
 
                         else
-                            varHelp i.inner firstOffset s.row (s.col + 1) s.src s.indent
+                            chompWhileHelp i.inner firstOffset s.row (s.col + 1) s.src s.indent
 
                     name : String
                     name =
@@ -1124,23 +1101,24 @@ variableWithoutReserved i =
                     s1 : State
                     s1 =
                         if firstOffset == -2 then
-                            varHelp i.inner (s.offset + 1) (s.row + 1) 1 s.src s.indent
+                            chompWhileHelp i.inner (s.offset + 1) (s.row + 1) 1 s.src s.indent
 
                         else
-                            varHelp i.inner firstOffset s.row (s.col + 1) s.src s.indent
+                            chompWhileHelp i.inner firstOffset s.row (s.col + 1) s.src s.indent
                 in
                 Good True (String.slice s.offset s1.offset s.src) s1
         )
 
 
-varHelp : (Char -> Bool) -> Int -> Int -> Int -> String -> Int -> State
-varHelp isGood offset row col src indent =
+chompWhileHelp : (Char -> Bool) -> Int -> Int -> Int -> String -> Int -> State
+chompWhileHelp isGood offset row col src indent =
     let
         newOffset : Int
         newOffset =
             isSubChar isGood offset src
     in
     if newOffset == -1 then
+        -- no match
         { src = src
         , offset = offset
         , indent = indent
@@ -1149,10 +1127,12 @@ varHelp isGood offset row col src indent =
         }
 
     else if newOffset == -2 then
-        varHelp isGood (offset + 1) (row + 1) 1 src indent
+        -- matched a newline
+        chompWhileHelp isGood (offset + 1) (row + 1) 1 src indent
 
     else
-        varHelp isGood newOffset row (col + 1) src indent
+        -- normal match
+        chompWhileHelp isGood newOffset row (col + 1) src indent
 
 
 skip : Parser x ignore -> Parser x keep -> Parser x keep
