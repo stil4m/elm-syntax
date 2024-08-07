@@ -1,6 +1,6 @@
 module ParserFast exposing
     ( Parser, run
-    , int, number, symbol, symbolFollowedBy, keyword, keywordFollowedBy, variable, end
+    , int, number, symbol, symbolFollowedBy, keyword, keywordFollowedBy, variable, variableWithoutReserved, end
     , succeed, problem, succeedLazy, lazy, map, map2, map3, map4, map5, map6, map7, map8, map9, map10, map11, ignore, andThen
     , orSucceed, orSucceedLazy, oneOf2, oneOf, backtrackable, commit
     , nestableMultiComment
@@ -13,7 +13,7 @@ module ParserFast exposing
 
 @docs Parser, run
 
-@docs int, number, symbol, symbolFollowedBy, keyword, keywordFollowedBy, variable, end
+@docs int, number, symbol, symbolFollowedBy, keyword, keywordFollowedBy, variable, variableWithoutReserved, end
 
 
 # Flow
@@ -773,6 +773,19 @@ variable i =
         { start = i.start
         , inner = i.inner
         , reserved = i.reserved
+        , expecting = Parser.ExpectingVariable
+        }
+
+
+variableWithoutReserved :
+    { start : Char -> Bool
+    , inner : Char -> Bool
+    }
+    -> Parser String
+variableWithoutReserved i =
+    A.variableWithoutReserved
+        { start = i.start
+        , inner = i.inner
         , expecting = Parser.ExpectingVariable
         }
 

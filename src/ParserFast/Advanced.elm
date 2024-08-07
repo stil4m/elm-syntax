@@ -1,6 +1,6 @@
 module ParserFast.Advanced exposing
     ( Parser, run
-    , number, symbol, symbolFollowedBy, keyword, keywordFollowedBy, variable, end
+    , number, symbol, symbolFollowedBy, keyword, keywordFollowedBy, variable, variableWithoutReserved, end
     , succeed, problem, succeedLazy, lazy, map, map2, map3, map4, map5, map6, map7, map8, map9, map10, map11, andThen, ignore
     , orSucceed, orSucceedLazy, oneOf2, oneOf, backtrackable, commit
     , loop, Step(..)
@@ -14,7 +14,7 @@ module ParserFast.Advanced exposing
 
 @docs Parser, run
 
-@docs number, symbol, symbolFollowedBy, keyword, keywordFollowedBy, variable, end
+@docs number, symbol, symbolFollowedBy, keyword, keywordFollowedBy, variable, variableWithoutReserved, end
 
 
 # Flow
@@ -1230,6 +1230,37 @@ variable i =
 
                 else
                     Good True name s1
+        )
+
+
+variableWithoutReserved :
+    { start : Char -> Bool
+    , inner : Char -> Bool
+    , expecting : x
+    }
+    -> Parser x String
+variableWithoutReserved i =
+    Parser
+        (\s ->
+            let
+                firstOffset : Int
+                firstOffset =
+                    isSubChar i.start s.offset s.src
+            in
+            if firstOffset == -1 then
+                Bad False (fromState s i.expecting) ()
+
+            else
+                let
+                    s1 : State
+                    s1 =
+                        if firstOffset == -2 then
+                            varHelp i.inner (s.offset + 1) (s.row + 1) 1 s.src s.indent
+
+                        else
+                            varHelp i.inner firstOffset s.row (s.col + 1) s.src s.indent
+                in
+                Good True (String.slice s.offset s1.offset s.src) s1
         )
 
 

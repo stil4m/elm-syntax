@@ -78,9 +78,8 @@ infixExpose : ParserFast.Parser (WithComments (Node TopLevelExpose))
 infixExpose =
     ParserFast.map2 (\infixName () -> { comments = Rope.empty, syntax = InfixExpose infixName })
         (ParserFast.symbolFollowedBy "("
-            (ParserFast.variable
+            (ParserFast.variableWithoutReserved
                 { inner = \c -> c /= ')'
-                , reserved = Set.empty
                 , start = \c -> c /= ')'
                 }
             )
