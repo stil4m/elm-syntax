@@ -25,7 +25,7 @@ module ParserFast exposing
 
 # Whitespace
 
-@docs nestableMultiComment
+@docs chompWhileWhitespace, nestableMultiComment
 
 
 # Chompers
@@ -677,6 +677,14 @@ parsers peek ahead, making sure they are not followed by anything unexpected.
 chompWhile : (Char -> Bool) -> Parser ()
 chompWhile =
     A.chompWhile
+
+
+{-| Specialized `chompWhile (\c -> c == " " || c == "\n" || c == "\r")`
+optimized for speed
+-}
+chompWhileWhitespace : Parser ()
+chompWhileWhitespace =
+    A.chompWhileWhitespace
 
 
 {-| Some languages are indentation sensitive. Python cares about tabs. Elm
