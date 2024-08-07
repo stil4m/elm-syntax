@@ -505,7 +505,8 @@ int =
 
 
 {-| Parse symbols like `(` and `,`.
-Make sure to never call with String "", as this will then always commit.
+Make sure the given String isn't empty and does not contain \\n
+or 2-part UTF-16 characters.
 
     run (symbol "[") "[" == Ok ()
     run (symbol "[") "4" == Err ... (ExpectingSymbol "[") ...
@@ -522,7 +523,8 @@ symbol str res =
     A.symbol str (Parser.ExpectingSymbol str) res
 
 
-{-| Make sure to never call with symbol "", as this will then always commit.
+{-| Make sure the given String isn't empty and does not contain \\n
+or 2-part UTF-16 characters.
 -}
 symbolFollowedBy : String -> Parser next -> Parser next
 symbolFollowedBy str nextParser =
@@ -530,7 +532,8 @@ symbolFollowedBy str nextParser =
 
 
 {-| Parse keywords like `let`, `case`, and `type`.
-Make sure to never call with String "", as this will then always commit.
+Make sure the given String isn't empty and does not contain \\n
+or 2-part UTF-16 characters.
 
     run (keyword "let") "let"     == Ok ()
     run (keyword "let") "var"     == Err ... (ExpectingKeyword "let") ...
@@ -558,7 +561,8 @@ keyword kwd res =
     A.keyword kwd (Parser.ExpectingKeyword kwd) res
 
 
-{-| Make sure to never call with String "", as this will then always commit.
+{-| Make sure the given String isn't empty and does not contain \\n
+or 2-part UTF-16 characters.
 -}
 keywordFollowedBy : String -> Parser next -> Parser next
 keywordFollowedBy kwd nextParser =

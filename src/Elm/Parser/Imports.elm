@@ -69,7 +69,7 @@ importDefinition =
             }
         )
         (ParserFast.mapWithStartPosition
-            (\start commentsAfter -> { start = start, commentsAfter = commentsAfter })
+            (\start commentsAfter -> { commentsAfter = commentsAfter, start = start })
             (ParserFast.keywordFollowedBy "import" Layout.maybeLayout)
         )
         moduleName
