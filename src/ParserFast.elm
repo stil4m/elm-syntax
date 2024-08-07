@@ -30,7 +30,7 @@ module ParserFast exposing
 
 # Chompers
 
-@docs getChompedString, chompIf, chompIfFollowedBy, chompWhile, mapChompedString
+@docs getChompedString, chompIf, chompAnyChar, chompIfFollowedBy, chompWhile, mapChompedString
 
 
 # Indentation, Positions and source
@@ -646,6 +646,11 @@ So this can chomp a character like `T` and produces a `()` value.
 chompIf : (Char -> Bool) -> Parser ()
 chompIf isGood =
     A.chompIf isGood Parser.UnexpectedChar
+
+
+chompAnyChar : Parser ()
+chompAnyChar =
+    A.chompAnyChar Parser.UnexpectedChar
 
 
 chompIfFollowedBy : (Char -> Bool) -> Parser a -> Parser a
