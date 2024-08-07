@@ -13,7 +13,7 @@ module ParserFast exposing
 
 @docs Parser, run
 
-@docs int, number, symbol, symbolFollowedBy, keyword, keywordFollowedBy, variable, end
+@docs int, number, symbol, symbolFollowedBy, keyword, keywordFollowedBy, variable, variableWithoutReserved, end
 
 
 # Flow
@@ -754,6 +754,19 @@ variable i =
         , inner = i.inner
         , reserved = i.reserved
         , start = i.start
+        }
+
+
+variableWithoutReserved :
+    { start : Char -> Bool
+    , inner : Char -> Bool
+    }
+    -> Parser String
+variableWithoutReserved i =
+    A.variableWithoutReserved
+        { start = i.start
+        , inner = i.inner
+        , expecting = Parser.ExpectingVariable
         }
 
 

@@ -82,9 +82,8 @@ whitespaceAndCommentsOrEmpty =
 
 whitespace : Parser String
 whitespace =
-    ParserFast.variable
+    ParserFast.variableWithoutReserved
         { inner = \c -> c == ' ' || c == '\n' || c == '\u{000D}'
-        , reserved = Set.empty
         , start = \c -> c == ' ' || c == '\n' || c == '\u{000D}'
         }
 

@@ -81,9 +81,8 @@ escapedCharValue =
                         '\u{0000}'
             )
             (ParserFast.symbolFollowedBy "u{"
-                (ParserFast.variable
+                (ParserFast.variableWithoutReserved
                     { inner = Char.isHexDigit
-                    , reserved = Set.empty
                     , start = Char.isHexDigit
                     }
                 )
@@ -185,12 +184,11 @@ functionNameNotInfix =
 
 typeName : ParserFast.Parser String
 typeName =
-    ParserFast.variable
+    ParserFast.variableWithoutReserved
         { inner =
             \c ->
                 -- checking for these common ranges early is much faster
                 Char.Extra.isAlphaNumFast c || c == '_' || Unicode.isAlphaNum c
-        , reserved = Set.empty
         , start =
             \c -> Char.isUpper c || Unicode.isUpper c
         }
