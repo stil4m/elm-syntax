@@ -14,7 +14,7 @@
 - Changed `Elm.Syntax.Declaration.Declaration`:
   - Removed `Destructuring` variant (it was not possible to get)
   - `PortDeclaration` documentation's is now attached to the declaration
-    - `PortDeclaration Signature` -> `PortDeclaration Port` where `type alias Port = { documentation : Maybe (Node Documentation), signature : Signature }`
+    - `PortDeclaration Signature` -> `PortDeclaration { documentation : Maybe (Node Documentation), signature : Signature }`
     - The comment for the port declaration is now removed from the `Elm.Syntax.File.File.comments` field.
 
 - Add a new module `Elm.Syntax.DeconstructPattern` which mimics `Elm.Syntax.Pattern` but for patterns in functions and let declarations.
