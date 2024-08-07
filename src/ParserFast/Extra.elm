@@ -5,7 +5,7 @@ import ParserFast
 
 anyChar : ParserFast.Parser Char
 anyChar =
-    ParserFast.chompIf (always True)
+    ParserFast.chompAnyChar
         |> ParserFast.getChompedString
         |> ParserFast.andThen
             (\s ->

@@ -5,7 +5,7 @@ module ParserFast.Advanced exposing
     , orSucceed, orSucceedLazy, oneOf2, oneOf, backtrackable, commit
     , loop, Step(..)
     , chompWhileWhitespace, nestableMultiComment
-    , getChompedString, chompIf, chompIfFollowedBy, chompWhile, mapChompedString
+    , getChompedString, chompIf, chompAnyChar, chompIfFollowedBy, chompWhile, mapChompedString
     , withIndent, withIndentSetToColumn
     , columnAndThen, columnIndentAndThen, offsetSourceAndThen, mapWithStartPosition, mapWithEndPosition, mapWithStartAndEndPosition
     )
@@ -33,7 +33,7 @@ module ParserFast.Advanced exposing
 
 # Chompers
 
-@docs getChompedString, chompIf, chompIfFollowedBy, chompWhile, mapChompedString
+@docs getChompedString, chompIf, chompAnyChar, chompIfFollowedBy, chompWhile, mapChompedString
 
 
 # Indentation, Positions and Source
@@ -1160,6 +1160,43 @@ chompIf isGood expecting =
         )
 
 
+chompAnyChar : x -> Parser x ()
+chompAnyChar expecting =
+    Parser
+        (\s ->
+            let
+                newOffset : Int
+                newOffset =
+                    charOrEnd s.offset s.src
+            in
+            if newOffset == -1 then
+                -- not found
+                Bad False (fromState s expecting) ()
+
+            else if newOffset == -2 then
+                -- newline
+                Good True
+                    ()
+                    { src = s.src
+                    , offset = s.offset + 1
+                    , indent = s.indent
+                    , row = s.row + 1
+                    , col = 1
+                    }
+
+            else
+                -- found
+                Good True
+                    ()
+                    { src = s.src
+                    , offset = newOffset
+                    , indent = s.indent
+                    , row = s.row
+                    , col = s.col + 1
+                    }
+        )
+
+
 chompWhileWhitespace : Parser x ()
 chompWhileWhitespace =
     Parser
@@ -1349,18 +1386,13 @@ nestableHelp isNotRelevant open close expectingClose nestLevel =
                     |> andThen (\() -> nestableHelp isNotRelevant open close expectingClose (nestLevel - 1))
             , open
                 |> andThen (\() -> nestableHelp isNotRelevant open close expectingClose (nestLevel + 1))
-            , chompIf isChar expectingClose
+            , chompAnyChar expectingClose
                 |> andThen
                     (\() ->
                         nestableHelp isNotRelevant open close expectingClose nestLevel
                     )
             ]
         )
-
-
-isChar : Char -> Bool
-isChar _ =
-    True
 
 
 withIndent : Int -> Parser x a -> Parser x a
@@ -1524,6 +1556,29 @@ isSubChar predicate offset string =
 
     else
         -1
+
+
+charOrEnd : Int -> String -> Int
+charOrEnd offset string =
+    -- https://github.com/elm/parser/blob/1.1.0/src/Elm/Kernel/Parser.js#L37
+    let
+        actualChar : String
+        actualChar =
+            String.slice offset (offset + 1) string
+    in
+    case actualChar of
+        "\n" ->
+            -2
+
+        "" ->
+            -1
+
+        _ ->
+            if charStringIsUtf16HighSurrogate actualChar then
+                offset + 2
+
+            else
+                offset + 1
 
 
 charStringIsUtf16HighSurrogate : String -> Bool
