@@ -18,7 +18,6 @@ import Elm.Parser.Node as Node
 import ParserFast exposing (Parser)
 import ParserWithComments exposing (Comments, WithComments)
 import Rope
-import Set
 
 
 maybeLayoutUntilIgnored : (String -> Parser Comments -> Parser Comments) -> String -> Parser Comments

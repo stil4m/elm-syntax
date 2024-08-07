@@ -8,7 +8,6 @@ import Elm.Syntax.Node exposing (Node(..))
 import ParserFast exposing (Parser)
 import ParserWithComments exposing (WithComments)
 import Rope
-import Set
 
 
 exposeDefinition : Parser (WithComments Exposing)
