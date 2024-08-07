@@ -908,20 +908,20 @@ number c =
         (\state ->
             case Parser.Advanced.run parserAdvancedNumberAndStringLength (String.dropLeft state.offset state.src) of
                 Ok result ->
-                    Good False result.number (bumpOffset (state.offset + result.length) state)
+                    Good False result.number (stateAddLengthToOffsetAndColumn result.length state)
 
                 Err _ ->
                     Bad False (fromState state c.invalid) ()
         )
 
 
-bumpOffset : Int -> State -> State
-bumpOffset newOffset s =
+stateAddLengthToOffsetAndColumn : Int -> State -> State
+stateAddLengthToOffsetAndColumn lengthAdded s =
     { src = s.src
-    , offset = newOffset
+    , offset = s.offset + lengthAdded
     , indent = s.indent
     , row = s.row
-    , col = s.col + (newOffset - s.offset)
+    , col = s.col + lengthAdded
     }
 
 
