@@ -4,12 +4,11 @@ import Elm.Parser.File as File
 import Elm.Parser.Modules as Parser
 import Elm.Parser.ParserWithCommentsTestUtil as ParserWithCommentsUtil exposing (..)
 import Elm.Syntax.Declaration exposing (Declaration(..))
+import Elm.Syntax.DestructurePattern exposing (DestructurePattern(..))
 import Elm.Syntax.Exposing exposing (..)
 import Elm.Syntax.Expression exposing (Expression(..))
-import Elm.Syntax.Infix exposing (InfixDirection(..))
 import Elm.Syntax.Module exposing (..)
 import Elm.Syntax.Node exposing (Node(..))
-import Elm.Syntax.Pattern exposing (Pattern(..))
 import Elm.Syntax.TypeAnnotation exposing (TypeAnnotation(..))
 import Expect
 import ParserFast
@@ -28,8 +27,8 @@ all =
                             , exposingList =
                                 Node { start = { row = 1, column = 12 }, end = { row = 1, column = 26 } }
                                     (Explicit
-                                        [ Node { start = { row = 1, column = 22 }, end = { row = 1, column = 25 } } (TypeOrAliasExpose "Bar")
-                                        ]
+                                        (Node { start = { row = 1, column = 22 }, end = { row = 1, column = 25 } } (TypeOrAliasExpose "Bar"))
+                                        []
                                     )
                             }
                         )
@@ -41,9 +40,7 @@ all =
                             { moduleName = Node { start = { row = 1, column = 13 }, end = { row = 1, column = 16 } } [ "Foo" ]
                             , exposingList =
                                 Node { start = { row = 1, column = 17 }, end = { row = 1, column = 31 } }
-                                    (Explicit
-                                        [ Node { start = { row = 1, column = 27 }, end = { row = 1, column = 30 } } (TypeOrAliasExpose "Bar") ]
-                                    )
+                                    (Explicit (Node { start = { row = 1, column = 27 }, end = { row = 1, column = 30 } } (TypeOrAliasExpose "Bar")) [])
                             }
                         )
         , test "port moduleDefinition with spacing" <|
@@ -54,9 +51,7 @@ all =
                             { moduleName = Node { start = { row = 1, column = 13 }, end = { row = 1, column = 16 } } [ "Foo" ]
                             , exposingList =
                                 Node { start = { row = 1, column = 17 }, end = { row = 1, column = 33 } }
-                                    (Explicit
-                                        [ Node { start = { row = 1, column = 28 }, end = { row = 1, column = 31 } } (TypeOrAliasExpose "Bar") ]
-                                    )
+                                    (Explicit (Node { start = { row = 1, column = 28 }, end = { row = 1, column = 31 } } (TypeOrAliasExpose "Bar")) [])
                             }
                         )
         , test "effect moduleDefinition" <|
@@ -65,7 +60,9 @@ all =
                     |> expectAst
                         (EffectModule
                             { moduleName = Node { start = { row = 1, column = 15 }, end = { row = 1, column = 18 } } [ "Foo" ]
-                            , exposingList = Node { start = { row = 1, column = 66 }, end = { row = 1, column = 80 } } (Explicit [ Node { start = { row = 1, column = 76 }, end = { row = 1, column = 79 } } (TypeOrAliasExpose "Bar") ])
+                            , exposingList =
+                                Node { start = { row = 1, column = 66 }, end = { row = 1, column = 80 } }
+                                    (Explicit (Node { start = { row = 1, column = 76 }, end = { row = 1, column = 79 } } (TypeOrAliasExpose "Bar")) [])
                             , command = Just (Node { start = { row = 1, column = 36 }, end = { row = 1, column = 41 } } "MyCmd")
                             , subscription = Just (Node { start = { row = 1, column = 58 }, end = { row = 1, column = 63 } } "MySub")
                             }
@@ -159,11 +156,11 @@ b = 3
                                                 , arguments = []
                                                 , expression =
                                                     Node { start = { row = 4, column = 5 }, end = { row = 7, column = 10 } }
-                                                        (IfBlock
+                                                        (If
                                                             (Node { start = { row = 4, column = 8 }, end = { row = 4, column = 12 } }
                                                                 (FunctionOrValue [] "cond")
                                                             )
-                                                            (Node { start = { row = 5, column = 9 }, end = { row = 5, column = 10 } } (Integer 1))
+                                                            (Node { start = { row = 5, column = 9 }, end = { row = 5, column = 10 } } (IntegerLiteral 1))
                                                             (Node
                                                                 { start =
                                                                     { row = 7
@@ -171,7 +168,7 @@ b = 3
                                                                     }
                                                                 , end = { row = 7, column = 10 }
                                                                 }
-                                                                (Integer 2)
+                                                                (IntegerLiteral 2)
                                                             )
                                                         )
                                                 }
@@ -191,7 +188,7 @@ b = 3
                                                 }
                                                 { name = Node { start = { row = 13, column = 1 }, end = { row = 13, column = 2 } } "b"
                                                 , arguments = []
-                                                , expression = Node { start = { row = 13, column = 5 }, end = { row = 13, column = 6 } } (Integer 3)
+                                                , expression = Node { start = { row = 13, column = 5 }, end = { row = 13, column = 6 } } (IntegerLiteral 3)
                                                 }
                                         }
                                     )
@@ -247,7 +244,7 @@ b = 3
                                                         { start = { row = 4, column = 5 }
                                                         , end = { row = 4, column = 6 }
                                                         }
-                                                        (Integer 2)
+                                                        (IntegerLiteral 2)
                                                 }
                                         }
                                     )
@@ -267,7 +264,7 @@ b = 3
                                                         { start = { row = 10, column = 5 }
                                                         , end = { row = 10, column = 6 }
                                                         }
-                                                        (Integer 3)
+                                                        (IntegerLiteral 3)
                                                 }
                                         }
                                     )
@@ -317,7 +314,7 @@ a = 1
                                             Node { start = { row = 5, column = 1 }, end = { row = 5, column = 6 } }
                                                 { name = Node { start = { row = 5, column = 1 }, end = { row = 5, column = 2 } } "a"
                                                 , arguments = []
-                                                , expression = Node { start = { row = 5, column = 5 }, end = { row = 5, column = 6 } } (Integer 1)
+                                                , expression = Node { start = { row = 5, column = 5 }, end = { row = 5, column = 6 } } (IntegerLiteral 1)
                                                 }
                                         }
                                     )
@@ -352,12 +349,13 @@ b = 2
                                         { documentation = Nothing
                                         , name = Node { start = { row = 2, column = 6 }, end = { row = 2, column = 7 } } "A"
                                         , generics = []
-                                        , constructors =
-                                            [ Node { start = { row = 2, column = 10 }, end = { row = 2, column = 11 } }
+                                        , firstConstructor =
+                                            Node { start = { row = 2, column = 10 }, end = { row = 2, column = 11 } }
                                                 { name = Node { start = { row = 2, column = 10 }, end = { row = 2, column = 11 } } "B"
                                                 , arguments = []
                                                 }
-                                            , Node { start = { row = 2, column = 14 }, end = { row = 2, column = 15 } }
+                                        , restOfConstructors =
+                                            [ Node { start = { row = 2, column = 14 }, end = { row = 2, column = 15 } }
                                                 { name = Node { start = { row = 2, column = 14 }, end = { row = 2, column = 15 } } "C"
                                                 , arguments = []
                                                 }
@@ -372,7 +370,7 @@ b = 2
                                             Node { start = { row = 3, column = 1 }, end = { row = 3, column = 6 } }
                                                 { name = Node { start = { row = 3, column = 1 }, end = { row = 3, column = 2 } } "a"
                                                 , arguments = []
-                                                , expression = Node { start = { row = 3, column = 5 }, end = { row = 3, column = 6 } } (Integer 1)
+                                                , expression = Node { start = { row = 3, column = 5 }, end = { row = 3, column = 6 } } (IntegerLiteral 1)
                                                 }
                                         }
                                     )
@@ -383,7 +381,7 @@ b = 2
                                         , generics = []
                                         , typeAnnotation =
                                             Node { start = { row = 4, column = 16 }, end = { row = 4, column = 17 } }
-                                                (Typed (Node { start = { row = 4, column = 16 }, end = { row = 4, column = 17 } } ( [], "A" )) [])
+                                                (Type (Node { start = { row = 4, column = 16 }, end = { row = 4, column = 17 } } ( [], "A" )) [])
                                         }
                                     )
                                 , Node { start = { row = 5, column = 1 }, end = { row = 6, column = 6 } }
@@ -393,14 +391,14 @@ b = 2
                                             Just
                                                 (Node { start = { row = 5, column = 1 }, end = { row = 5, column = 8 } }
                                                     { name = Node { start = { row = 5, column = 1 }, end = { row = 5, column = 2 } } "b"
-                                                    , typeAnnotation = Node { start = { row = 5, column = 5 }, end = { row = 5, column = 8 } } (Typed (Node { start = { row = 5, column = 5 }, end = { row = 5, column = 8 } } ( [], "Int" )) [])
+                                                    , typeAnnotation = Node { start = { row = 5, column = 5 }, end = { row = 5, column = 8 } } (Type (Node { start = { row = 5, column = 5 }, end = { row = 5, column = 8 } } ( [], "Int" )) [])
                                                     }
                                                 )
                                         , declaration =
                                             Node { start = { row = 6, column = 1 }, end = { row = 6, column = 6 } }
                                                 { name = Node { start = { row = 6, column = 1 }, end = { row = 6, column = 2 } } "b"
                                                 , arguments = []
-                                                , expression = Node { start = { row = 6, column = 5 }, end = { row = 6, column = 6 } } (Integer 2)
+                                                , expression = Node { start = { row = 6, column = 5 }, end = { row = 6, column = 6 } } (IntegerLiteral 2)
                                                 }
                                         }
                                     )
@@ -437,7 +435,19 @@ fun2 n =
                     File.file
                     |> Expect.equal
                         (Just
-                            { moduleDefinition = Node { start = { row = 1, column = 1 }, end = { row = 1, column = 31 } } (NormalModule { moduleName = Node { start = { row = 1, column = 8 }, end = { row = 1, column = 9 } } [ "A" ], exposingList = Node { start = { row = 1, column = 10 }, end = { row = 1, column = 31 } } (Explicit [ Node { start = { row = 1, column = 20 }, end = { row = 1, column = 24 } } (FunctionExpose "fun1"), Node { start = { row = 1, column = 26 }, end = { row = 1, column = 30 } } (FunctionExpose "fun2") ]) })
+                            { moduleDefinition =
+                                Node { start = { row = 1, column = 1 }, end = { row = 1, column = 31 } }
+                                    (NormalModule
+                                        { moduleName = Node { start = { row = 1, column = 8 }, end = { row = 1, column = 9 } } [ "A" ]
+                                        , exposingList =
+                                            Node { start = { row = 1, column = 10 }, end = { row = 1, column = 31 } }
+                                                (Explicit
+                                                    (Node { start = { row = 1, column = 20 }, end = { row = 1, column = 24 } } (FunctionExpose "fun1"))
+                                                    [ Node { start = { row = 1, column = 26 }, end = { row = 1, column = 30 } } (FunctionExpose "fun2")
+                                                    ]
+                                                )
+                                        }
+                                    )
                             , imports = []
                             , declarations =
                                 [ Node { start = { row = 3, column = 1 }, end = { row = 5, column = 11 } }
@@ -447,23 +457,22 @@ fun2 n =
                                         , declaration =
                                             Node { start = { row = 3, column = 1 }, end = { row = 5, column = 11 } }
                                                 { name = Node { start = { row = 3, column = 1 }, end = { row = 3, column = 5 } } "fun1"
-                                                , arguments = [ Node { start = { row = 3, column = 6 }, end = { row = 3, column = 7 } } (VarPattern "n") ]
+                                                , arguments = [ Node { start = { row = 3, column = 6 }, end = { row = 3, column = 7 } } (VarPattern_ "n") ]
                                                 , expression =
                                                     Node { start = { row = 4, column = 3 }, end = { row = 5, column = 11 } }
-                                                        (OperatorApplication "+"
-                                                            Left
+                                                        (Operation "+"
                                                             (Node { start = { row = 4, column = 3 }, end = { row = 4, column = 9 } }
-                                                                (Application
-                                                                    [ Node { start = { row = 4, column = 3 }, end = { row = 4, column = 7 } } (FunctionOrValue [] "fun2")
-                                                                    , Node { start = { row = 4, column = 8 }, end = { row = 4, column = 9 } } (FunctionOrValue [] "n")
-                                                                    ]
+                                                                (FunctionCall
+                                                                    (Node { start = { row = 4, column = 3 }, end = { row = 4, column = 7 } } (FunctionOrValue [] "fun2"))
+                                                                    (Node { start = { row = 4, column = 8 }, end = { row = 4, column = 9 } } (FunctionOrValue [] "n"))
+                                                                    []
                                                                 )
                                                             )
                                                             (Node { start = { row = 5, column = 5 }, end = { row = 5, column = 11 } }
-                                                                (Application
-                                                                    [ Node { start = { row = 5, column = 5 }, end = { row = 5, column = 9 } } (FunctionOrValue [] "fun2")
-                                                                    , Node { start = { row = 5, column = 10 }, end = { row = 5, column = 11 } } (FunctionOrValue [] "n")
-                                                                    ]
+                                                                (FunctionCall
+                                                                    (Node { start = { row = 5, column = 5 }, end = { row = 5, column = 9 } } (FunctionOrValue [] "fun2"))
+                                                                    (Node { start = { row = 5, column = 10 }, end = { row = 5, column = 11 } } (FunctionOrValue [] "n"))
+                                                                    []
                                                                 )
                                                             )
                                                         )
@@ -477,13 +486,13 @@ fun2 n =
                                         , declaration =
                                             Node { start = { row = 7, column = 1 }, end = { row = 8, column = 9 } }
                                                 { name = Node { start = { row = 7, column = 1 }, end = { row = 7, column = 5 } } "fun2"
-                                                , arguments = [ Node { start = { row = 7, column = 6 }, end = { row = 7, column = 7 } } (VarPattern "n") ]
+                                                , arguments = [ Node { start = { row = 7, column = 6 }, end = { row = 7, column = 7 } } (VarPattern_ "n") ]
                                                 , expression =
                                                     Node { start = { row = 8, column = 3 }, end = { row = 8, column = 9 } }
-                                                        (Application
-                                                            [ Node { start = { row = 8, column = 3 }, end = { row = 8, column = 7 } } (FunctionOrValue [] "fun1")
-                                                            , Node { start = { row = 8, column = 8 }, end = { row = 8, column = 9 } } (FunctionOrValue [] "n")
-                                                            ]
+                                                        (FunctionCall
+                                                            (Node { start = { row = 8, column = 3 }, end = { row = 8, column = 7 } } (FunctionOrValue [] "fun1"))
+                                                            (Node { start = { row = 8, column = 8 }, end = { row = 8, column = 9 } } (FunctionOrValue [] "n"))
+                                                            []
                                                         )
                                                 }
                                         }

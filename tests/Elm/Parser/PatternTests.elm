@@ -4,6 +4,7 @@ import Elm.Parser.ParserWithCommentsTestUtil as ParserWithCommentsUtil exposing 
 import Elm.Parser.Patterns as Parser
 import Elm.Syntax.Node exposing (Node(..))
 import Elm.Syntax.Pattern exposing (..)
+import Elm.Syntax.StringLiteralType exposing (StringLiteralType(..))
 import Expect
 import Test exposing (..)
 
@@ -28,7 +29,11 @@ all =
         , test "String" <|
             \() ->
                 "\"Foo\""
-                    |> expectAst (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 6 } } (StringPattern "Foo"))
+                    |> expectAst (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 6 } } (StringPattern SingleQuote "Foo"))
+        , test "Multi-line string" <|
+            \() ->
+                "\"\"\"Foo\"\"\""
+                    |> expectAst (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 10 } } (StringPattern TripleQuote "Foo"))
         , test "Char" <|
             \() ->
                 "'f'"

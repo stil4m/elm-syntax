@@ -2,10 +2,10 @@ module Elm.Parser.ExpressionTests exposing (all)
 
 import Elm.Parser.Expression exposing (expression)
 import Elm.Parser.ParserWithCommentsTestUtil as ParserWithCommentsUtil
+import Elm.Syntax.DestructurePattern exposing (DestructurePattern(..))
 import Elm.Syntax.Expression exposing (Expression(..))
-import Elm.Syntax.Infix as Infix exposing (InfixDirection(..))
 import Elm.Syntax.Node exposing (Node(..))
-import Elm.Syntax.Pattern exposing (..)
+import Elm.Syntax.StringLiteralType exposing (StringLiteralType(..))
 import Expect
 import Test exposing (Test, describe, test)
 
@@ -17,14 +17,14 @@ all =
             \() ->
                 ""
                     |> expectInvalid
-        , test "Integer literal" <|
+        , test "IntegerLiteral literal" <|
             \() ->
                 "101"
-                    |> expectAst (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 4 } } (Integer 101))
+                    |> expectAst (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 4 } } (IntegerLiteral 101))
         , test "String literal" <|
             \() ->
                 "\"Bar\""
-                    |> expectAst (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 6 } } (Literal "Bar"))
+                    |> expectAst (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 6 } } (StringLiteral SingleQuote "Bar"))
         , test "character literal" <|
             \() ->
                 "'c'"
@@ -34,9 +34,9 @@ all =
                 "(1,2)"
                     |> expectAst
                         (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 6 } }
-                            (TupledExpression
-                                [ Node { start = { row = 1, column = 2 }, end = { row = 1, column = 3 } } (Integer 1)
-                                , Node { start = { row = 1, column = 4 }, end = { row = 1, column = 5 } } (Integer 2)
+                            (TupleExpression
+                                [ Node { start = { row = 1, column = 2 }, end = { row = 1, column = 3 } } (IntegerLiteral 1)
+                                , Node { start = { row = 1, column = 4 }, end = { row = 1, column = 5 } } (IntegerLiteral 2)
                                 ]
                             )
                         )
@@ -45,16 +45,16 @@ all =
                 "( 1  ,  2 )"
                     |> expectAst
                         (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 12 } }
-                            (TupledExpression
-                                [ Node { start = { row = 1, column = 3 }, end = { row = 1, column = 4 } } (Integer 1)
-                                , Node { start = { row = 1, column = 9 }, end = { row = 1, column = 10 } } (Integer 2)
+                            (TupleExpression
+                                [ Node { start = { row = 1, column = 3 }, end = { row = 1, column = 4 } } (IntegerLiteral 1)
+                                , Node { start = { row = 1, column = 9 }, end = { row = 1, column = 10 } } (IntegerLiteral 2)
                                 ]
                             )
                         )
         , test "String literal multiline" <|
             \() ->
                 "\"\"\"Bar foo \n a\"\"\""
-                    |> expectAst (Node { start = { row = 1, column = 1 }, end = { row = 2, column = 6 } } (Literal "Bar foo \n a"))
+                    |> expectAst (Node { start = { row = 1, column = 1 }, end = { row = 2, column = 6 } } (StringLiteral TripleQuote "Bar foo \n a"))
         , test "Regression test for multiline strings with backslashes" <|
             \() ->
                 "\"\"\"\\{\\}\"\"\""
@@ -62,11 +62,11 @@ all =
         , test "Regression test 2 for multiline strings with backslashes" <|
             \() ->
                 "\"\"\"\\\\{\\\\}\"\"\""
-                    |> expectAst (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 13 } } (Literal "\\{\\}"))
+                    |> expectAst (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 13 } } (StringLiteral TripleQuote "\\{\\}"))
         , test "Regression test 3 for multiline strings with backslashes" <|
             \() ->
                 "\"\"\"\\\\a-blablabla-\\\\b\"\"\""
-                    |> expectAst (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 24 } } (Literal "\\a-blablabla-\\b"))
+                    |> expectAst (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 24 } } (StringLiteral TripleQuote "\\a-blablabla-\\b"))
         , test "Type expression for upper case" <|
             \() ->
                 "Bar"
@@ -84,8 +84,8 @@ all =
                 "(bar)"
                     |> expectAst
                         (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 6 } }
-                            (ParenthesizedExpression
-                                (Node { start = { row = 1, column = 2 }, end = { row = 1, column = 5 } } (FunctionOrValue [] "bar"))
+                            (TupleExpression
+                                [ Node { start = { row = 1, column = 2 }, end = { row = 1, column = 5 } } (FunctionOrValue [] "bar") ]
                             )
                         )
         , test "parenthesized expression starting with a negation" <|
@@ -93,16 +93,15 @@ all =
                 "(-1 * sign)"
                     |> expectAst
                         (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 12 } }
-                            (ParenthesizedExpression
-                                (Node { start = { row = 1, column = 2 }, end = { row = 1, column = 11 } }
-                                    (OperatorApplication "*"
-                                        Left
+                            (TupleExpression
+                                [ Node { start = { row = 1, column = 2 }, end = { row = 1, column = 11 } }
+                                    (Operation "*"
                                         (Node { start = { row = 1, column = 2 }, end = { row = 1, column = 4 } }
-                                            (Negation (Node { start = { row = 1, column = 3 }, end = { row = 1, column = 4 } } (Integer 1)))
+                                            (Negation (Node { start = { row = 1, column = 3 }, end = { row = 1, column = 4 } } (IntegerLiteral 1)))
                                         )
                                         (Node { start = { row = 1, column = 7 }, end = { row = 1, column = 11 } } (FunctionOrValue [] "sign"))
                                     )
-                                )
+                                ]
                             )
                         )
         , test "application expression" <|
@@ -110,53 +109,53 @@ all =
                 "List.concat []"
                     |> expectAst
                         (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 15 } } <|
-                            Application
-                                [ Node { start = { row = 1, column = 1 }, end = { row = 1, column = 12 } } <| FunctionOrValue [ "List" ] "concat"
-                                , Node { start = { row = 1, column = 13 }, end = { row = 1, column = 15 } } <| ListExpr []
-                                ]
+                            FunctionCall
+                                (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 12 } } <| FunctionOrValue [ "List" ] "concat")
+                                (Node { start = { row = 1, column = 13 }, end = { row = 1, column = 15 } } (ListLiteral []))
+                                []
                         )
         , test "application expression with operator" <|
             \() ->
                 "model + 1"
                     |> expectAst
                         (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 10 } } <|
-                            OperatorApplication "+"
-                                Infix.Left
+                            Operation "+"
                                 (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 6 } } <| FunctionOrValue [] "model")
-                                (Node { start = { row = 1, column = 9 }, end = { row = 1, column = 10 } } <| Integer 1)
+                                (Node { start = { row = 1, column = 9 }, end = { row = 1, column = 10 } } <| IntegerLiteral 1)
                         )
         , test "application expression 2" <|
             \() ->
                 "(\"\", always (List.concat [ [ fileName ], [] ]))"
                     |> expectAst
                         (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 48 } } <|
-                            TupledExpression
-                                [ Node { start = { row = 1, column = 2 }, end = { row = 1, column = 4 } } <| Literal ""
+                            TupleExpression
+                                [ Node { start = { row = 1, column = 2 }, end = { row = 1, column = 4 } } <| StringLiteral SingleQuote ""
                                 , Node { start = { row = 1, column = 6 }, end = { row = 1, column = 47 } } <|
-                                    Application
-                                        [ Node { start = { row = 1, column = 6 }, end = { row = 1, column = 12 } } <| FunctionOrValue [] "always"
-                                        , Node { start = { row = 1, column = 13 }, end = { row = 1, column = 47 } } <|
-                                            ParenthesizedExpression
-                                                (Node { start = { row = 1, column = 14 }, end = { row = 1, column = 46 } } <|
-                                                    Application
-                                                        [ Node { start = { row = 1, column = 14 }, end = { row = 1, column = 25 } } <|
-                                                            FunctionOrValue [ "List" ] "concat"
-                                                        , Node { start = { row = 1, column = 26 }, end = { row = 1, column = 46 } } <|
-                                                            ListExpr
+                                    FunctionCall
+                                        (Node { start = { row = 1, column = 6 }, end = { row = 1, column = 12 } } <| FunctionOrValue [] "always")
+                                        (Node { start = { row = 1, column = 13 }, end = { row = 1, column = 47 } } <|
+                                            TupleExpression
+                                                [ Node { start = { row = 1, column = 14 }, end = { row = 1, column = 46 } } <|
+                                                    FunctionCall
+                                                        (Node { start = { row = 1, column = 14 }, end = { row = 1, column = 25 } } (FunctionOrValue [ "List" ] "concat"))
+                                                        (Node { start = { row = 1, column = 26 }, end = { row = 1, column = 46 } } <|
+                                                            ListLiteral
                                                                 [ Node { start = { row = 1, column = 28 }, end = { row = 1, column = 40 } } <|
-                                                                    ListExpr
+                                                                    ListLiteral
                                                                         [ Node { start = { row = 1, column = 30 }, end = { row = 1, column = 38 } } <|
                                                                             FunctionOrValue [] "fileName"
                                                                         ]
                                                                 , Node { start = { row = 1, column = 42 }, end = { row = 1, column = 44 } } <|
-                                                                    ListExpr []
+                                                                    ListLiteral []
                                                                 ]
-                                                        ]
-                                                )
-                                        ]
+                                                        )
+                                                        []
+                                                ]
+                                        )
+                                        []
                                 ]
                         )
-        , test "expressionNotApplication simple" <|
+        , test "expressionNotFunctionCall simple" <|
             \() ->
                 "foo"
                     |> expectAst (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 4 } } (FunctionOrValue [] "foo"))
@@ -165,10 +164,10 @@ all =
                 "Task.succeed ()"
                     |> expectAst
                         (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 16 } }
-                            (Application
-                                [ Node { start = { row = 1, column = 1 }, end = { row = 1, column = 13 } } (FunctionOrValue [ "Task" ] "succeed")
-                                , Node { start = { row = 1, column = 14 }, end = { row = 1, column = 16 } } UnitExpr
-                                ]
+                            (FunctionCall
+                                (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 13 } } (FunctionOrValue [ "Task" ] "succeed"))
+                                (Node { start = { row = 1, column = 14 }, end = { row = 1, column = 16 } } (TupleExpression []))
+                                []
                             )
                         )
         , test "Function call" <|
@@ -176,10 +175,10 @@ all =
                 "foo bar"
                     |> expectAst
                         (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 8 } }
-                            (Application
-                                [ Node { start = { row = 1, column = 1 }, end = { row = 1, column = 4 } } (FunctionOrValue [] "foo")
-                                , Node { start = { row = 1, column = 5 }, end = { row = 1, column = 8 } } (FunctionOrValue [] "bar")
-                                ]
+                            (FunctionCall
+                                (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 4 } } (FunctionOrValue [] "foo"))
+                                (Node { start = { row = 1, column = 5 }, end = { row = 1, column = 8 } } (FunctionOrValue [] "bar"))
+                                []
                             )
                         )
         , test "Function call with argument badly indented" <|
@@ -191,7 +190,7 @@ all =
                 "if True then foo else bar"
                     |> expectAst
                         (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 26 } }
-                            (IfBlock
+                            (If
                                 (Node { start = { row = 1, column = 4 }, end = { row = 1, column = 8 } } (FunctionOrValue [] "True"))
                                 (Node { start = { row = 1, column = 14 }, end = { row = 1, column = 17 } } (FunctionOrValue [] "foo"))
                                 (Node { start = { row = 1, column = 23 }, end = { row = 1, column = 26 } } (FunctionOrValue [] "bar"))
@@ -202,10 +201,10 @@ all =
                 "if True then if False then foo else baz else bar"
                     |> expectAst
                         (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 49 } }
-                            (IfBlock
+                            (If
                                 (Node { start = { row = 1, column = 4 }, end = { row = 1, column = 8 } } (FunctionOrValue [] "True"))
                                 (Node { start = { row = 1, column = 14 }, end = { row = 1, column = 40 } }
-                                    (IfBlock
+                                    (If
                                         (Node { start = { row = 1, column = 17 }, end = { row = 1, column = 22 } } (FunctionOrValue [] "False"))
                                         (Node { start = { row = 1, column = 28 }, end = { row = 1, column = 31 } } (FunctionOrValue [] "foo"))
                                         (Node { start = { row = 1, column = 37 }, end = { row = 1, column = 40 } } (FunctionOrValue [] "baz"))
@@ -219,10 +218,10 @@ all =
                 "{ model = 0, view = view, update = update }"
                     |> expectAst
                         (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 44 } }
-                            (RecordExpr
+                            (Record
                                 [ Node { start = { row = 1, column = 3 }, end = { row = 1, column = 12 } }
                                     ( Node { start = { row = 1, column = 3 }, end = { row = 1, column = 8 } } "model"
-                                    , Node { start = { row = 1, column = 11 }, end = { row = 1, column = 12 } } (Integer 0)
+                                    , Node { start = { row = 1, column = 11 }, end = { row = 1, column = 12 } } (IntegerLiteral 0)
                                     )
                                 , Node { start = { row = 1, column = 14 }, end = { row = 1, column = 25 } }
                                     ( Node { start = { row = 1, column = 14 }, end = { row = 1, column = 18 } } "view"
@@ -241,14 +240,14 @@ all =
                     |> expectAstWithComments
                         { ast =
                             Node { start = { row = 1, column = 1 }, end = { row = 2, column = 13 } }
-                                (RecordExpr
+                                (Record
                                     [ Node { start = { row = 1, column = 3 }, end = { row = 1, column = 10 } }
                                         ( Node { start = { row = 1, column = 3 }, end = { row = 1, column = 6 } } "foo"
-                                        , Node { start = { row = 1, column = 9 }, end = { row = 1, column = 10 } } (Integer 1)
+                                        , Node { start = { row = 1, column = 9 }, end = { row = 1, column = 10 } } (IntegerLiteral 1)
                                         )
                                     , Node { start = { row = 2, column = 4 }, end = { row = 2, column = 12 } }
                                         ( Node { start = { row = 2, column = 4 }, end = { row = 2, column = 7 } } "baz"
-                                        , Node { start = { row = 2, column = 10 }, end = { row = 2, column = 11 } } (Integer 2)
+                                        , Node { start = { row = 2, column = 10 }, end = { row = 2, column = 11 } } (IntegerLiteral 2)
                                         )
                                     ]
                                 )
@@ -259,18 +258,18 @@ all =
                 "[ class \"a\", text \"Foo\"]"
                     |> expectAst
                         (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 25 } }
-                            (ListExpr
+                            (ListLiteral
                                 [ Node { start = { row = 1, column = 3 }, end = { row = 1, column = 12 } }
-                                    (Application
-                                        [ Node { start = { row = 1, column = 3 }, end = { row = 1, column = 8 } } (FunctionOrValue [] "class")
-                                        , Node { start = { row = 1, column = 9 }, end = { row = 1, column = 12 } } (Literal "a")
-                                        ]
+                                    (FunctionCall
+                                        (Node { start = { row = 1, column = 3 }, end = { row = 1, column = 8 } } (FunctionOrValue [] "class"))
+                                        (Node { start = { row = 1, column = 9 }, end = { row = 1, column = 12 } } (StringLiteral SingleQuote "a"))
+                                        []
                                     )
                                 , Node { start = { row = 1, column = 14 }, end = { row = 1, column = 24 } }
-                                    (Application
-                                        [ Node { start = { row = 1, column = 14 }, end = { row = 1, column = 18 } } (FunctionOrValue [] "text")
-                                        , Node { start = { row = 1, column = 19 }, end = { row = 1, column = 24 } } (Literal "Foo")
-                                        ]
+                                    (FunctionCall
+                                        (Node { start = { row = 1, column = 14 }, end = { row = 1, column = 18 } } (FunctionOrValue [] "text"))
+                                        (Node { start = { row = 1, column = 19 }, end = { row = 1, column = 24 } } (StringLiteral SingleQuote "Foo"))
+                                        []
                                     )
                                 ]
                             )
@@ -281,8 +280,8 @@ all =
                     |> expectAstWithComments
                         { ast =
                             Node { start = { row = 1, column = 1 }, end = { row = 1, column = 15 } }
-                                (ListExpr
-                                    [ Node { start = { row = 1, column = 3 }, end = { row = 1, column = 4 } } (Integer 1)
+                                (ListLiteral
+                                    [ Node { start = { row = 1, column = 3 }, end = { row = 1, column = 4 } } (IntegerLiteral 1)
                                     ]
                                 )
                         , comments = [ Node { start = { row = 1, column = 5 }, end = { row = 1, column = 13 } } "{- Foo-}" ]
@@ -291,7 +290,7 @@ all =
             \() ->
                 "[{- Foo -}]"
                     |> expectAstWithComments
-                        { ast = Node { start = { row = 1, column = 1 }, end = { row = 1, column = 12 } } (ListExpr [])
+                        { ast = Node { start = { row = 1, column = 1 }, end = { row = 1, column = 12 } } (ListLiteral [])
                         , comments = [ Node { start = { row = 1, column = 2 }, end = { row = 1, column = 11 } } "{- Foo -}" ]
                         }
         , test "qualified expression" <|
@@ -343,13 +342,14 @@ all =
                 "{ model | count = 1, loading = True }"
                     |> expectAst
                         (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 38 } }
-                            (RecordUpdateExpression
+                            (RecordUpdate
                                 (Node { start = { row = 1, column = 3 }, end = { row = 1, column = 8 } } "model")
-                                [ Node { start = { row = 1, column = 11 }, end = { row = 1, column = 20 } }
+                                (Node { start = { row = 1, column = 11 }, end = { row = 1, column = 20 } }
                                     ( Node { start = { row = 1, column = 11 }, end = { row = 1, column = 16 } } "count"
-                                    , Node { start = { row = 1, column = 19 }, end = { row = 1, column = 20 } } (Integer 1)
+                                    , Node { start = { row = 1, column = 19 }, end = { row = 1, column = 20 } } (IntegerLiteral 1)
                                     )
-                                , Node { start = { row = 1, column = 22 }, end = { row = 1, column = 37 } }
+                                )
+                                [ Node { start = { row = 1, column = 22 }, end = { row = 1, column = 37 } }
                                     ( Node { start = { row = 1, column = 22 }, end = { row = 1, column = 29 } } "loading"
                                     , Node { start = { row = 1, column = 32 }, end = { row = 1, column = 36 } } (FunctionOrValue [] "True")
                                     )
@@ -361,13 +361,14 @@ all =
                 "{model| count = 1, loading = True }"
                     |> expectAst
                         (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 36 } }
-                            (RecordUpdateExpression
+                            (RecordUpdate
                                 (Node { start = { row = 1, column = 2 }, end = { row = 1, column = 7 } } "model")
-                                [ Node { start = { row = 1, column = 9 }, end = { row = 1, column = 18 } }
+                                (Node { start = { row = 1, column = 9 }, end = { row = 1, column = 18 } }
                                     ( Node { start = { row = 1, column = 9 }, end = { row = 1, column = 14 } } "count"
-                                    , Node { start = { row = 1, column = 17 }, end = { row = 1, column = 18 } } (Integer 1)
+                                    , Node { start = { row = 1, column = 17 }, end = { row = 1, column = 18 } } (IntegerLiteral 1)
                                     )
-                                , Node { start = { row = 1, column = 20 }, end = { row = 1, column = 35 } }
+                                )
+                                [ Node { start = { row = 1, column = 20 }, end = { row = 1, column = 35 } }
                                     ( Node { start = { row = 1, column = 20 }, end = { row = 1, column = 27 } } "loading"
                                     , Node { start = { row = 1, column = 30 }, end = { row = 1, column = 34 } } (FunctionOrValue [] "True")
                                     )
@@ -379,10 +380,10 @@ all =
                 "List.map .name people"
                     |> expectAst
                         (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 22 } }
-                            (Application
-                                [ Node { start = { row = 1, column = 1 }, end = { row = 1, column = 9 } } (FunctionOrValue [ "List" ] "map")
-                                , Node { start = { row = 1, column = 10 }, end = { row = 1, column = 15 } } (RecordAccessFunction ".name")
-                                , Node { start = { row = 1, column = 16 }, end = { row = 1, column = 22 } } (FunctionOrValue [] "people")
+                            (FunctionCall
+                                (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 9 } } (FunctionOrValue [ "List" ] "map"))
+                                (Node { start = { row = 1, column = 10 }, end = { row = 1, column = 15 } } (RecordAccessFunction "name"))
+                                [ Node { start = { row = 1, column = 16 }, end = { row = 1, column = 22 } } (FunctionOrValue [] "people")
                                 ]
                             )
                         )
@@ -391,14 +392,14 @@ all =
                 "(.spaceEvenly Internal.Style.classes)"
                     |> expectAst
                         (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 38 } }
-                            (ParenthesizedExpression
-                                (Node { start = { row = 1, column = 2 }, end = { row = 1, column = 37 } }
-                                    (Application
-                                        [ Node { start = { row = 1, column = 2 }, end = { row = 1, column = 14 } } (RecordAccessFunction ".spaceEvenly")
-                                        , Node { start = { row = 1, column = 15 }, end = { row = 1, column = 37 } } (FunctionOrValue [ "Internal", "Style" ] "classes")
-                                        ]
+                            (TupleExpression
+                                [ Node { start = { row = 1, column = 2 }, end = { row = 1, column = 37 } }
+                                    (FunctionCall
+                                        (Node { start = { row = 1, column = 2 }, end = { row = 1, column = 14 } } (RecordAccessFunction "spaceEvenly"))
+                                        (Node { start = { row = 1, column = 15 }, end = { row = 1, column = 37 } } (FunctionOrValue [ "Internal", "Style" ] "classes"))
+                                        []
                                     )
-                                )
+                                ]
                             )
                         )
         , test "positive integer should be invalid" <|
@@ -414,10 +415,10 @@ all =
                 "(::) x"
                     |> expectAst
                         (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 7 } }
-                            (Application
-                                [ Node { start = { row = 1, column = 1 }, end = { row = 1, column = 5 } } (PrefixOperator "::")
-                                , Node { start = { row = 1, column = 6 }, end = { row = 1, column = 7 } } (FunctionOrValue [] "x")
-                                ]
+                            (FunctionCall
+                                (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 5 } } (PrefixOperator "::"))
+                                (Node { start = { row = 1, column = 6 }, end = { row = 1, column = 7 } } (FunctionOrValue [] "x"))
+                                []
                             )
                         )
         , test "subtraction without spaces" <|
@@ -425,10 +426,9 @@ all =
                 "2-1"
                     |> expectAst
                         (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 4 } }
-                            (OperatorApplication "-"
-                                Left
-                                (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 2 } } (Integer 2))
-                                (Node { start = { row = 1, column = 3 }, end = { row = 1, column = 4 } } (Integer 1))
+                            (Operation "-"
+                                (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 2 } } (IntegerLiteral 2))
+                                (Node { start = { row = 1, column = 3 }, end = { row = 1, column = 4 } } (IntegerLiteral 1))
                             )
                         )
         , test "negated expression for value" <|
@@ -443,11 +443,12 @@ all =
                 "toFloat -5"
                     |> expectAst
                         (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 11 } }
-                            (Application
-                                [ Node { start = { row = 1, column = 1 }, end = { row = 1, column = 8 } } (FunctionOrValue [] "toFloat")
-                                , Node { start = { row = 1, column = 9 }, end = { row = 1, column = 11 } }
-                                    (Negation (Node { start = { row = 1, column = 10 }, end = { row = 1, column = 11 } } (Integer 5)))
-                                ]
+                            (FunctionCall
+                                (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 8 } } (FunctionOrValue [] "toFloat"))
+                                (Node { start = { row = 1, column = 9 }, end = { row = 1, column = 11 } }
+                                    (Negation (Node { start = { row = 1, column = 10 }, end = { row = 1, column = 11 } } (IntegerLiteral 5)))
+                                )
+                                []
                             )
                         )
         , test "negated expression for parenthesized" <|
@@ -457,14 +458,13 @@ all =
                         (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 9 } }
                             (Negation
                                 (Node { start = { row = 1, column = 2 }, end = { row = 1, column = 9 } }
-                                    (ParenthesizedExpression
-                                        (Node { start = { row = 1, column = 3 }, end = { row = 1, column = 8 } }
-                                            (OperatorApplication "-"
-                                                Left
+                                    (TupleExpression
+                                        [ Node { start = { row = 1, column = 3 }, end = { row = 1, column = 8 } }
+                                            (Operation "-"
                                                 (Node { start = { row = 1, column = 3 }, end = { row = 1, column = 4 } } (FunctionOrValue [] "x"))
                                                 (Node { start = { row = 1, column = 7 }, end = { row = 1, column = 8 } } (FunctionOrValue [] "y"))
                                             )
-                                        )
+                                        ]
                                     )
                                 )
                             )
@@ -474,29 +474,25 @@ all =
                 "-1 + -10 * -100^2 == -100001"
                     |> expectAst
                         (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 29 } }
-                            (OperatorApplication "=="
-                                Non
+                            (Operation "=="
                                 (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 18 } }
-                                    (OperatorApplication "+"
-                                        Left
+                                    (Operation "+"
                                         (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 3 } }
-                                            (Negation (Node { start = { row = 1, column = 2 }, end = { row = 1, column = 3 } } (Integer 1)))
+                                            (Negation (Node { start = { row = 1, column = 2 }, end = { row = 1, column = 3 } } (IntegerLiteral 1)))
                                         )
                                         (Node { start = { row = 1, column = 6 }, end = { row = 1, column = 18 } }
-                                            (OperatorApplication "*"
-                                                Left
+                                            (Operation "*"
                                                 (Node { start = { row = 1, column = 6 }, end = { row = 1, column = 9 } }
-                                                    (Negation (Node { start = { row = 1, column = 7 }, end = { row = 1, column = 9 } } (Integer 10)))
+                                                    (Negation (Node { start = { row = 1, column = 7 }, end = { row = 1, column = 9 } } (IntegerLiteral 10)))
                                                 )
                                                 (Node { start = { row = 1, column = 12 }, end = { row = 1, column = 18 } }
-                                                    (OperatorApplication "^"
-                                                        Right
+                                                    (Operation "^"
                                                         (Node { start = { row = 1, column = 12 }, end = { row = 1, column = 16 } }
                                                             (Negation
-                                                                (Node { start = { row = 1, column = 13 }, end = { row = 1, column = 16 } } (Integer 100))
+                                                                (Node { start = { row = 1, column = 13 }, end = { row = 1, column = 16 } } (IntegerLiteral 100))
                                                             )
                                                         )
-                                                        (Node { start = { row = 1, column = 17 }, end = { row = 1, column = 18 } } (Integer 2))
+                                                        (Node { start = { row = 1, column = 17 }, end = { row = 1, column = 18 } } (IntegerLiteral 2))
                                                     )
                                                 )
                                             )
@@ -504,7 +500,7 @@ all =
                                     )
                                 )
                                 (Node { start = { row = 1, column = 22 }, end = { row = 1, column = 29 } }
-                                    (Negation (Node { start = { row = 1, column = 23 }, end = { row = 1, column = 29 } } (Integer 100001)))
+                                    (Negation (Node { start = { row = 1, column = 23 }, end = { row = 1, column = 29 } } (IntegerLiteral 100001)))
                                 )
                             )
                         )
@@ -514,16 +510,14 @@ all =
                     |> expectAst
                         (Node
                             { start = { row = 1, column = 2 }, end = { row = 1, column = 11 } }
-                            (OperatorApplication "-"
-                                Left
+                            (Operation "-"
                                 (Node { start = { row = 1, column = 2 }, end = { row = 1, column = 7 } }
-                                    (OperatorApplication "+"
-                                        Left
-                                        (Node { start = { row = 1, column = 2 }, end = { row = 1, column = 3 } } (Integer 1))
-                                        (Node { start = { row = 1, column = 6 }, end = { row = 1, column = 7 } } (Integer 2))
+                                    (Operation "+"
+                                        (Node { start = { row = 1, column = 2 }, end = { row = 1, column = 3 } } (IntegerLiteral 1))
+                                        (Node { start = { row = 1, column = 6 }, end = { row = 1, column = 7 } } (IntegerLiteral 2))
                                     )
                                 )
-                                (Node { start = { row = 1, column = 10 }, end = { row = 1, column = 11 } } (Integer 3))
+                                (Node { start = { row = 1, column = 10 }, end = { row = 1, column = 11 } } (IntegerLiteral 3))
                             )
                         )
         , test "pipe operation" <|
@@ -531,8 +525,7 @@ all =
                 "a |> b"
                     |> expectAst
                         (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 7 } }
-                            (OperatorApplication "|>"
-                                Left
+                            (Operation "|>"
                                 (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 2 } } (FunctionOrValue [] "a"))
                                 (Node { start = { row = 1, column = 6 }, end = { row = 1, column = 7 } } (FunctionOrValue [] "b"))
                             )
@@ -542,30 +535,27 @@ all =
                 "chompWhile (\\c -> c == ' ' || c == '\\n' || c == '\\r')"
                     |> expectAst
                         (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 54 } }
-                            (Application
-                                [ Node { start = { row = 1, column = 1 }, end = { row = 1, column = 11 } } (FunctionOrValue [] "chompWhile")
-                                , Node { start = { row = 1, column = 12 }, end = { row = 1, column = 54 } }
-                                    (ParenthesizedExpression
-                                        (Node { start = { row = 1, column = 13 }, end = { row = 1, column = 53 } }
+                            (FunctionCall
+                                (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 11 } } (FunctionOrValue [] "chompWhile"))
+                                (Node { start = { row = 1, column = 12 }, end = { row = 1, column = 54 } }
+                                    (TupleExpression
+                                        [ Node { start = { row = 1, column = 13 }, end = { row = 1, column = 53 } }
                                             (LambdaExpression
-                                                { args = [ Node { start = { row = 1, column = 14 }, end = { row = 1, column = 15 } } (VarPattern "c") ]
+                                                { firstArg = Node { start = { row = 1, column = 14 }, end = { row = 1, column = 15 } } (VarPattern_ "c")
+                                                , restOfArgs = []
                                                 , expression =
                                                     Node { start = { row = 1, column = 19 }, end = { row = 1, column = 53 } }
-                                                        (OperatorApplication "||"
-                                                            Right
+                                                        (Operation "||"
                                                             (Node { start = { row = 1, column = 19 }, end = { row = 1, column = 27 } }
-                                                                (OperatorApplication "=="
-                                                                    Non
+                                                                (Operation "=="
                                                                     (Node { start = { row = 1, column = 19 }, end = { row = 1, column = 20 } } (FunctionOrValue [] "c"))
                                                                     (Node { start = { row = 1, column = 24 }, end = { row = 1, column = 27 } } (CharLiteral ' '))
                                                                 )
                                                             )
                                                             (Node { start = { row = 1, column = 31 }, end = { row = 1, column = 53 } }
-                                                                (OperatorApplication "||"
-                                                                    Right
+                                                                (Operation "||"
                                                                     (Node { start = { row = 1, column = 31 }, end = { row = 1, column = 40 } }
-                                                                        (OperatorApplication "=="
-                                                                            Non
+                                                                        (Operation "=="
                                                                             (Node { start = { row = 1, column = 31 }, end = { row = 1, column = 32 } } (FunctionOrValue [] "c"))
                                                                             (Node { start = { row = 1, column = 36 }, end = { row = 1, column = 40 } }
                                                                                 (CharLiteral '\n')
@@ -573,8 +563,7 @@ all =
                                                                         )
                                                                     )
                                                                     (Node { start = { row = 1, column = 44 }, end = { row = 1, column = 53 } }
-                                                                        (OperatorApplication "=="
-                                                                            Non
+                                                                        (Operation "=="
                                                                             (Node { start = { row = 1, column = 44 }, end = { row = 1, column = 45 } } (FunctionOrValue [] "c"))
                                                                             (Node { start = { row = 1, column = 49 }, end = { row = 1, column = 53 } }
                                                                                 (CharLiteral '\u{000D}')
@@ -586,9 +575,10 @@ all =
                                                         )
                                                 }
                                             )
-                                        )
+                                        ]
                                     )
-                                ]
+                                )
+                                []
                             )
                         )
         , test "application should be lower-priority than field access" <|
@@ -596,28 +586,30 @@ all =
                 "foo { d | b = f x y }.b"
                     |> expectAst
                         (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 24 } }
-                            (Application
-                                [ Node { start = { row = 1, column = 1 }, end = { row = 1, column = 4 } } (FunctionOrValue [] "foo")
-                                , Node { start = { row = 1, column = 5 }, end = { row = 1, column = 24 } }
+                            (FunctionCall
+                                (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 4 } } (FunctionOrValue [] "foo"))
+                                (Node { start = { row = 1, column = 5 }, end = { row = 1, column = 24 } }
                                     (RecordAccess
                                         (Node { start = { row = 1, column = 5 }, end = { row = 1, column = 22 } }
-                                            (RecordUpdateExpression (Node { start = { row = 1, column = 7 }, end = { row = 1, column = 8 } } "d")
-                                                [ Node { start = { row = 1, column = 11 }, end = { row = 1, column = 21 } }
+                                            (RecordUpdate (Node { start = { row = 1, column = 7 }, end = { row = 1, column = 8 } } "d")
+                                                (Node { start = { row = 1, column = 11 }, end = { row = 1, column = 21 } }
                                                     ( Node { start = { row = 1, column = 11 }, end = { row = 1, column = 12 } } "b"
                                                     , Node { start = { row = 1, column = 15 }, end = { row = 1, column = 20 } }
-                                                        (Application
-                                                            [ Node { start = { row = 1, column = 15 }, end = { row = 1, column = 16 } } (FunctionOrValue [] "f")
-                                                            , Node { start = { row = 1, column = 17 }, end = { row = 1, column = 18 } } (FunctionOrValue [] "x")
-                                                            , Node { start = { row = 1, column = 19 }, end = { row = 1, column = 20 } } (FunctionOrValue [] "y")
+                                                        (FunctionCall
+                                                            (Node { start = { row = 1, column = 15 }, end = { row = 1, column = 16 } } (FunctionOrValue [] "f"))
+                                                            (Node { start = { row = 1, column = 17 }, end = { row = 1, column = 18 } } (FunctionOrValue [] "x"))
+                                                            [ Node { start = { row = 1, column = 19 }, end = { row = 1, column = 20 } } (FunctionOrValue [] "y")
                                                             ]
                                                         )
                                                     )
-                                                ]
+                                                )
+                                                []
                                             )
                                         )
                                         (Node { start = { row = 1, column = 23 }, end = { row = 1, column = 24 } } "b")
                                     )
-                                ]
+                                )
+                                []
                             )
                         )
         , test "should not consider a negative number parameter as the start of a new application" <|
@@ -625,15 +617,16 @@ all =
                 "Random.list -1 generator"
                     |> expectAst
                         (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 25 } }
-                            (Application
-                                [ Node { start = { row = 1, column = 1 }, end = { row = 1, column = 12 } } (FunctionOrValue [ "Random" ] "list")
-                                , Node { start = { row = 1, column = 13 }, end = { row = 1, column = 15 } }
+                            (FunctionCall
+                                (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 12 } } (FunctionOrValue [ "Random" ] "list"))
+                                (Node { start = { row = 1, column = 13 }, end = { row = 1, column = 15 } }
                                     (Negation
                                         (Node { start = { row = 1, column = 14 }, end = { row = 1, column = 15 } }
-                                            (Integer 1)
+                                            (IntegerLiteral 1)
                                         )
                                     )
-                                , Node { start = { row = 1, column = 16 }, end = { row = 1, column = 25 } } (FunctionOrValue [] "generator")
+                                )
+                                [ Node { start = { row = 1, column = 16 }, end = { row = 1, column = 25 } } (FunctionOrValue [] "generator")
                                 ]
                             )
                         )
@@ -642,18 +635,17 @@ all =
                 "1 + -{x = 10}.x"
                     |> expectAst
                         (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 16 } }
-                            (OperatorApplication "+"
-                                Left
-                                (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 2 } } (Integer 1))
+                            (Operation "+"
+                                (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 2 } } (IntegerLiteral 1))
                                 (Node { start = { row = 1, column = 5 }, end = { row = 1, column = 16 } }
                                     (Negation
                                         (Node { start = { row = 1, column = 6 }, end = { row = 1, column = 16 } }
                                             (RecordAccess
                                                 (Node { start = { row = 1, column = 6 }, end = { row = 1, column = 14 } }
-                                                    (RecordExpr
+                                                    (Record
                                                         [ Node { start = { row = 1, column = 7 }, end = { row = 1, column = 13 } }
                                                             ( Node { start = { row = 1, column = 7 }, end = { row = 1, column = 8 } } "x"
-                                                            , Node { start = { row = 1, column = 11 }, end = { row = 1, column = 13 } } (Integer 10)
+                                                            , Node { start = { row = 1, column = 11 }, end = { row = 1, column = 13 } } (IntegerLiteral 10)
                                                             )
                                                         ]
                                                     )

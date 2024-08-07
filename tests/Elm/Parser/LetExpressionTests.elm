@@ -2,9 +2,9 @@ module Elm.Parser.LetExpressionTests exposing (all)
 
 import Elm.Parser.Expression exposing (expression)
 import Elm.Parser.ParserWithCommentsTestUtil as ParserWithCommentsUtil
-import Elm.Syntax.Expression exposing (..)
+import Elm.Syntax.DestructurePattern exposing (DestructurePattern(..))
+import Elm.Syntax.Expression as Expression exposing (..)
 import Elm.Syntax.Node exposing (Node(..))
-import Elm.Syntax.Pattern exposing (..)
 import Elm.Syntax.TypeAnnotation exposing (TypeAnnotation(..))
 import Expect
 import Test exposing (..)
@@ -12,7 +12,7 @@ import Test exposing (..)
 
 all : Test
 all =
-    describe "LetExpressionTests"
+    describe "LetTests"
         [ test "let expression with multiple declarations" <|
             \() ->
                 """let
@@ -21,7 +21,7 @@ all =
   john n = n in 1"""
                     |> expectAst
                         (Node { start = { row = 1, column = 1 }, end = { row = 4, column = 18 } }
-                            (LetExpression
+                            (Let
                                 { declarations =
                                     [ Node { start = { row = 2, column = 3 }, end = { row = 2, column = 12 } }
                                         (LetFunction
@@ -42,13 +42,13 @@ all =
                                             , declaration =
                                                 Node { start = { row = 4, column = 3 }, end = { row = 4, column = 13 } }
                                                     { name = Node { start = { row = 4, column = 3 }, end = { row = 4, column = 7 } } "john"
-                                                    , arguments = [ Node { start = { row = 4, column = 8 }, end = { row = 4, column = 9 } } (VarPattern "n") ]
+                                                    , arguments = [ Node { start = { row = 4, column = 8 }, end = { row = 4, column = 9 } } (VarPattern_ "n") ]
                                                     , expression = Node { start = { row = 4, column = 12 }, end = { row = 4, column = 13 } } (FunctionOrValue [] "n")
                                                     }
                                             }
                                         )
                                     ]
-                                , expression = Node { start = { row = 4, column = 17 }, end = { row = 4, column = 18 } } (Integer 1)
+                                , expression = Node { start = { row = 4, column = 17 }, end = { row = 4, column = 18 } } (IntegerLiteral 1)
                                 }
                             )
                         )
@@ -60,7 +60,7 @@ all =
   bar"""
                     |> expectAst
                         (Node { start = { row = 1, column = 1 }, end = { row = 4, column = 6 } }
-                            (LetExpression
+                            (Let
                                 { declarations =
                                     [ Node { start = { row = 2, column = 3 }, end = { row = 2, column = 10 } }
                                         (LetFunction
@@ -70,7 +70,7 @@ all =
                                                 Node { start = { row = 2, column = 3 }, end = { row = 2, column = 10 } }
                                                     { name = Node { start = { row = 2, column = 3 }, end = { row = 2, column = 6 } } "bar"
                                                     , arguments = []
-                                                    , expression = Node { start = { row = 2, column = 9 }, end = { row = 2, column = 10 } } (Integer 1)
+                                                    , expression = Node { start = { row = 2, column = 9 }, end = { row = 2, column = 10 } } (IntegerLiteral 1)
                                                     }
                                             }
                                         )
@@ -102,7 +102,7 @@ all =
    bar"""
                     |> expectAst
                         (Node { start = { row = 1, column = 1 }, end = { row = 4, column = 7 } }
-                            (LetExpression
+                            (Let
                                 { declarations =
                                     [ Node { start = { row = 2, column = 3 }, end = { row = 2, column = 10 } }
                                         (LetFunction
@@ -112,7 +112,7 @@ all =
                                                 Node { start = { row = 2, column = 3 }, end = { row = 2, column = 10 } }
                                                     { name = Node { start = { row = 2, column = 3 }, end = { row = 2, column = 6 } } "bar"
                                                     , arguments = []
-                                                    , expression = Node { start = { row = 2, column = 9 }, end = { row = 2, column = 10 } } (Integer 1)
+                                                    , expression = Node { start = { row = 2, column = 9 }, end = { row = 2, column = 10 } } (IntegerLiteral 1)
                                                     }
                                             }
                                         )
@@ -130,7 +130,7 @@ all =
   bar"""
                     |> expectAst
                         (Node { start = { row = 1, column = 1 }, end = { row = 5, column = 6 } }
-                            (LetExpression
+                            (Let
                                 { declarations =
                                     [ Node { start = { row = 2, column = 5 }, end = { row = 3, column = 12 } }
                                         (LetFunction
@@ -141,14 +141,14 @@ all =
                                                         { name = Node { start = { row = 2, column = 5 }, end = { row = 2, column = 8 } } "bar"
                                                         , typeAnnotation =
                                                             Node { start = { row = 2, column = 11 }, end = { row = 2, column = 14 } }
-                                                                (Typed (Node { start = { row = 2, column = 11 }, end = { row = 2, column = 14 } } ( [], "Int" )) [])
+                                                                (Type (Node { start = { row = 2, column = 11 }, end = { row = 2, column = 14 } } ( [], "Int" )) [])
                                                         }
                                                     )
                                             , declaration =
                                                 Node { start = { row = 3, column = 5 }, end = { row = 3, column = 12 } }
                                                     { name = Node { start = { row = 3, column = 5 }, end = { row = 3, column = 8 } } "bar"
                                                     , arguments = []
-                                                    , expression = Node { start = { row = 3, column = 11 }, end = { row = 3, column = 12 } } (Integer 1)
+                                                    , expression = Node { start = { row = 3, column = 11 }, end = { row = 3, column = 12 } } (IntegerLiteral 1)
                                                     }
                                             }
                                         )
@@ -168,7 +168,7 @@ all =
   bar"""
                     |> expectAst
                         (Node { start = { row = 1, column = 1 }, end = { row = 7, column = 6 } }
-                            (LetExpression
+                            (Let
                                 { declarations =
                                     [ Node { start = { row = 2, column = 5 }, end = { row = 5, column = 12 } }
                                         (LetFunction
@@ -177,14 +177,14 @@ all =
                                                 Just
                                                     (Node { start = { row = 2, column = 5 }, end = { row = 2, column = 14 } }
                                                         { name = Node { start = { row = 2, column = 5 }, end = { row = 2, column = 8 } } "bar"
-                                                        , typeAnnotation = Node { start = { row = 2, column = 11 }, end = { row = 2, column = 14 } } (Typed (Node { start = { row = 2, column = 11 }, end = { row = 2, column = 14 } } ( [], "Int" )) [])
+                                                        , typeAnnotation = Node { start = { row = 2, column = 11 }, end = { row = 2, column = 14 } } (Type (Node { start = { row = 2, column = 11 }, end = { row = 2, column = 14 } } ( [], "Int" )) [])
                                                         }
                                                     )
                                             , declaration =
                                                 Node { start = { row = 5, column = 5 }, end = { row = 5, column = 12 } }
                                                     { name = Node { start = { row = 5, column = 5 }, end = { row = 5, column = 8 } } "bar"
                                                     , arguments = []
-                                                    , expression = Node { start = { row = 5, column = 11 }, end = { row = 5, column = 12 } } (Integer 1)
+                                                    , expression = Node { start = { row = 5, column = 11 }, end = { row = 5, column = 12 } } (IntegerLiteral 1)
                                                     }
                                             }
                                         )
@@ -224,7 +224,7 @@ all =
         bar"""
                     |> expectAst
                         (Node { start = { row = 1, column = 1 }, end = { row = 4, column = 12 } }
-                            (LetExpression
+                            (Let
                                 { declarations =
                                     [ Node { start = { row = 2, column = 11 }, end = { row = 2, column = 24 } }
                                         (LetFunction
@@ -234,10 +234,10 @@ all =
                                                 Node { start = { row = 2, column = 11 }, end = { row = 2, column = 24 } }
                                                     { name = Node { start = { row = 2, column = 11 }, end = { row = 2, column = 14 } } "bar"
                                                     , arguments =
-                                                        [ Node { start = { row = 2, column = 15 }, end = { row = 2, column = 18 } } (NamedPattern { moduleName = [], name = "Bar" } [])
-                                                        , Node { start = { row = 2, column = 19 }, end = { row = 2, column = 20 } } (VarPattern "m")
+                                                        [ Node { start = { row = 2, column = 15 }, end = { row = 2, column = 18 } } (NamedPattern_ { moduleName = [], name = "Bar" } [])
+                                                        , Node { start = { row = 2, column = 19 }, end = { row = 2, column = 20 } } (VarPattern_ "m")
                                                         ]
-                                                    , expression = Node { start = { row = 2, column = 23 }, end = { row = 2, column = 24 } } (Integer 1)
+                                                    , expression = Node { start = { row = 2, column = 23 }, end = { row = 2, column = 24 } } (IntegerLiteral 1)
                                                     }
                                             }
                                         )
@@ -302,23 +302,23 @@ all =
     1"""
                     |> expectAst
                         (Node { start = { row = 1, column = 1 }, end = { row = 7, column = 6 } }
-                            (LetExpression
+                            (Let
                                 { declarations =
                                     [ Node { start = { row = 2, column = 5 }, end = { row = 2, column = 10 } }
-                                        (LetDestructuring (Node { start = { row = 2, column = 5 }, end = { row = 2, column = 6 } } AllPattern) (Node { start = { row = 2, column = 9 }, end = { row = 2, column = 10 } } (FunctionOrValue [] "b")))
+                                        (LetDestructuring (Node { start = { row = 2, column = 5 }, end = { row = 2, column = 6 } } AllPattern_) (Node { start = { row = 2, column = 9 }, end = { row = 2, column = 10 } } (FunctionOrValue [] "b")))
                                     , Node { start = { row = 3, column = 5 }, end = { row = 3, column = 12 } }
                                         (LetDestructuring
                                             (Node { start = { row = 3, column = 5 }, end = { row = 3, column = 8 } }
-                                                (RecordPattern [ Node { start = { row = 3, column = 6 }, end = { row = 3, column = 7 } } "a" ])
+                                                (RecordPattern_ [ Node { start = { row = 3, column = 6 }, end = { row = 3, column = 7 } } "a" ])
                                             )
                                             (Node { start = { row = 3, column = 11 }, end = { row = 3, column = 12 } } (FunctionOrValue [] "b"))
                                         )
                                     , Node { start = { row = 4, column = 5 }, end = { row = 4, column = 15 } }
                                         (LetDestructuring
                                             (Node { start = { row = 4, column = 5 }, end = { row = 4, column = 11 } }
-                                                (TuplePattern
-                                                    [ Node { start = { row = 4, column = 6 }, end = { row = 4, column = 7 } } (VarPattern "c")
-                                                    , Node { start = { row = 4, column = 9 }, end = { row = 4, column = 10 } } (VarPattern "d")
+                                                (TuplePattern_
+                                                    [ Node { start = { row = 4, column = 6 }, end = { row = 4, column = 7 } } (VarPattern_ "c")
+                                                    , Node { start = { row = 4, column = 9 }, end = { row = 4, column = 10 } } (VarPattern_ "d")
                                                     ]
                                                 )
                                             )
@@ -327,14 +327,20 @@ all =
                                     , Node { start = { row = 5, column = 5 }, end = { row = 5, column = 19 } }
                                         (LetDestructuring
                                             (Node { start = { row = 5, column = 5 }, end = { row = 5, column = 15 } }
-                                                (ParenthesizedPattern
-                                                    (Node { start = { row = 5, column = 6 }, end = { row = 5, column = 14 } } (NamedPattern { moduleName = [], name = "Node" } [ Node { start = { row = 5, column = 11 }, end = { row = 5, column = 12 } } AllPattern, Node { start = { row = 5, column = 13 }, end = { row = 5, column = 14 } } (VarPattern "f") ]))
+                                                (ParenthesizedPattern_
+                                                    (Node { start = { row = 5, column = 6 }, end = { row = 5, column = 14 } }
+                                                        (NamedPattern_ { moduleName = [], name = "Node" }
+                                                            [ Node { start = { row = 5, column = 11 }, end = { row = 5, column = 12 } } AllPattern_
+                                                            , Node { start = { row = 5, column = 13 }, end = { row = 5, column = 14 } } (VarPattern_ "f")
+                                                            ]
+                                                        )
+                                                    )
                                                 )
                                             )
                                             (Node { start = { row = 5, column = 18 }, end = { row = 5, column = 19 } } (FunctionOrValue [] "g"))
                                         )
                                     ]
-                                , expression = Node { start = { row = 7, column = 5 }, end = { row = 7, column = 6 } } (Integer 1)
+                                , expression = Node { start = { row = 7, column = 5 }, end = { row = 7, column = 6 } } (IntegerLiteral 1)
                                 }
                             )
                         )
@@ -343,7 +349,7 @@ all =
                 "let indent = String.length s in indent"
                     |> expectAst
                         (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 39 } }
-                            (LetExpression
+                            (Let
                                 { declarations =
                                     [ Node { start = { row = 1, column = 5 }, end = { row = 1, column = 29 } }
                                         (LetFunction
@@ -355,10 +361,10 @@ all =
                                                     , arguments = []
                                                     , expression =
                                                         Node { start = { row = 1, column = 14 }, end = { row = 1, column = 29 } }
-                                                            (Application
-                                                                [ Node { start = { row = 1, column = 14 }, end = { row = 1, column = 27 } } (FunctionOrValue [ "String" ] "length")
-                                                                , Node { start = { row = 1, column = 28 }, end = { row = 1, column = 29 } } (FunctionOrValue [] "s")
-                                                                ]
+                                                            (FunctionCall
+                                                                (Node { start = { row = 1, column = 14 }, end = { row = 1, column = 27 } } (FunctionOrValue [ "String" ] "length"))
+                                                                (Node { start = { row = 1, column = 28 }, end = { row = 1, column = 29 } } (FunctionOrValue [] "s"))
+                                                                []
                                                             )
                                                     }
                                             }
@@ -375,7 +381,7 @@ all =
     in[]"""
                     |> expectAst
                         (Node { start = { row = 1, column = 1 }, end = { row = 3, column = 9 } }
-                            (LetExpression
+                            (Let
                                 { declarations =
                                     [ Node { start = { row = 2, column = 9 }, end = { row = 2, column = 14 } }
                                         (LetFunction
@@ -385,12 +391,12 @@ all =
                                                 Node { start = { row = 2, column = 9 }, end = { row = 2, column = 14 } }
                                                     { name = Node { start = { row = 2, column = 9 }, end = { row = 2, column = 10 } } "a"
                                                     , arguments = []
-                                                    , expression = Node { start = { row = 2, column = 13 }, end = { row = 2, column = 14 } } (Integer 1)
+                                                    , expression = Node { start = { row = 2, column = 13 }, end = { row = 2, column = 14 } } (IntegerLiteral 1)
                                                     }
                                             }
                                         )
                                     ]
-                                , expression = Node { start = { row = 3, column = 7 }, end = { row = 3, column = 9 } } (ListExpr [])
+                                , expression = Node { start = { row = 3, column = 7 }, end = { row = 3, column = 9 } } (ListLiteral [])
                                 }
                             )
                         )
@@ -401,7 +407,7 @@ all =
     in{}"""
                     |> expectAst
                         (Node { start = { row = 1, column = 1 }, end = { row = 3, column = 9 } }
-                            (LetExpression
+                            (Let
                                 { declarations =
                                     [ Node { start = { row = 2, column = 9 }, end = { row = 2, column = 14 } }
                                         (LetFunction
@@ -411,12 +417,12 @@ all =
                                                 Node { start = { row = 2, column = 9 }, end = { row = 2, column = 14 } }
                                                     { name = Node { start = { row = 2, column = 9 }, end = { row = 2, column = 10 } } "a"
                                                     , arguments = []
-                                                    , expression = Node { start = { row = 2, column = 13 }, end = { row = 2, column = 14 } } (Integer 1)
+                                                    , expression = Node { start = { row = 2, column = 13 }, end = { row = 2, column = 14 } } (IntegerLiteral 1)
                                                     }
                                             }
                                         )
                                     ]
-                                , expression = Node { start = { row = 3, column = 7 }, end = { row = 3, column = 9 } } (RecordExpr [])
+                                , expression = Node { start = { row = 3, column = 7 }, end = { row = 3, column = 9 } } (Expression.Record [])
                                 }
                             )
                         )
@@ -427,7 +433,7 @@ all =
     in\\_ -> 1"""
                     |> expectAst
                         (Node { start = { row = 1, column = 1 }, end = { row = 3, column = 14 } }
-                            (LetExpression
+                            (Let
                                 { declarations =
                                     [ Node { start = { row = 2, column = 9 }, end = { row = 2, column = 14 } }
                                         (LetFunction
@@ -437,14 +443,19 @@ all =
                                                 Node { start = { row = 2, column = 9 }, end = { row = 2, column = 14 } }
                                                     { name = Node { start = { row = 2, column = 9 }, end = { row = 2, column = 10 } } "a"
                                                     , arguments = []
-                                                    , expression = Node { start = { row = 2, column = 13 }, end = { row = 2, column = 14 } } (Integer 1)
+                                                    , expression = Node { start = { row = 2, column = 13 }, end = { row = 2, column = 14 } } (IntegerLiteral 1)
                                                     }
                                             }
                                         )
                                     ]
                                 , expression =
                                     Node { start = { row = 3, column = 7 }, end = { row = 3, column = 14 } }
-                                        (LambdaExpression { args = [ Node { start = { row = 3, column = 8 }, end = { row = 3, column = 9 } } AllPattern ], expression = Node { start = { row = 3, column = 13 }, end = { row = 3, column = 14 } } (Integer 1) })
+                                        (LambdaExpression
+                                            { firstArg = Node { start = { row = 3, column = 8 }, end = { row = 3, column = 9 } } AllPattern_
+                                            , restOfArgs = []
+                                            , expression = Node { start = { row = 3, column = 13 }, end = { row = 3, column = 14 } } (IntegerLiteral 1)
+                                            }
+                                        )
                                 }
                             )
                         )
