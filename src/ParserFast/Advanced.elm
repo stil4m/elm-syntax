@@ -884,11 +884,17 @@ or 2-part UTF-16 characters
 -}
 keyword : String -> x -> res -> Parser x res
 keyword kwd expecting res =
+    let
+        kwdLength : Int
+        kwdLength =
+            String.length kwd
+    in
     Parser
         (\s ->
             let
-                ( newOffset, newCol ) =
-                    isSubString kwd s.offset s.col s.src
+                newOffset : Int
+                newOffset =
+                    isSubString kwd kwdLength s.offset s.src
             in
             if newOffset == -1 || 0 <= isSubChar (\c -> Char.Extra.isAlphaNumFast c || c == '_') newOffset s.src then
                 Bad False (fromState s expecting) ()
@@ -900,7 +906,7 @@ keyword kwd expecting res =
                     , offset = newOffset
                     , indent = s.indent
                     , row = s.row
-                    , col = newCol
+                    , col = s.col + kwdLength
                     }
         )
 
@@ -910,11 +916,17 @@ or 2-part UTF-16 characters
 -}
 keywordFollowedBy : String -> x -> Parser x next -> Parser x next
 keywordFollowedBy kwd expecting (Parser parseNext) =
+    let
+        kwdLength : Int
+        kwdLength =
+            String.length kwd
+    in
     Parser
         (\s ->
             let
-                ( newOffset, newCol ) =
-                    isSubString kwd s.offset s.col s.src
+                newOffset : Int
+                newOffset =
+                    isSubString kwd kwdLength s.offset s.src
             in
             if newOffset == -1 || 0 <= isSubChar (\c -> Char.Extra.isAlphaNumFast c || c == '_') newOffset s.src then
                 Bad False (fromState s expecting) ()
@@ -925,7 +937,7 @@ keywordFollowedBy kwd expecting (Parser parseNext) =
                     , offset = newOffset
                     , indent = s.indent
                     , row = s.row
-                    , col = newCol
+                    , col = s.col + kwdLength
                     }
                     |> pStepCommit
         )
@@ -936,11 +948,17 @@ or 2-part UTF-16 characters
 -}
 symbol : String -> x -> res -> Parser x res
 symbol str expecting res =
+    let
+        strLength : Int
+        strLength =
+            String.length str
+    in
     Parser
         (\s ->
             let
-                ( newOffset, newCol ) =
-                    isSubString str s.offset s.col s.src
+                newOffset : Int
+                newOffset =
+                    isSubString str strLength s.offset s.src
             in
             if newOffset == -1 then
                 Bad False (fromState s expecting) ()
@@ -952,7 +970,7 @@ symbol str expecting res =
                     , offset = newOffset
                     , indent = s.indent
                     , row = s.row
-                    , col = newCol
+                    , col = s.col + strLength
                     }
         )
 
@@ -962,11 +980,17 @@ or 2-part UTF-16 characters
 -}
 symbolFollowedBy : String -> x -> Parser x next -> Parser x next
 symbolFollowedBy str expecting (Parser parseNext) =
+    let
+        strLength : Int
+        strLength =
+            String.length str
+    in
     Parser
         (\s ->
             let
-                ( newOffset, newCol ) =
-                    isSubString str s.offset s.col s.src
+                newOffset : Int
+                newOffset =
+                    isSubString str strLength s.offset s.src
             in
             if newOffset == -1 then
                 Bad False (fromState s expecting) ()
@@ -977,7 +1001,7 @@ symbolFollowedBy str expecting (Parser parseNext) =
                     , offset = newOffset
                     , indent = s.indent
                     , row = s.row
-                    , col = newCol
+                    , col = s.col + strLength
                     }
                     |> pStepCommit
         )
@@ -1396,22 +1420,18 @@ our `"let"` example, it would be `offset + 3`.
 or 2-part UTF-16 characters
 
 -}
-isSubString : String -> Int -> Int -> String -> ( Int, Int )
-isSubString smallString offset col bigString =
+isSubString : String -> Int -> Int -> String -> Int
+isSubString smallString smallStringLength offset bigString =
     let
-        smallStringLength : Int
-        smallStringLength =
-            String.length smallString
-
         offsetAfter : Int
         offsetAfter =
             offset + smallStringLength
     in
     if String.slice offset offsetAfter bigString == smallString ++ "" then
-        ( offsetAfter, col + smallStringLength )
+        offsetAfter
 
     else
-        ( -1, col )
+        -1
 
 
 {-| Again, when parsing, you want to allocate as little as possible.
