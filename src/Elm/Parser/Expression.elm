@@ -352,33 +352,30 @@ charLiteralExpression =
 
 lambdaExpression : Parser (WithComments (Node Expression))
 lambdaExpression =
-    ParserFast.mapWithStartPosition
-        (\start lambda ->
+    ParserFast.map5
+        (\backslash firstArg commentsAfterFirstArg secondUpArgs expressionResult ->
             let
                 (Node expressionRange _) =
-                    lambda.expression
+                    expressionResult.syntax
             in
-            { comments = lambda.comments
-            , syntax =
-                Node { start = start, end = expressionRange.end }
+            { syntax =
+                Node { start = backslash.start, end = expressionRange.end }
                     (LambdaExpression
-                        { args = lambda.args
-                        , expression = lambda.expression
+                        { args = firstArg.syntax :: secondUpArgs.syntax
+                        , expression = expressionResult.syntax
                         }
                     )
+            , comments =
+                backslash.commentsAfter
+                    |> Rope.prependTo firstArg.comments
+                    |> Rope.prependTo commentsAfterFirstArg
+                    |> Rope.prependTo secondUpArgs.comments
+                    |> Rope.prependTo expressionResult.comments
             }
         )
-        (ParserFast.map5
-            (\commentsAfterBackslash firstArg commentsAfterFirstArg secondUpArgs expressionResult ->
-                { args = firstArg.syntax :: secondUpArgs.syntax
-                , comments =
-                    commentsAfterBackslash
-                        |> Rope.prependTo firstArg.comments
-                        |> Rope.prependTo commentsAfterFirstArg
-                        |> Rope.prependTo secondUpArgs.comments
-                        |> Rope.prependTo expressionResult.comments
-                , expression = expressionResult.syntax
-                }
+        (ParserFast.mapWithStartPosition (\start commentsAfter -> { commentsAfter = commentsAfter, start = start })
+            (ParserFast.symbolFollowedBy "\\"
+                Layout.maybeLayout
             )
             (ParserFast.symbolFollowedBy "\\" Layout.maybeLayout)
             Patterns.patternNotDirectlyComposing
@@ -401,6 +398,23 @@ lambdaExpression =
             )
             expression
         )
+        Patterns.patternNotDirectlyComposing
+        Layout.maybeLayout
+        (ParserWithComments.until
+            Tokens.arrowRight
+            (ParserFast.map2
+                (\patternResult commentsAfter ->
+                    { comments =
+                        patternResult.comments
+                            |> Rope.prependTo commentsAfter
+                    , syntax = patternResult.syntax
+                    }
+                )
+                Patterns.patternNotDirectlyComposing
+                Layout.maybeLayout
+            )
+        )
+        expression
 
 
 
@@ -409,54 +423,48 @@ lambdaExpression =
 
 caseExpression : Parser (WithComments (Node Expression))
 caseExpression =
-    ParserFast.mapWithStartPosition
-        (\start caseBlock ->
-            { comments = caseBlock.comments
+    ParserFast.map5
+        (\case_ casedExpressionResult commentsBeforeOf commentsAfterOf casesResult ->
+            let
+                ( firstCase, lastToSecondCase ) =
+                    casesResult.syntax
+            in
+            { comments =
+                case_.commentsAfter
+                    |> Rope.prependTo casedExpressionResult.comments
+                    |> Rope.prependTo commentsBeforeOf
+                    |> Rope.prependTo commentsAfterOf
+                    |> Rope.prependTo casesResult.comments
             , syntax =
                 Node
-                    { start = start
+                    { start = case_.start
                     , end =
-                        case caseBlock.lastToSecondCase of
+                        case lastToSecondCase of
                             ( _, Node lastCaseExpressionRange _ ) :: _ ->
                                 lastCaseExpressionRange.end
 
                             [] ->
                                 let
                                     ( _, Node firstCaseExpressionRange _ ) =
-                                        caseBlock.firstCase
+                                        firstCase
                                 in
                                 firstCaseExpressionRange.end
                     }
                     (CaseExpression
-                        { expression = caseBlock.casedExpression
-                        , cases = caseBlock.firstCase :: List.reverse caseBlock.lastToSecondCase
+                        { expression = casedExpressionResult.syntax
+                        , cases = firstCase :: List.reverse lastToSecondCase
                         }
                     )
             }
         )
-        (ParserFast.map5
-            (\commentsAfterCase casedExpressionResult commentsBeforeOf commentsAfterOf casesResult ->
-                let
-                    ( firstCase, lastToSecondCase ) =
-                        casesResult.syntax
-                in
-                { casedExpression = casedExpressionResult.syntax
-                , comments =
-                    commentsAfterCase
-                        |> Rope.prependTo casedExpressionResult.comments
-                        |> Rope.prependTo commentsBeforeOf
-                        |> Rope.prependTo commentsAfterOf
-                        |> Rope.prependTo casesResult.comments
-                , firstCase = firstCase
-                , lastToSecondCase = lastToSecondCase
-                }
-            )
+        (ParserFast.mapWithStartPosition
+            (\start commentsAfter -> { commentsAfter = commentsAfter, start = start })
             (ParserFast.keywordFollowedBy "case" Layout.maybeLayout)
-            expression
-            (Layout.maybeLayoutUntilIgnored ParserFast.keywordFollowedBy "of")
-            Layout.maybeLayout
-            (ParserFast.withIndentSetToColumn caseStatements)
         )
+        expression
+        (Layout.maybeLayoutUntilIgnored ParserFast.keywordFollowedBy "of")
+        Layout.maybeLayout
+        (ParserFast.withIndentSetToColumn caseStatements)
 
 
 caseStatements : Parser (WithComments ( Case, List Case ))
@@ -508,51 +516,47 @@ caseStatement =
 
 letExpression : Parser (WithComments (Node Expression))
 letExpression =
-    ParserFast.mapWithStartPosition
-        (\start letBlock ->
+    ParserFast.map3
+        (\declarations commentsAfterIn expressionResult ->
             let
                 (Node expressionRange _) =
-                    letBlock.expression
+                    expressionResult.syntax
             in
-            { comments = letBlock.comments
+            { comments =
+                declarations.comments
+                    |> Rope.prependTo commentsAfterIn
+                    |> Rope.prependTo expressionResult.comments
             , syntax =
-                Node { start = start, end = expressionRange.end }
+                Node { start = declarations.start, end = expressionRange.end }
                     (LetExpression
-                        { declarations = letBlock.declarations
-                        , expression = letBlock.expression
+                        { declarations = declarations.declarations
+                        , expression = expressionResult.syntax
                         }
                     )
             }
         )
-        (ParserFast.map3
-            (\declarations commentsAfterIn expressionResult ->
-                { comments =
-                    declarations.comments
-                        |> Rope.prependTo commentsAfterIn
-                        |> Rope.prependTo expressionResult.comments
-                , declarations = declarations.syntax
-                , expression = expressionResult.syntax
-                }
-            )
-            (ParserFast.withIndentSetToColumn
-                (ParserFast.map2
-                    (\commentsAfterLet declarations ->
-                        { comments =
-                            commentsAfterLet
-                                |> Rope.prependTo declarations.comments
-                        , syntax = declarations.syntax
-                        }
-                    )
-                    (ParserFast.keywordFollowedBy "let" Layout.maybeLayout)
-                    (ParserFast.withIndentSetToColumn letDeclarationsIn)
+        (ParserFast.withIndentSetToColumn
+            (ParserFast.map2
+                (\let_ declarations ->
+                    { comments =
+                        let_.commentsAfter
+                            |> Rope.prependTo declarations.comments
+                    , declarations = declarations.syntax
+                    , start = let_.start
+                    }
                 )
+                (ParserFast.mapWithStartPosition
+                    (\start commentsAfter -> { commentsAfter = commentsAfter, start = start })
+                    (ParserFast.keywordFollowedBy "let" Layout.maybeLayout)
+                )
+                (ParserFast.withIndentSetToColumn letDeclarationsIn)
             )
-            -- check that the `in` token used as the end parser in letDeclarationsIn is indented correctly
-            (Layout.positivelyIndentedPlusFollowedBy 2
-                Layout.maybeLayout
-            )
-            expression
         )
+        -- check that the `in` token used as the end parser in letDeclarationsIn is indented correctly
+        (Layout.positivelyIndentedPlusFollowedBy 2
+            Layout.maybeLayout
+        )
+        expression
 
 
 letDeclarationsIn : Parser (WithComments (List (Node LetDeclaration)))
@@ -759,52 +763,46 @@ numberExpression =
 
 ifBlockExpression : Parser (WithComments (Node Expression))
 ifBlockExpression =
-    ParserFast.mapWithStartPosition
-        (\start ifBlock ->
+    ParserFast.map8
+        (\if_ condition commentsBeforeThen commentsAfterThen ifTrue commentsBeforeElse commentsAfterElse ifFalse ->
             let
                 (Node ifFalseRange _) =
-                    ifBlock.ifFalse
+                    ifFalse.syntax
             in
-            { comments = ifBlock.comments
+            { comments =
+                if_.commentsAfter
+                    |> Rope.prependTo condition.comments
+                    |> Rope.prependTo commentsBeforeThen
+                    |> Rope.prependTo commentsAfterThen
+                    |> Rope.prependTo ifTrue.comments
+                    |> Rope.prependTo commentsBeforeElse
+                    |> Rope.prependTo commentsAfterElse
+                    |> Rope.prependTo ifFalse.comments
             , syntax =
-                Node { start = start, end = ifFalseRange.end }
+                Node { start = if_.start, end = ifFalseRange.end }
                     (IfBlock
-                        ifBlock.condition
-                        ifBlock.ifTrue
-                        ifBlock.ifFalse
+                        condition.syntax
+                        ifTrue.syntax
+                        ifFalse.syntax
                     )
             }
         )
-        (ParserFast.map8
-            (\commentsAfterIf condition commentsBeforeThen commentsAfterThen ifTrue commentsBeforeElse commentsAfterElse ifFalse ->
-                { comments =
-                    commentsAfterIf
-                        |> Rope.prependTo condition.comments
-                        |> Rope.prependTo commentsBeforeThen
-                        |> Rope.prependTo commentsAfterThen
-                        |> Rope.prependTo ifTrue.comments
-                        |> Rope.prependTo commentsBeforeElse
-                        |> Rope.prependTo commentsAfterElse
-                        |> Rope.prependTo ifFalse.comments
-                , condition = condition.syntax
-                , ifFalse = ifFalse.syntax
-                , ifTrue = ifTrue.syntax
-                }
-            )
+        (ParserFast.mapWithStartPosition
+            (\start commentsAfter -> { commentsAfter = commentsAfter, start = start })
             (ParserFast.keywordFollowedBy "if" Layout.maybeLayout)
-            expression
-            (Layout.maybeLayoutUntilIgnored ParserFast.keywordFollowedBy "then")
-            Layout.maybeLayout
-            expression
-            (Layout.maybeLayoutUntilIgnored ParserFast.keywordFollowedBy "else")
-            Layout.maybeLayout
-            expression
         )
+        expression
+        (Layout.maybeLayoutUntilIgnored ParserFast.keywordFollowedBy "then")
+        Layout.maybeLayout
+        expression
+        (Layout.maybeLayoutUntilIgnored ParserFast.keywordFollowedBy "else")
+        Layout.maybeLayout
+        expression
 
 
 negationOperation : Parser (WithComments (Node Expression))
 negationOperation =
-    ParserFast.mapWithStartPosition
+    ParserFast.map2
         (\start subExpressionResult ->
             let
                 (Node subExpressionRange _) =
@@ -816,11 +814,11 @@ negationOperation =
                     (Negation subExpressionResult.syntax)
             }
         )
-        (ParserFast.map2
-            (\() subExpressionResult -> subExpressionResult)
+        (ParserFast.mapWithStartPosition
+            (\start () -> start)
             (ParserFast.symbol "-" () |> ParserFast.backtrackable)
-            (extendedSubExpressionWithoutInitialLayout abovePrecedence95)
         )
+        (extendedSubExpressionWithoutInitialLayout abovePrecedence95)
 
 
 qualifiedOrVariantOrRecordConstructorReferenceExpression : Parser (WithComments (Node Expression))

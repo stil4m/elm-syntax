@@ -592,40 +592,33 @@ customTypeDefinitionAfterDocumentationAfterTypePrefix =
 
 typeOrTypeAliasDefinitionWithoutDocumentation : Parser (WithComments (Node Declaration.Declaration))
 typeOrTypeAliasDefinitionWithoutDocumentation =
-    ParserFast.mapWithStartPosition
-        (\start result ->
-            { comments = result.comments
-            , syntax =
-                Node { start = start, end = result.end }
-                    result.declaration
-            }
-        )
-        (ParserFast.map2
-            (\commentsAfterType afterStart ->
-                let
-                    allComments : Comments
-                    allComments =
-                        commentsAfterType |> Rope.prependTo afterStart.comments
-                in
-                case afterStart.syntax of
-                    TypeDeclarationWithoutDocumentation typeDeclarationAfterDocumentation ->
-                        let
-                            end : Location
-                            end =
-                                case typeDeclarationAfterDocumentation.tailVariantsReverse of
-                                    (Node range _) :: _ ->
-                                        range.end
+    ParserFast.map2
+        (\aroundType afterStart ->
+            let
+                allComments : Comments
+                allComments =
+                    aroundType.commentsAfter |> Rope.prependTo afterStart.comments
+            in
+            case afterStart.syntax of
+                TypeDeclarationWithoutDocumentation typeDeclarationAfterDocumentation ->
+                    let
+                        end : Location
+                        end =
+                            case typeDeclarationAfterDocumentation.tailVariantsReverse of
+                                (Node range _) :: _ ->
+                                    range.end
 
-                                    [] ->
-                                        let
-                                            (Node headVariantRange _) =
-                                                typeDeclarationAfterDocumentation.headVariant
-                                        in
-                                        headVariantRange.end
-                        in
-                        { comments = allComments
-                        , declaration =
-                            Declaration.CustomTypeDeclaration
+                                [] ->
+                                    let
+                                        (Node headVariantRange _) =
+                                            typeDeclarationAfterDocumentation.headVariant
+                                    in
+                                    headVariantRange.end
+                    in
+                    { comments = allComments
+                    , syntax =
+                        Node { start = aroundType.start, end = end }
+                            (Declaration.CustomTypeDeclaration
                                 { documentation = Nothing
                                 , name = typeDeclarationAfterDocumentation.name
                                 , generics = typeDeclarationAfterDocumentation.parameters
@@ -633,30 +626,34 @@ typeOrTypeAliasDefinitionWithoutDocumentation =
                                     typeDeclarationAfterDocumentation.headVariant
                                         :: List.reverse typeDeclarationAfterDocumentation.tailVariantsReverse
                                 }
-                        , end = end
-                        }
+                            )
+                    }
 
-                    TypeAliasDeclarationWithoutDocumentation typeAliasDeclarationAfterDocumentation ->
-                        let
-                            (Node typeAnnotationRange _) =
-                                typeAliasDeclarationAfterDocumentation.typeAnnotation
-                        in
-                        { comments = allComments
-                        , declaration =
-                            Declaration.AliasDeclaration
+                TypeAliasDeclarationWithoutDocumentation typeAliasDeclarationAfterDocumentation ->
+                    let
+                        (Node typeAnnotationRange _) =
+                            typeAliasDeclarationAfterDocumentation.typeAnnotation
+                    in
+                    { comments = allComments
+                    , syntax =
+                        Node { start = aroundType.start, end = typeAnnotationRange.end }
+                            (Declaration.AliasDeclaration
                                 { documentation = Nothing
                                 , name = typeAliasDeclarationAfterDocumentation.name
                                 , generics = typeAliasDeclarationAfterDocumentation.parameters
                                 , typeAnnotation = typeAliasDeclarationAfterDocumentation.typeAnnotation
                                 }
-                        , end = typeAnnotationRange.end
-                        }
+                            )
+                    }
+        )
+        (ParserFast.mapWithStartPosition (\start commentsAfter -> { commentsAfter = commentsAfter, start = start })
+            (ParserFast.keywordFollowedBy "type"
+                Layout.maybeLayout
             )
-            (ParserFast.keywordFollowedBy "type" Layout.maybeLayout)
-            (ParserFast.oneOf2
-                typeAliasDefinitionWithoutDocumentationAfterTypePrefix
-                customTypeDefinitionWithoutDocumentationAfterTypePrefix
-            )
+        )
+        (ParserFast.oneOf2
+            typeAliasDefinitionWithoutDocumentationAfterTypePrefix
+            customTypeDefinitionWithoutDocumentationAfterTypePrefix
         )
 
 
