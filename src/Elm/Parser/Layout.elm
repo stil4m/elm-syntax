@@ -60,15 +60,15 @@ whitespaceAndCommentsUntilEndComments end =
                 , fromMultilineCommentNodeUntilEnd
                 ]
     in
-    ParserFast.chompWhileWhitespace
-        |> ParserFast.andThen (\_ -> endOrFromCommentElseEmptyThenEnd)
+    ParserFast.chompWhileWhitespaceFollowedBy
+        endOrFromCommentElseEmptyThenEnd
 
 
 whitespaceAndCommentsOrEmpty : Parser Comments
 whitespaceAndCommentsOrEmpty =
-    ParserFast.chompWhileWhitespace
+    ParserFast.chompWhileWhitespaceFollowedBy
         -- whitespace can't be followed by more whitespace
-        |> ParserFast.andThen (\() -> fromCommentElseEmpty)
+        fromCommentElseEmpty
 
 
 fromCommentElseEmpty : Parser Comments

@@ -7,7 +7,6 @@ module ParserFast exposing
     , getChompedString, chompIf, chompIfFollowedBy, chompWhile, mapChompedString
     , withIndentSetToColumn, withIndent, columnIndentAndThen
     , mapWithStartPosition, mapWithEndPosition, mapWithStartAndEndPosition, columnAndThen, offsetSourceAndThen
-    , mapOrSucceed
     )
 
 {-|
@@ -26,7 +25,7 @@ module ParserFast exposing
 
 # Whitespace
 
-@docs chompWhileWhitespace, nestableMultiComment
+@docs chompWhileWhitespaceFollowedBy, nestableMultiComment
 
 
 # Chompers
@@ -703,9 +702,9 @@ chompWhile =
 {-| Specialized `chompWhile (\c -> c == " " || c == "\n" || c == "\r")`
 optimized for speed
 -}
-chompWhileWhitespace : Parser ()
-chompWhileWhitespace =
-    A.chompWhileWhitespace
+chompWhileWhitespaceFollowedBy : Parser next -> Parser next
+chompWhileWhitespaceFollowedBy =
+    A.chompWhileWhitespaceFollowedBy
 
 
 {-| Some languages are indentation sensitive. Python cares about tabs. Elm
