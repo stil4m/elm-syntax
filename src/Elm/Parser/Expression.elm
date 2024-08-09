@@ -850,24 +850,22 @@ maybeDotReferenceExpressionTuple : ParserFast.Parser (Maybe ( List String, Strin
 maybeDotReferenceExpressionTuple =
     ParserFast.orSucceed
         (ParserFast.symbolFollowedBy "."
-            (ParserFast.oneOf2
+            (ParserFast.oneOf2Map
+                Just
                 (ParserFast.map2
                     (\firstName after ->
-                        Just
-                            (case after of
-                                Nothing ->
-                                    ( [], firstName )
+                        case after of
+                            Nothing ->
+                                ( [], firstName )
 
-                                Just ( qualificationAfter, unqualified ) ->
-                                    ( firstName :: qualificationAfter, unqualified )
-                            )
+                            Just ( qualificationAfter, unqualified ) ->
+                                ( firstName :: qualificationAfter, unqualified )
                     )
                     Tokens.typeName
                     (ParserFast.lazy (\() -> maybeDotReferenceExpressionTuple))
                 )
-                (ParserFast.map (\unqualified -> Just ( [], unqualified ))
-                    Tokens.functionName
-                )
+                (\unqualified -> Just ( [], unqualified ))
+                Tokens.functionName
             )
         )
         Nothing
