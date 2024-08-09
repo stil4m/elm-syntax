@@ -25,7 +25,6 @@ import Char.Extra
 import Hex
 import ParserFast
 import ParserFast.Advanced
-import ParserFast.Extra
 import Set exposing (Set)
 import Unicode
 
@@ -103,10 +102,30 @@ characterLiteral =
         (ParserFast.symbolFollowedBy "'"
             (ParserFast.oneOf2
                 slashEscapedCharValue
-                ParserFast.Extra.anyChar
+                anyChar
             )
         )
         (ParserFast.symbol "'" ())
+
+
+anyChar : ParserFast.Parser Char
+anyChar =
+    ParserFast.chompAnyChar
+        |> ParserFast.getChompedString
+        |> ParserFast.andThen
+            (\s ->
+                case String.toList s of
+                    [] ->
+                        problemAnyCharacter
+
+                    c :: _ ->
+                        ParserFast.succeed c
+            )
+
+
+problemAnyCharacter : ParserFast.Parser a
+problemAnyCharacter =
+    ParserFast.problem "expected any character"
 
 
 singleOrTripleQuotedStringLiteral : ParserFast.Parser String
