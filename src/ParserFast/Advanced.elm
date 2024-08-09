@@ -2,7 +2,7 @@ module ParserFast.Advanced exposing
     ( Parser, run
     , number, symbol, symbolFollowedBy, keyword, keywordFollowedBy, variable, variableWithoutReserved, end
     , succeed, problem, succeedLazy, lazy, map, map2, map3, map4, map5, map6, map7, map8, map9, map10, map11, andThen, ignore
-    , orSucceed, orSucceedLazy, oneOf2, oneOf2Map, oneOf, backtrackable, commit
+    , orSucceed, orSucceedLazy, mapOrSucceed, oneOf2, oneOf2Map, oneOf, backtrackable, commit
     , loop, Step(..)
     , chompWhileWhitespace, nestableMultiComment
     , getChompedString, chompIf, chompAnyChar, chompIfFollowedBy, chompWhile, mapChompedString
@@ -21,7 +21,7 @@ module ParserFast.Advanced exposing
 
 @docs succeed, problem, succeedLazy, lazy, map, map2, map3, map4, map5, map6, map7, map8, map9, map10, map11, andThen, ignore
 
-@docs orSucceed, orSucceedLazy, oneOf2, oneOf2Map, oneOf, backtrackable, commit
+@docs orSucceed, orSucceedLazy, mapOrSucceed, oneOf2, oneOf2Map, oneOf, backtrackable, commit
 
 @docs loop, Step
 
@@ -763,6 +763,23 @@ orSucceed (Parser attemptFirst) secondRes =
 
                     else
                         Good False secondRes s
+        )
+
+
+mapOrSucceed : (first -> choice) -> Parser x first -> choice -> Parser x choice
+mapOrSucceed firstToChoice (Parser attemptFirst) createSecondRes =
+    Parser
+        (\s0 ->
+            case attemptFirst s0 of
+                Good firstP first s1 ->
+                    Good firstP (firstToChoice first) s1
+
+                Bad firstCommitted firstX () ->
+                    if firstCommitted then
+                        Bad firstCommitted firstX ()
+
+                    else
+                        Good False createSecondRes s0
         )
 
 

@@ -2,12 +2,12 @@ module ParserFast exposing
     ( Parser, run
     , int, number, symbol, symbolFollowedBy, keyword, keywordFollowedBy, variable, variableWithoutReserved, end
     , succeed, problem, succeedLazy, lazy, map, map2, map3, map4, map5, map6, map7, map8, map9, map10, map11, ignore, andThen
-    , orSucceed, orSucceedLazy, oneOf2, oneOf, backtrackable, commit
+    , orSucceed, orSucceedLazy, oneOf2, oneOf2Map, oneOf, backtrackable, commit
     , chompWhileWhitespace, nestableMultiComment
     , getChompedString, chompIf, chompAnyChar, chompIfFollowedBy, chompWhile, mapChompedString
     , withIndentSetToColumn, withIndent, columnIndentAndThen
     , mapWithStartPosition, mapWithEndPosition, mapWithStartAndEndPosition, columnAndThen, offsetSourceAndThen
-    , oneOf2Map
+    , mapOrSucceed
     )
 
 {-|
@@ -21,7 +21,7 @@ module ParserFast exposing
 
 @docs succeed, problem, succeedLazy, lazy, map, map2, map3, map4, map5, map6, map7, map8, map9, map10, map11, ignore, andThen
 
-@docs orSucceed, orSucceedLazy, oneOf2, oneOf, backtrackable, commit
+@docs orSucceed, orSucceedLazy, mapOrSucceedLazy, oneOf2, oneOf2Map, oneOf, backtrackable, commit
 
 
 # Whitespace
@@ -336,6 +336,11 @@ orSucceed =
 orSucceedLazy : Parser a -> (() -> a) -> Parser a
 orSucceedLazy =
     A.orSucceedLazy
+
+
+mapOrSucceed : (first -> choice) -> Parser first -> choice -> Parser choice
+mapOrSucceed =
+    A.mapOrSucceed
 
 
 oneOf2Map :
