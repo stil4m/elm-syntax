@@ -30,7 +30,7 @@ module ParserFast exposing
 
 # Chompers
 
-@docs getChompedString, chompIf, chompAnyChar, chompIfFollowedBy, chompWhile, mapChompedString
+@docs getChompedString, chompIf, chompAnyChar, chompIfFollowedBy, chompWhile, chompWhileMap, mapChompedString
 
 
 # Indentation, Positions and source
@@ -697,6 +697,11 @@ parsers peek ahead, making sure they are not followed by anything unexpected.
 chompWhile : (Char -> Bool) -> Parser ()
 chompWhile =
     A.chompWhile
+
+
+chompWhileMap : (Char -> Bool) -> (String -> res) -> Parser res
+chompWhileMap =
+    A.chompWhileMap
 
 
 {-| Specialized `chompWhile (\c -> c == " " || c == "\n" || c == "\r")`

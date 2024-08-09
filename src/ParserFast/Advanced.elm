@@ -5,7 +5,7 @@ module ParserFast.Advanced exposing
     , orSucceed, orSucceedLazy, oneOf2, oneOf, backtrackable
     , loop, Step(..)
     , chompWhileWhitespaceFollowedBy, nestableMultiComment
-    , getChompedString, chompIf, chompAnyChar, chompIfFollowedBy, chompWhile, mapChompedString
+    , getChompedString, chompIf, chompAnyChar, chompIfFollowedBy, chompWhile, chompWhileMap, mapChompedString
     , withIndent, withIndentSetToColumn
     , columnAndThen, columnIndentAndThen, offsetSourceAndThen, mapWithStartPosition, mapWithEndPosition, mapWithStartAndEndPosition
     )
@@ -33,7 +33,7 @@ module ParserFast.Advanced exposing
 
 # Chompers
 
-@docs getChompedString, chompIf, chompAnyChar, chompIfFollowedBy, chompWhile, mapChompedString
+@docs getChompedString, chompIf, chompAnyChar, chompIfFollowedBy, chompWhile, chompWhileMap, mapChompedString
 
 
 # Indentation, Positions and Source
@@ -1154,8 +1154,21 @@ chompWhile isGood =
                 s1 =
                     chompWhileHelp isGood s0.offset s0.row s0.col s0.src s0.indent
             in
+            Good (s1.offset > s0.offset) () s1
+        )
+
+
+chompWhileMap : (Char -> Bool) -> (String -> res) -> Parser x res
+chompWhileMap isGood chompedStringToRes =
+    Parser
+        (\s0 ->
+            let
+                s1 : State
+                s1 =
+                    chompWhileHelp isGood s0.offset s0.row s0.col s0.src s0.indent
+            in
             Good (s1.offset > s0.offset)
-                ()
+                (chompedStringToRes (String.slice s0.offset s1.offset s0.src))
                 s1
         )
 
