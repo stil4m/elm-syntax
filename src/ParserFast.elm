@@ -4,7 +4,7 @@ module ParserFast exposing
     , succeed, problem, succeedLazy, lazy, map, map2, map3, map4, map5, map6, map7, map8, map9, map10, map11, ignore, andThen
     , orSucceed, mapOrSucceed, orSucceedLazy, oneOf2, oneOf2Map, oneOf, backtrackable, commit
     , chompWhileWhitespaceFollowedBy, nestableMultiComment
-    , getChompedString, chompIf, chompAnyChar, chompIfFollowedBy, chompWhile, mapChompedString
+    , getChompedString, chompIf, chompAnyChar, chompIfFollowedBy, chompWhile, chompWhileMap, mapChompedString
     , withIndentSetToColumn, withIndent, columnIndentAndThen
     , mapWithStartPosition, mapWithEndPosition, mapWithStartAndEndPosition, columnAndThen, offsetSourceAndThen
     )
@@ -30,7 +30,7 @@ module ParserFast exposing
 
 # Chompers
 
-@docs getChompedString, chompIf, chompAnyChar, chompIfFollowedBy, chompWhile, mapChompedString
+@docs getChompedString, chompIf, chompAnyChar, chompIfFollowedBy, chompWhile, chompWhileMap, mapChompedString
 
 
 # Indentation, Positions and source
@@ -720,6 +720,11 @@ parsers peek ahead, making sure they are not followed by anything unexpected.
 chompWhile : (Char -> Bool) -> Parser ()
 chompWhile =
     A.chompWhile
+
+
+chompWhileMap : (Char -> Bool) -> (String -> res) -> Parser res
+chompWhileMap =
+    A.chompWhileMap
 
 
 {-| Specialized `chompWhile (\c -> c == " " || c == "\n" || c == "\r")`

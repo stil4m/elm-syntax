@@ -158,14 +158,8 @@ untilGlslEnd : Parser (Maybe String)
 untilGlslEnd =
     ParserFast.oneOf
         [ ParserFast.symbol "|]" Nothing
-        , ParserFast.mapChompedString
-            (\beforeVerticalBar () ->
-                Just beforeVerticalBar
-            )
-            (ParserFast.chompIfFollowedBy (\c -> c /= '|')
-                (ParserFast.chompWhile (\c -> c /= '|'))
-            )
         , ParserFast.symbol "|" (Just "|")
+        , ParserFast.chompWhileMap (\c -> c /= '|') Just
         ]
 
 

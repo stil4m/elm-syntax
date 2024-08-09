@@ -147,15 +147,8 @@ stringLiteralStep =
         , ParserFast.map
             (\v -> Just (String.fromChar v))
             (ParserFast.symbolFollowedBy "\\" escapedCharValue)
-        , ParserFast.mapChompedString
-            (\value () -> Just value)
-            chompWhileIsInsideString
+        , ParserFast.chompWhileMap (\c -> c /= '"' && c /= '\\') Just
         ]
-
-
-chompWhileIsInsideString : ParserFast.Parser ()
-chompWhileIsInsideString =
-    ParserFast.chompWhile (\c -> c /= '"' && c /= '\\')
 
 
 tripleQuotedStringLiteralStep : ParserFast.Parser (Maybe String)
@@ -165,8 +158,7 @@ tripleQuotedStringLiteralStep =
         , ParserFast.symbol "\"" (Just "\"")
         , ParserFast.map (\v -> Just (String.fromChar v))
             (ParserFast.symbolFollowedBy "\\" escapedCharValue)
-        , ParserFast.mapChompedString (\value () -> Just value)
-            chompWhileIsInsideString
+        , ParserFast.chompWhileMap (\c -> c /= '"' && c /= '\\') Just
         ]
 
 
