@@ -641,6 +641,23 @@ orSucceed (Parser attemptFirst) secondRes =
         )
 
 
+mapOrSucceed : (first -> choice) -> Parser x first -> choice -> Parser x choice
+mapOrSucceed firstToChoice (Parser attemptFirst) createSecondRes =
+    Parser
+        (\s0 ->
+            case attemptFirst s0 of
+                Good firstP first s1 ->
+                    Good firstP (firstToChoice first) s1
+
+                Bad firstCommitted firstX () ->
+                    if firstCommitted then
+                        Bad firstCommitted firstX ()
+
+                    else
+                        Good False createSecondRes s0
+        )
+
+
 orSucceedLazy : Parser x a -> (() -> a) -> Parser x a
 orSucceedLazy (Parser attemptFirst) createSecondRes =
     Parser

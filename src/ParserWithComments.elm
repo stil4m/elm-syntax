@@ -51,9 +51,10 @@ until end p =
 many : Parser (WithComments a) -> Parser (WithComments (List a))
 many p =
     ParserFast.Advanced.loop listEmptyWithCommentsTuple
-        (ParserFast.orSucceedLazy
-            (ParserFast.map Just p)
-            (\() -> Nothing)
+        (ParserFast.mapOrSucceed
+            Just
+            p
+            Nothing
         )
         (\extension ( commentsSoFar, itemsSoFar ) ->
             case extension of
@@ -117,9 +118,10 @@ Mind you the comments will be reversed either way
 manyWithoutReverse : Parser (WithComments a) -> Parser (WithComments (List a))
 manyWithoutReverse p =
     ParserFast.Advanced.loop listEmptyWithCommentsTuple
-        (ParserFast.orSucceedLazy
-            (ParserFast.map Just p)
-            (\() -> Nothing)
+        (ParserFast.mapOrSucceed
+            Just
+            p
+            Nothing
         )
         (\extension ( commentsSoFar, itemsSoFar ) ->
             case extension of
@@ -135,11 +137,6 @@ manyWithoutReverse p =
                         , pResult.syntax :: itemsSoFar
                         )
         )
-
-
-listEmptyWithComments : WithComments (List b)
-listEmptyWithComments =
-    { comments = Rope.empty, syntax = [] }
 
 
 sepBy1 : String -> Parser (WithComments a) -> Parser (WithComments (List a))
