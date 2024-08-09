@@ -2,12 +2,11 @@ module ParserFast exposing
     ( Parser, run
     , int, number, symbol, symbolFollowedBy, keyword, keywordFollowedBy, variable, variableWithoutReserved, end
     , succeed, problem, succeedLazy, lazy, map, map2, map3, map4, map5, map6, map7, map8, map9, map10, map11, ignore, andThen
-    , orSucceed, orSucceedLazy, oneOf2, oneOf2Map, oneOf, backtrackable, commit
-    , chompWhileWhitespace, nestableMultiComment
+    , orSucceed, mapOrSucceed, orSucceedLazy, oneOf2, oneOf2Map, oneOf, backtrackable, commit
+    , chompWhileWhitespaceFollowedBy, nestableMultiComment
     , getChompedString, chompIf, chompAnyChar, chompIfFollowedBy, chompWhile, mapChompedString
     , withIndentSetToColumn, withIndent, columnIndentAndThen
     , mapWithStartPosition, mapWithEndPosition, mapWithStartAndEndPosition, columnAndThen, offsetSourceAndThen
-    , mapOrSucceed
     )
 
 {-|
@@ -21,12 +20,12 @@ module ParserFast exposing
 
 @docs succeed, problem, succeedLazy, lazy, map, map2, map3, map4, map5, map6, map7, map8, map9, map10, map11, ignore, andThen
 
-@docs orSucceed, orSucceedLazy, mapOrSucceedLazy, oneOf2, oneOf2Map, oneOf, backtrackable, commit
+@docs orSucceed, mapOrSucceed, orSucceedLazy, oneOf2, oneOf2Map, oneOf, backtrackable, commit
 
 
 # Whitespace
 
-@docs chompWhileWhitespace, nestableMultiComment
+@docs chompWhileWhitespaceFollowedBy, nestableMultiComment
 
 
 # Chompers
@@ -726,9 +725,9 @@ chompWhile =
 {-| Specialized `chompWhile (\c -> c == " " || c == "\n" || c == "\r")`
 optimized for speed
 -}
-chompWhileWhitespace : Parser ()
-chompWhileWhitespace =
-    A.chompWhileWhitespace
+chompWhileWhitespaceFollowedBy : Parser next -> Parser next
+chompWhileWhitespaceFollowedBy =
+    A.chompWhileWhitespaceFollowedBy
 
 
 {-| Some languages are indentation sensitive. Python cares about tabs. Elm

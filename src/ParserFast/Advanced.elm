@@ -4,7 +4,7 @@ module ParserFast.Advanced exposing
     , succeed, problem, succeedLazy, lazy, map, map2, map3, map4, map5, map6, map7, map8, map9, map10, map11, andThen, ignore
     , orSucceed, orSucceedLazy, mapOrSucceed, oneOf2, oneOf2Map, oneOf, backtrackable, commit
     , loop, Step(..)
-    , chompWhileWhitespace, nestableMultiComment
+    , chompWhileWhitespaceFollowedBy, nestableMultiComment
     , getChompedString, chompIf, chompAnyChar, chompIfFollowedBy, chompWhile, mapChompedString
     , withIndent, withIndentSetToColumn
     , columnAndThen, columnIndentAndThen, offsetSourceAndThen, mapWithStartPosition, mapWithEndPosition, mapWithStartAndEndPosition
@@ -28,7 +28,7 @@ module ParserFast.Advanced exposing
 
 # Whitespace
 
-@docs chompWhileWhitespace, nestableMultiComment
+@docs chompWhileWhitespaceFollowedBy, nestableMultiComment
 
 
 # Chompers
@@ -1241,8 +1241,8 @@ chompAnyChar expecting =
         )
 
 
-chompWhileWhitespace : Parser x ()
-chompWhileWhitespace =
+chompWhileWhitespaceFollowedBy : Parser x next -> Parser x next
+chompWhileWhitespaceFollowedBy (Parser parseNext) =
     Parser
         (\s0 ->
             let
@@ -1250,9 +1250,12 @@ chompWhileWhitespace =
                 s1 =
                     chompWhileWhitespaceHelp s0.offset s0.row s0.col s0.src s0.indent
             in
-            Good (s1.offset > s0.offset)
-                ()
-                s1
+            if s1.offset > s0.offset then
+                parseNext s1
+                    |> pStepCommit
+
+            else
+                parseNext s1
         )
 
 
