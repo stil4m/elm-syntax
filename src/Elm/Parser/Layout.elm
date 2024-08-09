@@ -32,61 +32,46 @@ maybeLayoutUntilIgnored endParser endSymbol =
 
 whitespaceAndCommentsUntilEndComments : Parser Comments -> Parser Comments
 whitespaceAndCommentsUntilEndComments end =
-    let
-        fromSingleLineCommentUntilEnd : Parser Comments
-        fromSingleLineCommentUntilEnd =
-            ParserFast.map2
+    ParserFast.chompWhileWhitespaceFollowedBy
+        (ParserFast.oneOf
+            [ end
+            , ParserFast.map2
                 (\content commentsAfter ->
                     Rope.one content
                         |> Rope.filledPrependTo commentsAfter
                 )
                 (Node.parserCore Comments.singleLineCommentCore)
                 (ParserFast.lazy (\() -> whitespaceAndCommentsUntilEndComments end))
-
-        fromMultilineCommentNodeUntilEnd : Parser Comments
-        fromMultilineCommentNodeUntilEnd =
-            ParserFast.map2
+            , ParserFast.map2
                 (\comment commentsAfter ->
                     Rope.one comment |> Rope.filledPrependTo commentsAfter
                 )
                 (Node.parserCore Comments.multilineCommentString)
                 (ParserFast.lazy (\() -> whitespaceAndCommentsUntilEndComments end))
-
-        endOrFromCommentElseEmptyThenEnd : Parser Comments
-        endOrFromCommentElseEmptyThenEnd =
-            ParserFast.oneOf
-                [ end
-                , fromSingleLineCommentUntilEnd
-                , fromMultilineCommentNodeUntilEnd
-                ]
-    in
-    ParserFast.chompWhileWhitespaceFollowedBy
-        endOrFromCommentElseEmptyThenEnd
+            ]
+        )
 
 
 whitespaceAndCommentsOrEmpty : Parser Comments
 whitespaceAndCommentsOrEmpty =
     ParserFast.chompWhileWhitespaceFollowedBy
         -- whitespace can't be followed by more whitespace
-        fromCommentElseEmpty
+        --
+        -- since comments are comparatively rare
+        -- but expensive to check for, we allow shortcutting to dead end
+        (ParserFast.offsetSourceAndThen
+            (\offset source ->
+                case source |> String.slice offset (offset + 2) of
+                    "--" ->
+                        -- this will always succeed from here, so no need to fall back to Rope.empty
+                        fromSingleLineCommentNode
 
+                    "{-" ->
+                        fromMultilineCommentNodeOrEmptyOnProblem
 
-fromCommentElseEmpty : Parser Comments
-fromCommentElseEmpty =
-    -- since comments are comparatively rare
-    -- but expensive to check for, we allow shortcutting to dead end
-    ParserFast.offsetSourceAndThen
-        (\offset source ->
-            case source |> String.slice offset (offset + 2) of
-                "--" ->
-                    -- this will always succeed from here, so no need to fall back to Rope.empty
-                    fromSingleLineCommentNode
-
-                "{-" ->
-                    fromMultilineCommentNodeOrEmptyOnProblem
-
-                _ ->
-                    succeedRopeEmpty
+                    _ ->
+                        succeedRopeEmpty
+            )
         )
 
 
