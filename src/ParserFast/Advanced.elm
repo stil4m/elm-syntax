@@ -1282,6 +1282,11 @@ revAlways _ b =
 
 nestableMultiComment : String -> x -> String -> x -> Parser x ()
 nestableMultiComment oStr oX cStr cX =
+    let
+        closingSymbol : Parser x ()
+        closingSymbol =
+            symbol cStr cX ()
+    in
     case String.uncons oStr of
         Nothing ->
             problem oX
@@ -1301,7 +1306,7 @@ nestableMultiComment oStr oX cStr cX =
                         chompOpen =
                             symbol oStr oX ()
                     in
-                    ignore chompOpen (nestableHelp isNotRelevant chompOpen (symbol cStr cX ()) cX 1)
+                    ignore chompOpen (nestableHelp isNotRelevant chompOpen closingSymbol cX 1)
 
 
 nestableHelp : (Char -> Bool) -> Parser x () -> Parser x () -> x -> Int -> Parser x ()
