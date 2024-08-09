@@ -1081,7 +1081,7 @@ number c =
     in
     Parser
         (\state ->
-            case Parser.Advanced.run parserAdvancedNumberAndStringLength (String.dropLeft state.offset state.src) of
+            case Parser.Advanced.run parserAdvancedNumberAndStringLength (String.slice state.offset (String.length state.src) state.src) of
                 Ok result ->
                     Good False result.number (stateAddLengthToOffsetAndColumn result.length state)
 
@@ -1436,7 +1436,8 @@ nestableMultiComment oStr oX cStr cX =
                         isNotRelevant char =
                             char /= openChar && char /= closeChar
                     in
-                    ignore openingSymbol (nestableHelp isNotRelevant openingSymbol closingSymbol cX 1)
+                    ignore openingSymbol
+                        (nestableHelp isNotRelevant openingSymbol closingSymbol cX 1)
 
 
 nestableHelp : (Char -> Bool) -> Parser x () -> Parser x () -> x -> Int -> Parser x ()
