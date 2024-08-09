@@ -24,69 +24,49 @@ type alias Comments =
 
 until : Parser () -> Parser (WithComments a) -> Parser (WithComments (List a))
 until end p =
-    let
-        step :
-            ( Comments, List a )
-            ->
-                ParserFast.Parser
-                    (ParserFast.Advanced.Step
-                        ( Comments, List a )
-                        (WithComments (List a))
-                    )
-        step ( commentsSoFar, itemsSoFar ) =
-            ParserFast.oneOf2
-                (ParserFast.map
-                    (\() ->
-                        ParserFast.Advanced.Done
-                            { comments = commentsSoFar
-                            , syntax = List.reverse itemsSoFar
-                            }
-                    )
-                    end
-                )
-                (ParserFast.map
-                    (\pResult ->
-                        ParserFast.Advanced.Loop
-                            ( commentsSoFar |> Rope.prependTo pResult.comments
-                            , pResult.syntax :: itemsSoFar
-                            )
-                    )
-                    p
-                )
-    in
-    ParserFast.Advanced.loop listEmptyWithCommentsTuple step
-
-
-many : Parser (WithComments a) -> Parser (WithComments (List a))
-many p =
-    let
-        step :
-            ( Comments, List a )
-            ->
-                ParserFast.Parser
-                    (ParserFast.Advanced.Step
-                        ( Comments, List a )
-                        (WithComments (List a))
-                    )
-        step ( commentsSoFar, itemsSoFar ) =
-            ParserFast.orSucceedLazy
-                (ParserFast.map
-                    (\pResult ->
-                        ParserFast.Advanced.Loop
-                            ( commentsSoFar |> Rope.prependTo pResult.comments
-                            , pResult.syntax :: itemsSoFar
-                            )
-                    )
-                    p
-                )
-                (\() ->
+    ParserFast.Advanced.loop
+        listEmptyWithCommentsTuple
+        (ParserFast.oneOf2
+            (ParserFast.map (\() -> Nothing) end)
+            (ParserFast.map Just p)
+        )
+        (\extension ( commentsSoFar, itemsSoFar ) ->
+            case extension of
+                Nothing ->
                     ParserFast.Advanced.Done
                         { comments = commentsSoFar
                         , syntax = List.reverse itemsSoFar
                         }
-                )
-    in
-    ParserFast.Advanced.loop listEmptyWithCommentsTuple step
+
+                Just pResult ->
+                    ParserFast.Advanced.Loop
+                        ( commentsSoFar |> Rope.prependTo pResult.comments
+                        , pResult.syntax :: itemsSoFar
+                        )
+        )
+
+
+many : Parser (WithComments a) -> Parser (WithComments (List a))
+many p =
+    ParserFast.Advanced.loop listEmptyWithCommentsTuple
+        (ParserFast.orSucceedLazy
+            (ParserFast.map Just p)
+            (\() -> Nothing)
+        )
+        (\extension ( commentsSoFar, itemsSoFar ) ->
+            case extension of
+                Nothing ->
+                    ParserFast.Advanced.Done
+                        { comments = commentsSoFar
+                        , syntax = List.reverse itemsSoFar
+                        }
+
+                Just pResult ->
+                    ParserFast.Advanced.Loop
+                        ( commentsSoFar |> Rope.prependTo pResult.comments
+                        , pResult.syntax :: itemsSoFar
+                        )
+        )
 
 
 listEmptyWithCommentsTuple : ( Rope a, List b )
@@ -102,29 +82,26 @@ Mind you the comments will be reversed either way
 -}
 untilWithoutReverse : Parser () -> Parser (WithComments a) -> Parser (WithComments (List a))
 untilWithoutReverse end p =
-    let
-        withoutReverseStep :
-            WithComments (List a)
-            ->
-                ParserFast.Parser
-                    (ParserFast.Advanced.Step
-                        (WithComments (List a))
-                        (WithComments (List a))
-                    )
-        withoutReverseStep soFar =
-            ParserFast.oneOf2
-                (ParserFast.map (\() -> ParserFast.Advanced.Done soFar) end)
-                (ParserFast.map
-                    (\pResult ->
-                        ParserFast.Advanced.Loop
-                            { comments = soFar.comments |> Rope.prependTo pResult.comments
-                            , syntax = pResult.syntax :: soFar.syntax
-                            }
-                    )
-                    p
-                )
-    in
-    ParserFast.Advanced.loop listEmptyWithComments withoutReverseStep
+    ParserFast.Advanced.loop
+        listEmptyWithCommentsTuple
+        (ParserFast.oneOf2
+            (ParserFast.map (\() -> Nothing) end)
+            (ParserFast.map Just p)
+        )
+        (\extension ( commentsSoFar, itemsSoFar ) ->
+            case extension of
+                Nothing ->
+                    ParserFast.Advanced.Done
+                        { comments = commentsSoFar
+                        , syntax = itemsSoFar
+                        }
+
+                Just pResult ->
+                    ParserFast.Advanced.Loop
+                        ( commentsSoFar |> Rope.prependTo pResult.comments
+                        , pResult.syntax :: itemsSoFar
+                        )
+        )
 
 
 {-| Same as [`many`](#many), except that it doesn't reverse the list.
@@ -135,29 +112,25 @@ Mind you the comments will be reversed either way
 -}
 manyWithoutReverse : Parser (WithComments a) -> Parser (WithComments (List a))
 manyWithoutReverse p =
-    let
-        withoutReverseStep :
-            WithComments (List a)
-            ->
-                ParserFast.Parser
-                    (ParserFast.Advanced.Step
-                        (WithComments (List a))
-                        (WithComments (List a))
-                    )
-        withoutReverseStep soFar =
-            ParserFast.orSucceed
-                (ParserFast.map
-                    (\pResult ->
-                        ParserFast.Advanced.Loop
-                            { comments = soFar.comments |> Rope.prependTo pResult.comments
-                            , syntax = pResult.syntax :: soFar.syntax
-                            }
-                    )
-                    p
-                )
-                (ParserFast.Advanced.Done soFar)
-    in
-    ParserFast.Advanced.loop listEmptyWithComments withoutReverseStep
+    ParserFast.Advanced.loop listEmptyWithCommentsTuple
+        (ParserFast.orSucceedLazy
+            (ParserFast.map Just p)
+            (\() -> Nothing)
+        )
+        (\extension ( commentsSoFar, itemsSoFar ) ->
+            case extension of
+                Nothing ->
+                    ParserFast.Advanced.Done
+                        { comments = commentsSoFar
+                        , syntax = itemsSoFar
+                        }
+
+                Just pResult ->
+                    ParserFast.Advanced.Loop
+                        ( commentsSoFar |> Rope.prependTo pResult.comments
+                        , pResult.syntax :: itemsSoFar
+                        )
+        )
 
 
 listEmptyWithComments : WithComments (List b)

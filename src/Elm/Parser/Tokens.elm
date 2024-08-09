@@ -114,23 +114,41 @@ singleOrTripleQuotedStringLiteral =
     ParserFast.symbolFollowedBy "\""
         (ParserFast.oneOf2
             (ParserFast.symbolFollowedBy "\"\""
-                (ParserFast.Advanced.loop "" tripleQuotedStringLiteralStep)
+                (ParserFast.Advanced.loop ""
+                    tripleQuotedStringLiteralStep
+                    (\maybeExtension soFar ->
+                        case maybeExtension of
+                            Nothing ->
+                                ParserFast.Advanced.Done soFar
+
+                            Just extension ->
+                                ParserFast.Advanced.Loop (soFar ++ extension ++ "")
+                    )
+                )
             )
-            (ParserFast.Advanced.loop "" stringLiteralHelper)
+            (ParserFast.Advanced.loop ""
+                stringLiteralStep
+                (\maybeExtension soFar ->
+                    case maybeExtension of
+                        Nothing ->
+                            ParserFast.Advanced.Done soFar
+
+                        Just extension ->
+                            ParserFast.Advanced.Loop (soFar ++ extension ++ "")
+                )
+            )
         )
 
 
-stringLiteralHelper : String -> ParserFast.Parser (ParserFast.Advanced.Step String String)
-stringLiteralHelper stringSoFar =
+stringLiteralStep : ParserFast.Parser (Maybe String)
+stringLiteralStep =
     ParserFast.oneOf
-        [ ParserFast.symbol "\"" (ParserFast.Advanced.Done stringSoFar)
+        [ ParserFast.symbol "\"" Nothing
         , ParserFast.map
-            (\v ->
-                ParserFast.Advanced.Loop (stringSoFar ++ String.fromChar v ++ "")
-            )
+            (\v -> Just (String.fromChar v))
             (ParserFast.symbolFollowedBy "\\" escapedCharValue)
         , ParserFast.mapChompedString
-            (\value () -> ParserFast.Advanced.Loop (stringSoFar ++ value ++ ""))
+            (\value () -> Just value)
             chompWhileIsInsideString
         ]
 
@@ -140,18 +158,14 @@ chompWhileIsInsideString =
     ParserFast.chompWhile (\c -> c /= '"' && c /= '\\')
 
 
-tripleQuotedStringLiteralStep : String -> ParserFast.Parser (ParserFast.Advanced.Step String String)
-tripleQuotedStringLiteralStep stringSoFar =
+tripleQuotedStringLiteralStep : ParserFast.Parser (Maybe String)
+tripleQuotedStringLiteralStep =
     ParserFast.oneOf
-        [ ParserFast.symbol "\"\"\"" (ParserFast.Advanced.Done stringSoFar)
-        , ParserFast.symbol "\"" (ParserFast.Advanced.Loop (stringSoFar ++ "\""))
-        , ParserFast.map
-            (\v ->
-                ParserFast.Advanced.Loop (stringSoFar ++ String.fromChar v ++ "")
-            )
+        [ ParserFast.symbol "\"\"\"" Nothing
+        , ParserFast.symbol "\"" (Just "\"")
+        , ParserFast.map (\v -> Just (String.fromChar v))
             (ParserFast.symbolFollowedBy "\\" escapedCharValue)
-        , ParserFast.mapChompedString
-            (\value () -> ParserFast.Advanced.Loop (stringSoFar ++ value ++ ""))
+        , ParserFast.mapChompedString (\value () -> Just value)
             chompWhileIsInsideString
         ]
 

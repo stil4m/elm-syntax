@@ -140,22 +140,32 @@ glslExpressionAfterOpeningSquareBracket =
                         (GLSLExpression s)
                 }
             )
-            (ParserFast.Advanced.loop "" untilGlslEnd)
+            (ParserFast.Advanced.loop ""
+                untilGlslEnd
+                (\maybeExtension soFar ->
+                    case maybeExtension of
+                        Nothing ->
+                            ParserFast.Advanced.Done soFar
+
+                        Just extension ->
+                            ParserFast.Advanced.Loop (soFar ++ extension ++ "")
+                )
+            )
         )
 
 
-untilGlslEnd : String -> Parser (ParserFast.Advanced.Step String String)
-untilGlslEnd soFar =
+untilGlslEnd : Parser (Maybe String)
+untilGlslEnd =
     ParserFast.oneOf
-        [ ParserFast.symbol "|]" (ParserFast.Advanced.Done soFar)
+        [ ParserFast.symbol "|]" Nothing
         , ParserFast.mapChompedString
             (\beforeVerticalBar () ->
-                ParserFast.Advanced.Loop (soFar ++ beforeVerticalBar)
+                Just beforeVerticalBar
             )
             (ParserFast.chompIfFollowedBy (\c -> c /= '|')
                 (ParserFast.chompWhile (\c -> c /= '|'))
             )
-        , ParserFast.symbol "|" (ParserFast.Advanced.Loop (soFar ++ "|"))
+        , ParserFast.symbol "|" (Just "|")
         ]
 
 
@@ -997,16 +1007,9 @@ subExpressionMap :
     -> Parser (WithComments (Node Expression))
 subExpressionMap aboveCurrentPrecedenceLayout =
     let
-        step :
-            WithComments (Node Expression)
-            ->
-                Parser
-                    (ParserFast.Advanced.Step
-                        (WithComments (Node Expression))
-                        (WithComments (Node Expression))
-                    )
-        step leftExpressionResult =
-            subExpressionLoopStep aboveCurrentPrecedenceLayout leftExpressionResult
+        step : Parser (Maybe (WithComments ExtensionRight))
+        step =
+            subExpressionLoopStep aboveCurrentPrecedenceLayout
     in
     ParserFast.map3
         (\commentsBefore leftExpressionResult commentsAfter ->
@@ -1021,7 +1024,27 @@ subExpressionMap aboveCurrentPrecedenceLayout =
         (ParserFast.lazy (\() -> subExpression))
         Layout.optimisticLayout
         |> ParserFast.andThen
-            (\leftExpression -> ParserFast.Advanced.loop leftExpression step)
+            (\leftExpression ->
+                ParserFast.Advanced.loop leftExpression
+                    step
+                    applyMaybeExtensionRightWithComments
+            )
+
+
+applyMaybeExtensionRightWithComments :
+    Maybe (WithComments ExtensionRight)
+    -> WithComments (Node Expression)
+    -> ParserFast.Advanced.Step (WithComments (Node Expression)) (WithComments (Node Expression))
+applyMaybeExtensionRightWithComments maybeExtensionRight leftExpression =
+    case maybeExtensionRight of
+        Nothing ->
+            ParserFast.Advanced.Done leftExpression
+
+        Just extensionRight ->
+            ParserFast.Advanced.Loop
+                { comments = leftExpression.comments |> Rope.prependTo extensionRight.comments
+                , syntax = leftExpression.syntax |> applyExtensionRight extensionRight.syntax
+                }
 
 
 extendedSubExpressionWithoutInitialLayout :
@@ -1029,16 +1052,9 @@ extendedSubExpressionWithoutInitialLayout :
     -> Parser (WithComments (Node Expression))
 extendedSubExpressionWithoutInitialLayout aboveCurrentPrecedenceLayout =
     let
-        step :
-            WithComments (Node Expression)
-            ->
-                Parser
-                    (ParserFast.Advanced.Step
-                        (WithComments (Node Expression))
-                        (WithComments (Node Expression))
-                    )
-        step leftExpressionResult =
-            subExpressionLoopStep aboveCurrentPrecedenceLayout leftExpressionResult
+        step : Parser (Maybe (WithComments ExtensionRight))
+        step =
+            subExpressionLoopStep aboveCurrentPrecedenceLayout
     in
     ParserFast.map2
         (\leftExpressionResult commentsAfter ->
@@ -1051,36 +1067,31 @@ extendedSubExpressionWithoutInitialLayout aboveCurrentPrecedenceLayout =
         (ParserFast.lazy (\() -> subExpression))
         Layout.optimisticLayout
         |> ParserFast.andThen
-            (\leftExpression -> ParserFast.Advanced.loop leftExpression step)
+            (\leftExpression ->
+                ParserFast.Advanced.loop leftExpression
+                    step
+                    applyMaybeExtensionRightWithComments
+            )
 
 
 subExpressionLoopStep :
     Parser (WithComments ExtensionRight)
-    -> WithComments (Node Expression)
-    ->
-        Parser
-            (ParserFast.Advanced.Step
-                (WithComments (Node Expression))
-                (WithComments (Node Expression))
-            )
-subExpressionLoopStep aboveCurrentPrecedenceLayout leftExpressionResult =
+    -> Parser (Maybe (WithComments ExtensionRight))
+subExpressionLoopStep aboveCurrentPrecedenceLayout =
     ParserFast.orSucceed
         (ParserFast.map2
             (\extensionRight commentsAfter ->
-                { comments =
-                    leftExpressionResult.comments
-                        |> Rope.prependTo extensionRight.comments
-                        |> Rope.prependTo commentsAfter
-                , syntax =
-                    leftExpressionResult.syntax
-                        |> applyExtensionRight extensionRight.syntax
-                }
-                    |> ParserFast.Advanced.Loop
+                Just
+                    { comments =
+                        extensionRight.comments
+                            |> Rope.prependTo commentsAfter
+                    , syntax = extensionRight.syntax
+                    }
             )
             aboveCurrentPrecedenceLayout
             Layout.optimisticLayout
         )
-        (ParserFast.Advanced.Done leftExpressionResult)
+        Nothing
 
 
 applyExtensionRight : ExtensionRight -> Node Expression -> Node Expression
