@@ -1416,6 +1416,10 @@ nestableMultiComment oStr oX cStr cX =
         closingSymbol : Parser x ()
         closingSymbol =
             symbol cStr cX ()
+
+        openingSymbol : Parser x ()
+        openingSymbol =
+            symbol oStr oX ()
     in
     case String.uncons oStr of
         Nothing ->
@@ -1431,12 +1435,8 @@ nestableMultiComment oStr oX cStr cX =
                         isNotRelevant : Char -> Bool
                         isNotRelevant char =
                             char /= openChar && char /= closeChar
-
-                        chompOpen : Parser x ()
-                        chompOpen =
-                            symbol oStr oX ()
                     in
-                    ignore chompOpen (nestableHelp isNotRelevant chompOpen closingSymbol cX 1)
+                    ignore openingSymbol (nestableHelp isNotRelevant openingSymbol closingSymbol cX 1)
 
 
 nestableHelp : (Char -> Bool) -> Parser x () -> Parser x () -> x -> Int -> Parser x ()
