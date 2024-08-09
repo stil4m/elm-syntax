@@ -58,7 +58,7 @@ whitespaceAndCommentsOrEmpty =
         -- whitespace can't be followed by more whitespace
         --
         -- since comments are comparatively rare
-        -- but expensive to check for, we allow shortcutting to dead end
+        -- but expensive to check for, we allow shortcutting
         (ParserFast.offsetSourceAndThen
             (\offset source ->
                 case source |> String.slice offset (offset + 2) of
