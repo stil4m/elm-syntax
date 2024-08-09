@@ -593,6 +593,37 @@ oneOf2 (Parser attemptFirst) (Parser attemptSecond) =
         )
 
 
+oneOf2Map :
+    (first -> choice)
+    -> Parser x first
+    -> (second -> choice)
+    -> Parser x second
+    -> Parser x choice
+oneOf2Map firstToChoice (Parser attemptFirst) secondToChoice (Parser attemptSecond) =
+    Parser
+        (\s ->
+            case attemptFirst s of
+                Good firstCommitted first s1 ->
+                    Good firstCommitted (firstToChoice first) s1
+
+                Bad p0 firstX () ->
+                    if p0 then
+                        Bad p0 firstX ()
+
+                    else
+                        case attemptSecond s of
+                            Good secondCommitted second s1 ->
+                                Good secondCommitted (secondToChoice second) s1
+
+                            Bad secondCommitted secondX () ->
+                                if secondCommitted then
+                                    Bad secondCommitted secondX ()
+
+                                else
+                                    Bad False (Append (Append Empty firstX) secondX) ()
+        )
+
+
 orSucceed : Parser x a -> a -> Parser x a
 orSucceed (Parser attemptFirst) secondRes =
     Parser

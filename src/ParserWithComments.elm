@@ -26,9 +26,11 @@ until : Parser () -> Parser (WithComments a) -> Parser (WithComments (List a))
 until end p =
     ParserFast.Advanced.loop
         listEmptyWithCommentsTuple
-        (ParserFast.oneOf2
-            (ParserFast.map (\() -> Nothing) end)
-            (ParserFast.map Just p)
+        (ParserFast.oneOf2Map
+            (\() -> Nothing)
+            end
+            Just
+            p
         )
         (\extension ( commentsSoFar, itemsSoFar ) ->
             case extension of
@@ -84,9 +86,11 @@ untilWithoutReverse : Parser () -> Parser (WithComments a) -> Parser (WithCommen
 untilWithoutReverse end p =
     ParserFast.Advanced.loop
         listEmptyWithCommentsTuple
-        (ParserFast.oneOf2
-            (ParserFast.map (\() -> Nothing) end)
-            (ParserFast.map Just p)
+        (ParserFast.oneOf2Map
+            (\() -> Nothing)
+            end
+            Just
+            p
         )
         (\extension ( commentsSoFar, itemsSoFar ) ->
             case extension of
