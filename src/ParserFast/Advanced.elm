@@ -711,23 +711,19 @@ cannot do it indefinitely. So `loop` is important because enables tail-call
 elimination, allowing you to parse however many repeats you want.
 
 -}
-loop : state -> (state -> Parser x (Step state a)) -> Parser x a
-loop state callback =
+loop : state -> Parser x extension -> (extension -> state -> Step state a) -> Parser x a
+loop state element reduce =
     Parser
-        (\s -> loopHelp False state callback s)
+        (\s -> loopHelp False state element reduce s)
 
 
-loopHelp : Bool -> state -> (state -> Parser x (Step state a)) -> State -> PStep x a
-loopHelp p state callback s0 =
-    let
-        (Parser parse) =
-            callback state
-    in
-    case parse s0 of
+loopHelp : Bool -> state -> Parser x extension -> (extension -> state -> Step state a) -> State -> PStep x a
+loopHelp p state ((Parser parseElement) as element) reduce s0 =
+    case parseElement s0 of
         Good p1 step s1 ->
-            case step of
+            case reduce step state of
                 Loop newState ->
-                    loopHelp (p || p1) newState callback s1
+                    loopHelp (p || p1) newState element reduce s1
 
                 Done result ->
                     Good (p || p1) result s1
