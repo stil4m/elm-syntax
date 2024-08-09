@@ -1144,8 +1144,9 @@ variable :
     , reserved : Set.Set String
     , start : Char -> Bool
     }
+    -> x
     -> Parser x String
-variable i =
+variable i expecting =
     Parser
         (\s ->
             let
@@ -1154,7 +1155,7 @@ variable i =
                     isSubChar i.start s.offset s.src
             in
             if firstOffset == -1 then
-                Bad False (fromState s i.expecting) ()
+                Bad False (fromState s expecting) ()
 
             else
                 let
@@ -1171,7 +1172,7 @@ variable i =
                         String.slice s.offset s1.offset s.src
                 in
                 if Set.member name i.reserved then
-                    Bad False (fromState s i.expecting) ()
+                    Bad False (fromState s expecting) ()
 
                 else
                     Good True name s1
@@ -1181,10 +1182,10 @@ variable i =
 variableWithoutReserved :
     { start : Char -> Bool
     , inner : Char -> Bool
-    , expecting : x
     }
+    -> x
     -> Parser x String
-variableWithoutReserved i =
+variableWithoutReserved i expecting =
     Parser
         (\s ->
             let
@@ -1193,7 +1194,7 @@ variableWithoutReserved i =
                     isSubChar i.start s.offset s.src
             in
             if firstOffset == -1 then
-                Bad False (fromState s i.expecting) ()
+                Bad False (fromState s expecting) ()
 
             else
                 let

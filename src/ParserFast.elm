@@ -776,11 +776,8 @@ variableWithoutReserved :
     }
     -> Parser String
 variableWithoutReserved i =
-    A.variableWithoutReserved
-        { start = i.start
-        , inner = i.inner
-        , expecting = Parser.ExpectingVariable
-        }
+    A.variableWithoutReserved i
+        Parser.ExpectingVariable
 
 
 {-| Parse multi-line comments. So if you wanted to parse Elm whitespace or
