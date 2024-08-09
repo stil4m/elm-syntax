@@ -1495,7 +1495,6 @@ isSubChar predicate offset string =
 
 charOrEnd : Int -> String -> Int
 charOrEnd offset string =
-    -- https://github.com/elm/parser/blob/1.1.0/src/Elm/Kernel/Parser.js#L37
     let
         actualChar : String
         actualChar =
