@@ -2,7 +2,7 @@ module ParserFast.Advanced exposing
     ( Parser, run
     , number, symbol, symbolFollowedBy, keyword, keywordFollowedBy, variable, variableWithoutReserved, end
     , succeed, problem, succeedLazy, lazy, map, map2, map3, map4, map5, map6, map7, map8, map9, map10, map11, andThen, ignore
-    , orSucceed, orSucceedLazy, oneOf2, oneOf, backtrackable, commit
+    , orSucceed, orSucceedLazy, oneOf2, oneOf2Map, oneOf, backtrackable, commit
     , loop, Step(..)
     , chompWhileWhitespace, nestableMultiComment
     , getChompedString, chompIf, chompAnyChar, chompIfFollowedBy, chompWhile, mapChompedString
@@ -21,7 +21,7 @@ module ParserFast.Advanced exposing
 
 @docs succeed, problem, succeedLazy, lazy, map, map2, map3, map4, map5, map6, map7, map8, map9, map10, map11, andThen, ignore
 
-@docs orSucceed, orSucceedLazy, oneOf2, oneOf, backtrackable, commit
+@docs orSucceed, orSucceedLazy, oneOf2, oneOf2Map, oneOf, backtrackable, commit
 
 @docs loop, Step
 
@@ -712,6 +712,37 @@ oneOf2 (Parser attemptFirst) (Parser attemptSecond) =
                             (Bad secondCommitted secondX ()) as secondPStep ->
                                 if secondCommitted then
                                     secondPStep
+
+                                else
+                                    Bad False (Append (Append Empty firstX) secondX) ()
+        )
+
+
+oneOf2Map :
+    (first -> choice)
+    -> Parser x first
+    -> (second -> choice)
+    -> Parser x second
+    -> Parser x choice
+oneOf2Map firstToChoice (Parser attemptFirst) secondToChoice (Parser attemptSecond) =
+    Parser
+        (\s ->
+            case attemptFirst s of
+                Good firstCommitted first s1 ->
+                    Good firstCommitted (firstToChoice first) s1
+
+                Bad p0 firstX () ->
+                    if p0 then
+                        Bad p0 firstX ()
+
+                    else
+                        case attemptSecond s of
+                            Good secondCommitted second s1 ->
+                                Good secondCommitted (secondToChoice second) s1
+
+                            Bad secondCommitted secondX () ->
+                                if secondCommitted then
+                                    Bad secondCommitted secondX ()
 
                                 else
                                     Bad False (Append (Append Empty firstX) secondX) ()

@@ -164,17 +164,16 @@ recordTypeAnnotation =
                 )
                 (Node.parserCore Tokens.functionName)
                 Layout.maybeLayout
-                (ParserFast.oneOf2
-                    (ParserFast.map
-                        (\extension ->
-                            { comments = extension.comments
-                            , syntax = RecordExtensionExpressionAfterName extension.syntax
-                            }
-                        )
-                        (ParserFast.symbolFollowedBy "|"
-                            (Node.parser recordFieldsTypeAnnotation)
-                        )
+                (ParserFast.oneOf2Map
+                    (\extension ->
+                        { comments = extension.comments
+                        , syntax = RecordExtensionExpressionAfterName extension.syntax
+                        }
                     )
+                    (ParserFast.symbolFollowedBy "|"
+                        (Node.parser recordFieldsTypeAnnotation)
+                    )
+                    Basics.identity
                     (ParserFast.map4
                         (\commentsBeforeFirstFieldValue firstFieldValue commentsAfterFirstFieldValue tailFields ->
                             { comments =

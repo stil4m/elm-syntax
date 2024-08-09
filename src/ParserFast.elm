@@ -7,6 +7,7 @@ module ParserFast exposing
     , getChompedString, chompIf, chompAnyChar, chompIfFollowedBy, chompWhile, mapChompedString
     , withIndentSetToColumn, withIndent, columnIndentAndThen
     , mapWithStartPosition, mapWithEndPosition, mapWithStartAndEndPosition, columnAndThen, offsetSourceAndThen
+    , oneOf2Map
     )
 
 {-|
@@ -335,6 +336,16 @@ orSucceed =
 orSucceedLazy : Parser a -> (() -> a) -> Parser a
 orSucceedLazy =
     A.orSucceedLazy
+
+
+oneOf2Map :
+    (first -> choice)
+    -> Parser first
+    -> (second -> choice)
+    -> Parser second
+    -> Parser choice
+oneOf2Map =
+    A.oneOf2Map
 
 
 oneOf2 : Parser a -> Parser a -> Parser a
