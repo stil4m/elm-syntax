@@ -43,7 +43,7 @@ andThenOneOf =
     -- TODO Add tests for all operators
     -- TODO Report a syntax error when encountering multiple of the comparison operators
     -- `a < b < c` is not valid Elm syntax
-    [ recordAccess
+    [ recordAccessOptimisticLayout
     , infixLeft 1 (ParserFast.lazy (\() -> abovePrecedence1)) "|>"
     , infixRight 5 (ParserFast.lazy (\() -> abovePrecedence4)) "++"
     , infixRight 1 (ParserFast.lazy (\() -> abovePrecedence0)) "<|"
@@ -80,20 +80,20 @@ expression =
     subExpressionMap abovePrecedence0
 
 
-recordAccess : ( Int, Parser (WithComments ExtensionRight) )
-recordAccess =
-    postfix 100 recordAccessParser
+recordAccessOptimisticLayout : ( Int, Parser (WithComments ExtensionRight) )
+recordAccessOptimisticLayout =
+    postfix 100 recordAccessParserOptimisticLayout
 
 
-recordAccessParser : Parser (WithComments ExtensionRight)
-recordAccessParser =
+recordAccessParserOptimisticLayout : Parser (WithComments ExtensionRight)
+recordAccessParserOptimisticLayout =
     lookBehindOneCharacterAndThen
         (\c ->
             if c == " " || c == "\n" || c == "\u{000D}" then
                 problemRecordAccessStartingWithSpace
 
             else
-                dotField
+                dotFieldOptimisticLayout
         )
 
 
@@ -102,18 +102,23 @@ problemRecordAccessStartingWithSpace =
     ParserFast.problem "Record access can't start with a space"
 
 
-dotField : ParserFast.Parser (WithComments ExtensionRight)
-dotField =
+dotFieldOptimisticLayout : ParserFast.Parser (WithComments ExtensionRight)
+dotFieldOptimisticLayout =
     ParserFast.symbolFollowedBy "."
-        (ParserFast.mapWithStartAndEndPosition
-            (\nameStart name nameEnd ->
+        (ParserFast.map2
+            (\field commentsAfter ->
                 { comments = Rope.empty
                 , syntax =
-                    ExtendRightByRecordAccess
-                        (Node { start = nameStart, end = nameEnd } name)
+                    ExtendRightByRecordAccess field
                 }
             )
-            Tokens.functionName
+            (ParserFast.mapWithStartAndEndPosition
+                (\nameStart name nameEnd ->
+                    Node { start = nameStart, end = nameEnd } name
+                )
+                Tokens.functionName
+            )
+            Layout.optimisticLayout
         )
 
 
@@ -1035,7 +1040,7 @@ subExpressionMap aboveCurrentPrecedenceLayout =
         (ParserFast.lazy (\() -> subExpression))
         Layout.optimisticLayout
         (ParserWithComments.manyWithoutReverse
-            (subExpressionFollowedByOptimisticLayout aboveCurrentPrecedenceLayout)
+            aboveCurrentPrecedenceLayout
         )
 
 
@@ -1083,23 +1088,8 @@ extendedSubExpressionWithoutInitialLayout aboveCurrentPrecedenceLayout =
         (ParserFast.lazy (\() -> subExpression))
         Layout.optimisticLayout
         (ParserWithComments.manyWithoutReverse
-            (subExpressionFollowedByOptimisticLayout aboveCurrentPrecedenceLayout)
+            aboveCurrentPrecedenceLayout
         )
-
-
-subExpressionFollowedByOptimisticLayout :
-    Parser (WithComments ExtensionRight)
-    -> Parser (WithComments ExtensionRight)
-subExpressionFollowedByOptimisticLayout aboveCurrentPrecedenceLayout =
-    ParserFast.map2
-        (\extensionRight commentsAfter ->
-            { comments =
-                extensionRight.comments |> Rope.prependTo commentsAfter
-            , syntax = extensionRight.syntax
-            }
-        )
-        aboveCurrentPrecedenceLayout
-        Layout.optimisticLayout
 
 
 applyExtensionRight : ExtensionRight -> Node Expression -> Node Expression
