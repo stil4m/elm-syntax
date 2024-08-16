@@ -7,7 +7,7 @@ module ParserFast exposing
     , getChompedString, chompIf, chompAnyChar, chompIfFollowedBy, chompWhile, chompWhileMap, mapChompedString
     , withIndentSetToColumn, withIndent, columnIndentAndThen
     , mapWithStartPosition, mapWithEndPosition, mapWithStartAndEndPosition, columnAndThen, offsetSourceAndThen
-    )
+    ,validate)
 
 {-|
 
@@ -18,7 +18,7 @@ module ParserFast exposing
 
 # Flow
 
-@docs succeed, problem, succeedLazy, lazy, map, map2, map3, map4, map5, map6, map7, map8, map9, map10, map11, andThen
+@docs succeed, problem, succeedLazy, lazy, map, map2, map3, map4, map5, map6, map7, map8, map9, map10, map11, validate, andThen
 
 @docs orSucceed, mapOrSucceed, orSucceedLazy, oneOf2, oneOf2Map, oneOf, backtrackable, commit
 
@@ -154,6 +154,11 @@ for this as well!)
 lazy : (() -> Parser a) -> Parser a
 lazy =
     A.lazy
+
+
+validate : (a -> Bool) -> String -> Parser a -> Parser a
+validate isOkay problemOnNotOkay =
+    A.validate isOkay (Parser.Problem problemOnNotOkay)
 
 
 {-| Parse one thing `andThen` parse another thing. This is useful when you want
