@@ -673,38 +673,31 @@ letFunction =
                                 }
                             )
                     }
-                        |> ParserFast.succeed
 
                 Just signature ->
                     let
                         (Node implementationNameRange implementationName) =
                             signature.implementationName
                     in
-                    if implementationName == startName ++ "" then
-                        let
-                            (Node expressionRange _) =
-                                expressionResult.syntax
-                        in
-                        { comments = allComments
-                        , syntax =
-                            Node { start = startNameStart, end = expressionRange.end }
-                                (LetFunction
-                                    { documentation = Nothing
-                                    , signature = Just (Node.combine Signature startNameNode signature.typeAnnotation)
-                                    , declaration =
-                                        Node { start = implementationNameRange.start, end = expressionRange.end }
-                                            { name = signature.implementationName
-                                            , arguments = arguments.syntax
-                                            , expression = expressionResult.syntax
-                                            }
-                                    }
-                                )
-                        }
-                            |> ParserFast.succeed
-
-                    else
-                        ParserFast.problem
-                            ("Expected to find the declaration for " ++ startName ++ " but found " ++ implementationName)
+                    let
+                        (Node expressionRange _) =
+                            expressionResult.syntax
+                    in
+                    { comments = allComments
+                    , syntax =
+                        Node { start = startNameStart, end = expressionRange.end }
+                            (LetFunction
+                                { documentation = Nothing
+                                , signature = Just (Node.combine Signature startNameNode signature.typeAnnotation)
+                                , declaration =
+                                    Node { start = implementationNameRange.start, end = expressionRange.end }
+                                        { name = signature.implementationName
+                                        , arguments = arguments.syntax
+                                        , expression = expressionResult.syntax
+                                        }
+                                }
+                            )
+                    }
         )
         (Node.parserCore Tokens.functionName)
         Layout.maybeLayout
@@ -733,7 +726,35 @@ letFunction =
         parameterPatternsEqual
         Layout.maybeLayout
         expression
-        |> ParserFast.andThen identity
+        |> ParserFast.validate
+            (\result ->
+                let
+                    (Node _ letDeclaration) =
+                        result.syntax
+                in
+                case letDeclaration of
+                    LetDestructuring _ _ ->
+                        True
+
+                    LetFunction letFunctionDeclaration ->
+                        case letFunctionDeclaration.signature of
+                            Nothing ->
+                                True
+
+                            Just (Node _ signature) ->
+                                let
+                                    (Node _ implementationName) =
+                                        implementation.name
+
+                                    (Node _ implementation) =
+                                        letFunctionDeclaration.declaration
+
+                                    (Node _ signatureName) =
+                                        signature.name
+                                in
+                                implementationName == signatureName ++ ""
+            )
+            "Expected to find the same name for declaration and signature"
 
 
 parameterPatternsEqual : Parser (WithComments (List (Node Pattern)))

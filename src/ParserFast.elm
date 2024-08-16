@@ -7,7 +7,7 @@ module ParserFast exposing
     , getChompedString, chompIf, chompIfFollowedBy, chompWhile, mapChompedString
     , withIndentSetToColumn, withIndent, columnIndentAndThen
     , mapWithStartPosition, mapWithEndPosition, mapWithStartAndEndPosition, columnAndThen, offsetSourceAndThen
-    )
+    ,validate)
 
 {-|
 
@@ -179,6 +179,11 @@ for this as well!)
 lazy : (() -> Parser a) -> Parser a
 lazy =
     A.lazy
+
+
+validate : (a -> Bool) -> String -> Parser a -> Parser a
+validate isOkay problemOnNotOkay =
+    A.validate isOkay (Parser.Problem problemOnNotOkay)
 
 
 {-| Parse one thing `andThen` parse another thing. This is useful when you want

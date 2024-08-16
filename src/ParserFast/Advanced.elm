@@ -6,7 +6,7 @@ module ParserFast.Advanced exposing
     , loop, Step(..)
     , chompWhileWhitespaceFollowedBy, nestableMultiComment
     , getChompedString, chompIf, chompAnyChar, chompIfFollowedBy, chompWhile, chompWhileMap, mapChompedString
-    , withIndent, withIndentSetToColumn
+    , withIndent, withIndentSetToColumn, validate
     , columnAndThen, columnIndentAndThen, offsetSourceAndThen, mapWithStartPosition, mapWithEndPosition, mapWithStartAndEndPosition
     )
 
@@ -512,6 +512,23 @@ andThen callback (Parser parseA) =
 
                         Good p2 b s2 ->
                             Good (p1 || p2) b s2
+        )
+
+
+validate : (a -> Bool) -> x -> Parser x a -> Parser x a
+validate isOkay problemOnNotOkay (Parser parseA) =
+    Parser
+        (\s0 ->
+            case parseA s0 of
+                Bad p x () ->
+                    Bad p x ()
+
+                (Good p1 a s1) as good ->
+                    if isOkay a then
+                        good
+
+                    else
+                        Bad p1 (fromState s1 problemOnNotOkay) ()
         )
 
 
