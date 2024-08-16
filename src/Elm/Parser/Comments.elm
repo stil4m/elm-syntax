@@ -47,17 +47,6 @@ declarationDocumentation =
     -- technically making the whole parser fail on multi-line comments would be "correct"
     -- but in practice, all declaration comments allow layout before which already handles
     -- these.
-    -- Here's how a "safe" version would look:
-    -- ParserFast.oneOf
-    --[ -- if the next symbol isn't "{-|", we commit to failure
-    --  (ParserFast.symbol "{-" |> ParserFast.ignore ParserFast.chompIf (\c -> c /= '|'))
-    --    |> ParserFast.backtrackable
-    --    |> ParserFast.Extra.continueWith (ParserFast.problem "multiline comment should be documentation comment")
-    --, ParserFast.multiComment "{-" "-}" Nestable
-    --    |> ParserFast.getChompedString
-    --    |> Node.parserCore
-    --]
-    --    |> ParserFast.backtrackable
     ParserFast.nestableMultiComment "{-" "-}"
         |> ParserFast.getChompedString
         |> Node.parserCore
