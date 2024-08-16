@@ -10,7 +10,7 @@ import Rope
 
 parseWithState : String -> ParserFast.Parser (WithComments a) -> Maybe { comments : List (Node String), syntax : a }
 parseWithState s p =
-    case ParserFast.run (p |> ParserFast.ignore ParserFast.end) s of
+    case ParserFast.run (ParserFast.map2 (\res () -> res) p ParserFast.end) s of
         Err _ ->
             Nothing
 
@@ -29,7 +29,7 @@ parse s p =
 
 parseWithFailure : String -> ParserFast.Parser (WithComments a) -> Result (List Parser.DeadEnd) a
 parseWithFailure s p =
-    case ParserFast.run (p |> ParserFast.ignore ParserFast.end) s of
+    case ParserFast.run (ParserFast.map2 (\res () -> res) p ParserFast.end) s of
         Err deadEnds ->
             Err deadEnds
 
@@ -40,7 +40,7 @@ parseWithFailure s p =
 expectAst : ParserFast.Parser (WithComments a) -> a -> String -> Expect.Expectation
 expectAst parser =
     \expected source ->
-        case ParserFast.run (parser |> ParserFast.ignore ParserFast.end) source of
+        case ParserFast.run (ParserFast.map2 (\res () -> res) parser ParserFast.end) source of
             Err error ->
                 Expect.fail ("Expected the source to be parsed correctly:\n" ++ Debug.toString error)
 
@@ -59,7 +59,7 @@ expectAst parser =
 expectAstWithComments : ParserFast.Parser (WithComments a) -> { ast : a, comments : List (Node String) } -> String -> Expect.Expectation
 expectAstWithComments parser =
     \expected source ->
-        case ParserFast.run (parser |> ParserFast.ignore ParserFast.end) source of
+        case ParserFast.run (ParserFast.map2 (\res () -> res) parser ParserFast.end) source of
             Err error ->
                 Expect.fail ("Expected the source to be parsed correctly:\n" ++ Debug.toString error)
 

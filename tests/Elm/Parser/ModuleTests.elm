@@ -502,7 +502,7 @@ expectAst =
 
 parseCore : String -> ParserFast.Parser a -> Maybe a
 parseCore source parser =
-    case ParserFast.run (parser |> ParserFast.ignore ParserFast.end) source of
+    case ParserFast.run (ParserFast.map2 (\res () -> res) parser ParserFast.end) source of
         Err _ ->
             Nothing
 

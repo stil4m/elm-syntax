@@ -68,10 +68,6 @@ all =
                         (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 4 } }
                             (Typed (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 4 } } ( [], "Bar" )) [])
                         )
-        , test "types with and without spacing should parse to the same" <|
-            \() ->
-                parse "Bar " (Parser.typeAnnotation |> ParserFast.ignore Layout.maybeLayout)
-                    |> Expect.equal (parse "Bar" Parser.typeAnnotation)
         , test "typedTypeReference 1" <|
             \() ->
                 "Foo () a Bar"

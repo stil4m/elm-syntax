@@ -1306,7 +1306,7 @@ nestableMultiComment oStr oX cStr cX =
                         isNotRelevant char =
                             char /= openChar && char /= closeChar
                     in
-                    ignore openingSymbol
+                    skip openingSymbol
                         (nestableHelp isNotRelevant openingSymbol closingSymbol cX 1)
 
 
