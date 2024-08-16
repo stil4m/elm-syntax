@@ -366,8 +366,8 @@ characters. Once a path is chosen, it does not come back and try the others.
 
 -}
 oneOf : List (Parser a) -> Parser a
-oneOf =
-    A.oneOf
+oneOf possibilities =
+    A.oneOf (Parser.Problem "empty oneOf") possibilities
 
 
 {-| Transform the result of a parser. Maybe you have a value that is

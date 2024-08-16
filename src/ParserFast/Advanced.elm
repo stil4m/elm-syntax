@@ -87,7 +87,7 @@ type Parser problem value
 
 type PStep problem value
     = Good Bool value State
-    | Bad Bool (Bag problem) ()
+    | Bad Bool (RopeFilled (DeadEnd problem)) ()
 
 
 type alias State =
@@ -133,7 +133,7 @@ You might get a `DeadEnd` like this:
           , context = Definition "viewHealthData"
           }
         , { row = 15
-          , col = 4
+          , col = 4problem
           , context = List
           }
         ]
@@ -161,25 +161,21 @@ type alias DeadEnd problem =
     }
 
 
-type Bag x
-    = Empty
-    | AddRight (Bag x) (DeadEnd x)
-    | Append (Bag x) (Bag x)
+type RopeFilled a
+    = One a ()
+    | Append (RopeFilled a) (RopeFilled a)
 
 
-fromState : State -> x -> Bag x
+fromState : State -> x -> RopeFilled (DeadEnd x)
 fromState s x =
-    AddRight Empty { row = s.row, col = s.col, problem = x }
+    One { row = s.row, col = s.col, problem = x } ()
 
 
-bagToList : Bag x -> List (DeadEnd x) -> List (DeadEnd x)
+bagToList : RopeFilled x -> List x -> List x
 bagToList bag list =
     case bag of
-        Empty ->
-            list
-
-        AddRight bag1 x ->
-            bagToList bag1 (x :: list)
+        One x () ->
+            x :: list
 
         Append bag1 bag2 ->
             bagToList bag1 (bagToList bag2 list)
@@ -589,7 +585,42 @@ oneOf2 (Parser attemptFirst) (Parser attemptSecond) =
                                     secondPStep
 
                                 else
-                                    Bad False (Append (Append Empty firstX) secondX) ()
+                                    Bad False (Append firstX secondX) ()
+        )
+
+
+oneOf3 : Parser x a -> Parser x a -> Parser x a -> Parser x a
+oneOf3 (Parser attemptFirst) (Parser attemptSecond) (Parser attemptThird) =
+    Parser
+        (\s ->
+            case attemptFirst s of
+                (Good _ _ _) as firstPStep ->
+                    firstPStep
+
+                (Bad firstCommitted firstX ()) as firstPStep ->
+                    if firstCommitted then
+                        firstPStep
+
+                    else
+                        case attemptSecond s of
+                            (Good _ _ _) as secondPStep ->
+                                secondPStep
+
+                            (Bad secondCommitted secondX ()) as secondPStep ->
+                                if secondCommitted then
+                                    secondPStep
+
+                                else
+                                    case attemptThird s of
+                                        (Good _ _ _) as thirdPStep ->
+                                            thirdPStep
+
+                                        (Bad thirdCommitted thirdX ()) as thirdPStep ->
+                                            if thirdCommitted then
+                                                thirdPStep
+
+                                            else
+                                                Bad False (Append firstX (Append secondX thirdX)) ()
         )
 
 
@@ -620,7 +651,7 @@ oneOf2Map firstToChoice (Parser attemptFirst) secondToChoice (Parser attemptSeco
                                     Bad secondCommitted secondX ()
 
                                 else
-                                    Bad False (Append (Append Empty firstX) secondX) ()
+                                    Bad False (Append firstX secondX) ()
         )
 
 
@@ -675,12 +706,29 @@ orSucceedLazy (Parser attemptFirst) createSecondRes =
         )
 
 
-oneOf : List (Parser x a) -> Parser x a
-oneOf parsers =
-    Parser (\s -> oneOfHelp s Empty parsers)
+oneOf : x -> List (Parser x a) -> Parser x a
+oneOf problemOnEmptyPossibilityList parsers =
+    case parsers of
+        [] ->
+            Parser (\s -> Bad False (fromState s problemOnEmptyPossibilityList) ())
+
+        (Parser parse) :: remainingParsers ->
+            Parser
+                (\s ->
+                    case parse s of
+                        (Good _ _ _) as step ->
+                            step
+
+                        (Bad p x ()) as step ->
+                            if p then
+                                step
+
+                            else
+                                oneOfHelp s x remainingParsers
+                )
 
 
-oneOfHelp : State -> Bag x -> List (Parser x a) -> PStep x a
+oneOfHelp : State -> RopeFilled (DeadEnd x) -> List (Parser x a) -> PStep x a
 oneOfHelp s0 bag parsers =
     case parsers of
         [] ->
@@ -1355,21 +1403,23 @@ nestableMultiComment oStr oX cStr cX =
 nestableHelp : (Char -> Bool) -> Parser x () -> Parser x () -> x -> Int -> Parser x ()
 nestableHelp isNotRelevant open close expectingClose nestLevel =
     skip (chompWhile isNotRelevant)
-        (oneOf
-            [ if nestLevel == 1 then
+        (oneOf3
+            (if nestLevel == 1 then
                 close
 
-              else
+             else
                 close
                     |> andThen (\() -> nestableHelp isNotRelevant open close expectingClose (nestLevel - 1))
-            , open
+            )
+            (open
                 |> andThen (\() -> nestableHelp isNotRelevant open close expectingClose (nestLevel + 1))
-            , chompAnyChar expectingClose
+            )
+            (chompAnyChar expectingClose
                 |> andThen
                     (\() ->
                         nestableHelp isNotRelevant open close expectingClose nestLevel
                     )
-            ]
+            )
         )
 
 
