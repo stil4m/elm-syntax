@@ -38,8 +38,8 @@ subExpression =
         ]
 
 
-andThenOneOf : List ( Int, Parser (WithComments ExtensionRight) )
-andThenOneOf =
+extensionRightByPrecedence : List ( Int, Parser (WithComments ExtensionRight) )
+extensionRightByPrecedence =
     -- TODO Add tests for all operators
     -- TODO Report a syntax error when encountering multiple of the comparison operators
     -- `a < b < c` is not valid Elm syntax
@@ -1177,7 +1177,7 @@ abovePrecedence95 =
 
 computeAbovePrecedence : Int -> Parser (WithComments ExtensionRight)
 computeAbovePrecedence currentPrecedence =
-    andThenOneOf
+    extensionRightByPrecedence
         |> List.filterMap
             (\( precedence, parser ) ->
                 if precedence > currentPrecedence then
