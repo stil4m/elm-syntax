@@ -14,7 +14,7 @@ module ParserFast.Advanced exposing
 
 @docs Parser, run
 
-@docs number, symbol, symbolFollowedBy, keyword, keywordFollowedBy, variable, variableWithoutReserved, end
+@docs number, symbol, symbolFollowedBy, keyword, keywordFollowedBy, variable, variableWithoutReserved, anyChar, end
 
 
 # Flow
@@ -1070,6 +1070,48 @@ chompIf isGood expecting =
                     , row = s.row
                     , col = s.col + 1
                     }
+        )
+
+
+anyChar : x -> Parser x Char
+anyChar expecting =
+    Parser
+        (\s ->
+            let
+                newOffset : Int
+                newOffset =
+                    charOrEnd s.offset s.src
+            in
+            if newOffset == -1 then
+                -- end of source
+                Bad False (fromState s expecting) ()
+
+            else if newOffset == -2 then
+                -- newline
+                Good True
+                    '\n'
+                    { src = s.src
+                    , offset = s.offset + 1
+                    , indent = s.indent
+                    , row = s.row + 1
+                    , col = 1
+                    }
+
+            else
+                -- found
+                case String.toList (String.slice s.offset newOffset s.src) of
+                    [] ->
+                        Bad False (fromState s expecting) ()
+
+                    c :: _ ->
+                        Good True
+                            c
+                            { src = s.src
+                            , offset = newOffset
+                            , indent = s.indent
+                            , row = s.row
+                            , col = s.col + 1
+                            }
         )
 
 
