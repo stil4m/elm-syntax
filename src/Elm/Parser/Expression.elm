@@ -1019,29 +1019,34 @@ subExpressionMap :
     Parser (WithComments ExtensionRight)
     -> Parser (WithComments (Node Expression))
 subExpressionMap aboveCurrentPrecedenceLayout =
-    let
-        step : Parser (Maybe (WithComments ExtensionRight))
-        step =
-            subExpressionLoopStep aboveCurrentPrecedenceLayout
-    in
-    ParserFast.map3
-        (\commentsBefore leftExpressionResult commentsAfter ->
+    ParserFast.map4
+        (\commentsBefore leftExpressionResult commentsAfter extensionsRight ->
             { comments =
                 commentsBefore
                     |> Rope.prependTo leftExpressionResult.comments
                     |> Rope.prependTo commentsAfter
-            , syntax = leftExpressionResult.syntax
+                    |> Rope.prependTo extensionsRight.comments
+            , syntax =
+                leftExpressionResult.syntax
+                    |> applyExtensionsRightReverse extensionsRight.syntax
             }
         )
         Layout.optimisticLayout
         (ParserFast.lazy (\() -> subExpression))
         Layout.optimisticLayout
-        |> ParserFast.andThen
-            (\leftExpression ->
-                ParserFast.Advanced.loop leftExpression
-                    step
-                    applyMaybeExtensionRightWithComments
-            )
+        (ParserWithComments.manyWithoutReverse
+            (subExpressionFollowedByOptimisticLayout aboveCurrentPrecedenceLayout)
+        )
+
+
+applyExtensionsRightReverse : List ExtensionRight -> Node Expression -> Node Expression
+applyExtensionsRightReverse extensionsRight leftExpression =
+    List.foldr
+        (\extensionRight soFar ->
+            soFar |> applyExtensionRight extensionRight
+        )
+        leftExpression
+        extensionsRight
 
 
 applyMaybeExtensionRightWithComments :
@@ -1064,47 +1069,37 @@ extendedSubExpressionWithoutInitialLayout :
     Parser (WithComments ExtensionRight)
     -> Parser (WithComments (Node Expression))
 extendedSubExpressionWithoutInitialLayout aboveCurrentPrecedenceLayout =
-    let
-        step : Parser (Maybe (WithComments ExtensionRight))
-        step =
-            subExpressionLoopStep aboveCurrentPrecedenceLayout
-    in
-    ParserFast.map2
-        (\leftExpressionResult commentsAfter ->
+    ParserFast.map3
+        (\leftExpressionResult commentsAfter extensionsRight ->
             { comments =
                 leftExpressionResult.comments
                     |> Rope.prependTo commentsAfter
-            , syntax = leftExpressionResult.syntax
+                    |> Rope.prependTo extensionsRight.comments
+            , syntax =
+                leftExpressionResult.syntax
+                    |> applyExtensionsRightReverse extensionsRight.syntax
             }
         )
         (ParserFast.lazy (\() -> subExpression))
         Layout.optimisticLayout
-        |> ParserFast.andThen
-            (\leftExpression ->
-                ParserFast.Advanced.loop leftExpression
-                    step
-                    applyMaybeExtensionRightWithComments
-            )
-
-
-subExpressionLoopStep :
-    Parser (WithComments ExtensionRight)
-    -> Parser (Maybe (WithComments ExtensionRight))
-subExpressionLoopStep aboveCurrentPrecedenceLayout =
-    ParserFast.orSucceed
-        (ParserFast.map2
-            (\extensionRight commentsAfter ->
-                Just
-                    { comments =
-                        extensionRight.comments
-                            |> Rope.prependTo commentsAfter
-                    , syntax = extensionRight.syntax
-                    }
-            )
-            aboveCurrentPrecedenceLayout
-            Layout.optimisticLayout
+        (ParserWithComments.manyWithoutReverse
+            (subExpressionFollowedByOptimisticLayout aboveCurrentPrecedenceLayout)
         )
-        Nothing
+
+
+subExpressionFollowedByOptimisticLayout :
+    Parser (WithComments ExtensionRight)
+    -> Parser (WithComments ExtensionRight)
+subExpressionFollowedByOptimisticLayout aboveCurrentPrecedenceLayout =
+    ParserFast.map2
+        (\extensionRight commentsAfter ->
+            { comments =
+                extensionRight.comments |> Rope.prependTo commentsAfter
+            , syntax = extensionRight.syntax
+            }
+        )
+        aboveCurrentPrecedenceLayout
+        Layout.optimisticLayout
 
 
 applyExtensionRight : ExtensionRight -> Node Expression -> Node Expression
