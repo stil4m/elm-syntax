@@ -1,13 +1,13 @@
 module ParserFast.Advanced exposing
     ( Parser, run
     , number, symbol, symbolFollowedBy, keyword, keywordFollowedBy, variable, variableWithoutReserved, anyChar, end
-    , succeed, problem, succeedLazy, lazy, map, map2, map3, map4, map5, map6, map7, map8, map9, map10, map11, andThen
+    , succeed, problem, succeedLazy, lazy, map, map2, map3, map4, map5, map6, map7, map8, map9, map10, map11, validate, andThen
     , orSucceed, orSucceedLazy, mapOrSucceed, oneOf2, oneOf2Map, oneOf, backtrackable, commit
     , loop, Step(..)
     , chompWhileWhitespaceFollowedBy, nestableMultiComment
     , getChompedString, chompIf, chompAnyChar, chompIfFollowedBy, chompWhile, chompWhileMap, mapChompedString
-    , withIndent, withIndentSetToColumn, validate
-    , columnAndThen, columnIndentAndThen, offsetSourceAndThen, mapWithStartPosition, mapWithEndPosition, mapWithStartAndEndPosition
+    , withIndent, withIndentSetToColumn
+    , columnAndThen, columnIndentAndThen, validateEndColumnIndentation, offsetSourceAndThen, mapWithStartPosition, mapWithEndPosition, mapWithStartAndEndPosition
     )
 
 {-|
@@ -39,7 +39,7 @@ module ParserFast.Advanced exposing
 # Indentation, Positions and Source
 
 @docs withIndent, withIndentSetToColumn
-@docs columnAndThen, columnIndentAndThen, offsetSourceAndThen, mapWithStartPosition, mapWithEndPosition, mapWithStartAndEndPosition
+@docs columnAndThen, columnIndentAndThen, validateEndColumnIndentation, offsetSourceAndThen, mapWithStartPosition, mapWithEndPosition, mapWithStartAndEndPosition
 
 -}
 
@@ -673,6 +673,23 @@ columnIndentAndThen callback =
                     callback s.col s.indent
             in
             parse s
+        )
+
+
+validateEndColumnIndentation : (Int -> Int -> Bool) -> x -> Parser x a -> Parser x a
+validateEndColumnIndentation isOkay problemOnIsNotOkay (Parser parse) =
+    Parser
+        (\s0 ->
+            case parse s0 of
+                (Good committed res s1) as good ->
+                    if isOkay s1.col s1.indent then
+                        good
+
+                    else
+                        Bad committed (fromState s1 problemOnIsNotOkay) ()
+
+                bad ->
+                    bad
         )
 
 

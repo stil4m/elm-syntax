@@ -1,13 +1,13 @@
 module ParserFast exposing
     ( Parser, run
     , int, number, symbol, symbolFollowedBy, keyword, keywordFollowedBy, variable, variableWithoutReserved, anyChar, end
-    , succeed, problem, succeedLazy, lazy, map, map2, map3, map4, map5, map6, map7, map8, map9, map10, map11, andThen
+    , succeed, problem, succeedLazy, lazy, map, map2, map3, map4, map5, map6, map7, map8, map9, map10, map11, validate, andThen
     , orSucceed, mapOrSucceed, orSucceedLazy, oneOf2, oneOf2Map, oneOf, backtrackable, commit
     , chompWhileWhitespaceFollowedBy, nestableMultiComment
     , getChompedString, chompIf, chompAnyChar, chompIfFollowedBy, chompWhile, chompWhileMap, mapChompedString
-    , withIndentSetToColumn, withIndent, columnIndentAndThen
+    , withIndentSetToColumn, withIndent, columnIndentAndThen, validateEndColumnIndentation
     , mapWithStartPosition, mapWithEndPosition, mapWithStartAndEndPosition, columnAndThen, offsetSourceAndThen
-    ,validate)
+    )
 
 {-|
 
@@ -35,7 +35,7 @@ module ParserFast exposing
 
 # Indentation, Positions and source
 
-@docs withIndentSetToColumn, withIndent, columnIndentAndThen
+@docs withIndentSetToColumn, withIndent, columnIndentAndThen, validateEndColumnIndentation
 @docs mapWithStartPosition, mapWithEndPosition, mapWithStartAndEndPosition, columnAndThen, offsetSourceAndThen
 
 -}
@@ -220,6 +220,11 @@ current indent level. You could use this to parse Elm-style `let` expressions.
 columnIndentAndThen : (Int -> Int -> Parser b) -> Parser b
 columnIndentAndThen =
     A.columnIndentAndThen
+
+
+validateEndColumnIndentation : (Int -> Int -> Bool) -> String -> Parser a -> Parser a
+validateEndColumnIndentation isOkay problemOnIsNotOkay parser =
+    A.validateEndColumnIndentation isOkay (Parser.Problem problemOnIsNotOkay) parser
 
 
 {-| Editors think of code as a grid, but behind the scenes it is just a flat
