@@ -77,7 +77,7 @@ extensionRightByPrecedence =
 
 expression : Parser (WithComments (Node Expression))
 expression =
-    subExpressionMap abovePrecedence0
+    extendedSubExpression abovePrecedence0
 
 
 recordAccessOptimisticLayout : ( Int, Parser (WithComments ExtensionRight) )
@@ -1044,10 +1044,10 @@ tupledExpressionInnerAfterOpeningParens =
 ---
 
 
-subExpressionMap :
+extendedSubExpression :
     Parser (WithComments ExtensionRight)
     -> Parser (WithComments (Node Expression))
-subExpressionMap aboveCurrentPrecedenceLayout =
+extendedSubExpression aboveCurrentPrecedenceLayout =
     ParserFast.map4
         (\commentsBefore leftExpressionResult commentsAfter extensionsRight ->
             { comments =
@@ -1289,7 +1289,7 @@ infixHelp leftPrecedence rightPrecedence operatorFollowedBy apply =
             }
         )
         (operatorFollowedBy
-            (subExpressionMap rightPrecedence)
+            (extendedSubExpression rightPrecedence)
         )
     )
 
