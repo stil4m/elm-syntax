@@ -113,8 +113,8 @@ run (Parser parse) src =
         Good _ value _ ->
             Ok value
 
-        Bad _ bag () ->
-            Err (bagToList bag [])
+        Bad _ deadEnds () ->
+            Err (ropeFilledToList deadEnds [])
 
 
 
@@ -171,14 +171,14 @@ fromState s x =
     One { row = s.row, col = s.col, problem = x } ()
 
 
-bagToList : RopeFilled x -> List x -> List x
-bagToList bag list =
-    case bag of
+ropeFilledToList : RopeFilled x -> List x -> List x
+ropeFilledToList ropeFilled list =
+    case ropeFilled of
         One x () ->
             x :: list
 
-        Append bag1 bag2 ->
-            bagToList bag1 (bagToList bag2 list)
+        Append ropefilled1 ropefilled2 ->
+            ropeFilledToList ropefilled1 (ropeFilledToList ropefilled2 list)
 
 
 succeed : a -> Parser x a
@@ -729,10 +729,10 @@ oneOf problemOnEmptyPossibilityList parsers =
 
 
 oneOfHelp : State -> RopeFilled (DeadEnd x) -> List (Parser x a) -> PStep x a
-oneOfHelp s0 bag parsers =
+oneOfHelp s0 deadEnds parsers =
     case parsers of
         [] ->
-            Bad False bag ()
+            Bad False deadEnds ()
 
         (Parser parse) :: remainingParsers ->
             case parse s0 of
@@ -744,7 +744,7 @@ oneOfHelp s0 bag parsers =
                         step
 
                     else
-                        oneOfHelp s0 (Append bag x) remainingParsers
+                        oneOfHelp s0 (Append deadEnds x) remainingParsers
 
 
 {-| Decide what steps to take next in your [`loop`](#loop).
