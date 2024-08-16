@@ -1469,8 +1469,8 @@ withIndent newIndent (Parser parse) =
                 Good p a s1 ->
                     Good p a (changeIndent s0.indent s1)
 
-                Bad p x () ->
-                    Bad p x ()
+                bad ->
+                    bad
         )
 
 
@@ -1482,8 +1482,8 @@ withIndentSetToColumn (Parser parse) =
                 Good p a s1 ->
                     Good p a (changeIndent s0.indent s1)
 
-                Bad p x () ->
-                    Bad p x ()
+                bad ->
+                    bad
         )
 
 
