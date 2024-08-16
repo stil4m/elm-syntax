@@ -7,7 +7,7 @@ module ParserFast exposing
     , getChompedString, chompIf, chompIfFollowedBy, chompWhile, mapChompedString
     , withIndentSetToColumn, withIndent, columnIndentAndThen
     , mapWithStartPosition, mapWithEndPosition, mapWithStartAndEndPosition, columnAndThen, offsetSourceAndThen
-    ,validate)
+    )
 
 {-|
 
@@ -35,7 +35,7 @@ module ParserFast exposing
 
 # Indentation, Positions and source
 
-@docs withIndentSetToColumn, withIndent, columnIndentAndThen
+@docs withIndentSetToColumn, withIndent, columnIndentAndThen, validateEndColumnIndentation
 @docs mapWithStartPosition, mapWithEndPosition, mapWithStartAndEndPosition, columnAndThen, offsetSourceAndThen
 
 -}
@@ -245,6 +245,11 @@ current indent level. You could use this to parse Elm-style `let` expressions.
 columnIndentAndThen : (Int -> Int -> Parser b) -> Parser b
 columnIndentAndThen =
     A.columnIndentAndThen
+
+
+validateEndColumnIndentation : (Int -> Int -> Bool) -> String -> Parser a -> Parser a
+validateEndColumnIndentation isOkay problemOnIsNotOkay parser =
+    A.validateEndColumnIndentation isOkay (Parser.Problem problemOnIsNotOkay) parser
 
 
 {-| Editors think of code as a grid, but behind the scenes it is just a flat

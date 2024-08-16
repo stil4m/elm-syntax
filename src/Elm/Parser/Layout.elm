@@ -107,9 +107,15 @@ fromSingleLineCommentNode =
 
 maybeLayout : Parser Comments
 maybeLayout =
-    ParserFast.map2 (\comments () -> comments)
-        whitespaceAndCommentsOrEmpty
-        (positivelyIndentedFollowedBy (ParserFast.succeed ()))
+    whitespaceAndCommentsOrEmpty |> endsPositivelyIndented
+
+
+endsPositivelyIndented : Parser a -> Parser a
+endsPositivelyIndented parser =
+    ParserFast.validateEndColumnIndentation
+        (\column indent -> column > indent)
+        "must be positively indented"
+        parser
 
 
 {-| Check that the indentation of an already parsed token
@@ -183,9 +189,7 @@ layoutStrictFollowedBy nextParser =
 
 layoutStrict : Parser Comments
 layoutStrict =
-    ParserFast.map2 (\commentsBefore () -> commentsBefore)
-        optimisticLayout
-        (onTopIndentationFollowedBy (ParserFast.succeed ()))
+    optimisticLayout |> endsTopIndented
 
 
 moduleLevelIndentationFollowedBy : Parser a -> Parser a
@@ -203,6 +207,14 @@ moduleLevelIndentationFollowedBy nextParser =
 problemModuleLevelIndentation : Parser a
 problemModuleLevelIndentation =
     ParserFast.problem "must be on module-level indentation"
+
+
+endsTopIndented : Parser a -> Parser a
+endsTopIndented parser =
+    ParserFast.validateEndColumnIndentation
+        (\column indent -> column == indent + 0)
+        "must be on top indentation"
+        parser
 
 
 onTopIndentationFollowedBy : Parser a -> Parser a
