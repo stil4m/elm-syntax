@@ -1,6 +1,6 @@
 module ParserFast exposing
     ( Parser, run
-    , int, number, symbol, symbolFollowedBy, keyword, keywordFollowedBy, variable, variableWithoutReserved, end
+    , int, number, symbol, symbolFollowedBy, keyword, keywordFollowedBy, variable, variableWithoutReserved, anyChar, end
     , succeed, problem, succeedLazy, lazy, map, map2, map3, map4, map5, map6, map7, map8, map9, map10, map11, andThen
     , orSucceed, mapOrSucceed, orSucceedLazy, oneOf2, oneOf2Map, oneOf, backtrackable, commit
     , chompWhileWhitespaceFollowedBy, nestableMultiComment
@@ -13,7 +13,7 @@ module ParserFast exposing
 
 @docs Parser, run
 
-@docs int, number, symbol, symbolFollowedBy, keyword, keywordFollowedBy, variable, variableWithoutReserved, end
+@docs int, number, symbol, symbolFollowedBy, keyword, keywordFollowedBy, variable, variableWithoutReserved, anyChar, end
 
 
 # Flow
@@ -655,6 +655,11 @@ chompIf isGood =
 chompAnyChar : Parser ()
 chompAnyChar =
     A.chompAnyChar Parser.UnexpectedChar
+
+
+anyChar : Parser Char
+anyChar =
+    A.anyChar Parser.UnexpectedChar
 
 
 chompIfFollowedBy : (Char -> Bool) -> Parser a -> Parser a

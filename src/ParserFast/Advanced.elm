@@ -1,6 +1,6 @@
 module ParserFast.Advanced exposing
     ( Parser, run
-    , number, symbol, symbolFollowedBy, keyword, keywordFollowedBy, variable, variableWithoutReserved, end
+    , number, symbol, symbolFollowedBy, keyword, keywordFollowedBy, variable, variableWithoutReserved, anyChar, end
     , succeed, problem, succeedLazy, lazy, map, map2, map3, map4, map5, map6, map7, map8, map9, map10, map11, andThen
     , orSucceed, orSucceedLazy, mapOrSucceed, oneOf2, oneOf2Map, oneOf, backtrackable, commit
     , loop, Step(..)
@@ -14,7 +14,7 @@ module ParserFast.Advanced exposing
 
 @docs Parser, run
 
-@docs number, symbol, symbolFollowedBy, keyword, keywordFollowedBy, variable, variableWithoutReserved, end
+@docs number, symbol, symbolFollowedBy, keyword, keywordFollowedBy, variable, variableWithoutReserved, anyChar, end
 
 
 # Flow
@@ -617,9 +617,6 @@ map11 func (Parser parseA) (Parser parseB) (Parser parseC) (Parser parseD) (Pars
         )
 
 
-
-
-
 andThen : (a -> Parser x b) -> Parser x a -> Parser x b
 andThen callback (Parser parseA) =
     Parser
@@ -1199,6 +1196,48 @@ chompIf isGood expecting =
                     , row = s.row
                     , col = s.col + 1
                     }
+        )
+
+
+anyChar : x -> Parser x Char
+anyChar expecting =
+    Parser
+        (\s ->
+            let
+                newOffset : Int
+                newOffset =
+                    charOrEnd s.offset s.src
+            in
+            if newOffset == -1 then
+                -- end of source
+                Bad False (fromState s expecting) ()
+
+            else if newOffset == -2 then
+                -- newline
+                Good True
+                    '\n'
+                    { src = s.src
+                    , offset = s.offset + 1
+                    , indent = s.indent
+                    , row = s.row + 1
+                    , col = 1
+                    }
+
+            else
+                -- found
+                case String.toList (String.slice s.offset newOffset s.src) of
+                    [] ->
+                        Bad False (fromState s expecting) ()
+
+                    c :: _ ->
+                        Good True
+                            c
+                            { src = s.src
+                            , offset = newOffset
+                            , indent = s.indent
+                            , row = s.row
+                            , col = s.col + 1
+                            }
         )
 
 
