@@ -1,7 +1,7 @@
 module ParserFast exposing
     ( Parser, run
     , int, number, symbol, symbolFollowedBy, keyword, keywordFollowedBy, variable, variableWithoutReserved, end
-    , succeed, problem, succeedLazy, lazy, map, map2, map3, map4, map5, map6, map7, map8, map9, map10, map11, ignore, andThen
+    , succeed, problem, succeedLazy, lazy, map, map2, map3, map4, map5, map6, map7, map8, map9, map10, map11, andThen
     , orSucceed, mapOrSucceed, orSucceedLazy, oneOf2, oneOf2Map, oneOf, backtrackable, commit
     , chompWhileWhitespaceFollowedBy, nestableMultiComment
     , getChompedString, chompIf, chompAnyChar, chompIfFollowedBy, chompWhile, chompWhileMap, mapChompedString
@@ -18,7 +18,7 @@ module ParserFast exposing
 
 # Flow
 
-@docs succeed, problem, succeedLazy, lazy, map, map2, map3, map4, map5, map6, map7, map8, map9, map10, map11, ignore, andThen
+@docs succeed, problem, succeedLazy, lazy, map, map2, map3, map4, map5, map6, map7, map8, map9, map10, map11, andThen
 
 @docs orSucceed, mapOrSucceed, orSucceedLazy, oneOf2, oneOf2Map, oneOf, backtrackable, commit
 
@@ -105,35 +105,6 @@ succeed =
 succeedLazy : (() -> a) -> Parser a
 succeedLazy =
     A.succeedLazy
-
-
-{-| **Skip** values in a parser pipeline. For example, maybe we want to parse
-some JavaScript variables:
-
-    var : Parser String
-    var =
-        getChompedString <|
-            succeed ()
-                |> ParserFast.ignore chompIf isStartChar
-                |> ParserFast.ignore chompWhile isInnerChar
-
-    isStartChar : Char -> Bool
-    isStartChar char =
-        Char.isAlpha char || char == '_' || char == '$'
-
-    isInnerChar : Char -> Bool
-    isInnerChar char =
-        isStartChar char || Char.isDigit char
-
-`chompIf isStartChar` can chomp one character and produce a `()` value.
-`chompWhile isInnerChar` can chomp zero or more characters and produce a `()`
-value. The `ignore` operators are saying to still chomp all the characters, but
-skip the two `()` values that get produced. No one cares about them.
-
--}
-ignore : Parser ignore -> Parser keep -> Parser keep
-ignore ignored kept =
-    A.ignore kept ignored
 
 
 {-| Helper to define recursive parsers. Say we want a parser for simple

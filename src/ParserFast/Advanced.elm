@@ -1,7 +1,7 @@
 module ParserFast.Advanced exposing
     ( Parser, run
     , number, symbol, symbolFollowedBy, keyword, keywordFollowedBy, variable, variableWithoutReserved, end
-    , succeed, problem, succeedLazy, lazy, map, map2, map3, map4, map5, map6, map7, map8, map9, map10, map11, andThen, ignore
+    , succeed, problem, succeedLazy, lazy, map, map2, map3, map4, map5, map6, map7, map8, map9, map10, map11, andThen
     , orSucceed, orSucceedLazy, mapOrSucceed, oneOf2, oneOf2Map, oneOf, backtrackable, commit
     , loop, Step(..)
     , chompWhileWhitespaceFollowedBy, nestableMultiComment
@@ -19,7 +19,7 @@ module ParserFast.Advanced exposing
 
 # Flow
 
-@docs succeed, problem, succeedLazy, lazy, map, map2, map3, map4, map5, map6, map7, map8, map9, map10, map11, andThen, ignore
+@docs succeed, problem, succeedLazy, lazy, map, map2, map3, map4, map5, map6, map7, map8, map9, map10, map11, andThen
 
 @docs orSucceed, orSucceedLazy, mapOrSucceed, oneOf2, oneOf2Map, oneOf, backtrackable, commit
 
@@ -617,9 +617,7 @@ map11 func (Parser parseA) (Parser parseB) (Parser parseC) (Parser parseD) (Pars
         )
 
 
-ignore : Parser x keep -> Parser x ignore -> Parser x keep
-ignore keepParser ignoreParser =
-    map2 always keepParser ignoreParser
+
 
 
 andThen : (a -> Parser x b) -> Parser x a -> Parser x b
@@ -1436,7 +1434,7 @@ nestableMultiComment oStr oX cStr cX =
                         isNotRelevant char =
                             char /= openChar && char /= closeChar
                     in
-                    ignore openingSymbol
+                    skip openingSymbol
                         (nestableHelp isNotRelevant openingSymbol closingSymbol cX 1)
 
 

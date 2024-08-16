@@ -107,8 +107,9 @@ fromSingleLineCommentNode =
 
 maybeLayout : Parser Comments
 maybeLayout =
-    whitespaceAndCommentsOrEmpty
-        |> ParserFast.ignore (positivelyIndentedFollowedBy (ParserFast.succeed ()))
+    ParserFast.map2 (\comments () -> comments)
+        whitespaceAndCommentsOrEmpty
+        (positivelyIndentedFollowedBy (ParserFast.succeed ()))
 
 
 {-| Check that the indentation of an already parsed token

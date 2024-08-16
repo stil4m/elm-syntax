@@ -11,4 +11,4 @@ parse source p =
 
 parseToResult : String -> ParserFast.Parser a -> Result (List Parser.DeadEnd) a
 parseToResult source p =
-    ParserFast.run (p |> ParserFast.ignore ParserFast.end) source
+    ParserFast.run (ParserFast.map2 (\res () -> res) p ParserFast.end) source
