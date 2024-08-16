@@ -79,13 +79,8 @@ to avoid breaking changes
 
 -}
 run : Parser a -> String -> Result (List Parser.DeadEnd) a
-run parser source =
-    case A.run parser source of
-        Ok a ->
-            Ok a
-
-        Err problems ->
-            Err problems
+run =
+    A.run
 
 
 {-| A parser that succeeds without chomping any characters.
