@@ -60,24 +60,24 @@ inToken =
     ParserFast.keyword "in" ()
 
 
-escapedCharValue : ParserFast.Parser Char
-escapedCharValue =
+escapedCharValueMap : (Char -> res) -> ParserFast.Parser res
+escapedCharValueMap charToRes =
     ParserFast.oneOf
-        [ ParserFast.symbol "'" '\''
-        , ParserFast.symbol "\"" '"'
-        , ParserFast.symbol "n" '\n'
-        , ParserFast.symbol "t" '\t'
+        [ ParserFast.symbol "'" (charToRes '\'')
+        , ParserFast.symbol "\"" (charToRes '"')
+        , ParserFast.symbol "n" (charToRes '\n')
+        , ParserFast.symbol "t" (charToRes '\t')
         , -- Eventhough Elm-format will change \r to a unicode version. When you dont use elm-format, this will not happen.
-          ParserFast.symbol "r" '\u{000D}'
-        , ParserFast.symbol "\\" '\\'
+          ParserFast.symbol "r" (charToRes '\u{000D}')
+        , ParserFast.symbol "\\" (charToRes '\\')
         , ParserFast.map2
             (\hex () ->
                 case String.toLower hex |> Hex.fromString of
                     Ok n ->
-                        Char.fromCode n
+                        charToRes (Char.fromCode n)
 
                     Err _ ->
-                        '\u{0000}'
+                        charToRes '\u{0000}'
             )
             (ParserFast.symbolFollowedBy "u{"
                 (ParserFast.ifFollowedByWhile
@@ -91,7 +91,7 @@ escapedCharValue =
 
 slashEscapedCharValue : ParserFast.Parser Char
 slashEscapedCharValue =
-    ParserFast.symbolFollowedBy "\\" escapedCharValue
+    ParserFast.symbolFollowedBy "\\" (escapedCharValueMap identity)
 
 
 characterLiteral : ParserFast.Parser Char
@@ -122,9 +122,7 @@ singleQuotedStringLiteralAfterDoubleQuote : ParserFast.Parser String
 singleQuotedStringLiteralAfterDoubleQuote =
     ParserFast.loopUntil (ParserFast.symbol "\"" ())
         (ParserFast.oneOf2
-            (ParserFast.map String.fromChar
-                (ParserFast.symbolFollowedBy "\\" escapedCharValue)
-            )
+            (ParserFast.symbolFollowedBy "\\" (escapedCharValueMap String.fromChar))
             (ParserFast.whileMap (\c -> c /= '"' && c /= '\\') identity)
         )
         ""
@@ -139,9 +137,7 @@ tripleQuotedStringLiteralOfterTripleDoubleQuote =
     ParserFast.loopUntil (ParserFast.symbol "\"\"\"" ())
         (ParserFast.oneOf3
             (ParserFast.symbol "\"" "\"")
-            (ParserFast.map String.fromChar
-                (ParserFast.symbolFollowedBy "\\" escapedCharValue)
-            )
+            (ParserFast.symbolFollowedBy "\\" (escapedCharValueMap String.fromChar))
             (ParserFast.whileMap (\c -> c /= '"' && c /= '\\') identity)
         )
         ""
