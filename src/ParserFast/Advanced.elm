@@ -22,7 +22,7 @@ module ParserFast.Advanced exposing
 
 @docs orSucceed, orSucceedLazy, oneOf2, oneOf, backtrackable
 
-@docs loopWhileSucceeds, loopUntil, loop, Step
+@docs loopWhileSucceeds, loopUntil
 
 
 # Whitespace
