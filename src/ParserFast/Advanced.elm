@@ -3,7 +3,7 @@ module ParserFast.Advanced exposing
     , number, symbol, symbolFollowedBy, keyword, keywordFollowedBy, whileMap, ifFollowedByWhile, ifFollowedByWhileExcept, anyChar, end
     , succeed, problem, lazy, map, map2, map3, map4, map5, map6, map7, map8, map9, validate
     , orSucceed, mapOrSucceed, oneOf2, oneOf2OrSucceed, oneOf2Map, oneOf3, oneOf4, oneOf, backtrackable
-    , loopWhileSucceeds, loop, Step(..)
+    , loopWhileSucceeds, loopUntil, loop, Step(..)
     , chompWhileWhitespaceFollowedBy, nestableMultiComment
     , withIndent, withIndentSetToColumn
     , columnAndThen, columnIndentAndThen, validateEndColumnIndentation, offsetSourceAndThen, mapWithStartPosition, mapWithEndPosition, mapWithStartAndEndPosition
@@ -22,7 +22,7 @@ module ParserFast.Advanced exposing
 
 @docs orSucceed, mapOrSucceed, oneOf2, oneOf2OrSucceed, oneOf2Map, oneOf3, oneOf4, oneOf, backtrackable
 
-@docs loopWhileSucceeds, loop, Step
+@docs loopWhileSucceeds, loopUntil, loop, Step
 
 
 # Whitespace
@@ -904,6 +904,37 @@ loopWhileSucceedsHelp committedSoFar ((Parser parseElement) as element) soFar re
 
             else
                 Good committedSoFar (foldedToRes soFar) s0
+
+
+loopUntil : Parser x () -> Parser x element -> folded -> (element -> folded -> folded) -> (folded -> res) -> Parser x res
+loopUntil endParser element initialFolded reduce foldedToRes =
+    Parser
+        (\s -> loopUntilHelp False endParser element initialFolded reduce foldedToRes s)
+
+
+loopUntilHelp : Bool -> Parser x () -> Parser x element -> folded -> (element -> folded -> folded) -> (folded -> res) -> State -> PStep x res
+loopUntilHelp committedSoFar ((Parser parseEnd) as endParser) ((Parser parseElement) as element) soFar reduce foldedToRes s0 =
+    case parseEnd s0 of
+        Good endCommitted () s1 ->
+            Good (committedSoFar || endCommitted) (foldedToRes soFar) s1
+
+        Bad endCommitted endX () ->
+            if endCommitted then
+                Bad True endX ()
+
+            else
+                case parseElement s0 of
+                    Good elementCommitted elementResult s1 ->
+                        loopUntilHelp (committedSoFar || elementCommitted)
+                            endParser
+                            element
+                            (soFar |> reduce elementResult)
+                            reduce
+                            foldedToRes
+                            s1
+
+                    Bad elementCommitted x () ->
+                        Bad (committedSoFar || elementCommitted) x ()
 
 
 backtrackable : Parser x a -> Parser x a

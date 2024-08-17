@@ -3,7 +3,7 @@ module ParserFast exposing
     , int, number, symbol, symbolFollowedBy, keyword, keywordFollowedBy, whileMap, ifFollowedByWhile, ifFollowedByWhileExcept, anyChar, end
     , succeed, problem, lazy, map, map2, map3, map4, map5, map6, map7, map8, map9, validate
     , orSucceed, mapOrSucceed, oneOf2, oneOf2Map, oneOf2OrSucceed, oneOf3, oneOf4, oneOf, backtrackable
-    , loopWhileSucceeds
+    , loopWhileSucceeds, loopUntil
     , chompWhileWhitespaceFollowedBy, nestableMultiComment
     , withIndentSetToColumn, withIndent, columnIndentAndThen, validateEndColumnIndentation
     , mapWithStartPosition, mapWithEndPosition, mapWithStartAndEndPosition, columnAndThen, offsetSourceAndThen
@@ -22,7 +22,7 @@ module ParserFast exposing
 
 @docs orSucceed, mapOrSucceed, oneOf2, oneOf2Map, oneOf2OrSucceed, oneOf3, oneOf4, oneOf, backtrackable
 
-@docs loopWhileSucceeds
+@docs loopWhileSucceeds, loopUntil
 
 
 # Whitespace
@@ -349,6 +349,11 @@ map =
 loopWhileSucceeds : Parser element -> folded -> (element -> folded -> folded) -> (folded -> res) -> Parser res
 loopWhileSucceeds =
     A.loopWhileSucceeds
+
+
+loopUntil : Parser () -> Parser element -> folded -> (element -> folded -> folded) -> (folded -> res) -> Parser res
+loopUntil =
+    A.loopUntil
 
 
 {-| It is quite tricky to use `backtrackable` well! It can be very useful, but
