@@ -112,52 +112,43 @@ singleOrTripleQuotedStringLiteral =
     ParserFast.symbolFollowedBy "\""
         (ParserFast.oneOf2
             (ParserFast.symbolFollowedBy "\"\""
-                (ParserFast.Advanced.loop ""
-                    tripleQuotedStringLiteralStep
-                    (\maybeExtension soFar ->
-                        case maybeExtension of
-                            Nothing ->
-                                ParserFast.Advanced.Done soFar
-
-                            Just extension ->
-                                ParserFast.Advanced.Loop (soFar ++ extension ++ "")
-                    )
-                )
+                tripleQuotedStringLiteralOfterTripleDoubleQuote
             )
-            (ParserFast.Advanced.loop ""
-                stringLiteralStep
-                (\maybeExtension soFar ->
-                    case maybeExtension of
-                        Nothing ->
-                            ParserFast.Advanced.Done soFar
+            singleQuotedStringLiteralAfterDoubleQuote
+        )
 
-                        Just extension ->
-                            ParserFast.Advanced.Loop (soFar ++ extension ++ "")
-                )
+
+singleQuotedStringLiteralAfterDoubleQuote : ParserFast.Parser String
+singleQuotedStringLiteralAfterDoubleQuote =
+    ParserFast.loopUntil (ParserFast.symbol "\"" ())
+        (ParserFast.oneOf2
+            (ParserFast.map String.fromChar
+                (ParserFast.symbolFollowedBy "\\" escapedCharValue)
             )
+            (ParserFast.whileMap (\c -> c /= '"' && c /= '\\') identity)
         )
-
-
-stringLiteralStep : ParserFast.Parser (Maybe String)
-stringLiteralStep =
-    ParserFast.oneOf3
-        (ParserFast.symbol "\"" Nothing)
-        (ParserFast.map
-            (\v -> Just (String.fromChar v))
-            (ParserFast.symbolFollowedBy "\\" escapedCharValue)
+        ""
+        (\extension soFar ->
+            soFar ++ extension ++ ""
         )
-        (ParserFast.whileMap (\c -> c /= '"' && c /= '\\') Just)
+        identity
 
 
-tripleQuotedStringLiteralStep : ParserFast.Parser (Maybe String)
-tripleQuotedStringLiteralStep =
-    ParserFast.oneOf4
-        (ParserFast.symbol "\"\"\"" Nothing)
-        (ParserFast.symbol "\"" (Just "\""))
-        (ParserFast.map (\v -> Just (String.fromChar v))
-            (ParserFast.symbolFollowedBy "\\" escapedCharValue)
+tripleQuotedStringLiteralOfterTripleDoubleQuote : ParserFast.Parser String
+tripleQuotedStringLiteralOfterTripleDoubleQuote =
+    ParserFast.loopUntil (ParserFast.symbol "\"\"\"" ())
+        (ParserFast.oneOf3
+            (ParserFast.symbol "\"" "\"")
+            (ParserFast.map String.fromChar
+                (ParserFast.symbolFollowedBy "\\" escapedCharValue)
+            )
+            (ParserFast.whileMap (\c -> c /= '"' && c /= '\\') identity)
         )
-        (ParserFast.whileMap (\c -> c /= '"' && c /= '\\') Just)
+        ""
+        (\extension soFar ->
+            soFar ++ extension ++ ""
+        )
+        identity
 
 
 functionName : ParserFast.Parser String
