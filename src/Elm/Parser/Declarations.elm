@@ -167,11 +167,10 @@ declarationWithDocumentation =
         )
         Comments.declarationDocumentation
         (Layout.layoutStrictFollowedByWithComments
-            (ParserFast.oneOf
-                [ functionAfterDocumentation
-                , typeOrTypeAliasDefinitionAfterDocumentation
-                , portDeclarationAfterDocumentation
-                ]
+            (ParserFast.oneOf3
+                functionAfterDocumentation
+                typeOrTypeAliasDefinitionAfterDocumentation
+                portDeclarationAfterDocumentation
             )
         )
         |> ParserFast.validate
@@ -484,11 +483,10 @@ infixDeclaration =
 
 infixDirection : ParserFast.Parser Infix.InfixDirection
 infixDirection =
-    ParserFast.oneOf
-        [ ParserFast.keyword "right" Infix.Right
-        , ParserFast.keyword "left" Infix.Left
-        , ParserFast.keyword "non" Infix.Non
-        ]
+    ParserFast.oneOf3
+        (ParserFast.keyword "right" Infix.Right)
+        (ParserFast.keyword "left" Infix.Left)
+        (ParserFast.keyword "non" Infix.Non)
 
 
 portDeclarationAfterDocumentation : Parser (WithComments DeclarationAfterDocumentation)

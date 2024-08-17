@@ -145,13 +145,13 @@ singleOrTripleQuotedStringLiteral =
 
 stringLiteralStep : ParserFast.Parser (Maybe String)
 stringLiteralStep =
-    ParserFast.oneOf
-        [ ParserFast.symbol "\"" Nothing
-        , ParserFast.map
+    ParserFast.oneOf3
+        (ParserFast.symbol "\"" Nothing)
+        (ParserFast.map
             (\v -> Just (String.fromChar v))
             (ParserFast.symbolFollowedBy "\\" escapedCharValue)
-        , ParserFast.chompWhileMap (\c -> c /= '"' && c /= '\\') Just
-        ]
+        )
+        (ParserFast.chompWhileMap (\c -> c /= '"' && c /= '\\') Just)
 
 
 tripleQuotedStringLiteralStep : ParserFast.Parser (Maybe String)
@@ -239,11 +239,10 @@ prefixOperatorToken =
 
 minusFollowedBySingleWhitespace : ParserFast.Parser res -> ParserFast.Parser res
 minusFollowedBySingleWhitespace next =
-    ParserFast.oneOf
-        [ ParserFast.symbolFollowedBy "- " next
-        , ParserFast.symbolFollowedBy "-\n" next
-        , ParserFast.symbolFollowedBy "-\u{000D}" next
-        ]
+    ParserFast.oneOf3
+        (ParserFast.symbolFollowedBy "- " next)
+        (ParserFast.symbolFollowedBy "-\n" next)
+        (ParserFast.symbolFollowedBy "-\u{000D}" next)
 
 
 squareEnd : ParserFast.Parser ()

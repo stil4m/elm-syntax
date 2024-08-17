@@ -33,22 +33,23 @@ maybeLayoutUntilIgnored endParser endSymbol =
 whitespaceAndCommentsUntilEndComments : Parser Comments -> Parser Comments
 whitespaceAndCommentsUntilEndComments end =
     ParserFast.chompWhileWhitespaceFollowedBy
-        (ParserFast.oneOf
-            [ end
-            , ParserFast.map2
+        (ParserFast.oneOf3
+            end
+            (ParserFast.map2
                 (\content commentsAfter ->
                     Rope.one content
                         |> Rope.filledPrependTo commentsAfter
                 )
                 (Node.parserCore Comments.singleLineCommentCore)
                 (ParserFast.lazy (\() -> whitespaceAndCommentsUntilEndComments end))
-            , ParserFast.map2
+            )
+            (ParserFast.map2
                 (\comment commentsAfter ->
                     Rope.one comment |> Rope.filledPrependTo commentsAfter
                 )
                 (Node.parserCore Comments.multilineCommentString)
                 (ParserFast.lazy (\() -> whitespaceAndCommentsUntilEndComments end))
-            ]
+            )
         )
 
 

@@ -161,11 +161,10 @@ glslExpressionAfterOpeningSquareBracket =
 
 untilGlslEnd : Parser (Maybe String)
 untilGlslEnd =
-    ParserFast.oneOf
-        [ ParserFast.symbol "|]" Nothing
-        , ParserFast.symbol "|" (Just "|")
-        , ParserFast.chompWhileMap (\c -> c /= '|') Just
-        ]
+    ParserFast.oneOf3
+        (ParserFast.symbol "|]" Nothing)
+        (ParserFast.symbol "|" (Just "|"))
+        (ParserFast.chompWhileMap (\c -> c /= '|') Just)
 
 
 listOrGlslExpression : Parser (WithComments (Node Expression))
