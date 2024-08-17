@@ -13,7 +13,7 @@ module ParserFast exposing
 
 @docs Parser, run
 
-@docs int, number, symbol, symbolFollowedBy, keyword, keywordFollowedBy, variable, variableWithoutReserved, anyChar, end
+@docs int, number, symbol, symbolFollowedBy, keyword, keywordFollowedBy, variable, ifFollowedByWhile, anyChar, end
 
 
 # Flow
@@ -800,14 +800,12 @@ variable i =
         }
 
 
-variableWithoutReserved :
-    { start : Char -> Bool
-    , inner : Char -> Bool
-    }
+ifFollowedByWhile :
+    (Char -> Bool)
+    -> (Char -> Bool)
     -> Parser String
-variableWithoutReserved i =
-    A.variableWithoutReserved i
-        Parser.ExpectingVariable
+ifFollowedByWhile firstIsOkay afterFirstIsOkay =
+    A.ifFollowedByWhile firstIsOkay Parser.UnexpectedChar afterFirstIsOkay
 
 
 {-| Parse multi-line comments. So if you wanted to parse Elm whitespace or

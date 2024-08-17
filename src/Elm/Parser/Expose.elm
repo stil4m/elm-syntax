@@ -77,10 +77,9 @@ infixExpose : ParserFast.Parser (WithComments (Node TopLevelExpose))
 infixExpose =
     ParserFast.map2 (\infixName () -> { comments = Rope.empty, syntax = InfixExpose infixName })
         (ParserFast.symbolFollowedBy "("
-            (ParserFast.variableWithoutReserved
-                { inner = \c -> c /= ')'
-                , start = \c -> c /= ')'
-                }
+            (ParserFast.ifFollowedByWhile
+                (\c -> c /= ')')
+                (\c -> c /= ')')
             )
         )
         Tokens.parensEnd
