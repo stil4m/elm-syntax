@@ -2,7 +2,7 @@ module ParserFast exposing
     ( Parser, run
     , int, number, symbol, symbolFollowedBy, keyword, keywordFollowedBy, whileMap, ifFollowedByWhile, ifFollowedByWhileExcept, anyChar, end
     , succeed, problem, lazy, map, map2, map3, map4, map5, map6, map7, map8, map9, validate
-    , orSucceed, mapOrSucceed, oneOf2, oneOf2Map, oneOf2OrSucceed, oneOf3, oneOf, backtrackable
+    , orSucceed, mapOrSucceed, oneOf2, oneOf2Map, oneOf2OrSucceed, oneOf3, oneOf4, oneOf, backtrackable
     , chompWhileWhitespaceFollowedBy, nestableMultiComment
     , withIndentSetToColumn, withIndent, columnIndentAndThen, validateEndColumnIndentation
     , mapWithStartPosition, mapWithEndPosition, mapWithStartAndEndPosition, columnAndThen, offsetSourceAndThen
@@ -19,7 +19,7 @@ module ParserFast exposing
 
 @docs succeed, problem, lazy, map, map2, map3, map4, map5, map6, map7, map8, map9, validate
 
-@docs orSucceed, mapOrSucceed, oneOf2, oneOf2Map, oneOf2OrSucceed, oneOf3, oneOf, backtrackable
+@docs orSucceed, mapOrSucceed, oneOf2, oneOf2Map, oneOf2OrSucceed, oneOf3, oneOf4, oneOf, backtrackable
 
 
 # Whitespace
@@ -282,6 +282,11 @@ oneOf2OrSucceed =
 oneOf3 : Parser a -> Parser a -> Parser a -> Parser a
 oneOf3 =
     A.oneOf3
+
+
+oneOf4 : Parser a -> Parser a -> Parser a -> Parser a -> Parser a
+oneOf4 =
+    A.oneOf4
 
 
 {-| If you are parsing JSON, the values can be strings, floats, booleans,

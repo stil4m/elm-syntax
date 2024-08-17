@@ -1,11 +1,10 @@
 module ParserFast.Advanced exposing
     ( Parser, run
-    , number, symbol, symbolFollowedBy, keyword, keywordFollowedBy, ifFollowedByWhile, ifFollowedByWhileExcept, anyChar, end
+    , number, symbol, symbolFollowedBy, keyword, keywordFollowedBy, whileMap, ifFollowedByWhile, ifFollowedByWhileExcept, anyChar, end
     , succeed, problem, lazy, map, map2, map3, map4, map5, map6, map7, map8, map9, validate
-    , orSucceed, mapOrSucceed, oneOf2, oneOf2OrSucceed, oneOf3, oneOf2Map, oneOf, backtrackable
+    , orSucceed, mapOrSucceed, oneOf2, oneOf2OrSucceed, oneOf2Map, oneOf3, oneOf4, oneOf, backtrackable
     , loop, Step(..)
     , chompWhileWhitespaceFollowedBy, nestableMultiComment
-    , whileMap
     , withIndent, withIndentSetToColumn
     , columnAndThen, columnIndentAndThen, validateEndColumnIndentation, offsetSourceAndThen, mapWithStartPosition, mapWithEndPosition, mapWithStartAndEndPosition
     )
@@ -14,14 +13,14 @@ module ParserFast.Advanced exposing
 
 @docs Parser, run
 
-@docs number, symbol, symbolFollowedBy, keyword, keywordFollowedBy, ifFollowedByWhile, ifFollowedByWhileExcept, anyChar, end
+@docs number, symbol, symbolFollowedBy, keyword, keywordFollowedBy, whileMap, ifFollowedByWhile, ifFollowedByWhileExcept, anyChar, end
 
 
 # Flow
 
 @docs succeed, problem, lazy, map, map2, map3, map4, map5, map6, map7, map8, map9, validate
 
-@docs orSucceed, mapOrSucceed, oneOf2, oneOf2OrSucceed, oneOf3, oneOf2Map, oneOf, backtrackable
+@docs orSucceed, mapOrSucceed, oneOf2, oneOf2OrSucceed, oneOf2Map, oneOf3, oneOf4, oneOf, backtrackable
 
 @docs loop, Step
 
@@ -29,11 +28,6 @@ module ParserFast.Advanced exposing
 # Whitespace
 
 @docs chompWhileWhitespaceFollowedBy, nestableMultiComment
-
-
-# Chompers
-
-@docs whileMap
 
 
 # Indentation, Positions and Source
@@ -627,6 +621,50 @@ oneOf3 (Parser attemptFirst) (Parser attemptSecond) (Parser attemptThird) =
 
                                             else
                                                 Bad False (Append firstX (Append secondX thirdX)) ()
+        )
+
+
+oneOf4 : Parser x a -> Parser x a -> Parser x a -> Parser x a -> Parser x a
+oneOf4 (Parser attemptFirst) (Parser attemptSecond) (Parser attemptThird) (Parser attemptFourth) =
+    Parser
+        (\s ->
+            case attemptFirst s of
+                (Good _ _ _) as firstGood ->
+                    firstGood
+
+                (Bad firstCommitted firstX ()) as firstBad ->
+                    if firstCommitted then
+                        firstBad
+
+                    else
+                        case attemptSecond s of
+                            (Good _ _ _) as secondGood ->
+                                secondGood
+
+                            (Bad secondCommitted secondX ()) as secondBad ->
+                                if secondCommitted then
+                                    secondBad
+
+                                else
+                                    case attemptThird s of
+                                        (Good _ _ _) as thirdGood ->
+                                            thirdGood
+
+                                        (Bad thirdCommitted thirdX ()) as thirdBad ->
+                                            if thirdCommitted then
+                                                thirdBad
+
+                                            else
+                                                case attemptFourth s of
+                                                    (Good _ _ _) as fourthGood ->
+                                                        fourthGood
+
+                                                    (Bad fourthCommitted fourthX ()) as fourthBad ->
+                                                        if fourthCommitted then
+                                                            fourthBad
+
+                                                        else
+                                                            Bad False (Append firstX (Append secondX (Append thirdX fourthX))) ()
         )
 
 

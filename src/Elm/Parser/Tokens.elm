@@ -151,13 +151,13 @@ stringLiteralStep =
 
 tripleQuotedStringLiteralStep : ParserFast.Parser (Maybe String)
 tripleQuotedStringLiteralStep =
-    ParserFast.oneOf
-        [ ParserFast.symbol "\"\"\"" Nothing
-        , ParserFast.symbol "\"" (Just "\"")
-        , ParserFast.map (\v -> Just (String.fromChar v))
+    ParserFast.oneOf4
+        (ParserFast.symbol "\"\"\"" Nothing)
+        (ParserFast.symbol "\"" (Just "\""))
+        (ParserFast.map (\v -> Just (String.fromChar v))
             (ParserFast.symbolFollowedBy "\\" escapedCharValue)
-        , ParserFast.whileMap (\c -> c /= '"' && c /= '\\') Just
-        ]
+        )
+        (ParserFast.whileMap (\c -> c /= '"' && c /= '\\') Just)
 
 
 functionName : ParserFast.Parser String
