@@ -13,7 +13,6 @@ import Elm.Syntax.Pattern exposing (Pattern)
 import Elm.Syntax.Range exposing (Location)
 import Elm.Syntax.Signature exposing (Signature)
 import ParserFast exposing (Parser)
-import ParserFast.Advanced
 import ParserWithComments exposing (Comments, WithComments)
 import Rope
 

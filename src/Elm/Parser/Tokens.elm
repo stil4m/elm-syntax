@@ -24,7 +24,6 @@ import Char
 import Char.Extra
 import Hex
 import ParserFast
-import ParserFast.Advanced
 import Set exposing (Set)
 import Unicode
 

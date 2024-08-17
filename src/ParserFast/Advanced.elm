@@ -3,7 +3,7 @@ module ParserFast.Advanced exposing
     , number, symbol, symbolFollowedBy, keyword, keywordFollowedBy, whileMap, ifFollowedByWhile, ifFollowedByWhileExcept, anyChar, end
     , succeed, problem, lazy, map, map2, map3, map4, map5, map6, map7, map8, map9, validate
     , orSucceed, oneOf2, oneOf2OrSucceed, oneOf2Map, oneOf3, oneOf4, oneOf, backtrackable
-    , loopWhileSucceeds, loopUntil, loop, Step(..)
+    , loopWhileSucceeds, loopUntil
     , chompWhileWhitespaceFollowedBy, nestableMultiComment
     , withIndent, withIndentSetToColumn
     , columnAndThen, columnIndentAndThen, validateEndColumnIndentation, offsetSourceAndThen, mapWithStartPosition, mapWithEndPosition, mapWithStartAndEndPosition
@@ -22,7 +22,7 @@ module ParserFast.Advanced exposing
 
 @docs orSucceed, oneOf2, oneOf2OrSucceed, oneOf2Map, oneOf3, oneOf4, oneOf, backtrackable
 
-@docs loopWhileSucceeds, loopUntil, loop, Step
+@docs loopWhileSucceeds, loopUntil
 
 
 # Whitespace
