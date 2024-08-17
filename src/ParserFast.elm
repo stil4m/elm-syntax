@@ -13,7 +13,7 @@ module ParserFast exposing
 
 @docs Parser, run
 
-@docs int, number, symbol, symbolFollowedBy, keyword, keywordFollowedBy, ifFollowedByWhile, ifFollowedByWhileExcept, anyChar, end
+@docs int, number, symbol, symbolFollowedBy, keyword, keywordFollowedBy, whileMap, ifFollowedByWhile, ifFollowedByWhileExcept, anyChar, end
 
 
 # Flow
@@ -26,11 +26,6 @@ module ParserFast exposing
 # Whitespace
 
 @docs chompWhileWhitespaceFollowedBy, nestableMultiComment
-
-
-# Chompers
-
-@docs whileMap
 
 
 # Indentation, Positions and source
