@@ -2,7 +2,7 @@ module ParserFast exposing
     ( Parser, run
     , int, number, symbol, symbolFollowedBy, keyword, keywordFollowedBy, variable, ifFollowedByWhile, anyChar, end
     , succeed, problem, succeedLazy, lazy, map, map2, map3, map4, map5, map6, map7, map8, map9, map10, map11, validate, andThen
-    , orSucceed, mapOrSucceed, orSucceedLazy, oneOf2, oneOf2Map, oneOf3, oneOf, backtrackable, commit
+    , orSucceed, mapOrSucceed, orSucceedLazy, oneOf2, oneOf2Map, oneOf2OrSucceed, oneOf3, oneOf, backtrackable, commit
     , chompWhileWhitespaceFollowedBy, nestableMultiComment
     , getChompedString, chompIf, chompAnyChar, chompIfFollowedBy, chompWhile, chompWhileMap, mapChompedString
     , withIndentSetToColumn, withIndent, columnIndentAndThen, validateEndColumnIndentation
@@ -20,7 +20,7 @@ module ParserFast exposing
 
 @docs succeed, problem, succeedLazy, lazy, map, map2, map3, map4, map5, map6, map7, map8, map9, map10, map11, validate, andThen
 
-@docs orSucceed, mapOrSucceed, orSucceedLazy, oneOf2, oneOf2Map, oneOf3, oneOf, backtrackable, commit
+@docs orSucceed, mapOrSucceed, orSucceedLazy, oneOf2, oneOf2Map, oneOf2OrSucceed, oneOf3, oneOf, backtrackable, commit
 
 
 # Whitespace
@@ -331,6 +331,11 @@ oneOf2Map =
 oneOf2 : Parser a -> Parser a -> Parser a
 oneOf2 =
     A.oneOf2
+
+
+oneOf2OrSucceed : Parser a -> Parser a -> a -> Parser a
+oneOf2OrSucceed =
+    A.oneOf2OrSucceed
 
 
 oneOf3 : Parser a -> Parser a -> Parser a -> Parser a
