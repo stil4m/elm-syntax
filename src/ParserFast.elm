@@ -1,10 +1,9 @@
 module ParserFast exposing
     ( Parser, run
-    , int, number, symbol, symbolFollowedBy, keyword, keywordFollowedBy, ifFollowedByWhile, ifFollowedByWhileExcept, anyChar, end
+    , int, number, symbol, symbolFollowedBy, keyword, keywordFollowedBy, whileMap, ifFollowedByWhile, ifFollowedByWhileExcept, anyChar, end
     , succeed, problem, lazy, map, map2, map3, map4, map5, map6, map7, map8, map9, validate
     , orSucceed, mapOrSucceed, oneOf2, oneOf2Map, oneOf2OrSucceed, oneOf3, oneOf, backtrackable
     , chompWhileWhitespaceFollowedBy, nestableMultiComment
-    , whileMap
     , withIndentSetToColumn, withIndent, columnIndentAndThen, validateEndColumnIndentation
     , mapWithStartPosition, mapWithEndPosition, mapWithStartAndEndPosition, columnAndThen, offsetSourceAndThen
     )
@@ -13,7 +12,7 @@ module ParserFast exposing
 
 @docs Parser, run
 
-@docs int, number, symbol, symbolFollowedBy, keyword, keywordFollowedBy, ifFollowedByWhile, ifFollowedByWhileExcept, anyChar, end
+@docs int, number, symbol, symbolFollowedBy, keyword, keywordFollowedBy, whileMap, ifFollowedByWhile, ifFollowedByWhileExcept, anyChar, end
 
 
 # Flow
@@ -26,11 +25,6 @@ module ParserFast exposing
 # Whitespace
 
 @docs chompWhileWhitespaceFollowedBy, nestableMultiComment
-
-
-# Chompers
-
-@docs whileMap
 
 
 # Indentation, Positions and source
