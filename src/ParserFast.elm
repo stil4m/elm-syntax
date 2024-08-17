@@ -13,7 +13,7 @@ module ParserFast exposing
 
 @docs Parser, run
 
-@docs int, number, symbol, symbolFollowedBy, keyword, keywordFollowedBy, variable, ifFollowedByWhile, anyChar, end
+@docs int, number, symbol, symbolFollowedBy, keyword, keywordFollowedBy, ifFollowedByWhile, ifFollowedByWhileExcept, anyChar, end
 
 
 # Flow

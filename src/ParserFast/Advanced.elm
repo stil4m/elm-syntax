@@ -14,7 +14,7 @@ module ParserFast.Advanced exposing
 
 @docs Parser, run
 
-@docs number, symbol, symbolFollowedBy, keyword, keywordFollowedBy, variable, ifFollowedByWhile, anyChar, end
+@docs number, symbol, symbolFollowedBy, keyword, keywordFollowedBy, ifFollowedByWhile, ifFollowedByWhileExcept, anyChar, end
 
 
 # Flow
@@ -1212,13 +1212,13 @@ variable :
     }
     -> x
     -> Parser x String
-variable i expecting =
+ifFollowedByWhileExcept firstIsOkay afterFirstIsOkay exceptionSet expecting =
     Parser
         (\s ->
             let
                 firstOffset : Int
                 firstOffset =
-                    isSubChar i.start s.offset s.src
+                    isSubChar firstIsOkay s.offset s.src
             in
             if firstOffset == -1 then
                 Bad False (fromState s expecting) ()
@@ -1228,16 +1228,16 @@ variable i expecting =
                     s1 : State
                     s1 =
                         if firstOffset == -2 then
-                            chompWhileHelp i.inner (s.offset + 1) (s.row + 1) 1 s.src s.indent
+                            chompWhileHelp afterFirstIsOkay (s.offset + 1) (s.row + 1) 1 s.src s.indent
 
                         else
-                            chompWhileHelp i.inner firstOffset s.row (s.col + 1) s.src s.indent
+                            chompWhileHelp afterFirstIsOkay firstOffset s.row (s.col + 1) s.src s.indent
 
                     name : String
                     name =
                         String.slice s.offset s1.offset s.src
                 in
-                if Set.member name i.reserved then
+                if Set.member name exceptionSet then
                     Bad False (fromState s expecting) ()
 
                 else
