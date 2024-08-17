@@ -315,6 +315,11 @@ oneOf3 =
     A.oneOf3
 
 
+oneOf4 : Parser a -> Parser a -> Parser a -> Parser a -> Parser a
+oneOf4 =
+    A.oneOf4
+
+
 {-| If you are parsing JSON, the values can be strings, floats, booleans,
 arrays, objects, or null. You need a way to pick `oneOf` them! Here is a
 sample of what that code might look like:

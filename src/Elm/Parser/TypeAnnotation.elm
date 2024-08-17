@@ -48,22 +48,20 @@ typeAnnotation =
 
 typeAnnotationNoFnExcludingTypedWithArguments : Parser (WithComments (Node TypeAnnotation))
 typeAnnotationNoFnExcludingTypedWithArguments =
-    ParserFast.oneOf
-        [ parensTypeAnnotation
-        , typedTypeAnnotationWithoutArguments
-        , genericTypeAnnotation
-        , recordTypeAnnotation
-        ]
+    ParserFast.oneOf4
+        parensTypeAnnotation
+        typedTypeAnnotationWithoutArguments
+        genericTypeAnnotation
+        recordTypeAnnotation
 
 
 typeAnnotationNoFnIncludingTypedWithArguments : Parser (WithComments (Node TypeAnnotation))
 typeAnnotationNoFnIncludingTypedWithArguments =
-    ParserFast.oneOf
-        [ parensTypeAnnotation
-        , typedTypeAnnotationWithArguments
-        , genericTypeAnnotation
-        , recordTypeAnnotation
-        ]
+    ParserFast.oneOf4
+        parensTypeAnnotation
+        typedTypeAnnotationWithArguments
+        genericTypeAnnotation
+        recordTypeAnnotation
 
 
 parensTypeAnnotation : Parser (WithComments (Node TypeAnnotation))

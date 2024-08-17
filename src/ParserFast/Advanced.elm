@@ -5,7 +5,6 @@ module ParserFast.Advanced exposing
     , orSucceed, orSucceedLazy, oneOf2, oneOf, backtrackable
     , loop, Step(..)
     , chompWhileWhitespaceFollowedBy, nestableMultiComment
-    , whileMap
     , withIndent, withIndentSetToColumn
     , columnAndThen, columnIndentAndThen, validateEndColumnIndentation, offsetSourceAndThen, mapWithStartPosition, mapWithEndPosition, mapWithStartAndEndPosition
     )
@@ -14,7 +13,7 @@ module ParserFast.Advanced exposing
 
 @docs Parser, run
 
-@docs number, symbol, symbolFollowedBy, keyword, keywordFollowedBy, ifFollowedByWhile, ifFollowedByWhileExcept, anyChar, end
+@docs number, symbol, symbolFollowedBy, keyword, keywordFollowedBy, whileMap, ifFollowedByWhile, ifFollowedByWhileExcept, anyChar, end
 
 
 # Flow
@@ -29,11 +28,6 @@ module ParserFast.Advanced exposing
 # Whitespace
 
 @docs chompWhileWhitespaceFollowedBy, nestableMultiComment
-
-
-# Chompers
-
-@docs whileMap
 
 
 # Indentation, Positions and Source
@@ -655,6 +649,50 @@ oneOf3 (Parser attemptFirst) (Parser attemptSecond) (Parser attemptThird) =
 
                                             else
                                                 Bad False (Append firstX (Append secondX thirdX)) ()
+        )
+
+
+oneOf4 : Parser x a -> Parser x a -> Parser x a -> Parser x a -> Parser x a
+oneOf4 (Parser attemptFirst) (Parser attemptSecond) (Parser attemptThird) (Parser attemptFourth) =
+    Parser
+        (\s ->
+            case attemptFirst s of
+                (Good _ _ _) as firstGood ->
+                    firstGood
+
+                (Bad firstCommitted firstX ()) as firstBad ->
+                    if firstCommitted then
+                        firstBad
+
+                    else
+                        case attemptSecond s of
+                            (Good _ _ _) as secondGood ->
+                                secondGood
+
+                            (Bad secondCommitted secondX ()) as secondBad ->
+                                if secondCommitted then
+                                    secondBad
+
+                                else
+                                    case attemptThird s of
+                                        (Good _ _ _) as thirdGood ->
+                                            thirdGood
+
+                                        (Bad thirdCommitted thirdX ()) as thirdBad ->
+                                            if thirdCommitted then
+                                                thirdBad
+
+                                            else
+                                                case attemptFourth s of
+                                                    (Good _ _ _) as fourthGood ->
+                                                        fourthGood
+
+                                                    (Bad fourthCommitted fourthX ()) as fourthBad ->
+                                                        if fourthCommitted then
+                                                            fourthBad
+
+                                                        else
+                                                            Bad False (Append firstX (Append secondX (Append thirdX fourthX))) ()
         )
 
 
