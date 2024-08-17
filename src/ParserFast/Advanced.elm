@@ -574,21 +574,21 @@ oneOf2 (Parser attemptFirst) (Parser attemptSecond) =
     Parser
         (\s ->
             case attemptFirst s of
-                (Good _ _ _) as firstPStep ->
-                    firstPStep
+                (Good _ _ _) as firstGood ->
+                    firstGood
 
-                (Bad firstCommitted firstX ()) as firstPStep ->
+                (Bad firstCommitted firstX ()) as firstBad ->
                     if firstCommitted then
-                        firstPStep
+                        firstBad
 
                     else
                         case attemptSecond s of
-                            (Good _ _ _) as secondPStep ->
-                                secondPStep
+                            (Good _ _ _) as secondGood ->
+                                secondGood
 
-                            (Bad secondCommitted secondX ()) as secondPStep ->
+                            (Bad secondCommitted secondX ()) as secondBad ->
                                 if secondCommitted then
-                                    secondPStep
+                                    secondBad
 
                                 else
                                     Bad False (Append firstX secondX) ()
@@ -600,30 +600,30 @@ oneOf3 (Parser attemptFirst) (Parser attemptSecond) (Parser attemptThird) =
     Parser
         (\s ->
             case attemptFirst s of
-                (Good _ _ _) as firstPStep ->
-                    firstPStep
+                (Good _ _ _) as firstGood ->
+                    firstGood
 
-                (Bad firstCommitted firstX ()) as firstPStep ->
+                (Bad firstCommitted firstX ()) as firstBad ->
                     if firstCommitted then
-                        firstPStep
+                        firstBad
 
                     else
                         case attemptSecond s of
-                            (Good _ _ _) as secondPStep ->
-                                secondPStep
+                            (Good _ _ _) as secondGood ->
+                                secondGood
 
-                            (Bad secondCommitted secondX ()) as secondPStep ->
+                            (Bad secondCommitted secondX ()) as secondBad ->
                                 if secondCommitted then
-                                    secondPStep
+                                    secondBad
 
                                 else
                                     case attemptThird s of
-                                        (Good _ _ _) as thirdPStep ->
-                                            thirdPStep
+                                        (Good _ _ _) as thirdGood ->
+                                            thirdGood
 
-                                        (Bad thirdCommitted thirdX ()) as thirdPStep ->
+                                        (Bad thirdCommitted thirdX ()) as thirdBad ->
                                             if thirdCommitted then
-                                                thirdPStep
+                                                thirdBad
 
                                             else
                                                 Bad False (Append firstX (Append secondX thirdX)) ()
@@ -666,12 +666,12 @@ orSucceed (Parser attemptFirst) secondRes =
     Parser
         (\s ->
             case attemptFirst s of
-                (Good _ _ _) as firstPStep ->
-                    firstPStep
+                (Good _ _ _) as firstGood ->
+                    firstGood
 
-                (Bad firstCommitted _ ()) as firstPStep ->
+                (Bad firstCommitted _ ()) as firstBad ->
                     if firstCommitted then
-                        firstPStep
+                        firstBad
 
                     else
                         Good False secondRes s
@@ -700,8 +700,8 @@ oneOf2OrSucceed (Parser attemptFirst) (Parser attemptSecond) thirdRes =
     Parser
         (\s ->
             case attemptFirst s of
-                (Good _ _ _) as firstPStep ->
-                    firstPStep
+                (Good _ _ _) as firstGood ->
+                    firstGood
 
                 (Bad firstCommitted _ ()) as firstBad ->
                     if firstCommitted then
@@ -709,12 +709,12 @@ oneOf2OrSucceed (Parser attemptFirst) (Parser attemptSecond) thirdRes =
 
                     else
                         case attemptSecond s of
-                            (Good _ _ _) as secondPStep ->
-                                secondPStep
+                            (Good _ _ _) as secondGood ->
+                                secondGood
 
-                            (Bad secondCommitted _ ()) as secondPStep ->
+                            (Bad secondCommitted _ ()) as secondBad ->
                                 if secondCommitted then
-                                    secondPStep
+                                    secondBad
 
                                 else
                                     Good False thirdRes s
