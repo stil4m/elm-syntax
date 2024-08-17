@@ -1232,6 +1232,37 @@ ifFollowedByWhile firstIsOkay problemOnFirstNotOkay afterFirstIsOkay =
         )
 
 
+anyCharFollowedByWhileMap :
+    (String -> res)
+    -> x
+    -> (Char -> Bool)
+    -> Parser x res
+anyCharFollowedByWhileMap chompedStringToRes expectingAnyChar afterFirstIsOkay =
+    Parser
+        (\s ->
+            let
+                firstOffset : Int
+                firstOffset =
+                    charOrEnd s.offset s.src
+            in
+            if firstOffset == -1 then
+                -- end of source
+                Bad False (fromState s expectingAnyChar) ()
+
+            else
+                let
+                    s1 : State
+                    s1 =
+                        if firstOffset == -2 then
+                            chompWhileHelp afterFirstIsOkay (s.offset + 1) (s.row + 1) 1 s.src s.indent
+
+                        else
+                            chompWhileHelp afterFirstIsOkay firstOffset s.row (s.col + 1) s.src s.indent
+                in
+                Good True (chompedStringToRes (String.slice s.offset s1.offset s.src)) s1
+        )
+
+
 skip : Parser x ignore -> Parser x keep -> Parser x keep
 skip iParser kParser =
     map2 revAlways iParser kParser
@@ -1263,9 +1294,9 @@ nestableMultiComment ( openChar, openTail ) expectingOpen ( closeChar, closeTail
             (oneOf3
                 (symbol close expectingClose ( close, -1 ))
                 (symbol open expectingOpen ( open, 1 ))
-                (map2 (\head tail -> ( String.cons head tail, 0 ))
-                    (anyChar expectingClose)
-                    (whileMap isNotRelevant identity)
+                (anyCharFollowedByWhileMap (\chomped -> ( chomped, 0 ))
+                    expectingClose
+                    isNotRelevant
                 )
             )
             (\( toAppend, nestingChange ) ( soFarContent, soFarNesting ) ->
