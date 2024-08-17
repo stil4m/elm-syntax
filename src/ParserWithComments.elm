@@ -23,28 +23,20 @@ type alias Comments =
 
 
 until : Parser () -> Parser (WithComments a) -> Parser (WithComments (List a))
-until end p =
-    ParserFast.Advanced.loop
-        listEmptyWithCommentsTuple
-        (ParserFast.oneOf2Map
-            (\() -> Nothing)
-            end
-            Just
-            p
+until end element =
+    ParserFast.loopUntil
+        end
+        element
+        ( Rope.empty, [] )
+        (\pResult ( commentsSoFar, itemsSoFar ) ->
+            ( commentsSoFar |> Rope.prependTo pResult.comments
+            , pResult.syntax :: itemsSoFar
+            )
         )
-        (\extension ( commentsSoFar, itemsSoFar ) ->
-            case extension of
-                Nothing ->
-                    ParserFast.Advanced.Done
-                        { comments = commentsSoFar
-                        , syntax = List.reverse itemsSoFar
-                        }
-
-                Just pResult ->
-                    ParserFast.Advanced.Loop
-                        ( commentsSoFar |> Rope.prependTo pResult.comments
-                        , pResult.syntax :: itemsSoFar
-                        )
+        (\( commentsSoFar, itemsSoFar ) ->
+            { comments = commentsSoFar
+            , syntax = List.reverse itemsSoFar
+            }
         )
 
 
@@ -64,11 +56,6 @@ many p =
         )
 
 
-listEmptyWithCommentsTuple : ( Rope a, List b )
-listEmptyWithCommentsTuple =
-    ( Rope.empty, [] )
-
-
 {-| Same as [`until`](#until), except that it doesn't reverse the list.
 This can be useful if you need to access the range of the last item.
 
@@ -76,28 +63,20 @@ Mind you the comments will be reversed either way
 
 -}
 untilWithoutReverse : Parser () -> Parser (WithComments a) -> Parser (WithComments (List a))
-untilWithoutReverse end p =
-    ParserFast.Advanced.loop
-        listEmptyWithCommentsTuple
-        (ParserFast.oneOf2Map
-            (\() -> Nothing)
-            end
-            Just
-            p
+untilWithoutReverse end element =
+    ParserFast.loopUntil
+        end
+        element
+        ( Rope.empty, [] )
+        (\pResult ( commentsSoFar, itemsSoFar ) ->
+            ( commentsSoFar |> Rope.prependTo pResult.comments
+            , pResult.syntax :: itemsSoFar
+            )
         )
-        (\extension ( commentsSoFar, itemsSoFar ) ->
-            case extension of
-                Nothing ->
-                    ParserFast.Advanced.Done
-                        { comments = commentsSoFar
-                        , syntax = itemsSoFar
-                        }
-
-                Just pResult ->
-                    ParserFast.Advanced.Loop
-                        ( commentsSoFar |> Rope.prependTo pResult.comments
-                        , pResult.syntax :: itemsSoFar
-                        )
+        (\( commentsSoFar, itemsSoFar ) ->
+            { comments = commentsSoFar
+            , syntax = itemsSoFar
+            }
         )
 
 

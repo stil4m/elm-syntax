@@ -22,7 +22,7 @@ module ParserFast exposing
 
 @docs orSucceed, orSucceedLazy, oneOf2, oneOf, backtrackable
 
-@docs loopWhileSucceeds
+@docs loopWhileSucceeds, loopUntil
 
 
 # Whitespace
@@ -379,6 +379,11 @@ map =
 loopWhileSucceeds : Parser element -> folded -> (element -> folded -> folded) -> (folded -> res) -> Parser res
 loopWhileSucceeds =
     A.loopWhileSucceeds
+
+
+loopUntil : Parser () -> Parser element -> folded -> (element -> folded -> folded) -> (folded -> res) -> Parser res
+loopUntil =
+    A.loopUntil
 
 
 {-| It is quite tricky to use `backtrackable` well! It can be very useful, but
