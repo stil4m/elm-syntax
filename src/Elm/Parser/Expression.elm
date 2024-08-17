@@ -107,7 +107,7 @@ dotFieldOptimisticLayout =
     ParserFast.symbolFollowedBy "."
         (ParserFast.map2
             (\field commentsAfter ->
-                { comments = Rope.empty
+                { comments = commentsAfter
                 , syntax =
                     ExtendRightByRecordAccess field
                 }
@@ -615,7 +615,7 @@ letDestructuringDeclaration =
 letFunction : Parser (WithComments (Node LetDeclaration))
 letFunction =
     ParserFast.map6
-        (\((Node startNameRange startName) as startNameNode) commentsAfterStartName maybeSignature arguments commentsAfterEqual expressionResult ->
+        (\((Node startNameRange _) as startNameNode) commentsAfterStartName maybeSignature arguments commentsAfterEqual expressionResult ->
             let
                 allComments : Comments
                 allComments =
@@ -660,7 +660,7 @@ letFunction =
 
                 Just signature ->
                     let
-                        (Node implementationNameRange implementationName) =
+                        (Node implementationNameRange _) =
                             signature.implementationName
                     in
                     let
@@ -1051,22 +1051,6 @@ applyExtensionsRightReverse extensionsRight leftExpression =
         )
         leftExpression
         extensionsRight
-
-
-applyMaybeExtensionRightWithComments :
-    Maybe (WithComments ExtensionRight)
-    -> WithComments (Node Expression)
-    -> ParserFast.Advanced.Step (WithComments (Node Expression)) (WithComments (Node Expression))
-applyMaybeExtensionRightWithComments maybeExtensionRight leftExpression =
-    case maybeExtensionRight of
-        Nothing ->
-            ParserFast.Advanced.Done leftExpression
-
-        Just extensionRight ->
-            ParserFast.Advanced.Loop
-                { comments = leftExpression.comments |> Rope.prependTo extensionRight.comments
-                , syntax = leftExpression.syntax |> applyExtensionRight extensionRight.syntax
-                }
 
 
 extendedSubExpressionWithoutInitialLayout :

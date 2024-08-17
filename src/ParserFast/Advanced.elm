@@ -1,11 +1,11 @@
 module ParserFast.Advanced exposing
     ( Parser, run
     , number, symbol, symbolFollowedBy, keyword, keywordFollowedBy, variable, ifFollowedByWhile, anyChar, end
-    , succeed, problem, succeedLazy, lazy, map, map2, map3, map4, map5, map6, map7, map8, map9, map10, map11, validate, andThen
-    , orSucceed, orSucceedLazy, mapOrSucceed, oneOf2, oneOf2OrSucceed, oneOf3, oneOf2Map, oneOf, backtrackable, commit
+    , succeed, problem, lazy, map, map2, map3, map4, map5, map6, map7, map8, map9, validate
+    , orSucceed, mapOrSucceed, oneOf2, oneOf2OrSucceed, oneOf3, oneOf2Map, oneOf, backtrackable
     , loop, Step(..)
     , chompWhileWhitespaceFollowedBy, nestableMultiComment
-    , getChompedString, chompIf, chompAnyChar, chompIfFollowedBy, chompWhile, whileMap, mapChompedString
+    , whileMap
     , withIndent, withIndentSetToColumn
     , columnAndThen, columnIndentAndThen, validateEndColumnIndentation, offsetSourceAndThen, mapWithStartPosition, mapWithEndPosition, mapWithStartAndEndPosition
     )
@@ -19,9 +19,9 @@ module ParserFast.Advanced exposing
 
 # Flow
 
-@docs succeed, problem, succeedLazy, lazy, map, map2, map3, map4, map5, map6, map7, map8, map9, map10, map11, validate, andThen
+@docs succeed, problem, lazy, map, map2, map3, map4, map5, map6, map7, map8, map9, validate
 
-@docs orSucceed, orSucceedLazy, mapOrSucceed, oneOf2, oneOf2OrSucceed, oneOf3, oneOf2Map, oneOf, backtrackable, commit
+@docs orSucceed, mapOrSucceed, oneOf2, oneOf2OrSucceed, oneOf3, oneOf2Map, oneOf, backtrackable
 
 @docs loop, Step
 
@@ -33,7 +33,7 @@ module ParserFast.Advanced exposing
 
 # Chompers
 
-@docs getChompedString, chompIf, chompAnyChar, chompIfFollowedBy, chompWhile, whileMap, mapChompedString
+@docs whileMap
 
 
 # Indentation, Positions and Source
@@ -178,11 +178,6 @@ ropeFilledToList ropeFilled list =
 
         Append ropefilled1 ropefilled2 ->
             ropeFilledToList ropefilled1 (ropeFilledToList ropefilled2 list)
-
-
-succeedLazy : (() -> a) -> Parser x a
-succeedLazy res =
-    Parser (\s -> Good False (res ()) s)
 
 
 succeed : a -> Parser x a
@@ -492,149 +487,6 @@ map9 func (Parser parseA) (Parser parseB) (Parser parseC) (Parser parseD) (Parse
         )
 
 
-map10 : (a -> b -> c -> d -> e -> f -> g -> h -> i -> j -> value) -> Parser x a -> Parser x b -> Parser x c -> Parser x d -> Parser x e -> Parser x f -> Parser x g -> Parser x h -> Parser x i -> Parser x j -> Parser x value
-map10 func (Parser parseA) (Parser parseB) (Parser parseC) (Parser parseD) (Parser parseE) (Parser parseF) (Parser parseG) (Parser parseH) (Parser parseI) (Parser parseJ) =
-    Parser
-        (\s0 ->
-            case parseA s0 of
-                Bad p x () ->
-                    Bad p x ()
-
-                Good p1 a s1 ->
-                    case parseB s1 of
-                        Bad p2 x () ->
-                            Bad (p1 || p2) x ()
-
-                        Good p2 b s2 ->
-                            case parseC s2 of
-                                Bad p3 x () ->
-                                    Bad (p1 || p2 || p3) x ()
-
-                                Good p3 c s3 ->
-                                    case parseD s3 of
-                                        Bad p4 x () ->
-                                            Bad (p1 || p2 || p3 || p4) x ()
-
-                                        Good p4 d s4 ->
-                                            case parseE s4 of
-                                                Bad p5 x () ->
-                                                    Bad (p1 || p2 || p3 || p4 || p5) x ()
-
-                                                Good p5 e s5 ->
-                                                    case parseF s5 of
-                                                        Bad p6 x () ->
-                                                            Bad (p1 || p2 || p3 || p4 || p5 || p6) x ()
-
-                                                        Good p6 f s6 ->
-                                                            case parseG s6 of
-                                                                Bad p7 x () ->
-                                                                    Bad (p1 || p2 || p3 || p4 || p5 || p6 || p7) x ()
-
-                                                                Good p7 g s7 ->
-                                                                    case parseH s7 of
-                                                                        Bad p8 x () ->
-                                                                            Bad (p1 || p2 || p3 || p4 || p5 || p6 || p7 || p8) x ()
-
-                                                                        Good p8 h s8 ->
-                                                                            case parseI s8 of
-                                                                                Bad p9 x () ->
-                                                                                    Bad (p1 || p2 || p3 || p4 || p5 || p6 || p7 || p8 || p9) x ()
-
-                                                                                Good p9 i s9 ->
-                                                                                    case parseJ s9 of
-                                                                                        Bad p10 x () ->
-                                                                                            Bad (p1 || p2 || p3 || p4 || p5 || p6 || p7 || p8 || p9 || p10) x ()
-
-                                                                                        Good p10 j s10 ->
-                                                                                            Good (p1 || p2 || p3 || p4 || p5 || p6 || p7 || p8 || p9 || p10) (func a b c d e f g h i j) s10
-        )
-
-
-map11 : (a -> b -> c -> d -> e -> f -> g -> h -> i -> j -> k -> value) -> Parser x a -> Parser x b -> Parser x c -> Parser x d -> Parser x e -> Parser x f -> Parser x g -> Parser x h -> Parser x i -> Parser x j -> Parser x k -> Parser x value
-map11 func (Parser parseA) (Parser parseB) (Parser parseC) (Parser parseD) (Parser parseE) (Parser parseF) (Parser parseG) (Parser parseH) (Parser parseI) (Parser parseJ) (Parser parseK) =
-    Parser
-        (\s0 ->
-            case parseA s0 of
-                Bad p x () ->
-                    Bad p x ()
-
-                Good p1 a s1 ->
-                    case parseB s1 of
-                        Bad p2 x () ->
-                            Bad (p1 || p2) x ()
-
-                        Good p2 b s2 ->
-                            case parseC s2 of
-                                Bad p3 x () ->
-                                    Bad (p1 || p2 || p3) x ()
-
-                                Good p3 c s3 ->
-                                    case parseD s3 of
-                                        Bad p4 x () ->
-                                            Bad (p1 || p2 || p3 || p4) x ()
-
-                                        Good p4 d s4 ->
-                                            case parseE s4 of
-                                                Bad p5 x () ->
-                                                    Bad (p1 || p2 || p3 || p4 || p5) x ()
-
-                                                Good p5 e s5 ->
-                                                    case parseF s5 of
-                                                        Bad p6 x () ->
-                                                            Bad (p1 || p2 || p3 || p4 || p5 || p6) x ()
-
-                                                        Good p6 f s6 ->
-                                                            case parseG s6 of
-                                                                Bad p7 x () ->
-                                                                    Bad (p1 || p2 || p3 || p4 || p5 || p6 || p7) x ()
-
-                                                                Good p7 g s7 ->
-                                                                    case parseH s7 of
-                                                                        Bad p8 x () ->
-                                                                            Bad (p1 || p2 || p3 || p4 || p5 || p6 || p7 || p8) x ()
-
-                                                                        Good p8 h s8 ->
-                                                                            case parseI s8 of
-                                                                                Bad p9 x () ->
-                                                                                    Bad (p1 || p2 || p3 || p4 || p5 || p6 || p7 || p8 || p9) x ()
-
-                                                                                Good p9 i s9 ->
-                                                                                    case parseJ s9 of
-                                                                                        Bad p10 x () ->
-                                                                                            Bad (p1 || p2 || p3 || p4 || p5 || p6 || p7 || p8 || p9 || p10) x ()
-
-                                                                                        Good p10 j s10 ->
-                                                                                            case parseK s10 of
-                                                                                                Bad p11 x () ->
-                                                                                                    Bad (p1 || p2 || p3 || p4 || p5 || p6 || p7 || p8 || p9 || p10 || p11) x ()
-
-                                                                                                Good p11 k s11 ->
-                                                                                                    Good (p1 || p2 || p3 || p4 || p5 || p6 || p7 || p8 || p9 || p10 || p11) (func a b c d e f g h i j k) s11
-        )
-
-
-andThen : (a -> Parser x b) -> Parser x a -> Parser x b
-andThen callback (Parser parseA) =
-    Parser
-        (\s0 ->
-            case parseA s0 of
-                Bad p x () ->
-                    Bad p x ()
-
-                Good p1 a s1 ->
-                    let
-                        (Parser parseB) =
-                            callback a
-                    in
-                    case parseB s1 of
-                        Bad p2 x () ->
-                            Bad (p1 || p2) x ()
-
-                        Good p2 b s2 ->
-                            Good (p1 || p2) b s2
-        )
-
-
 validate : (a -> Bool) -> x -> Parser x a -> Parser x a
 validate isOkay problemOnNotOkay (Parser parseA) =
     Parser
@@ -681,7 +533,7 @@ validateEndColumnIndentation isOkay problemOnIsNotOkay (Parser parse) =
     Parser
         (\s0 ->
             case parse s0 of
-                (Good committed res s1) as good ->
+                (Good committed _ s1) as good ->
                     if isOkay s1.col s1.indent then
                         good
 
@@ -843,23 +695,6 @@ mapOrSucceed firstToChoice (Parser attemptFirst) createSecondRes =
         )
 
 
-orSucceedLazy : Parser x a -> (() -> a) -> Parser x a
-orSucceedLazy (Parser attemptFirst) createSecondRes =
-    Parser
-        (\s ->
-            case attemptFirst s of
-                (Good _ _ _) as firstPStep ->
-                    firstPStep
-
-                (Bad p0 _ ()) as firstPStep ->
-                    if p0 then
-                        firstPStep
-
-                    else
-                        Good False (createSecondRes ()) s
-        )
-
-
 oneOf2OrSucceed : Parser x a -> Parser x a -> a -> Parser x a
 oneOf2OrSucceed (Parser attemptFirst) (Parser attemptSecond) thirdRes =
     Parser
@@ -877,7 +712,7 @@ oneOf2OrSucceed (Parser attemptFirst) (Parser attemptSecond) thirdRes =
                             (Good _ _ _) as secondPStep ->
                                 secondPStep
 
-                            (Bad secondCommitted secondX ()) as secondPStep ->
+                            (Bad secondCommitted _ ()) as secondPStep ->
                                 if secondCommitted then
                                     secondPStep
 
@@ -1019,11 +854,6 @@ backtrackable (Parser parse) =
                 Good _ a s1 ->
                     Good False a s1
         )
-
-
-commit : a -> Parser x a
-commit a =
-    Parser (\s -> Good True a s)
 
 
 {-| Make sure the given String isn't empty and does not contain \\n
@@ -1215,98 +1045,6 @@ end x =
         )
 
 
-getChompedString : Parser x a -> Parser x String
-getChompedString parser =
-    mapChompedString always parser
-
-
-mapChompedString : (String -> a -> b) -> Parser x a -> Parser x b
-mapChompedString func (Parser parse) =
-    Parser
-        (\s0 ->
-            case parse s0 of
-                Bad p x () ->
-                    Bad p x ()
-
-                Good p a s1 ->
-                    Good p (func (String.slice s0.offset s1.offset s0.src) a) s1
-        )
-
-
-chompIfFollowedBy : (Char -> Bool) -> x -> Parser x a -> Parser x a
-chompIfFollowedBy isGood expecting (Parser parseNext) =
-    Parser
-        (\s ->
-            let
-                newOffset : Int
-                newOffset =
-                    isSubChar isGood s.offset s.src
-            in
-            if newOffset == -1 then
-                -- not found
-                Bad False (fromState s expecting) ()
-
-            else if newOffset == -2 then
-                -- newline
-                parseNext
-                    { src = s.src
-                    , offset = s.offset + 1
-                    , indent = s.indent
-                    , row = s.row + 1
-                    , col = 1
-                    }
-                    |> pStepCommit
-
-            else
-                -- found
-                parseNext
-                    { src = s.src
-                    , offset = newOffset
-                    , indent = s.indent
-                    , row = s.row
-                    , col = s.col + 1
-                    }
-                    |> pStepCommit
-        )
-
-
-chompIf : (Char -> Bool) -> x -> Parser x ()
-chompIf isGood expecting =
-    Parser
-        (\s ->
-            let
-                newOffset : Int
-                newOffset =
-                    isSubChar isGood s.offset s.src
-            in
-            if newOffset == -1 then
-                -- not found
-                Bad False (fromState s expecting) ()
-
-            else if newOffset == -2 then
-                -- newline
-                Good True
-                    ()
-                    { src = s.src
-                    , offset = s.offset + 1
-                    , indent = s.indent
-                    , row = s.row + 1
-                    , col = 1
-                    }
-
-            else
-                -- found
-                Good True
-                    ()
-                    { src = s.src
-                    , offset = newOffset
-                    , indent = s.indent
-                    , row = s.row
-                    , col = s.col + 1
-                    }
-        )
-
-
 anyChar : x -> Parser x Char
 anyChar expecting =
     Parser
@@ -1349,43 +1087,6 @@ anyChar expecting =
         )
 
 
-chompAnyChar : x -> Parser x ()
-chompAnyChar expecting =
-    Parser
-        (\s ->
-            let
-                newOffset : Int
-                newOffset =
-                    charOrEnd s.offset s.src
-            in
-            if newOffset == -1 then
-                -- not found
-                Bad False (fromState s expecting) ()
-
-            else if newOffset == -2 then
-                -- newline
-                Good True
-                    ()
-                    { src = s.src
-                    , offset = s.offset + 1
-                    , indent = s.indent
-                    , row = s.row + 1
-                    , col = 1
-                    }
-
-            else
-                -- found
-                Good True
-                    ()
-                    { src = s.src
-                    , offset = newOffset
-                    , indent = s.indent
-                    , row = s.row
-                    , col = s.col + 1
-                    }
-        )
-
-
 chompWhileWhitespaceFollowedBy : Parser x next -> Parser x next
 chompWhileWhitespaceFollowedBy (Parser parseNext) =
     Parser
@@ -1419,19 +1120,6 @@ chompWhileWhitespaceHelp offset row col src indent =
         -- empty or non-whitespace
         _ ->
             { src = src, offset = offset, indent = indent, row = row, col = col }
-
-
-chompWhile : (Char -> Bool) -> Parser x ()
-chompWhile isGood =
-    Parser
-        (\s0 ->
-            let
-                s1 : State
-                s1 =
-                    chompWhileHelp isGood s0.offset s0.row s0.col s0.src s0.indent
-            in
-            Good (s1.offset > s0.offset) () s1
-        )
 
 
 whileMap : (Char -> Bool) -> (String -> res) -> Parser x res
