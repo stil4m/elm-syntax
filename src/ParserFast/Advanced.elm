@@ -740,6 +740,32 @@ orSucceedLazy (Parser attemptFirst) createSecondRes =
         )
 
 
+oneOf2OrSucceed : Parser x a -> Parser x a -> a -> Parser x a
+oneOf2OrSucceed (Parser attemptFirst) (Parser attemptSecond) thirdRes =
+    Parser
+        (\s ->
+            case attemptFirst s of
+                (Good _ _ _) as firstPStep ->
+                    firstPStep
+
+                (Bad firstCommitted _ ()) as firstBad ->
+                    if firstCommitted then
+                        firstBad
+
+                    else
+                        case attemptSecond s of
+                            (Good _ _ _) as secondPStep ->
+                                secondPStep
+
+                            (Bad secondCommitted secondX ()) as secondPStep ->
+                                if secondCommitted then
+                                    secondPStep
+
+                                else
+                                    Good False thirdRes s
+        )
+
+
 oneOf : x -> List (Parser x a) -> Parser x a
 oneOf problemOnEmptyPossibilityList parsers =
     case parsers of

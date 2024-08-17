@@ -348,6 +348,11 @@ oneOf2 =
     A.oneOf2
 
 
+oneOf2OrSucceed : Parser a -> Parser a -> a -> Parser a
+oneOf2OrSucceed =
+    A.oneOf2OrSucceed
+
+
 oneOf3 : Parser a -> Parser a -> Parser a -> Parser a
 oneOf3 =
     A.oneOf3

@@ -49,7 +49,7 @@ composablePatternTryToCompose =
 
 maybeComposedWith : Parser { comments : ParserWithComments.Comments, syntax : PatternComposedWith }
 maybeComposedWith =
-    ParserFast.oneOf3
+    ParserFast.oneOf2OrSucceed
         (ParserFast.map2
             (\commentsAfterAs name ->
                 { comments = commentsAfterAs
@@ -68,7 +68,7 @@ maybeComposedWith =
             (ParserFast.symbolFollowedBy "::" Layout.maybeLayout)
             pattern
         )
-        (ParserFast.succeed { comments = Rope.empty, syntax = PatternComposedWithNothing () })
+        { comments = Rope.empty, syntax = PatternComposedWithNothing () }
 
 
 parensPattern : Parser (WithComments (Node Pattern))
