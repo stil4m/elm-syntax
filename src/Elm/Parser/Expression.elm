@@ -145,26 +145,19 @@ glslExpressionAfterOpeningSquareBracket =
                         (GLSLExpression s)
                 }
             )
-            (ParserFast.Advanced.loop ""
-                untilGlslEnd
-                (\maybeExtension soFar ->
-                    case maybeExtension of
-                        Nothing ->
-                            ParserFast.Advanced.Done soFar
-
-                        Just extension ->
-                            ParserFast.Advanced.Loop (soFar ++ extension ++ "")
+            (ParserFast.loopUntil
+                (ParserFast.symbol "|]" ())
+                (ParserFast.oneOf2
+                    (ParserFast.symbol "|" "|")
+                    (ParserFast.whileMap (\c -> c /= '|') identity)
                 )
+                ""
+                (\extension soFar ->
+                    soFar ++ extension ++ ""
+                )
+                identity
             )
         )
-
-
-untilGlslEnd : Parser (Maybe String)
-untilGlslEnd =
-    ParserFast.oneOf3
-        (ParserFast.symbol "|]" Nothing)
-        (ParserFast.symbol "|" (Just "|"))
-        (ParserFast.whileMap (\c -> c /= '|') Just)
 
 
 listOrGlslExpression : Parser (WithComments (Node Expression))
