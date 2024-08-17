@@ -3,7 +3,7 @@ module ParserFast.Advanced exposing
     , number, symbol, symbolFollowedBy, keyword, keywordFollowedBy, whileMap, ifFollowedByWhile, ifFollowedByWhileExcept, anyChar, end
     , succeed, problem, lazy, map, map2, map3, map4, map5, map6, map7, map8, map9, validate
     , orSucceed, mapOrSucceed, oneOf2, oneOf2OrSucceed, oneOf2Map, oneOf3, oneOf4, oneOf, backtrackable
-    , loop, Step(..)
+    , loopWhileSucceeds, loop, Step(..)
     , chompWhileWhitespaceFollowedBy, nestableMultiComment
     , withIndent, withIndentSetToColumn
     , columnAndThen, columnIndentAndThen, validateEndColumnIndentation, offsetSourceAndThen, mapWithStartPosition, mapWithEndPosition, mapWithStartAndEndPosition
@@ -22,7 +22,7 @@ module ParserFast.Advanced exposing
 
 @docs orSucceed, mapOrSucceed, oneOf2, oneOf2OrSucceed, oneOf2Map, oneOf3, oneOf4, oneOf, backtrackable
 
-@docs loop, Step
+@docs loopWhileSucceeds, loop, Step
 
 
 # Whitespace
@@ -879,6 +879,31 @@ loopHelp committedSoFar state ((Parser parseElement) as element) reduce s0 =
 
         Bad elementCommitted x () ->
             Bad (committedSoFar || elementCommitted) x ()
+
+
+loopWhileSucceeds : Parser x element -> folded -> (element -> folded -> folded) -> (folded -> res) -> Parser x res
+loopWhileSucceeds element initialFolded reduce foldedToRes =
+    Parser
+        (\s -> loopWhileSucceedsHelp False element initialFolded reduce foldedToRes s)
+
+
+loopWhileSucceedsHelp : Bool -> Parser x element -> folded -> (element -> folded -> folded) -> (folded -> res) -> State -> PStep x res
+loopWhileSucceedsHelp committedSoFar ((Parser parseElement) as element) soFar reduce foldedToRes s0 =
+    case parseElement s0 of
+        Good elementCommitted elementResult s1 ->
+            loopWhileSucceedsHelp (committedSoFar || elementCommitted)
+                element
+                (soFar |> reduce elementResult)
+                reduce
+                foldedToRes
+                s1
+
+        Bad elementCommitted x () ->
+            if elementCommitted then
+                Bad True x ()
+
+            else
+                Good committedSoFar (foldedToRes soFar) s0
 
 
 backtrackable : Parser x a -> Parser x a
