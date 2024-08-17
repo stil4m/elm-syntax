@@ -1291,16 +1291,6 @@ anyCharFollowedByWhileMap chompedStringToRes expectingAnyChar afterFirstIsOkay =
         )
 
 
-skip : Parser x ignore -> Parser x keep -> Parser x keep
-skip iParser kParser =
-    map2 revAlways iParser kParser
-
-
-revAlways : a -> b -> b
-revAlways _ b =
-    b
-
-
 nestableMultiComment : ( Char, String ) -> x -> ( Char, String ) -> x -> Parser x String
 nestableMultiComment ( openChar, openTail ) expectingOpen ( closeChar, closeTail ) expectingClose =
     let
@@ -1316,7 +1306,8 @@ nestableMultiComment ( openChar, openTail ) expectingOpen ( closeChar, closeTail
         isNotRelevant char =
             char /= openChar && char /= closeChar
     in
-    skip (symbol open expectingOpen ())
+    symbolFollowedBy open
+        expectingOpen
         (loop
             ( "", 1 )
             (oneOf3
