@@ -1149,6 +1149,21 @@ chompWhileWhitespaceHelp offset row col src indent =
             { src = src, offset = offset, indent = indent, row = row, col = col }
 
 
+while : (Char -> Bool) -> Parser x String
+while isGood =
+    Parser
+        (\s0 ->
+            let
+                s1 : State
+                s1 =
+                    chompWhileHelp isGood s0.offset s0.row s0.col s0.src s0.indent
+            in
+            Good (s1.offset > s0.offset)
+                (String.slice s0.offset s1.offset s0.src)
+                s1
+        )
+
+
 whileMap : (Char -> Bool) -> (String -> res) -> Parser x res
 whileMap isGood chompedStringToRes =
     Parser
@@ -1306,29 +1321,38 @@ nestableMultiComment ( openChar, openTail ) expectingOpen ( closeChar, closeTail
         isNotRelevant char =
             char /= openChar && char /= closeChar
     in
-    symbolFollowedBy open
-        expectingOpen
-        (loop
-            ( "", 1 )
-            (oneOf3
-                (symbol close expectingClose ( close, -1 ))
-                (symbol open expectingOpen ( open, 1 ))
-                (anyCharFollowedByWhileMap (\chomped -> ( chomped, 0 ))
-                    expectingClose
-                    isNotRelevant
+    map2
+        (\afterOpen contentAfterAfterOpen ->
+            open ++ afterOpen ++ contentAfterAfterOpen ++ close
+        )
+        (symbolFollowedBy open
+            expectingOpen
+            (while isNotRelevant)
+        )
+        (oneOf2
+            (symbol close expectingClose "")
+            (loop
+                ( "", 1 )
+                (oneOf3
+                    (symbol close expectingClose ( close, -1 ))
+                    (symbol open expectingOpen ( open, 1 ))
+                    (anyCharFollowedByWhileMap (\chomped -> ( chomped, 0 ))
+                        expectingClose
+                        isNotRelevant
+                    )
                 )
-            )
-            (\( toAppend, nestingChange ) ( soFarContent, soFarNesting ) ->
-                let
-                    newNesting : Int
-                    newNesting =
-                        soFarNesting + nestingChange
-                in
-                if newNesting == 0 then
-                    Done (open ++ soFarContent ++ close)
+                (\( toAppend, nestingChange ) ( soFarContent, soFarNesting ) ->
+                    let
+                        newNesting : Int
+                        newNesting =
+                            soFarNesting + nestingChange
+                    in
+                    if newNesting == 0 then
+                        Done soFarContent
 
-                else
-                    Loop ( soFarContent ++ toAppend ++ "", newNesting )
+                    else
+                        Loop ( soFarContent ++ toAppend ++ "", newNesting )
+                )
             )
         )
 
