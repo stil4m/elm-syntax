@@ -5,7 +5,7 @@ module ParserFast.Advanced exposing
     , orSucceed, orSucceedLazy, oneOf2, oneOf, backtrackable
     , loop, Step(..)
     , chompWhileWhitespaceFollowedBy, nestableMultiComment
-    , getChompedString, chompIf, chompAnyChar, chompIfFollowedBy, chompWhile, whileMap, mapChompedString
+    , whileMap
     , withIndent, withIndentSetToColumn
     , columnAndThen, columnIndentAndThen, validateEndColumnIndentation, offsetSourceAndThen, mapWithStartPosition, mapWithEndPosition, mapWithStartAndEndPosition
     )
@@ -33,7 +33,7 @@ module ParserFast.Advanced exposing
 
 # Chompers
 
-@docs getChompedString, chompIf, chompAnyChar, chompIfFollowedBy, chompWhile, whileMap, mapChompedString
+@docs whileMap
 
 
 # Indentation, Positions and Source
@@ -561,7 +561,7 @@ validateEndColumnIndentation isOkay problemOnIsNotOkay (Parser parse) =
     Parser
         (\s0 ->
             case parse s0 of
-                (Good committed res s1) as good ->
+                (Good committed _ s1) as good ->
                     if isOkay s1.col s1.indent then
                         good
 
@@ -723,23 +723,6 @@ mapOrSucceed firstToChoice (Parser attemptFirst) createSecondRes =
         )
 
 
-orSucceedLazy : Parser x a -> (() -> a) -> Parser x a
-orSucceedLazy (Parser attemptFirst) createSecondRes =
-    Parser
-        (\s ->
-            case attemptFirst s of
-                (Good _ _ _) as firstPStep ->
-                    firstPStep
-
-                (Bad p0 _ ()) as firstPStep ->
-                    if p0 then
-                        firstPStep
-
-                    else
-                        Good False (createSecondRes ()) s
-        )
-
-
 oneOf2OrSucceed : Parser x a -> Parser x a -> a -> Parser x a
 oneOf2OrSucceed (Parser attemptFirst) (Parser attemptSecond) thirdRes =
     Parser
@@ -757,7 +740,7 @@ oneOf2OrSucceed (Parser attemptFirst) (Parser attemptSecond) thirdRes =
                             (Good _ _ _) as secondPStep ->
                                 secondPStep
 
-                            (Bad secondCommitted secondX ()) as secondPStep ->
+                            (Bad secondCommitted _ ()) as secondPStep ->
                                 if secondCommitted then
                                     secondPStep
 
@@ -1089,98 +1072,6 @@ end x =
         )
 
 
-getChompedString : Parser x a -> Parser x String
-getChompedString parser =
-    mapChompedString always parser
-
-
-mapChompedString : (String -> a -> b) -> Parser x a -> Parser x b
-mapChompedString func (Parser parse) =
-    Parser
-        (\s0 ->
-            case parse s0 of
-                Bad p x () ->
-                    Bad p x ()
-
-                Good p a s1 ->
-                    Good p (func (String.slice s0.offset s1.offset s0.src) a) s1
-        )
-
-
-chompIfFollowedBy : (Char -> Bool) -> x -> Parser x a -> Parser x a
-chompIfFollowedBy isGood expecting (Parser parseNext) =
-    Parser
-        (\s ->
-            let
-                newOffset : Int
-                newOffset =
-                    isSubChar isGood s.offset s.src
-            in
-            if newOffset == -1 then
-                -- not found
-                Bad False (fromState s expecting) ()
-
-            else if newOffset == -2 then
-                -- newline
-                parseNext
-                    { src = s.src
-                    , offset = s.offset + 1
-                    , indent = s.indent
-                    , row = s.row + 1
-                    , col = 1
-                    }
-                    |> pStepCommit
-
-            else
-                -- found
-                parseNext
-                    { src = s.src
-                    , offset = newOffset
-                    , indent = s.indent
-                    , row = s.row
-                    , col = s.col + 1
-                    }
-                    |> pStepCommit
-        )
-
-
-chompIf : (Char -> Bool) -> x -> Parser x ()
-chompIf isGood expecting =
-    Parser
-        (\s ->
-            let
-                newOffset : Int
-                newOffset =
-                    isSubChar isGood s.offset s.src
-            in
-            if newOffset == -1 then
-                -- not found
-                Bad False (fromState s expecting) ()
-
-            else if newOffset == -2 then
-                -- newline
-                Good True
-                    ()
-                    { src = s.src
-                    , offset = s.offset + 1
-                    , indent = s.indent
-                    , row = s.row + 1
-                    , col = 1
-                    }
-
-            else
-                -- found
-                Good True
-                    ()
-                    { src = s.src
-                    , offset = newOffset
-                    , indent = s.indent
-                    , row = s.row
-                    , col = s.col + 1
-                    }
-        )
-
-
 anyChar : x -> Parser x Char
 anyChar expecting =
     Parser
@@ -1223,43 +1114,6 @@ anyChar expecting =
         )
 
 
-chompAnyChar : x -> Parser x ()
-chompAnyChar expecting =
-    Parser
-        (\s ->
-            let
-                newOffset : Int
-                newOffset =
-                    charOrEnd s.offset s.src
-            in
-            if newOffset == -1 then
-                -- not found
-                Bad False (fromState s expecting) ()
-
-            else if newOffset == -2 then
-                -- newline
-                Good True
-                    ()
-                    { src = s.src
-                    , offset = s.offset + 1
-                    , indent = s.indent
-                    , row = s.row + 1
-                    , col = 1
-                    }
-
-            else
-                -- found
-                Good True
-                    ()
-                    { src = s.src
-                    , offset = newOffset
-                    , indent = s.indent
-                    , row = s.row
-                    , col = s.col + 1
-                    }
-        )
-
-
 chompWhileWhitespaceFollowedBy : Parser x next -> Parser x next
 chompWhileWhitespaceFollowedBy (Parser parseNext) =
     Parser
@@ -1293,19 +1147,6 @@ chompWhileWhitespaceHelp offset row col src indent =
         -- empty or non-whitespace
         _ ->
             { src = src, offset = offset, indent = indent, row = row, col = col }
-
-
-chompWhile : (Char -> Bool) -> Parser x ()
-chompWhile isGood =
-    Parser
-        (\s0 ->
-            let
-                s1 : State
-                s1 =
-                    chompWhileHelp isGood s0.offset s0.row s0.col s0.src s0.indent
-            in
-            Good (s1.offset > s0.offset) () s1
-        )
 
 
 whileMap : (Char -> Bool) -> (String -> res) -> Parser x res

@@ -1,12 +1,10 @@
 module Elm.Parser.TypeAnnotationTests exposing (all)
 
-import Elm.Parser.Layout as Layout
-import Elm.Parser.ParserWithCommentsTestUtil as ParserWithCommentsUtil exposing (..)
+import Elm.Parser.ParserWithCommentsTestUtil as ParserWithCommentsUtil
 import Elm.Parser.TypeAnnotation as Parser
 import Elm.Syntax.Node exposing (Node(..))
 import Elm.Syntax.TypeAnnotation exposing (..)
 import Expect
-import ParserFast
 import Test exposing (..)
 
 

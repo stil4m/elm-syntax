@@ -30,7 +30,7 @@ module ParserFast exposing
 
 # Chompers
 
-@docs getChompedString, chompIf, chompAnyChar, chompIfFollowedBy, chompWhile, whileMap, mapChompedString
+@docs whileMap
 
 
 # Indentation, Positions and source
@@ -186,39 +186,6 @@ validate isOkay problemOnNotOkay =
     A.validate isOkay (Parser.Problem problemOnNotOkay)
 
 
-{-| Parse one thing `andThen` parse another thing. This is useful when you want
-to check on what you just parsed. For example, maybe you want U.S. zip codes
-and `int` is not suitable because it does not allow leading zeros. You could
-say:
-
-    zipCode : Parser String
-    zipCode =
-        getChompedString (chompWhile Char.isDigit)
-            |> andThen checkZipCode
-
-    checkZipCode : String -> Parser String
-    checkZipCode code =
-        if String.length code == 5 then
-            succeed code
-
-        else
-            problem "a U.S. zip code has exactly 5 digits"
-
-First we chomp digits `andThen` we check if it is a valid U.S. zip code. We
-`succeed` if it has exactly five digits and report a `problem` if not.
-
-Check out [`examples/DoubleQuoteString.elm`](https://github.com/elm/parser/blob/master/examples/DoubleQuoteString.elm)
-for another example, this time using `andThen` to verify unicode code points.
-
-**Note:** If you are using `andThen` recursively and blowing the stack, check
-out the [`ParserFast.Advanced.loop`](ParserFast-Advanced#loop) function to limit stack usage.
-
--}
-andThen : (a -> Parser b) -> Parser a -> Parser b
-andThen =
-    A.andThen
-
-
 columnAndThen : (Int -> Parser a) -> Parser a
 columnAndThen =
     A.columnAndThen
@@ -321,11 +288,6 @@ problem msg =
 orSucceed : Parser a -> a -> Parser a
 orSucceed =
     A.orSucceed
-
-
-orSucceedLazy : Parser a -> (() -> a) -> Parser a
-orSucceedLazy =
-    A.orSucceedLazy
 
 
 mapOrSucceed : (first -> choice) -> Parser first -> choice -> Parser choice
@@ -621,102 +583,9 @@ end =
     A.end Parser.ExpectingEnd
 
 
-{-| Sometimes parsers like `int` or `variable` cannot do exactly what you
-need. The "chomping" family of functions is meant for that case! Maybe you
-need to parse [valid PHP variables][php] like `$x` and `$txt`:
-
-    php : Parser String
-    php =
-        getChompedString <|
-            succeed ()
-                |> ParserFast.ignore chompIf (\c -> c == '$')
-                |> ParserFast.ignore chompIf (\c -> Char.isAlpha c || c == '_')
-                |> ParserFast.ignore chompWhile (\c -> Char.isAlphaNum c || c == '_')
-
-The idea is that you create a bunch of chompers that validate the underlying
-characters. Then `getChompedString` extracts the underlying `String` efficiently.
-
-[php]: https://www.w3schools.com/php/php_variables.asp
-
--}
-getChompedString : Parser a -> Parser String
-getChompedString =
-    A.getChompedString
-
-
-{-| This works just like [`getChompedString`](#getChompedString) but gives
-a bit more flexibility. For example, maybe you want to parse Elm doc comments
-and get (1) the full comment and (2) all of the names listed in the docs.
-
-You could implement `mapChompedString` like this:
-
-    mapChompedString : (String -> a -> b) -> Parser a -> Parser String
-    mapChompedString func parser =
-        succeed (\start value end src -> func (String.slice start end src) value)
-            |= getOffset
-            |= parser
-            |= getOffset
-            |= getSource
-
--}
-mapChompedString : (String -> a -> b) -> Parser a -> Parser b
-mapChompedString =
-    A.mapChompedString
-
-
-{-| Chomp one character if it passes the test.
-
-    chompUpper : Parser ()
-    chompUpper =
-        chompIf Char.isUpper
-
-So this can chomp a character like `T` and produces a `()` value.
-
--}
-chompIf : (Char -> Bool) -> Parser ()
-chompIf isGood =
-    A.chompIf isGood Parser.UnexpectedChar
-
-
-chompAnyChar : Parser ()
-chompAnyChar =
-    A.chompAnyChar Parser.UnexpectedChar
-
-
 anyChar : Parser Char
 anyChar =
     A.anyChar Parser.UnexpectedChar
-
-
-chompIfFollowedBy : (Char -> Bool) -> Parser a -> Parser a
-chompIfFollowedBy isGood nextParser =
-    A.chompIfFollowedBy isGood Parser.UnexpectedChar nextParser
-
-
-{-| Chomp zero or more characters if they pass the test. This is commonly
-useful for chomping whitespace or variable names:
-
-    whitespace : Parser ()
-    whitespace =
-        chompWhile (\c -> c == ' ' || c == '\t' || c == '\n' || c == '\u{000D}')
-
-    elmVar : Parser String
-    elmVar =
-        getChompedString <|
-            succeed ()
-                |> ParserFast.ignore chompIf Char.isLower
-                |> ParserFast.ignore chompWhile (\c -> Char.isAlphaNum c || c == '_')
-
-**Note:** a `chompWhile` parser always succeeds! This can lead to tricky
-situations, especially if you define your whitespace with it. In that case,
-you could accidentally interpret `letx` as the keyword `let` followed by
-"spaces" followed by the variable `x`. This is why the `keyword` and `number`
-parsers peek ahead, making sure they are not followed by anything unexpected.
-
--}
-chompWhile : (Char -> Bool) -> Parser ()
-chompWhile =
-    A.chompWhile
 
 
 whileMap : (Char -> Bool) -> (String -> res) -> Parser res

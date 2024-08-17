@@ -107,11 +107,6 @@ characterLiteral =
         (ParserFast.symbol "'" ())
 
 
-problemAnyCharacter : ParserFast.Parser a
-problemAnyCharacter =
-    ParserFast.problem "expected any character"
-
-
 singleOrTripleQuotedStringLiteral : ParserFast.Parser String
 singleOrTripleQuotedStringLiteral =
     ParserFast.symbolFollowedBy "\""

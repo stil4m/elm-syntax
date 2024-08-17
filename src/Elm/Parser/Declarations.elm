@@ -44,13 +44,13 @@ declarationWithDocumentation =
             case afterDocumentation.syntax of
                 FunctionDeclarationAfterDocumentation functionDeclarationAfterDocumentation ->
                     let
-                        (Node startNameRange startName) =
+                        (Node startNameRange _) =
                             functionDeclarationAfterDocumentation.startName
                     in
                     case functionDeclarationAfterDocumentation.signature of
                         Just signature ->
                             let
-                                (Node implementationNameRange implementationName) =
+                                (Node implementationNameRange _) =
                                     signature.implementationName
                             in
                             let
@@ -308,7 +308,7 @@ functionAfterDocumentation =
 functionDeclarationWithoutDocumentation : Parser (WithComments (Node Declaration))
 functionDeclarationWithoutDocumentation =
     ParserFast.map6
-        (\((Node startNameRange startName) as startNameNode) commentsAfterStartName maybeSignature arguments commentsAfterEqual result ->
+        (\((Node startNameRange _) as startNameNode) commentsAfterStartName maybeSignature arguments commentsAfterEqual result ->
             let
                 allComments : Comments
                 allComments =
@@ -353,7 +353,7 @@ functionDeclarationWithoutDocumentation =
 
                 Just signature ->
                     let
-                        (Node implementationNameRange implementationName) =
+                        (Node implementationNameRange _) =
                             signature.implementationName
                     in
                     let
