@@ -66,11 +66,10 @@ exposingListInner =
 
 exposable : Parser (WithComments (Node TopLevelExpose))
 exposable =
-    ParserFast.oneOf
-        [ functionExpose
-        , typeExpose
-        , infixExpose
-        ]
+    ParserFast.oneOf3
+        functionExpose
+        typeExpose
+        infixExpose
 
 
 infixExpose : ParserFast.Parser (WithComments (Node TopLevelExpose))

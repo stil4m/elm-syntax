@@ -15,11 +15,10 @@ import Rope
 
 moduleDefinition : Parser (WithComments Module)
 moduleDefinition =
-    ParserFast.oneOf
-        [ normalModuleDefinition
-        , portModuleDefinition
-        , effectModuleDefinition
-        ]
+    ParserFast.oneOf3
+        normalModuleDefinition
+        portModuleDefinition
+        effectModuleDefinition
 
 
 effectWhereClause : Parser (WithComments ( String, Node String ))

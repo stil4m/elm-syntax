@@ -2,7 +2,7 @@ module ParserFast.Advanced exposing
     ( Parser, run
     , number, symbol, symbolFollowedBy, keyword, keywordFollowedBy, variable, ifFollowedByWhile, anyChar, end
     , succeed, problem, succeedLazy, lazy, map, map2, map3, map4, map5, map6, map7, map8, map9, map10, map11, validate, andThen
-    , orSucceed, orSucceedLazy, mapOrSucceed, oneOf2, oneOf2Map, oneOf, backtrackable, commit
+    , orSucceed, orSucceedLazy, mapOrSucceed, oneOf2, oneOf3, oneOf2Map, oneOf, backtrackable, commit
     , loop, Step(..)
     , chompWhileWhitespaceFollowedBy, nestableMultiComment
     , getChompedString, chompIf, chompAnyChar, chompIfFollowedBy, chompWhile, chompWhileMap, mapChompedString
@@ -21,7 +21,7 @@ module ParserFast.Advanced exposing
 
 @docs succeed, problem, succeedLazy, lazy, map, map2, map3, map4, map5, map6, map7, map8, map9, map10, map11, validate, andThen
 
-@docs orSucceed, orSucceedLazy, mapOrSucceed, oneOf2, oneOf2Map, oneOf, backtrackable, commit
+@docs orSucceed, orSucceedLazy, mapOrSucceed, oneOf2, oneOf3, oneOf2Map, oneOf, backtrackable, commit
 
 @docs loop, Step
 
