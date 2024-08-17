@@ -22,7 +22,7 @@ module ParserFast.Advanced exposing
 
 @docs orSucceed, orSucceedLazy, oneOf2, oneOf, backtrackable
 
-@docs loop, Step
+@docs loopWhileSucceeds, loop, Step
 
 
 # Whitespace
@@ -907,6 +907,31 @@ loopHelp committedSoFar state ((Parser parseElement) as element) reduce s0 =
 
         Bad elementCommitted x () ->
             Bad (committedSoFar || elementCommitted) x ()
+
+
+loopWhileSucceeds : Parser x element -> folded -> (element -> folded -> folded) -> (folded -> res) -> Parser x res
+loopWhileSucceeds element initialFolded reduce foldedToRes =
+    Parser
+        (\s -> loopWhileSucceedsHelp False element initialFolded reduce foldedToRes s)
+
+
+loopWhileSucceedsHelp : Bool -> Parser x element -> folded -> (element -> folded -> folded) -> (folded -> res) -> State -> PStep x res
+loopWhileSucceedsHelp committedSoFar ((Parser parseElement) as element) soFar reduce foldedToRes s0 =
+    case parseElement s0 of
+        Good elementCommitted elementResult s1 ->
+            loopWhileSucceedsHelp (committedSoFar || elementCommitted)
+                element
+                (soFar |> reduce elementResult)
+                reduce
+                foldedToRes
+                s1
+
+        Bad elementCommitted x () ->
+            if elementCommitted then
+                Bad True x ()
+
+            else
+                Good committedSoFar (foldedToRes soFar) s0
 
 
 backtrackable : Parser x a -> Parser x a

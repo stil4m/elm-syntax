@@ -50,25 +50,17 @@ until end p =
 
 many : Parser (WithComments a) -> Parser (WithComments (List a))
 many p =
-    ParserFast.Advanced.loop listEmptyWithCommentsTuple
-        (ParserFast.mapOrSucceed
-            Just
-            p
-            Nothing
+    ParserFast.loopWhileSucceeds p
+        ( Rope.empty, [] )
+        (\pResult ( commentsSoFar, itemsSoFar ) ->
+            ( commentsSoFar |> Rope.prependTo pResult.comments
+            , pResult.syntax :: itemsSoFar
+            )
         )
-        (\extension ( commentsSoFar, itemsSoFar ) ->
-            case extension of
-                Nothing ->
-                    ParserFast.Advanced.Done
-                        { comments = commentsSoFar
-                        , syntax = List.reverse itemsSoFar
-                        }
-
-                Just pResult ->
-                    ParserFast.Advanced.Loop
-                        ( commentsSoFar |> Rope.prependTo pResult.comments
-                        , pResult.syntax :: itemsSoFar
-                        )
+        (\( commentsSoFar, itemsSoFar ) ->
+            { comments = commentsSoFar
+            , syntax = List.reverse itemsSoFar
+            }
         )
 
 
@@ -117,25 +109,17 @@ Mind you the comments will be reversed either way
 -}
 manyWithoutReverse : Parser (WithComments a) -> Parser (WithComments (List a))
 manyWithoutReverse p =
-    ParserFast.Advanced.loop listEmptyWithCommentsTuple
-        (ParserFast.mapOrSucceed
-            Just
-            p
-            Nothing
+    ParserFast.loopWhileSucceeds p
+        ( Rope.empty, [] )
+        (\pResult ( commentsSoFar, itemsSoFar ) ->
+            ( commentsSoFar |> Rope.prependTo pResult.comments
+            , pResult.syntax :: itemsSoFar
+            )
         )
-        (\extension ( commentsSoFar, itemsSoFar ) ->
-            case extension of
-                Nothing ->
-                    ParserFast.Advanced.Done
-                        { comments = commentsSoFar
-                        , syntax = itemsSoFar
-                        }
-
-                Just pResult ->
-                    ParserFast.Advanced.Loop
-                        ( commentsSoFar |> Rope.prependTo pResult.comments
-                        , pResult.syntax :: itemsSoFar
-                        )
+        (\( commentsSoFar, itemsSoFar ) ->
+            { comments = commentsSoFar
+            , syntax = itemsSoFar
+            }
         )
 
 
