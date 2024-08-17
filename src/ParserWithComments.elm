@@ -10,7 +10,6 @@ module ParserWithComments exposing
 
 import Elm.Syntax.Node exposing (Node)
 import ParserFast exposing (Parser)
-import ParserFast.Advanced
 import Rope exposing (Rope)
 
 

@@ -287,11 +287,6 @@ orSucceed =
     A.orSucceed
 
 
-mapOrSucceed : (first -> choice) -> Parser first -> choice -> Parser choice
-mapOrSucceed =
-    A.mapOrSucceed
-
-
 oneOf2Map :
     (first -> choice)
     -> Parser first
