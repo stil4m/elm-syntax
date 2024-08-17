@@ -162,28 +162,24 @@ tripleQuotedStringLiteralStep =
 
 functionName : ParserFast.Parser String
 functionName =
-    ParserFast.variable
-        { inner =
-            \c ->
-                -- checking for these common ranges early is much faster
-                Char.Extra.isAlphaNumFast c || c == '_' || Unicode.isAlphaNum c
-        , reserved = reservedList
-        , start =
-            \c -> Char.isLower c || Unicode.isLower c
-        }
+    ParserFast.ifFollowedByWhileExcept
+        (\c -> Char.isLower c || Unicode.isLower c)
+        (\c ->
+            -- checking for these common ranges early is much faster
+            Char.Extra.isAlphaNumFast c || c == '_' || Unicode.isAlphaNum c
+        )
+        reservedList
 
 
 functionNameNotInfix : ParserFast.Parser String
 functionNameNotInfix =
-    ParserFast.variable
-        { inner =
-            \c ->
-                -- checking for these common ranges early is much faster
-                Char.Extra.isAlphaNumFast c || c == '_' || Unicode.isAlphaNum c
-        , reserved = Set.insert "infix" reservedList
-        , start =
-            \c -> Char.isLower c || Unicode.isLower c
-        }
+    ParserFast.ifFollowedByWhileExcept
+        (\c -> Char.isLower c || Unicode.isLower c)
+        (\c ->
+            -- checking for these common ranges early is much faster
+            Char.Extra.isAlphaNumFast c || c == '_' || Unicode.isAlphaNum c
+        )
+        (Set.insert "infix" reservedList)
 
 
 typeName : ParserFast.Parser String

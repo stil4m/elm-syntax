@@ -1,6 +1,6 @@
 module ParserFast exposing
     ( Parser, run
-    , int, number, symbol, symbolFollowedBy, keyword, keywordFollowedBy, variable, ifFollowedByWhile, anyChar, end
+    , int, number, symbol, symbolFollowedBy, keyword, keywordFollowedBy, ifFollowedByWhile, ifFollowedByWhileExcept, anyChar, end
     , succeed, problem, lazy, map, map2, map3, map4, map5, map6, map7, map8, map9, validate
     , orSucceed, mapOrSucceed, oneOf2, oneOf2Map, oneOf2OrSucceed, oneOf3, oneOf, backtrackable
     , chompWhileWhitespaceFollowedBy, nestableMultiComment
@@ -13,7 +13,7 @@ module ParserFast exposing
 
 @docs Parser, run
 
-@docs int, number, symbol, symbolFollowedBy, keyword, keywordFollowedBy, variable, ifFollowedByWhile, anyChar, end
+@docs int, number, symbol, symbolFollowedBy, keyword, keywordFollowedBy, ifFollowedByWhile, ifFollowedByWhileExcept, anyChar, end
 
 
 # Flow
@@ -627,14 +627,16 @@ characters can be letters, numbers, or underscores. It is also saying that if
 you run into any of these reserved names, it is definitely not a variable.
 
 -}
-variable :
-    { start : Char -> Bool
-    , inner : Char -> Bool
-    , reserved : Set.Set String
-    }
+ifFollowedByWhileExcept :
+    (Char -> Bool)
+    -> (Char -> Bool)
+    -> Set.Set String
     -> Parser String
-variable i =
-    A.variable i
+ifFollowedByWhileExcept firstIsOkay afterFirstIsOkay exceptionSet =
+    A.ifFollowedByWhileExcept
+        firstIsOkay
+        afterFirstIsOkay
+        exceptionSet
         Parser.ExpectingVariable
 
 
