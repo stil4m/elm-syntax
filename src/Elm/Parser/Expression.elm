@@ -164,7 +164,7 @@ untilGlslEnd =
     ParserFast.oneOf3
         (ParserFast.symbol "|]" Nothing)
         (ParserFast.symbol "|" (Just "|"))
-        (ParserFast.chompWhileMap (\c -> c /= '|') Just)
+        (ParserFast.whileMap (\c -> c /= '|') Just)
 
 
 listOrGlslExpression : Parser (WithComments (Node Expression))

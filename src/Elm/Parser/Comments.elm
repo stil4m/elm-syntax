@@ -9,7 +9,7 @@ import ParserFast exposing (Parser)
 singleLineCommentCore : ParserFast.Parser String
 singleLineCommentCore =
     ParserFast.symbolFollowedBy "--"
-        (ParserFast.chompWhileMap
+        (ParserFast.whileMap
             (\c -> c /= '\u{000D}' && c /= '\n')
             (\content -> "--" ++ content)
         )

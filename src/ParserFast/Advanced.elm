@@ -5,7 +5,7 @@ module ParserFast.Advanced exposing
     , orSucceed, orSucceedLazy, oneOf2, oneOf, backtrackable
     , loop, Step(..)
     , chompWhileWhitespaceFollowedBy, nestableMultiComment
-    , getChompedString, chompIf, chompAnyChar, chompIfFollowedBy, chompWhile, chompWhileMap, mapChompedString
+    , getChompedString, chompIf, chompAnyChar, chompIfFollowedBy, chompWhile, whileMap, mapChompedString
     , withIndent, withIndentSetToColumn
     , columnAndThen, columnIndentAndThen, validateEndColumnIndentation, offsetSourceAndThen, mapWithStartPosition, mapWithEndPosition, mapWithStartAndEndPosition
     )
@@ -33,7 +33,7 @@ module ParserFast.Advanced exposing
 
 # Chompers
 
-@docs getChompedString, chompIf, chompAnyChar, chompIfFollowedBy, chompWhile, chompWhileMap, mapChompedString
+@docs getChompedString, chompIf, chompAnyChar, chompIfFollowedBy, chompWhile, whileMap, mapChompedString
 
 
 # Indentation, Positions and Source
@@ -1308,8 +1308,8 @@ chompWhile isGood =
         )
 
 
-chompWhileMap : (Char -> Bool) -> (String -> res) -> Parser x res
-chompWhileMap isGood chompedStringToRes =
+whileMap : (Char -> Bool) -> (String -> res) -> Parser x res
+whileMap isGood chompedStringToRes =
     Parser
         (\s0 ->
             let
