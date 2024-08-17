@@ -9,8 +9,10 @@ import ParserFast exposing (Parser)
 singleLineCommentCore : ParserFast.Parser String
 singleLineCommentCore =
     ParserFast.symbolFollowedBy "--"
-        (ParserFast.chompWhile (\c -> c /= '\u{000D}' && c /= '\n'))
-        |> ParserFast.getChompedString
+        (ParserFast.chompWhileMap
+            (\c -> c /= '\u{000D}' && c /= '\n')
+            (\content -> "--" ++ content)
+        )
 
 
 multilineCommentString : ParserFast.Parser String

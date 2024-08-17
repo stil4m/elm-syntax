@@ -70,7 +70,7 @@ parseSingleLineComment : String -> Result (List Parser.DeadEnd) (Node String)
 parseSingleLineComment source =
     ParserFast.run
         (ParserFast.map2 (\res () -> res)
-            (Parser.singleLineCommentCore |> ParserFast.getChompedString |> Node.parserCore)
+            (Parser.singleLineCommentCore |> Node.parserCore)
             ParserFast.end
         )
         source
