@@ -195,11 +195,11 @@ map func (Parser parse) =
     Parser
         (\s0 ->
             case parse s0 of
-                Good p a s1 ->
-                    Good p (func a) s1
+                Good committed a s1 ->
+                    Good committed (func a) s1
 
-                Bad p x () ->
-                    Bad p x ()
+                Bad committed x () ->
+                    Bad committed x ()
         )
 
 
@@ -208,16 +208,16 @@ map2 func (Parser parseA) (Parser parseB) =
     Parser
         (\s0 ->
             case parseA s0 of
-                Bad p x () ->
-                    Bad p x ()
+                Bad committed x () ->
+                    Bad committed x ()
 
-                Good p1 a s1 ->
+                Good c1 a s1 ->
                     case parseB s1 of
-                        Bad p2 x () ->
-                            Bad (p1 || p2) x ()
+                        Bad c2 x () ->
+                            Bad (c1 || c2) x ()
 
-                        Good p2 b s2 ->
-                            Good (p1 || p2) (func a b) s2
+                        Good c2 b s2 ->
+                            Good (c1 || c2) (func a b) s2
         )
 
 
@@ -226,21 +226,21 @@ map3 func (Parser parseA) (Parser parseB) (Parser parseC) =
     Parser
         (\s0 ->
             case parseA s0 of
-                Bad p x () ->
-                    Bad p x ()
+                Bad committed x () ->
+                    Bad committed x ()
 
-                Good p1 a s1 ->
+                Good c1 a s1 ->
                     case parseB s1 of
-                        Bad p2 x () ->
-                            Bad (p1 || p2) x ()
+                        Bad c2 x () ->
+                            Bad (c1 || c2) x ()
 
-                        Good p2 b s2 ->
+                        Good c2 b s2 ->
                             case parseC s2 of
-                                Bad p3 x () ->
-                                    Bad (p1 || p2 || p3) x ()
+                                Bad c3 x () ->
+                                    Bad (c1 || c2 || c3) x ()
 
-                                Good p3 c s3 ->
-                                    Good (p1 || p2 || p3) (func a b c) s3
+                                Good c3 c s3 ->
+                                    Good (c1 || c2 || c3) (func a b c) s3
         )
 
 
@@ -249,26 +249,26 @@ map4 func (Parser parseA) (Parser parseB) (Parser parseC) (Parser parseD) =
     Parser
         (\s0 ->
             case parseA s0 of
-                Bad p x () ->
-                    Bad p x ()
+                Bad committed x () ->
+                    Bad committed x ()
 
-                Good p1 a s1 ->
+                Good c1 a s1 ->
                     case parseB s1 of
-                        Bad p2 x () ->
-                            Bad (p1 || p2) x ()
+                        Bad c2 x () ->
+                            Bad (c1 || c2) x ()
 
-                        Good p2 b s2 ->
+                        Good c2 b s2 ->
                             case parseC s2 of
-                                Bad p3 x () ->
-                                    Bad (p1 || p2 || p3) x ()
+                                Bad c3 x () ->
+                                    Bad (c1 || c2 || c3) x ()
 
-                                Good p3 c s3 ->
+                                Good c3 c s3 ->
                                     case parseD s3 of
-                                        Bad p4 x () ->
-                                            Bad (p1 || p2 || p3 || p4) x ()
+                                        Bad c4 x () ->
+                                            Bad (c1 || c2 || c3 || c4) x ()
 
-                                        Good p4 d s4 ->
-                                            Good (p1 || p2 || p3 || p4) (func a b c d) s4
+                                        Good c4 d s4 ->
+                                            Good (c1 || c2 || c3 || c4) (func a b c d) s4
         )
 
 
@@ -277,31 +277,31 @@ map5 func (Parser parseA) (Parser parseB) (Parser parseC) (Parser parseD) (Parse
     Parser
         (\s0 ->
             case parseA s0 of
-                Bad p x () ->
-                    Bad p x ()
+                Bad committed x () ->
+                    Bad committed x ()
 
-                Good p1 a s1 ->
+                Good c1 a s1 ->
                     case parseB s1 of
-                        Bad p2 x () ->
-                            Bad (p1 || p2) x ()
+                        Bad c2 x () ->
+                            Bad (c1 || c2) x ()
 
-                        Good p2 b s2 ->
+                        Good c2 b s2 ->
                             case parseC s2 of
-                                Bad p3 x () ->
-                                    Bad (p1 || p2 || p3) x ()
+                                Bad c3 x () ->
+                                    Bad (c1 || c2 || c3) x ()
 
-                                Good p3 c s3 ->
+                                Good c3 c s3 ->
                                     case parseD s3 of
-                                        Bad p4 x () ->
-                                            Bad (p1 || p2 || p3 || p4) x ()
+                                        Bad c4 x () ->
+                                            Bad (c1 || c2 || c3 || c4) x ()
 
-                                        Good p4 d s4 ->
+                                        Good c4 d s4 ->
                                             case parseE s4 of
-                                                Bad p5 x () ->
-                                                    Bad (p1 || p2 || p3 || p4 || p5) x ()
+                                                Bad c5 x () ->
+                                                    Bad (c1 || c2 || c3 || c4 || c5) x ()
 
-                                                Good p5 e s5 ->
-                                                    Good (p1 || p2 || p3 || p4 || p5) (func a b c d e) s5
+                                                Good c5 e s5 ->
+                                                    Good (c1 || c2 || c3 || c4 || c5) (func a b c d e) s5
         )
 
 
@@ -310,36 +310,36 @@ map6 func (Parser parseA) (Parser parseB) (Parser parseC) (Parser parseD) (Parse
     Parser
         (\s0 ->
             case parseA s0 of
-                Bad p x () ->
-                    Bad p x ()
+                Bad committed x () ->
+                    Bad committed x ()
 
-                Good p1 a s1 ->
+                Good c1 a s1 ->
                     case parseB s1 of
-                        Bad p2 x () ->
-                            Bad (p1 || p2) x ()
+                        Bad c2 x () ->
+                            Bad (c1 || c2) x ()
 
-                        Good p2 b s2 ->
+                        Good c2 b s2 ->
                             case parseC s2 of
-                                Bad p3 x () ->
-                                    Bad (p1 || p2 || p3) x ()
+                                Bad c3 x () ->
+                                    Bad (c1 || c2 || c3) x ()
 
-                                Good p3 c s3 ->
+                                Good c3 c s3 ->
                                     case parseD s3 of
-                                        Bad p4 x () ->
-                                            Bad (p1 || p2 || p3 || p4) x ()
+                                        Bad c4 x () ->
+                                            Bad (c1 || c2 || c3 || c4) x ()
 
-                                        Good p4 d s4 ->
+                                        Good c4 d s4 ->
                                             case parseE s4 of
-                                                Bad p5 x () ->
-                                                    Bad (p1 || p2 || p3 || p4 || p5) x ()
+                                                Bad c5 x () ->
+                                                    Bad (c1 || c2 || c3 || c4 || c5) x ()
 
-                                                Good p5 e s5 ->
+                                                Good c5 e s5 ->
                                                     case parseF s5 of
-                                                        Bad p6 x () ->
-                                                            Bad (p1 || p2 || p3 || p4 || p5 || p6) x ()
+                                                        Bad c6 x () ->
+                                                            Bad (c1 || c2 || c3 || c4 || c5 || c6) x ()
 
-                                                        Good p6 f s6 ->
-                                                            Good (p1 || p2 || p3 || p4 || p5 || p6) (func a b c d e f) s6
+                                                        Good c6 f s6 ->
+                                                            Good (c1 || c2 || c3 || c4 || c5 || c6) (func a b c d e f) s6
         )
 
 
@@ -348,41 +348,41 @@ map7 func (Parser parseA) (Parser parseB) (Parser parseC) (Parser parseD) (Parse
     Parser
         (\s0 ->
             case parseA s0 of
-                Bad p x () ->
-                    Bad p x ()
+                Bad committed x () ->
+                    Bad committed x ()
 
-                Good p1 a s1 ->
+                Good c1 a s1 ->
                     case parseB s1 of
-                        Bad p2 x () ->
-                            Bad (p1 || p2) x ()
+                        Bad c2 x () ->
+                            Bad (c1 || c2) x ()
 
-                        Good p2 b s2 ->
+                        Good c2 b s2 ->
                             case parseC s2 of
-                                Bad p3 x () ->
-                                    Bad (p1 || p2 || p3) x ()
+                                Bad c3 x () ->
+                                    Bad (c1 || c2 || c3) x ()
 
-                                Good p3 c s3 ->
+                                Good c3 c s3 ->
                                     case parseD s3 of
-                                        Bad p4 x () ->
-                                            Bad (p1 || p2 || p3 || p4) x ()
+                                        Bad c4 x () ->
+                                            Bad (c1 || c2 || c3 || c4) x ()
 
-                                        Good p4 d s4 ->
+                                        Good c4 d s4 ->
                                             case parseE s4 of
-                                                Bad p5 x () ->
-                                                    Bad (p1 || p2 || p3 || p4 || p5) x ()
+                                                Bad c5 x () ->
+                                                    Bad (c1 || c2 || c3 || c4 || c5) x ()
 
-                                                Good p5 e s5 ->
+                                                Good c5 e s5 ->
                                                     case parseF s5 of
-                                                        Bad p6 x () ->
-                                                            Bad (p1 || p2 || p3 || p4 || p5 || p6) x ()
+                                                        Bad c6 x () ->
+                                                            Bad (c1 || c2 || c3 || c4 || c5 || c6) x ()
 
-                                                        Good p6 f s6 ->
+                                                        Good c6 f s6 ->
                                                             case parseG s6 of
-                                                                Bad p7 x () ->
-                                                                    Bad (p1 || p2 || p3 || p4 || p5 || p6 || p7) x ()
+                                                                Bad c7 x () ->
+                                                                    Bad (c1 || c2 || c3 || c4 || c5 || c6 || c7) x ()
 
-                                                                Good p7 g s7 ->
-                                                                    Good (p1 || p2 || p3 || p4 || p5 || p6 || p7) (func a b c d e f g) s7
+                                                                Good c7 g s7 ->
+                                                                    Good (c1 || c2 || c3 || c4 || c5 || c6 || c7) (func a b c d e f g) s7
         )
 
 
@@ -391,46 +391,46 @@ map8 func (Parser parseA) (Parser parseB) (Parser parseC) (Parser parseD) (Parse
     Parser
         (\s0 ->
             case parseA s0 of
-                Bad p x () ->
-                    Bad p x ()
+                Bad committed x () ->
+                    Bad committed x ()
 
-                Good p1 a s1 ->
+                Good c1 a s1 ->
                     case parseB s1 of
-                        Bad p2 x () ->
-                            Bad (p1 || p2) x ()
+                        Bad c2 x () ->
+                            Bad (c1 || c2) x ()
 
-                        Good p2 b s2 ->
+                        Good c2 b s2 ->
                             case parseC s2 of
-                                Bad p3 x () ->
-                                    Bad (p1 || p2 || p3) x ()
+                                Bad c3 x () ->
+                                    Bad (c1 || c2 || c3) x ()
 
-                                Good p3 c s3 ->
+                                Good c3 c s3 ->
                                     case parseD s3 of
-                                        Bad p4 x () ->
-                                            Bad (p1 || p2 || p3 || p4) x ()
+                                        Bad c4 x () ->
+                                            Bad (c1 || c2 || c3 || c4) x ()
 
-                                        Good p4 d s4 ->
+                                        Good c4 d s4 ->
                                             case parseE s4 of
-                                                Bad p5 x () ->
-                                                    Bad (p1 || p2 || p3 || p4 || p5) x ()
+                                                Bad c5 x () ->
+                                                    Bad (c1 || c2 || c3 || c4 || c5) x ()
 
-                                                Good p5 e s5 ->
+                                                Good c5 e s5 ->
                                                     case parseF s5 of
-                                                        Bad p6 x () ->
-                                                            Bad (p1 || p2 || p3 || p4 || p5 || p6) x ()
+                                                        Bad c6 x () ->
+                                                            Bad (c1 || c2 || c3 || c4 || c5 || c6) x ()
 
-                                                        Good p6 f s6 ->
+                                                        Good c6 f s6 ->
                                                             case parseG s6 of
-                                                                Bad p7 x () ->
-                                                                    Bad (p1 || p2 || p3 || p4 || p5 || p6 || p7) x ()
+                                                                Bad c7 x () ->
+                                                                    Bad (c1 || c2 || c3 || c4 || c5 || c6 || c7) x ()
 
-                                                                Good p7 g s7 ->
+                                                                Good c7 g s7 ->
                                                                     case parseH s7 of
-                                                                        Bad p8 x () ->
-                                                                            Bad (p1 || p2 || p3 || p4 || p5 || p6 || p7 || p8) x ()
+                                                                        Bad c8 x () ->
+                                                                            Bad (c1 || c2 || c3 || c4 || c5 || c6 || c7 || c8) x ()
 
-                                                                        Good p8 h s8 ->
-                                                                            Good (p1 || p2 || p3 || p4 || p5 || p6 || p7 || p8) (func a b c d e f g h) s8
+                                                                        Good c8 h s8 ->
+                                                                            Good (c1 || c2 || c3 || c4 || c5 || c6 || c7 || c8) (func a b c d e f g h) s8
         )
 
 
@@ -439,51 +439,51 @@ map9 func (Parser parseA) (Parser parseB) (Parser parseC) (Parser parseD) (Parse
     Parser
         (\s0 ->
             case parseA s0 of
-                Bad p x () ->
-                    Bad p x ()
+                Bad committed x () ->
+                    Bad committed x ()
 
-                Good p1 a s1 ->
+                Good c1 a s1 ->
                     case parseB s1 of
-                        Bad p2 x () ->
-                            Bad (p1 || p2) x ()
+                        Bad c2 x () ->
+                            Bad (c1 || c2) x ()
 
-                        Good p2 b s2 ->
+                        Good c2 b s2 ->
                             case parseC s2 of
-                                Bad p3 x () ->
-                                    Bad (p1 || p2 || p3) x ()
+                                Bad c3 x () ->
+                                    Bad (c1 || c2 || c3) x ()
 
-                                Good p3 c s3 ->
+                                Good c3 c s3 ->
                                     case parseD s3 of
-                                        Bad p4 x () ->
-                                            Bad (p1 || p2 || p3 || p4) x ()
+                                        Bad c4 x () ->
+                                            Bad (c1 || c2 || c3 || c4) x ()
 
-                                        Good p4 d s4 ->
+                                        Good c4 d s4 ->
                                             case parseE s4 of
-                                                Bad p5 x () ->
-                                                    Bad (p1 || p2 || p3 || p4 || p5) x ()
+                                                Bad c5 x () ->
+                                                    Bad (c1 || c2 || c3 || c4 || c5) x ()
 
-                                                Good p5 e s5 ->
+                                                Good c5 e s5 ->
                                                     case parseF s5 of
-                                                        Bad p6 x () ->
-                                                            Bad (p1 || p2 || p3 || p4 || p5 || p6) x ()
+                                                        Bad c6 x () ->
+                                                            Bad (c1 || c2 || c3 || c4 || c5 || c6) x ()
 
-                                                        Good p6 f s6 ->
+                                                        Good c6 f s6 ->
                                                             case parseG s6 of
-                                                                Bad p7 x () ->
-                                                                    Bad (p1 || p2 || p3 || p4 || p5 || p6 || p7) x ()
+                                                                Bad c7 x () ->
+                                                                    Bad (c1 || c2 || c3 || c4 || c5 || c6 || c7) x ()
 
-                                                                Good p7 g s7 ->
+                                                                Good c7 g s7 ->
                                                                     case parseH s7 of
-                                                                        Bad p8 x () ->
-                                                                            Bad (p1 || p2 || p3 || p4 || p5 || p6 || p7 || p8) x ()
+                                                                        Bad c8 x () ->
+                                                                            Bad (c1 || c2 || c3 || c4 || c5 || c6 || c7 || c8) x ()
 
-                                                                        Good p8 h s8 ->
+                                                                        Good c8 h s8 ->
                                                                             case parseI s8 of
-                                                                                Bad p9 x () ->
-                                                                                    Bad (p1 || p2 || p3 || p4 || p5 || p6 || p7 || p8 || p9) x ()
+                                                                                Bad c9 x () ->
+                                                                                    Bad (c1 || c2 || c3 || c4 || c5 || c6 || c7 || c8 || c9) x ()
 
-                                                                                Good p9 i s9 ->
-                                                                                    Good (p1 || p2 || p3 || p4 || p5 || p6 || p7 || p8 || p9) (func a b c d e f g h i) s9
+                                                                                Good c9 i s9 ->
+                                                                                    Good (c1 || c2 || c3 || c4 || c5 || c6 || c7 || c8 || c9) (func a b c d e f g h i) s9
         )
 
 
@@ -492,15 +492,15 @@ validate isOkay problemOnNotOkay (Parser parseA) =
     Parser
         (\s0 ->
             case parseA s0 of
-                Bad p x () ->
-                    Bad p x ()
+                Bad committed x () ->
+                    Bad committed x ()
 
-                (Good p1 a s1) as good ->
+                (Good committed a s1) as good ->
                     if isOkay a then
                         good
 
                     else
-                        Bad p1 (fromState s1 problemOnNotOkay) ()
+                        Bad committed (fromState s1 problemOnNotOkay) ()
         )
 
 
@@ -577,8 +577,8 @@ oneOf2 (Parser attemptFirst) (Parser attemptSecond) =
                 (Good _ _ _) as firstPStep ->
                     firstPStep
 
-                (Bad p0 firstX ()) as firstPStep ->
-                    if p0 then
+                (Bad firstCommitted firstX ()) as firstPStep ->
+                    if firstCommitted then
                         firstPStep
 
                     else
@@ -643,9 +643,9 @@ oneOf2Map firstToChoice (Parser attemptFirst) secondToChoice (Parser attemptSeco
                 Good firstCommitted first s1 ->
                     Good firstCommitted (firstToChoice first) s1
 
-                Bad p0 firstX () ->
-                    if p0 then
-                        Bad p0 firstX ()
+                Bad firstCommitted firstX () ->
+                    if firstCommitted then
+                        Bad firstCommitted firstX ()
 
                     else
                         case attemptSecond s of
@@ -669,8 +669,8 @@ orSucceed (Parser attemptFirst) secondRes =
                 (Good _ _ _) as firstPStep ->
                     firstPStep
 
-                (Bad p0 _ ()) as firstPStep ->
-                    if p0 then
+                (Bad firstCommitted _ ()) as firstPStep ->
+                    if firstCommitted then
                         firstPStep
 
                     else
@@ -734,8 +734,8 @@ oneOf problemOnEmptyPossibilityList parsers =
                         (Good _ _ _) as step ->
                             step
 
-                        (Bad p x ()) as step ->
-                            if p then
+                        (Bad committed x ()) as step ->
+                            if committed then
                                 step
 
                             else
@@ -754,8 +754,8 @@ oneOfHelp s0 deadEnds parsers =
                 (Good _ _ _) as step ->
                     step
 
-                (Bad p x ()) as step ->
-                    if p then
+                (Bad committed x ()) as step ->
+                    if committed then
                         step
 
                     else
@@ -829,18 +829,18 @@ loop state element reduce =
 
 
 loopHelp : Bool -> state -> Parser x extension -> (extension -> state -> Step state a) -> State -> PStep x a
-loopHelp p state ((Parser parseElement) as element) reduce s0 =
+loopHelp committedSoFar state ((Parser parseElement) as element) reduce s0 =
     case parseElement s0 of
-        Good p1 step s1 ->
+        Good elementCommitted step s1 ->
             case reduce step state of
                 Loop newState ->
-                    loopHelp (p || p1) newState element reduce s1
+                    loopHelp (committedSoFar || elementCommitted) newState element reduce s1
 
                 Done result ->
-                    Good (p || p1) result s1
+                    Good (committedSoFar || elementCommitted) result s1
 
-        Bad p1 x () ->
-            Bad (p || p1) x ()
+        Bad elementCommitted x () ->
+            Bad (committedSoFar || elementCommitted) x ()
 
 
 backtrackable : Parser x a -> Parser x a
@@ -1310,8 +1310,8 @@ withIndent newIndent (Parser parse) =
     Parser
         (\s0 ->
             case parse (changeIndent newIndent s0) of
-                Good p a s1 ->
-                    Good p a (changeIndent s0.indent s1)
+                Good committed a s1 ->
+                    Good committed a (changeIndent s0.indent s1)
 
                 bad ->
                     bad
@@ -1323,8 +1323,8 @@ withIndentSetToColumn (Parser parse) =
     Parser
         (\s0 ->
             case parse (changeIndent s0.col s0) of
-                Good p a s1 ->
-                    Good p a (changeIndent s0.indent s1)
+                Good committed a s1 ->
+                    Good committed a (changeIndent s0.indent s1)
 
                 bad ->
                     bad
@@ -1349,11 +1349,11 @@ mapWithStartPosition combineStartAndResult (Parser parse) =
     Parser
         (\s0 ->
             case parse s0 of
-                Good p a s1 ->
-                    Good p (combineStartAndResult { row = s0.row, column = s0.col } a) s1
+                Good committed a s1 ->
+                    Good committed (combineStartAndResult { row = s0.row, column = s0.col } a) s1
 
-                Bad p x () ->
-                    Bad p x ()
+                Bad committed x () ->
+                    Bad committed x ()
         )
 
 
@@ -1365,11 +1365,11 @@ mapWithEndPosition combineStartAndResult (Parser parse) =
     Parser
         (\s0 ->
             case parse s0 of
-                Good p a s1 ->
-                    Good p (combineStartAndResult a { row = s1.row, column = s1.col }) s1
+                Good committed a s1 ->
+                    Good committed (combineStartAndResult a { row = s1.row, column = s1.col }) s1
 
-                Bad p x () ->
-                    Bad p x ()
+                Bad committed x () ->
+                    Bad committed x ()
         )
 
 
@@ -1381,11 +1381,11 @@ mapWithStartAndEndPosition combineStartAndResult (Parser parse) =
     Parser
         (\s0 ->
             case parse s0 of
-                Good p a s1 ->
-                    Good p (combineStartAndResult { row = s0.row, column = s0.col } a { row = s1.row, column = s1.col }) s1
+                Good committed a s1 ->
+                    Good committed (combineStartAndResult { row = s0.row, column = s0.col } a { row = s1.row, column = s1.col }) s1
 
-                Bad p x () ->
-                    Bad p x ()
+                Bad committed x () ->
+                    Bad committed x ()
         )
 
 
