@@ -1429,55 +1429,43 @@ revAlways _ b =
     b
 
 
-nestableMultiComment : String -> x -> String -> x -> Parser x ()
-nestableMultiComment oStr oX cStr cX =
+nestableMultiComment : ( Char, String ) -> x -> ( Char, String ) -> x -> Parser x String
+nestableMultiComment ( openChar, openTail ) expectingOpen ( closeChar, closeTail ) expectingClose =
     let
-        closingSymbol : Parser x ()
-        closingSymbol =
-            symbol cStr cX ()
+        open : String
+        open =
+            String.cons openChar openTail
 
-        openingSymbol : Parser x ()
-        openingSymbol =
-            symbol oStr oX ()
+        close : String
+        close =
+            String.cons closeChar closeTail
+
+        isNotRelevant : Char -> Bool
+        isNotRelevant char =
+            char /= openChar && char /= closeChar
     in
-    case String.uncons oStr of
-        Nothing ->
-            problem oX
-
-        Just ( openChar, _ ) ->
-            case String.uncons cStr of
-                Nothing ->
-                    problem cX
-
-                Just ( closeChar, _ ) ->
-                    let
-                        isNotRelevant : Char -> Bool
-                        isNotRelevant char =
-                            char /= openChar && char /= closeChar
-                    in
-                    skip openingSymbol
-                        (nestableHelp isNotRelevant openingSymbol closingSymbol cX 1)
-
-
-nestableHelp : (Char -> Bool) -> Parser x () -> Parser x () -> x -> Int -> Parser x ()
-nestableHelp isNotRelevant open close expectingClose nestLevel =
-    skip (chompWhile isNotRelevant)
-        (oneOf3
-            (if nestLevel == 1 then
-                close
-
-             else
-                close
-                    |> andThen (\() -> nestableHelp isNotRelevant open close expectingClose (nestLevel - 1))
+    skip (symbol open expectingOpen ())
+        (loop
+            ( "", 1 )
+            (oneOf3
+                (symbol close expectingClose ( close, -1 ))
+                (symbol open expectingOpen ( open, 1 ))
+                (map2 (\head tail -> ( String.cons head tail, 0 ))
+                    (anyChar expectingClose)
+                    (whileMap isNotRelevant identity)
+                )
             )
-            (open
-                |> andThen (\() -> nestableHelp isNotRelevant open close expectingClose (nestLevel + 1))
-            )
-            (chompAnyChar expectingClose
-                |> andThen
-                    (\() ->
-                        nestableHelp isNotRelevant open close expectingClose nestLevel
-                    )
+            (\( toAppend, nestingChange ) ( soFarContent, soFarNesting ) ->
+                let
+                    newNesting : Int
+                    newNesting =
+                        soFarNesting + nestingChange
+                in
+                if newNesting == 0 then
+                    Done (open ++ soFarContent ++ close)
+
+                else
+                    Loop ( soFarContent ++ toAppend ++ "", newNesting )
             )
         )
 

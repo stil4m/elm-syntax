@@ -863,6 +863,9 @@ why wee need the `ifProgress` helper. It detects if there is no more whitespace
 to consume.
 
 -}
-nestableMultiComment : String -> String -> Parser ()
-nestableMultiComment open close =
-    A.nestableMultiComment open (Parser.Expecting open) close (Parser.Expecting close)
+nestableMultiComment : ( Char, String ) -> ( Char, String ) -> Parser String
+nestableMultiComment (( openChar, openTail ) as open) (( closeChar, closeTail ) as close) =
+    A.nestableMultiComment open
+        (Parser.Expecting (String.cons openChar openTail))
+        close
+        (Parser.Expecting (String.cons closeChar closeTail))

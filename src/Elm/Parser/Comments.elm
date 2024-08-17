@@ -35,8 +35,7 @@ problemUnexpectedDocumentation =
 
 multiLineCommentStringNoCheck : Parser String
 multiLineCommentStringNoCheck =
-    ParserFast.nestableMultiComment "{-" "-}"
-        |> ParserFast.getChompedString
+    ParserFast.nestableMultiComment ( '{', "-" ) ( '-', "}" )
 
 
 moduleDocumentation : Parser (Node String)
@@ -49,6 +48,5 @@ declarationDocumentation =
     -- technically making the whole parser fail on multi-line comments would be "correct"
     -- but in practice, all declaration comments allow layout before which already handles
     -- these.
-    ParserFast.nestableMultiComment "{-" "-}"
-        |> ParserFast.getChompedString
+    ParserFast.nestableMultiComment ( '{', "-" ) ( '-', "}" )
         |> Node.parserCore
