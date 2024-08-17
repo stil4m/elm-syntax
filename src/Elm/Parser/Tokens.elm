@@ -80,10 +80,9 @@ escapedCharValue =
                         '\u{0000}'
             )
             (ParserFast.symbolFollowedBy "u{"
-                (ParserFast.variableWithoutReserved
-                    { inner = Char.isHexDigit
-                    , start = Char.isHexDigit
-                    }
+                (ParserFast.ifFollowedByWhile
+                    Char.isHexDigit
+                    Char.isHexDigit
                 )
             )
             (ParserFast.symbol "}" ())
@@ -194,14 +193,12 @@ functionNameNotInfix =
 
 typeName : ParserFast.Parser String
 typeName =
-    ParserFast.variableWithoutReserved
-        { inner =
-            \c ->
-                -- checking for these common ranges early is much faster
-                Char.Extra.isAlphaNumFast c || c == '_' || Unicode.isAlphaNum c
-        , start =
-            \c -> Char.isUpper c || Unicode.isUpper c
-        }
+    ParserFast.ifFollowedByWhile
+        (\c -> Char.isUpper c || Unicode.isUpper c)
+        (\c ->
+            -- checking for these common ranges early is much faster
+            Char.Extra.isAlphaNumFast c || c == '_' || Unicode.isAlphaNum c
+        )
 
 
 allowedOperatorTokens : List String
