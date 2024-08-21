@@ -950,7 +950,7 @@ keyword kwd expecting res =
                 newOffset =
                     isSubString kwd kwdLength s.offset s.src
             in
-            if newOffset == -1 || 0 <= isSubChar (\c -> Char.Extra.isAlphaNumFast c || c == '_') newOffset s.src then
+            if newOffset == -1 || not (isSubCharSinglePart (\c -> Char.Extra.isAlphaNumFast c || c == '_') newOffset s.src) then
                 Bad False (fromState s expecting) ()
 
             else
@@ -982,7 +982,7 @@ keywordFollowedBy kwd expecting (Parser parseNext) =
                 newOffset =
                     isSubString kwd kwdLength s.offset s.src
             in
-            if newOffset == -1 || 0 <= isSubChar (\c -> Char.Extra.isAlphaNumFast c || c == '_') newOffset s.src then
+            if newOffset == -1 || not (isSubCharSinglePart (\c -> Char.Extra.isAlphaNumFast c || c == '_') newOffset s.src) then
                 Bad False (fromState s expecting) ()
 
             else
@@ -1565,6 +1565,11 @@ isSubChar predicate offset string =
 
     else
         -1
+
+
+isSubCharSinglePart : (Char -> Bool) -> Int -> String -> Bool
+isSubCharSinglePart predicate offset string =
+    String.any predicate (String.slice offset (offset + 1) string)
 
 
 charOrEnd : Int -> String -> Int
