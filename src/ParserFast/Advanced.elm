@@ -1577,21 +1577,20 @@ isSubChar predicate offset string =
         actualChar =
             String.slice offset (offset + 1) string
     in
-    if charStringIsUtf16HighSurrogate actualChar then
-        -- String.any iterates over code points (so here just one Char)
-        if String.any predicate (String.slice offset (offset + 2) string) then
-            offset + 2
-
-        else
-            -1
-
-    else if String.any predicate actualChar then
+    if String.any predicate actualChar then
         case actualChar of
             "\n" ->
                 -2
 
             _ ->
                 offset + 1
+
+    else if
+        charStringIsUtf16HighSurrogate actualChar
+            && -- String.any iterates over code points (so here just one Char)
+               String.any predicate (String.slice offset (offset + 2) string)
+    then
+        offset + 2
 
     else
         -1
