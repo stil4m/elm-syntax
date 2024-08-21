@@ -1259,11 +1259,26 @@ whileMap isGood chompedStringToRes =
 chompWhileHelp : (Char -> Bool) -> Int -> Int -> Int -> String -> Int -> State
 chompWhileHelp isGood offset row col src indent =
     let
-        newOffset : Int
-        newOffset =
-            isSubChar isGood offset src
+        actualChar : String
+        actualChar =
+            String.slice offset (offset + 1) src
     in
-    if newOffset == -1 then
+    if String.any isGood actualChar then
+        case actualChar of
+            "\n" ->
+                chompWhileHelp isGood (offset + 1) (row + 1) 1 src indent
+
+            _ ->
+                chompWhileHelp isGood (offset + 1) row (col + 1) src indent
+
+    else if
+        charStringIsUtf16HighSurrogate actualChar
+            && -- String.any iterates over code points (so here just one Char)
+               String.any isGood (String.slice offset (offset + 2) src)
+    then
+        chompWhileHelp isGood (offset + 2) row (col + 1) src indent
+
+    else
         -- no match
         { src = src
         , offset = offset
@@ -1271,14 +1286,6 @@ chompWhileHelp isGood offset row col src indent =
         , row = row
         , col = col
         }
-
-    else if newOffset == -2 then
-        -- matched a newline
-        chompWhileHelp isGood (offset + 1) (row + 1) 1 src indent
-
-    else
-        -- normal match
-        chompWhileHelp isGood newOffset row (col + 1) src indent
 
 
 variable :
