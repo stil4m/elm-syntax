@@ -1,19 +1,19 @@
 module ParserFast.Advanced exposing
     ( Parser, run
-    , number, symbol, symbolFollowedBy, keyword, keywordFollowedBy, whileMap, ifFollowedByWhile, ifFollowedByWhileExcept, anyChar, end
+    , number, symbol, symbolBacktrackable, symbolFollowedBy, keyword, keywordFollowedBy, whileMap, ifFollowedByWhile, ifFollowedByWhileExcept, anyChar, end
     , succeed, problem, lazy, map, map2, map3, map4, map5, map6, map7, map8, map9, validate
     , orSucceed, oneOf2, oneOf2OrSucceed, oneOf2Map, oneOf3, oneOf4, oneOf, backtrackable
     , loopWhileSucceeds, loopUntil
     , chompWhileWhitespaceFollowedBy, nestableMultiComment
     , withIndent, withIndentSetToColumn
-    , columnAndThen, columnIndentAndThen, validateEndColumnIndentation, offsetSourceAndThen, mapWithStartPosition, mapWithEndPosition, mapWithStartAndEndPosition
+    , columnAndThen, columnIndentAndThen, validateEndColumnIndentation, validateEndColumnIndentationBacktrackable, offsetSourceAndThen, mapWithStartPosition, mapWithEndPosition, mapWithStartAndEndPosition
     )
 
 {-|
 
 @docs Parser, run
 
-@docs number, symbol, symbolFollowedBy, keyword, keywordFollowedBy, whileMap, ifFollowedByWhile, ifFollowedByWhileExcept, anyChar, end
+@docs number, symbol, symbolBacktrackable, symbolFollowedBy, keyword, keywordFollowedBy, whileMap, ifFollowedByWhile, ifFollowedByWhileExcept, anyChar, end
 
 
 # Flow
@@ -33,7 +33,7 @@ module ParserFast.Advanced exposing
 # Indentation, Positions and Source
 
 @docs withIndent, withIndentSetToColumn
-@docs columnAndThen, columnIndentAndThen, validateEndColumnIndentation, offsetSourceAndThen, mapWithStartPosition, mapWithEndPosition, mapWithStartAndEndPosition
+@docs columnAndThen, columnIndentAndThen, validateEndColumnIndentation, validateEndColumnIndentationBacktrackable, offsetSourceAndThen, mapWithStartPosition, mapWithEndPosition, mapWithStartAndEndPosition
 
 -}
 
@@ -539,6 +539,23 @@ validateEndColumnIndentation isOkay problemOnIsNotOkay (Parser parse) =
         )
 
 
+validateEndColumnIndentationBacktrackable : (Int -> Int -> Bool) -> x -> Parser x a -> Parser x a
+validateEndColumnIndentationBacktrackable isOkay problemOnIsNotOkay (Parser parse) =
+    Parser
+        (\s0 ->
+            case parse s0 of
+                Good _ res s1 ->
+                    if isOkay s1.col s1.indent then
+                        Good False res s1
+
+                    else
+                        Bad False (fromState s1 problemOnIsNotOkay) ()
+
+                Bad _ x () ->
+                    Bad False x ()
+        )
+
+
 offsetSourceAndThen : (Int -> String -> Parser x a) -> Parser x a
 offsetSourceAndThen callback =
     Parser
@@ -1019,6 +1036,38 @@ symbol str expecting res =
 
             else
                 Good True
+                    res
+                    { src = s.src
+                    , offset = newOffset
+                    , indent = s.indent
+                    , row = s.row
+                    , col = s.col + strLength
+                    }
+        )
+
+
+{-| Make sure the given String does not contain \\n
+or 2-part UTF-16 characters
+-}
+symbolBacktrackable : String -> x -> res -> Parser x res
+symbolBacktrackable str expecting res =
+    let
+        strLength : Int
+        strLength =
+            String.length str
+    in
+    Parser
+        (\s ->
+            let
+                newOffset : Int
+                newOffset =
+                    isSubString str strLength s.offset s.src
+            in
+            if newOffset == -1 then
+                Bad False (fromState s expecting) ()
+
+            else
+                Good False
                     res
                     { src = s.src
                     , offset = newOffset

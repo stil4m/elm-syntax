@@ -475,7 +475,7 @@ infixDeclaration =
                 Tokens.parensEnd
             )
         )
-        (Layout.maybeLayoutUntilIgnored ParserFast.symbolFollowedBy "=")
+        (Layout.maybeLayoutUntilIgnored ParserFast.symbol "=")
         Layout.maybeLayout
         (Node.parserCore Tokens.functionName)
         |> Node.parser
@@ -508,7 +508,7 @@ portDeclarationAfterDocumentation =
         )
         (ParserFast.keywordFollowedBy "port" Layout.maybeLayout)
         (Node.parserCore Tokens.functionName)
-        (Layout.maybeLayoutUntilIgnored ParserFast.symbolFollowedBy ":")
+        (Layout.maybeLayoutUntilIgnored ParserFast.symbol ":")
         Layout.maybeLayout
         typeAnnotation
 
@@ -540,7 +540,7 @@ portDeclarationWithoutDocumentation =
         )
         (ParserFast.keywordFollowedBy "port" Layout.maybeLayout)
         (Node.parserCore Tokens.functionName)
-        (Layout.maybeLayoutUntilIgnored ParserFast.symbolFollowedBy ":")
+        (Layout.maybeLayoutUntilIgnored ParserFast.symbol ":")
         Layout.maybeLayout
         typeAnnotation
 
@@ -620,7 +620,7 @@ customTypeDefinitionAfterDocumentationAfterTypePrefix =
                     , syntax = variantResult.syntax
                     }
                 )
-                (Layout.maybeLayoutUntilIgnored ParserFast.symbolFollowedBy "|" |> ParserFast.backtrackable)
+                (Layout.maybeLayoutUntilIgnoredBacktrackable ParserFast.symbol "|")
                 Layout.maybeLayout
                 valueConstructor
             )
@@ -754,7 +754,7 @@ customTypeDefinitionWithoutDocumentationAfterTypePrefix =
                     , syntax = variantResult.syntax
                     }
                 )
-                (Layout.maybeLayoutUntilIgnored ParserFast.symbolFollowedBy "|" |> ParserFast.backtrackable)
+                (Layout.maybeLayoutUntilIgnoredBacktrackable ParserFast.symbol "|")
                 Layout.maybeLayout
                 valueConstructor
             )
@@ -791,7 +791,7 @@ valueConstructor =
                     , syntax = typeAnnotationResult.syntax
                     }
                 )
-                (Layout.maybeLayout |> ParserFast.backtrackable)
+                Layout.maybeLayoutBacktrackable
                 typeAnnotationNoFnExcludingTypedWithArguments
             )
         )

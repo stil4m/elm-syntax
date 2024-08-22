@@ -276,7 +276,7 @@ recordContentsCurlyEnd =
                 )
             )
             recordFields
-            (Layout.maybeLayoutUntilIgnored ParserFast.symbolFollowedBy "}")
+            (Layout.maybeLayoutUntilIgnored ParserFast.symbol "}")
         )
         (ParserFast.symbol "}" { comments = Rope.empty, syntax = RecordExpr [] })
 
@@ -315,7 +315,7 @@ recordSetterNodeWithLayout =
                 }
             )
             (Node.parserCore Tokens.functionName)
-            (Layout.maybeLayoutUntilIgnored ParserFast.symbolFollowedBy "=")
+            (Layout.maybeLayoutUntilIgnored ParserFast.symbol "=")
             Layout.maybeLayout
             expression
             -- This extra whitespace is just included for compatibility with earlier version
@@ -442,7 +442,7 @@ caseExpression =
             (ParserFast.keywordFollowedBy "case" Layout.maybeLayout)
         )
         expression
-        (Layout.maybeLayoutUntilIgnored ParserFast.keywordFollowedBy "of")
+        (Layout.maybeLayoutUntilIgnored ParserFast.keyword "of")
         Layout.maybeLayout
         (ParserFast.withIndentSetToColumn caseStatements)
 
@@ -464,7 +464,7 @@ caseStatements =
             }
         )
         Patterns.pattern
-        (Layout.maybeLayoutUntilIgnored ParserFast.symbolFollowedBy "->")
+        (Layout.maybeLayoutUntilIgnored ParserFast.symbol "->")
         Layout.maybeLayout
         expression
         (ParserWithComments.manyWithoutReverse caseStatement)
@@ -484,7 +484,7 @@ caseStatement =
                 }
             )
             Patterns.pattern
-            (Layout.maybeLayoutUntilIgnored ParserFast.symbolFollowedBy "->")
+            (Layout.maybeLayoutUntilIgnored ParserFast.symbol "->")
             Layout.maybeLayout
             expression
         )
@@ -793,10 +793,10 @@ ifBlockExpression =
             (ParserFast.keywordFollowedBy "if" Layout.maybeLayout)
         )
         expression
-        (Layout.maybeLayoutUntilIgnored ParserFast.keywordFollowedBy "then")
+        (Layout.maybeLayoutUntilIgnored ParserFast.keyword "then")
         Layout.maybeLayout
         expression
-        (Layout.maybeLayoutUntilIgnored ParserFast.keywordFollowedBy "else")
+        (Layout.maybeLayoutUntilIgnored ParserFast.keyword "else")
         Layout.maybeLayout
         expression
 
@@ -817,7 +817,7 @@ negationOperation =
         )
         (ParserFast.mapWithStartPosition
             (\start () -> start)
-            (ParserFast.symbol "-" () |> ParserFast.backtrackable)
+            (ParserFast.symbolBacktrackable "-" ())
         )
         (extendedSubExpressionWithoutInitialLayout abovePrecedence95)
 
