@@ -43,17 +43,12 @@ declarationWithDocumentation =
             in
             case afterDocumentation.syntax of
                 FunctionDeclarationAfterDocumentation functionDeclarationAfterDocumentation ->
-                    let
-                        (Node startNameRange _) =
-                            functionDeclarationAfterDocumentation.startName
-                    in
                     case functionDeclarationAfterDocumentation.signature of
                         Just signature ->
                             let
                                 (Node implementationNameRange _) =
                                     signature.implementationName
-                            in
-                            let
+
                                 (Node expressionRange _) =
                                     functionDeclarationAfterDocumentation.expression
                             in
@@ -80,6 +75,9 @@ declarationWithDocumentation =
 
                         Nothing ->
                             let
+                                (Node startNameRange _) =
+                                    functionDeclarationAfterDocumentation.startName
+
                                 (Node expressionRange _) =
                                     functionDeclarationAfterDocumentation.expression
                             in
@@ -355,8 +353,7 @@ functionDeclarationWithoutDocumentation =
                     let
                         (Node implementationNameRange _) =
                             signature.implementationName
-                    in
-                    let
+
                         (Node expressionRange _) =
                             result.syntax
                     in
