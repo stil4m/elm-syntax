@@ -2,7 +2,7 @@ module ParserFast.Advanced exposing
     ( Parser, run
     , number, symbol, symbolBacktrackable, symbolFollowedBy, keyword, keywordFollowedBy, whileMap, ifFollowedByWhile, ifFollowedByWhileExcept, anyChar, end
     , succeed, problem, lazy, map, map2, map3, map4, map5, map6, map7, map8, map9, validate
-    , orSucceed, oneOf2, oneOf2OrSucceed, oneOf2Map, oneOf3, oneOf4, oneOf, backtrackable
+    , orSucceed, oneOf2, oneOf2OrSucceed, oneOf2Map, oneOf3, oneOf4, oneOf
     , loopWhileSucceeds, loopUntil
     , chompWhileWhitespaceFollowedBy, nestableMultiComment
     , withIndent, withIndentSetToColumn
@@ -20,7 +20,7 @@ module ParserFast.Advanced exposing
 
 @docs succeed, problem, lazy, map, map2, map3, map4, map5, map6, map7, map8, map9, validate
 
-@docs orSucceed, oneOf2, oneOf2OrSucceed, oneOf2Map, oneOf3, oneOf4, oneOf, backtrackable
+@docs orSucceed, oneOf2, oneOf2OrSucceed, oneOf2Map, oneOf3, oneOf4, oneOf
 
 @docs loopWhileSucceeds, loopUntil
 
@@ -800,7 +800,7 @@ oneOfHelp s0 deadEnds parsers =
                         oneOfHelp s0 (Append deadEnds x) remainingParsers
 
 
-{-| Decide what steps to take next in your [`loop`](#loop).
+{-| Decide what steps to take next in your `loop`.
 
 If you are `Done`, you give the result of the whole `loop`. If you decide to
 `Loop` around again, you give a new state to work from. Maybe you need to add
@@ -850,7 +850,7 @@ for another example.
 
 **IMPORTANT NOTE:** Parsers like `chompWhile Char.isAlpha` can
 succeed without consuming any characters. So in some cases you may want to e.g.
-prepend a [`chompIfFollowedBy`](#chompIfFollowedBy) to ensure that each step actually consumed characters.
+use an [`ifFollowedByWhile`](#ifFollowedByWhile) to ensure that each step actually consumed characters.
 Otherwise you could end up in an infinite loop!
 
 **Note:** Anything you can write with `loop`, you can also write as a parser
@@ -935,19 +935,6 @@ loopUntilHelp committedSoFar ((Parser parseEnd) as endParser) ((Parser parseElem
 
                     Bad elementCommitted x () ->
                         Bad (committedSoFar || elementCommitted) x ()
-
-
-backtrackable : Parser x a -> Parser x a
-backtrackable (Parser parse) =
-    Parser
-        (\s0 ->
-            case parse s0 of
-                Bad _ x () ->
-                    Bad False x ()
-
-                Good _ a s1 ->
-                    Good False a s1
-        )
 
 
 {-| Make sure the given String isn't empty and does not contain \\n

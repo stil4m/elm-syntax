@@ -2,7 +2,7 @@ module ParserFast exposing
     ( Parser, run
     , int, number, symbol, symbolBacktrackable, symbolFollowedBy, keyword, keywordFollowedBy, whileMap, ifFollowedByWhile, ifFollowedByWhileExcept, anyChar, end
     , succeed, problem, lazy, map, map2, map3, map4, map5, map6, map7, map8, map9, validate
-    , orSucceed, oneOf2, oneOf2Map, oneOf2OrSucceed, oneOf3, oneOf4, oneOf, backtrackable
+    , orSucceed, oneOf2, oneOf2Map, oneOf2OrSucceed, oneOf3, oneOf4, oneOf
     , loopWhileSucceeds, loopUntil
     , chompWhileWhitespaceFollowedBy, nestableMultiComment
     , withIndentSetToColumn, withIndent, columnIndentAndThen, validateEndColumnIndentation, validateEndColumnIndentationBacktrackable
@@ -20,7 +20,7 @@ module ParserFast exposing
 
 @docs succeed, problem, lazy, map, map2, map3, map4, map5, map6, map7, map8, map9, validate
 
-@docs orSucceed, oneOf2, oneOf2Map, oneOf2OrSucceed, oneOf3, oneOf4, oneOf, backtrackable
+@docs orSucceed, oneOf2, oneOf2Map, oneOf2OrSucceed, oneOf3, oneOf4, oneOf
 
 @docs loopWhileSucceeds, loopUntil
 
@@ -249,8 +249,7 @@ map9 =
 
 
 {-| Indicate that a parser has reached a dead end. "Everything was going fine
-until I ran into this problem." Check out the [`andThen`](#andThen) docs to see
-an example usage.
+until I ran into this problem." Check out the -AndThen helpers for where to use this.
 -}
 problem : String -> Parser a
 problem msg =
@@ -354,19 +353,6 @@ loopWhileSucceeds =
 loopUntil : Parser () -> Parser element -> folded -> (element -> folded -> folded) -> (folded -> res) -> Parser res
 loopUntil =
     A.loopUntil
-
-
-{-| It is quite tricky to use `backtrackable` well! It can be very useful, but
-also can degrade performance and error message quality.
-
-Read [this document](https://github.com/elm/parser/blob/master/semantics.md)
-to learn how `oneOf`, `backtrackable`, and `commit` work and interact with
-each other. It is subtle and important!
-
--}
-backtrackable : Parser a -> Parser a
-backtrackable =
-    A.backtrackable
 
 
 {-| Parse a bunch of different kinds of numbers without backtracking. A parser
