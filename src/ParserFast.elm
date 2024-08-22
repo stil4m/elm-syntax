@@ -279,8 +279,7 @@ map9 =
 
 
 {-| Indicate that a parser has reached a dead end. "Everything was going fine
-until I ran into this problem." Check out the [`andThen`](#andThen) docs to see
-an example usage.
+until I ran into this problem." Check out the -AndThen helpers for where to use this.
 -}
 problem : String -> Parser a
 problem msg =

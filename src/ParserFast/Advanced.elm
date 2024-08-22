@@ -828,7 +828,7 @@ oneOfHelp s0 deadEnds parsers =
                         oneOfHelp s0 (Append deadEnds x) remainingParsers
 
 
-{-| Decide what steps to take next in your [`loop`](#loop).
+{-| Decide what steps to take next in your `loop`.
 
 If you are `Done`, you give the result of the whole `loop`. If you decide to
 `Loop` around again, you give a new state to work from. Maybe you need to add
@@ -878,7 +878,7 @@ for another example.
 
 **IMPORTANT NOTE:** Parsers like `chompWhile Char.isAlpha` can
 succeed without consuming any characters. So in some cases you may want to e.g.
-prepend a [`chompIfFollowedBy`](#chompIfFollowedBy) to ensure that each step actually consumed characters.
+use an [`ifFollowedByWhile`](#ifFollowedByWhile) to ensure that each step actually consumed characters.
 Otherwise you could end up in an infinite loop!
 
 **Note:** Anything you can write with `loop`, you can also write as a parser
