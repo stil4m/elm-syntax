@@ -36,9 +36,7 @@ typeAnnotation =
                         , syntax = typeAnnotationResult.syntax
                         }
                 )
-                (Layout.maybeLayoutUntilIgnored ParserFast.symbolFollowedBy "->"
-                    |> ParserFast.backtrackable
-                )
+                (Layout.maybeLayoutUntilIgnoredBacktrackable ParserFast.symbol "->")
                 Layout.maybeLayout
                 (ParserFast.lazy (\() -> typeAnnotation))
             )
@@ -244,7 +242,7 @@ recordFieldDefinition =
         )
         Layout.maybeLayout
         (Node.parserCore Tokens.functionName)
-        (Layout.maybeLayoutUntilIgnored ParserFast.symbolFollowedBy ":")
+        (Layout.maybeLayoutUntilIgnored ParserFast.symbol ":")
         Layout.maybeLayout
         typeAnnotation
         -- This extra whitespace is just included for compatibility with earlier version
@@ -332,7 +330,7 @@ typedTypeAnnotationWithArguments =
                     , syntax = typeAnnotationResult.syntax
                     }
                 )
-                (Layout.maybeLayout |> ParserFast.backtrackable)
+                Layout.maybeLayoutBacktrackable
                 typeAnnotationNoFnExcludingTypedWithArguments
             )
         )

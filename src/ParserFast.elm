@@ -13,7 +13,7 @@ module ParserFast exposing
 
 @docs Parser, run
 
-@docs int, number, symbol, symbolFollowedBy, keyword, keywordFollowedBy, whileMap, ifFollowedByWhile, ifFollowedByWhileExcept, anyChar, end
+@docs int, number, symbol, symbolBacktrackable, symbolFollowedBy, keyword, keywordFollowedBy, whileMap, ifFollowedByWhile, ifFollowedByWhileExcept, anyChar, end
 
 
 # Flow
@@ -32,7 +32,7 @@ module ParserFast exposing
 
 # Indentation, Positions and source
 
-@docs withIndentSetToColumn, withIndent, columnIndentAndThen, validateEndColumnIndentation
+@docs withIndentSetToColumn, withIndent, columnIndentAndThen, validateEndColumnIndentation, validateEndColumnIndentationBacktrackable
 @docs mapWithStartPosition, mapWithEndPosition, mapWithStartAndEndPosition, columnAndThen, offsetSourceAndThen
 
 -}
@@ -214,6 +214,11 @@ columnIndentAndThen =
 validateEndColumnIndentation : (Int -> Int -> Bool) -> String -> Parser a -> Parser a
 validateEndColumnIndentation isOkay problemOnIsNotOkay parser =
     A.validateEndColumnIndentation isOkay (Parser.Problem problemOnIsNotOkay) parser
+
+
+validateEndColumnIndentationBacktrackable : (Int -> Int -> Bool) -> String -> Parser a -> Parser a
+validateEndColumnIndentationBacktrackable isOkay problemOnIsNotOkay parser =
+    A.validateEndColumnIndentationBacktrackable isOkay (Parser.Problem problemOnIsNotOkay) parser
 
 
 {-| Editors think of code as a grid, but behind the scenes it is just a flat
@@ -520,6 +525,14 @@ operator it is afterwards.
 symbol : String -> res -> Parser res
 symbol str res =
     A.symbol str (Parser.ExpectingSymbol str) res
+
+
+{-| Make sure the given String does not contain \\n
+or 2-part UTF-16 characters.
+-}
+symbolBacktrackable : String -> res -> Parser res
+symbolBacktrackable str res =
+    A.symbolBacktrackable str (Parser.ExpectingSymbol str) res
 
 
 {-| Make sure the given String isn't empty and does not contain \\n

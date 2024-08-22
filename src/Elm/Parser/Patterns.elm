@@ -288,7 +288,7 @@ qualifiedPatternWithConsumeArgs =
                     , syntax = arg.syntax
                     }
                 )
-                (Layout.maybeLayout |> ParserFast.backtrackable)
+                Layout.maybeLayoutBacktrackable
                 patternNotDirectlyComposing
             )
         )

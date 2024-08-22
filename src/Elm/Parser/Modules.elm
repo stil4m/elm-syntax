@@ -30,7 +30,7 @@ effectWhereClause =
             }
         )
         Tokens.functionName
-        (Layout.maybeLayoutUntilIgnored ParserFast.symbolFollowedBy "=")
+        (Layout.maybeLayoutUntilIgnored ParserFast.symbol "=")
         Layout.maybeLayout
         (Node.parserCore Tokens.typeName)
 

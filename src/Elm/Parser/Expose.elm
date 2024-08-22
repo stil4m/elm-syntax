@@ -22,7 +22,7 @@ exposeDefinition =
             }
         )
         (ParserFast.symbolFollowedBy "exposing"
-            (Layout.maybeLayoutUntilIgnored ParserFast.symbolFollowedBy "(")
+            (Layout.maybeLayoutUntilIgnored ParserFast.symbol "(")
         )
         Layout.optimisticLayout
         exposingListInner
@@ -108,16 +108,16 @@ typeExpose =
                         , syntax = all.range
                         }
                 )
-                (Layout.maybeLayout |> ParserFast.backtrackable)
+                Layout.maybeLayoutBacktrackable
                 (ParserFast.mapWithStartAndEndPosition
                     (\start comments end ->
                         { comments = comments, range = { start = start, end = end } }
                     )
                     (ParserFast.map2 (\left right -> left |> Rope.prependTo right)
                         (ParserFast.symbolFollowedBy "("
-                            (Layout.maybeLayoutUntilIgnored ParserFast.symbolFollowedBy "..")
+                            (Layout.maybeLayoutUntilIgnored ParserFast.symbol "..")
                         )
-                        (Layout.maybeLayoutUntilIgnored ParserFast.symbolFollowedBy ")")
+                        (Layout.maybeLayoutUntilIgnored ParserFast.symbol ")")
                     )
                 )
             )

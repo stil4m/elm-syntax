@@ -5,7 +5,9 @@ module Elm.Parser.Layout exposing
     , layoutStrictFollowedByWithComments
     , maybeAroundBothSides
     , maybeLayout
+    , maybeLayoutBacktrackable
     , maybeLayoutUntilIgnored
+    , maybeLayoutUntilIgnoredBacktrackable
     , moduleLevelIndentationFollowedBy
     , onTopIndentationFollowedBy
     , optimisticLayout
@@ -20,14 +22,18 @@ import ParserWithComments exposing (Comments, WithComments)
 import Rope
 
 
-maybeLayoutUntilIgnored : (String -> Parser Comments -> Parser Comments) -> String -> Parser Comments
+maybeLayoutUntilIgnored : (String -> Comments -> Parser Comments) -> String -> Parser Comments
 maybeLayoutUntilIgnored endParser endSymbol =
     whitespaceAndCommentsUntilEndComments
-        (endParser endSymbol
-            (positivelyIndentedPlusFollowedBy (String.length endSymbol)
-                (ParserFast.succeed Rope.empty)
-            )
-        )
+        (endParser endSymbol Rope.empty)
+        |> endsPositivelyIndentedPlus (String.length endSymbol)
+
+
+maybeLayoutUntilIgnoredBacktrackable : (String -> Comments -> Parser Comments) -> String -> Parser Comments
+maybeLayoutUntilIgnoredBacktrackable endParser endSymbol =
+    whitespaceAndCommentsUntilEndComments
+        (endParser endSymbol Rope.empty)
+        |> endsPositivelyIndentedPlusBacktrackable (String.length endSymbol)
 
 
 whitespaceAndCommentsUntilEndComments : Parser Comments -> Parser Comments
@@ -111,10 +117,39 @@ maybeLayout =
     whitespaceAndCommentsOrEmpty |> endsPositivelyIndented
 
 
+maybeLayoutBacktrackable : Parser Comments
+maybeLayoutBacktrackable =
+    whitespaceAndCommentsOrEmpty |> endsPositivelyIndentedBacktrackable
+
+
 endsPositivelyIndented : Parser a -> Parser a
 endsPositivelyIndented parser =
     ParserFast.validateEndColumnIndentation
         (\column indent -> column > indent)
+        "must be positively indented"
+        parser
+
+
+endsPositivelyIndentedBacktrackable : Parser a -> Parser a
+endsPositivelyIndentedBacktrackable parser =
+    ParserFast.validateEndColumnIndentationBacktrackable
+        (\column indent -> column > indent)
+        "must be positively indented"
+        parser
+
+
+endsPositivelyIndentedPlus : Int -> Parser a -> Parser a
+endsPositivelyIndentedPlus extraIndent parser =
+    ParserFast.validateEndColumnIndentation
+        (\column indent -> column > indent + extraIndent)
+        "must be positively indented"
+        parser
+
+
+endsPositivelyIndentedPlusBacktrackable : Int -> Parser a -> Parser a
+endsPositivelyIndentedPlusBacktrackable extraIndent parser =
+    ParserFast.validateEndColumnIndentationBacktrackable
+        (\column indent -> column > indent + extraIndent)
         "must be positively indented"
         parser
 
