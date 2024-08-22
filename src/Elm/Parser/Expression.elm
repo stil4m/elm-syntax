@@ -674,8 +674,7 @@ letFunction =
                     let
                         (Node implementationNameRange _) =
                             signature.implementationName
-                    in
-                    let
+
                         (Node expressionRange _) =
                             expressionResult.syntax
                     in
