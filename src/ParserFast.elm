@@ -1,6 +1,6 @@
 module ParserFast exposing
     ( Parser, run
-    , int, number, symbol, symbolBacktrackable, symbolWithEndPosition, symbolFollowedBy, keyword, keywordFollowedBy, whileMap, ifFollowedByWhile, ifFollowedByWhileExcept, ifFollowedByWhileExceptMapWithStartAndEndPositions, anyChar, end
+    , int, number, symbol, symbolBacktrackable, symbolWithEndPosition, symbolWithStartAndEndPosition, symbolFollowedBy, keyword, keywordFollowedBy, whileMap, ifFollowedByWhile, ifFollowedByWhileExcept, ifFollowedByWhileExceptMapWithStartAndEndPositions, anyChar, end
     , succeed, problem, lazy, map, map2, map2WithStartPosition, map2WithStartAndEndPosition, map3, map3WithStartAndEndPosition, map4, map4WithStartAndEndPosition, map5, map5WithStartPosition, map5WithStartAndEndPosition, map6, map6WithStartPosition, map6WithStartAndEndPosition, map7, map8, map8WithStartPosition, map9, map9WithStartAndEndPosition, validate
     , orSucceed, oneOf2, oneOf2Map, oneOf2OrSucceed, oneOf3, oneOf4, oneOf
     , loopWhileSucceeds, loopUntil
@@ -13,7 +13,7 @@ module ParserFast exposing
 
 @docs Parser, run
 
-@docs int, number, symbol, symbolBacktrackable, symbolWithEndPosition, symbolFollowedBy, keyword, keywordFollowedBy, whileMap, ifFollowedByWhile, ifFollowedByWhileExcept, ifFollowedByWhileExceptMapWithStartAndEndPositions, anyChar, end
+@docs int, number, symbol, symbolBacktrackable, symbolWithEndPosition, symbolWithStartAndEndPosition, symbolFollowedBy, keyword, keywordFollowedBy, whileMap, ifFollowedByWhile, ifFollowedByWhileExcept, ifFollowedByWhileExceptMapWithStartAndEndPositions, anyChar, end
 
 
 # Flow
@@ -1576,6 +1576,44 @@ symbolWithEndPosition str endPositionToRes =
                 in
                 Good True
                     (endPositionToRes { row = s.row, column = newCol })
+                    { src = s.src
+                    , offset = newOffset
+                    , indent = s.indent
+                    , row = s.row
+                    , col = newCol
+                    }
+
+            else
+                Bad False (fromState s expecting) ()
+        )
+
+
+symbolWithStartAndEndPosition : String -> ({ row : Int, column : Int } -> { row : Int, column : Int } -> res) -> Parser res
+symbolWithStartAndEndPosition str startAndEndPositionToRes =
+    let
+        expecting : Parser.Problem
+        expecting =
+            Parser.ExpectingSymbol str
+
+        strLength : Int
+        strLength =
+            String.length str
+    in
+    Parser
+        (\s ->
+            let
+                newOffset : Int
+                newOffset =
+                    s.offset + strLength
+            in
+            if String.slice s.offset newOffset s.src == str ++ "" then
+                let
+                    newCol : Int
+                    newCol =
+                        s.col + strLength
+                in
+                Good True
+                    (startAndEndPositionToRes { row = s.row, column = s.col } { row = s.row, column = newCol })
                     { src = s.src
                     , offset = newOffset
                     , indent = s.indent
