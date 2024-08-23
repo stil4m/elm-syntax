@@ -46,14 +46,14 @@ whitespaceAndCommentsUntilEndComments end =
                     Rope.one content
                         |> Rope.filledPrependTo commentsAfter
                 )
-                (Node.parserCore Comments.singleLineCommentCore)
+                Comments.singleLineComment
                 (ParserFast.lazy (\() -> whitespaceAndCommentsUntilEndComments end))
             )
             (ParserFast.map2
                 (\comment commentsAfter ->
                     Rope.one comment |> Rope.filledPrependTo commentsAfter
                 )
-                (Node.parserCore Comments.multilineCommentString)
+                Comments.multilineComment
                 (ParserFast.lazy (\() -> whitespaceAndCommentsUntilEndComments end))
             )
         )
@@ -98,7 +98,7 @@ fromMultilineCommentNode =
         (\comment commentsAfter ->
             Rope.one comment |> Rope.filledPrependTo commentsAfter
         )
-        (Node.parserCore Comments.multilineCommentString)
+        Comments.multilineComment
         whitespaceAndCommentsOrEmpty
 
 
@@ -108,7 +108,7 @@ fromSingleLineCommentNode =
         (\content commentsAfter ->
             Rope.one content |> Rope.filledPrependTo commentsAfter
         )
-        (Node.parserCore Comments.singleLineCommentCore)
+        Comments.singleLineComment
         whitespaceAndCommentsOrEmpty
 
 
