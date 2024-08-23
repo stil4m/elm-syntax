@@ -57,7 +57,7 @@ maybeComposedWith =
                 }
             )
             (ParserFast.keywordFollowedBy "as" Layout.maybeLayout)
-            (Node.parserCore Tokens.functionName)
+            Tokens.functionNameNode
         )
         (ParserFast.map2
             (\commentsAfterCons patternResult ->
@@ -114,14 +114,12 @@ parensPattern =
 
 varPattern : Parser (WithComments (Node Pattern))
 varPattern =
-    Tokens.functionName
-        |> ParserFast.mapWithStartAndEndPosition
-            (\start var end ->
-                { comments = Rope.empty
-                , syntax =
-                    Node { start = start, end = end } (VarPattern var)
-                }
-            )
+    Tokens.functionNameMapWithRange
+        (\range var ->
+            { comments = Rope.empty
+            , syntax = Node range (VarPattern var)
+            }
+        )
 
 
 numberPart : Parser (WithComments (Node Pattern))
@@ -347,7 +345,7 @@ recordPattern =
                         , syntax = head :: tail.syntax
                         }
                 )
-                (Node.parserCore Tokens.functionName)
+                Tokens.functionNameNode
                 Layout.maybeLayout
                 (ParserWithComments.many
                     (ParserFast.map3
@@ -357,7 +355,7 @@ recordPattern =
                             }
                         )
                         (ParserFast.symbolFollowedBy "," Layout.maybeLayout)
-                        (Node.parserCore Tokens.functionName)
+                        Tokens.functionNameNode
                         Layout.maybeLayout
                     )
                 )

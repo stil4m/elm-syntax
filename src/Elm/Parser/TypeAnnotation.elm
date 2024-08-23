@@ -114,15 +114,13 @@ parensTypeAnnotation =
 
 genericTypeAnnotation : Parser (WithComments (Node TypeAnnotation))
 genericTypeAnnotation =
-    Tokens.functionName
-        |> ParserFast.mapWithStartAndEndPosition
-            (\start var end ->
-                { comments = Rope.empty
-                , syntax =
-                    Node { start = start, end = end }
-                        (TypeAnnotation.GenericType var)
-                }
-            )
+    Tokens.functionNameMapWithRange
+        (\range var ->
+            { comments = Rope.empty
+            , syntax =
+                Node range (TypeAnnotation.GenericType var)
+            }
+        )
 
 
 recordTypeAnnotation : Parser (WithComments (Node TypeAnnotation))
@@ -159,7 +157,7 @@ recordTypeAnnotation =
                                     TypeAnnotation.Record (Node.combine Tuple.pair firstNameNode fieldsAfterName.firstFieldValue :: fieldsAfterName.tailFields)
                         }
                 )
-                (Node.parserCore Tokens.functionName)
+                Tokens.functionNameNode
                 Layout.maybeLayout
                 (ParserFast.oneOf2
                     (ParserFast.symbolFollowedBy "|"
@@ -241,7 +239,7 @@ recordFieldDefinition =
             }
         )
         Layout.maybeLayout
-        (Node.parserCore Tokens.functionName)
+        Tokens.functionNameNode
         (Layout.maybeLayoutUntilIgnored ParserFast.symbol ":")
         Layout.maybeLayout
         typeAnnotation

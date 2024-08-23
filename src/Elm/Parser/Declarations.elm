@@ -272,7 +272,7 @@ functionAfterDocumentation =
             }
         )
         -- infix declarations itself don't have documentation
-        (Node.parserCore Tokens.functionName)
+        Tokens.functionNameNode
         Layout.maybeLayout
         (ParserFast.orSucceed
             (ParserFast.map4
@@ -292,7 +292,7 @@ functionAfterDocumentation =
                 (ParserFast.symbolFollowedBy ":" Layout.maybeLayout)
                 TypeAnnotation.typeAnnotation
                 (Layout.layoutStrictFollowedBy
-                    (Node.parserCore Tokens.functionName)
+                    Tokens.functionNameNode
                 )
                 Layout.maybeLayout
             )
@@ -391,7 +391,7 @@ functionDeclarationWithoutDocumentation =
                 (ParserFast.symbolFollowedBy ":" Layout.maybeLayout)
                 TypeAnnotation.typeAnnotation
                 (Layout.layoutStrictFollowedBy
-                    (Node.parserCore Tokens.functionName)
+                    Tokens.functionNameNode
                 )
                 Layout.maybeLayout
             )
@@ -474,7 +474,7 @@ infixDeclaration =
         )
         (Layout.maybeLayoutUntilIgnored ParserFast.symbol "=")
         Layout.maybeLayout
-        (Node.parserCore Tokens.functionName)
+        Tokens.functionNameNode
 
 
 infixDirection : ParserFast.Parser Infix.InfixDirection
@@ -503,7 +503,7 @@ portDeclarationAfterDocumentation =
             }
         )
         (ParserFast.keywordFollowedBy "port" Layout.maybeLayout)
-        (Node.parserCore Tokens.functionName)
+        Tokens.functionNameNode
         (Layout.maybeLayoutUntilIgnored ParserFast.symbol ":")
         Layout.maybeLayout
         typeAnnotation
@@ -535,7 +535,7 @@ portDeclarationWithoutDocumentation =
             }
         )
         (ParserFast.keywordFollowedBy "port" Layout.maybeLayout)
-        (Node.parserCore Tokens.functionName)
+        Tokens.functionNameNode
         (Layout.maybeLayoutUntilIgnored ParserFast.symbol ":")
         Layout.maybeLayout
         typeAnnotation
@@ -800,6 +800,6 @@ typeGenericListEquals =
                 , syntax = name
                 }
             )
-            (Node.parserCore Tokens.functionName)
+            Tokens.functionNameNode
             Layout.maybeLayout
         )

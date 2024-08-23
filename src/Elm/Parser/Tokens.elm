@@ -4,7 +4,7 @@ module Elm.Parser.Tokens exposing
     , minusFollowedBySingleWhitespace
     , prefixOperatorToken, allowedOperatorTokens
     , characterLiteral, singleOrTripleQuotedStringLiteral
-    , functionName, functionNameNotInfix, typeName
+    , functionName, functionNameNode, functionNameMapWithRange, functionNameNotInfix, typeName
     )
 
 {-|
@@ -16,12 +16,14 @@ module Elm.Parser.Tokens exposing
 @docs prefixOperatorToken, allowedOperatorTokens
 
 @docs characterLiteral, singleOrTripleQuotedStringLiteral
-@docs functionName, functionNameNotInfix, typeName
+@docs functionName, functionNameNode, functionNameMapWithRange, functionNameNotInfix, typeName
 
 -}
 
 import Char
 import Char.Extra
+import Elm.Syntax.Node exposing (Node(..))
+import Elm.Syntax.Range exposing (Range)
 import Hex
 import ParserFast
 import Set exposing (Set)
@@ -149,6 +151,30 @@ tripleQuotedStringLiteralOfterTripleDoubleQuote =
 functionName : ParserFast.Parser String
 functionName =
     ParserFast.ifFollowedByWhileExcept
+        (\c -> Char.isLower c || Unicode.isLower c)
+        (\c ->
+            -- checking for these common ranges early is much faster
+            Char.Extra.isAlphaNumFast c || c == '_' || Unicode.isAlphaNum c
+        )
+        reservedList
+
+
+functionNameNode : ParserFast.Parser (Node String)
+functionNameNode =
+    ParserFast.ifFollowedByWhileExceptMapWithStartAndEndPositions
+        (\start name end -> Node { start = start, end = end } name)
+        (\c -> Char.isLower c || Unicode.isLower c)
+        (\c ->
+            -- checking for these common ranges early is much faster
+            Char.Extra.isAlphaNumFast c || c == '_' || Unicode.isAlphaNum c
+        )
+        reservedList
+
+
+functionNameMapWithRange : (Range -> String -> res) -> ParserFast.Parser res
+functionNameMapWithRange rangeAndNameToResult =
+    ParserFast.ifFollowedByWhileExceptMapWithStartAndEndPositions
+        (\start name end -> rangeAndNameToResult { start = start, end = end } name)
         (\c -> Char.isLower c || Unicode.isLower c)
         (\c ->
             -- checking for these common ranges early is much faster
