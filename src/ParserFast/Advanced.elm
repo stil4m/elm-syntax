@@ -1089,12 +1089,12 @@ keyword kwd expecting res =
             let
                 newOffset : Int
                 newOffset =
-                    isSubString kwd kwdLength s.offset s.src
+                    s.offset + kwdLength
             in
-            if newOffset == -1 || isSubCharSinglePart (\c -> Char.Extra.isAlphaNumFast c || c == '_') newOffset s.src then
-                Bad False (fromState s expecting) ()
-
-            else
+            if
+                (String.slice s.offset newOffset s.src == kwd ++ "")
+                    && not (isSubCharSinglePart (\c -> Char.Extra.isAlphaNumFast c || c == '_') newOffset s.src)
+            then
                 Good True
                     res
                     { src = s.src
@@ -1103,6 +1103,9 @@ keyword kwd expecting res =
                     , row = s.row
                     , col = s.col + kwdLength
                     }
+
+            else
+                Bad False (fromState s expecting) ()
         )
 
 
@@ -1121,12 +1124,12 @@ keywordFollowedBy kwd expecting (Parser parseNext) =
             let
                 newOffset : Int
                 newOffset =
-                    isSubString kwd kwdLength s.offset s.src
+                    s.offset + kwdLength
             in
-            if newOffset == -1 || isSubCharSinglePart (\c -> Char.Extra.isAlphaNumFast c || c == '_') newOffset s.src then
-                Bad False (fromState s expecting) ()
-
-            else
+            if
+                (String.slice s.offset newOffset s.src == kwd ++ "")
+                    && not (isSubCharSinglePart (\c -> Char.Extra.isAlphaNumFast c || c == '_') newOffset s.src)
+            then
                 parseNext
                     { src = s.src
                     , offset = newOffset
@@ -1135,6 +1138,9 @@ keywordFollowedBy kwd expecting (Parser parseNext) =
                     , col = s.col + kwdLength
                     }
                     |> pStepCommit
+
+            else
+                Bad False (fromState s expecting) ()
         )
 
 
@@ -1153,12 +1159,9 @@ symbol str expecting res =
             let
                 newOffset : Int
                 newOffset =
-                    isSubString str strLength s.offset s.src
+                    s.offset + strLength
             in
-            if newOffset == -1 then
-                Bad False (fromState s expecting) ()
-
-            else
+            if String.slice s.offset newOffset s.src == str ++ "" then
                 Good True
                     res
                     { src = s.src
@@ -1167,6 +1170,9 @@ symbol str expecting res =
                     , row = s.row
                     , col = s.col + strLength
                     }
+
+            else
+                Bad False (fromState s expecting) ()
         )
 
 
@@ -1185,12 +1191,9 @@ symbolBacktrackable str expecting res =
             let
                 newOffset : Int
                 newOffset =
-                    isSubString str strLength s.offset s.src
+                    s.offset + strLength
             in
-            if newOffset == -1 then
-                Bad False (fromState s expecting) ()
-
-            else
+            if String.slice s.offset newOffset s.src == str ++ "" then
                 Good False
                     res
                     { src = s.src
@@ -1199,6 +1202,9 @@ symbolBacktrackable str expecting res =
                     , row = s.row
                     , col = s.col + strLength
                     }
+
+            else
+                Bad False (fromState s expecting) ()
         )
 
 
@@ -1217,12 +1223,9 @@ symbolFollowedBy str expecting (Parser parseNext) =
             let
                 newOffset : Int
                 newOffset =
-                    isSubString str strLength s.offset s.src
+                    s.offset + strLength
             in
-            if newOffset == -1 then
-                Bad False (fromState s expecting) ()
-
-            else
+            if String.slice s.offset newOffset s.src == str ++ "" then
                 parseNext
                     { src = s.src
                     , offset = newOffset
@@ -1231,6 +1234,9 @@ symbolFollowedBy str expecting (Parser parseNext) =
                     , col = s.col + strLength
                     }
                     |> pStepCommit
+
+            else
+                Bad False (fromState s expecting) ()
         )
 
 
@@ -1655,37 +1661,6 @@ mapWithStartAndEndPosition combineStartAndResult (Parser parse) =
 
 
 -- LOW-LEVEL HELPERS
-
-
-{-| When making a fast parser, you want to avoid allocation as much as
-possible. That means you never want to mess with the source string, only
-keep track of an offset into that string.
-
-You use `isSubString` like this:
-
-    isSubString "let" offset row col "let x = 4 in x"
-        --==> ( newOffset, newRow, newCol )
-
-You are looking for `"let"` at a given `offset`. On failure, the
-`newOffset` is `-1`. On success, the `newOffset` is the new offset. With
-our `"let"` example, it would be `offset + 3`.
-
-**Important note:** Assumes smallString does not contain \\n
-or 2-part UTF-16 characters
-
--}
-isSubString : String -> Int -> Int -> String -> Int
-isSubString smallString smallStringLength offset bigString =
-    let
-        offsetAfter : Int
-        offsetAfter =
-            offset + smallStringLength
-    in
-    if String.slice offset offsetAfter bigString == smallString ++ "" then
-        offsetAfter
-
-    else
-        -1
 
 
 {-| Again, when parsing, you want to allocate as little as possible.
