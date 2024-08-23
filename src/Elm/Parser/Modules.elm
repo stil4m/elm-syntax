@@ -53,13 +53,19 @@ whereBlock =
             }
         )
         (ParserFast.symbolFollowedBy "{"
-            (ParserFast.map2
-                (\head tail ->
-                    { comments = head.comments |> Rope.prependTo tail.comments
+            (ParserFast.map4
+                (\commentsBeforeHead head commentsAfterHead tail ->
+                    { comments =
+                        commentsBeforeHead
+                            |> Rope.prependTo head.comments
+                            |> Rope.prependTo commentsAfterHead
+                            |> Rope.prependTo tail.comments
                     , syntax = head.syntax :: tail.syntax
                     }
                 )
-                (Layout.maybeAroundBothSides effectWhereClause)
+                Layout.maybeLayout
+                effectWhereClause
+                Layout.maybeLayout
                 (ParserWithComments.many
                     (ParserFast.symbolFollowedBy "," (Layout.maybeAroundBothSides effectWhereClause))
                 )
