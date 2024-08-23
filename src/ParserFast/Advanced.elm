@@ -6,14 +6,14 @@ module ParserFast.Advanced exposing
     , loop, Step(..)
     , chompWhileWhitespaceFollowedBy, nestableMultiComment
     , withIndent, withIndentSetToColumn
-    , columnAndThen, columnIndentAndThen, validateEndColumnIndentation, validateEndColumnIndentationBacktrackable, offsetSourceAndThen, mapWithEndPosition, mapWithStartAndEndPosition
+    , columnAndThen, columnIndentAndThen, validateEndColumnIndentation, validateEndColumnIndentationBacktrackable, offsetSourceAndThen, mapWithStartAndEndPosition
     )
 
 {-|
 
 @docs Parser, run
 
-@docs number, symbol, symbolBacktrackable, symbolFollowedBy, keyword, keywordFollowedBy, whileMap, ifFollowedByWhile, ifFollowedByWhileExcept, anyChar, end
+@docs number, symbol, symbolBacktrackable, symbolWithEndPosition, symbolFollowedBy, keyword, keywordFollowedBy, whileMap, ifFollowedByWhile, ifFollowedByWhileExcept, anyChar, end
 
 
 # Flow
@@ -33,7 +33,7 @@ module ParserFast.Advanced exposing
 # Indentation, Positions and Source
 
 @docs withIndent, withIndentSetToColumn
-@docs columnAndThen, columnIndentAndThen, validateEndColumnIndentation, validateEndColumnIndentationBacktrackable, offsetSourceAndThen, mapWithEndPosition, mapWithStartAndEndPosition
+@docs columnAndThen, columnIndentAndThen, validateEndColumnIndentation, validateEndColumnIndentationBacktrackable, offsetSourceAndThen, mapWithStartAndEndPosition
 
 -}
 
@@ -1209,6 +1209,42 @@ symbol str expecting res =
                     , indent = s.indent
                     , row = s.row
                     , col = s.col + strLength
+                    }
+
+            else
+                Bad False (fromState s expecting) ()
+        )
+
+
+{-| Make sure the given String isn't empty and does not contain \\n
+or 2-part UTF-16 characters
+-}
+symbolWithEndPosition : String -> x -> ({ row : Int, column : Int } -> res) -> Parser x res
+symbolWithEndPosition str expecting endPositionToRes =
+    let
+        strLength : Int
+        strLength =
+            String.length str
+    in
+    Parser
+        (\s ->
+            let
+                newOffset : Int
+                newOffset =
+                    s.offset + strLength
+            in
+            if String.slice s.offset newOffset s.src == str ++ "" then
+                let
+                    newCol =
+                        s.col + strLength
+                in
+                Good True
+                    (endPositionToRes { row = s.row, column = newCol })
+                    { src = s.src
+                    , offset = newOffset
+                    , indent = s.indent
+                    , row = s.row
+                    , col = newCol
                     }
 
             else

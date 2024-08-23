@@ -13,7 +13,7 @@ module ParserFast exposing
 
 @docs Parser, run
 
-@docs int, number, symbol, symbolBacktrackable, symbolFollowedBy, keyword, keywordFollowedBy, whileMap, ifFollowedByWhile, ifFollowedByWhileExcept, anyChar, end
+@docs int, number, symbol, symbolBacktrackable, symbolWithEndPosition, symbolFollowedBy, keyword, keywordFollowedBy, whileMap, ifFollowedByWhile, ifFollowedByWhileExcept, anyChar, end
 
 
 # Flow
@@ -33,7 +33,7 @@ module ParserFast exposing
 # Indentation, Positions and source
 
 @docs withIndentSetToColumn, withIndent, columnIndentAndThen, validateEndColumnIndentation, validateEndColumnIndentationBacktrackable
-@docs mapWithEndPosition, mapWithStartAndEndPosition, columnAndThen, offsetSourceAndThen
+@docs mapWithStartAndEndPosition, columnAndThen, offsetSourceAndThen
 
 -}
 
@@ -552,6 +552,11 @@ or 2-part UTF-16 characters.
 symbolBacktrackable : String -> res -> Parser res
 symbolBacktrackable str res =
     A.symbolBacktrackable str (Parser.ExpectingSymbol str) res
+
+
+symbolWithEndPosition : String -> ({ row : Int, column : Int } -> res) -> Parser res
+symbolWithEndPosition str res =
+    A.symbolWithEndPosition str (Parser.ExpectingSymbol str) res
 
 
 {-| Make sure the given String isn't empty and does not contain \\n

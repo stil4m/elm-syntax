@@ -906,26 +906,24 @@ tupledExpression : Parser (WithComments (Node Expression))
 tupledExpression =
     ParserFast.symbolFollowedBy "("
         (ParserFast.oneOf
-            (ParserFast.mapWithEndPosition
-                (\() end ->
+            (ParserFast.symbolWithEndPosition ")"
+                (\end ->
                     { comments = Rope.empty
                     , syntax =
                         Node { start = { row = end.row, column = end.column - 2 }, end = end }
                             UnitExpr
                     }
                 )
-                (ParserFast.symbol ")" ())
                 :: -- since `-` alone  could indicate negation or prefix operator,
                    -- we check for `-)` first
-                   ParserFast.mapWithEndPosition
-                    (\() end ->
+                   ParserFast.symbolWithEndPosition "-)"
+                    (\end ->
                         { comments = Rope.empty
                         , syntax =
                             Node { start = { row = end.row, column = end.column - 3 }, end = end }
                                 expressionPrefixOperatorMinus
                         }
                     )
-                    (ParserFast.symbol "-)" ())
                 :: tupledExpressionInnerAfterOpeningParens
                 -- and since prefix operators are much more rare than e.g. parenthesized
                 -- we check those later
@@ -950,15 +948,15 @@ allowedPrefixOperatorExceptMinusThenClosingParensOneOf =
                     prefixOperatorLength =
                         2 + String.length allowedOperatorToken
                 in
-                ParserFast.mapWithEndPosition
-                    (\() end ->
+                ParserFast.symbolWithEndPosition
+                    (allowedOperatorToken ++ ")")
+                    (\end ->
                         { comments = Rope.empty
                         , syntax =
                             Node { start = { row = end.row, column = end.column - prefixOperatorLength }, end = end }
                                 (PrefixOperator allowedOperatorToken)
                         }
                     )
-                    (ParserFast.symbol (allowedOperatorToken ++ ")") ())
             )
 
 
