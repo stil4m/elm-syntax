@@ -15,8 +15,8 @@ import Rope
 
 importDefinition : Parser (WithComments (Node Import))
 importDefinition =
-    ParserFast.map6
-        (\import_ ((Node modRange _) as mod) commentsAfterModuleName maybeModuleAlias maybeExposingList commentsAfterEverything ->
+    ParserFast.map6WithStartPosition
+        (\start commentsAfterImport ((Node modRange _) as mod) commentsAfterModuleName maybeModuleAlias maybeExposingList commentsAfterEverything ->
             let
                 endRange : Range
                 endRange =
@@ -41,7 +41,7 @@ importDefinition =
                                     modRange
             in
             { comments =
-                import_.commentsAfter
+                commentsAfterImport
                     |> Rope.prependTo commentsAfterModuleName
                     |> Rope.prependTo
                         (case maybeModuleAlias of
@@ -61,17 +61,14 @@ importDefinition =
                         )
                     |> Rope.prependTo commentsAfterEverything
             , syntax =
-                Node { start = import_.start, end = endRange.end }
+                Node { start = start, end = endRange.end }
                     { moduleName = mod
                     , moduleAlias = maybeModuleAlias |> Maybe.map .syntax
                     , exposingList = maybeExposingList |> Maybe.map .syntax
                     }
             }
         )
-        (ParserFast.mapWithStartPosition
-            (\start commentsAfter -> { commentsAfter = commentsAfter, start = start })
-            (ParserFast.keywordFollowedBy "import" Layout.maybeLayout)
-        )
+        (ParserFast.keywordFollowedBy "import" Layout.maybeLayout)
         moduleName
         Layout.optimisticLayout
         (ParserFast.orSucceed

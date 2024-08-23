@@ -33,7 +33,7 @@ module ParserFast exposing
 # Indentation, Positions and source
 
 @docs withIndentSetToColumn, withIndent, columnIndentAndThen, validateEndColumnIndentation, validateEndColumnIndentationBacktrackable
-@docs mapWithStartPosition, mapWithEndPosition, mapWithStartAndEndPosition, columnAndThen, offsetSourceAndThen
+@docs mapWithEndPosition, mapWithStartAndEndPosition, columnAndThen, offsetSourceAndThen
 
 -}
 
@@ -243,6 +243,11 @@ map2 =
     A.map2
 
 
+map2WithStartPosition : ({ row : Int, column : Int } -> a -> b -> value) -> Parser a -> Parser b -> Parser value
+map2WithStartPosition =
+    A.map2WithStartPosition
+
+
 map3 : (a -> b -> c -> value) -> Parser a -> Parser b -> Parser c -> Parser value
 map3 =
     A.map3
@@ -258,9 +263,19 @@ map5 =
     A.map5
 
 
+map5WithStartPosition : ({ row : Int, column : Int } -> a -> b -> c -> d -> e -> value) -> Parser a -> Parser b -> Parser c -> Parser d -> Parser e -> Parser value
+map5WithStartPosition =
+    A.map5WithStartPosition
+
+
 map6 : (a -> b -> c -> d -> e -> f -> value) -> Parser a -> Parser b -> Parser c -> Parser d -> Parser e -> Parser f -> Parser value
 map6 =
     A.map6
+
+
+map6WithStartPosition : ({ row : Int, column : Int } -> a -> b -> c -> d -> e -> f -> value) -> Parser a -> Parser b -> Parser c -> Parser d -> Parser e -> Parser f -> Parser value
+map6WithStartPosition =
+    A.map6WithStartPosition
 
 
 map7 : (a -> b -> c -> d -> e -> f -> g -> value) -> Parser a -> Parser b -> Parser c -> Parser d -> Parser e -> Parser f -> Parser g -> Parser value
@@ -271,6 +286,11 @@ map7 =
 map8 : (a -> b -> c -> d -> e -> f -> g -> h -> value) -> Parser a -> Parser b -> Parser c -> Parser d -> Parser e -> Parser f -> Parser g -> Parser h -> Parser value
 map8 =
     A.map8
+
+
+map8WithStartPosition : ({ row : Int, column : Int } -> a -> b -> c -> d -> e -> f -> g -> h -> value) -> Parser a -> Parser b -> Parser c -> Parser d -> Parser e -> Parser f -> Parser g -> Parser h -> Parser value
+map8WithStartPosition =
+    A.map8WithStartPosition
 
 
 map9 : (a -> b -> c -> d -> e -> f -> g -> h -> i -> value) -> Parser a -> Parser b -> Parser c -> Parser d -> Parser e -> Parser f -> Parser g -> Parser h -> Parser i -> Parser value
