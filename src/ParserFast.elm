@@ -1,19 +1,19 @@
 module ParserFast exposing
     ( Parser, run
-    , int, number, symbol, symbolBacktrackable, symbolFollowedBy, keyword, keywordFollowedBy, whileMap, ifFollowedByWhile, ifFollowedByWhileExcept, anyChar, end
+    , int, number, symbol, symbolBacktrackable, symbolWithEndPosition, symbolFollowedBy, keyword, keywordFollowedBy, whileMap, ifFollowedByWhile, ifFollowedByWhileExcept, anyChar, end
     , succeed, problem, lazy, map, map2, map2WithStartPosition, map3, map4, map5, map5WithStartPosition, map6, map6WithStartPosition, map7, map8, map8WithStartPosition, map9, validate
     , orSucceed, oneOf2, oneOf2Map, oneOf2OrSucceed, oneOf3, oneOf4, oneOf
     , loopWhileSucceeds, loopUntil
     , chompWhileWhitespaceFollowedBy, nestableMultiComment
     , withIndentSetToColumn, withIndent, columnIndentAndThen, validateEndColumnIndentation, validateEndColumnIndentationBacktrackable
-    , mapWithEndPosition, mapWithStartAndEndPosition, columnAndThen, offsetSourceAndThen
+    , mapWithStartAndEndPosition, columnAndThen, offsetSourceAndThen
     )
 
 {-|
 
 @docs Parser, run
 
-@docs int, number, symbol, symbolBacktrackable, symbolFollowedBy, keyword, keywordFollowedBy, whileMap, ifFollowedByWhile, ifFollowedByWhileExcept, anyChar, end
+@docs int, number, symbol, symbolBacktrackable, symbolWithEndPosition, symbolFollowedBy, keyword, keywordFollowedBy, whileMap, ifFollowedByWhile, ifFollowedByWhileExcept, anyChar, end
 
 
 # Flow
@@ -33,7 +33,7 @@ module ParserFast exposing
 # Indentation, Positions and source
 
 @docs withIndentSetToColumn, withIndent, columnIndentAndThen, validateEndColumnIndentation, validateEndColumnIndentationBacktrackable
-@docs mapWithEndPosition, mapWithStartAndEndPosition, columnAndThen, offsetSourceAndThen
+@docs mapWithStartAndEndPosition, columnAndThen, offsetSourceAndThen
 
 -}
 
@@ -507,6 +507,11 @@ symbolBacktrackable str res =
     A.symbolBacktrackable str (Parser.ExpectingSymbol str) res
 
 
+symbolWithEndPosition : String -> ({ row : Int, column : Int } -> res) -> Parser res
+symbolWithEndPosition str res =
+    A.symbolWithEndPosition str (Parser.ExpectingSymbol str) res
+
+
 {-| Make sure the given String isn't empty and does not contain \\n
 or 2-part UTF-16 characters.
 -}
@@ -607,14 +612,6 @@ withIndent =
 withIndentSetToColumn : Parser a -> Parser a
 withIndentSetToColumn =
     A.withIndentSetToColumn
-
-
-mapWithEndPosition :
-    (a -> { row : Int, column : Int } -> b)
-    -> Parser a
-    -> Parser b
-mapWithEndPosition =
-    A.mapWithEndPosition
 
 
 mapWithStartAndEndPosition :

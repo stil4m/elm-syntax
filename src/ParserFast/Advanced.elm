@@ -1,19 +1,19 @@
 module ParserFast.Advanced exposing
     ( Parser, run
-    , number, symbol, symbolBacktrackable, symbolFollowedBy, keyword, keywordFollowedBy, whileMap, ifFollowedByWhile, ifFollowedByWhileExcept, anyChar, end
+    , number, symbol, symbolBacktrackable, symbolWithEndPosition, symbolFollowedBy, keyword, keywordFollowedBy, whileMap, ifFollowedByWhile, ifFollowedByWhileExcept, anyChar, end
     , succeed, problem, lazy, map, map2, map2WithStartPosition, map3, map4, map5, map5WithStartPosition, map6, map6WithStartPosition, map7, map8, map8WithStartPosition, map9, validate
     , orSucceed, oneOf2, oneOf2OrSucceed, oneOf2Map, oneOf3, oneOf4, oneOf
     , loopWhileSucceeds, loopUntil
     , chompWhileWhitespaceFollowedBy, nestableMultiComment
     , withIndent, withIndentSetToColumn
-    , columnAndThen, columnIndentAndThen, validateEndColumnIndentation, validateEndColumnIndentationBacktrackable, offsetSourceAndThen, mapWithEndPosition, mapWithStartAndEndPosition
+    , columnAndThen, columnIndentAndThen, validateEndColumnIndentation, validateEndColumnIndentationBacktrackable, offsetSourceAndThen, mapWithStartAndEndPosition
     )
 
 {-|
 
 @docs Parser, run
 
-@docs number, symbol, symbolBacktrackable, symbolFollowedBy, keyword, keywordFollowedBy, whileMap, ifFollowedByWhile, ifFollowedByWhileExcept, anyChar, end
+@docs number, symbol, symbolBacktrackable, symbolWithEndPosition, symbolFollowedBy, keyword, keywordFollowedBy, whileMap, ifFollowedByWhile, ifFollowedByWhileExcept, anyChar, end
 
 
 # Flow
@@ -33,7 +33,7 @@ module ParserFast.Advanced exposing
 # Indentation, Positions and Source
 
 @docs withIndent, withIndentSetToColumn
-@docs columnAndThen, columnIndentAndThen, validateEndColumnIndentation, validateEndColumnIndentationBacktrackable, offsetSourceAndThen, mapWithEndPosition, mapWithStartAndEndPosition
+@docs columnAndThen, columnIndentAndThen, validateEndColumnIndentation, validateEndColumnIndentationBacktrackable, offsetSourceAndThen, mapWithStartAndEndPosition
 
 -}
 
@@ -1176,6 +1176,42 @@ symbol str expecting res =
         )
 
 
+{-| Make sure the given String isn't empty and does not contain \\n
+or 2-part UTF-16 characters
+-}
+symbolWithEndPosition : String -> x -> ({ row : Int, column : Int } -> res) -> Parser x res
+symbolWithEndPosition str expecting endPositionToRes =
+    let
+        strLength : Int
+        strLength =
+            String.length str
+    in
+    Parser
+        (\s ->
+            let
+                newOffset : Int
+                newOffset =
+                    s.offset + strLength
+            in
+            if String.slice s.offset newOffset s.src == str ++ "" then
+                let
+                    newCol =
+                        s.col + strLength
+                in
+                Good True
+                    (endPositionToRes { row = s.row, column = newCol })
+                    { src = s.src
+                    , offset = newOffset
+                    , indent = s.indent
+                    , row = s.row
+                    , col = newCol
+                    }
+
+            else
+                Bad False (fromState s expecting) ()
+        )
+
+
 {-| Make sure the given String does not contain \\n
 or 2-part UTF-16 characters
 -}
@@ -1625,22 +1661,6 @@ changeIndent newIndent s =
     , row = s.row
     , col = s.col
     }
-
-
-mapWithEndPosition :
-    (a -> { row : Int, column : Int } -> b)
-    -> Parser x a
-    -> Parser x b
-mapWithEndPosition combineStartAndResult (Parser parse) =
-    Parser
-        (\s0 ->
-            case parse s0 of
-                Good committed a s1 ->
-                    Good committed (combineStartAndResult a { row = s1.row, column = s1.col }) s1
-
-                Bad committed x () ->
-                    Bad committed x ()
-        )
 
 
 mapWithStartAndEndPosition :
