@@ -16,7 +16,6 @@ module Elm.Parser.Layout exposing
     )
 
 import Elm.Parser.Comments as Comments
-import Elm.Parser.Node as Node
 import ParserFast exposing (Parser)
 import ParserWithComments exposing (Comments, WithComments)
 import Rope
