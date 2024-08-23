@@ -143,7 +143,7 @@ glslExpressionAfterOpeningSquareBracket =
                 (ParserFast.symbol "|]" ())
                 (ParserFast.oneOf2
                     (ParserFast.symbol "|" "|")
-                    (ParserFast.whileMap (\c -> c /= '|') identity)
+                    (ParserFast.while (\c -> c /= '|'))
                 )
                 ""
                 (\extension soFar ->

@@ -124,7 +124,7 @@ singleQuotedStringLiteralAfterDoubleQuote =
     ParserFast.loopUntil (ParserFast.symbol "\"" ())
         (ParserFast.oneOf2
             (ParserFast.symbolFollowedBy "\\" (escapedCharValueMap String.fromChar))
-            (ParserFast.whileMap (\c -> c /= '"' && c /= '\\') identity)
+            (ParserFast.while (\c -> c /= '"' && c /= '\\'))
         )
         ""
         (\extension soFar ->
@@ -139,7 +139,7 @@ tripleQuotedStringLiteralOfterTripleDoubleQuote =
         (ParserFast.oneOf3
             (ParserFast.symbol "\"" "\"")
             (ParserFast.symbolFollowedBy "\\" (escapedCharValueMap String.fromChar))
-            (ParserFast.whileMap (\c -> c /= '"' && c /= '\\') identity)
+            (ParserFast.while (\c -> c /= '"' && c /= '\\'))
         )
         ""
         (\extension soFar ->
