@@ -53,9 +53,16 @@ whereBlock =
             }
         )
         (ParserFast.symbolFollowedBy "{"
-            (ParserWithComments.sepBy1
-                ","
+            (ParserFast.map2
+                (\head tail ->
+                    { comments = head.comments |> Rope.prependTo tail.comments
+                    , syntax = head.syntax :: tail.syntax
+                    }
+                )
                 (Layout.maybeAroundBothSides effectWhereClause)
+                (ParserWithComments.many
+                    (ParserFast.symbolFollowedBy "," (Layout.maybeAroundBothSides effectWhereClause))
+                )
             )
         )
         Tokens.curlyEnd

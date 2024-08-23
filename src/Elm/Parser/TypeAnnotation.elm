@@ -213,15 +213,29 @@ type RecordFieldsOrExtensionAfterName
 
 recordFieldsTypeAnnotation : Parser (WithComments TypeAnnotation.RecordDefinition)
 recordFieldsTypeAnnotation =
-    ParserWithComments.sepBy1 ","
-        (ParserFast.map2
-            (\commentsBefore fields ->
-                { comments = commentsBefore |> Rope.prependTo fields.comments
-                , syntax = fields.syntax
-                }
+    ParserFast.map3
+        (\commentsBefore head tail ->
+            { comments =
+                commentsBefore
+                    |> Rope.prependTo head.comments
+                    |> Rope.prependTo tail.comments
+            , syntax = head.syntax :: tail.syntax
+            }
+        )
+        Layout.maybeLayout
+        recordFieldDefinition
+        (ParserWithComments.many
+            (ParserFast.symbolFollowedBy ","
+                (ParserFast.map2
+                    (\commentsBefore field ->
+                        { comments = commentsBefore |> Rope.prependTo field.comments
+                        , syntax = field.syntax
+                        }
+                    )
+                    Layout.maybeLayout
+                    recordFieldDefinition
+                )
             )
-            Layout.maybeLayout
-            recordFieldDefinition
         )
 
 
