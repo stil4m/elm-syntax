@@ -3,7 +3,6 @@ module ParserWithComments exposing
     , WithComments
     , many
     , manyWithoutReverse
-    , sepBy1
     , until
     , untilWithoutReverse
     )
@@ -99,15 +98,3 @@ manyWithoutReverse p =
             , syntax = itemsSoFar
             }
         )
-
-
-sepBy1 : String -> Parser (WithComments a) -> Parser (WithComments (List a))
-sepBy1 sep p =
-    ParserFast.map2
-        (\head tail ->
-            { comments = head.comments |> Rope.prependTo tail.comments
-            , syntax = head.syntax :: tail.syntax
-            }
-        )
-        p
-        (many (ParserFast.symbolFollowedBy sep p))
