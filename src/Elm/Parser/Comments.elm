@@ -1,4 +1,4 @@
-module Elm.Parser.Comments exposing (declarationDocumentation, moduleDocumentation, multilineCommentString, singleLineCommentCore)
+module Elm.Parser.Comments exposing (declarationDocumentation, moduleDocumentation, multilineComment, singleLineComment)
 
 import Elm.Parser.Node as Node
 import Elm.Syntax.Documentation exposing (Documentation)
@@ -6,17 +6,18 @@ import Elm.Syntax.Node exposing (Node)
 import ParserFast exposing (Parser)
 
 
-singleLineCommentCore : ParserFast.Parser String
-singleLineCommentCore =
+singleLineComment : ParserFast.Parser (Node String)
+singleLineComment =
     ParserFast.symbolFollowedBy "--"
         (ParserFast.whileMap
             (\c -> c /= '\u{000D}' && c /= '\n')
             (\content -> "--" ++ content)
         )
+        |> Node.parserCore
 
 
-multilineCommentString : ParserFast.Parser String
-multilineCommentString =
+multilineComment : ParserFast.Parser (Node String)
+multilineComment =
     ParserFast.offsetSourceAndThen
         (\offset source ->
             case source |> String.slice offset (offset + 3) of
@@ -24,7 +25,7 @@ multilineCommentString =
                     problemUnexpectedDocumentation
 
                 _ ->
-                    multiLineCommentStringNoCheck
+                    multiLineCommentNoCheck
         )
 
 
@@ -33,9 +34,10 @@ problemUnexpectedDocumentation =
     ParserFast.problem "unexpected documentation comment"
 
 
-multiLineCommentStringNoCheck : Parser String
-multiLineCommentStringNoCheck =
+multiLineCommentNoCheck : Parser (Node String)
+multiLineCommentNoCheck =
     ParserFast.nestableMultiComment ( '{', "-" ) ( '-', "}" )
+        |> Node.parserCore
 
 
 moduleDocumentation : Parser (Node String)
