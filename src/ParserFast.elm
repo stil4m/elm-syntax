@@ -1,12 +1,12 @@
 module ParserFast exposing
     ( Parser, run
     , int, number, symbol, symbolBacktrackable, symbolFollowedBy, keyword, keywordFollowedBy, whileMap, ifFollowedByWhile, ifFollowedByWhileExcept, anyChar, end
-    , succeed, problem, lazy, map, map2, map3, map4, map5, map6, map7, map8, map9, validate
+    , succeed, problem, lazy, map, map2, map2WithStartPosition, map3, map4, map5, map5WithStartPosition, map6, map6WithStartPosition, map7, map8, map8WithStartPosition, map9, validate
     , orSucceed, oneOf2, oneOf2Map, oneOf2OrSucceed, oneOf3, oneOf4, oneOf
     , loopWhileSucceeds, loopUntil
     , chompWhileWhitespaceFollowedBy, nestableMultiComment
     , withIndentSetToColumn, withIndent, columnIndentAndThen, validateEndColumnIndentation, validateEndColumnIndentationBacktrackable
-    , mapWithStartPosition, mapWithEndPosition, mapWithStartAndEndPosition, columnAndThen, offsetSourceAndThen
+    , mapWithEndPosition, mapWithStartAndEndPosition, columnAndThen, offsetSourceAndThen
     )
 
 {-|
@@ -18,7 +18,7 @@ module ParserFast exposing
 
 # Flow
 
-@docs succeed, problem, lazy, map, map2, map3, map4, map5, map6, map7, map8, map9, validate
+@docs succeed, problem, lazy, map, map2, map2WithStartPosition, map3, map4, map5, map5WithStartPosition, map6, map6WithStartPosition, map7, map8, map8WithStartPosition, map9, validate
 
 @docs orSucceed, oneOf2, oneOf2Map, oneOf2OrSucceed, oneOf3, oneOf4, oneOf
 
@@ -33,7 +33,7 @@ module ParserFast exposing
 # Indentation, Positions and source
 
 @docs withIndentSetToColumn, withIndent, columnIndentAndThen, validateEndColumnIndentation, validateEndColumnIndentationBacktrackable
-@docs mapWithStartPosition, mapWithEndPosition, mapWithStartAndEndPosition, columnAndThen, offsetSourceAndThen
+@docs mapWithEndPosition, mapWithStartAndEndPosition, columnAndThen, offsetSourceAndThen
 
 -}
 
@@ -213,6 +213,11 @@ map2 =
     A.map2
 
 
+map2WithStartPosition : ({ row : Int, column : Int } -> a -> b -> value) -> Parser a -> Parser b -> Parser value
+map2WithStartPosition =
+    A.map2WithStartPosition
+
+
 map3 : (a -> b -> c -> value) -> Parser a -> Parser b -> Parser c -> Parser value
 map3 =
     A.map3
@@ -228,9 +233,19 @@ map5 =
     A.map5
 
 
+map5WithStartPosition : ({ row : Int, column : Int } -> a -> b -> c -> d -> e -> value) -> Parser a -> Parser b -> Parser c -> Parser d -> Parser e -> Parser value
+map5WithStartPosition =
+    A.map5WithStartPosition
+
+
 map6 : (a -> b -> c -> d -> e -> f -> value) -> Parser a -> Parser b -> Parser c -> Parser d -> Parser e -> Parser f -> Parser value
 map6 =
     A.map6
+
+
+map6WithStartPosition : ({ row : Int, column : Int } -> a -> b -> c -> d -> e -> f -> value) -> Parser a -> Parser b -> Parser c -> Parser d -> Parser e -> Parser f -> Parser value
+map6WithStartPosition =
+    A.map6WithStartPosition
 
 
 map7 : (a -> b -> c -> d -> e -> f -> g -> value) -> Parser a -> Parser b -> Parser c -> Parser d -> Parser e -> Parser f -> Parser g -> Parser value
@@ -241,6 +256,11 @@ map7 =
 map8 : (a -> b -> c -> d -> e -> f -> g -> h -> value) -> Parser a -> Parser b -> Parser c -> Parser d -> Parser e -> Parser f -> Parser g -> Parser h -> Parser value
 map8 =
     A.map8
+
+
+map8WithStartPosition : ({ row : Int, column : Int } -> a -> b -> c -> d -> e -> f -> g -> h -> value) -> Parser a -> Parser b -> Parser c -> Parser d -> Parser e -> Parser f -> Parser g -> Parser h -> Parser value
+map8WithStartPosition =
+    A.map8WithStartPosition
 
 
 map9 : (a -> b -> c -> d -> e -> f -> g -> h -> i -> value) -> Parser a -> Parser b -> Parser c -> Parser d -> Parser e -> Parser f -> Parser g -> Parser h -> Parser i -> Parser value
@@ -587,14 +607,6 @@ withIndent =
 withIndentSetToColumn : Parser a -> Parser a
 withIndentSetToColumn =
     A.withIndentSetToColumn
-
-
-mapWithStartPosition :
-    ({ row : Int, column : Int } -> a -> b)
-    -> Parser a
-    -> Parser b
-mapWithStartPosition =
-    A.mapWithStartPosition
 
 
 mapWithEndPosition :

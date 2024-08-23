@@ -626,12 +626,12 @@ customTypeDefinitionAfterDocumentationAfterTypePrefix =
 
 typeOrTypeAliasDefinitionWithoutDocumentation : Parser (WithComments (Node Declaration.Declaration))
 typeOrTypeAliasDefinitionWithoutDocumentation =
-    ParserFast.map2
-        (\aroundType afterStart ->
+    ParserFast.map2WithStartPosition
+        (\start commentsAfterType afterStart ->
             let
                 allComments : Comments
                 allComments =
-                    aroundType.commentsAfter |> Rope.prependTo afterStart.comments
+                    commentsAfterType |> Rope.prependTo afterStart.comments
             in
             case afterStart.syntax of
                 TypeDeclarationWithoutDocumentation typeDeclarationAfterDocumentation ->
@@ -651,7 +651,7 @@ typeOrTypeAliasDefinitionWithoutDocumentation =
                     in
                     { comments = allComments
                     , syntax =
-                        Node { start = aroundType.start, end = end }
+                        Node { start = start, end = end }
                             (Declaration.CustomTypeDeclaration
                                 { documentation = Nothing
                                 , name = typeDeclarationAfterDocumentation.name
@@ -670,7 +670,7 @@ typeOrTypeAliasDefinitionWithoutDocumentation =
                     in
                     { comments = allComments
                     , syntax =
-                        Node { start = aroundType.start, end = typeAnnotationRange.end }
+                        Node { start = start, end = typeAnnotationRange.end }
                             (Declaration.AliasDeclaration
                                 { documentation = Nothing
                                 , name = typeAliasDeclarationAfterDocumentation.name
@@ -680,10 +680,8 @@ typeOrTypeAliasDefinitionWithoutDocumentation =
                             )
                     }
         )
-        (ParserFast.mapWithStartPosition (\start commentsAfter -> { commentsAfter = commentsAfter, start = start })
-            (ParserFast.keywordFollowedBy "type"
-                Layout.maybeLayout
-            )
+        (ParserFast.keywordFollowedBy "type"
+            Layout.maybeLayout
         )
         (ParserFast.oneOf2
             typeAliasDefinitionWithoutDocumentationAfterTypePrefix
