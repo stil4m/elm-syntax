@@ -1,7 +1,7 @@
 module ParserFast.Advanced exposing
     ( Parser, run
     , number, symbol, symbolBacktrackable, symbolWithEndPosition, symbolFollowedBy, keyword, keywordFollowedBy, whileMap, ifFollowedByWhile, ifFollowedByWhileExcept, anyChar, end
-    , succeed, problem, lazy, map, map2, map2WithStartPosition, map3, map4, map5, map5WithStartPosition, map6, map6WithStartPosition, map7, map8, map8WithStartPosition, map9, validate
+    , succeed, problem, lazy, map, map2, map2WithStartPosition, map2WithStartAndEndPosition, map3, map3WithStartAndEndPosition, map4, map4WithStartAndEndPosition, map5, map5WithStartPosition, map5WithStartAndEndPosition, map6, map6WithStartPosition, map6WithStartAndEndPosition, map7, map8, map8WithStartPosition, map9, map9WithStartAndEndPosition, validate
     , orSucceed, oneOf2, oneOf2OrSucceed, oneOf2Map, oneOf3, oneOf4, oneOf
     , loopWhileSucceeds, loopUntil
     , chompWhileWhitespaceFollowedBy, nestableMultiComment
@@ -18,7 +18,7 @@ module ParserFast.Advanced exposing
 
 # Flow
 
-@docs succeed, problem, lazy, map, map2, map2WithStartPosition, map3, map4, map5, map5WithStartPosition, map6, map6WithStartPosition, map7, map8, map8WithStartPosition, map9, validate
+@docs succeed, problem, lazy, map, map2, map2WithStartPosition, map2WithStartAndEndPosition, map3, map3WithStartAndEndPosition, map4, map4WithStartAndEndPosition, map5, map5WithStartPosition, map5WithStartAndEndPosition, map6, map6WithStartPosition, map6WithStartAndEndPosition, map7, map8, map8WithStartPosition, map9, map9WithStartAndEndPosition, validate
 
 @docs orSucceed, oneOf2, oneOf2OrSucceed, oneOf2Map, oneOf3, oneOf4, oneOf
 
@@ -233,6 +233,24 @@ map2WithStartPosition func (Parser parseA) (Parser parseB) =
         )
 
 
+map2WithStartAndEndPosition : ({ row : Int, column : Int } -> a -> b -> { row : Int, column : Int } -> value) -> Parser x a -> Parser x b -> Parser x value
+map2WithStartAndEndPosition func (Parser parseA) (Parser parseB) =
+    Parser
+        (\s0 ->
+            case parseA s0 of
+                Bad committed x () ->
+                    Bad committed x ()
+
+                Good c1 a s1 ->
+                    case parseB s1 of
+                        Bad c2 x () ->
+                            Bad (c1 || c2) x ()
+
+                        Good c2 b s2 ->
+                            Good (c1 || c2) (func { row = s0.row, column = s0.col } a b { row = s2.row, column = s2.col }) s2
+        )
+
+
 map3 : (a -> b -> c -> value) -> Parser x a -> Parser x b -> Parser x c -> Parser x value
 map3 func (Parser parseA) (Parser parseB) (Parser parseC) =
     Parser
@@ -253,6 +271,29 @@ map3 func (Parser parseA) (Parser parseB) (Parser parseC) =
 
                                 Good c3 c s3 ->
                                     Good (c1 || c2 || c3) (func a b c) s3
+        )
+
+
+map3WithStartAndEndPosition : ({ row : Int, column : Int } -> a -> b -> c -> { row : Int, column : Int } -> value) -> Parser x a -> Parser x b -> Parser x c -> Parser x value
+map3WithStartAndEndPosition func (Parser parseA) (Parser parseB) (Parser parseC) =
+    Parser
+        (\s0 ->
+            case parseA s0 of
+                Bad committed x () ->
+                    Bad committed x ()
+
+                Good c1 a s1 ->
+                    case parseB s1 of
+                        Bad c2 x () ->
+                            Bad (c1 || c2) x ()
+
+                        Good c2 b s2 ->
+                            case parseC s2 of
+                                Bad c3 x () ->
+                                    Bad (c1 || c2 || c3) x ()
+
+                                Good c3 c s3 ->
+                                    Good (c1 || c2 || c3) (func { row = s0.row, column = s0.col } a b c { row = s3.row, column = s3.col }) s3
         )
 
 
@@ -281,6 +322,34 @@ map4 func (Parser parseA) (Parser parseB) (Parser parseC) (Parser parseD) =
 
                                         Good c4 d s4 ->
                                             Good (c1 || c2 || c3 || c4) (func a b c d) s4
+        )
+
+
+map4WithStartAndEndPosition : ({ row : Int, column : Int } -> a -> b -> c -> d -> { row : Int, column : Int } -> value) -> Parser x a -> Parser x b -> Parser x c -> Parser x d -> Parser x value
+map4WithStartAndEndPosition func (Parser parseA) (Parser parseB) (Parser parseC) (Parser parseD) =
+    Parser
+        (\s0 ->
+            case parseA s0 of
+                Bad committed x () ->
+                    Bad committed x ()
+
+                Good c1 a s1 ->
+                    case parseB s1 of
+                        Bad c2 x () ->
+                            Bad (c1 || c2) x ()
+
+                        Good c2 b s2 ->
+                            case parseC s2 of
+                                Bad c3 x () ->
+                                    Bad (c1 || c2 || c3) x ()
+
+                                Good c3 c s3 ->
+                                    case parseD s3 of
+                                        Bad c4 x () ->
+                                            Bad (c1 || c2 || c3 || c4) x ()
+
+                                        Good c4 d s4 ->
+                                            Good (c1 || c2 || c3 || c4) (func { row = s0.row, column = s0.col } a b c d { row = s4.row, column = s4.col }) s4
         )
 
 
@@ -347,6 +416,39 @@ map5WithStartPosition func (Parser parseA) (Parser parseB) (Parser parseC) (Pars
 
                                                 Good c5 e s5 ->
                                                     Good (c1 || c2 || c3 || c4 || c5) (func { row = s0.row, column = s0.col } a b c d e) s5
+        )
+
+
+map5WithStartAndEndPosition : ({ row : Int, column : Int } -> a -> b -> c -> d -> e -> { row : Int, column : Int } -> value) -> Parser x a -> Parser x b -> Parser x c -> Parser x d -> Parser x e -> Parser x value
+map5WithStartAndEndPosition func (Parser parseA) (Parser parseB) (Parser parseC) (Parser parseD) (Parser parseE) =
+    Parser
+        (\s0 ->
+            case parseA s0 of
+                Bad committed x () ->
+                    Bad committed x ()
+
+                Good c1 a s1 ->
+                    case parseB s1 of
+                        Bad c2 x () ->
+                            Bad (c1 || c2) x ()
+
+                        Good c2 b s2 ->
+                            case parseC s2 of
+                                Bad c3 x () ->
+                                    Bad (c1 || c2 || c3) x ()
+
+                                Good c3 c s3 ->
+                                    case parseD s3 of
+                                        Bad c4 x () ->
+                                            Bad (c1 || c2 || c3 || c4) x ()
+
+                                        Good c4 d s4 ->
+                                            case parseE s4 of
+                                                Bad c5 x () ->
+                                                    Bad (c1 || c2 || c3 || c4 || c5) x ()
+
+                                                Good c5 e s5 ->
+                                                    Good (c1 || c2 || c3 || c4 || c5) (func { row = s0.row, column = s0.col } a b c d e { row = s5.row, column = s5.col }) s5
         )
 
 
@@ -423,6 +525,44 @@ map6WithStartPosition func (Parser parseA) (Parser parseB) (Parser parseC) (Pars
 
                                                         Good c6 f s6 ->
                                                             Good (c1 || c2 || c3 || c4 || c5 || c6) (func { row = s0.row, column = s0.col } a b c d e f) s6
+        )
+
+
+map6WithStartAndEndPosition : ({ row : Int, column : Int } -> a -> b -> c -> d -> e -> f -> { row : Int, column : Int } -> value) -> Parser x a -> Parser x b -> Parser x c -> Parser x d -> Parser x e -> Parser x f -> Parser x value
+map6WithStartAndEndPosition func (Parser parseA) (Parser parseB) (Parser parseC) (Parser parseD) (Parser parseE) (Parser parseF) =
+    Parser
+        (\s0 ->
+            case parseA s0 of
+                Bad committed x () ->
+                    Bad committed x ()
+
+                Good c1 a s1 ->
+                    case parseB s1 of
+                        Bad c2 x () ->
+                            Bad (c1 || c2) x ()
+
+                        Good c2 b s2 ->
+                            case parseC s2 of
+                                Bad c3 x () ->
+                                    Bad (c1 || c2 || c3) x ()
+
+                                Good c3 c s3 ->
+                                    case parseD s3 of
+                                        Bad c4 x () ->
+                                            Bad (c1 || c2 || c3 || c4) x ()
+
+                                        Good c4 d s4 ->
+                                            case parseE s4 of
+                                                Bad c5 x () ->
+                                                    Bad (c1 || c2 || c3 || c4 || c5) x ()
+
+                                                Good c5 e s5 ->
+                                                    case parseF s5 of
+                                                        Bad c6 x () ->
+                                                            Bad (c1 || c2 || c3 || c4 || c5 || c6) x ()
+
+                                                        Good c6 f s6 ->
+                                                            Good (c1 || c2 || c3 || c4 || c5 || c6) (func { row = s0.row, column = s0.col } a b c d e f { row = s6.row, column = s6.col }) s6
         )
 
 
@@ -615,6 +755,59 @@ map9 func (Parser parseA) (Parser parseB) (Parser parseC) (Parser parseD) (Parse
 
                                                                                 Good c9 i s9 ->
                                                                                     Good (c1 || c2 || c3 || c4 || c5 || c6 || c7 || c8 || c9) (func a b c d e f g h i) s9
+        )
+
+
+map9WithStartAndEndPosition : ({ row : Int, column : Int } -> a -> b -> c -> d -> e -> f -> g -> h -> i -> { row : Int, column : Int } -> value) -> Parser x a -> Parser x b -> Parser x c -> Parser x d -> Parser x e -> Parser x f -> Parser x g -> Parser x h -> Parser x i -> Parser x value
+map9WithStartAndEndPosition func (Parser parseA) (Parser parseB) (Parser parseC) (Parser parseD) (Parser parseE) (Parser parseF) (Parser parseG) (Parser parseH) (Parser parseI) =
+    Parser
+        (\s0 ->
+            case parseA s0 of
+                Bad committed x () ->
+                    Bad committed x ()
+
+                Good c1 a s1 ->
+                    case parseB s1 of
+                        Bad c2 x () ->
+                            Bad (c1 || c2) x ()
+
+                        Good c2 b s2 ->
+                            case parseC s2 of
+                                Bad c3 x () ->
+                                    Bad (c1 || c2 || c3) x ()
+
+                                Good c3 c s3 ->
+                                    case parseD s3 of
+                                        Bad c4 x () ->
+                                            Bad (c1 || c2 || c3 || c4) x ()
+
+                                        Good c4 d s4 ->
+                                            case parseE s4 of
+                                                Bad c5 x () ->
+                                                    Bad (c1 || c2 || c3 || c4 || c5) x ()
+
+                                                Good c5 e s5 ->
+                                                    case parseF s5 of
+                                                        Bad c6 x () ->
+                                                            Bad (c1 || c2 || c3 || c4 || c5 || c6) x ()
+
+                                                        Good c6 f s6 ->
+                                                            case parseG s6 of
+                                                                Bad c7 x () ->
+                                                                    Bad (c1 || c2 || c3 || c4 || c5 || c6 || c7) x ()
+
+                                                                Good c7 g s7 ->
+                                                                    case parseH s7 of
+                                                                        Bad c8 x () ->
+                                                                            Bad (c1 || c2 || c3 || c4 || c5 || c6 || c7 || c8) x ()
+
+                                                                        Good c8 h s8 ->
+                                                                            case parseI s8 of
+                                                                                Bad c9 x () ->
+                                                                                    Bad (c1 || c2 || c3 || c4 || c5 || c6 || c7 || c8 || c9) x ()
+
+                                                                                Good c9 i s9 ->
+                                                                                    Good (c1 || c2 || c3 || c4 || c5 || c6 || c7 || c8 || c9) (func { row = s0.row, column = s0.col } a b c d e f g h i { row = s9.row, column = s9.col }) s9
         )
 
 

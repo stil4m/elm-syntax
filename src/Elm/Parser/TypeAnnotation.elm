@@ -3,6 +3,7 @@ module Elm.Parser.TypeAnnotation exposing (typeAnnotation, typeAnnotationNoFnExc
 import Elm.Parser.Layout as Layout
 import Elm.Parser.Node as Node
 import Elm.Parser.Tokens as Tokens
+import Elm.Syntax.ModuleName exposing (ModuleName)
 import Elm.Syntax.Node as Node exposing (Node(..))
 import Elm.Syntax.Range exposing (Range)
 import Elm.Syntax.TypeAnnotation as TypeAnnotation exposing (RecordDefinition, RecordField, TypeAnnotation)
@@ -126,19 +127,19 @@ genericTypeAnnotation =
 
 recordTypeAnnotation : Parser (WithComments (Node TypeAnnotation))
 recordTypeAnnotation =
-    ParserFast.map2
-        (\commentsBefore afterCurly ->
+    ParserFast.map2WithStartAndEndPosition
+        (\start commentsBefore afterCurly end ->
             case afterCurly of
                 Nothing ->
                     { comments = commentsBefore
-                    , syntax = typeAnnotationRecordEmpty
+                    , syntax = Node { start = start, end = end } typeAnnotationRecordEmpty
                     }
 
                 Just afterCurlyResult ->
                     { comments =
                         commentsBefore
                             |> Rope.prependTo afterCurlyResult.comments
-                    , syntax = afterCurlyResult.syntax
+                    , syntax = Node { start = start, end = end } afterCurlyResult.syntax
                     }
         )
         (ParserFast.symbolFollowedBy "{" Layout.maybeLayout)
@@ -200,7 +201,6 @@ recordTypeAnnotation =
             )
             (ParserFast.symbol "}" Nothing)
         )
-        |> Node.parser
 
 
 typeAnnotationRecordEmpty : TypeAnnotation
@@ -223,21 +223,21 @@ recordFieldsTypeAnnotation =
                 }
             )
             Layout.maybeLayout
-            (Node.parser recordFieldDefinition)
+            recordFieldDefinition
         )
 
 
-recordFieldDefinition : Parser (WithComments TypeAnnotation.RecordField)
+recordFieldDefinition : Parser (WithComments (Node TypeAnnotation.RecordField))
 recordFieldDefinition =
-    ParserFast.map6
-        (\commentsBeforeFunctionName name commentsAfterFunctionName commentsAfterColon value commentsAfterValue ->
+    ParserFast.map6WithStartAndEndPosition
+        (\start commentsBeforeFunctionName name commentsAfterFunctionName commentsAfterColon value commentsAfterValue end ->
             { comments =
                 commentsBeforeFunctionName
                     |> Rope.prependTo commentsAfterFunctionName
                     |> Rope.prependTo commentsAfterColon
                     |> Rope.prependTo value.comments
                     |> Rope.prependTo commentsAfterValue
-            , syntax = ( name, value.syntax )
+            , syntax = Node { start = start, end = end } ( name, value.syntax )
             }
         )
         Layout.maybeLayout
@@ -252,12 +252,21 @@ recordFieldDefinition =
 
 typedTypeAnnotationWithoutArguments : Parser (WithComments (Node TypeAnnotation))
 typedTypeAnnotationWithoutArguments =
-    ParserFast.mapWithStartAndEndPosition
-        (\nameStart name nameEnd ->
+    ParserFast.map2WithStartAndEndPosition
+        (\start startName afterStartName end ->
             let
                 range : Range
                 range =
-                    { start = nameStart, end = nameEnd }
+                    { start = start, end = end }
+
+                name : ( ModuleName, String )
+                name =
+                    case afterStartName of
+                        Nothing ->
+                            ( [], startName )
+
+                        Just ( qualificationAfterStartName, unqualified ) ->
+                            ( startName :: qualificationAfterStartName, unqualified )
             in
             { comments = Rope.empty
             , syntax =
@@ -265,18 +274,8 @@ typedTypeAnnotationWithoutArguments =
                     (TypeAnnotation.Typed (Node range name) [])
             }
         )
-        (ParserFast.map2
-            (\startName afterStartName ->
-                case afterStartName of
-                    Nothing ->
-                        ( [], startName )
-
-                    Just ( qualificationAfterStartName, unqualified ) ->
-                        ( startName :: qualificationAfterStartName, unqualified )
-            )
-            Tokens.typeName
-            maybeDotTypeNamesTuple
-        )
+        Tokens.typeName
+        maybeDotTypeNamesTuple
 
 
 maybeDotTypeNamesTuple : ParserFast.Parser (Maybe ( List String, String ))
@@ -299,29 +298,30 @@ maybeDotTypeNamesTuple =
 
 typedTypeAnnotationWithArguments : Parser (WithComments (Node TypeAnnotation))
 typedTypeAnnotationWithArguments =
-    ParserFast.map2
-        (\nameNode args ->
+    ParserFast.map2WithStartAndEndPosition
+        (\start nameNode args end ->
             { comments = args.comments
-            , syntax = TypeAnnotation.Typed nameNode args.syntax
+            , syntax =
+                Node { start = start, end = end }
+                    (TypeAnnotation.Typed nameNode args.syntax)
             }
         )
-        (ParserFast.mapWithStartAndEndPosition
-            (\nameStart name nameEnd ->
-                Node { start = nameStart, end = nameEnd }
-                    name
-            )
-            (ParserFast.map2
-                (\startName afterStartName ->
-                    case afterStartName of
-                        Nothing ->
-                            ( [], startName )
+        (ParserFast.map2WithStartAndEndPosition
+            (\start startName afterStartName end ->
+                let
+                    name : ( ModuleName, String )
+                    name =
+                        case afterStartName of
+                            Nothing ->
+                                ( [], startName )
 
-                        Just ( qualificationAfterStartName, unqualified ) ->
-                            ( startName :: qualificationAfterStartName, unqualified )
-                )
-                Tokens.typeName
-                maybeDotTypeNamesTuple
+                            Just ( qualificationAfterStartName, unqualified ) ->
+                                ( startName :: qualificationAfterStartName, unqualified )
+                in
+                Node { start = start, end = end } name
             )
+            Tokens.typeName
+            maybeDotTypeNamesTuple
         )
         (ParserWithComments.many
             (ParserFast.map2
@@ -334,4 +334,3 @@ typedTypeAnnotationWithArguments =
                 typeAnnotationNoFnExcludingTypedWithArguments
             )
         )
-        |> Node.parser

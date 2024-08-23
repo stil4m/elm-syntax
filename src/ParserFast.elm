@@ -1,7 +1,7 @@
 module ParserFast exposing
     ( Parser, run
     , int, number, symbol, symbolBacktrackable, symbolWithEndPosition, symbolFollowedBy, keyword, keywordFollowedBy, whileMap, ifFollowedByWhile, ifFollowedByWhileExcept, anyChar, end
-    , succeed, problem, lazy, map, map2, map2WithStartPosition, map3, map4, map5, map5WithStartPosition, map6, map6WithStartPosition, map7, map8, map8WithStartPosition, map9, validate
+    , succeed, problem, lazy, map, map2, map2WithStartPosition, map2WithStartAndEndPosition, map3, map3WithStartAndEndPosition, map4, map4WithStartAndEndPosition, map5, map5WithStartPosition, map5WithStartAndEndPosition, map6, map6WithStartPosition, map6WithStartAndEndPosition, map7, map8, map8WithStartPosition, map9, map9WithStartAndEndPosition, validate
     , orSucceed, oneOf2, oneOf2Map, oneOf2OrSucceed, oneOf3, oneOf4, oneOf
     , loopWhileSucceeds, loopUntil
     , chompWhileWhitespaceFollowedBy, nestableMultiComment
@@ -18,7 +18,7 @@ module ParserFast exposing
 
 # Flow
 
-@docs succeed, problem, lazy, map, map2, map2WithStartPosition, map3, map4, map5, map5WithStartPosition, map6, map6WithStartPosition, map7, map8, map8WithStartPosition, map9, validate
+@docs succeed, problem, lazy, map, map2, map2WithStartPosition, map2WithStartAndEndPosition, map3, map3WithStartAndEndPosition, map4, map4WithStartAndEndPosition, map5, map5WithStartPosition, map5WithStartAndEndPosition, map6, map6WithStartPosition, map6WithStartAndEndPosition, map7, map8, map8WithStartPosition, map9, map9WithStartAndEndPosition, validate
 
 @docs orSucceed, oneOf2, oneOf2Map, oneOf2OrSucceed, oneOf3, oneOf4, oneOf
 
@@ -218,6 +218,16 @@ map2WithStartPosition =
     A.map2WithStartPosition
 
 
+map2WithStartAndEndPosition : ({ row : Int, column : Int } -> a -> b -> { row : Int, column : Int } -> value) -> Parser a -> Parser b -> Parser value
+map2WithStartAndEndPosition =
+    A.map2WithStartAndEndPosition
+
+
+map3WithStartAndEndPosition : ({ row : Int, column : Int } -> a -> b -> c -> { row : Int, column : Int } -> value) -> Parser a -> Parser b -> Parser c -> Parser value
+map3WithStartAndEndPosition =
+    A.map3WithStartAndEndPosition
+
+
 map3 : (a -> b -> c -> value) -> Parser a -> Parser b -> Parser c -> Parser value
 map3 =
     A.map3
@@ -226,6 +236,11 @@ map3 =
 map4 : (a -> b -> c -> d -> value) -> Parser a -> Parser b -> Parser c -> Parser d -> Parser value
 map4 =
     A.map4
+
+
+map4WithStartAndEndPosition : ({ row : Int, column : Int } -> a -> b -> c -> d -> { row : Int, column : Int } -> value) -> Parser a -> Parser b -> Parser c -> Parser d -> Parser value
+map4WithStartAndEndPosition =
+    A.map4WithStartAndEndPosition
 
 
 map5 : (a -> b -> c -> d -> e -> value) -> Parser a -> Parser b -> Parser c -> Parser d -> Parser e -> Parser value
@@ -238,6 +253,11 @@ map5WithStartPosition =
     A.map5WithStartPosition
 
 
+map5WithStartAndEndPosition : ({ row : Int, column : Int } -> a -> b -> c -> d -> e -> { row : Int, column : Int } -> value) -> Parser a -> Parser b -> Parser c -> Parser d -> Parser e -> Parser value
+map5WithStartAndEndPosition =
+    A.map5WithStartAndEndPosition
+
+
 map6 : (a -> b -> c -> d -> e -> f -> value) -> Parser a -> Parser b -> Parser c -> Parser d -> Parser e -> Parser f -> Parser value
 map6 =
     A.map6
@@ -246,6 +266,11 @@ map6 =
 map6WithStartPosition : ({ row : Int, column : Int } -> a -> b -> c -> d -> e -> f -> value) -> Parser a -> Parser b -> Parser c -> Parser d -> Parser e -> Parser f -> Parser value
 map6WithStartPosition =
     A.map6WithStartPosition
+
+
+map6WithStartAndEndPosition : ({ row : Int, column : Int } -> a -> b -> c -> d -> e -> f -> { row : Int, column : Int } -> value) -> Parser a -> Parser b -> Parser c -> Parser d -> Parser e -> Parser f -> Parser value
+map6WithStartAndEndPosition =
+    A.map6WithStartAndEndPosition
 
 
 map7 : (a -> b -> c -> d -> e -> f -> g -> value) -> Parser a -> Parser b -> Parser c -> Parser d -> Parser e -> Parser f -> Parser g -> Parser value
@@ -266,6 +291,11 @@ map8WithStartPosition =
 map9 : (a -> b -> c -> d -> e -> f -> g -> h -> i -> value) -> Parser a -> Parser b -> Parser c -> Parser d -> Parser e -> Parser f -> Parser g -> Parser h -> Parser i -> Parser value
 map9 =
     A.map9
+
+
+map9WithStartAndEndPosition : ({ row : Int, column : Int } -> a -> b -> c -> d -> e -> f -> g -> h -> i -> { row : Int, column : Int } -> value) -> Parser a -> Parser b -> Parser c -> Parser d -> Parser e -> Parser f -> Parser g -> Parser h -> Parser i -> Parser value
+map9WithStartAndEndPosition =
+    A.map9WithStartAndEndPosition
 
 
 {-| Indicate that a parser has reached a dead end. "Everything was going fine
