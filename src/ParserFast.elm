@@ -1,6 +1,6 @@
 module ParserFast exposing
     ( Parser, run
-    , int, number, symbol, symbolBacktrackable, symbolWithEndPosition, symbolFollowedBy, keyword, keywordFollowedBy, whileMap, ifFollowedByWhile, ifFollowedByWhileExcept, anyChar, end
+    , int, number, symbol, symbolBacktrackable, symbolWithEndPosition, symbolFollowedBy, keyword, keywordFollowedBy, whileMap, ifFollowedByWhile, ifFollowedByWhileExcept, ifFollowedByWhileExceptMapWithStartAndEndPositions, anyChar, end
     , succeed, problem, lazy, map, map2, map2WithStartPosition, map2WithStartAndEndPosition, map3, map3WithStartAndEndPosition, map4, map4WithStartAndEndPosition, map5, map5WithStartPosition, map5WithStartAndEndPosition, map6, map6WithStartPosition, map6WithStartAndEndPosition, map7, map8, map8WithStartPosition, map9, map9WithStartAndEndPosition, validate
     , orSucceed, oneOf2, oneOf2Map, oneOf2OrSucceed, oneOf3, oneOf4, oneOf
     , loopWhileSucceeds, loopUntil
@@ -13,7 +13,7 @@ module ParserFast exposing
 
 @docs Parser, run
 
-@docs int, number, symbol, symbolBacktrackable, symbolWithEndPosition, symbolFollowedBy, keyword, keywordFollowedBy, whileMap, ifFollowedByWhile, ifFollowedByWhileExcept, anyChar, end
+@docs int, number, symbol, symbolBacktrackable, symbolWithEndPosition, symbolFollowedBy, keyword, keywordFollowedBy, whileMap, ifFollowedByWhile, ifFollowedByWhileExcept, ifFollowedByWhileExceptMapWithStartAndEndPositions, anyChar, end
 
 
 # Flow
@@ -2036,6 +2036,45 @@ ifFollowedByWhileExcept firstIsOkay afterFirstIsOkay exceptionSet =
 
                 else
                     Good True name s1
+        )
+
+
+ifFollowedByWhileExceptMapWithStartAndEndPositions :
+    ({ row : Int, column : Int } -> String -> { row : Int, column : Int } -> res)
+    -> (Char -> Bool)
+    -> (Char -> Bool)
+    -> Set.Set String
+    -> Parser res
+ifFollowedByWhileExceptMapWithStartAndEndPositions toResult firstIsOkay afterFirstIsOkay exceptionSet =
+    Parser
+        (\s0 ->
+            let
+                firstOffset : Int
+                firstOffset =
+                    isSubChar firstIsOkay s0.offset s0.src
+            in
+            if firstOffset == -1 then
+                Bad False (fromState s0 Parser.ExpectingVariable) ()
+
+            else
+                let
+                    s1 : State
+                    s1 =
+                        if firstOffset == -2 then
+                            chompWhileHelp afterFirstIsOkay (s0.offset + 1) (s0.row + 1) 1 s0.src s0.indent
+
+                        else
+                            chompWhileHelp afterFirstIsOkay firstOffset s0.row (s0.col + 1) s0.src s0.indent
+
+                    name : String
+                    name =
+                        String.slice s0.offset s1.offset s0.src
+                in
+                if Set.member name exceptionSet then
+                    Bad False (fromState s0 Parser.ExpectingVariable) ()
+
+                else
+                    Good True (toResult { row = s0.row, column = s0.col } name { row = s1.row, column = s1.col }) s1
         )
 
 

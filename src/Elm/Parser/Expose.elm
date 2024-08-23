@@ -133,12 +133,10 @@ typeExpose =
 
 functionExpose : Parser (WithComments (Node TopLevelExpose))
 functionExpose =
-    ParserFast.mapWithStartAndEndPosition
-        (\start name end ->
+    Tokens.functionNameMapWithRange
+        (\range name ->
             { comments = Rope.empty
             , syntax =
-                Node { start = start, end = end }
-                    (FunctionExpose name)
+                Node range (FunctionExpose name)
             }
         )
-        Tokens.functionName

@@ -111,12 +111,7 @@ dotFieldOptimisticLayout =
                     ExtendRightByRecordAccess field
                 }
             )
-            (ParserFast.mapWithStartAndEndPosition
-                (\nameStart name nameEnd ->
-                    Node { start = nameStart, end = nameEnd } name
-                )
-                Tokens.functionName
-            )
+            Tokens.functionNameNode
             Layout.optimisticLayout
         )
 
@@ -241,7 +236,7 @@ recordContentsCurlyEnd =
                             RecordExpr (Node.combine Tuple.pair nameNode firstFieldValue :: tailFields.syntax)
                 }
             )
-            (Node.parserCore Tokens.functionName)
+            Tokens.functionNameNode
             Layout.maybeLayout
             (ParserFast.oneOf2
                 (ParserFast.map2
@@ -305,7 +300,7 @@ recordSetterNodeWithLayout =
                 Node { start = start, end = end } ( name, expressionResult.syntax )
             }
         )
-        (Node.parserCore Tokens.functionName)
+        Tokens.functionNameNode
         (Layout.maybeLayoutUntilIgnored ParserFast.symbol "=")
         Layout.maybeLayout
         expression
@@ -656,7 +651,7 @@ letFunction =
                             )
                     }
         )
-        (Node.parserCore Tokens.functionName)
+        Tokens.functionNameNode
         Layout.maybeLayout
         (ParserFast.orSucceed
             (ParserFast.map4
@@ -674,7 +669,7 @@ letFunction =
                 (ParserFast.symbolFollowedBy ":" Layout.maybeLayout)
                 TypeAnnotation.typeAnnotation
                 (Layout.layoutStrictFollowedBy
-                    (Node.parserCore Tokens.functionName)
+                    Tokens.functionNameNode
                 )
                 Layout.maybeLayout
             )
@@ -819,15 +814,13 @@ qualifiedOrVariantOrRecordConstructorReferenceExpression =
 
 unqualifiedFunctionReferenceExpression : Parser (WithComments (Node Expression))
 unqualifiedFunctionReferenceExpression =
-    ParserFast.mapWithStartAndEndPosition
-        (\start unqualified end ->
+    Tokens.functionNameMapWithRange
+        (\range unqualified ->
             { comments = Rope.empty
             , syntax =
-                Node { start = start, end = end }
-                    (FunctionOrValue [] unqualified)
+                Node range (FunctionOrValue [] unqualified)
             }
         )
-        Tokens.functionName
 
 
 maybeDotReferenceExpressionTuple : ParserFast.Parser (Maybe ( List String, String ))
