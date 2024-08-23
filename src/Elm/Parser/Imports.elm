@@ -92,7 +92,17 @@ importDefinition =
             Nothing
         )
         (ParserFast.orSucceed
-            (Node.parserMapWithComments Just exposeDefinition)
+            (ParserFast.mapWithStartAndEndPosition
+                (\start expose end ->
+                    Just
+                        { comments = expose.comments
+                        , syntax =
+                            Node { start = start, end = end }
+                                expose.syntax
+                        }
+                )
+                exposeDefinition
+            )
             Nothing
         )
         Layout.optimisticLayout

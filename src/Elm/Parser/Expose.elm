@@ -74,7 +74,12 @@ exposable =
 
 infixExpose : ParserFast.Parser (WithComments (Node TopLevelExpose))
 infixExpose =
-    ParserFast.map2 (\infixName () -> { comments = Rope.empty, syntax = InfixExpose infixName })
+    ParserFast.map2WithStartAndEndPosition
+        (\start infixName () end ->
+            { comments = Rope.empty
+            , syntax = Node { start = start, end = end } (InfixExpose infixName)
+            }
+        )
         (ParserFast.symbolFollowedBy "("
             (ParserFast.ifFollowedByWhile
                 (\c -> c /= ')')
@@ -82,21 +87,25 @@ infixExpose =
             )
         )
         Tokens.parensEnd
-        |> Node.parser
 
 
 typeExpose : Parser (WithComments (Node TopLevelExpose))
 typeExpose =
-    ParserFast.map2
-        (\typeName open ->
+    ParserFast.map2WithStartAndEndPosition
+        (\start typeName open end ->
             case open of
                 Nothing ->
-                    { comments = Rope.empty, syntax = TypeOrAliasExpose typeName }
+                    { comments = Rope.empty
+                    , syntax =
+                        Node { start = start, end = end }
+                            (TypeOrAliasExpose typeName)
+                    }
 
                 Just openRange ->
                     { comments = openRange.comments
                     , syntax =
-                        TypeExpose { name = typeName, open = Just openRange.syntax }
+                        Node { start = start, end = end }
+                            (TypeExpose { name = typeName, open = Just openRange.syntax })
                     }
         )
         Tokens.typeName
@@ -109,21 +118,18 @@ typeExpose =
                         }
                 )
                 Layout.maybeLayoutBacktrackable
-                (ParserFast.mapWithStartAndEndPosition
-                    (\start comments end ->
-                        { comments = comments, range = { start = start, end = end } }
+                (ParserFast.map2WithStartAndEndPosition
+                    (\start left right end ->
+                        { comments = left |> Rope.prependTo right, range = { start = start, end = end } }
                     )
-                    (ParserFast.map2 (\left right -> left |> Rope.prependTo right)
-                        (ParserFast.symbolFollowedBy "("
-                            (Layout.maybeLayoutUntilIgnored ParserFast.symbol "..")
-                        )
-                        (Layout.maybeLayoutUntilIgnored ParserFast.symbol ")")
+                    (ParserFast.symbolFollowedBy "("
+                        (Layout.maybeLayoutUntilIgnored ParserFast.symbol "..")
                     )
+                    (Layout.maybeLayoutUntilIgnored ParserFast.symbol ")")
                 )
             )
             Nothing
         )
-        |> Node.parser
 
 
 functionExpose : Parser (WithComments (Node TopLevelExpose))

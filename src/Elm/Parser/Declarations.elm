@@ -447,8 +447,8 @@ parameterPatternsEqual =
 
 infixDeclaration : Parser (WithComments (Node Declaration))
 infixDeclaration =
-    ParserFast.map9
-        (\commentsAfterInfix direction commentsAfterDirection precedence commentsAfterPrecedence operator commentsAfterOperator commentsAfterEqual fn ->
+    ParserFast.map9WithStartAndEndPosition
+        (\start commentsAfterInfix direction commentsAfterDirection precedence commentsAfterPrecedence operator commentsAfterOperator commentsAfterEqual fn end ->
             { comments =
                 commentsAfterInfix
                     |> Rope.prependTo commentsAfterDirection
@@ -456,8 +456,10 @@ infixDeclaration =
                     |> Rope.prependTo commentsAfterOperator
                     |> Rope.prependTo commentsAfterEqual
             , syntax =
-                Declaration.InfixDeclaration
-                    { direction = direction, precedence = precedence, operator = operator, function = fn }
+                Node { start = start, end = end }
+                    (Declaration.InfixDeclaration
+                        { direction = direction, precedence = precedence, operator = operator, function = fn }
+                    )
             }
         )
         (ParserFast.keywordFollowedBy "infix" Layout.maybeLayout)
@@ -465,17 +467,14 @@ infixDeclaration =
         Layout.maybeLayout
         (Node.parserCore ParserFast.int)
         Layout.maybeLayout
-        (Node.parserCore
-            (ParserFast.map2
-                (\prefixOperator () -> prefixOperator)
-                (ParserFast.symbolFollowedBy "(" Tokens.prefixOperatorToken)
-                Tokens.parensEnd
-            )
+        (ParserFast.map2WithStartAndEndPosition
+            (\start prefixOperator () end -> Node { start = start, end = end } prefixOperator)
+            (ParserFast.symbolFollowedBy "(" Tokens.prefixOperatorToken)
+            Tokens.parensEnd
         )
         (Layout.maybeLayoutUntilIgnored ParserFast.symbol "=")
         Layout.maybeLayout
         (Node.parserCore Tokens.functionName)
-        |> Node.parser
 
 
 infixDirection : ParserFast.Parser Infix.InfixDirection

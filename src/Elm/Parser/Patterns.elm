@@ -73,12 +73,12 @@ maybeComposedWith =
 
 parensPattern : Parser (WithComments (Node Pattern))
 parensPattern =
-    ParserFast.map2
-        (\commentsBeforeHead contentResult ->
+    ParserFast.map2WithStartAndEndPosition
+        (\start commentsBeforeHead contentResult end ->
             { comments =
                 commentsBeforeHead
                     |> Rope.prependTo contentResult.comments
-            , syntax = contentResult.syntax
+            , syntax = Node { start = start, end = end } contentResult.syntax
             }
         )
         (ParserFast.symbolFollowedBy "(" Layout.maybeLayout)
@@ -110,7 +110,6 @@ parensPattern =
             )
             (ParserFast.symbol ")" { comments = Rope.empty, syntax = UnitPattern })
         )
-        |> Node.parser
 
 
 varPattern : Parser (WithComments (Node Pattern))
@@ -144,17 +143,19 @@ charPattern =
 
 listPattern : Parser (WithComments (Node Pattern))
 listPattern =
-    ParserFast.map2
-        (\commentsBeforeElements maybeElements ->
+    ParserFast.map2WithStartAndEndPosition
+        (\start commentsBeforeElements maybeElements end ->
             case maybeElements of
                 Nothing ->
                     { comments = commentsBeforeElements
-                    , syntax = patternListEmpty
+                    , syntax = Node { start = start, end = end } patternListEmpty
                     }
 
                 Just elements ->
                     { comments = commentsBeforeElements |> Rope.prependTo elements.comments
-                    , syntax = ListPattern elements.syntax
+                    , syntax =
+                        Node { start = start, end = end }
+                            (ListPattern elements.syntax)
                     }
         )
         (ParserFast.symbolFollowedBy "[" Layout.maybeLayout)
@@ -180,7 +181,6 @@ listPattern =
                 Tokens.squareEnd
             )
         )
-        |> Node.parser
 
 
 patternListEmpty : Pattern
@@ -264,19 +264,21 @@ maybeDotTypeNamesTuple =
 
 qualifiedPatternWithConsumeArgs : Parser (WithComments (Node Pattern))
 qualifiedPatternWithConsumeArgs =
-    ParserFast.map3
-        (\startName afterStartName args ->
+    ParserFast.map3WithStartAndEndPosition
+        (\start startName afterStartName args end ->
             { comments = args.comments
             , syntax =
-                NamedPattern
-                    (case afterStartName of
-                        Nothing ->
-                            { moduleName = [], name = startName }
+                Node { start = start, end = end }
+                    (NamedPattern
+                        (case afterStartName of
+                            Nothing ->
+                                { moduleName = [], name = startName }
 
-                        Just ( qualificationAfter, unqualified ) ->
-                            { moduleName = startName :: qualificationAfter, name = unqualified }
+                            Just ( qualificationAfter, unqualified ) ->
+                                { moduleName = startName :: qualificationAfter, name = unqualified }
+                        )
+                        args.syntax
                     )
-                    args.syntax
             }
         )
         Tokens.typeName
@@ -292,45 +294,46 @@ qualifiedPatternWithConsumeArgs =
                 patternNotDirectlyComposing
             )
         )
-        |> Node.parser
 
 
 qualifiedPatternWithoutConsumeArgs : Parser (WithComments (Node Pattern))
 qualifiedPatternWithoutConsumeArgs =
-    ParserFast.mapWithStartAndEndPosition
-        (\start name end ->
+    ParserFast.map2WithStartAndEndPosition
+        (\start firstName after end ->
             { comments = Rope.empty
             , syntax =
-                Node { start = start, end = end } (NamedPattern name [])
+                Node { start = start, end = end }
+                    (NamedPattern
+                        (case after of
+                            Nothing ->
+                                { moduleName = [], name = firstName }
+
+                            Just ( qualificationAfter, unqualified ) ->
+                                { moduleName = firstName :: qualificationAfter, name = unqualified }
+                        )
+                        []
+                    )
             }
         )
-        (ParserFast.map2
-            (\firstName after ->
-                case after of
-                    Nothing ->
-                        { moduleName = [], name = firstName }
-
-                    Just ( qualificationAfter, unqualified ) ->
-                        { moduleName = firstName :: qualificationAfter, name = unqualified }
-            )
-            Tokens.typeName
-            maybeDotTypeNamesTuple
-        )
+        Tokens.typeName
+        maybeDotTypeNamesTuple
 
 
 recordPattern : Parser (WithComments (Node Pattern))
 recordPattern =
-    ParserFast.map2
-        (\commentsBeforeElements maybeElements ->
+    ParserFast.map2WithStartAndEndPosition
+        (\start commentsBeforeElements maybeElements end ->
             case maybeElements of
                 Nothing ->
                     { comments = commentsBeforeElements
-                    , syntax = patternRecordEmpty
+                    , syntax = Node { start = start, end = end } patternRecordEmpty
                     }
 
                 Just elements ->
                     { comments = commentsBeforeElements |> Rope.prependTo elements.comments
-                    , syntax = RecordPattern elements.syntax
+                    , syntax =
+                        Node { start = start, end = end }
+                            (RecordPattern elements.syntax)
                     }
         )
         (ParserFast.symbolFollowedBy "{" Layout.maybeLayout)
@@ -362,7 +365,6 @@ recordPattern =
             )
             (ParserFast.symbol "}" Nothing)
         )
-        |> Node.parser
 
 
 patternRecordEmpty : Pattern

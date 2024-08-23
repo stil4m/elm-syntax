@@ -1,25 +1,8 @@
-module Elm.Parser.Node exposing (parser, parserCore, parserMapWithComments)
+module Elm.Parser.Node exposing (parser, parserCore)
 
 import Elm.Syntax.Node exposing (Node(..))
 import ParserFast exposing (Parser)
 import ParserWithComments exposing (WithComments)
-
-
-parserMapWithComments : (WithComments (Node a) -> b) -> Parser (WithComments a) -> Parser b
-parserMapWithComments valueNodeChange p =
-    ParserFast.mapWithStartAndEndPosition
-        (\start v end ->
-            { comments = v.comments
-            , syntax =
-                Node
-                    { start = start
-                    , end = end
-                    }
-                    v.syntax
-            }
-                |> valueNodeChange
-        )
-        p
 
 
 parser : Parser (WithComments a) -> Parser (WithComments (Node a))
