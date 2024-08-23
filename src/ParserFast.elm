@@ -13,7 +13,7 @@ module ParserFast exposing
 
 @docs Parser, run
 
-@docs int, number, symbol, symbolBacktrackable, symbolWithEndPosition, symbolFollowedBy, keyword, keywordFollowedBy, whileMap, ifFollowedByWhile, ifFollowedByWhileExcept, ifFollowedByWhileExceptMapWithStartAndEndPositions, anyChar, end
+@docs int, number, symbol, symbolBacktrackable, symbolWithEndPosition, symbolWithStartAndEndPosition, symbolFollowedBy, keyword, keywordFollowedBy, whileMap, ifFollowedByWhile, ifFollowedByWhileExcept, ifFollowedByWhileExceptMapWithStartAndEndPositions, anyChar, end
 
 
 # Flow
@@ -1621,6 +1621,44 @@ symbolWithEndPosition str endPositionToRes =
                 in
                 Good True
                     (endPositionToRes { row = s.row, column = newCol })
+                    { src = s.src
+                    , offset = newOffset
+                    , indent = s.indent
+                    , row = s.row
+                    , col = newCol
+                    }
+
+            else
+                Bad False (fromState s expecting) ()
+        )
+
+
+symbolWithStartAndEndPosition : String -> ({ row : Int, column : Int } -> { row : Int, column : Int } -> res) -> Parser res
+symbolWithStartAndEndPosition str startAndEndPositionToRes =
+    let
+        expecting : Parser.Problem
+        expecting =
+            Parser.ExpectingSymbol str
+
+        strLength : Int
+        strLength =
+            String.length str
+    in
+    Parser
+        (\s ->
+            let
+                newOffset : Int
+                newOffset =
+                    s.offset + strLength
+            in
+            if String.slice s.offset newOffset s.src == str ++ "" then
+                let
+                    newCol : Int
+                    newCol =
+                        s.col + strLength
+                in
+                Good True
+                    (startAndEndPositionToRes { row = s.row, column = s.col } { row = s.row, column = newCol })
                     { src = s.src
                     , offset = newOffset
                     , indent = s.indent

@@ -220,14 +220,22 @@ patternNotDirectlyComposing =
 
 allPattern : Parser (WithComments (Node Pattern))
 allPattern =
-    ParserFast.symbol "_" { comments = Rope.empty, syntax = AllPattern }
-        |> Node.parser
+    ParserFast.symbolWithStartAndEndPosition "_"
+        (\start end ->
+            { comments = Rope.empty
+            , syntax = Node { start = start, end = end } AllPattern
+            }
+        )
 
 
 unitPattern : Parser (WithComments (Node Pattern))
 unitPattern =
-    ParserFast.symbol "()" { comments = Rope.empty, syntax = UnitPattern }
-        |> Node.parser
+    ParserFast.symbolWithStartAndEndPosition "()"
+        (\start end ->
+            { comments = Rope.empty
+            , syntax = Node { start = start, end = end } UnitPattern
+            }
+        )
 
 
 stringPattern : Parser (WithComments (Node Pattern))
