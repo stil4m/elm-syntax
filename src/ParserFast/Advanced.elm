@@ -1093,7 +1093,7 @@ keyword kwd expecting res =
             in
             if
                 (String.slice s.offset newOffset s.src == kwd ++ "")
-                    && not (isSubCharSinglePart (\c -> Char.Extra.isAlphaNumFast c || c == '_') newOffset s.src)
+                    && not (isSubCharAlphaNumOrUnderscore newOffset s.src)
             then
                 Good True
                     res
@@ -1128,7 +1128,7 @@ keywordFollowedBy kwd expecting (Parser parseNext) =
             in
             if
                 (String.slice s.offset newOffset s.src == kwd ++ "")
-                    && not (isSubCharSinglePart (\c -> Char.Extra.isAlphaNumFast c || c == '_') newOffset s.src)
+                    && not (isSubCharAlphaNumOrUnderscore newOffset s.src)
             then
                 parseNext
                     { src = s.src
@@ -1706,9 +1706,10 @@ isSubChar predicate offset string =
         -1
 
 
-isSubCharSinglePart : (Char -> Bool) -> Int -> String -> Bool
-isSubCharSinglePart predicate offset string =
-    String.any predicate (String.slice offset (offset + 1) string)
+isSubCharAlphaNumOrUnderscore : Int -> String -> Bool
+isSubCharAlphaNumOrUnderscore offset string =
+    String.any (\c -> Char.Extra.isAlphaNumFast c || c == '_')
+        (String.slice offset (offset + 1) string)
 
 
 charOrEnd : Int -> String -> Int
