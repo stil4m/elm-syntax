@@ -4,7 +4,7 @@ module Elm.Parser.Tokens exposing
     , minusFollowedBySingleWhitespace
     , prefixOperatorToken, allowedOperatorTokens
     , characterLiteral, singleOrTripleQuotedStringLiteral
-    , functionName, functionNameNode, functionNameMapWithRange, functionNameNotInfix, typeName
+    , functionName, functionNameNode, functionNameMapWithRange, functionNameNotInfixNode, typeName, typeNameNode
     )
 
 {-|
@@ -16,7 +16,7 @@ module Elm.Parser.Tokens exposing
 @docs prefixOperatorToken, allowedOperatorTokens
 
 @docs characterLiteral, singleOrTripleQuotedStringLiteral
-@docs functionName, functionNameNode, functionNameMapWithRange, functionNameNotInfix, typeName
+@docs functionName, functionNameNode, functionNameMapWithRange, functionNameNotInfixNode, typeName, typeNameNode
 
 -}
 
@@ -180,9 +180,10 @@ functionNameMapWithRange rangeAndNameToResult =
         reservedList
 
 
-functionNameNotInfix : ParserFast.Parser String
-functionNameNotInfix =
-    ParserFast.ifFollowedByWhileExceptWithoutLinebreak
+functionNameNotInfixNode : ParserFast.Parser (Node String)
+functionNameNotInfixNode =
+    ParserFast.ifFollowedByWhileExceptMapWithStartAndEndPositionsWithoutLinebreak
+        (\start name end -> Node { start = start, end = end } name)
         (\c -> Char.isLower c || Unicode.isLower c)
         (\c ->
             -- checking for these common ranges early is much faster
@@ -194,6 +195,17 @@ functionNameNotInfix =
 typeName : ParserFast.Parser String
 typeName =
     ParserFast.ifFollowedByWhileWithoutLinebreak
+        (\c -> Char.isUpper c || Unicode.isUpper c)
+        (\c ->
+            -- checking for these common ranges early is much faster
+            Char.Extra.isAlphaNumFast c || c == '_' || Unicode.isAlphaNum c
+        )
+
+
+typeNameNode : ParserFast.Parser (Node String)
+typeNameNode =
+    ParserFast.ifFollowedByWhileMapWithStartAndEndPositionWithoutLinebreak
+        (\start name end -> Node { start = start, end = end } name)
         (\c -> Char.isUpper c || Unicode.isUpper c)
         (\c ->
             -- checking for these common ranges early is much faster

@@ -32,7 +32,7 @@ effectWhereClause =
         Tokens.functionName
         (Layout.maybeLayoutUntilIgnored ParserFast.symbol "=")
         Layout.maybeLayout
-        (Node.parserCore Tokens.typeName)
+        Tokens.typeNameNode
 
 
 whereBlock : Parser (WithComments { command : Maybe (Node String), subscription : Maybe (Node String) })
