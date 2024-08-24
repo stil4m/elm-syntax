@@ -13,7 +13,7 @@ module ParserFast exposing
 
 @docs Parser, run
 
-@docs int, number, symbol, symbolBacktrackable, symbolWithEndPosition, symbolWithStartAndEndPosition, symbolFollowedBy, followedBySymbol, keyword, keywordFollowedBy, while, whileWithoutLinebreak, whileMap, ifFollowedByWhileWithoutLinebreak, ifFollowedByWhileExceptWithoutLinebreak, ifFollowedByWhileExceptMapWithStartAndEndPositionsWithoutLinebreak, anyChar, end
+@docs int, intOrHex, floatOrIntOrHex, symbol, symbolBacktrackable, symbolWithEndPosition, symbolWithStartAndEndPosition, symbolFollowedBy, followedBySymbol, keyword, keywordFollowedBy, while, whileWithoutLinebreak, whileMap, ifFollowedByWhileWithoutLinebreak, ifFollowedByWhileExceptWithoutLinebreak, ifFollowedByWhileExceptMapWithStartAndEndPositionsWithoutLinebreak, anyChar, end
 
 
 # Flow
@@ -1552,6 +1552,32 @@ int =
         , int = Ok identity
         , invalid = Parser.ExpectingInt
         , octal = Err Parser.ExpectingInt
+        }
+
+
+floatOrIntOrHex : (Float -> a) -> (Int -> a) -> (Int -> a) -> Parser a
+floatOrIntOrHex floatf intf hexf =
+    numberHelp
+        { int = Ok intf
+        , hex = Ok hexf
+        , octal = Err Parser.ExpectingNumber
+        , binary = Err Parser.ExpectingNumber
+        , float = Ok floatf
+        , invalid = Parser.ExpectingNumber
+        , expecting = Parser.ExpectingNumber
+        }
+
+
+intOrHex : (Int -> a) -> (Int -> a) -> Parser a
+intOrHex intf hexf =
+    numberHelp
+        { int = Ok intf
+        , hex = Ok hexf
+        , octal = Err Parser.ExpectingNumber
+        , binary = Err Parser.ExpectingNumber
+        , float = Err Parser.ExpectingNumber
+        , invalid = Parser.ExpectingNumber
+        , expecting = Parser.ExpectingNumber
         }
 
 
