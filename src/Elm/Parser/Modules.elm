@@ -37,41 +37,39 @@ effectWhereClause =
 
 whereBlock : Parser (WithComments { command : Maybe (Node String), subscription : Maybe (Node String) })
 whereBlock =
-    ParserFast.map2
-        (\pairs () ->
-            { comments = pairs.comments
-            , syntax =
-                { command =
-                    pairs.syntax
-                        |> List.Extra.find (\( fnName, _ ) -> fnName == "command")
-                        |> Maybe.map Tuple.second
-                , subscription =
-                    pairs.syntax
-                        |> List.Extra.find (\( fnName, _ ) -> fnName == "subscription")
-                        |> Maybe.map Tuple.second
-                }
-            }
-        )
-        (ParserFast.symbolFollowedBy "{"
-            (ParserFast.map4
-                (\commentsBeforeHead head commentsAfterHead tail ->
-                    { comments =
-                        commentsBeforeHead
-                            |> Rope.prependTo head.comments
-                            |> Rope.prependTo commentsAfterHead
-                            |> Rope.prependTo tail.comments
-                    , syntax = head.syntax :: tail.syntax
+    ParserFast.symbolFollowedBy "{"
+        (ParserFast.map4
+            (\commentsBeforeHead head commentsAfterHead tail ->
+                let
+                    pairs : List ( String, Node String )
+                    pairs =
+                        head.syntax :: tail.syntax
+                in
+                { comments =
+                    commentsBeforeHead
+                        |> Rope.prependTo head.comments
+                        |> Rope.prependTo commentsAfterHead
+                        |> Rope.prependTo tail.comments
+                , syntax =
+                    { command =
+                        pairs
+                            |> List.Extra.find (\( fnName, _ ) -> fnName == "command")
+                            |> Maybe.map Tuple.second
+                    , subscription =
+                        pairs
+                            |> List.Extra.find (\( fnName, _ ) -> fnName == "subscription")
+                            |> Maybe.map Tuple.second
                     }
-                )
-                Layout.maybeLayout
-                effectWhereClause
-                Layout.maybeLayout
-                (ParserWithComments.many
-                    (ParserFast.symbolFollowedBy "," (Layout.maybeAroundBothSides effectWhereClause))
-                )
+                }
+            )
+            Layout.maybeLayout
+            effectWhereClause
+            Layout.maybeLayout
+            (ParserWithComments.many
+                (ParserFast.symbolFollowedBy "," (Layout.maybeAroundBothSides effectWhereClause))
             )
         )
-        Tokens.curlyEnd
+        |> ParserFast.followedBySymbol "}"
 
 
 effectWhereClauses : Parser (WithComments { command : Maybe (Node String), subscription : Maybe (Node String) })

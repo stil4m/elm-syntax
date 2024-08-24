@@ -467,10 +467,11 @@ infixDeclaration =
         Layout.maybeLayout
         (Node.parserCore ParserFast.int)
         Layout.maybeLayout
-        (ParserFast.map2WithStartAndEndPosition
-            (\start prefixOperator () end -> Node { start = start, end = end } prefixOperator)
-            (ParserFast.symbolFollowedBy "(" Tokens.prefixOperatorToken)
-            Tokens.parensEnd
+        (ParserFast.mapWithStartAndEndPosition
+            (\start prefixOperator end -> Node { start = start, end = end } prefixOperator)
+            (ParserFast.symbolFollowedBy "(" Tokens.prefixOperatorToken
+                |> ParserFast.followedBySymbol ")"
+            )
         )
         (Layout.maybeLayoutUntilIgnored ParserFast.symbol "=")
         Layout.maybeLayout

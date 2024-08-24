@@ -1,6 +1,6 @@
 module Elm.Parser.Tokens exposing
     ( inToken
-    , squareEnd, curlyEnd, arrowRight, equal, parensEnd
+    , equal, parensEnd
     , minusFollowedBySingleWhitespace
     , prefixOperatorToken, allowedOperatorTokens
     , characterLiteral, singleOrTripleQuotedStringLiteral
@@ -11,7 +11,7 @@ module Elm.Parser.Tokens exposing
 
 @docs inToken
 
-@docs squareEnd, curlyEnd, arrowRight, equal, parensEnd
+@docs equal, parensEnd
 @docs minusFollowedBySingleWhitespace
 @docs prefixOperatorToken, allowedOperatorTokens
 
@@ -71,22 +71,22 @@ escapedCharValueMap charToRes =
         , -- Eventhough Elm-format will change \r to a unicode version. When you dont use elm-format, this will not happen.
           ParserFast.symbol "r" (charToRes '\u{000D}')
         , ParserFast.symbol "\\" (charToRes '\\')
-        , ParserFast.map2
-            (\hex () ->
-                case String.toLower hex |> Hex.fromString of
-                    Ok n ->
-                        charToRes (Char.fromCode n)
+        , ParserFast.symbolFollowedBy "u{"
+            (ParserFast.map
+                (\hex ->
+                    case String.toLower hex |> Hex.fromString of
+                        Ok n ->
+                            charToRes (Char.fromCode n)
 
-                    Err _ ->
-                        charToRes '\u{0000}'
-            )
-            (ParserFast.symbolFollowedBy "u{"
+                        Err _ ->
+                            charToRes '\u{0000}'
+                )
                 (ParserFast.ifFollowedByWhileWithoutLinebreak
                     Char.isHexDigit
                     Char.isHexDigit
                 )
             )
-            (ParserFast.symbol "}" ())
+            |> ParserFast.followedBySymbol "}"
         ]
 
 
@@ -97,15 +97,12 @@ slashEscapedCharValue =
 
 characterLiteral : ParserFast.Parser Char
 characterLiteral =
-    ParserFast.map2
-        (\res () -> res)
-        (ParserFast.symbolFollowedBy "'"
-            (ParserFast.oneOf2
-                slashEscapedCharValue
-                ParserFast.anyChar
-            )
+    ParserFast.symbolFollowedBy "'"
+        (ParserFast.oneOf2
+            slashEscapedCharValue
+            ParserFast.anyChar
         )
-        (ParserFast.symbol "'" ())
+        |> ParserFast.followedBySymbol "'"
 
 
 singleOrTripleQuotedStringLiteral : ParserFast.Parser String
@@ -246,21 +243,6 @@ minusFollowedBySingleWhitespace next =
         (ParserFast.symbolFollowedBy "- " next)
         (ParserFast.symbolFollowedBy "-\n" next)
         (ParserFast.symbolFollowedBy "-\u{000D}" next)
-
-
-squareEnd : ParserFast.Parser ()
-squareEnd =
-    ParserFast.symbol "]" ()
-
-
-curlyEnd : ParserFast.Parser ()
-curlyEnd =
-    ParserFast.symbol "}" ()
-
-
-arrowRight : ParserFast.Parser ()
-arrowRight =
-    ParserFast.symbol "->" ()
 
 
 equal : ParserFast.Parser ()

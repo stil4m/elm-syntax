@@ -159,8 +159,8 @@ listPattern =
         (ParserFast.symbolFollowedBy "[" Layout.maybeLayout)
         (ParserFast.oneOf2
             (ParserFast.symbol "]" Nothing)
-            (ParserFast.map4
-                (\head commentsAfterHead tail () ->
+            (ParserFast.map3
+                (\head commentsAfterHead tail ->
                     Just
                         { comments =
                             head.comments
@@ -176,7 +176,7 @@ listPattern =
                         (Layout.maybeAroundBothSides pattern)
                     )
                 )
-                Tokens.squareEnd
+                |> ParserFast.followedBySymbol "]"
             )
         )
 
@@ -344,8 +344,8 @@ recordPattern =
         )
         (ParserFast.symbolFollowedBy "{" Layout.maybeLayout)
         (ParserFast.oneOf2
-            (ParserFast.map4
-                (\head commentsAfterHead tail () ->
+            (ParserFast.map3
+                (\head commentsAfterHead tail ->
                     Just
                         { comments =
                             commentsAfterHead
@@ -367,7 +367,7 @@ recordPattern =
                         Layout.maybeLayout
                     )
                 )
-                Tokens.curlyEnd
+                |> ParserFast.followedBySymbol "}"
             )
             (ParserFast.symbol "}" Nothing)
         )

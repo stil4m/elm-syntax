@@ -177,8 +177,8 @@ expressionAfterOpeningSquareBracket =
             Layout.maybeLayout
             (ParserFast.oneOf2
                 (ParserFast.symbol "]" { comments = Rope.empty, syntax = ListExpr [] })
-                (ParserFast.map4
-                    (\head commentsAfterHead tail () ->
+                (ParserFast.map3
+                    (\head commentsAfterHead tail ->
                         { comments =
                             head.comments
                                 |> Rope.prependTo commentsAfterHead
@@ -193,7 +193,7 @@ expressionAfterOpeningSquareBracket =
                             (Layout.maybeAroundBothSides expression)
                         )
                     )
-                    Tokens.squareEnd
+                    |> ParserFast.followedBySymbol "]"
                 )
             )
         )
@@ -386,7 +386,7 @@ lambdaExpression =
         Patterns.patternNotDirectlyComposing
         Layout.maybeLayout
         (ParserWithComments.until
-            Tokens.arrowRight
+            (ParserFast.symbol "->" ())
             (ParserFast.map2
                 (\patternResult commentsAfter ->
                     { comments =
