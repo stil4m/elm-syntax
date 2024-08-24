@@ -142,8 +142,8 @@ recordTypeAnnotation =
         )
         (ParserFast.symbolFollowedBy "{" Layout.maybeLayout)
         (ParserFast.oneOf2
-            (ParserFast.map4
-                (\firstNameNode commentsAfterFirstName afterFirstName () ->
+            (ParserFast.map3
+                (\firstNameNode commentsAfterFirstName afterFirstName ->
                     Just
                         { comments =
                             commentsAfterFirstName
@@ -195,7 +195,7 @@ recordTypeAnnotation =
                         )
                     )
                 )
-                Tokens.curlyEnd
+                |> ParserFast.followedBySymbol "}"
             )
             (ParserFast.symbol "}" Nothing)
         )

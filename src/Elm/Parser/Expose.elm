@@ -11,8 +11,8 @@ import Rope
 
 exposeDefinition : Parser (WithComments Exposing)
 exposeDefinition =
-    ParserFast.map4
-        (\commentsAfterExposing commentsBefore exposingListInnerResult () ->
+    ParserFast.map3
+        (\commentsAfterExposing commentsBefore exposingListInnerResult ->
             { comments =
                 commentsAfterExposing
                     |> Rope.prependTo commentsBefore
@@ -25,7 +25,7 @@ exposeDefinition =
         )
         Layout.optimisticLayout
         exposingListInner
-        Tokens.parensEnd
+        |> ParserFast.followedBySymbol ")"
 
 
 exposingListInner : Parser (WithComments Exposing)

@@ -1,6 +1,6 @@
 module ParserFast exposing
     ( Parser, run
-    , int, number, symbol, symbolBacktrackable, symbolWithEndPosition, symbolWithStartAndEndPosition, symbolFollowedBy, keyword, keywordFollowedBy, while, whileWithoutLinebreak, whileMap, ifFollowedByWhileWithoutLinebreak, ifFollowedByWhileExceptWithoutLinebreak, ifFollowedByWhileExceptMapWithStartAndEndPositionsWithoutLinebreak, anyChar, end
+    , int, number, symbol, symbolBacktrackable, symbolWithEndPosition, symbolWithStartAndEndPosition, symbolFollowedBy, followedBySymbol, keyword, keywordFollowedBy, while, whileWithoutLinebreak, whileMap, ifFollowedByWhileWithoutLinebreak, ifFollowedByWhileExceptWithoutLinebreak, ifFollowedByWhileExceptMapWithStartAndEndPositionsWithoutLinebreak, anyChar, end
     , succeed, problem, lazy, map, map2, map2WithStartPosition, map2WithStartAndEndPosition, map3, map3WithStartAndEndPosition, map4, map4WithStartAndEndPosition, map5, map5WithStartPosition, map5WithStartAndEndPosition, map6, map6WithStartPosition, map6WithStartAndEndPosition, map7, map8, map8WithStartPosition, map9, map9WithStartAndEndPosition, validate
     , orSucceed, oneOf2, oneOf2Map, oneOf2OrSucceed, oneOf3, oneOf4, oneOf
     , loopWhileSucceeds, loopUntil
@@ -13,7 +13,7 @@ module ParserFast exposing
 
 @docs Parser, run
 
-@docs int, number, symbol, symbolBacktrackable, symbolWithEndPosition, symbolWithStartAndEndPosition, symbolFollowedBy, keyword, keywordFollowedBy, while, whileWithoutLinebreak, whileMap, ifFollowedByWhileWithoutLinebreak, ifFollowedByWhileExceptWithoutLinebreak, ifFollowedByWhileExceptMapWithStartAndEndPositionsWithoutLinebreak, anyChar, end
+@docs int, number, symbol, symbolBacktrackable, symbolWithEndPosition, symbolWithStartAndEndPosition, symbolFollowedBy, followedBySymbol, keyword, keywordFollowedBy, while, whileWithoutLinebreak, whileMap, ifFollowedByWhileWithoutLinebreak, ifFollowedByWhileExceptWithoutLinebreak, ifFollowedByWhileExceptMapWithStartAndEndPositionsWithoutLinebreak, anyChar, end
 
 
 # Flow
@@ -1514,6 +1514,44 @@ symbol str res =
         )
 
 
+followedBySymbol : String -> Parser a -> Parser a
+followedBySymbol str (Parser parsePrevious) =
+    let
+        expecting : Parser.Problem
+        expecting =
+            Parser.ExpectingSymbol str
+
+        strLength : Int
+        strLength =
+            String.length str
+    in
+    Parser
+        (\s0 ->
+            case parsePrevious s0 of
+                Good previousCommitted res s1 ->
+                    let
+                        newOffset : Int
+                        newOffset =
+                            s1.offset + strLength
+                    in
+                    if String.slice s1.offset newOffset s1.src == str ++ "" then
+                        Good True
+                            res
+                            { src = s1.src
+                            , offset = newOffset
+                            , indent = s1.indent
+                            , row = s1.row
+                            , col = s1.col + strLength
+                            }
+
+                    else
+                        Bad False (fromState s1 expecting) ()
+
+                bad ->
+                    bad
+        )
+
+
 {-| Make sure the given String does not contain \\n
 or 2-part UTF-16 characters.
 -}
@@ -1948,7 +1986,6 @@ chompWhileWithoutLinebreakHelp isGood offset row col src indent =
         , row = row
         , col = col
         }
-
 
 
 {-| Specialized `chompWhile (\c -> c == " " || c == "\n" || c == "\r")`
