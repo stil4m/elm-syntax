@@ -80,9 +80,9 @@ infixExpose =
             }
         )
         (ParserFast.symbolFollowedBy "("
-            (ParserFast.ifFollowedByWhile
-                (\c -> c /= ')')
-                (\c -> c /= ')')
+            (ParserFast.ifFollowedByWhileWithoutLinebreak
+                (\c -> c /= ')' && c /= '\n' && c /= ' ')
+                (\c -> c /= ')' && c /= '\n' && c /= ' ')
             )
         )
         Tokens.parensEnd
