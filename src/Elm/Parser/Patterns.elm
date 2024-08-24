@@ -187,34 +187,32 @@ patternListEmpty =
 
 composablePattern : Parser (WithComments (Node Pattern))
 composablePattern =
-    ParserFast.oneOf
-        [ varPattern
-        , qualifiedPatternWithConsumeArgs
-        , allPattern
-        , unitPattern
-        , parensPattern
-        , recordPattern
-        , stringPattern
-        , listPattern
-        , numberPart
-        , charPattern
-        ]
+    ParserFast.oneOf10
+        varPattern
+        qualifiedPatternWithConsumeArgs
+        allPattern
+        unitPattern
+        parensPattern
+        recordPattern
+        stringPattern
+        listPattern
+        numberPart
+        charPattern
 
 
 patternNotDirectlyComposing : Parser (WithComments (Node Pattern))
 patternNotDirectlyComposing =
-    ParserFast.oneOf
-        [ varPattern
-        , qualifiedPatternWithoutConsumeArgs
-        , allPattern
-        , unitPattern
-        , parensPattern
-        , recordPattern
-        , stringPattern
-        , listPattern
-        , numberPart
-        , charPattern
-        ]
+    ParserFast.oneOf10
+        varPattern
+        qualifiedPatternWithoutConsumeArgs
+        allPattern
+        unitPattern
+        parensPattern
+        recordPattern
+        stringPattern
+        listPattern
+        numberPart
+        charPattern
 
 
 allPattern : Parser (WithComments (Node Pattern))

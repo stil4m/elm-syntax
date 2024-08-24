@@ -63,15 +63,15 @@ inToken =
 
 escapedCharValueMap : (Char -> res) -> ParserFast.Parser res
 escapedCharValueMap charToRes =
-    ParserFast.oneOf
-        [ ParserFast.symbol "'" (charToRes '\'')
-        , ParserFast.symbol "\"" (charToRes '"')
-        , ParserFast.symbol "n" (charToRes '\n')
-        , ParserFast.symbol "t" (charToRes '\t')
-        , -- Eventhough Elm-format will change \r to a unicode version. When you dont use elm-format, this will not happen.
-          ParserFast.symbol "r" (charToRes '\u{000D}')
-        , ParserFast.symbol "\\" (charToRes '\\')
-        , ParserFast.symbolFollowedBy "u{"
+    ParserFast.oneOf7
+        (ParserFast.symbol "'" (charToRes '\''))
+        (ParserFast.symbol "\"" (charToRes '"'))
+        (ParserFast.symbol "n" (charToRes '\n'))
+        (ParserFast.symbol "t" (charToRes '\t'))
+        -- Eventhough Elm-format will change \r to a unicode version. When you dont use elm-format, this will not happen.
+        (ParserFast.symbol "r" (charToRes '\u{000D}'))
+        (ParserFast.symbol "\\" (charToRes '\\'))
+        (ParserFast.symbolFollowedBy "u{"
             (ParserFast.map
                 (\hex ->
                     case String.toLower hex |> Hex.fromString of
@@ -87,7 +87,7 @@ escapedCharValueMap charToRes =
                 )
             )
             |> ParserFast.followedBySymbol "}"
-        ]
+        )
 
 
 slashEscapedCharValue : ParserFast.Parser Char

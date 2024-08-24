@@ -23,13 +23,12 @@ import Rope
 
 declaration : Parser (WithComments (Node Declaration))
 declaration =
-    ParserFast.oneOf
-        [ functionDeclarationWithoutDocumentation
-        , declarationWithDocumentation
-        , typeOrTypeAliasDefinitionWithoutDocumentation
-        , portDeclarationWithoutDocumentation
-        , infixDeclaration
-        ]
+    ParserFast.oneOf5
+        functionDeclarationWithoutDocumentation
+        declarationWithDocumentation
+        typeOrTypeAliasDefinitionWithoutDocumentation
+        portDeclarationWithoutDocumentation
+        infixDeclaration
 
 
 declarationWithDocumentation : Parser (WithComments (Node Declaration))
