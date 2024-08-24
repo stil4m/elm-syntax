@@ -1529,7 +1529,7 @@ followedBySymbol str (Parser parsePrevious) =
                             }
 
                     else
-                        Bad False (fromState s1 expecting) ()
+                        Bad previousCommitted (fromState s1 expecting) ()
 
                 bad ->
                     bad
