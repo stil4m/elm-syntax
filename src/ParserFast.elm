@@ -1,7 +1,7 @@
 module ParserFast exposing
     ( Parser, run
     , int, intOrHex, floatOrIntOrHex, symbol, symbolBacktrackable, symbolWithEndPosition, symbolWithStartAndEndPosition, symbolFollowedBy, followedBySymbol, keyword, keywordFollowedBy, while, whileWithoutLinebreak, whileMap, ifFollowedByWhileWithoutLinebreak, ifFollowedByWhileMapWithStartAndEndPositionWithoutLinebreak, ifFollowedByWhileExceptWithoutLinebreak, ifFollowedByWhileExceptMapWithStartAndEndPositionsWithoutLinebreak, anyChar, end
-    , succeed, problem, lazy, map, map2, map2WithStartPosition, map2WithStartAndEndPosition, map3, map3WithStartAndEndPosition, map4, map4WithStartAndEndPosition, map5, map5WithStartPosition, map5WithStartAndEndPosition, map6, map6WithStartPosition, map6WithStartAndEndPosition, map7, map7WithStartAndEndPosition, map8, map8WithStartPosition, map9, map9WithStartAndEndPosition, validate
+    , succeed, problem, lazy, map, map2, map2WithStartPosition, map2WithStartAndEndPosition, map3, map3WithStartAndEndPosition, map4, map4WithStartAndEndPosition, map5, map5WithStartPosition, map5WithStartAndEndPosition, map6, map6WithStartPosition, map6WithStartAndEndPosition, map7WithStartAndEndPosition, map8WithStartPosition, map9WithStartAndEndPosition, validate
     , orSucceed, mapOrSucceed, map2OrSucceed, map3OrSucceed, map4OrSucceed, oneOf2, oneOf2Map, oneOf2OrSucceed, oneOf3, oneOf4, oneOf
     , loopWhileSucceeds, loopUntil
     , chompWhileWhitespaceFollowedBy, nestableMultiComment
@@ -18,7 +18,7 @@ module ParserFast exposing
 
 # Flow
 
-@docs succeed, problem, lazy, map, map2, map2WithStartPosition, map2WithStartAndEndPosition, map3, map3WithStartAndEndPosition, map4, map4WithStartAndEndPosition, map5, map5WithStartPosition, map5WithStartAndEndPosition, map6, map6WithStartPosition, map6WithStartAndEndPosition, map7, map7WithStartAndEndPosition, map8, map8WithStartPosition, map9, map9WithStartAndEndPosition, validate
+@docs succeed, problem, lazy, map, map2, map2WithStartPosition, map2WithStartAndEndPosition, map3, map3WithStartAndEndPosition, map4, map4WithStartAndEndPosition, map5, map5WithStartPosition, map5WithStartAndEndPosition, map6, map6WithStartPosition, map6WithStartAndEndPosition, map7WithStartAndEndPosition, map8WithStartPosition, map9WithStartAndEndPosition, validate
 
 @docs orSucceed, mapOrSucceed, map2OrSucceed, map3OrSucceed, map4OrSucceed, oneOf2, oneOf2Map, oneOf2OrSucceed, oneOf3, oneOf4, oneOf
 
@@ -727,48 +727,6 @@ map6WithStartAndEndPosition func (Parser parseA) (Parser parseB) (Parser parseC)
         )
 
 
-map7 : (a -> b -> c -> d -> e -> f -> g -> value) -> Parser a -> Parser b -> Parser c -> Parser d -> Parser e -> Parser f -> Parser g -> Parser value
-map7 func (Parser parseA) (Parser parseB) (Parser parseC) (Parser parseD) (Parser parseE) (Parser parseF) (Parser parseG) =
-    Parser
-        (\s0 ->
-            case parseA s0 of
-                Bad committed x () ->
-                    Bad committed x ()
-
-                Good c1 a s1 ->
-                    case parseB s1 of
-                        Bad c2 x () ->
-                            Bad (c1 || c2) x ()
-
-                        Good c2 b s2 ->
-                            case parseC s2 of
-                                Bad c3 x () ->
-                                    Bad (c1 || c2 || c3) x ()
-
-                                Good c3 c s3 ->
-                                    case parseD s3 of
-                                        Bad c4 x () ->
-                                            Bad (c1 || c2 || c3 || c4) x ()
-
-                                        Good c4 d s4 ->
-                                            case parseE s4 of
-                                                Bad c5 x () ->
-                                                    Bad (c1 || c2 || c3 || c4 || c5) x ()
-
-                                                Good c5 e s5 ->
-                                                    case parseF s5 of
-                                                        Bad c6 x () ->
-                                                            Bad (c1 || c2 || c3 || c4 || c5 || c6) x ()
-
-                                                        Good c6 f s6 ->
-                                                            case parseG s6 of
-                                                                Bad c7 x () ->
-                                                                    Bad (c1 || c2 || c3 || c4 || c5 || c6 || c7) x ()
-
-                                                                Good c7 g s7 ->
-                                                                    Good (c1 || c2 || c3 || c4 || c5 || c6 || c7) (func a b c d e f g) s7
-        )
-
 
 map7WithStartAndEndPosition : ({ row : Int, column : Int } -> a -> b -> c -> d -> e -> f -> g -> { row : Int, column : Int } -> value) -> Parser a -> Parser b -> Parser c -> Parser d -> Parser e -> Parser f -> Parser g -> Parser value
 map7WithStartAndEndPosition func (Parser parseA) (Parser parseB) (Parser parseC) (Parser parseD) (Parser parseE) (Parser parseF) (Parser parseG) =
@@ -813,52 +771,6 @@ map7WithStartAndEndPosition func (Parser parseA) (Parser parseB) (Parser parseC)
         )
 
 
-map8 : (a -> b -> c -> d -> e -> f -> g -> h -> value) -> Parser a -> Parser b -> Parser c -> Parser d -> Parser e -> Parser f -> Parser g -> Parser h -> Parser value
-map8 func (Parser parseA) (Parser parseB) (Parser parseC) (Parser parseD) (Parser parseE) (Parser parseF) (Parser parseG) (Parser parseH) =
-    Parser
-        (\s0 ->
-            case parseA s0 of
-                Bad committed x () ->
-                    Bad committed x ()
-
-                Good c1 a s1 ->
-                    case parseB s1 of
-                        Bad c2 x () ->
-                            Bad (c1 || c2) x ()
-
-                        Good c2 b s2 ->
-                            case parseC s2 of
-                                Bad c3 x () ->
-                                    Bad (c1 || c2 || c3) x ()
-
-                                Good c3 c s3 ->
-                                    case parseD s3 of
-                                        Bad c4 x () ->
-                                            Bad (c1 || c2 || c3 || c4) x ()
-
-                                        Good c4 d s4 ->
-                                            case parseE s4 of
-                                                Bad c5 x () ->
-                                                    Bad (c1 || c2 || c3 || c4 || c5) x ()
-
-                                                Good c5 e s5 ->
-                                                    case parseF s5 of
-                                                        Bad c6 x () ->
-                                                            Bad (c1 || c2 || c3 || c4 || c5 || c6) x ()
-
-                                                        Good c6 f s6 ->
-                                                            case parseG s6 of
-                                                                Bad c7 x () ->
-                                                                    Bad (c1 || c2 || c3 || c4 || c5 || c6 || c7) x ()
-
-                                                                Good c7 g s7 ->
-                                                                    case parseH s7 of
-                                                                        Bad c8 x () ->
-                                                                            Bad (c1 || c2 || c3 || c4 || c5 || c6 || c7 || c8) x ()
-
-                                                                        Good c8 h s8 ->
-                                                                            Good (c1 || c2 || c3 || c4 || c5 || c6 || c7 || c8) (func a b c d e f g h) s8
-        )
 
 
 map8WithStartPosition : ({ row : Int, column : Int } -> a -> b -> c -> d -> e -> f -> g -> h -> value) -> Parser a -> Parser b -> Parser c -> Parser d -> Parser e -> Parser f -> Parser g -> Parser h -> Parser value
@@ -908,58 +820,6 @@ map8WithStartPosition func (Parser parseA) (Parser parseB) (Parser parseC) (Pars
                                                                             Good (c1 || c2 || c3 || c4 || c5 || c6 || c7 || c8) (func { row = s0.row, column = s0.col } a b c d e f g h) s8
         )
 
-
-map9 : (a -> b -> c -> d -> e -> f -> g -> h -> i -> value) -> Parser a -> Parser b -> Parser c -> Parser d -> Parser e -> Parser f -> Parser g -> Parser h -> Parser i -> Parser value
-map9 func (Parser parseA) (Parser parseB) (Parser parseC) (Parser parseD) (Parser parseE) (Parser parseF) (Parser parseG) (Parser parseH) (Parser parseI) =
-    Parser
-        (\s0 ->
-            case parseA s0 of
-                Bad committed x () ->
-                    Bad committed x ()
-
-                Good c1 a s1 ->
-                    case parseB s1 of
-                        Bad c2 x () ->
-                            Bad (c1 || c2) x ()
-
-                        Good c2 b s2 ->
-                            case parseC s2 of
-                                Bad c3 x () ->
-                                    Bad (c1 || c2 || c3) x ()
-
-                                Good c3 c s3 ->
-                                    case parseD s3 of
-                                        Bad c4 x () ->
-                                            Bad (c1 || c2 || c3 || c4) x ()
-
-                                        Good c4 d s4 ->
-                                            case parseE s4 of
-                                                Bad c5 x () ->
-                                                    Bad (c1 || c2 || c3 || c4 || c5) x ()
-
-                                                Good c5 e s5 ->
-                                                    case parseF s5 of
-                                                        Bad c6 x () ->
-                                                            Bad (c1 || c2 || c3 || c4 || c5 || c6) x ()
-
-                                                        Good c6 f s6 ->
-                                                            case parseG s6 of
-                                                                Bad c7 x () ->
-                                                                    Bad (c1 || c2 || c3 || c4 || c5 || c6 || c7) x ()
-
-                                                                Good c7 g s7 ->
-                                                                    case parseH s7 of
-                                                                        Bad c8 x () ->
-                                                                            Bad (c1 || c2 || c3 || c4 || c5 || c6 || c7 || c8) x ()
-
-                                                                        Good c8 h s8 ->
-                                                                            case parseI s8 of
-                                                                                Bad c9 x () ->
-                                                                                    Bad (c1 || c2 || c3 || c4 || c5 || c6 || c7 || c8 || c9) x ()
-
-                                                                                Good c9 i s9 ->
-                                                                                    Good (c1 || c2 || c3 || c4 || c5 || c6 || c7 || c8 || c9) (func a b c d e f g h i) s9
-        )
 
 
 map9WithStartAndEndPosition : ({ row : Int, column : Int } -> a -> b -> c -> d -> e -> f -> g -> h -> i -> { row : Int, column : Int } -> value) -> Parser a -> Parser b -> Parser c -> Parser d -> Parser e -> Parser f -> Parser g -> Parser h -> Parser i -> Parser value
