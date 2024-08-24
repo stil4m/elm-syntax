@@ -112,7 +112,7 @@ effectModuleDefinition =
         Layout.maybeLayout
         effectWhereClauses
         Layout.maybeLayout
-        (Node.parser exposeDefinition)
+        exposeDefinition
 
 
 normalModuleDefinition : Parser (WithComments (Node Module))
@@ -135,7 +135,7 @@ normalModuleDefinition =
         (ParserFast.keywordFollowedBy "module" Layout.maybeLayout)
         moduleName
         Layout.maybeLayout
-        (Node.parser exposeDefinition)
+        exposeDefinition
 
 
 portModuleDefinition : Parser (WithComments (Node Module))
@@ -156,4 +156,4 @@ portModuleDefinition =
         (ParserFast.keywordFollowedBy "module" Layout.maybeLayout)
         moduleName
         Layout.maybeLayout
-        (Node.parser exposeDefinition)
+        exposeDefinition
