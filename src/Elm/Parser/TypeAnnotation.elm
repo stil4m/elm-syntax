@@ -26,21 +26,19 @@ typeAnnotation =
                     }
         )
         (ParserFast.lazy (\() -> typeAnnotationNoFnIncludingTypedWithArguments))
-        (ParserFast.orSucceed
-            (ParserFast.map3
-                (\commentsBeforeArrow commentsAfterArrow typeAnnotationResult ->
-                    Just
-                        { comments =
-                            commentsBeforeArrow
-                                |> Rope.prependTo commentsAfterArrow
-                                |> Rope.prependTo typeAnnotationResult.comments
-                        , syntax = typeAnnotationResult.syntax
-                        }
-                )
-                (Layout.maybeLayoutUntilIgnoredBacktrackable ParserFast.symbol "->")
-                Layout.maybeLayout
-                (ParserFast.lazy (\() -> typeAnnotation))
+        (ParserFast.map3OrSucceed
+            (\commentsBeforeArrow commentsAfterArrow typeAnnotationResult ->
+                Just
+                    { comments =
+                        commentsBeforeArrow
+                            |> Rope.prependTo commentsAfterArrow
+                            |> Rope.prependTo typeAnnotationResult.comments
+                    , syntax = typeAnnotationResult.syntax
+                    }
             )
+            (Layout.maybeLayoutUntilIgnoredBacktrackable ParserFast.symbol "->")
+            Layout.maybeLayout
+            (ParserFast.lazy (\() -> typeAnnotation))
             Nothing
         )
 
@@ -292,19 +290,17 @@ typedTypeAnnotationWithoutArguments =
 
 maybeDotTypeNamesTuple : ParserFast.Parser (Maybe ( List String, String ))
 maybeDotTypeNamesTuple =
-    ParserFast.orSucceed
-        (ParserFast.map2
-            (\firstName afterFirstName ->
-                case afterFirstName of
-                    Nothing ->
-                        Just ( [], firstName )
+    ParserFast.map2OrSucceed
+        (\firstName afterFirstName ->
+            case afterFirstName of
+                Nothing ->
+                    Just ( [], firstName )
 
-                    Just ( qualificationAfter, unqualified ) ->
-                        Just ( firstName :: qualificationAfter, unqualified )
-            )
-            (ParserFast.symbolFollowedBy "." Tokens.typeName)
-            (ParserFast.lazy (\() -> maybeDotTypeNamesTuple))
+                Just ( qualificationAfter, unqualified ) ->
+                    Just ( firstName :: qualificationAfter, unqualified )
         )
+        (ParserFast.symbolFollowedBy "." Tokens.typeName)
+        (ParserFast.lazy (\() -> maybeDotTypeNamesTuple))
         Nothing
 
 

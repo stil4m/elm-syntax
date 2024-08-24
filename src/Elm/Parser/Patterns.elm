@@ -251,19 +251,17 @@ stringPattern =
 
 maybeDotTypeNamesTuple : ParserFast.Parser (Maybe ( List String, String ))
 maybeDotTypeNamesTuple =
-    ParserFast.orSucceed
-        (ParserFast.map2
-            (\startName afterStartName ->
-                case afterStartName of
-                    Nothing ->
-                        Just ( [], startName )
+    ParserFast.map2OrSucceed
+        (\startName afterStartName ->
+            case afterStartName of
+                Nothing ->
+                    Just ( [], startName )
 
-                    Just ( qualificationAfter, unqualified ) ->
-                        Just ( startName :: qualificationAfter, unqualified )
-            )
-            (ParserFast.symbolFollowedBy "." Tokens.typeName)
-            (ParserFast.lazy (\() -> maybeDotTypeNamesTuple))
+                Just ( qualificationAfter, unqualified ) ->
+                    Just ( startName :: qualificationAfter, unqualified )
         )
+        (ParserFast.symbolFollowedBy "." Tokens.typeName)
+        (ParserFast.lazy (\() -> maybeDotTypeNamesTuple))
         Nothing
 
 
