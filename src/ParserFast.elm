@@ -1,6 +1,6 @@
 module ParserFast exposing
     ( Parser, run
-    , int, number, symbol, symbolBacktrackable, symbolWithEndPosition, symbolWithStartAndEndPosition, symbolFollowedBy, followedBySymbol, keyword, keywordFollowedBy, while, whileWithoutLinebreak, whileMap, ifFollowedByWhileWithoutLinebreak, ifFollowedByWhileExceptWithoutLinebreak, ifFollowedByWhileExceptMapWithStartAndEndPositionsWithoutLinebreak, anyChar, end
+    , int, intOrHex, floatOrIntOrHex, symbol, symbolBacktrackable, symbolWithEndPosition, symbolWithStartAndEndPosition, symbolFollowedBy, followedBySymbol, keyword, keywordFollowedBy, while, whileWithoutLinebreak, whileMap, ifFollowedByWhileWithoutLinebreak, ifFollowedByWhileExceptWithoutLinebreak, ifFollowedByWhileExceptMapWithStartAndEndPositionsWithoutLinebreak, anyChar, end
     , succeed, problem, lazy, map, map2, map2WithStartPosition, map2WithStartAndEndPosition, map3, map3WithStartAndEndPosition, map4, map4WithStartAndEndPosition, map5, map5WithStartPosition, map5WithStartAndEndPosition, map6, map6WithStartPosition, map6WithStartAndEndPosition, map7, map7WithStartAndEndPosition, map8, map8WithStartPosition, map9, map9WithStartAndEndPosition, validate
     , orSucceed, oneOf2, oneOf2Map, oneOf2OrSucceed, oneOf3, oneOf4, oneOf
     , loopWhileSucceeds, loopUntil
@@ -13,7 +13,7 @@ module ParserFast exposing
 
 @docs Parser, run
 
-@docs int, number, symbol, symbolBacktrackable, symbolWithEndPosition, symbolWithStartAndEndPosition, symbolFollowedBy, followedBySymbol, keyword, keywordFollowedBy, while, whileWithoutLinebreak, whileMap, ifFollowedByWhileWithoutLinebreak, ifFollowedByWhileExceptWithoutLinebreak, ifFollowedByWhileExceptMapWithStartAndEndPositionsWithoutLinebreak, anyChar, end
+@docs int, intOrHex, floatOrIntOrHex, symbol, symbolBacktrackable, symbolWithEndPosition, symbolWithStartAndEndPosition, symbolFollowedBy, followedBySymbol, keyword, keywordFollowedBy, while, whileWithoutLinebreak, whileMap, ifFollowedByWhileWithoutLinebreak, ifFollowedByWhileExceptWithoutLinebreak, ifFollowedByWhileExceptMapWithStartAndEndPositionsWithoutLinebreak, anyChar, end
 
 
 # Flow
@@ -1507,6 +1507,32 @@ int =
         , float = Err Parser.ExpectingInt
         , invalid = Parser.ExpectingInt
         , expecting = Parser.ExpectingInt
+        }
+
+
+floatOrIntOrHex : (Float -> a) -> (Int -> a) -> (Int -> a) -> Parser a
+floatOrIntOrHex floatf intf hexf =
+    numberHelp
+        { int = Ok intf
+        , hex = Ok hexf
+        , octal = Err Parser.ExpectingNumber
+        , binary = Err Parser.ExpectingNumber
+        , float = Ok floatf
+        , invalid = Parser.ExpectingNumber
+        , expecting = Parser.ExpectingNumber
+        }
+
+
+intOrHex : (Int -> a) -> (Int -> a) -> Parser a
+intOrHex intf hexf =
+    numberHelp
+        { int = Ok intf
+        , hex = Ok hexf
+        , octal = Err Parser.ExpectingNumber
+        , binary = Err Parser.ExpectingNumber
+        , float = Err Parser.ExpectingNumber
+        , invalid = Parser.ExpectingNumber
+        , expecting = Parser.ExpectingNumber
         }
 
 

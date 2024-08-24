@@ -1,8 +1,6 @@
 module Elm.Parser.Expression exposing (expression)
 
 import Elm.Parser.Layout as Layout
-import Elm.Parser.Node as Node
-import Elm.Parser.Numbers
 import Elm.Parser.Patterns as Patterns
 import Elm.Parser.Tokens as Tokens
 import Elm.Parser.TypeAnnotation as TypeAnnotation
@@ -731,7 +729,7 @@ numberExpression =
             , syntax = Node { start = start, end = end } n
             }
         )
-        (Elm.Parser.Numbers.floatOrIntOrHex
+        (ParserFast.floatOrIntOrHex
             Floatable
             Integer
             Hex

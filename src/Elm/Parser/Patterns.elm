@@ -2,7 +2,6 @@ module Elm.Parser.Patterns exposing (pattern, patternNotDirectlyComposing)
 
 import Elm.Parser.Layout as Layout
 import Elm.Parser.Node as Node
-import Elm.Parser.Numbers
 import Elm.Parser.Tokens as Tokens
 import Elm.Syntax.Node as Node exposing (Node(..))
 import Elm.Syntax.Pattern as Pattern exposing (Pattern(..))
@@ -124,7 +123,7 @@ varPattern =
 
 numberPart : Parser (WithComments (Node Pattern))
 numberPart =
-    Elm.Parser.Numbers.intOrHex
+    ParserFast.intOrHex
         (\n -> { comments = Rope.empty, syntax = IntPattern n })
         (\n -> { comments = Rope.empty, syntax = HexPattern n })
         |> Node.parser
