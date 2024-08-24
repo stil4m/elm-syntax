@@ -2,7 +2,7 @@ module ParserFast exposing
     ( Parser, run
     , int, intOrHex, floatOrIntOrHex, symbol, symbolBacktrackable, symbolWithEndPosition, symbolWithStartAndEndPosition, symbolFollowedBy, followedBySymbol, keyword, keywordFollowedBy, while, whileWithoutLinebreak, whileMap, ifFollowedByWhileWithoutLinebreak, ifFollowedByWhileExceptWithoutLinebreak, ifFollowedByWhileExceptMapWithStartAndEndPositionsWithoutLinebreak, anyChar, end
     , succeed, problem, lazy, map, map2, map2WithStartPosition, map2WithStartAndEndPosition, map3, map3WithStartAndEndPosition, map4, map4WithStartAndEndPosition, map5, map5WithStartPosition, map5WithStartAndEndPosition, map6, map6WithStartPosition, map6WithStartAndEndPosition, map7, map7WithStartAndEndPosition, map8, map8WithStartPosition, map9, map9WithStartAndEndPosition, validate
-    , orSucceed, oneOf2, oneOf2Map, oneOf2OrSucceed, oneOf3, oneOf4, oneOf
+    , orSucceed, mapOrSucceed, map2OrSucceed, map3OrSucceed, map4OrSucceed, oneOf2, oneOf2Map, oneOf2OrSucceed, oneOf3, oneOf4, oneOf
     , loopWhileSucceeds, loopUntil
     , chompWhileWhitespaceFollowedBy, nestableMultiComment
     , withIndentSetToColumn, withIndent, columnIndentAndThen, validateEndColumnIndentation, validateEndColumnIndentationBacktrackable
@@ -20,7 +20,7 @@ module ParserFast exposing
 
 @docs succeed, problem, lazy, map, map2, map2WithStartPosition, map2WithStartAndEndPosition, map3, map3WithStartAndEndPosition, map4, map4WithStartAndEndPosition, map5, map5WithStartPosition, map5WithStartAndEndPosition, map6, map6WithStartPosition, map6WithStartAndEndPosition, map7, map7WithStartAndEndPosition, map8, map8WithStartPosition, map9, map9WithStartAndEndPosition, validate
 
-@docs orSucceed, oneOf2, oneOf2Map, oneOf2OrSucceed, oneOf3, oneOf4, oneOf
+@docs orSucceed, mapOrSucceed, map2OrSucceed, map3OrSucceed, map4OrSucceed, oneOf2, oneOf2Map, oneOf2OrSucceed, oneOf3, oneOf4, oneOf
 
 @docs loopWhileSucceeds, loopUntil
 
@@ -1042,6 +1042,128 @@ orSucceed (Parser attemptFirst) secondRes =
 
                     else
                         Good False secondRes s
+        )
+
+
+mapOrSucceed : (a -> b) -> Parser a -> b -> Parser b
+mapOrSucceed valueChange (Parser parse) fallback =
+    Parser
+        (\s0 ->
+            case parse s0 of
+                Good committed value s1 ->
+                    Good committed (valueChange value) s1
+
+                Bad firstCommitted x () ->
+                    if firstCommitted then
+                        Bad True x ()
+
+                    else
+                        Good False fallback s0
+        )
+
+
+map2OrSucceed : (a -> b -> value) -> Parser a -> Parser b -> value -> Parser value
+map2OrSucceed func (Parser parseA) (Parser parseB) fallback =
+    Parser
+        (\s0 ->
+            case parseA s0 of
+                Bad c1 x () ->
+                    if c1 then
+                        Bad True x ()
+
+                    else
+                        Good False fallback s0
+
+                Good c1 a s1 ->
+                    case parseB s1 of
+                        Bad c2 x () ->
+                            if c1 || c2 then
+                                Bad True x ()
+
+                            else
+                                Good False fallback s0
+
+                        Good c2 b s2 ->
+                            Good (c1 || c2) (func a b) s2
+        )
+
+
+map3OrSucceed : (a -> b -> c -> value) -> Parser a -> Parser b -> Parser c -> value -> Parser value
+map3OrSucceed func (Parser parseA) (Parser parseB) (Parser parseC) fallback =
+    Parser
+        (\s0 ->
+            case parseA s0 of
+                Bad c1 x () ->
+                    if c1 then
+                        Bad True x ()
+
+                    else
+                        Good False fallback s0
+
+                Good c1 a s1 ->
+                    case parseB s1 of
+                        Bad c2 x () ->
+                            if c1 || c2 then
+                                Bad True x ()
+
+                            else
+                                Good False fallback s0
+
+                        Good c2 b s2 ->
+                            case parseC s2 of
+                                Bad c3 x () ->
+                                    if c1 || c2 || c3 then
+                                        Bad True x ()
+
+                                    else
+                                        Good False fallback s0
+
+                                Good c3 c s3 ->
+                                    Good (c1 || c2 || c3) (func a b c) s3
+        )
+
+
+map4OrSucceed : (a -> b -> c -> d -> value) -> Parser a -> Parser b -> Parser c -> Parser d -> value -> Parser value
+map4OrSucceed func (Parser parseA) (Parser parseB) (Parser parseC) (Parser parseD) fallback =
+    Parser
+        (\s0 ->
+            case parseA s0 of
+                Bad c1 x () ->
+                    if c1 then
+                        Bad True x ()
+
+                    else
+                        Good False fallback s0
+
+                Good c1 a s1 ->
+                    case parseB s1 of
+                        Bad c2 x () ->
+                            if c1 || c2 then
+                                Bad True x ()
+
+                            else
+                                Good False fallback s0
+
+                        Good c2 b s2 ->
+                            case parseC s2 of
+                                Bad c3 x () ->
+                                    if c1 || c2 || c3 then
+                                        Bad True x ()
+
+                                    else
+                                        Good False fallback s0
+
+                                Good c3 c s3 ->
+                                    case parseD s3 of
+                                        Bad c4 x () ->
+                                            if c1 || c2 || c3 || c4 then
+                                                Bad True x ()
+
+                                            else
+                                                Good False fallback s0
+
+                                        Good c4 d s4 ->
+                                            Good (c1 || c2 || c3 || c4) (func a b c d) s4
         )
 
 

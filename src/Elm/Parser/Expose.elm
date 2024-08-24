@@ -111,24 +111,22 @@ typeExpose =
                     }
         )
         Tokens.typeName
-        (ParserFast.orSucceed
-            (ParserFast.map2
-                (\commentsBefore all ->
-                    Just
-                        { comments = commentsBefore |> Rope.prependTo all.comments
-                        , syntax = all.range
-                        }
+        (ParserFast.map2OrSucceed
+            (\commentsBefore all ->
+                Just
+                    { comments = commentsBefore |> Rope.prependTo all.comments
+                    , syntax = all.range
+                    }
+            )
+            Layout.maybeLayoutBacktrackable
+            (ParserFast.map2WithStartAndEndPosition
+                (\start left right end ->
+                    { comments = left |> Rope.prependTo right, range = { start = start, end = end } }
                 )
-                Layout.maybeLayoutBacktrackable
-                (ParserFast.map2WithStartAndEndPosition
-                    (\start left right end ->
-                        { comments = left |> Rope.prependTo right, range = { start = start, end = end } }
-                    )
-                    (ParserFast.symbolFollowedBy "("
-                        (Layout.maybeLayoutUntilIgnored ParserFast.symbol "..")
-                    )
-                    (Layout.maybeLayoutUntilIgnored ParserFast.symbol ")")
+                (ParserFast.symbolFollowedBy "("
+                    (Layout.maybeLayoutUntilIgnored ParserFast.symbol "..")
                 )
+                (Layout.maybeLayoutUntilIgnored ParserFast.symbol ")")
             )
             Nothing
         )

@@ -70,28 +70,27 @@ importDefinition =
         (ParserFast.keywordFollowedBy "import" Layout.maybeLayout)
         moduleName
         Layout.optimisticLayout
-        (ParserFast.orSucceed
-            (ParserFast.map3
-                (\commentsBefore moduleAliasNode commentsAfter ->
-                    Just
-                        { comments = commentsBefore |> Rope.prependTo commentsAfter
-                        , syntax = moduleAliasNode
-                        }
-                )
-                (ParserFast.keywordFollowedBy "as" Layout.maybeLayout)
-                (ParserFast.mapWithStartAndEndPosition
-                    (\start moduleAlias end ->
-                        Node { start = start, end = end }
-                            [ moduleAlias ]
-                    )
-                    Tokens.typeName
-                )
-                Layout.optimisticLayout
+        (ParserFast.map3OrSucceed
+            (\commentsBefore moduleAliasNode commentsAfter ->
+                Just
+                    { comments = commentsBefore |> Rope.prependTo commentsAfter
+                    , syntax = moduleAliasNode
+                    }
             )
+            (ParserFast.keywordFollowedBy "as" Layout.maybeLayout)
+            (ParserFast.mapWithStartAndEndPosition
+                (\start moduleAlias end ->
+                    Node { start = start, end = end }
+                        [ moduleAlias ]
+                )
+                Tokens.typeName
+            )
+            Layout.optimisticLayout
             Nothing
         )
-        (ParserFast.orSucceed
-            (ParserFast.map Just exposeDefinition)
+        (ParserFast.mapOrSucceed
+            Just
+            exposeDefinition
             Nothing
         )
         Layout.optimisticLayout

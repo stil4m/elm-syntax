@@ -651,26 +651,24 @@ letFunction =
         )
         Tokens.functionNameNode
         Layout.maybeLayout
-        (ParserFast.orSucceed
-            (ParserFast.map4
-                (\commentsBeforeTypeAnnotation typeAnnotationResult implementationName afterImplementationName ->
-                    Just
-                        { comments =
-                            commentsBeforeTypeAnnotation
-                                |> Rope.prependTo typeAnnotationResult.comments
-                                |> Rope.prependTo implementationName.comments
-                                |> Rope.prependTo afterImplementationName
-                        , implementationName = implementationName.syntax
-                        , typeAnnotation = typeAnnotationResult.syntax
-                        }
-                )
-                (ParserFast.symbolFollowedBy ":" Layout.maybeLayout)
-                TypeAnnotation.typeAnnotation
-                (Layout.layoutStrictFollowedBy
-                    Tokens.functionNameNode
-                )
-                Layout.maybeLayout
+        (ParserFast.map4OrSucceed
+            (\commentsBeforeTypeAnnotation typeAnnotationResult implementationName afterImplementationName ->
+                Just
+                    { comments =
+                        commentsBeforeTypeAnnotation
+                            |> Rope.prependTo typeAnnotationResult.comments
+                            |> Rope.prependTo implementationName.comments
+                            |> Rope.prependTo afterImplementationName
+                    , implementationName = implementationName.syntax
+                    , typeAnnotation = typeAnnotationResult.syntax
+                    }
             )
+            (ParserFast.symbolFollowedBy ":" Layout.maybeLayout)
+            TypeAnnotation.typeAnnotation
+            (Layout.layoutStrictFollowedBy
+                Tokens.functionNameNode
+            )
+            Layout.maybeLayout
             Nothing
         )
         parameterPatternsEqual

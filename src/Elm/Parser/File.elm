@@ -32,14 +32,12 @@ file =
             moduleDefinition
         )
         (Layout.layoutStrictFollowedByComments
-            (ParserFast.orSucceed
-                (ParserFast.map2
-                    (\moduleDocumentation commentsAfter ->
-                        Rope.one moduleDocumentation |> Rope.filledPrependTo commentsAfter
-                    )
-                    Comments.moduleDocumentation
-                    Layout.layoutStrict
+            (ParserFast.map2OrSucceed
+                (\moduleDocumentation commentsAfter ->
+                    Rope.one moduleDocumentation |> Rope.filledPrependTo commentsAfter
                 )
+                Comments.moduleDocumentation
+                Layout.layoutStrict
                 Rope.empty
             )
         )
