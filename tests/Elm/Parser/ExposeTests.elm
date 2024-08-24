@@ -3,8 +3,9 @@ module Elm.Parser.ExposeTests exposing (all)
 import Elm.Parser.Expose exposing (exposeDefinition)
 import Elm.Parser.ParserWithCommentsTestUtil as ParserWithCommentsUtil
 import Elm.Syntax.Exposing exposing (Exposing(..), TopLevelExpose(..))
-import Elm.Syntax.Node exposing (Node(..))
+import Elm.Syntax.Node as Node exposing (Node(..))
 import Expect
+import ParserFast
 import Test exposing (Test, describe, test)
 
 
@@ -129,12 +130,18 @@ all =
 
 expectAst : Exposing -> String -> Expect.Expectation
 expectAst =
-    ParserWithCommentsUtil.expectAst exposeDefinition
+    ParserWithCommentsUtil.expectAst
+        (ParserFast.map (\expose -> { comments = expose.comments, syntax = Node.value expose.syntax })
+            exposeDefinition
+        )
 
 
 expectAstWithComments : { ast : Exposing, comments : List (Node String) } -> String -> Expect.Expectation
 expectAstWithComments =
-    ParserWithCommentsUtil.expectAstWithComments exposeDefinition
+    ParserWithCommentsUtil.expectAstWithComments
+        (ParserFast.map (\expose -> { comments = expose.comments, syntax = Node.value expose.syntax })
+            exposeDefinition
+        )
 
 
 expectInvalid : String -> Expect.Expectation

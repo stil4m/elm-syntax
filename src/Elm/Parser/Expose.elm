@@ -9,15 +9,17 @@ import ParserWithComments exposing (WithComments)
 import Rope
 
 
-exposeDefinition : Parser (WithComments Exposing)
+exposeDefinition : Parser (WithComments (Node Exposing))
 exposeDefinition =
-    ParserFast.map3
-        (\commentsAfterExposing commentsBefore exposingListInnerResult ->
+    ParserFast.map3WithStartAndEndPosition
+        (\start commentsAfterExposing commentsBefore exposingListInnerResult end ->
             { comments =
                 commentsAfterExposing
                     |> Rope.prependTo commentsBefore
                     |> Rope.prependTo exposingListInnerResult.comments
-            , syntax = exposingListInnerResult.syntax
+            , syntax =
+                Node { start = start, end = end }
+                    exposingListInnerResult.syntax
             }
         )
         (ParserFast.symbolFollowedBy "exposing"
