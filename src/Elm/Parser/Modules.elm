@@ -3,7 +3,6 @@ module Elm.Parser.Modules exposing (moduleDefinition)
 import Elm.Parser.Base exposing (moduleName)
 import Elm.Parser.Expose exposing (exposeDefinition)
 import Elm.Parser.Layout as Layout
-import Elm.Parser.Node as Node
 import Elm.Parser.Tokens as Tokens
 import Elm.Syntax.Module exposing (Module(..))
 import Elm.Syntax.Node exposing (Node(..))
