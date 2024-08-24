@@ -13,7 +13,7 @@ module ParserFast exposing
 
 @docs Parser, run
 
-@docs int, number, symbol, symbolBacktrackable, symbolWithEndPosition, symbolWithStartAndEndPosition, symbolFollowedBy, keyword, keywordFollowedBy, while, whileMap, ifFollowedByWhile, ifFollowedByWhileExcept, ifFollowedByWhileExceptMapWithStartAndEndPositions, anyChar, end
+@docs int, number, symbol, symbolBacktrackable, symbolWithEndPosition, symbolWithStartAndEndPosition, symbolFollowedBy, keyword, keywordFollowedBy, while, whileWithoutLinebreak, whileMap, ifFollowedByWhileWithoutLinebreak, ifFollowedByWhileExceptWithoutLinebreak, ifFollowedByWhileExceptMapWithStartAndEndPositionsWithoutLinebreak, anyChar, end
 
 
 # Flow
@@ -1968,6 +1968,34 @@ chompWhileHelp isGood offset row col src indent =
         }
 
 
+chompWhileWithoutLinebreakHelp : (Char -> Bool) -> Int -> Int -> Int -> String -> Int -> State
+chompWhileWithoutLinebreakHelp isGood offset row col src indent =
+    let
+        actualChar : String
+        actualChar =
+            String.slice offset (offset + 1) src
+    in
+    if String.any isGood actualChar then
+        chompWhileWithoutLinebreakHelp isGood (offset + 1) row (col + 1) src indent
+
+    else if
+        charStringIsUtf16HighSurrogate actualChar
+            && -- String.any iterates over code points (so here just one Char)
+               String.any isGood (String.slice offset (offset + 2) src)
+    then
+        chompWhileWithoutLinebreakHelp isGood (offset + 2) row (col + 1) src indent
+
+    else
+        -- no match
+        { src = src
+        , offset = offset
+        , indent = indent
+        , row = row
+        , col = col
+        }
+
+
+
 {-| Specialized `chompWhile (\c -> c == " " || c == "\n" || c == "\r")`
 optimized for speed
 -}
@@ -2118,19 +2146,19 @@ variable i =
         }
 
 
-ifFollowedByWhileExceptMapWithStartAndEndPositions :
+ifFollowedByWhileExceptMapWithStartAndEndPositionsWithoutLinebreak :
     ({ row : Int, column : Int } -> String -> { row : Int, column : Int } -> res)
     -> (Char -> Bool)
     -> (Char -> Bool)
     -> Set.Set String
     -> Parser res
-ifFollowedByWhileExceptMapWithStartAndEndPositions toResult firstIsOkay afterFirstIsOkay exceptionSet =
+ifFollowedByWhileExceptMapWithStartAndEndPositionsWithoutLinebreak toResult firstIsOkay afterFirstIsOkay exceptionSet =
     Parser
         (\s0 ->
             let
                 firstOffset : Int
                 firstOffset =
-                    isSubChar firstIsOkay s0.offset s0.src
+                    isSubCharWithoutLinebreak firstIsOkay s0.offset s0.src
             in
             if firstOffset == -1 then
                 Bad False (fromState s0 Parser.ExpectingVariable) ()
@@ -2139,11 +2167,7 @@ ifFollowedByWhileExceptMapWithStartAndEndPositions toResult firstIsOkay afterFir
                 let
                     s1 : State
                     s1 =
-                        if firstOffset == -2 then
-                            chompWhileHelp afterFirstIsOkay (s0.offset + 1) (s0.row + 1) 1 s0.src s0.indent
-
-                        else
-                            chompWhileHelp afterFirstIsOkay firstOffset s0.row (s0.col + 1) s0.src s0.indent
+                        chompWhileWithoutLinebreakHelp afterFirstIsOkay firstOffset s0.row (s0.col + 1) s0.src s0.indent
 
                     name : String
                     name =
@@ -2157,17 +2181,17 @@ ifFollowedByWhileExceptMapWithStartAndEndPositions toResult firstIsOkay afterFir
         )
 
 
-ifFollowedByWhile :
+ifFollowedByWhileWithoutLinebreak :
     (Char -> Bool)
     -> (Char -> Bool)
     -> Parser String
-ifFollowedByWhile firstIsOkay afterFirstIsOkay =
+ifFollowedByWhileWithoutLinebreak firstIsOkay afterFirstIsOkay =
     Parser
         (\s ->
             let
                 firstOffset : Int
                 firstOffset =
-                    isSubChar firstIsOkay s.offset s.src
+                    isSubCharWithoutLinebreak firstIsOkay s.offset s.src
             in
             if firstOffset == -1 then
                 Bad False (fromState s Parser.UnexpectedChar) ()
@@ -2176,11 +2200,7 @@ ifFollowedByWhile firstIsOkay afterFirstIsOkay =
                 let
                     s1 : State
                     s1 =
-                        if firstOffset == -2 then
-                            chompWhileHelp afterFirstIsOkay (s.offset + 1) (s.row + 1) 1 s.src s.indent
-
-                        else
-                            chompWhileHelp afterFirstIsOkay firstOffset s.row (s.col + 1) s.src s.indent
+                        chompWhileWithoutLinebreakHelp afterFirstIsOkay firstOffset s.row (s.col + 1) s.src s.indent
                 in
                 Good True (String.slice s.offset s1.offset s.src) s1
         )
@@ -2295,6 +2315,21 @@ while isGood =
         )
 
 
+whileWithoutLinebreak : (Char -> Bool) -> Parser String
+whileWithoutLinebreak isGood =
+    Parser
+        (\s0 ->
+            let
+                s1 : State
+                s1 =
+                    chompWhileWithoutLinebreakHelp isGood s0.offset s0.row s0.col s0.src s0.indent
+            in
+            Good (s1.offset > s0.offset)
+                (String.slice s0.offset s1.offset s0.src)
+                s1
+        )
+
+
 anyCharFollowedByWhileMap :
     (String -> res)
     -> (Char -> Bool)
@@ -2380,7 +2415,7 @@ for another example.
 
 **IMPORTANT NOTE:** Parsers like `chompWhile Char.isAlpha` can
 succeed without consuming any characters. So in some cases you may want to e.g.
-use an [`ifFollowedByWhile`](#ifFollowedByWhile) to ensure that each step actually consumed characters.
+use an [`ifFollowedByWhileWithoutLinebreak`](#ifFollowedByWhileWithoutLinebreak) to ensure that each step actually consumed characters.
 Otherwise you could end up in an infinite loop!
 
 **Note:** Anything you can write with `loop`, you can also write as a parser
@@ -2411,28 +2446,23 @@ loopHelp committedSoFar state ((Parser parseElement) as element) reduce s0 =
             Bad (committedSoFar || elementCommitted) x ()
 
 
-
--- LOW-LEVEL HELPERS
-
-
-{-| Again, when parsing, you want to allocate as little as possible.
+{-| When parsing, you want to allocate as little as possible.
 So this function lets you say:
 
-    isSubChar isSpace offset "this is the source string"
+    isSubCharWithoutLinebreak isSpace offset "this is the source string"
         --==> newOffset
 
 The `(Char -> Bool)` argument is called a predicate.
 The `newOffset` value can be a few different things:
 
   - `-1` means that the predicate failed
-  - `-2` means the predicate succeeded with a `\n`
   - otherwise you will get `offset + 1` or `offset + 2`
     depending on whether the UTF16 character is one or two
     words wide.
 
 -}
-isSubChar : (Char -> Bool) -> Int -> String -> Int
-isSubChar predicate offset string =
+isSubCharWithoutLinebreak : (Char -> Bool) -> Int -> String -> Int
+isSubCharWithoutLinebreak predicate offset string =
     -- https://github.com/elm/parser/blob/1.1.0/src/Elm/Kernel/Parser.js#L37
     let
         actualChar : String
@@ -2440,12 +2470,7 @@ isSubChar predicate offset string =
             String.slice offset (offset + 1) string
     in
     if String.any predicate actualChar then
-        case actualChar of
-            "\n" ->
-                -2
-
-            _ ->
-                offset + 1
+        offset + 1
 
     else if
         charStringIsUtf16HighSurrogate actualChar

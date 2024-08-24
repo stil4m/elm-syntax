@@ -81,7 +81,7 @@ escapedCharValueMap charToRes =
                         charToRes '\u{0000}'
             )
             (ParserFast.symbolFollowedBy "u{"
-                (ParserFast.ifFollowedByWhile
+                (ParserFast.ifFollowedByWhileWithoutLinebreak
                     Char.isHexDigit
                     Char.isHexDigit
                 )
@@ -124,7 +124,7 @@ singleQuotedStringLiteralAfterDoubleQuote =
     ParserFast.loopUntil (ParserFast.symbol "\"" ())
         (ParserFast.oneOf2
             (ParserFast.symbolFollowedBy "\\" (escapedCharValueMap String.fromChar))
-            (ParserFast.while (\c -> c /= '"' && c /= '\\'))
+            (ParserFast.whileWithoutLinebreak (\c -> c /= '"' && c /= '\\'))
         )
         ""
         (\extension soFar ->
@@ -150,7 +150,7 @@ tripleQuotedStringLiteralOfterTripleDoubleQuote =
 
 functionName : ParserFast.Parser String
 functionName =
-    ParserFast.ifFollowedByWhileExcept
+    ParserFast.ifFollowedByWhileExceptWithoutLinebreak
         (\c -> Char.isLower c || Unicode.isLower c)
         (\c ->
             -- checking for these common ranges early is much faster
@@ -161,7 +161,7 @@ functionName =
 
 functionNameNode : ParserFast.Parser (Node String)
 functionNameNode =
-    ParserFast.ifFollowedByWhileExceptMapWithStartAndEndPositions
+    ParserFast.ifFollowedByWhileExceptMapWithStartAndEndPositionsWithoutLinebreak
         (\start name end -> Node { start = start, end = end } name)
         (\c -> Char.isLower c || Unicode.isLower c)
         (\c ->
@@ -173,7 +173,7 @@ functionNameNode =
 
 functionNameMapWithRange : (Range -> String -> res) -> ParserFast.Parser res
 functionNameMapWithRange rangeAndNameToResult =
-    ParserFast.ifFollowedByWhileExceptMapWithStartAndEndPositions
+    ParserFast.ifFollowedByWhileExceptMapWithStartAndEndPositionsWithoutLinebreak
         (\start name end -> rangeAndNameToResult { start = start, end = end } name)
         (\c -> Char.isLower c || Unicode.isLower c)
         (\c ->
@@ -185,7 +185,7 @@ functionNameMapWithRange rangeAndNameToResult =
 
 functionNameNotInfix : ParserFast.Parser String
 functionNameNotInfix =
-    ParserFast.ifFollowedByWhileExcept
+    ParserFast.ifFollowedByWhileExceptWithoutLinebreak
         (\c -> Char.isLower c || Unicode.isLower c)
         (\c ->
             -- checking for these common ranges early is much faster
@@ -196,7 +196,7 @@ functionNameNotInfix =
 
 typeName : ParserFast.Parser String
 typeName =
-    ParserFast.ifFollowedByWhile
+    ParserFast.ifFollowedByWhileWithoutLinebreak
         (\c -> Char.isUpper c || Unicode.isUpper c)
         (\c ->
             -- checking for these common ranges early is much faster
