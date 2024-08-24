@@ -371,7 +371,7 @@ functionDeclarationWithoutDocumentation =
                             )
                     }
         )
-        (Node.parserCore Tokens.functionNameNotInfix)
+        Tokens.functionNameNotInfixNode
         Layout.maybeLayout
         (ParserFast.map4OrSucceed
             (\commentsBeforeTypeAnnotation typeAnnotationResult implementationName afterImplementationName ->
@@ -572,7 +572,7 @@ typeAliasDefinitionAfterDocumentationAfterTypePrefix =
             }
         )
         (ParserFast.keywordFollowedBy "alias" Layout.maybeLayout)
-        (Node.parserCore Tokens.typeName)
+        Tokens.typeNameNode
         Layout.maybeLayout
         typeGenericListEquals
         Layout.maybeLayout
@@ -598,7 +598,7 @@ customTypeDefinitionAfterDocumentationAfterTypePrefix =
                     }
             }
         )
-        (Node.parserCore Tokens.typeName)
+        Tokens.typeNameNode
         Layout.maybeLayout
         typeGenericListEquals
         Layout.maybeLayout
@@ -704,7 +704,7 @@ typeAliasDefinitionWithoutDocumentationAfterTypePrefix =
             }
         )
         (ParserFast.keywordFollowedBy "alias" Layout.maybeLayout)
-        (Node.parserCore Tokens.typeName)
+        Tokens.typeNameNode
         Layout.maybeLayout
         typeGenericListEquals
         Layout.maybeLayout
@@ -730,7 +730,7 @@ customTypeDefinitionWithoutDocumentationAfterTypePrefix =
                     }
             }
         )
-        (Node.parserCore Tokens.typeName)
+        Tokens.typeNameNode
         Layout.maybeLayout
         typeGenericListEquals
         Layout.maybeLayout
@@ -774,7 +774,7 @@ valueConstructor =
                     }
             }
         )
-        (Node.parserCore Tokens.typeName)
+        Tokens.typeNameNode
         (ParserWithComments.manyWithoutReverse
             (ParserFast.map2
                 (\commentsBefore typeAnnotationResult ->
