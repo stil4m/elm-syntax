@@ -1488,69 +1488,6 @@ loopUntilHelp committedSoFar ((Parser parseEnd) as endParser) ((Parser parseElem
                         Bad (committedSoFar || elementCommitted) x ()
 
 
-{-| Parse a bunch of different kinds of numbers without backtracking. A parser
-for Elm would need to handle integers, floats, and hexadecimal like this:
-
-    type Expr
-        = Variable String
-        | Int Int
-        | Float Float
-        | Apply Expr Expr
-
-    elmNumber : Parser Expr
-    elmNumber =
-        number
-            { int = Just Int
-            , hex = Just Int -- 0x001A is allowed
-            , octal = Nothing -- 0o0731 is not
-            , binary = Nothing -- 0b1101 is not
-            , float = Just Float
-            }
-
-If you wanted to implement a float parser, it would be like this:
-
-    float : Parser Float
-    float =
-        number
-            { int = Just toFloat
-            , hex = Nothing
-            , octal = Nothing
-            , binary = Nothing
-            , float = Just identity
-            }
-
-Notice that it actually is processing `int` results! This is because `123`
-looks like an integer to me, but maybe it looks like a float to you. If you had
-`int = Nothing`, floats would need a decimal like `1.0` in every case. If you
-like explicitness, that may actually be preferable!
-
-**Note:** This function does not check for weird trailing characters in the
-current implementation, so parsing `123abc` can succeed up to `123` and then
-move on. This is helpful for people who want to parse things like `40px` or
-`3m`, but it requires a bit of extra code to rule out trailing characters in
-other cases.
-
--}
-number :
-    { int : Maybe (Int -> a)
-    , hex : Maybe (Int -> a)
-    , octal : Maybe (Int -> a)
-    , binary : Maybe (Int -> a)
-    , float : Maybe (Float -> a)
-    }
-    -> Parser a
-number i =
-    numberHelp
-        { int = Result.fromMaybe Parser.ExpectingInt i.int
-        , hex = Result.fromMaybe Parser.ExpectingHex i.hex
-        , octal = Result.fromMaybe Parser.ExpectingOctal i.octal
-        , binary = Result.fromMaybe Parser.ExpectingBinary i.binary
-        , float = Result.fromMaybe Parser.ExpectingFloat i.float
-        , invalid = Parser.ExpectingNumber
-        , expecting = Parser.ExpectingNumber
-        }
-
-
 numberHelp :
     { int : Result Parser.Problem (Int -> a)
     , hex : Result Parser.Problem (Int -> a)
@@ -1613,10 +1550,6 @@ parser like this:
                 |= int
             , int
             ]
-
-**Note:** If you want a parser for both `Int` and `Float` literals, check out
-[`number`](#number) below. It will be faster than using `oneOf` to combining
-`int` and `float` yourself.
 
 -}
 int : Parser Int
