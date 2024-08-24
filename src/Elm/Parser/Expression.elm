@@ -17,22 +17,21 @@ import Rope
 
 subExpression : Parser (WithComments (Node Expression))
 subExpression =
-    ParserFast.oneOf
-        [ qualifiedOrVariantOrRecordConstructorReferenceExpression
-        , unqualifiedFunctionReferenceExpression
-        , literalExpression
-        , numberExpression
-        , tupledExpression
-        , listOrGlslExpression
-        , recordExpression
-        , caseExpression
-        , lambdaExpression
-        , letExpression
-        , ifBlockExpression
-        , recordAccessFunctionExpression
-        , negationOperation
-        , charLiteralExpression
-        ]
+    ParserFast.oneOf14
+        qualifiedOrVariantOrRecordConstructorReferenceExpression
+        unqualifiedFunctionReferenceExpression
+        literalExpression
+        numberExpression
+        tupledExpression
+        listOrGlslExpression
+        recordExpression
+        caseExpression
+        lambdaExpression
+        letExpression
+        ifBlockExpression
+        recordAccessFunctionExpression
+        negationOperation
+        charLiteralExpression
 
 
 extensionRightByPrecedence : List ( Int, Parser (WithComments ExtensionRight) )
@@ -882,7 +881,7 @@ recordAccessFunctionExpression =
 tupledExpression : Parser (WithComments (Node Expression))
 tupledExpression =
     ParserFast.symbolFollowedBy "("
-        (ParserFast.oneOf
+        (ParserFast.oneOf4
             (ParserFast.symbolWithEndPosition ")"
                 (\end ->
                     { comments = Rope.empty
@@ -891,21 +890,22 @@ tupledExpression =
                             UnitExpr
                     }
                 )
-                :: -- since `-` alone  could indicate negation or prefix operator,
-                   -- we check for `-)` first
-                   ParserFast.symbolWithEndPosition "-)"
-                    (\end ->
-                        { comments = Rope.empty
-                        , syntax =
-                            Node { start = { row = end.row, column = end.column - 3 }, end = end }
-                                expressionPrefixOperatorMinus
-                        }
-                    )
-                :: tupledExpressionInnerAfterOpeningParens
-                -- and since prefix operators are much more rare than e.g. parenthesized
-                -- we check those later
-                :: allowedPrefixOperatorExceptMinusThenClosingParensOneOf
             )
+            -- since `-` alone  could indicate negation or prefix operator,
+            -- we check for `-)` first
+            (ParserFast.symbolWithEndPosition "-)"
+                (\end ->
+                    { comments = Rope.empty
+                    , syntax =
+                        Node { start = { row = end.row, column = end.column - 3 }, end = end }
+                            expressionPrefixOperatorMinus
+                    }
+                )
+            )
+            tupledExpressionInnerAfterOpeningParens
+            -- and since prefix operators are much more rare than e.g. parenthesized
+            -- we check those later
+            (ParserFast.oneOf allowedPrefixOperatorExceptMinusThenClosingParensOneOf)
         )
 
 

@@ -755,7 +755,6 @@ map6WithStartAndEndPosition func (Parser parseA) (Parser parseB) (Parser parseC)
         )
 
 
-
 map7WithStartAndEndPosition : ({ row : Int, column : Int } -> a -> b -> c -> d -> e -> f -> g -> { row : Int, column : Int } -> value) -> Parser a -> Parser b -> Parser c -> Parser d -> Parser e -> Parser f -> Parser g -> Parser value
 map7WithStartAndEndPosition func (Parser parseA) (Parser parseB) (Parser parseC) (Parser parseD) (Parser parseE) (Parser parseF) (Parser parseG) =
     Parser
@@ -797,8 +796,6 @@ map7WithStartAndEndPosition func (Parser parseA) (Parser parseB) (Parser parseC)
                                                                 Good c7 g s7 ->
                                                                     Good (c1 || c2 || c3 || c4 || c5 || c6 || c7) (func { row = s0.row, column = s0.col } a b c d e f g { row = s7.row, column = s7.col }) s7
         )
-
-
 
 
 map8WithStartPosition : ({ row : Int, column : Int } -> a -> b -> c -> d -> e -> f -> g -> h -> value) -> Parser a -> Parser b -> Parser c -> Parser d -> Parser e -> Parser f -> Parser g -> Parser h -> Parser value
@@ -847,7 +844,6 @@ map8WithStartPosition func (Parser parseA) (Parser parseB) (Parser parseC) (Pars
                                                                         Good c8 h s8 ->
                                                                             Good (c1 || c2 || c3 || c4 || c5 || c6 || c7 || c8) (func { row = s0.row, column = s0.col } a b c d e f g h) s8
         )
-
 
 
 map9WithStartAndEndPosition : ({ row : Int, column : Int } -> a -> b -> c -> d -> e -> f -> g -> h -> i -> { row : Int, column : Int } -> value) -> Parser a -> Parser b -> Parser c -> Parser d -> Parser e -> Parser f -> Parser g -> Parser h -> Parser i -> Parser value
@@ -1214,6 +1210,362 @@ oneOf4 (Parser attemptFirst) (Parser attemptSecond) (Parser attemptThird) (Parse
 
                                                         else
                                                             Bad False (Append firstX (Append secondX (Append thirdX fourthX))) ()
+        )
+
+
+oneOf5 : Parser a -> Parser a -> Parser a -> Parser a -> Parser a -> Parser a
+oneOf5 (Parser attemptFirst) (Parser attemptSecond) (Parser attemptThird) (Parser attemptFourth) (Parser attemptFifth) =
+    Parser
+        (\s ->
+            case attemptFirst s of
+                (Good _ _ _) as firstGood ->
+                    firstGood
+
+                (Bad firstCommitted firstX ()) as firstBad ->
+                    if firstCommitted then
+                        firstBad
+
+                    else
+                        case attemptSecond s of
+                            (Good _ _ _) as secondGood ->
+                                secondGood
+
+                            (Bad secondCommitted secondX ()) as secondBad ->
+                                if secondCommitted then
+                                    secondBad
+
+                                else
+                                    case attemptThird s of
+                                        (Good _ _ _) as thirdGood ->
+                                            thirdGood
+
+                                        (Bad thirdCommitted thirdX ()) as thirdBad ->
+                                            if thirdCommitted then
+                                                thirdBad
+
+                                            else
+                                                case attemptFourth s of
+                                                    (Good _ _ _) as fourthGood ->
+                                                        fourthGood
+
+                                                    (Bad fourthCommitted fourthX ()) as fourthBad ->
+                                                        if fourthCommitted then
+                                                            fourthBad
+
+                                                        else
+                                                            case attemptFifth s of
+                                                                (Good _ _ _) as fifthGood ->
+                                                                    fifthGood
+
+                                                                (Bad fifthCommitted fifthX ()) as fifthBad ->
+                                                                    if fifthCommitted then
+                                                                        fifthBad
+
+                                                                    else
+                                                                        Bad False (Append firstX (Append secondX (Append thirdX (Append fourthX fifthX)))) ()
+        )
+
+
+oneOf7 : Parser a -> Parser a -> Parser a -> Parser a -> Parser a -> Parser a -> Parser a -> Parser a
+oneOf7 (Parser attempt0) (Parser attempt1) (Parser attempt2) (Parser attempt3) (Parser attempt4) (Parser attempt5) (Parser attempt6) =
+    Parser
+        (\s ->
+            case attempt0 s of
+                (Good _ _ _) as good ->
+                    good
+
+                (Bad committed0 x0 ()) as bad0 ->
+                    if committed0 then
+                        bad0
+
+                    else
+                        case attempt1 s of
+                            (Good _ _ _) as good ->
+                                good
+
+                            (Bad committed1 x1 ()) as bad1 ->
+                                if committed1 then
+                                    bad1
+
+                                else
+                                    case attempt2 s of
+                                        (Good _ _ _) as good ->
+                                            good
+
+                                        (Bad committed2 x2 ()) as bad2 ->
+                                            if committed2 then
+                                                bad2
+
+                                            else
+                                                case attempt3 s of
+                                                    (Good _ _ _) as good ->
+                                                        good
+
+                                                    (Bad committed3 x3 ()) as bad3 ->
+                                                        if committed3 then
+                                                            bad3
+
+                                                        else
+                                                            case attempt4 s of
+                                                                (Good _ _ _) as good ->
+                                                                    good
+
+                                                                (Bad committed4 x4 ()) as bad4 ->
+                                                                    if committed4 then
+                                                                        bad4
+
+                                                                    else
+                                                                        case attempt5 s of
+                                                                            (Good _ _ _) as good ->
+                                                                                good
+
+                                                                            (Bad committed5 x5 ()) as bad5 ->
+                                                                                if committed5 then
+                                                                                    bad5
+
+                                                                                else
+                                                                                    case attempt6 s of
+                                                                                        (Good _ _ _) as good ->
+                                                                                            good
+
+                                                                                        (Bad committed6 x6 ()) as bad6 ->
+                                                                                            if committed6 then
+                                                                                                bad6
+
+                                                                                            else
+                                                                                                Bad False (Append x0 (Append x1 (Append x2 (Append x3 (Append x4 (Append x5 x6)))))) ()
+        )
+
+
+oneOf10 : Parser a -> Parser a -> Parser a -> Parser a -> Parser a -> Parser a -> Parser a -> Parser a -> Parser a -> Parser a -> Parser a
+oneOf10 (Parser attempt0) (Parser attempt1) (Parser attempt2) (Parser attempt3) (Parser attempt4) (Parser attempt5) (Parser attempt6) (Parser attempt7) (Parser attempt8) (Parser attempt9) =
+    Parser
+        (\s ->
+            case attempt0 s of
+                (Good _ _ _) as good ->
+                    good
+
+                (Bad committed0 x0 ()) as bad0 ->
+                    if committed0 then
+                        bad0
+
+                    else
+                        case attempt1 s of
+                            (Good _ _ _) as good ->
+                                good
+
+                            (Bad committed1 x1 ()) as bad1 ->
+                                if committed1 then
+                                    bad1
+
+                                else
+                                    case attempt2 s of
+                                        (Good _ _ _) as good ->
+                                            good
+
+                                        (Bad committed2 x2 ()) as bad2 ->
+                                            if committed2 then
+                                                bad2
+
+                                            else
+                                                case attempt3 s of
+                                                    (Good _ _ _) as good ->
+                                                        good
+
+                                                    (Bad committed3 x3 ()) as bad3 ->
+                                                        if committed3 then
+                                                            bad3
+
+                                                        else
+                                                            case attempt4 s of
+                                                                (Good _ _ _) as good ->
+                                                                    good
+
+                                                                (Bad committed4 x4 ()) as bad4 ->
+                                                                    if committed4 then
+                                                                        bad4
+
+                                                                    else
+                                                                        case attempt5 s of
+                                                                            (Good _ _ _) as good ->
+                                                                                good
+
+                                                                            (Bad committed5 x5 ()) as bad5 ->
+                                                                                if committed5 then
+                                                                                    bad5
+
+                                                                                else
+                                                                                    case attempt6 s of
+                                                                                        (Good _ _ _) as good ->
+                                                                                            good
+
+                                                                                        (Bad committed6 x6 ()) as bad6 ->
+                                                                                            if committed6 then
+                                                                                                bad6
+
+                                                                                            else
+                                                                                                case attempt7 s of
+                                                                                                    (Good _ _ _) as good ->
+                                                                                                        good
+
+                                                                                                    (Bad committed7 x7 ()) as bad7 ->
+                                                                                                        if committed7 then
+                                                                                                            bad7
+
+                                                                                                        else
+                                                                                                            case attempt8 s of
+                                                                                                                (Good _ _ _) as good ->
+                                                                                                                    good
+
+                                                                                                                (Bad committed8 x8 ()) as bad8 ->
+                                                                                                                    if committed8 then
+                                                                                                                        bad8
+
+                                                                                                                    else
+                                                                                                                        case attempt9 s of
+                                                                                                                            (Good _ _ _) as good ->
+                                                                                                                                good
+
+                                                                                                                            (Bad committed9 x9 ()) as bad9 ->
+                                                                                                                                if committed9 then
+                                                                                                                                    bad9
+
+                                                                                                                                else
+                                                                                                                                    Bad False (Append x0 (Append x1 (Append x2 (Append x3 (Append x4 (Append x5 (Append x6 (Append x7 (Append x8 x9))))))))) ()
+        )
+
+
+oneOf14 : Parser a -> Parser a -> Parser a -> Parser a -> Parser a -> Parser a -> Parser a -> Parser a -> Parser a -> Parser a -> Parser a -> Parser a -> Parser a -> Parser a -> Parser a
+oneOf14 (Parser attempt0) (Parser attempt1) (Parser attempt2) (Parser attempt3) (Parser attempt4) (Parser attempt5) (Parser attempt6) (Parser attempt7) (Parser attempt8) (Parser attempt9) (Parser attempt10) (Parser attempt11) (Parser attempt12) (Parser attempt13) =
+    Parser
+        (\s ->
+            case attempt0 s of
+                (Good _ _ _) as good ->
+                    good
+
+                (Bad committed0 x0 ()) as bad0 ->
+                    if committed0 then
+                        bad0
+
+                    else
+                        case attempt1 s of
+                            (Good _ _ _) as good ->
+                                good
+
+                            (Bad committed1 x1 ()) as bad1 ->
+                                if committed1 then
+                                    bad1
+
+                                else
+                                    case attempt2 s of
+                                        (Good _ _ _) as good ->
+                                            good
+
+                                        (Bad committed2 x2 ()) as bad2 ->
+                                            if committed2 then
+                                                bad2
+
+                                            else
+                                                case attempt3 s of
+                                                    (Good _ _ _) as good ->
+                                                        good
+
+                                                    (Bad committed3 x3 ()) as bad3 ->
+                                                        if committed3 then
+                                                            bad3
+
+                                                        else
+                                                            case attempt4 s of
+                                                                (Good _ _ _) as good ->
+                                                                    good
+
+                                                                (Bad committed4 x4 ()) as bad4 ->
+                                                                    if committed4 then
+                                                                        bad4
+
+                                                                    else
+                                                                        case attempt5 s of
+                                                                            (Good _ _ _) as good ->
+                                                                                good
+
+                                                                            (Bad committed5 x5 ()) as bad5 ->
+                                                                                if committed5 then
+                                                                                    bad5
+
+                                                                                else
+                                                                                    case attempt6 s of
+                                                                                        (Good _ _ _) as good ->
+                                                                                            good
+
+                                                                                        (Bad committed6 x6 ()) as bad6 ->
+                                                                                            if committed6 then
+                                                                                                bad6
+
+                                                                                            else
+                                                                                                case attempt7 s of
+                                                                                                    (Good _ _ _) as good ->
+                                                                                                        good
+
+                                                                                                    (Bad committed7 x7 ()) as bad7 ->
+                                                                                                        if committed7 then
+                                                                                                            bad7
+
+                                                                                                        else
+                                                                                                            case attempt8 s of
+                                                                                                                (Good _ _ _) as good ->
+                                                                                                                    good
+
+                                                                                                                (Bad committed8 x8 ()) as bad8 ->
+                                                                                                                    if committed8 then
+                                                                                                                        bad8
+
+                                                                                                                    else
+                                                                                                                        case attempt9 s of
+                                                                                                                            (Good _ _ _) as good ->
+                                                                                                                                good
+
+                                                                                                                            (Bad committed9 x9 ()) as bad9 ->
+                                                                                                                                if committed9 then
+                                                                                                                                    bad9
+
+                                                                                                                                else
+                                                                                                                                    case attempt10 s of
+                                                                                                                                        (Good _ _ _) as good ->
+                                                                                                                                            good
+
+                                                                                                                                        (Bad committed10 x10 ()) as bad10 ->
+                                                                                                                                            if committed10 then
+                                                                                                                                                bad10
+
+                                                                                                                                            else
+                                                                                                                                                case attempt11 s of
+                                                                                                                                                    (Good _ _ _) as good ->
+                                                                                                                                                        good
+
+                                                                                                                                                    (Bad committed11 x11 ()) as bad11 ->
+                                                                                                                                                        if committed11 then
+                                                                                                                                                            bad11
+
+                                                                                                                                                        else
+                                                                                                                                                            case attempt12 s of
+                                                                                                                                                                (Good _ _ _) as good ->
+                                                                                                                                                                    good
+
+                                                                                                                                                                (Bad committed12 x12 ()) as bad12 ->
+                                                                                                                                                                    if committed12 then
+                                                                                                                                                                        bad12
+
+                                                                                                                                                                    else
+                                                                                                                                                                        case attempt13 s of
+                                                                                                                                                                            (Good _ _ _) as good ->
+                                                                                                                                                                                good
+
+                                                                                                                                                                            (Bad committed13 x13 ()) as bad13 ->
+                                                                                                                                                                                if committed13 then
+                                                                                                                                                                                    bad13
+
+                                                                                                                                                                                else
+                                                                                                                                                                                    Bad False (Append x0 (Append x1 (Append x2 (Append x3 (Append x4 (Append x5 (Append x6 (Append x7 (Append x8 (Append x9 (Append x10 (Append x11 (Append x12 x13))))))))))))) ()
         )
 
 
