@@ -798,6 +798,49 @@ map7 func (Parser parseA) (Parser parseB) (Parser parseC) (Parser parseD) (Parse
         )
 
 
+map7WithStartAndEndPosition : ({ row : Int, column : Int } -> a -> b -> c -> d -> e -> f -> g -> { row : Int, column : Int } -> value) -> Parser a -> Parser b -> Parser c -> Parser d -> Parser e -> Parser f -> Parser g -> Parser value
+map7WithStartAndEndPosition func (Parser parseA) (Parser parseB) (Parser parseC) (Parser parseD) (Parser parseE) (Parser parseF) (Parser parseG) =
+    Parser
+        (\s0 ->
+            case parseA s0 of
+                Bad committed x () ->
+                    Bad committed x ()
+
+                Good c1 a s1 ->
+                    case parseB s1 of
+                        Bad c2 x () ->
+                            Bad (c1 || c2) x ()
+
+                        Good c2 b s2 ->
+                            case parseC s2 of
+                                Bad c3 x () ->
+                                    Bad (c1 || c2 || c3) x ()
+
+                                Good c3 c s3 ->
+                                    case parseD s3 of
+                                        Bad c4 x () ->
+                                            Bad (c1 || c2 || c3 || c4) x ()
+
+                                        Good c4 d s4 ->
+                                            case parseE s4 of
+                                                Bad c5 x () ->
+                                                    Bad (c1 || c2 || c3 || c4 || c5) x ()
+
+                                                Good c5 e s5 ->
+                                                    case parseF s5 of
+                                                        Bad c6 x () ->
+                                                            Bad (c1 || c2 || c3 || c4 || c5 || c6) x ()
+
+                                                        Good c6 f s6 ->
+                                                            case parseG s6 of
+                                                                Bad c7 x () ->
+                                                                    Bad (c1 || c2 || c3 || c4 || c5 || c6 || c7) x ()
+
+                                                                Good c7 g s7 ->
+                                                                    Good (c1 || c2 || c3 || c4 || c5 || c6 || c7) (func { row = s0.row, column = s0.col } a b c d e f g { row = s7.row, column = s7.col }) s7
+        )
+
+
 map8 : (a -> b -> c -> d -> e -> f -> g -> h -> value) -> Parser a -> Parser b -> Parser c -> Parser d -> Parser e -> Parser f -> Parser g -> Parser h -> Parser value
 map8 func (Parser parseA) (Parser parseB) (Parser parseC) (Parser parseD) (Parser parseE) (Parser parseF) (Parser parseG) (Parser parseH) =
     Parser

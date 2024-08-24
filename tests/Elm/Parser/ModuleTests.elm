@@ -8,7 +8,7 @@ import Elm.Syntax.Exposing exposing (..)
 import Elm.Syntax.Expression exposing (Expression(..))
 import Elm.Syntax.Infix exposing (InfixDirection(..))
 import Elm.Syntax.Module exposing (..)
-import Elm.Syntax.Node exposing (Node(..))
+import Elm.Syntax.Node as Node exposing (Node(..))
 import Elm.Syntax.Pattern exposing (Pattern(..))
 import Elm.Syntax.TypeAnnotation exposing (TypeAnnotation(..))
 import Expect
@@ -497,7 +497,7 @@ fun2 n =
 
 expectAst : Module -> String -> Expect.Expectation
 expectAst =
-    ParserWithCommentsUtil.expectAst Parser.moduleDefinition
+    ParserWithCommentsUtil.expectAst (ParserFast.map (\mod -> { comments = mod.comments, syntax = Node.value mod.syntax }) Parser.moduleDefinition)
 
 
 parseCore : String -> ParserFast.Parser a -> Maybe a
