@@ -6,14 +6,14 @@ import Elm.Parser.Layout as Layout
 import Elm.Parser.Node as Node
 import Elm.Parser.Tokens as Tokens
 import Elm.Syntax.Module exposing (Module(..))
-import Elm.Syntax.Node exposing (Node)
+import Elm.Syntax.Node exposing (Node(..))
 import List.Extra
 import ParserFast exposing (Parser)
 import ParserWithComments exposing (WithComments)
 import Rope
 
 
-moduleDefinition : Parser (WithComments Module)
+moduleDefinition : Parser (WithComments (Node Module))
 moduleDefinition =
     ParserFast.oneOf3
         normalModuleDefinition
@@ -84,10 +84,10 @@ effectWhereClauses =
         whereBlock
 
 
-effectModuleDefinition : Parser (WithComments Module)
+effectModuleDefinition : Parser (WithComments (Node Module))
 effectModuleDefinition =
-    ParserFast.map7
-        (\commentsAfterEffect commentsAfterModule name commentsAfterName whereClauses commentsAfterWhereClauses exp ->
+    ParserFast.map7WithStartAndEndPosition
+        (\start commentsAfterEffect commentsAfterModule name commentsAfterName whereClauses commentsAfterWhereClauses exp end ->
             { comments =
                 commentsAfterEffect
                     |> Rope.prependTo commentsAfterModule
@@ -96,12 +96,14 @@ effectModuleDefinition =
                     |> Rope.prependTo commentsAfterWhereClauses
                     |> Rope.prependTo exp.comments
             , syntax =
-                EffectModule
-                    { moduleName = name
-                    , exposingList = exp.syntax
-                    , command = whereClauses.syntax.command
-                    , subscription = whereClauses.syntax.subscription
-                    }
+                Node { start = start, end = end }
+                    (EffectModule
+                        { moduleName = name
+                        , exposingList = exp.syntax
+                        , command = whereClauses.syntax.command
+                        , subscription = whereClauses.syntax.subscription
+                        }
+                    )
             }
         )
         (ParserFast.keywordFollowedBy "effect" Layout.maybeLayout)
@@ -113,19 +115,21 @@ effectModuleDefinition =
         (Node.parser exposeDefinition)
 
 
-normalModuleDefinition : Parser (WithComments Module)
+normalModuleDefinition : Parser (WithComments (Node Module))
 normalModuleDefinition =
-    ParserFast.map4
-        (\commentsAfterModule moduleName commentsAfterModuleName exposingList ->
+    ParserFast.map4WithStartAndEndPosition
+        (\start commentsAfterModule moduleName commentsAfterModuleName exposingList end ->
             { comments =
                 commentsAfterModule
                     |> Rope.prependTo commentsAfterModuleName
                     |> Rope.prependTo exposingList.comments
             , syntax =
-                NormalModule
-                    { moduleName = moduleName
-                    , exposingList = exposingList.syntax
-                    }
+                Node { start = start, end = end }
+                    (NormalModule
+                        { moduleName = moduleName
+                        , exposingList = exposingList.syntax
+                        }
+                    )
             }
         )
         (ParserFast.keywordFollowedBy "module" Layout.maybeLayout)
@@ -134,16 +138,18 @@ normalModuleDefinition =
         (Node.parser exposeDefinition)
 
 
-portModuleDefinition : Parser (WithComments Module)
+portModuleDefinition : Parser (WithComments (Node Module))
 portModuleDefinition =
-    ParserFast.map5
-        (\commentsAfterPort commentsAfterModule moduleName commentsAfterModuleName exposingList ->
+    ParserFast.map5WithStartAndEndPosition
+        (\start commentsAfterPort commentsAfterModule moduleName commentsAfterModuleName exposingList end ->
             { comments =
                 commentsAfterPort
                     |> Rope.prependTo commentsAfterModule
                     |> Rope.prependTo commentsAfterModuleName
                     |> Rope.prependTo exposingList.comments
-            , syntax = PortModule { moduleName = moduleName, exposingList = exposingList.syntax }
+            , syntax =
+                Node { start = start, end = end }
+                    (PortModule { moduleName = moduleName, exposingList = exposingList.syntax })
             }
         )
         (ParserFast.keywordFollowedBy "port" Layout.maybeLayout)

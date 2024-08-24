@@ -5,7 +5,6 @@ import Elm.Parser.Declarations exposing (declaration)
 import Elm.Parser.Imports exposing (importDefinition)
 import Elm.Parser.Layout as Layout
 import Elm.Parser.Modules exposing (moduleDefinition)
-import Elm.Parser.Node as Node
 import Elm.Syntax.Declaration exposing (Declaration)
 import Elm.Syntax.File exposing (File)
 import Elm.Syntax.Node exposing (Node)
@@ -30,7 +29,7 @@ file =
             }
         )
         (Layout.layoutStrictFollowedByWithComments
-            (Node.parser moduleDefinition)
+            moduleDefinition
         )
         (Layout.layoutStrictFollowedByComments
             (ParserFast.orSucceed
