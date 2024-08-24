@@ -26,8 +26,9 @@ exposeDefinition =
             (Layout.maybeLayoutUntilIgnored ParserFast.symbol "(")
         )
         Layout.optimisticLayout
-        exposingListInner
-        |> ParserFast.followedBySymbol ")"
+        (exposingListInner
+            |> ParserFast.followedBySymbol ")"
+        )
 
 
 exposingListInner : Parser (WithComments Exposing)
