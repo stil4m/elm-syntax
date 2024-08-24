@@ -1659,10 +1659,6 @@ parser like this:
             , int
             ]
 
-**Note:** If you want a parser for both `Int` and `Float` literals, check out
-[`number`](#number) below. It will be faster than using `oneOf` to combining
-`int` and `float` yourself.
-
 -}
 int : Parser Int
 int =
