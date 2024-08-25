@@ -1182,22 +1182,42 @@ lookBehindOneCharacterAndThen callback =
 
 infixLeftSubtraction : Int -> Parser (WithComments ExtensionRight) -> ( Int, Parser (WithComments ExtensionRight) )
 infixLeftSubtraction precedence possibilitiesForPrecedence =
-    infixHelp precedence
-        possibilitiesForPrecedence
-        (\next ->
-            lookBehindOneCharacterAndThen
-                (\c ->
-                    -- 'a-b', 'a - b' and 'a- b' are subtractions, but 'a -b' is an application on a negation
-                    if c == " " || c == "\n" || c == "\u{000D}" then
-                        Tokens.minusFollowedBySingleWhitespace next
-
-                    else
-                        ParserFast.symbolFollowedBy "-" next
+    let
+        subtractionWithWhitespaceAfterMinus : Parser (WithComments ExtensionRight)
+        subtractionWithWhitespaceAfterMinus =
+            ParserFast.map
+                (\e ->
+                    { comments = e.comments
+                    , syntax = ExtendRightByOperation { symbol = "-", direction = Infix.Left, expression = e.syntax }
+                    }
                 )
+                (Tokens.minusFollowedBySingleWhitespaceFollowedBy
+                    (extendedSubExpression possibilitiesForPrecedence)
+                )
+
+        subtractionWithoutWhitespace : Parser (WithComments ExtensionRight)
+        subtractionWithoutWhitespace =
+            ParserFast.map
+                (\e ->
+                    { comments = e.comments
+                    , syntax = ExtendRightByOperation { symbol = "-", direction = Infix.Left, expression = e.syntax }
+                    }
+                )
+                (ParserFast.symbolFollowedBy "-"
+                    (extendedSubExpression possibilitiesForPrecedence)
+                )
+    in
+    ( precedence
+    , lookBehindOneCharacterAndThen
+        (\c ->
+            -- 'a-b', 'a - b' and 'a- b' are subtractions, but 'a -b' is an application on a negation
+            if c == " " || c == "\n" || c == "\u{000D}" then
+                subtractionWithWhitespaceAfterMinus
+
+            else
+                subtractionWithoutWhitespace
         )
-        (\right ->
-            ExtendRightByOperation { symbol = "-", direction = Infix.Left, expression = right }
-        )
+    )
 
 
 infixHelp :
