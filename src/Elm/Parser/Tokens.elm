@@ -27,7 +27,6 @@ import Elm.Syntax.Range exposing (Range)
 import Hex
 import ParserFast
 import Set exposing (Set)
-import Unicode
 
 
 reservedList : Set String
@@ -148,11 +147,8 @@ tripleQuotedStringLiteralOfterTripleDoubleQuote =
 functionName : ParserFast.Parser String
 functionName =
     ParserFast.ifFollowedByWhileExceptWithoutLinebreak
-        (\c -> Char.isLower c || Unicode.isLower c)
-        (\c ->
-            -- checking for these common ranges early is much faster
-            Char.Extra.isAlphaNumFast c || c == '_' || Unicode.isAlphaNum c
-        )
+        Char.Extra.unicodeIsLowerFast
+        Char.Extra.unicodeIsAlphaNumOrUnderscoreFast
         reservedList
 
 
@@ -160,11 +156,8 @@ functionNameNode : ParserFast.Parser (Node String)
 functionNameNode =
     ParserFast.ifFollowedByWhileExceptMapWithStartAndEndPositionsWithoutLinebreak
         (\start name end -> Node { start = start, end = end } name)
-        (\c -> Char.isLower c || Unicode.isLower c)
-        (\c ->
-            -- checking for these common ranges early is much faster
-            Char.Extra.isAlphaNumFast c || c == '_' || Unicode.isAlphaNum c
-        )
+        Char.Extra.unicodeIsLowerFast
+        Char.Extra.unicodeIsAlphaNumOrUnderscoreFast
         reservedList
 
 
@@ -172,11 +165,8 @@ functionNameMapWithRange : (Range -> String -> res) -> ParserFast.Parser res
 functionNameMapWithRange rangeAndNameToResult =
     ParserFast.ifFollowedByWhileExceptMapWithStartAndEndPositionsWithoutLinebreak
         (\start name end -> rangeAndNameToResult { start = start, end = end } name)
-        (\c -> Char.isLower c || Unicode.isLower c)
-        (\c ->
-            -- checking for these common ranges early is much faster
-            Char.Extra.isAlphaNumFast c || c == '_' || Unicode.isAlphaNum c
-        )
+        Char.Extra.unicodeIsLowerFast
+        Char.Extra.unicodeIsAlphaNumOrUnderscoreFast
         reservedList
 
 
@@ -184,33 +174,24 @@ functionNameNotInfixNode : ParserFast.Parser (Node String)
 functionNameNotInfixNode =
     ParserFast.ifFollowedByWhileExceptMapWithStartAndEndPositionsWithoutLinebreak
         (\start name end -> Node { start = start, end = end } name)
-        (\c -> Char.isLower c || Unicode.isLower c)
-        (\c ->
-            -- checking for these common ranges early is much faster
-            Char.Extra.isAlphaNumFast c || c == '_' || Unicode.isAlphaNum c
-        )
+        Char.Extra.unicodeIsLowerFast
+        Char.Extra.unicodeIsAlphaNumOrUnderscoreFast
         (Set.insert "infix" reservedList)
 
 
 typeName : ParserFast.Parser String
 typeName =
     ParserFast.ifFollowedByWhileWithoutLinebreak
-        (\c -> Char.isUpper c || Unicode.isUpper c)
-        (\c ->
-            -- checking for these common ranges early is much faster
-            Char.Extra.isAlphaNumFast c || c == '_' || Unicode.isAlphaNum c
-        )
+        Char.Extra.unicodeIsUpperFast
+        Char.Extra.unicodeIsAlphaNumOrUnderscoreFast
 
 
 typeNameNode : ParserFast.Parser (Node String)
 typeNameNode =
     ParserFast.ifFollowedByWhileMapWithStartAndEndPositionWithoutLinebreak
         (\start name end -> Node { start = start, end = end } name)
-        (\c -> Char.isUpper c || Unicode.isUpper c)
-        (\c ->
-            -- checking for these common ranges early is much faster
-            Char.Extra.isAlphaNumFast c || c == '_' || Unicode.isAlphaNum c
-        )
+        Char.Extra.unicodeIsUpperFast
+        Char.Extra.unicodeIsAlphaNumOrUnderscoreFast
 
 
 allowedOperatorTokens : List String
