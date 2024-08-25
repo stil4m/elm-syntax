@@ -8,7 +8,6 @@ import Elm.Syntax.Expression as Expression exposing (Case, Expression(..), LetDe
 import Elm.Syntax.Infix as Infix
 import Elm.Syntax.Node as Node exposing (Node(..))
 import Elm.Syntax.Pattern exposing (Pattern)
-import Elm.Syntax.Range exposing (Location)
 import Elm.Syntax.Signature exposing (Signature)
 import ParserFast exposing (Parser)
 import ParserWithComments exposing (Comments, WithComments)
@@ -580,8 +579,8 @@ letDestructuringDeclaration =
 
 letFunction : Parser (WithComments (Node LetDeclaration))
 letFunction =
-    ParserFast.map6
-        (\((Node startNameRange _) as startNameNode) commentsAfterStartName maybeSignature arguments commentsAfterEqual expressionResult ->
+    ParserFast.map6WithStartPosition
+        (\startNameStart startNameNode commentsAfterStartName maybeSignature arguments commentsAfterEqual expressionResult ->
             let
                 allComments : Comments
                 allComments =
@@ -597,10 +596,6 @@ letFunction =
                         |> Rope.prependTo arguments.comments
                         |> Rope.prependTo commentsAfterEqual
                         |> Rope.prependTo expressionResult.comments
-
-                startNameStart : Location
-                startNameStart =
-                    startNameRange.start
             in
             case maybeSignature of
                 Nothing ->
