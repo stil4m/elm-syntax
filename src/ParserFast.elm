@@ -1828,12 +1828,16 @@ numberHelp consumers =
     in
     Parser
         (\state ->
-            case Parser.Advanced.run parserAdvancedNumberAndStringLength (String.slice state.offset (String.length state.src) state.src) of
-                Ok result ->
-                    Good False result.number (stateAddLengthToOffsetAndColumn result.length state)
+            if String.any Char.isDigit (String.slice state.offset (state.offset + 1) state.src) then
+                case Parser.Advanced.run parserAdvancedNumberAndStringLength (String.slice state.offset (String.length state.src) state.src) of
+                    Ok result ->
+                        Good False result.number (stateAddLengthToOffsetAndColumn result.length state)
 
-                Err _ ->
-                    Bad False (fromState state Parser.ExpectingNumber) ()
+                    Err _ ->
+                        Bad False (fromState state Parser.ExpectingNumber) ()
+
+            else
+                Bad False (fromState state Parser.ExpectingNumber) ()
         )
 
 
