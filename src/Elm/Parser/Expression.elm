@@ -8,6 +8,7 @@ import Elm.Syntax.Expression as Expression exposing (Case, Expression(..), LetDe
 import Elm.Syntax.Infix as Infix
 import Elm.Syntax.Node as Node exposing (Node(..))
 import Elm.Syntax.Pattern exposing (Pattern)
+import Elm.Syntax.Range exposing (Range)
 import Elm.Syntax.Signature exposing (Signature)
 import ParserFast exposing (Parser)
 import ParserWithComments exposing (Comments, WithComments)
@@ -842,15 +843,23 @@ maybeDotReferenceExpressionTuple =
 
 recordAccessFunctionExpression : Parser (WithComments (Node Expression))
 recordAccessFunctionExpression =
-    ParserFast.mapWithStartAndEndPosition
-        (\start field end ->
-            { comments = Rope.empty
-            , syntax =
-                Node { start = start, end = end }
-                    (RecordAccessFunction ("." ++ field))
-            }
+    ParserFast.symbolFollowedBy "."
+        (Tokens.functionNameMapWithRange
+            (\range field ->
+                { comments = Rope.empty
+                , syntax =
+                    Node (range |> rangeMoveStartLeftByOneColumn)
+                        (RecordAccessFunction ("." ++ field))
+                }
+            )
         )
-        (ParserFast.symbolFollowedBy "." Tokens.functionName)
+
+
+rangeMoveStartLeftByOneColumn : Range -> Range
+rangeMoveStartLeftByOneColumn range =
+    { start = { row = range.start.row, column = range.start.column - 1 }
+    , end = range.end
+    }
 
 
 tupledExpression : Parser (WithComments (Node Expression))
