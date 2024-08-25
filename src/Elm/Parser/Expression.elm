@@ -40,6 +40,13 @@ extensionRightByPrecedence =
     -- `a < b < c` is not valid Elm syntax
     [ recordAccessOptimisticLayout
     , infixLeft 1 (ParserFast.lazy (\() -> abovePrecedence1)) "|>"
+
+    -- to avoid ambiguity between negated arguments and subtraction,
+    -- calls must be checked AFTER subtraction
+    , infixLeftSubtraction 6 (ParserFast.lazy (\() -> abovePrecedence6))
+    , functionCall
+
+    --
     , infixRight 5 (ParserFast.lazy (\() -> abovePrecedence4)) "++"
     , infixRight 1 (ParserFast.lazy (\() -> abovePrecedence0)) "<|"
     , infixRight 9 (ParserFast.lazy (\() -> abovePrecedence8)) ">>"
@@ -47,7 +54,6 @@ extensionRightByPrecedence =
     , infixLeft 7 (ParserFast.lazy (\() -> abovePrecedence7)) "*"
     , infixRight 5 (ParserFast.lazy (\() -> abovePrecedence4)) "::"
     , infixLeft 6 (ParserFast.lazy (\() -> abovePrecedence6)) "+"
-    , infixLeftSubtraction 6 (ParserFast.lazy (\() -> abovePrecedence6))
     , infixLeft 6 (ParserFast.lazy (\() -> abovePrecedence6)) "|."
     , infixRight 3 (ParserFast.lazy (\() -> abovePrecedence2)) "&&"
     , infixLeft 5 (ParserFast.lazy (\() -> abovePrecedence5)) "|="
@@ -63,10 +69,6 @@ extensionRightByPrecedence =
     , infixLeft 8 (ParserFast.lazy (\() -> abovePrecedence8)) "<?>"
     , infixNonAssociative 4 (ParserFast.lazy (\() -> abovePrecedence4)) "<"
     , infixRight 8 (ParserFast.lazy (\() -> abovePrecedence7)) "^"
-
-    -- function application must be last
-    -- TODO validate function application arguments (issue #209)
-    , functionCall
     ]
 
 
