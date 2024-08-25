@@ -24,7 +24,6 @@ import Char
 import Char.Extra
 import Elm.Syntax.Node exposing (Node(..))
 import Elm.Syntax.Range exposing (Range)
-import Hex
 import ParserFast
 import Set exposing (Set)
 
@@ -84,7 +83,15 @@ escapedCharValueMap charToRes =
 
 hexStringToInt : String -> Int
 hexStringToInt string =
-    String.foldr (\c i -> 16 ^ i * charToHex c) 0 string
+    String.foldr
+        (\c soFar ->
+            { exponent = soFar.exponent + 1
+            , result = soFar.result + 16 ^ soFar.exponent * charToHex c
+            }
+        )
+        { exponent = 0, result = 0 }
+        string
+        |> .result
 
 
 charToHex : Char -> Int
