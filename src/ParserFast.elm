@@ -2114,7 +2114,7 @@ keyword kwd res =
 
 isSubCharAlphaNumOrUnderscore : Int -> String -> Bool
 isSubCharAlphaNumOrUnderscore offset string =
-    String.any (\c -> Char.Extra.isAlphaNumFast c || c == '_')
+    String.any Char.Extra.isLatinAlphaNumOrUnderscoreFast
         (String.slice offset (offset + 1) string)
 
 
