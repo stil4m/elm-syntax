@@ -12,7 +12,7 @@ import Elm.Syntax.Expression exposing (Expression)
 import Elm.Syntax.Infix as Infix
 import Elm.Syntax.Node as Node exposing (Node(..))
 import Elm.Syntax.Pattern exposing (Pattern)
-import Elm.Syntax.Range exposing (Location)
+import Elm.Syntax.Range exposing (Location, Range)
 import Elm.Syntax.Signature exposing (Signature)
 import Elm.Syntax.Type exposing (ValueConstructor)
 import Elm.Syntax.TypeAnnotation exposing (TypeAnnotation)
@@ -302,8 +302,8 @@ functionAfterDocumentation =
 
 functionDeclarationWithoutDocumentation : Parser (WithComments (Node Declaration))
 functionDeclarationWithoutDocumentation =
-    ParserFast.map6
-        (\((Node startNameRange _) as startNameNode) commentsAfterStartName maybeSignature arguments commentsAfterEqual result ->
+    ParserFast.map6WithStartPosition
+        (\startNameStart startNameNode commentsAfterStartName maybeSignature arguments commentsAfterEqual result ->
             let
                 allComments : Comments
                 allComments =
@@ -319,10 +319,6 @@ functionDeclarationWithoutDocumentation =
                         |> Rope.prependTo arguments.comments
                         |> Rope.prependTo commentsAfterEqual
                         |> Rope.prependTo result.comments
-
-                startNameStart : Location
-                startNameStart =
-                    startNameRange.start
             in
             case maybeSignature of
                 Nothing ->
@@ -756,18 +752,18 @@ valueConstructor =
     ParserFast.map2
         (\((Node nameRange _) as name) argumentsReverse ->
             let
-                fullEnd : Location
-                fullEnd =
+                fullRange : Range
+                fullRange =
                     case argumentsReverse.syntax of
                         (Node lastArgRange _) :: _ ->
-                            lastArgRange.end
+                            { start = nameRange.start, end = lastArgRange.end }
 
                         [] ->
-                            nameRange.end
+                            nameRange
             in
             { comments = argumentsReverse.comments
             , syntax =
-                Node { start = nameRange.start, end = fullEnd }
+                Node fullRange
                     { name = name
                     , arguments = List.reverse argumentsReverse.syntax
                     }
