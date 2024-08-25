@@ -1,7 +1,7 @@
 module Elm.Parser.Tokens exposing
     ( inToken
     , equal, parensEnd
-    , minusFollowedBySingleWhitespace
+    , minusFollowedBySingleWhitespaceFollowedBy
     , prefixOperatorToken, allowedOperatorTokens
     , characterLiteral, singleOrTripleQuotedStringLiteral
     , functionName, functionNameNode, functionNameMapWithRange, functionNameNotInfixNode, typeName, typeNameNode
@@ -12,7 +12,7 @@ module Elm.Parser.Tokens exposing
 @docs inToken
 
 @docs equal, parensEnd
-@docs minusFollowedBySingleWhitespace
+@docs minusFollowedBySingleWhitespaceFollowedBy
 @docs prefixOperatorToken, allowedOperatorTokens
 
 @docs characterLiteral, singleOrTripleQuotedStringLiteral
@@ -306,8 +306,8 @@ prefixOperatorToken =
         |> ParserFast.oneOf
 
 
-minusFollowedBySingleWhitespace : ParserFast.Parser res -> ParserFast.Parser res
-minusFollowedBySingleWhitespace next =
+minusFollowedBySingleWhitespaceFollowedBy : ParserFast.Parser res -> ParserFast.Parser res
+minusFollowedBySingleWhitespaceFollowedBy next =
     ParserFast.oneOf3
         (ParserFast.symbolFollowedBy "- " next)
         (ParserFast.symbolFollowedBy "-\n" next)
