@@ -1191,7 +1191,7 @@ infixLeftSubtraction precedence possibilitiesForPrecedence =
                     , syntax = ExtendRightByOperation { symbol = "-", direction = Infix.Left, expression = e.syntax }
                     }
                 )
-                (Tokens.minusFollowedBySingleWhitespaceFollowedBy
+                (ParserFast.chompIfWhitespaceFollowedBy
                     (extendedSubExpression possibilitiesForPrecedence)
                 )
 
@@ -1203,19 +1203,26 @@ infixLeftSubtraction precedence possibilitiesForPrecedence =
                     , syntax = ExtendRightByOperation { symbol = "-", direction = Infix.Left, expression = e.syntax }
                     }
                 )
-                (ParserFast.symbolFollowedBy "-"
-                    (extendedSubExpression possibilitiesForPrecedence)
-                )
+                (extendedSubExpression possibilitiesForPrecedence)
     in
     ( precedence
-    , lookBehindOneCharacterAndThen
-        (\c ->
-            -- 'a-b', 'a - b' and 'a- b' are subtractions, but 'a -b' is an application on a negation
-            if c == " " || c == "\n" || c == "\u{000D}" then
-                subtractionWithWhitespaceAfterMinus
+    , ParserFast.symbolBacktrackableFollowedBy "-"
+        (ParserFast.offsetSourceAndThen
+            (\offset source ->
+                -- 'a-b', 'a - b' and 'a- b' are subtractions, but 'a -b' is an application on a negation
+                case String.slice (offset - 2) (offset - 1) source of
+                    " " ->
+                        subtractionWithWhitespaceAfterMinus
 
-            else
-                subtractionWithoutWhitespace
+                    "\n" ->
+                        subtractionWithWhitespaceAfterMinus
+
+                    "\u{000D}" ->
+                        subtractionWithWhitespaceAfterMinus
+
+                    _ ->
+                        subtractionWithoutWhitespace
+            )
         )
     )
 
