@@ -1,10 +1,10 @@
 module ParserFast exposing
     ( Parser, run
-    , int, intOrHex, floatOrIntOrHex, symbol, symbolBacktrackable, symbolWithEndPosition, symbolWithStartAndEndPosition, symbolFollowedBy, followedBySymbol, keyword, keywordFollowedBy, while, whileWithoutLinebreak, whileMap, ifFollowedByWhileWithoutLinebreak, ifFollowedByWhileMapWithoutLinebreak, ifFollowedByWhileMapWithStartAndEndPositionWithoutLinebreak, ifFollowedByWhileExceptWithoutLinebreak, ifFollowedByWhileExceptMapWithStartAndEndPositionsWithoutLinebreak, anyChar, end
+    , int, intOrHex, floatOrIntOrHex, symbol, symbolBacktrackable, symbolWithEndPosition, symbolWithStartAndEndPosition, symbolFollowedBy, symbolBacktrackableFollowedBy, followedBySymbol, keyword, keywordFollowedBy, while, whileWithoutLinebreak, whileMap, ifFollowedByWhileWithoutLinebreak, ifFollowedByWhileMapWithoutLinebreak, ifFollowedByWhileMapWithStartAndEndPositionWithoutLinebreak, ifFollowedByWhileExceptWithoutLinebreak, ifFollowedByWhileExceptMapWithStartAndEndPositionsWithoutLinebreak, anyChar, end
     , succeed, problem, lazy, map, map2, map2WithStartPosition, map2WithStartAndEndPosition, map3, map3WithStartAndEndPosition, map4, map4WithStartAndEndPosition, map5, map5WithStartPosition, map5WithStartAndEndPosition, map6, map6WithStartPosition, map6WithStartAndEndPosition, map7WithStartAndEndPosition, map8WithStartPosition, map9WithStartAndEndPosition, validate
     , orSucceed, mapOrSucceed, map2OrSucceed, map3OrSucceed, map4OrSucceed, oneOf2, oneOf2Map, oneOf2OrSucceed, oneOf3, oneOf4, oneOf5, oneOf7, oneOf10, oneOf14, oneOf
     , loopWhileSucceeds, loopUntil
-    , chompWhileWhitespaceFollowedBy, nestableMultiComment
+    , chompIfWhitespaceFollowedBy, chompWhileWhitespaceFollowedBy, nestableMultiComment
     , withIndentSetToColumn, withIndent, columnIndentAndThen, validateEndColumnIndentation, validateEndColumnIndentationBacktrackable
     , mapWithStartAndEndPosition, columnAndThen, offsetSourceAndThen
     )
@@ -13,7 +13,7 @@ module ParserFast exposing
 
 @docs Parser, run
 
-@docs int, intOrHex, floatOrIntOrHex, symbol, symbolBacktrackable, symbolWithEndPosition, symbolWithStartAndEndPosition, symbolFollowedBy, followedBySymbol, keyword, keywordFollowedBy, while, whileWithoutLinebreak, whileMap, ifFollowedByWhileWithoutLinebreak, ifFollowedByWhileMapWithoutLinebreak, ifFollowedByWhileMapWithStartAndEndPositionWithoutLinebreak, ifFollowedByWhileExceptWithoutLinebreak, ifFollowedByWhileExceptMapWithStartAndEndPositionsWithoutLinebreak, anyChar, end
+@docs int, intOrHex, floatOrIntOrHex, symbol, symbolBacktrackable, symbolWithEndPosition, symbolWithStartAndEndPosition, symbolFollowedBy, symbolBacktrackableFollowedBy, followedBySymbol, keyword, keywordFollowedBy, while, whileWithoutLinebreak, whileMap, ifFollowedByWhileWithoutLinebreak, ifFollowedByWhileMapWithoutLinebreak, ifFollowedByWhileMapWithStartAndEndPositionWithoutLinebreak, ifFollowedByWhileExceptWithoutLinebreak, ifFollowedByWhileExceptMapWithStartAndEndPositionsWithoutLinebreak, anyChar, end
 
 
 # Flow
@@ -27,7 +27,7 @@ module ParserFast exposing
 
 # Whitespace
 
-@docs chompWhileWhitespaceFollowedBy, nestableMultiComment
+@docs chompIfWhitespaceFollowedBy, chompWhileWhitespaceFollowedBy, nestableMultiComment
 
 
 # Indentation, Positions and source
@@ -2041,6 +2041,42 @@ symbolFollowedBy str (Parser parseNext) =
         )
 
 
+{-| Make sure the given String isn't empty and does not contain \\n
+or 2-part UTF-16 characters.
+-}
+symbolBacktrackableFollowedBy : String -> Parser next -> Parser next
+symbolBacktrackableFollowedBy str (Parser parseNext) =
+    let
+        expecting : Parser.Problem
+        expecting =
+            Parser.ExpectingSymbol str
+
+        strLength : Int
+        strLength =
+            String.length str
+    in
+    Parser
+        (\s ->
+            let
+                newOffset : Int
+                newOffset =
+                    s.offset + strLength
+            in
+            if String.slice s.offset newOffset s.src == str ++ "" then
+                parseNext
+                    { src = s.src
+                    , offset = newOffset
+                    , indent = s.indent
+                    , row = s.row
+                    , col = s.col + strLength
+                    }
+                    |> pStepBacktrack
+
+            else
+                Bad False (fromState s expecting) ()
+        )
+
+
 pStepCommit : PStep x a -> PStep x a
 pStepCommit pStep =
     case pStep of
@@ -2049,6 +2085,16 @@ pStepCommit pStep =
 
         Bad _ errors () ->
             Bad True errors ()
+
+
+pStepBacktrack : PStep x a -> PStep x a
+pStepBacktrack pStep =
+    case pStep of
+        Good _ a state ->
+            Good False a state
+
+        Bad _ errors () ->
+            Bad False errors ()
 
 
 {-| Parse keywords like `let`, `case`, and `type`.
@@ -2347,6 +2393,46 @@ chompWhileWhitespaceFollowedBy (Parser parseNext) =
 
             else
                 parseNext s1
+        )
+
+
+chompIfWhitespaceFollowedBy : Parser next -> Parser next
+chompIfWhitespaceFollowedBy (Parser parseNext) =
+    Parser
+        (\s ->
+            case String.slice s.offset (s.offset + 1) s.src of
+                " " ->
+                    parseNext
+                        { src = s.src
+                        , offset = s.offset + 1
+                        , indent = s.indent
+                        , row = s.row
+                        , col = s.col + 1
+                        }
+                        |> pStepCommit
+
+                "\n" ->
+                    parseNext
+                        { src = s.src
+                        , offset = s.offset + 1
+                        , indent = s.indent
+                        , row = s.row + 1
+                        , col = 1
+                        }
+                        |> pStepCommit
+
+                "\u{000D}" ->
+                    parseNext
+                        { src = s.src
+                        , offset = s.offset + 1
+                        , indent = s.indent
+                        , row = s.row
+                        , col = s.col + 1
+                        }
+                        |> pStepCommit
+
+                _ ->
+                    Bad False (fromState s Parser.UnexpectedChar) ()
         )
 
 
