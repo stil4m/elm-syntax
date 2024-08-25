@@ -13,7 +13,7 @@ module ParserFast exposing
 
 @docs Parser, run
 
-@docs int, intOrHex, floatOrIntOrHex, symbol, symbolBacktrackable, symbolWithEndPosition, symbolWithStartAndEndPosition, symbolFollowedBy, followedBySymbol, keyword, keywordFollowedBy, while, whileWithoutLinebreak, whileMap, ifFollowedByWhileWithoutLinebreak, ifFollowedByWhileMapWithStartAndEndPositionWithoutLinebreak, ifFollowedByWhileExceptWithoutLinebreak, ifFollowedByWhileExceptMapWithStartAndEndPositionsWithoutLinebreak, anyChar, end
+@docs int, intOrHex, floatOrIntOrHex, symbol, symbolBacktrackable, symbolWithEndPosition, symbolWithStartAndEndPosition, symbolFollowedBy, followedBySymbol, keyword, keywordFollowedBy, while, whileWithoutLinebreak, whileMap, ifFollowedByWhileWithoutLinebreak, ifFollowedByWhileMapWithoutLinebreak, ifFollowedByWhileMapWithStartAndEndPositionWithoutLinebreak, ifFollowedByWhileExceptWithoutLinebreak, ifFollowedByWhileExceptMapWithStartAndEndPositionsWithoutLinebreak, anyChar, end
 
 
 # Flow
@@ -2674,6 +2674,34 @@ ifFollowedByWhileMapWithStartAndEndPositionWithoutLinebreak rangeAndChompedToRes
                         (String.slice s0.offset s1.offset s0.src)
                         { row = s1.row, column = s1.col }
                     )
+                    s1
+        )
+
+
+ifFollowedByWhileMapWithoutLinebreak :
+    (String -> res)
+    -> (Char -> Bool)
+    -> (Char -> Bool)
+    -> Parser res
+ifFollowedByWhileMapWithoutLinebreak chompedToRes firstIsOkay afterFirstIsOkay =
+    Parser
+        (\s0 ->
+            let
+                firstOffset : Int
+                firstOffset =
+                    isSubCharWithoutLinebreak firstIsOkay s0.offset s0.src
+            in
+            if firstOffset == -1 then
+                Bad False (fromState s0 Parser.UnexpectedChar) ()
+
+            else
+                let
+                    s1 : State
+                    s1 =
+                        chompWhileWithoutLinebreakHelp afterFirstIsOkay firstOffset s0.row (s0.col + 1) s0.src s0.indent
+                in
+                Good True
+                    (chompedToRes (String.slice s0.offset s1.offset s0.src))
                     s1
         )
 
