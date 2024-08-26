@@ -138,14 +138,14 @@ functionCall =
 glslExpressionAfterOpeningSquareBracket : Parser (WithComments (Node Expression))
 glslExpressionAfterOpeningSquareBracket =
     ParserFast.symbolFollowedBy "glsl|"
-        (ParserFast.mapWithStartAndEndLocation
-            (\start s end ->
+        (ParserFast.mapWithRange
+            (\range s ->
                 { comments = Rope.empty
                 , syntax =
                     Node
                         -- TODO for v8: don't include extra end width (from bug in elm/parser) in range
-                        { start = { row = start.row, column = start.column - 6 }
-                        , end = { row = end.row, column = end.column + 2 }
+                        { start = { row = range.start.row, column = range.start.column - 6 }
+                        , end = { row = range.end.row, column = range.end.column + 2 }
                         }
                         (GLSLExpression s)
                 }
@@ -174,13 +174,13 @@ expressionAfterOpeningSquareBracket : Parser (WithComments (Node Expression))
 expressionAfterOpeningSquareBracket =
     ParserFast.oneOf2
         glslExpressionAfterOpeningSquareBracket
-        (ParserFast.map2WithStartAndEndLocation
-            (\start commentsBefore elements end ->
+        (ParserFast.map2WithRange
+            (\range commentsBefore elements ->
                 { comments = commentsBefore |> Rope.prependTo elements.comments
                 , syntax =
                     Node
-                        { start = { row = start.row, column = start.column - 1 }
-                        , end = end
+                        { start = { row = range.start.row, column = range.start.column - 1 }
+                        , end = range.end
                         }
                         elements.syntax
                 }
@@ -216,12 +216,12 @@ expressionAfterOpeningSquareBracket =
 
 recordExpression : Parser (WithComments (Node Expression))
 recordExpression =
-    ParserFast.map2WithStartAndEndLocation
-        (\start commentsBefore afterCurly end ->
+    ParserFast.map2WithRange
+        (\range commentsBefore afterCurly ->
             { comments =
                 commentsBefore
                     |> Rope.prependTo afterCurly.comments
-            , syntax = Node { start = start, end = end } afterCurly.syntax
+            , syntax = Node range afterCurly.syntax
             }
         )
         (ParserFast.symbolFollowedBy "{" Layout.maybeLayout)
@@ -300,15 +300,14 @@ recordFields =
 
 recordSetterNodeWithLayout : Parser (WithComments (Node RecordSetter))
 recordSetterNodeWithLayout =
-    ParserFast.map5WithStartAndEndLocation
-        (\start name commentsAfterFunctionName commentsAfterEquals expressionResult commentsAfterExpression end ->
+    ParserFast.map5WithRange
+        (\range name commentsAfterFunctionName commentsAfterEquals expressionResult commentsAfterExpression ->
             { comments =
                 commentsAfterFunctionName
                     |> Rope.prependTo commentsAfterEquals
                     |> Rope.prependTo expressionResult.comments
                     |> Rope.prependTo commentsAfterExpression
-            , syntax =
-                Node { start = start, end = end } ( name, expressionResult.syntax )
+            , syntax = Node range ( name, expressionResult.syntax )
             }
         )
         Tokens.functionNameNode
@@ -322,10 +321,10 @@ recordSetterNodeWithLayout =
 
 literalExpression : Parser (WithComments (Node Expression))
 literalExpression =
-    ParserFast.mapWithStartAndEndLocation
-        (\start string end ->
+    ParserFast.mapWithRange
+        (\range string ->
             { comments = Rope.empty
-            , syntax = Node { start = start, end = end } (Literal string)
+            , syntax = Node range (Literal string)
             }
         )
         Tokens.singleOrTripleQuotedStringLiteral
@@ -333,10 +332,10 @@ literalExpression =
 
 charLiteralExpression : Parser (WithComments (Node Expression))
 charLiteralExpression =
-    ParserFast.mapWithStartAndEndLocation
-        (\start char end ->
+    ParserFast.mapWithRange
+        (\range char ->
             { comments = Rope.empty
-            , syntax = Node { start = start, end = end } (CharLiteral char)
+            , syntax = Node range (CharLiteral char)
             }
         )
         Tokens.characterLiteral
@@ -730,10 +729,10 @@ parameterPatternsEqual =
 
 numberExpression : Parser (WithComments (Node Expression))
 numberExpression =
-    ParserFast.mapWithStartAndEndLocation
-        (\start n end ->
+    ParserFast.mapWithRange
+        (\range n ->
             { comments = Rope.empty
-            , syntax = Node { start = start, end = end } n
+            , syntax = Node range n
             }
         )
         (ParserFast.floatOrIntOrHex
@@ -799,11 +798,11 @@ negationOperation =
 
 qualifiedOrVariantOrRecordConstructorReferenceExpression : Parser (WithComments (Node Expression))
 qualifiedOrVariantOrRecordConstructorReferenceExpression =
-    ParserFast.map2WithStartAndEndLocation
-        (\start firstName after end ->
+    ParserFast.map2WithRange
+        (\range firstName after ->
             { comments = Rope.empty
             , syntax =
-                Node { start = start, end = end }
+                Node range
                     (case after of
                         Nothing ->
                             FunctionOrValue [] firstName
@@ -935,8 +934,15 @@ allowedPrefixOperatorExceptMinusThenClosingParensOneOf =
 
 tupledExpressionInnerAfterOpeningParens : Parser (WithComments (Node Expression))
 tupledExpressionInnerAfterOpeningParens =
-    ParserFast.map4WithStartAndEndLocation
-        (\start commentsBeforeFirstPart firstPart commentsAfterFirstPart tailPartsReverse end ->
+    ParserFast.map4WithRange
+        (\rangeAfterOpeningParens commentsBeforeFirstPart firstPart commentsAfterFirstPart tailPartsReverse ->
+            let
+                range : Range
+                range =
+                    { start = { row = rangeAfterOpeningParens.start.row, column = rangeAfterOpeningParens.start.column - 1 }
+                    , end = rangeAfterOpeningParens.end
+                    }
+            in
             case tailPartsReverse.syntax of
                 [] ->
                     { comments =
@@ -944,8 +950,7 @@ tupledExpressionInnerAfterOpeningParens =
                             |> Rope.prependTo firstPart.comments
                             |> Rope.prependTo commentsAfterFirstPart
                     , syntax =
-                        Node { start = { row = start.row, column = start.column - 1 }, end = end }
-                            (ParenthesizedExpression firstPart.syntax)
+                        Node range (ParenthesizedExpression firstPart.syntax)
                     }
 
                 _ ->
@@ -955,7 +960,7 @@ tupledExpressionInnerAfterOpeningParens =
                             |> Rope.prependTo commentsAfterFirstPart
                             |> Rope.prependTo tailPartsReverse.comments
                     , syntax =
-                        Node { start = { row = start.row, column = start.column - 1 }, end = end }
+                        Node range
                             (TupledExpression (firstPart.syntax :: List.reverse tailPartsReverse.syntax))
                     }
         )

@@ -11,15 +11,13 @@ import Rope
 
 exposeDefinition : Parser (WithComments (Node Exposing))
 exposeDefinition =
-    ParserFast.map3WithStartAndEndLocation
-        (\start commentsAfterExposing commentsBefore exposingListInnerResult end ->
+    ParserFast.map3WithRange
+        (\range commentsAfterExposing commentsBefore exposingListInnerResult ->
             { comments =
                 commentsAfterExposing
                     |> Rope.prependTo commentsBefore
                     |> Rope.prependTo exposingListInnerResult.comments
-            , syntax =
-                Node { start = start, end = end }
-                    exposingListInnerResult.syntax
+            , syntax = Node range exposingListInnerResult.syntax
             }
         )
         (ParserFast.symbolFollowedBy "exposing"
@@ -55,11 +53,10 @@ exposingListInner =
                 )
             )
         )
-        (ParserFast.mapWithStartAndEndLocation
-            (\start commentsAfterDotDot end ->
+        (ParserFast.mapWithRange
+            (\range commentsAfterDotDot ->
                 { comments = commentsAfterDotDot
-                , syntax =
-                    All { start = start, end = end }
+                , syntax = All range
                 }
             )
             (ParserFast.symbolFollowedBy ".." Layout.maybeLayout)
@@ -76,10 +73,10 @@ exposable =
 
 infixExpose : ParserFast.Parser (WithComments (Node TopLevelExpose))
 infixExpose =
-    ParserFast.map2WithStartAndEndLocation
-        (\start infixName () end ->
+    ParserFast.map2WithRange
+        (\range infixName () ->
             { comments = Rope.empty
-            , syntax = Node { start = start, end = end } (InfixExpose infixName)
+            , syntax = Node range (InfixExpose infixName)
             }
         )
         (ParserFast.symbolFollowedBy "("
@@ -93,21 +90,17 @@ infixExpose =
 
 typeExpose : Parser (WithComments (Node TopLevelExpose))
 typeExpose =
-    ParserFast.map2WithStartAndEndLocation
-        (\start typeName open end ->
+    ParserFast.map2WithRange
+        (\range typeName open ->
             case open of
                 Nothing ->
                     { comments = Rope.empty
-                    , syntax =
-                        Node { start = start, end = end }
-                            (TypeOrAliasExpose typeName)
+                    , syntax = Node range (TypeOrAliasExpose typeName)
                     }
 
                 Just openRange ->
                     { comments = openRange.comments
-                    , syntax =
-                        Node { start = start, end = end }
-                            (TypeExpose { name = typeName, open = Just openRange.syntax })
+                    , syntax = Node range (TypeExpose { name = typeName, open = Just openRange.syntax })
                     }
         )
         Tokens.typeName
@@ -119,9 +112,9 @@ typeExpose =
                     }
             )
             Layout.maybeLayoutBacktrackable
-            (ParserFast.map2WithStartAndEndLocation
-                (\start left right end ->
-                    { comments = left |> Rope.prependTo right, range = { start = start, end = end } }
+            (ParserFast.map2WithRange
+                (\range left right ->
+                    { comments = left |> Rope.prependTo right, range = range }
                 )
                 (ParserFast.symbolFollowedBy "("
                     (Layout.maybeLayoutUntilIgnored ParserFast.symbol "..")

@@ -72,12 +72,12 @@ maybeComposedWith =
 
 parensPattern : Parser (WithComments (Node Pattern))
 parensPattern =
-    ParserFast.map2WithStartAndEndLocation
-        (\start commentsBeforeHead contentResult end ->
+    ParserFast.map2WithRange
+        (\range commentsBeforeHead contentResult ->
             { comments =
                 commentsBeforeHead
                     |> Rope.prependTo contentResult.comments
-            , syntax = Node { start = start, end = end } contentResult.syntax
+            , syntax = Node range contentResult.syntax
             }
         )
         (ParserFast.symbolFollowedBy "(" Layout.maybeLayout)
@@ -132,27 +132,25 @@ numberPart =
 charPattern : Parser (WithComments (Node Pattern))
 charPattern =
     Tokens.characterLiteral
-        |> ParserFast.mapWithStartAndEndLocation
-            (\start char end ->
-                { comments = Rope.empty, syntax = Node { start = start, end = end } (CharPattern char) }
+        |> ParserFast.mapWithRange
+            (\range char ->
+                { comments = Rope.empty, syntax = Node range (CharPattern char) }
             )
 
 
 listPattern : Parser (WithComments (Node Pattern))
 listPattern =
-    ParserFast.map2WithStartAndEndLocation
-        (\start commentsBeforeElements maybeElements end ->
+    ParserFast.map2WithRange
+        (\range commentsBeforeElements maybeElements ->
             case maybeElements of
                 Nothing ->
                     { comments = commentsBeforeElements
-                    , syntax = Node { start = start, end = end } patternListEmpty
+                    , syntax = Node range patternListEmpty
                     }
 
                 Just elements ->
                     { comments = commentsBeforeElements |> Rope.prependTo elements.comments
-                    , syntax =
-                        Node { start = start, end = end }
-                            (ListPattern elements.syntax)
+                    , syntax = Node range (ListPattern elements.syntax)
                     }
         )
         (ParserFast.symbolFollowedBy "[" Layout.maybeLayout)
@@ -217,20 +215,20 @@ patternNotDirectlyComposing =
 
 allPattern : Parser (WithComments (Node Pattern))
 allPattern =
-    ParserFast.symbolWithStartAndEndLocation "_"
-        (\start end ->
+    ParserFast.symbolWithRange "_"
+        (\range ->
             { comments = Rope.empty
-            , syntax = Node { start = start, end = end } AllPattern
+            , syntax = Node range AllPattern
             }
         )
 
 
 unitPattern : Parser (WithComments (Node Pattern))
 unitPattern =
-    ParserFast.symbolWithStartAndEndLocation "()"
-        (\start end ->
+    ParserFast.symbolWithRange "()"
+        (\range ->
             { comments = Rope.empty
-            , syntax = Node { start = start, end = end } UnitPattern
+            , syntax = Node range UnitPattern
             }
         )
 
@@ -238,11 +236,10 @@ unitPattern =
 stringPattern : Parser (WithComments (Node Pattern))
 stringPattern =
     Tokens.singleOrTripleQuotedStringLiteral
-        |> ParserFast.mapWithStartAndEndLocation
-            (\start string end ->
+        |> ParserFast.mapWithRange
+            (\range string ->
                 { comments = Rope.empty
-                , syntax =
-                    Node { start = start, end = end } (StringPattern string)
+                , syntax = Node range (StringPattern string)
                 }
             )
 
@@ -265,11 +262,11 @@ maybeDotTypeNamesTuple =
 
 qualifiedPatternWithConsumeArgs : Parser (WithComments (Node Pattern))
 qualifiedPatternWithConsumeArgs =
-    ParserFast.map3WithStartAndEndLocation
-        (\start startName afterStartName args end ->
+    ParserFast.map3WithRange
+        (\range startName afterStartName args ->
             { comments = args.comments
             , syntax =
-                Node { start = start, end = end }
+                Node range
                     (NamedPattern
                         (case afterStartName of
                             Nothing ->
@@ -299,11 +296,11 @@ qualifiedPatternWithConsumeArgs =
 
 qualifiedPatternWithoutConsumeArgs : Parser (WithComments (Node Pattern))
 qualifiedPatternWithoutConsumeArgs =
-    ParserFast.map2WithStartAndEndLocation
-        (\start firstName after end ->
+    ParserFast.map2WithRange
+        (\range firstName after ->
             { comments = Rope.empty
             , syntax =
-                Node { start = start, end = end }
+                Node range
                     (NamedPattern
                         (case after of
                             Nothing ->
@@ -322,18 +319,18 @@ qualifiedPatternWithoutConsumeArgs =
 
 recordPattern : Parser (WithComments (Node Pattern))
 recordPattern =
-    ParserFast.map2WithStartAndEndLocation
-        (\start commentsBeforeElements maybeElements end ->
+    ParserFast.map2WithRange
+        (\range commentsBeforeElements maybeElements ->
             case maybeElements of
                 Nothing ->
                     { comments = commentsBeforeElements
-                    , syntax = Node { start = start, end = end } patternRecordEmpty
+                    , syntax = Node range patternRecordEmpty
                     }
 
                 Just elements ->
                     { comments = commentsBeforeElements |> Rope.prependTo elements.comments
                     , syntax =
-                        Node { start = start, end = end }
+                        Node range
                             (RecordPattern elements.syntax)
                     }
         )

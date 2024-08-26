@@ -438,8 +438,8 @@ parameterPatternsEqual =
 
 infixDeclaration : Parser (WithComments (Node Declaration))
 infixDeclaration =
-    ParserFast.map9WithStartAndEndLocation
-        (\start commentsAfterInfix direction commentsAfterDirection precedence commentsAfterPrecedence operator commentsAfterOperator commentsAfterEqual fn end ->
+    ParserFast.map9WithRange
+        (\range commentsAfterInfix direction commentsAfterDirection precedence commentsAfterPrecedence operator commentsAfterOperator commentsAfterEqual fn ->
             { comments =
                 commentsAfterInfix
                     |> Rope.prependTo commentsAfterDirection
@@ -447,7 +447,7 @@ infixDeclaration =
                     |> Rope.prependTo commentsAfterOperator
                     |> Rope.prependTo commentsAfterEqual
             , syntax =
-                Node { start = start, end = end }
+                Node range
                     (Declaration.InfixDeclaration
                         { direction = direction, precedence = precedence, operator = operator, function = fn }
                     )
@@ -458,8 +458,7 @@ infixDeclaration =
         Layout.maybeLayout
         (Node.parserCore ParserFast.int)
         Layout.maybeLayout
-        (ParserFast.mapWithStartAndEndLocation
-            (\start prefixOperator end -> Node { start = start, end = end } prefixOperator)
+        (ParserFast.mapWithRange Node
             (ParserFast.symbolFollowedBy "(" Tokens.prefixOperatorToken
                 |> ParserFast.followedBySymbol ")"
             )
