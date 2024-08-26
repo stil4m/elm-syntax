@@ -44,6 +44,20 @@ import Parser
 import Parser.Advanced exposing ((|=))
 
 
+type Problem
+    = ExpectingNumber Int Int ()
+
+    | ExpectingSymbol Int Int String
+    | ExpectingAnyChar Int Int ()
+    | ExpectingKeyword Int Int String
+    | ExpectingEnd Int Int ()
+    | ExpectingCharSatisfyingPredicate Int Int ()
+    | ExpectingStringSatisfyingPredicate Int Int ()
+    | ExpectingCustom Int Int String
+    | ExpectingNonEmptyOneOf Int Int ()
+    | ExpectingOneOf Problem Problem (List Problem)
+
+
 {-| A `Parser` helps turn a `String` into nicely structured data. For example,
 we can [`run`](#run) the [`int`](#int) parser to turn `String` to `Int`:
 
@@ -55,12 +69,12 @@ complex scenarios.
 
 -}
 type Parser a
-    = Parser (State -> PStep Parser.Problem a)
+    = Parser (State -> PStep a)
 
 
-type PStep problem value
+type PStep value
     = Good Bool value State
-    | Bad Bool (RopeFilled (DeadEnd problem)) ()
+    | Bad Bool Problem ()
 
 
 type alias State =
@@ -101,54 +115,41 @@ run (Parser parse) src =
             Err (ropeFilledToList deadEnds [])
 
 
-{-| Say you are parsing a function named `viewHealthData` that contains a list.
-You might get a `DeadEnd` like this:
+ropeFilledToList : Problem -> List Parser.DeadEnd -> List Parser.DeadEnd
+ropeFilledToList problemToConvert soFar =
+    case problemToConvert of
+        ExpectingOneOf firstTry secondTry thirdTryUp ->
+            List.foldr ropeFilledToList soFar thirdTryUp
+                |> ropeFilledToList secondTry
+                |> ropeFilledToList firstTry
 
-    { row = 18
-    , col = 22
-    , problem = UnexpectedComma
-    }
-
-We have a ton of information here! So in the error message, we can say that “I
-ran into an issue when parsing a list in the definition of `viewHealthData`. It
-looks like there is an extra comma.” Or maybe something even better!
-
-Furthermore, many parsers just put a mark where the problem manifested. By
-tracking the `row` and `col` of the context, we can show a much larger region
-as a way of indicating “I thought I was parsing this thing that starts over
-here.” Otherwise you can get very confusing error messages on a missing `]` or
-`}` or `)` because “I need more indentation” on something unrelated.
-
-**Note:** Rows and columns are counted like a text editor. The beginning is `row=1`
-and `col=1`. The `col` increments as characters are chomped. When a `\n` is chomped,
-`row` is incremented and `col` starts over again at `1`.
-
--}
-type alias DeadEnd problem =
-    { row : Int
-    , col : Int
-    , problem : problem
-    }
+        ExpectingNumber row col () ->
+            { problem = Parser.ExpectingNumber, row = row, col = col } :: soFar
 
 
-type RopeFilled a
-    = One a ()
-    | Append (RopeFilled a) (RopeFilled a)
+        ExpectingSymbol row col symbolString ->
+            { problem = Parser.ExpectingSymbol symbolString, row = row, col = col } :: soFar
 
+        ExpectingAnyChar row col () ->
+            { problem = Parser.Problem "expecting any char", row = row, col = col } :: soFar
 
-fromState : State -> x -> RopeFilled (DeadEnd x)
-fromState s x =
-    One { row = s.row, col = s.col, problem = x } ()
+        ExpectingKeyword row col keywordString ->
+            { problem = Parser.ExpectingKeyword keywordString, row = row, col = col } :: soFar
 
+        ExpectingEnd row col () ->
+            { problem = Parser.ExpectingEnd, row = row, col = col } :: soFar
 
-ropeFilledToList : RopeFilled x -> List x -> List x
-ropeFilledToList ropeFilled list =
-    case ropeFilled of
-        One x () ->
-            x :: list
+        ExpectingCharSatisfyingPredicate row col () ->
+            { problem = Parser.UnexpectedChar, row = row, col = col } :: soFar
 
-        Append ropefilled1 ropefilled2 ->
-            ropeFilledToList ropefilled1 (ropeFilledToList ropefilled2 list)
+        ExpectingStringSatisfyingPredicate row col () ->
+            { problem = Parser.Problem "expected string to pass validation", row = row, col = col } :: soFar
+
+        ExpectingCustom row col customMessage ->
+            { problem = Parser.Problem customMessage, row = row, col = col } :: soFar
+
+        ExpectingNonEmptyOneOf row col () ->
+            { problem = Parser.Problem "expecting oneOf list to have at least one member", row = row, col = col } :: soFar
 
 
 {-| A parser that succeeds without chomping any characters.
@@ -228,11 +229,6 @@ lazy thunk =
 
 validate : (a -> Bool) -> String -> Parser a -> Parser a
 validate isOkay problemOnNotOkay (Parser parseA) =
-    let
-        xOnNotOkay : Parser.Problem
-        xOnNotOkay =
-            Parser.Problem problemOnNotOkay
-    in
     Parser
         (\s0 ->
             case parseA s0 of
@@ -244,7 +240,7 @@ validate isOkay problemOnNotOkay (Parser parseA) =
                         good
 
                     else
-                        Bad committed (fromState s1 xOnNotOkay) ()
+                        Bad committed (ExpectingCustom s1.row s1.col problemOnNotOkay) ()
         )
 
 
@@ -292,11 +288,6 @@ columnIndentAndThen callback =
 
 validateEndColumnIndentation : (Int -> Int -> Bool) -> String -> Parser a -> Parser a
 validateEndColumnIndentation isOkay problemOnIsNotOkay (Parser parse) =
-    let
-        xOnIsNotOkay : Parser.Problem
-        xOnIsNotOkay =
-            Parser.Problem problemOnIsNotOkay
-    in
     Parser
         (\s0 ->
             case parse s0 of
@@ -305,7 +296,7 @@ validateEndColumnIndentation isOkay problemOnIsNotOkay (Parser parse) =
                         good
 
                     else
-                        Bad committed (fromState s1 xOnIsNotOkay) ()
+                        Bad committed (ExpectingCustom s1.row s1.col problemOnIsNotOkay) ()
 
                 bad ->
                     bad
@@ -314,11 +305,6 @@ validateEndColumnIndentation isOkay problemOnIsNotOkay (Parser parse) =
 
 validateEndColumnIndentationBacktrackable : (Int -> Int -> Bool) -> String -> Parser a -> Parser a
 validateEndColumnIndentationBacktrackable isOkay problemOnIsNotOkay (Parser parse) =
-    let
-        xOnIsNotOkay : Parser.Problem
-        xOnIsNotOkay =
-            Parser.Problem problemOnIsNotOkay
-    in
     Parser
         (\s0 ->
             case parse s0 of
@@ -327,7 +313,7 @@ validateEndColumnIndentationBacktrackable isOkay problemOnIsNotOkay (Parser pars
                         Good False res s1
 
                     else
-                        Bad False (fromState s1 xOnIsNotOkay) ()
+                        Bad False (ExpectingCustom s1.row s1.col problemOnIsNotOkay) ()
 
                 Bad _ x () ->
                     Bad False x ()
@@ -876,12 +862,7 @@ until I ran into this problem." Check out the -AndThen helpers for where to use 
 -}
 problem : String -> Parser a
 problem msg =
-    let
-        x : Parser.Problem
-        x =
-            Parser.Problem msg
-    in
-    Parser (\s -> Bad False (fromState s x) ())
+    Parser (\s -> Bad False (ExpectingCustom s.row s.col msg) ())
 
 
 orSucceed : Parser a -> a -> Parser a
@@ -1050,7 +1031,7 @@ oneOf2Map firstToChoice (Parser attemptFirst) secondToChoice (Parser attemptSeco
                                     Bad secondCommitted secondX ()
 
                                 else
-                                    Bad False (Append firstX secondX) ()
+                                    Bad False (ExpectingOneOf firstX secondX []) ()
         )
 
 
@@ -1076,7 +1057,7 @@ oneOf2 (Parser attemptFirst) (Parser attemptSecond) =
                                     secondBad
 
                                 else
-                                    Bad False (Append firstX secondX) ()
+                                    Bad False (ExpectingOneOf firstX secondX []) ()
         )
 
 
@@ -1137,7 +1118,7 @@ oneOf3 (Parser attemptFirst) (Parser attemptSecond) (Parser attemptThird) =
                                                 thirdBad
 
                                             else
-                                                Bad False (Append firstX (Append secondX thirdX)) ()
+                                                Bad False (ExpectingOneOf firstX secondX [ thirdX ]) ()
         )
 
 
@@ -1181,7 +1162,7 @@ oneOf4 (Parser attemptFirst) (Parser attemptSecond) (Parser attemptThird) (Parse
                                                             fourthBad
 
                                                         else
-                                                            Bad False (Append firstX (Append secondX (Append thirdX fourthX))) ()
+                                                            Bad False (ExpectingOneOf firstX secondX [ thirdX, fourthX ]) ()
         )
 
 
@@ -1234,7 +1215,7 @@ oneOf5 (Parser attemptFirst) (Parser attemptSecond) (Parser attemptThird) (Parse
                                                                         fifthBad
 
                                                                     else
-                                                                        Bad False (Append firstX (Append secondX (Append thirdX (Append fourthX fifthX)))) ()
+                                                                        Bad False (ExpectingOneOf firstX secondX [ thirdX, fourthX, fifthX ]) ()
         )
 
 
@@ -1305,7 +1286,7 @@ oneOf7 (Parser attempt0) (Parser attempt1) (Parser attempt2) (Parser attempt3) (
                                                                                                 bad6
 
                                                                                             else
-                                                                                                Bad False (Append x0 (Append x1 (Append x2 (Append x3 (Append x4 (Append x5 x6)))))) ()
+                                                                                                Bad False (ExpectingOneOf x0 x1 [ x2, x3, x4, x5, x6 ]) ()
         )
 
 
@@ -1403,7 +1384,7 @@ oneOf10 (Parser attempt0) (Parser attempt1) (Parser attempt2) (Parser attempt3) 
                                                                                                                                     bad9
 
                                                                                                                                 else
-                                                                                                                                    Bad False (Append x0 (Append x1 (Append x2 (Append x3 (Append x4 (Append x5 (Append x6 (Append x7 (Append x8 x9))))))))) ()
+                                                                                                                                    Bad False (ExpectingOneOf x0 x1 [ x2, x3, x4, x5, x6, x7, x8, x9 ]) ()
         )
 
 
@@ -1537,7 +1518,7 @@ oneOf14 (Parser attempt0) (Parser attempt1) (Parser attempt2) (Parser attempt3) 
                                                                                                                                                                                     bad13
 
                                                                                                                                                                                 else
-                                                                                                                                                                                    Bad False (Append x0 (Append x1 (Append x2 (Append x3 (Append x4 (Append x5 (Append x6 (Append x7 (Append x8 (Append x9 (Append x10 (Append x11 (Append x12 x13))))))))))))) ()
+                                                                                                                                                                                    Bad False (ExpectingOneOf x0 x1 [ x2, x3, x4, x5, x6, x7, x8, x9, x10, x11, x12, x13 ]) ()
         )
 
 
@@ -1572,46 +1553,53 @@ oneOf : List (Parser a) -> Parser a
 oneOf possibilities =
     case possibilities of
         [] ->
-            Parser (\s -> Bad False (fromState s problemOnEmptyPossibilityList) ())
+            Parser (\s -> Bad False (ExpectingNonEmptyOneOf s.row s.col ()) ())
 
-        (Parser parse) :: remainingParsers ->
+        [ onlyPossibility ] ->
+            onlyPossibility
+
+        (Parser parseFirst) :: (Parser parseSecond) :: remainingParsers ->
             Parser
                 (\s ->
-                    case parse s of
-                        (Good _ _ _) as step ->
-                            step
+                    case parseFirst s of
+                        (Good _ _ _) as good ->
+                            good
 
-                        (Bad committed x ()) as step ->
-                            if committed then
-                                step
+                        (Bad firstCommitted firstX ()) as firstBad ->
+                            if firstCommitted then
+                                firstBad
 
                             else
-                                oneOfHelp s x remainingParsers
+                                case parseSecond s of
+                                    (Good _ _ _) as good ->
+                                        good
+
+                                    (Bad secondCommitted secondX ()) as secondBad ->
+                                        if secondCommitted then
+                                            secondBad
+
+                                        else
+                                            oneOfHelp s firstX secondX [] remainingParsers
                 )
 
 
-problemOnEmptyPossibilityList : Parser.Problem
-problemOnEmptyPossibilityList =
-    Parser.Problem "empty oneOf"
-
-
-oneOfHelp : State -> RopeFilled (DeadEnd Parser.Problem) -> List (Parser a) -> PStep Parser.Problem a
-oneOfHelp s0 deadEnds parsers =
+oneOfHelp : State -> Problem -> Problem -> List Problem -> List (Parser a) -> PStep a
+oneOfHelp s0 firstX secondX remainingProblemsSoFar parsers =
     case parsers of
         [] ->
-            Bad False deadEnds ()
+            Bad False (ExpectingOneOf firstX secondX remainingProblemsSoFar) ()
 
         (Parser parse) :: remainingParsers ->
             case parse s0 of
-                (Good _ _ _) as step ->
-                    step
+                (Good _ _ _) as good ->
+                    good
 
-                (Bad committed x ()) as step ->
+                (Bad committed x ()) as bad ->
                     if committed then
-                        step
+                        bad
 
                     else
-                        oneOfHelp s0 (Append deadEnds x) remainingParsers
+                        oneOfHelp s0 firstX secondX (x :: remainingProblemsSoFar) remainingParsers
 
 
 {-| Transform the result of a parser. Maybe you have a value that is
@@ -1650,7 +1638,7 @@ loopWhileSucceeds element initialFolded reduce foldedToRes =
         (\s -> loopWhileSucceedsHelp False element initialFolded reduce foldedToRes s)
 
 
-loopWhileSucceedsHelp : Bool -> Parser element -> folded -> (element -> folded -> folded) -> (folded -> res) -> State -> PStep Parser.Problem res
+loopWhileSucceedsHelp : Bool -> Parser element -> folded -> (element -> folded -> folded) -> (folded -> res) -> State -> PStep res
 loopWhileSucceedsHelp committedSoFar ((Parser parseElement) as element) soFar reduce foldedToRes s0 =
     case parseElement s0 of
         Good elementCommitted elementResult s1 ->
@@ -1675,7 +1663,7 @@ loopUntil endParser element initialFolded reduce foldedToRes =
         (\s -> loopUntilHelp False endParser element initialFolded reduce foldedToRes s)
 
 
-loopUntilHelp : Bool -> Parser () -> Parser element -> folded -> (element -> folded -> folded) -> (folded -> res) -> State -> PStep Parser.Problem res
+loopUntilHelp : Bool -> Parser () -> Parser element -> folded -> (element -> folded -> folded) -> (folded -> res) -> State -> PStep res
 loopUntilHelp committedSoFar ((Parser parseEnd) as endParser) ((Parser parseElement) as element) soFar reduce foldedToRes s0 =
     case parseEnd s0 of
         Good endCommitted () s1 ->
@@ -1701,18 +1689,18 @@ loopUntilHelp committedSoFar ((Parser parseEnd) as endParser) ((Parser parseElem
 
 
 numberHelp :
-    { int : Result Parser.Problem (Int -> a)
-    , hex : Result Parser.Problem (Int -> a)
-    , octal : Result Parser.Problem (Int -> a)
-    , binary : Result Parser.Problem (Int -> a)
-    , float : Result Parser.Problem (Float -> a)
-    , invalid : Parser.Problem
-    , expecting : Parser.Problem
+    { int : Result () (Int -> a)
+    , hex : Result () (Int -> a)
+    , octal : Result () (Int -> a)
+    , binary : Result () (Int -> a)
+    , float : Result () (Float -> a)
+    , invalid : ()
+    , expecting : ()
     }
     -> Parser a
 numberHelp consumers =
     let
-        parserAdvancedNumberAndStringLength : Parser.Advanced.Parser c Parser.Problem { length : Int, number : a }
+        parserAdvancedNumberAndStringLength : Parser.Advanced.Parser c () { length : Int, number : a }
         parserAdvancedNumberAndStringLength =
             Parser.Advanced.map (\n -> \endOffset -> { length = endOffset, number = n })
                 (Parser.Advanced.number consumers)
@@ -1726,10 +1714,10 @@ numberHelp consumers =
                         Good False result.number (stateAddLengthToOffsetAndColumn result.length state)
 
                     Err _ ->
-                        Bad False (fromState state Parser.ExpectingNumber) ()
+                        Bad False (ExpectingNumber state.row state.col ()) ()
 
             else
-                Bad False (fromState state Parser.ExpectingNumber) ()
+                Bad False (ExpectingNumber state.row state.col ()) ()
         )
 
 
@@ -1772,12 +1760,12 @@ int : Parser Int
 int =
     numberHelp
         { int = Ok identity
-        , hex = Err Parser.ExpectingInt
-        , octal = Err Parser.ExpectingInt
-        , binary = Err Parser.ExpectingInt
-        , float = Err Parser.ExpectingInt
-        , invalid = Parser.ExpectingInt
-        , expecting = Parser.ExpectingInt
+        , hex = Err ()
+        , octal = Err ()
+        , binary = Err ()
+        , float = Err ()
+        , invalid = ()
+        , expecting = ()
         }
 
 
@@ -1786,11 +1774,11 @@ floatOrIntOrHex floatf intf hexf =
     numberHelp
         { int = Ok intf
         , hex = Ok hexf
-        , octal = Err Parser.ExpectingNumber
-        , binary = Err Parser.ExpectingNumber
+        , octal = Err ()
+        , binary = Err ()
         , float = Ok floatf
-        , invalid = Parser.ExpectingNumber
-        , expecting = Parser.ExpectingNumber
+        , invalid = ()
+        , expecting = ()
         }
 
 
@@ -1799,11 +1787,11 @@ intOrHex intf hexf =
     numberHelp
         { int = Ok intf
         , hex = Ok hexf
-        , octal = Err Parser.ExpectingNumber
-        , binary = Err Parser.ExpectingNumber
-        , float = Err Parser.ExpectingNumber
-        , invalid = Parser.ExpectingNumber
-        , expecting = Parser.ExpectingNumber
+        , octal = Err ()
+        , binary = Err ()
+        , float = Err ()
+        , invalid = ()
+        , expecting = ()
         }
 
 
@@ -1824,10 +1812,6 @@ operator it is afterwards.
 symbol : String -> res -> Parser res
 symbol str res =
     let
-        expecting : Parser.Problem
-        expecting =
-            Parser.ExpectingSymbol str
-
         strLength : Int
         strLength =
             String.length str
@@ -1850,17 +1834,13 @@ symbol str res =
                     }
 
             else
-                Bad False (fromState s expecting) ()
+                Bad False (ExpectingSymbol s.row s.col str) ()
         )
 
 
 followedBySymbol : String -> Parser a -> Parser a
 followedBySymbol str (Parser parsePrevious) =
     let
-        expecting : Parser.Problem
-        expecting =
-            Parser.ExpectingSymbol str
-
         strLength : Int
         strLength =
             String.length str
@@ -1885,7 +1865,7 @@ followedBySymbol str (Parser parsePrevious) =
                             }
 
                     else
-                        Bad previousCommitted (fromState s1 expecting) ()
+                        Bad previousCommitted (ExpectingSymbol s1.row s1.col str) ()
 
                 bad ->
                     bad
@@ -1898,10 +1878,6 @@ or 2-part UTF-16 characters.
 symbolBacktrackable : String -> res -> Parser res
 symbolBacktrackable str res =
     let
-        expecting : Parser.Problem
-        expecting =
-            Parser.ExpectingSymbol str
-
         strLength : Int
         strLength =
             String.length str
@@ -1924,17 +1900,13 @@ symbolBacktrackable str res =
                     }
 
             else
-                Bad False (fromState s expecting) ()
+                Bad False (ExpectingSymbol s.row s.col str) ()
         )
 
 
 symbolWithEndLocation : String -> (Location -> res) -> Parser res
 symbolWithEndLocation str endLocationToRes =
     let
-        expecting : Parser.Problem
-        expecting =
-            Parser.ExpectingSymbol str
-
         strLength : Int
         strLength =
             String.length str
@@ -1962,17 +1934,13 @@ symbolWithEndLocation str endLocationToRes =
                     }
 
             else
-                Bad False (fromState s expecting) ()
+                Bad False (ExpectingSymbol s.row s.col str) ()
         )
 
 
 symbolWithRange : String -> (Range -> res) -> Parser res
 symbolWithRange str startAndEndLocationToRes =
     let
-        expecting : Parser.Problem
-        expecting =
-            Parser.ExpectingSymbol str
-
         strLength : Int
         strLength =
             String.length str
@@ -2000,7 +1968,7 @@ symbolWithRange str startAndEndLocationToRes =
                     }
 
             else
-                Bad False (fromState s expecting) ()
+                Bad False (ExpectingSymbol s.row s.col str) ()
         )
 
 
@@ -2010,10 +1978,6 @@ or 2-part UTF-16 characters.
 symbolFollowedBy : String -> Parser next -> Parser next
 symbolFollowedBy str (Parser parseNext) =
     let
-        expecting : Parser.Problem
-        expecting =
-            Parser.ExpectingSymbol str
-
         strLength : Int
         strLength =
             String.length str
@@ -2036,7 +2000,7 @@ symbolFollowedBy str (Parser parseNext) =
                     |> pStepCommit
 
             else
-                Bad False (fromState s expecting) ()
+                Bad False (ExpectingSymbol s.row s.col str) ()
         )
 
 
@@ -2046,10 +2010,6 @@ or 2-part UTF-16 characters.
 symbolBacktrackableFollowedBy : String -> Parser next -> Parser next
 symbolBacktrackableFollowedBy str (Parser parseNext) =
     let
-        expecting : Parser.Problem
-        expecting =
-            Parser.ExpectingSymbol str
-
         strLength : Int
         strLength =
             String.length str
@@ -2071,11 +2031,11 @@ symbolBacktrackableFollowedBy str (Parser parseNext) =
                     }
 
             else
-                Bad False (fromState s expecting) ()
+                Bad False (ExpectingSymbol s.row s.col str) ()
         )
 
 
-pStepCommit : PStep x a -> PStep x a
+pStepCommit : PStep a -> PStep a
 pStepCommit pStep =
     case pStep of
         Good _ a state ->
@@ -2113,10 +2073,6 @@ be parsed as `let ters` and then wonder where the equals sign is! Check out the
 keyword : String -> res -> Parser res
 keyword kwd res =
     let
-        expecting : Parser.Problem
-        expecting =
-            Parser.ExpectingKeyword kwd
-
         kwdLength : Int
         kwdLength =
             String.length kwd
@@ -2142,7 +2098,7 @@ keyword kwd res =
                     }
 
             else
-                Bad False (fromState s expecting) ()
+                Bad False (ExpectingKeyword s.row s.col kwd) ()
         )
 
 
@@ -2158,10 +2114,6 @@ or 2-part UTF-16 characters.
 keywordFollowedBy : String -> Parser next -> Parser next
 keywordFollowedBy kwd (Parser parseNext) =
     let
-        expecting : Parser.Problem
-        expecting =
-            Parser.ExpectingKeyword kwd
-
         kwdLength : Int
         kwdLength =
             String.length kwd
@@ -2187,7 +2139,7 @@ keywordFollowedBy kwd (Parser parseNext) =
                     |> pStepCommit
 
             else
-                Bad False (fromState s expecting) ()
+                Bad False (ExpectingKeyword s.row s.col kwd) ()
         )
 
 
@@ -2216,7 +2168,7 @@ end =
                 Good False () s
 
             else
-                Bad False (fromState s Parser.ExpectingEnd) ()
+                Bad False (ExpectingEnd s.row s.col ()) ()
         )
 
 
@@ -2231,7 +2183,7 @@ anyChar =
             in
             if newOffset == -1 then
                 -- end of source
-                Bad False (fromState s Parser.UnexpectedChar) ()
+                Bad False (ExpectingAnyChar s.row s.col ()) ()
 
             else if newOffset == -2 then
                 -- newline
@@ -2248,7 +2200,7 @@ anyChar =
                 -- found
                 case String.toList (String.slice s.offset newOffset s.src) of
                     [] ->
-                        Bad False (fromState s Parser.UnexpectedChar) ()
+                        Bad False (ExpectingAnyChar s.row s.col ()) ()
 
                     c :: _ ->
                         Good True
@@ -2420,7 +2372,7 @@ chompIfWhitespaceFollowedBy (Parser parseNext) =
                         |> pStepCommit
 
                 _ ->
-                    Bad False (fromState s Parser.UnexpectedChar) ()
+                    Bad False (ExpectingAnyChar s.row s.col ()) ()
         )
 
 
@@ -2533,7 +2485,7 @@ ifFollowedByWhileValidateWithoutLinebreak firstIsOkay afterFirstIsOkay resultIsO
                     isSubCharWithoutLinebreak firstIsOkay s.offset s.src
             in
             if firstOffset == -1 then
-                Bad False (fromState s Parser.ExpectingVariable) ()
+                Bad False (ExpectingCharSatisfyingPredicate s.row s.col ()) ()
 
             else
                 let
@@ -2549,7 +2501,7 @@ ifFollowedByWhileValidateWithoutLinebreak firstIsOkay afterFirstIsOkay resultIsO
                     Good True name s1
 
                 else
-                    Bad False (fromState s Parser.ExpectingVariable) ()
+                    Bad False (ExpectingStringSatisfyingPredicate s.row (s.col + 1) ()) ()
         )
 
 
@@ -2568,7 +2520,7 @@ ifFollowedByWhileValidateMapWithRangeWithoutLinebreak toResult firstIsOkay after
                     isSubCharWithoutLinebreak firstIsOkay s0.offset s0.src
             in
             if firstOffset == -1 then
-                Bad False (fromState s0 Parser.ExpectingVariable) ()
+                Bad False (ExpectingCharSatisfyingPredicate s0.row s0.col ()) ()
 
             else
                 let
@@ -2584,7 +2536,7 @@ ifFollowedByWhileValidateMapWithRangeWithoutLinebreak toResult firstIsOkay after
                     Good True (toResult { start = { row = s0.row, column = s0.col }, end = { row = s1.row, column = s1.col } } name) s1
 
                 else
-                    Bad False (fromState s0 Parser.ExpectingVariable) ()
+                    Bad False (ExpectingStringSatisfyingPredicate s0.row (s0.col + 1) ()) ()
         )
 
 
@@ -2601,7 +2553,7 @@ ifFollowedByWhileWithoutLinebreak firstIsOkay afterFirstIsOkay =
                     isSubCharWithoutLinebreak firstIsOkay s.offset s.src
             in
             if firstOffset == -1 then
-                Bad False (fromState s Parser.UnexpectedChar) ()
+                Bad False (ExpectingCharSatisfyingPredicate s.row s.col ()) ()
 
             else
                 let
@@ -2627,7 +2579,7 @@ ifFollowedByWhileMapWithRangeWithoutLinebreak rangeAndChompedToRes firstIsOkay a
                     isSubCharWithoutLinebreak firstIsOkay s0.offset s0.src
             in
             if firstOffset == -1 then
-                Bad False (fromState s0 Parser.UnexpectedChar) ()
+                Bad False (ExpectingCharSatisfyingPredicate s0.row s0.col ()) ()
 
             else
                 let
@@ -2660,7 +2612,7 @@ ifFollowedByWhileMapWithoutLinebreak chompedToRes firstIsOkay afterFirstIsOkay =
                     isSubCharWithoutLinebreak firstIsOkay s0.offset s0.src
             in
             if firstOffset == -1 then
-                Bad False (fromState s0 Parser.UnexpectedChar) ()
+                Bad False (ExpectingCharSatisfyingPredicate s0.row s0.col ()) ()
 
             else
                 let
@@ -2812,7 +2764,7 @@ anyCharFollowedByWhileMap chompedStringToRes afterFirstIsOkay =
             in
             if firstOffset == -1 then
                 -- end of source
-                Bad False (fromState s expectingAnyChar) ()
+                Bad False (ExpectingAnyChar s.row s.col ()) ()
 
             else
                 let
@@ -2826,11 +2778,6 @@ anyCharFollowedByWhileMap chompedStringToRes afterFirstIsOkay =
                 in
                 Good True (chompedStringToRes (String.slice s.offset s1.offset s.src)) s1
         )
-
-
-expectingAnyChar : Parser.Problem
-expectingAnyChar =
-    Parser.Problem "any char"
 
 
 {-| Decide what steps to take next in your `loop`.
@@ -2899,7 +2846,7 @@ loop state element reduce =
         (\s -> loopHelp False state element reduce s)
 
 
-loopHelp : Bool -> state -> Parser extension -> (extension -> state -> Step state a) -> State -> PStep Parser.Problem a
+loopHelp : Bool -> state -> Parser extension -> (extension -> state -> Step state a) -> State -> PStep a
 loopHelp committedSoFar state ((Parser parseElement) as element) reduce s0 =
     case parseElement s0 of
         Good elementCommitted step s1 ->
