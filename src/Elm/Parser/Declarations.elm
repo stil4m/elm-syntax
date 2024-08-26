@@ -3,7 +3,6 @@ module Elm.Parser.Declarations exposing (declaration)
 import Elm.Parser.Comments as Comments
 import Elm.Parser.Expression exposing (expression)
 import Elm.Parser.Layout as Layout
-import Elm.Parser.Node as Node
 import Elm.Parser.Patterns as Patterns
 import Elm.Parser.Tokens as Tokens
 import Elm.Parser.TypeAnnotation as TypeAnnotation exposing (typeAnnotation, typeAnnotationNoFnExcludingTypedWithArguments)
