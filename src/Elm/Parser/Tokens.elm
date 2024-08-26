@@ -228,7 +228,7 @@ functionName =
 
 functionNameNode : ParserFast.Parser (Node String)
 functionNameNode =
-    ParserFast.ifFollowedByWhileExceptMapWithStartAndEndLocationsWithoutLinebreak
+    ParserFast.ifFollowedByWhileExceptMapWithRangesWithoutLinebreak
         (\start name end -> Node { start = start, end = end } name)
         Char.Extra.unicodeIsLowerFast
         Char.Extra.unicodeIsAlphaNumOrUnderscoreFast
@@ -237,7 +237,7 @@ functionNameNode =
 
 functionNameMapWithRange : (Range -> String -> res) -> ParserFast.Parser res
 functionNameMapWithRange rangeAndNameToResult =
-    ParserFast.ifFollowedByWhileExceptMapWithStartAndEndLocationsWithoutLinebreak
+    ParserFast.ifFollowedByWhileExceptMapWithRangesWithoutLinebreak
         (\start name end -> rangeAndNameToResult { start = start, end = end } name)
         Char.Extra.unicodeIsLowerFast
         Char.Extra.unicodeIsAlphaNumOrUnderscoreFast
@@ -246,7 +246,7 @@ functionNameMapWithRange rangeAndNameToResult =
 
 functionNameNotInfixNode : ParserFast.Parser (Node String)
 functionNameNotInfixNode =
-    ParserFast.ifFollowedByWhileExceptMapWithStartAndEndLocationsWithoutLinebreak
+    ParserFast.ifFollowedByWhileExceptMapWithRangesWithoutLinebreak
         (\start name end -> Node { start = start, end = end } name)
         Char.Extra.unicodeIsLowerFast
         Char.Extra.unicodeIsAlphaNumOrUnderscoreFast
@@ -262,7 +262,7 @@ typeName =
 
 typeNameNode : ParserFast.Parser (Node String)
 typeNameNode =
-    ParserFast.ifFollowedByWhileMapWithStartAndEndLocationWithoutLinebreak
+    ParserFast.ifFollowedByWhileMapWithRangeWithoutLinebreak
         (\start name end -> Node { start = start, end = end } name)
         Char.Extra.unicodeIsUpperFast
         Char.Extra.unicodeIsAlphaNumOrUnderscoreFast

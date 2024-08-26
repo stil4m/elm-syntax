@@ -7,11 +7,10 @@ import ParserWithComments exposing (WithComments)
 
 parser : Parser (WithComments a) -> Parser (WithComments (Node a))
 parser p =
-    ParserFast.mapWithStartAndEndLocation
-        (\start v end ->
+    ParserFast.mapWithRange
+        (\range v ->
             { comments = v.comments
-            , syntax =
-                Node { start = start, end = end } v.syntax
+            , syntax = Node range v.syntax
             }
         )
         p
@@ -19,8 +18,4 @@ parser p =
 
 parserCore : ParserFast.Parser a -> ParserFast.Parser (Node a)
 parserCore p =
-    ParserFast.mapWithStartAndEndLocation
-        (\start v end ->
-            Node { start = start, end = end } v
-        )
-        p
+    ParserFast.mapWithRange Node p

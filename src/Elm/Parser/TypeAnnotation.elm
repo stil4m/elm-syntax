@@ -5,7 +5,6 @@ import Elm.Parser.Node as Node
 import Elm.Parser.Tokens as Tokens
 import Elm.Syntax.ModuleName exposing (ModuleName)
 import Elm.Syntax.Node as Node exposing (Node(..))
-import Elm.Syntax.Range exposing (Range)
 import Elm.Syntax.TypeAnnotation as TypeAnnotation exposing (RecordDefinition, RecordField, TypeAnnotation)
 import ParserFast exposing (Parser)
 import ParserWithComments exposing (WithComments)
@@ -123,19 +122,19 @@ genericTypeAnnotation =
 
 recordTypeAnnotation : Parser (WithComments (Node TypeAnnotation))
 recordTypeAnnotation =
-    ParserFast.map2WithStartAndEndLocation
-        (\start commentsBefore afterCurly end ->
+    ParserFast.map2WithRange
+        (\range commentsBefore afterCurly ->
             case afterCurly of
                 Nothing ->
                     { comments = commentsBefore
-                    , syntax = Node { start = start, end = end } typeAnnotationRecordEmpty
+                    , syntax = Node range typeAnnotationRecordEmpty
                     }
 
                 Just afterCurlyResult ->
                     { comments =
                         commentsBefore
                             |> Rope.prependTo afterCurlyResult.comments
-                    , syntax = Node { start = start, end = end } afterCurlyResult.syntax
+                    , syntax = Node range afterCurlyResult.syntax
                     }
         )
         (ParserFast.symbolFollowedBy "{" Layout.maybeLayout)
@@ -159,12 +158,12 @@ recordTypeAnnotation =
                 Layout.maybeLayout
                 (ParserFast.oneOf2
                     (ParserFast.symbolFollowedBy "|"
-                        (ParserFast.mapWithStartAndEndLocation
-                            (\start extension end ->
+                        (ParserFast.mapWithRange
+                            (\range extension ->
                                 { comments = extension.comments
                                 , syntax =
                                     RecordExtensionExpressionAfterName
-                                        (Node { start = start, end = end } extension.syntax)
+                                        (Node range extension.syntax)
                                 }
                             )
                             recordFieldsTypeAnnotation
@@ -239,15 +238,15 @@ recordFieldsTypeAnnotation =
 
 recordFieldDefinition : Parser (WithComments (Node TypeAnnotation.RecordField))
 recordFieldDefinition =
-    ParserFast.map6WithStartAndEndLocation
-        (\start commentsBeforeFunctionName name commentsAfterFunctionName commentsAfterColon value commentsAfterValue end ->
+    ParserFast.map6WithRange
+        (\range commentsBeforeFunctionName name commentsAfterFunctionName commentsAfterColon value commentsAfterValue ->
             { comments =
                 commentsBeforeFunctionName
                     |> Rope.prependTo commentsAfterFunctionName
                     |> Rope.prependTo commentsAfterColon
                     |> Rope.prependTo value.comments
                     |> Rope.prependTo commentsAfterValue
-            , syntax = Node { start = start, end = end } ( name, value.syntax )
+            , syntax = Node range ( name, value.syntax )
             }
         )
         Layout.maybeLayout
@@ -262,13 +261,9 @@ recordFieldDefinition =
 
 typedTypeAnnotationWithoutArguments : Parser (WithComments (Node TypeAnnotation))
 typedTypeAnnotationWithoutArguments =
-    ParserFast.map2WithStartAndEndLocation
-        (\start startName afterStartName end ->
+    ParserFast.map2WithRange
+        (\range startName afterStartName ->
             let
-                range : Range
-                range =
-                    { start = start, end = end }
-
                 name : ( ModuleName, String )
                 name =
                     case afterStartName of
@@ -306,16 +301,15 @@ maybeDotTypeNamesTuple =
 
 typedTypeAnnotationWithArguments : Parser (WithComments (Node TypeAnnotation))
 typedTypeAnnotationWithArguments =
-    ParserFast.map2WithStartAndEndLocation
-        (\start nameNode args end ->
+    ParserFast.map2WithRange
+        (\range nameNode args ->
             { comments = args.comments
             , syntax =
-                Node { start = start, end = end }
-                    (TypeAnnotation.Typed nameNode args.syntax)
+                Node range (TypeAnnotation.Typed nameNode args.syntax)
             }
         )
-        (ParserFast.map2WithStartAndEndLocation
-            (\start startName afterStartName end ->
+        (ParserFast.map2WithRange
+            (\range startName afterStartName ->
                 let
                     name : ( ModuleName, String )
                     name =
@@ -326,7 +320,7 @@ typedTypeAnnotationWithArguments =
                             Just ( qualificationAfterStartName, unqualified ) ->
                                 ( startName :: qualificationAfterStartName, unqualified )
                 in
-                Node { start = start, end = end } name
+                Node range name
             )
             Tokens.typeName
             maybeDotTypeNamesTuple

@@ -13,7 +13,7 @@ module ParserFast exposing
 
 @docs Parser, run
 
-@docs int, intOrHex, floatOrIntOrHex, symbol, symbolBacktrackable, symbolWithEndLocation, symbolWithStartAndEndLocation, symbolFollowedBy, symbolBacktrackableFollowedBy, followedBySymbol, keyword, keywordFollowedBy, while, whileWithoutLinebreak, whileMap, ifFollowedByWhileWithoutLinebreak, ifFollowedByWhileMapWithoutLinebreak, ifFollowedByWhileMapWithStartAndEndLocationWithoutLinebreak, ifFollowedByWhileExceptWithoutLinebreak, ifFollowedByWhileExceptMapWithStartAndEndLocationsWithoutLinebreak, anyChar, end
+@docs int, intOrHex, floatOrIntOrHex, symbol, symbolBacktrackable, symbolWithEndLocation, symbolWithRange, symbolFollowedBy, symbolBacktrackableFollowedBy, followedBySymbol, keyword, keywordFollowedBy, while, whileWithoutLinebreak, whileMap, ifFollowedByWhileWithoutLinebreak, ifFollowedByWhileMapWithoutLinebreak, ifFollowedByWhileMapWithRangeWithoutLinebreak, ifFollowedByWhileExceptWithoutLinebreak, ifFollowedByWhileExceptMapWithRangesWithoutLinebreak, anyChar, end
 
 
 # Flow
@@ -33,7 +33,7 @@ module ParserFast exposing
 # Indentation, Locations and source
 
 @docs withIndentSetToColumn, withIndent, columnIndentAndThen, validateEndColumnIndentation, validateEndColumnIndentationBacktrackable
-@docs mapWithStartAndEndLocation, columnAndThen, offsetSourceAndThen
+@docs mapWithRange, columnAndThen, offsetSourceAndThen
 
 -}
 
@@ -422,8 +422,8 @@ map2WithStartLocation func (Parser parseA) (Parser parseB) =
         )
 
 
-map2WithStartAndEndLocation : (Location -> a -> b -> Location -> value) -> Parser a -> Parser b -> Parser value
-map2WithStartAndEndLocation func (Parser parseA) (Parser parseB) =
+map2WithRange : (Range -> a -> b -> value) -> Parser a -> Parser b -> Parser value
+map2WithRange func (Parser parseA) (Parser parseB) =
     Parser
         (\s0 ->
             case parseA s0 of
@@ -436,7 +436,7 @@ map2WithStartAndEndLocation func (Parser parseA) (Parser parseB) =
                             Bad (c1 || c2) x ()
 
                         Good c2 b s2 ->
-                            Good (c1 || c2) (func { row = s0.row, column = s0.col } a b { row = s2.row, column = s2.col }) s2
+                            Good (c1 || c2) (func { start = { row = s0.row, column = s0.col }, end = { row = s2.row, column = s2.col } } a b) s2
         )
 
 
@@ -463,8 +463,8 @@ map3 func (Parser parseA) (Parser parseB) (Parser parseC) =
         )
 
 
-map3WithStartAndEndLocation : (Location -> a -> b -> c -> Location -> value) -> Parser a -> Parser b -> Parser c -> Parser value
-map3WithStartAndEndLocation func (Parser parseA) (Parser parseB) (Parser parseC) =
+map3WithRange : (Range -> a -> b -> c -> value) -> Parser a -> Parser b -> Parser c -> Parser value
+map3WithRange func (Parser parseA) (Parser parseB) (Parser parseC) =
     Parser
         (\s0 ->
             case parseA s0 of
@@ -482,7 +482,7 @@ map3WithStartAndEndLocation func (Parser parseA) (Parser parseB) (Parser parseC)
                                     Bad (c1 || c2 || c3) x ()
 
                                 Good c3 c s3 ->
-                                    Good (c1 || c2 || c3) (func { row = s0.row, column = s0.col } a b c { row = s3.row, column = s3.col }) s3
+                                    Good (c1 || c2 || c3) (func { start = { row = s0.row, column = s0.col }, end = { row = s3.row, column = s3.col } } a b c) s3
         )
 
 
@@ -514,8 +514,8 @@ map4 func (Parser parseA) (Parser parseB) (Parser parseC) (Parser parseD) =
         )
 
 
-map4WithStartAndEndLocation : (Location -> a -> b -> c -> d -> Location -> value) -> Parser a -> Parser b -> Parser c -> Parser d -> Parser value
-map4WithStartAndEndLocation func (Parser parseA) (Parser parseB) (Parser parseC) (Parser parseD) =
+map4WithRange : (Range -> a -> b -> c -> d -> value) -> Parser a -> Parser b -> Parser c -> Parser d -> Parser value
+map4WithRange func (Parser parseA) (Parser parseB) (Parser parseC) (Parser parseD) =
     Parser
         (\s0 ->
             case parseA s0 of
@@ -538,7 +538,7 @@ map4WithStartAndEndLocation func (Parser parseA) (Parser parseB) (Parser parseC)
                                             Bad (c1 || c2 || c3 || c4) x ()
 
                                         Good c4 d s4 ->
-                                            Good (c1 || c2 || c3 || c4) (func { row = s0.row, column = s0.col } a b c d { row = s4.row, column = s4.col }) s4
+                                            Good (c1 || c2 || c3 || c4) (func { start = { row = s0.row, column = s0.col }, end = { row = s4.row, column = s4.col } } a b c d) s4
         )
 
 
@@ -608,8 +608,8 @@ map5WithStartLocation func (Parser parseA) (Parser parseB) (Parser parseC) (Pars
         )
 
 
-map5WithStartAndEndLocation : (Location -> a -> b -> c -> d -> e -> Location -> value) -> Parser a -> Parser b -> Parser c -> Parser d -> Parser e -> Parser value
-map5WithStartAndEndLocation func (Parser parseA) (Parser parseB) (Parser parseC) (Parser parseD) (Parser parseE) =
+map5WithRange : (Range -> a -> b -> c -> d -> e -> value) -> Parser a -> Parser b -> Parser c -> Parser d -> Parser e -> Parser value
+map5WithRange func (Parser parseA) (Parser parseB) (Parser parseC) (Parser parseD) (Parser parseE) =
     Parser
         (\s0 ->
             case parseA s0 of
@@ -637,7 +637,7 @@ map5WithStartAndEndLocation func (Parser parseA) (Parser parseB) (Parser parseC)
                                                     Bad (c1 || c2 || c3 || c4 || c5) x ()
 
                                                 Good c5 e s5 ->
-                                                    Good (c1 || c2 || c3 || c4 || c5) (func { row = s0.row, column = s0.col } a b c d e { row = s5.row, column = s5.col }) s5
+                                                    Good (c1 || c2 || c3 || c4 || c5) (func { start = { row = s0.row, column = s0.col }, end = { row = s5.row, column = s5.col } } a b c d e) s5
         )
 
 
@@ -717,8 +717,8 @@ map6WithStartLocation func (Parser parseA) (Parser parseB) (Parser parseC) (Pars
         )
 
 
-map6WithStartAndEndLocation : (Location -> a -> b -> c -> d -> e -> f -> Location -> value) -> Parser a -> Parser b -> Parser c -> Parser d -> Parser e -> Parser f -> Parser value
-map6WithStartAndEndLocation func (Parser parseA) (Parser parseB) (Parser parseC) (Parser parseD) (Parser parseE) (Parser parseF) =
+map6WithRange : (Range -> a -> b -> c -> d -> e -> f -> value) -> Parser a -> Parser b -> Parser c -> Parser d -> Parser e -> Parser f -> Parser value
+map6WithRange func (Parser parseA) (Parser parseB) (Parser parseC) (Parser parseD) (Parser parseE) (Parser parseF) =
     Parser
         (\s0 ->
             case parseA s0 of
@@ -751,12 +751,12 @@ map6WithStartAndEndLocation func (Parser parseA) (Parser parseB) (Parser parseC)
                                                             Bad (c1 || c2 || c3 || c4 || c5 || c6) x ()
 
                                                         Good c6 f s6 ->
-                                                            Good (c1 || c2 || c3 || c4 || c5 || c6) (func { row = s0.row, column = s0.col } a b c d e f { row = s6.row, column = s6.col }) s6
+                                                            Good (c1 || c2 || c3 || c4 || c5 || c6) (func { start = { row = s0.row, column = s0.col }, end = { row = s6.row, column = s6.col } } a b c d e f) s6
         )
 
 
-map7WithStartAndEndLocation : (Location -> a -> b -> c -> d -> e -> f -> g -> Location -> value) -> Parser a -> Parser b -> Parser c -> Parser d -> Parser e -> Parser f -> Parser g -> Parser value
-map7WithStartAndEndLocation func (Parser parseA) (Parser parseB) (Parser parseC) (Parser parseD) (Parser parseE) (Parser parseF) (Parser parseG) =
+map7WithRange : (Range -> a -> b -> c -> d -> e -> f -> g -> value) -> Parser a -> Parser b -> Parser c -> Parser d -> Parser e -> Parser f -> Parser g -> Parser value
+map7WithRange func (Parser parseA) (Parser parseB) (Parser parseC) (Parser parseD) (Parser parseE) (Parser parseF) (Parser parseG) =
     Parser
         (\s0 ->
             case parseA s0 of
@@ -794,7 +794,7 @@ map7WithStartAndEndLocation func (Parser parseA) (Parser parseB) (Parser parseC)
                                                                     Bad (c1 || c2 || c3 || c4 || c5 || c6 || c7) x ()
 
                                                                 Good c7 g s7 ->
-                                                                    Good (c1 || c2 || c3 || c4 || c5 || c6 || c7) (func { row = s0.row, column = s0.col } a b c d e f g { row = s7.row, column = s7.col }) s7
+                                                                    Good (c1 || c2 || c3 || c4 || c5 || c6 || c7) (func { start = { row = s0.row, column = s0.col }, end = { row = s7.row, column = s7.col } } a b c d e f g) s7
         )
 
 
@@ -846,8 +846,8 @@ map8WithStartLocation func (Parser parseA) (Parser parseB) (Parser parseC) (Pars
         )
 
 
-map9WithStartAndEndLocation : (Location -> a -> b -> c -> d -> e -> f -> g -> h -> i -> Location -> value) -> Parser a -> Parser b -> Parser c -> Parser d -> Parser e -> Parser f -> Parser g -> Parser h -> Parser i -> Parser value
-map9WithStartAndEndLocation func (Parser parseA) (Parser parseB) (Parser parseC) (Parser parseD) (Parser parseE) (Parser parseF) (Parser parseG) (Parser parseH) (Parser parseI) =
+map9WithRange : (Range -> a -> b -> c -> d -> e -> f -> g -> h -> i -> value) -> Parser a -> Parser b -> Parser c -> Parser d -> Parser e -> Parser f -> Parser g -> Parser h -> Parser i -> Parser value
+map9WithRange func (Parser parseA) (Parser parseB) (Parser parseC) (Parser parseD) (Parser parseE) (Parser parseF) (Parser parseG) (Parser parseH) (Parser parseI) =
     Parser
         (\s0 ->
             case parseA s0 of
@@ -895,7 +895,7 @@ map9WithStartAndEndLocation func (Parser parseA) (Parser parseB) (Parser parseC)
                                                                                     Bad (c1 || c2 || c3 || c4 || c5 || c6 || c7 || c8 || c9) x ()
 
                                                                                 Good c9 i s9 ->
-                                                                                    Good (c1 || c2 || c3 || c4 || c5 || c6 || c7 || c8 || c9) (func { row = s0.row, column = s0.col } a b c d e f g h i { row = s9.row, column = s9.col }) s9
+                                                                                    Good (c1 || c2 || c3 || c4 || c5 || c6 || c7 || c8 || c9) (func { start = { row = s0.row, column = s0.col }, end = { row = s9.row, column = s9.col } } a b c d e f g h i) s9
         )
 
 
@@ -2074,8 +2074,8 @@ symbolWithEndLocation str endLocationToRes =
         )
 
 
-symbolWithStartAndEndLocation : String -> (Location -> Location -> res) -> Parser res
-symbolWithStartAndEndLocation str startAndEndLocationToRes =
+symbolWithRange : String -> (Range -> res) -> Parser res
+symbolWithRange str startAndEndLocationToRes =
     let
         expecting : Parser.Problem
         expecting =
@@ -2099,7 +2099,7 @@ symbolWithStartAndEndLocation str startAndEndLocationToRes =
                         s.col + strLength
                 in
                 Good True
-                    (startAndEndLocationToRes { row = s.row, column = s.col } { row = s.row, column = newCol })
+                    (startAndEndLocationToRes { start = { row = s.row, column = s.col }, end = { row = s.row, column = newCol } })
                     { src = s.src
                     , offset = newOffset
                     , indent = s.indent
@@ -2614,12 +2614,12 @@ mapWithStartAndEndPosition :
     (Location -> a -> Location -> b)
     -> Parser a
     -> Parser b
-mapWithStartAndEndLocation combineStartAndResult (Parser parse) =
+mapWithRange combineStartAndResult (Parser parse) =
     Parser
         (\s0 ->
             case parse s0 of
                 Good committed a s1 ->
-                    Good committed (combineStartAndResult { row = s0.row, column = s0.col } a { row = s1.row, column = s1.col }) s1
+                    Good committed (combineStartAndResult { start = { row = s0.row, column = s0.col }, end = { row = s1.row, column = s1.col } } a) s1
 
                 Bad committed x () ->
                     Bad committed x ()
@@ -2661,13 +2661,13 @@ variable i =
         }
 
 
-ifFollowedByWhileExceptMapWithStartAndEndLocationsWithoutLinebreak :
+ifFollowedByWhileExceptMapWithRangesWithoutLinebreak :
     (Location -> String -> Location -> res)
     -> (Char -> Bool)
     -> (Char -> Bool)
     -> Set.Set String
     -> Parser res
-ifFollowedByWhileExceptMapWithStartAndEndLocationsWithoutLinebreak toResult firstIsOkay afterFirstIsOkay exceptionSet =
+ifFollowedByWhileExceptMapWithRangesWithoutLinebreak toResult firstIsOkay afterFirstIsOkay exceptionSet =
     Parser
         (\s0 ->
             let
@@ -2721,12 +2721,12 @@ ifFollowedByWhileWithoutLinebreak firstIsOkay afterFirstIsOkay =
         )
 
 
-ifFollowedByWhileMapWithStartAndEndLocationWithoutLinebreak :
+ifFollowedByWhileMapWithRangeWithoutLinebreak :
     (Location -> String -> Location -> res)
     -> (Char -> Bool)
     -> (Char -> Bool)
     -> Parser res
-ifFollowedByWhileMapWithStartAndEndLocationWithoutLinebreak rangeAndChompedToRes firstIsOkay afterFirstIsOkay =
+ifFollowedByWhileMapWithRangeWithoutLinebreak rangeAndChompedToRes firstIsOkay afterFirstIsOkay =
     Parser
         (\s0 ->
             let

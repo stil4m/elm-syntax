@@ -78,10 +78,9 @@ importDefinition =
                     }
             )
             (ParserFast.keywordFollowedBy "as" Layout.maybeLayout)
-            (ParserFast.mapWithStartAndEndLocation
-                (\start moduleAlias end ->
-                    Node { start = start, end = end }
-                        [ moduleAlias ]
+            (ParserFast.mapWithRange
+                (\range moduleAlias ->
+                    Node range [ moduleAlias ]
                 )
                 Tokens.typeName
             )

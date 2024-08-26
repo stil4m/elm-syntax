@@ -85,8 +85,8 @@ effectWhereClauses =
 
 effectModuleDefinition : Parser (WithComments (Node Module))
 effectModuleDefinition =
-    ParserFast.map7WithStartAndEndLocation
-        (\start commentsAfterEffect commentsAfterModule name commentsAfterName whereClauses commentsAfterWhereClauses exp end ->
+    ParserFast.map7WithRange
+        (\range commentsAfterEffect commentsAfterModule name commentsAfterName whereClauses commentsAfterWhereClauses exp ->
             { comments =
                 commentsAfterEffect
                     |> Rope.prependTo commentsAfterModule
@@ -95,7 +95,7 @@ effectModuleDefinition =
                     |> Rope.prependTo commentsAfterWhereClauses
                     |> Rope.prependTo exp.comments
             , syntax =
-                Node { start = start, end = end }
+                Node range
                     (EffectModule
                         { moduleName = name
                         , exposingList = exp.syntax
@@ -116,14 +116,14 @@ effectModuleDefinition =
 
 normalModuleDefinition : Parser (WithComments (Node Module))
 normalModuleDefinition =
-    ParserFast.map4WithStartAndEndLocation
-        (\start commentsAfterModule moduleName commentsAfterModuleName exposingList end ->
+    ParserFast.map4WithRange
+        (\range commentsAfterModule moduleName commentsAfterModuleName exposingList ->
             { comments =
                 commentsAfterModule
                     |> Rope.prependTo commentsAfterModuleName
                     |> Rope.prependTo exposingList.comments
             , syntax =
-                Node { start = start, end = end }
+                Node range
                     (NormalModule
                         { moduleName = moduleName
                         , exposingList = exposingList.syntax
@@ -139,15 +139,15 @@ normalModuleDefinition =
 
 portModuleDefinition : Parser (WithComments (Node Module))
 portModuleDefinition =
-    ParserFast.map5WithStartAndEndLocation
-        (\start commentsAfterPort commentsAfterModule moduleName commentsAfterModuleName exposingList end ->
+    ParserFast.map5WithRange
+        (\range commentsAfterPort commentsAfterModule moduleName commentsAfterModuleName exposingList ->
             { comments =
                 commentsAfterPort
                     |> Rope.prependTo commentsAfterModule
                     |> Rope.prependTo commentsAfterModuleName
                     |> Rope.prependTo exposingList.comments
             , syntax =
-                Node { start = start, end = end }
+                Node range
                     (PortModule { moduleName = moduleName, exposingList = exposingList.syntax })
             }
         )
