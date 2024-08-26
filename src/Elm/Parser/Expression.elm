@@ -85,14 +85,20 @@ recordAccessOptimisticLayout =
 
 recordAccessParserOptimisticLayout : Parser (WithComments ExtensionRight)
 recordAccessParserOptimisticLayout =
-    lookBehindOneCharacterAndThen
-        (\c ->
-            if c == " " || c == "\n" || c == "\u{000D}" then
-                problemRecordAccessStartingWithSpace
+    dotFieldOptimisticLayout
 
-            else
-                dotFieldOptimisticLayout
+
+recordAccessAfterDot : Parser { comments : Comments, syntax : ExtensionRight }
+recordAccessAfterDot =
+    ParserFast.map2
+        (\field commentsAfter ->
+            { comments = commentsAfter
+            , syntax =
+                ExtendRightByRecordAccess field
+            }
         )
+        Tokens.functionNameNode
+        Layout.optimisticLayout
 
 
 problemRecordAccessStartingWithSpace : ParserFast.Parser a
@@ -102,16 +108,22 @@ problemRecordAccessStartingWithSpace =
 
 dotFieldOptimisticLayout : ParserFast.Parser (WithComments ExtensionRight)
 dotFieldOptimisticLayout =
-    ParserFast.symbolFollowedBy "."
-        (ParserFast.map2
-            (\field commentsAfter ->
-                { comments = commentsAfter
-                , syntax =
-                    ExtendRightByRecordAccess field
-                }
+    ParserFast.symbolBacktrackableFollowedBy "."
+        (ParserFast.offsetSourceAndThen
+            (\offset source ->
+                case String.slice (offset - 2) (offset - 1) source of
+                    " " ->
+                        problemRecordAccessStartingWithSpace
+
+                    "\n" ->
+                        problemRecordAccessStartingWithSpace
+
+                    "\u{000D}" ->
+                        problemRecordAccessStartingWithSpace
+
+                    _ ->
+                        recordAccessAfterDot
             )
-            Tokens.functionNameNode
-            Layout.optimisticLayout
         )
 
 
@@ -1155,14 +1167,6 @@ infixRight precedence possibilitiesForPrecedenceMinus1 symbol =
         (ParserFast.symbolFollowedBy symbol)
         (\right ->
             ExtendRightByOperation { symbol = symbol, direction = Infix.Right, expression = right }
-        )
-
-
-lookBehindOneCharacterAndThen : (String -> Parser res) -> Parser res
-lookBehindOneCharacterAndThen callback =
-    ParserFast.offsetSourceAndThen
-        (\offset source ->
-            callback (String.slice (offset - 1) offset source)
         )
 
 
