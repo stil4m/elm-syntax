@@ -40,7 +40,6 @@ module ParserFast exposing
 import Elm.Syntax.Range exposing (Location)
 import Parser
 import Parser.Advanced exposing ((|=))
-import Set
 
 
 {-| A `Parser` helps turn a `String` into nicely structured data. For example,

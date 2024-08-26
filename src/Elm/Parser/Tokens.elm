@@ -23,7 +23,6 @@ import Char.Extra
 import Elm.Syntax.Node exposing (Node(..))
 import Elm.Syntax.Range exposing (Range)
 import ParserFast
-import Set exposing (Set)
 
 
 isNotReserved : String -> Bool
