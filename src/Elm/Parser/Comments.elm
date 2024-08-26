@@ -2,7 +2,7 @@ module Elm.Parser.Comments exposing (declarationDocumentation, moduleDocumentati
 
 import Elm.Parser.Node as Node
 import Elm.Syntax.Documentation exposing (Documentation)
-import Elm.Syntax.Node exposing (Node)
+import Elm.Syntax.Node exposing (Node(..))
 import ParserFast exposing (Parser)
 
 
@@ -13,7 +13,7 @@ singleLineComment =
             (\c -> c /= '\u{000D}' && c /= '\n')
             (\content -> "--" ++ content)
         )
-        |> Node.parserCore
+        |> ParserFast.mapWithRange Node
 
 
 multilineComment : ParserFast.Parser (Node String)
@@ -37,7 +37,7 @@ problemUnexpectedDocumentation =
 multiLineCommentNoCheck : Parser (Node String)
 multiLineCommentNoCheck =
     ParserFast.nestableMultiComment ( '{', "-" ) ( '-', "}" )
-        |> Node.parserCore
+        |> ParserFast.mapWithRange Node
 
 
 moduleDocumentation : Parser (Node String)
@@ -51,4 +51,4 @@ declarationDocumentation =
     -- but in practice, all declaration comments allow layout before which already handles
     -- these.
     ParserFast.nestableMultiComment ( '{', "-" ) ( '-', "}" )
-        |> Node.parserCore
+        |> ParserFast.mapWithRange Node
