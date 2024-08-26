@@ -1,6 +1,6 @@
 module ParserFast exposing
     ( Parser, run
-    , int, intOrHex, floatOrIntOrHex, symbol, symbolBacktrackable, symbolWithEndLocation, symbolWithRange, symbolFollowedBy, symbolBacktrackableFollowedBy, followedBySymbol, keyword, keywordFollowedBy, while, whileWithoutLinebreak, whileMap, ifFollowedByWhileWithoutLinebreak, ifFollowedByWhileMapWithoutLinebreak, ifFollowedByWhileMapWithRangeWithoutLinebreak, ifFollowedByWhileExceptWithoutLinebreak, ifFollowedByWhileExceptMapWithRangeWithoutLinebreak, anyChar, end
+    , int, intOrHex, floatOrIntOrHex, symbol, symbolBacktrackable, symbolWithEndLocation, symbolWithRange, symbolFollowedBy, symbolBacktrackableFollowedBy, followedBySymbol, keyword, keywordFollowedBy, while, whileWithoutLinebreak, whileMap, ifFollowedByWhileWithoutLinebreak, ifFollowedByWhileMapWithoutLinebreak, ifFollowedByWhileMapWithRangeWithoutLinebreak, ifFollowedByWhileValidateWithoutLinebreak, ifFollowedByWhileValidateMapWithRangeWithoutLinebreak, anyChar, end
     , succeed, problem, lazy, map, map2, map2WithStartLocation, map2WithRange, map3, map3WithRange, map4, map4WithRange, map5, map5WithStartLocation, map5WithRange, map6, map6WithStartLocation, map6WithRange, map7WithRange, map8WithStartLocation, map9WithRange, validate
     , orSucceed, mapOrSucceed, map2OrSucceed, map3OrSucceed, map4OrSucceed, oneOf2, oneOf2Map, oneOf2OrSucceed, oneOf3, oneOf4, oneOf5, oneOf7, oneOf10, oneOf14, oneOf
     , loopWhileSucceeds, loopUntil
@@ -13,7 +13,7 @@ module ParserFast exposing
 
 @docs Parser, run
 
-@docs int, intOrHex, floatOrIntOrHex, symbol, symbolBacktrackable, symbolWithEndLocation, symbolWithRange, symbolFollowedBy, symbolBacktrackableFollowedBy, followedBySymbol, keyword, keywordFollowedBy, while, whileWithoutLinebreak, whileMap, ifFollowedByWhileWithoutLinebreak, ifFollowedByWhileMapWithoutLinebreak, ifFollowedByWhileMapWithRangeWithoutLinebreak, ifFollowedByWhileExceptWithoutLinebreak, ifFollowedByWhileExceptMapWithRangeWithoutLinebreak, anyChar, end
+@docs int, intOrHex, floatOrIntOrHex, symbol, symbolBacktrackable, symbolWithEndLocation, symbolWithRange, symbolFollowedBy, symbolBacktrackableFollowedBy, followedBySymbol, keyword, keywordFollowedBy, while, whileWithoutLinebreak, whileMap, ifFollowedByWhileWithoutLinebreak, ifFollowedByWhileMapWithoutLinebreak, ifFollowedByWhileMapWithRangeWithoutLinebreak, ifFollowedByWhileValidateWithoutLinebreak, ifFollowedByWhileValidateMapWithRangeWithoutLinebreak, anyChar, end
 
 
 # Flow
@@ -2520,12 +2520,12 @@ characters can be letters, numbers, or underscores. It is also saying that if
 you run into any of these reserved names, it is definitely not a variable.
 
 -}
-ifFollowedByWhileExceptWithoutLinebreak :
+ifFollowedByWhileValidateWithoutLinebreak :
     (Char -> Bool)
     -> (Char -> Bool)
-    -> Set.Set String
+    -> (String -> Bool)
     -> Parser String
-ifFollowedByWhileExceptWithoutLinebreak firstIsOkay afterFirstIsOkay exceptionSet =
+ifFollowedByWhileValidateWithoutLinebreak firstIsOkay afterFirstIsOkay resultIsOkay =
     Parser
         (\s ->
             let
@@ -2546,21 +2546,21 @@ ifFollowedByWhileExceptWithoutLinebreak firstIsOkay afterFirstIsOkay exceptionSe
                     name =
                         String.slice s.offset s1.offset s.src
                 in
-                if Set.member name exceptionSet then
-                    Bad False (fromState s Parser.ExpectingVariable) ()
+                if resultIsOkay name then
+                    Good True name s1
 
                 else
-                    Good True name s1
+                    Bad False (fromState s Parser.ExpectingVariable) ()
         )
 
 
-ifFollowedByWhileExceptMapWithRangeWithoutLinebreak :
+ifFollowedByWhileValidateMapWithRangeWithoutLinebreak :
     (Range -> String -> res)
     -> (Char -> Bool)
     -> (Char -> Bool)
-    -> Set.Set String
+    -> (String -> Bool)
     -> Parser res
-ifFollowedByWhileExceptMapWithRangeWithoutLinebreak toResult firstIsOkay afterFirstIsOkay exceptionSet =
+ifFollowedByWhileValidateMapWithRangeWithoutLinebreak toResult firstIsOkay afterFirstIsOkay resultIsOkay =
     Parser
         (\s0 ->
             let
@@ -2581,11 +2581,11 @@ ifFollowedByWhileExceptMapWithRangeWithoutLinebreak toResult firstIsOkay afterFi
                     name =
                         String.slice s0.offset s1.offset s0.src
                 in
-                if Set.member name exceptionSet then
-                    Bad False (fromState s0 Parser.ExpectingVariable) ()
+                if resultIsOkay name then
+                    Good True (toResult { start = { row = s0.row, column = s0.col }, end = { row = s1.row, column = s1.col } } name) s1
 
                 else
-                    Good True (toResult { start = { row = s0.row, column = s0.col }, end = { row = s1.row, column = s1.col } } name) s1
+                    Bad False (fromState s0 Parser.ExpectingVariable) ()
         )
 
 
