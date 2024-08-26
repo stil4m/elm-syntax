@@ -72,7 +72,7 @@ maybeComposedWith =
 
 parensPattern : Parser (WithComments (Node Pattern))
 parensPattern =
-    ParserFast.map2WithStartAndEndPosition
+    ParserFast.map2WithStartAndEndLocation
         (\start commentsBeforeHead contentResult end ->
             { comments =
                 commentsBeforeHead
@@ -132,7 +132,7 @@ numberPart =
 charPattern : Parser (WithComments (Node Pattern))
 charPattern =
     Tokens.characterLiteral
-        |> ParserFast.mapWithStartAndEndPosition
+        |> ParserFast.mapWithStartAndEndLocation
             (\start char end ->
                 { comments = Rope.empty, syntax = Node { start = start, end = end } (CharPattern char) }
             )
@@ -140,7 +140,7 @@ charPattern =
 
 listPattern : Parser (WithComments (Node Pattern))
 listPattern =
-    ParserFast.map2WithStartAndEndPosition
+    ParserFast.map2WithStartAndEndLocation
         (\start commentsBeforeElements maybeElements end ->
             case maybeElements of
                 Nothing ->
@@ -217,7 +217,7 @@ patternNotDirectlyComposing =
 
 allPattern : Parser (WithComments (Node Pattern))
 allPattern =
-    ParserFast.symbolWithStartAndEndPosition "_"
+    ParserFast.symbolWithStartAndEndLocation "_"
         (\start end ->
             { comments = Rope.empty
             , syntax = Node { start = start, end = end } AllPattern
@@ -227,7 +227,7 @@ allPattern =
 
 unitPattern : Parser (WithComments (Node Pattern))
 unitPattern =
-    ParserFast.symbolWithStartAndEndPosition "()"
+    ParserFast.symbolWithStartAndEndLocation "()"
         (\start end ->
             { comments = Rope.empty
             , syntax = Node { start = start, end = end } UnitPattern
@@ -238,7 +238,7 @@ unitPattern =
 stringPattern : Parser (WithComments (Node Pattern))
 stringPattern =
     Tokens.singleOrTripleQuotedStringLiteral
-        |> ParserFast.mapWithStartAndEndPosition
+        |> ParserFast.mapWithStartAndEndLocation
             (\start string end ->
                 { comments = Rope.empty
                 , syntax =
@@ -265,7 +265,7 @@ maybeDotTypeNamesTuple =
 
 qualifiedPatternWithConsumeArgs : Parser (WithComments (Node Pattern))
 qualifiedPatternWithConsumeArgs =
-    ParserFast.map3WithStartAndEndPosition
+    ParserFast.map3WithStartAndEndLocation
         (\start startName afterStartName args end ->
             { comments = args.comments
             , syntax =
@@ -299,7 +299,7 @@ qualifiedPatternWithConsumeArgs =
 
 qualifiedPatternWithoutConsumeArgs : Parser (WithComments (Node Pattern))
 qualifiedPatternWithoutConsumeArgs =
-    ParserFast.map2WithStartAndEndPosition
+    ParserFast.map2WithStartAndEndLocation
         (\start firstName after end ->
             { comments = Rope.empty
             , syntax =
@@ -322,7 +322,7 @@ qualifiedPatternWithoutConsumeArgs =
 
 recordPattern : Parser (WithComments (Node Pattern))
 recordPattern =
-    ParserFast.map2WithStartAndEndPosition
+    ParserFast.map2WithStartAndEndLocation
         (\start commentsBeforeElements maybeElements end ->
             case maybeElements of
                 Nothing ->

@@ -138,7 +138,7 @@ functionCall =
 glslExpressionAfterOpeningSquareBracket : Parser (WithComments (Node Expression))
 glslExpressionAfterOpeningSquareBracket =
     ParserFast.symbolFollowedBy "glsl|"
-        (ParserFast.mapWithStartAndEndPosition
+        (ParserFast.mapWithStartAndEndLocation
             (\start s end ->
                 { comments = Rope.empty
                 , syntax =
@@ -174,7 +174,7 @@ expressionAfterOpeningSquareBracket : Parser (WithComments (Node Expression))
 expressionAfterOpeningSquareBracket =
     ParserFast.oneOf2
         glslExpressionAfterOpeningSquareBracket
-        (ParserFast.map2WithStartAndEndPosition
+        (ParserFast.map2WithStartAndEndLocation
             (\start commentsBefore elements end ->
                 { comments = commentsBefore |> Rope.prependTo elements.comments
                 , syntax =
@@ -216,7 +216,7 @@ expressionAfterOpeningSquareBracket =
 
 recordExpression : Parser (WithComments (Node Expression))
 recordExpression =
-    ParserFast.map2WithStartAndEndPosition
+    ParserFast.map2WithStartAndEndLocation
         (\start commentsBefore afterCurly end ->
             { comments =
                 commentsBefore
@@ -300,7 +300,7 @@ recordFields =
 
 recordSetterNodeWithLayout : Parser (WithComments (Node RecordSetter))
 recordSetterNodeWithLayout =
-    ParserFast.map5WithStartAndEndPosition
+    ParserFast.map5WithStartAndEndLocation
         (\start name commentsAfterFunctionName commentsAfterEquals expressionResult commentsAfterExpression end ->
             { comments =
                 commentsAfterFunctionName
@@ -322,7 +322,7 @@ recordSetterNodeWithLayout =
 
 literalExpression : Parser (WithComments (Node Expression))
 literalExpression =
-    ParserFast.mapWithStartAndEndPosition
+    ParserFast.mapWithStartAndEndLocation
         (\start string end ->
             { comments = Rope.empty
             , syntax = Node { start = start, end = end } (Literal string)
@@ -333,7 +333,7 @@ literalExpression =
 
 charLiteralExpression : Parser (WithComments (Node Expression))
 charLiteralExpression =
-    ParserFast.mapWithStartAndEndPosition
+    ParserFast.mapWithStartAndEndLocation
         (\start char end ->
             { comments = Rope.empty
             , syntax = Node { start = start, end = end } (CharLiteral char)
@@ -348,7 +348,7 @@ charLiteralExpression =
 
 lambdaExpression : Parser (WithComments (Node Expression))
 lambdaExpression =
-    ParserFast.map5WithStartPosition
+    ParserFast.map5WithStartLocation
         (\start commentsAfterBackslash firstArg commentsAfterFirstArg secondUpArgs expressionResult ->
             let
                 (Node expressionRange _) =
@@ -419,7 +419,7 @@ lambdaExpression =
 
 caseExpression : Parser (WithComments (Node Expression))
 caseExpression =
-    ParserFast.map5WithStartPosition
+    ParserFast.map5WithStartLocation
         (\start commentsAfterCase casedExpressionResult commentsBeforeOf commentsAfterOf casesResult ->
             let
                 ( firstCase, lastToSecondCase ) =
@@ -529,7 +529,7 @@ letExpression =
             }
         )
         (ParserFast.withIndentSetToColumn
-            (ParserFast.map2WithStartPosition
+            (ParserFast.map2WithStartLocation
                 (\start commentsAfterLet declarations ->
                     { comments =
                         commentsAfterLet
@@ -616,7 +616,7 @@ letDestructuringDeclaration =
 
 letFunction : Parser (WithComments (Node LetDeclaration))
 letFunction =
-    ParserFast.map6WithStartPosition
+    ParserFast.map6WithStartLocation
         (\startNameStart startNameNode commentsAfterStartName maybeSignature arguments commentsAfterEqual expressionResult ->
             let
                 allComments : Comments
@@ -752,7 +752,7 @@ parameterPatternsEqual =
 
 numberExpression : Parser (WithComments (Node Expression))
 numberExpression =
-    ParserFast.mapWithStartAndEndPosition
+    ParserFast.mapWithStartAndEndLocation
         (\start n end ->
             { comments = Rope.empty
             , syntax = Node { start = start, end = end } n
@@ -767,7 +767,7 @@ numberExpression =
 
 ifBlockExpression : Parser (WithComments (Node Expression))
 ifBlockExpression =
-    ParserFast.map8WithStartPosition
+    ParserFast.map8WithStartLocation
         (\start commentsAfterIf condition commentsBeforeThen commentsAfterThen ifTrue commentsBeforeElse commentsAfterElse ifFalse ->
             let
                 (Node ifFalseRange _) =
@@ -803,7 +803,7 @@ ifBlockExpression =
 
 negationOperation : Parser (WithComments (Node Expression))
 negationOperation =
-    ParserFast.map2WithStartPosition
+    ParserFast.map2WithStartLocation
         (\start () subExpressionResult ->
             let
                 (Node subExpressionRange _) =
@@ -821,7 +821,7 @@ negationOperation =
 
 qualifiedOrVariantOrRecordConstructorReferenceExpression : Parser (WithComments (Node Expression))
 qualifiedOrVariantOrRecordConstructorReferenceExpression =
-    ParserFast.map2WithStartAndEndPosition
+    ParserFast.map2WithStartAndEndLocation
         (\start firstName after end ->
             { comments = Rope.empty
             , syntax =
@@ -900,7 +900,7 @@ tupledExpression : Parser (WithComments (Node Expression))
 tupledExpression =
     ParserFast.symbolFollowedBy "("
         (ParserFast.oneOf4
-            (ParserFast.symbolWithEndPosition ")"
+            (ParserFast.symbolWithEndLocation ")"
                 (\end ->
                     { comments = Rope.empty
                     , syntax =
@@ -911,7 +911,7 @@ tupledExpression =
             )
             -- since `-` alone  could indicate negation or prefix operator,
             -- we check for `-)` first
-            (ParserFast.symbolWithEndPosition "-)"
+            (ParserFast.symbolWithEndLocation "-)"
                 (\end ->
                     { comments = Rope.empty
                     , syntax =
@@ -943,7 +943,7 @@ allowedPrefixOperatorExceptMinusThenClosingParensOneOf =
                     prefixOperatorLength =
                         2 + String.length allowedOperatorToken
                 in
-                ParserFast.symbolWithEndPosition
+                ParserFast.symbolWithEndLocation
                     (allowedOperatorToken ++ ")")
                     (\end ->
                         { comments = Rope.empty
@@ -957,7 +957,7 @@ allowedPrefixOperatorExceptMinusThenClosingParensOneOf =
 
 tupledExpressionInnerAfterOpeningParens : Parser (WithComments (Node Expression))
 tupledExpressionInnerAfterOpeningParens =
-    ParserFast.map4WithStartAndEndPosition
+    ParserFast.map4WithStartAndEndLocation
         (\start commentsBeforeFirstPart firstPart commentsAfterFirstPart tailPartsReverse end ->
             case tailPartsReverse.syntax of
                 [] ->

@@ -14,7 +14,7 @@ import Rope
 
 importDefinition : Parser (WithComments (Node Import))
 importDefinition =
-    ParserFast.map6WithStartPosition
+    ParserFast.map6WithStartLocation
         (\start commentsAfterImport ((Node modRange _) as mod) commentsAfterModuleName maybeModuleAlias maybeExposingList commentsAfterEverything ->
             let
                 endRange : Range
@@ -78,7 +78,7 @@ importDefinition =
                     }
             )
             (ParserFast.keywordFollowedBy "as" Layout.maybeLayout)
-            (ParserFast.mapWithStartAndEndPosition
+            (ParserFast.mapWithStartAndEndLocation
                 (\start moduleAlias end ->
                     Node { start = start, end = end }
                         [ moduleAlias ]

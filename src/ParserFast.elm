@@ -13,7 +13,7 @@ module ParserFast exposing
 
 @docs Parser, run
 
-@docs int, intOrHex, floatOrIntOrHex, symbol, symbolBacktrackable, symbolWithEndPosition, symbolWithStartAndEndPosition, symbolFollowedBy, symbolBacktrackableFollowedBy, followedBySymbol, keyword, keywordFollowedBy, while, whileWithoutLinebreak, whileMap, ifFollowedByWhileWithoutLinebreak, ifFollowedByWhileMapWithoutLinebreak, ifFollowedByWhileMapWithStartAndEndPositionWithoutLinebreak, ifFollowedByWhileExceptWithoutLinebreak, ifFollowedByWhileExceptMapWithStartAndEndPositionsWithoutLinebreak, anyChar, end
+@docs int, intOrHex, floatOrIntOrHex, symbol, symbolBacktrackable, symbolWithEndLocation, symbolWithStartAndEndLocation, symbolFollowedBy, symbolBacktrackableFollowedBy, followedBySymbol, keyword, keywordFollowedBy, while, whileWithoutLinebreak, whileMap, ifFollowedByWhileWithoutLinebreak, ifFollowedByWhileMapWithoutLinebreak, ifFollowedByWhileMapWithStartAndEndLocationWithoutLinebreak, ifFollowedByWhileExceptWithoutLinebreak, ifFollowedByWhileExceptMapWithStartAndEndLocationsWithoutLinebreak, anyChar, end
 
 
 # Flow
@@ -30,10 +30,10 @@ module ParserFast exposing
 @docs chompIfWhitespaceFollowedBy, chompWhileWhitespaceFollowedBy, nestableMultiComment
 
 
-# Indentation, Positions and source
+# Indentation, Locations and source
 
 @docs withIndentSetToColumn, withIndent, columnIndentAndThen, validateEndColumnIndentation, validateEndColumnIndentationBacktrackable
-@docs mapWithStartAndEndPosition, columnAndThen, offsetSourceAndThen
+@docs mapWithStartAndEndLocation, columnAndThen, offsetSourceAndThen
 
 -}
 
@@ -404,8 +404,8 @@ map2 func (Parser parseA) (Parser parseB) =
         )
 
 
-map2WithStartPosition : (Location -> a -> b -> value) -> Parser a -> Parser b -> Parser value
-map2WithStartPosition func (Parser parseA) (Parser parseB) =
+map2WithStartLocation : (Location -> a -> b -> value) -> Parser a -> Parser b -> Parser value
+map2WithStartLocation func (Parser parseA) (Parser parseB) =
     Parser
         (\s0 ->
             case parseA s0 of
@@ -422,8 +422,8 @@ map2WithStartPosition func (Parser parseA) (Parser parseB) =
         )
 
 
-map2WithStartAndEndPosition : (Location -> a -> b -> Location -> value) -> Parser a -> Parser b -> Parser value
-map2WithStartAndEndPosition func (Parser parseA) (Parser parseB) =
+map2WithStartAndEndLocation : (Location -> a -> b -> Location -> value) -> Parser a -> Parser b -> Parser value
+map2WithStartAndEndLocation func (Parser parseA) (Parser parseB) =
     Parser
         (\s0 ->
             case parseA s0 of
@@ -463,8 +463,8 @@ map3 func (Parser parseA) (Parser parseB) (Parser parseC) =
         )
 
 
-map3WithStartAndEndPosition : (Location -> a -> b -> c -> Location -> value) -> Parser a -> Parser b -> Parser c -> Parser value
-map3WithStartAndEndPosition func (Parser parseA) (Parser parseB) (Parser parseC) =
+map3WithStartAndEndLocation : (Location -> a -> b -> c -> Location -> value) -> Parser a -> Parser b -> Parser c -> Parser value
+map3WithStartAndEndLocation func (Parser parseA) (Parser parseB) (Parser parseC) =
     Parser
         (\s0 ->
             case parseA s0 of
@@ -514,8 +514,8 @@ map4 func (Parser parseA) (Parser parseB) (Parser parseC) (Parser parseD) =
         )
 
 
-map4WithStartAndEndPosition : (Location -> a -> b -> c -> d -> Location -> value) -> Parser a -> Parser b -> Parser c -> Parser d -> Parser value
-map4WithStartAndEndPosition func (Parser parseA) (Parser parseB) (Parser parseC) (Parser parseD) =
+map4WithStartAndEndLocation : (Location -> a -> b -> c -> d -> Location -> value) -> Parser a -> Parser b -> Parser c -> Parser d -> Parser value
+map4WithStartAndEndLocation func (Parser parseA) (Parser parseB) (Parser parseC) (Parser parseD) =
     Parser
         (\s0 ->
             case parseA s0 of
@@ -575,8 +575,8 @@ map5 func (Parser parseA) (Parser parseB) (Parser parseC) (Parser parseD) (Parse
         )
 
 
-map5WithStartPosition : (Location -> a -> b -> c -> d -> e -> value) -> Parser a -> Parser b -> Parser c -> Parser d -> Parser e -> Parser value
-map5WithStartPosition func (Parser parseA) (Parser parseB) (Parser parseC) (Parser parseD) (Parser parseE) =
+map5WithStartLocation : (Location -> a -> b -> c -> d -> e -> value) -> Parser a -> Parser b -> Parser c -> Parser d -> Parser e -> Parser value
+map5WithStartLocation func (Parser parseA) (Parser parseB) (Parser parseC) (Parser parseD) (Parser parseE) =
     Parser
         (\s0 ->
             case parseA s0 of
@@ -608,8 +608,8 @@ map5WithStartPosition func (Parser parseA) (Parser parseB) (Parser parseC) (Pars
         )
 
 
-map5WithStartAndEndPosition : (Location -> a -> b -> c -> d -> e -> Location -> value) -> Parser a -> Parser b -> Parser c -> Parser d -> Parser e -> Parser value
-map5WithStartAndEndPosition func (Parser parseA) (Parser parseB) (Parser parseC) (Parser parseD) (Parser parseE) =
+map5WithStartAndEndLocation : (Location -> a -> b -> c -> d -> e -> Location -> value) -> Parser a -> Parser b -> Parser c -> Parser d -> Parser e -> Parser value
+map5WithStartAndEndLocation func (Parser parseA) (Parser parseB) (Parser parseC) (Parser parseD) (Parser parseE) =
     Parser
         (\s0 ->
             case parseA s0 of
@@ -679,8 +679,8 @@ map6 func (Parser parseA) (Parser parseB) (Parser parseC) (Parser parseD) (Parse
         )
 
 
-map6WithStartPosition : (Location -> a -> b -> c -> d -> e -> f -> value) -> Parser a -> Parser b -> Parser c -> Parser d -> Parser e -> Parser f -> Parser value
-map6WithStartPosition func (Parser parseA) (Parser parseB) (Parser parseC) (Parser parseD) (Parser parseE) (Parser parseF) =
+map6WithStartLocation : (Location -> a -> b -> c -> d -> e -> f -> value) -> Parser a -> Parser b -> Parser c -> Parser d -> Parser e -> Parser f -> Parser value
+map6WithStartLocation func (Parser parseA) (Parser parseB) (Parser parseC) (Parser parseD) (Parser parseE) (Parser parseF) =
     Parser
         (\s0 ->
             case parseA s0 of
@@ -717,8 +717,8 @@ map6WithStartPosition func (Parser parseA) (Parser parseB) (Parser parseC) (Pars
         )
 
 
-map6WithStartAndEndPosition : (Location -> a -> b -> c -> d -> e -> f -> Location -> value) -> Parser a -> Parser b -> Parser c -> Parser d -> Parser e -> Parser f -> Parser value
-map6WithStartAndEndPosition func (Parser parseA) (Parser parseB) (Parser parseC) (Parser parseD) (Parser parseE) (Parser parseF) =
+map6WithStartAndEndLocation : (Location -> a -> b -> c -> d -> e -> f -> Location -> value) -> Parser a -> Parser b -> Parser c -> Parser d -> Parser e -> Parser f -> Parser value
+map6WithStartAndEndLocation func (Parser parseA) (Parser parseB) (Parser parseC) (Parser parseD) (Parser parseE) (Parser parseF) =
     Parser
         (\s0 ->
             case parseA s0 of
@@ -755,8 +755,8 @@ map6WithStartAndEndPosition func (Parser parseA) (Parser parseB) (Parser parseC)
         )
 
 
-map7WithStartAndEndPosition : (Location -> a -> b -> c -> d -> e -> f -> g -> Location -> value) -> Parser a -> Parser b -> Parser c -> Parser d -> Parser e -> Parser f -> Parser g -> Parser value
-map7WithStartAndEndPosition func (Parser parseA) (Parser parseB) (Parser parseC) (Parser parseD) (Parser parseE) (Parser parseF) (Parser parseG) =
+map7WithStartAndEndLocation : (Location -> a -> b -> c -> d -> e -> f -> g -> Location -> value) -> Parser a -> Parser b -> Parser c -> Parser d -> Parser e -> Parser f -> Parser g -> Parser value
+map7WithStartAndEndLocation func (Parser parseA) (Parser parseB) (Parser parseC) (Parser parseD) (Parser parseE) (Parser parseF) (Parser parseG) =
     Parser
         (\s0 ->
             case parseA s0 of
@@ -798,8 +798,8 @@ map7WithStartAndEndPosition func (Parser parseA) (Parser parseB) (Parser parseC)
         )
 
 
-map8WithStartPosition : (Location -> a -> b -> c -> d -> e -> f -> g -> h -> value) -> Parser a -> Parser b -> Parser c -> Parser d -> Parser e -> Parser f -> Parser g -> Parser h -> Parser value
-map8WithStartPosition func (Parser parseA) (Parser parseB) (Parser parseC) (Parser parseD) (Parser parseE) (Parser parseF) (Parser parseG) (Parser parseH) =
+map8WithStartLocation : (Location -> a -> b -> c -> d -> e -> f -> g -> h -> value) -> Parser a -> Parser b -> Parser c -> Parser d -> Parser e -> Parser f -> Parser g -> Parser h -> Parser value
+map8WithStartLocation func (Parser parseA) (Parser parseB) (Parser parseC) (Parser parseD) (Parser parseE) (Parser parseF) (Parser parseG) (Parser parseH) =
     Parser
         (\s0 ->
             case parseA s0 of
@@ -846,8 +846,8 @@ map8WithStartPosition func (Parser parseA) (Parser parseB) (Parser parseC) (Pars
         )
 
 
-map9WithStartAndEndPosition : (Location -> a -> b -> c -> d -> e -> f -> g -> h -> i -> Location -> value) -> Parser a -> Parser b -> Parser c -> Parser d -> Parser e -> Parser f -> Parser g -> Parser h -> Parser i -> Parser value
-map9WithStartAndEndPosition func (Parser parseA) (Parser parseB) (Parser parseC) (Parser parseD) (Parser parseE) (Parser parseF) (Parser parseG) (Parser parseH) (Parser parseI) =
+map9WithStartAndEndLocation : (Location -> a -> b -> c -> d -> e -> f -> g -> h -> i -> Location -> value) -> Parser a -> Parser b -> Parser c -> Parser d -> Parser e -> Parser f -> Parser g -> Parser h -> Parser i -> Parser value
+map9WithStartAndEndLocation func (Parser parseA) (Parser parseB) (Parser parseC) (Parser parseD) (Parser parseE) (Parser parseF) (Parser parseG) (Parser parseH) (Parser parseI) =
     Parser
         (\s0 ->
             case parseA s0 of
@@ -2036,8 +2036,8 @@ symbolBacktrackable str res =
         )
 
 
-symbolWithEndPosition : String -> (Location -> res) -> Parser res
-symbolWithEndPosition str endPositionToRes =
+symbolWithEndLocation : String -> (Location -> res) -> Parser res
+symbolWithEndLocation str endLocationToRes =
     let
         expecting : Parser.Problem
         expecting =
@@ -2061,7 +2061,7 @@ symbolWithEndPosition str endPositionToRes =
                         s.col + strLength
                 in
                 Good True
-                    (endPositionToRes { row = s.row, column = newCol })
+                    (endLocationToRes { row = s.row, column = newCol })
                     { src = s.src
                     , offset = newOffset
                     , indent = s.indent
@@ -2074,8 +2074,8 @@ symbolWithEndPosition str endPositionToRes =
         )
 
 
-symbolWithStartAndEndPosition : String -> (Location -> Location -> res) -> Parser res
-symbolWithStartAndEndPosition str startAndEndPositionToRes =
+symbolWithStartAndEndLocation : String -> (Location -> Location -> res) -> Parser res
+symbolWithStartAndEndLocation str startAndEndLocationToRes =
     let
         expecting : Parser.Problem
         expecting =
@@ -2099,7 +2099,7 @@ symbolWithStartAndEndPosition str startAndEndPositionToRes =
                         s.col + strLength
                 in
                 Good True
-                    (startAndEndPositionToRes { row = s.row, column = s.col } { row = s.row, column = newCol })
+                    (startAndEndLocationToRes { row = s.row, column = s.col } { row = s.row, column = newCol })
                     { src = s.src
                     , offset = newOffset
                     , indent = s.indent
@@ -2614,7 +2614,7 @@ mapWithStartAndEndPosition :
     (Location -> a -> Location -> b)
     -> Parser a
     -> Parser b
-mapWithStartAndEndPosition combineStartAndResult (Parser parse) =
+mapWithStartAndEndLocation combineStartAndResult (Parser parse) =
     Parser
         (\s0 ->
             case parse s0 of
@@ -2661,13 +2661,13 @@ variable i =
         }
 
 
-ifFollowedByWhileExceptMapWithStartAndEndPositionsWithoutLinebreak :
+ifFollowedByWhileExceptMapWithStartAndEndLocationsWithoutLinebreak :
     (Location -> String -> Location -> res)
     -> (Char -> Bool)
     -> (Char -> Bool)
     -> Set.Set String
     -> Parser res
-ifFollowedByWhileExceptMapWithStartAndEndPositionsWithoutLinebreak toResult firstIsOkay afterFirstIsOkay exceptionSet =
+ifFollowedByWhileExceptMapWithStartAndEndLocationsWithoutLinebreak toResult firstIsOkay afterFirstIsOkay exceptionSet =
     Parser
         (\s0 ->
             let
@@ -2721,12 +2721,12 @@ ifFollowedByWhileWithoutLinebreak firstIsOkay afterFirstIsOkay =
         )
 
 
-ifFollowedByWhileMapWithStartAndEndPositionWithoutLinebreak :
+ifFollowedByWhileMapWithStartAndEndLocationWithoutLinebreak :
     (Location -> String -> Location -> res)
     -> (Char -> Bool)
     -> (Char -> Bool)
     -> Parser res
-ifFollowedByWhileMapWithStartAndEndPositionWithoutLinebreak rangeAndChompedToRes firstIsOkay afterFirstIsOkay =
+ifFollowedByWhileMapWithStartAndEndLocationWithoutLinebreak rangeAndChompedToRes firstIsOkay afterFirstIsOkay =
     Parser
         (\s0 ->
             let
