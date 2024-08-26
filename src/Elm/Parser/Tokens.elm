@@ -26,30 +26,57 @@ import ParserFast
 import Set exposing (Set)
 
 
-reservedList : Set String
-reservedList =
-    [ "module"
-    , "exposing"
-    , "import"
-    , "as"
-    , "if"
-    , "then"
-    , "else"
-    , "let"
-    , "in"
-    , "case"
-    , "of"
-    , "port"
+isNotReserved : String -> Bool
+isNotReserved name =
+    case name of
+        "module" ->
+            False
 
-    --, "infixr"
-    --, "infixl"
-    , "type"
+        "exposing" ->
+            False
 
-    --, "infix" Apparently this is not a reserved keyword
-    --, "alias" Apparently this is not a reserved keyword
-    , "where"
-    ]
-        |> Set.fromList
+        "import" ->
+            False
+
+        "as" ->
+            False
+
+        "if" ->
+            False
+
+        "then" ->
+            False
+
+        "else" ->
+            False
+
+        "let" ->
+            False
+
+        "in" ->
+            False
+
+        "case" ->
+            False
+
+        "of" ->
+            False
+
+        "port" ->
+            False
+
+        --"infixr"
+        --"infixl"
+        "type" ->
+            False
+
+        -- "infix" Apparently this is not a reserved keyword
+        -- "alias" Apparently this is not a reserved keyword
+        "where" ->
+            False
+
+        _ ->
+            True
 
 
 inToken : ParserFast.Parser ()
@@ -220,35 +247,35 @@ tripleQuotedStringLiteralOfterTripleDoubleQuote =
 
 functionName : ParserFast.Parser String
 functionName =
-    ParserFast.ifFollowedByWhileExceptWithoutLinebreak
+    ParserFast.ifFollowedByWhileValidateWithoutLinebreak
         Char.Extra.unicodeIsLowerFast
         Char.Extra.unicodeIsAlphaNumOrUnderscoreFast
-        reservedList
+        isNotReserved
 
 
 functionNameNode : ParserFast.Parser (Node String)
 functionNameNode =
-    ParserFast.ifFollowedByWhileExceptMapWithRangeWithoutLinebreak Node
+    ParserFast.ifFollowedByWhileValidateMapWithRangeWithoutLinebreak Node
         Char.Extra.unicodeIsLowerFast
         Char.Extra.unicodeIsAlphaNumOrUnderscoreFast
-        reservedList
+        isNotReserved
 
 
 functionNameMapWithRange : (Range -> String -> res) -> ParserFast.Parser res
 functionNameMapWithRange rangeAndNameToResult =
-    ParserFast.ifFollowedByWhileExceptMapWithRangeWithoutLinebreak
+    ParserFast.ifFollowedByWhileValidateMapWithRangeWithoutLinebreak
         rangeAndNameToResult
         Char.Extra.unicodeIsLowerFast
         Char.Extra.unicodeIsAlphaNumOrUnderscoreFast
-        reservedList
+        isNotReserved
 
 
 functionNameNotInfixNode : ParserFast.Parser (Node String)
 functionNameNotInfixNode =
-    ParserFast.ifFollowedByWhileExceptMapWithRangeWithoutLinebreak Node
+    ParserFast.ifFollowedByWhileValidateMapWithRangeWithoutLinebreak Node
         Char.Extra.unicodeIsLowerFast
         Char.Extra.unicodeIsAlphaNumOrUnderscoreFast
-        (Set.insert "infix" reservedList)
+        (\name -> name /= "infix" && isNotReserved name)
 
 
 typeName : ParserFast.Parser String

@@ -13,7 +13,7 @@ module ParserFast exposing
 
 @docs Parser, run
 
-@docs int, intOrHex, floatOrIntOrHex, symbol, symbolBacktrackable, symbolWithEndLocation, symbolWithRange, symbolFollowedBy, symbolBacktrackableFollowedBy, followedBySymbol, keyword, keywordFollowedBy, while, whileWithoutLinebreak, whileMap, ifFollowedByWhileWithoutLinebreak, ifFollowedByWhileMapWithoutLinebreak, ifFollowedByWhileMapWithRangeWithoutLinebreak, ifFollowedByWhileExceptWithoutLinebreak, ifFollowedByWhileExceptMapWithRangeWithoutLinebreak, anyChar, end
+@docs int, intOrHex, floatOrIntOrHex, symbol, symbolBacktrackable, symbolWithEndLocation, symbolWithRange, symbolFollowedBy, symbolBacktrackableFollowedBy, followedBySymbol, keyword, keywordFollowedBy, while, whileWithoutLinebreak, whileMap, ifFollowedByWhileWithoutLinebreak, ifFollowedByWhileMapWithoutLinebreak, ifFollowedByWhileMapWithRangeWithoutLinebreak, ifFollowedByWhileValidateWithoutLinebreak, ifFollowedByWhileValidateMapWithRangeWithoutLinebreak, anyChar, end
 
 
 # Flow
@@ -2661,13 +2661,13 @@ variable i =
         }
 
 
-ifFollowedByWhileExceptMapWithRangeWithoutLinebreak :
+ifFollowedByWhileValidateMapWithRangeWithoutLinebreak :
     (Range -> String -> res)
     -> (Char -> Bool)
     -> (Char -> Bool)
-    -> Set.Set String
+    -> (String -> Bool)
     -> Parser res
-ifFollowedByWhileExceptMapWithRangeWithoutLinebreak toResult firstIsOkay afterFirstIsOkay exceptionSet =
+ifFollowedByWhileValidateMapWithRangeWithoutLinebreak toResult firstIsOkay afterFirstIsOkay resultIsOkay =
     Parser
         (\s0 ->
             let
@@ -2688,11 +2688,11 @@ ifFollowedByWhileExceptMapWithRangeWithoutLinebreak toResult firstIsOkay afterFi
                     name =
                         String.slice s0.offset s1.offset s0.src
                 in
-                if Set.member name exceptionSet then
-                    Bad False (fromState s0 Parser.ExpectingVariable) ()
+                if resultIsOkay name then
+                    Good True (toResult { start = { row = s0.row, column = s0.col }, end = { row = s1.row, column = s1.col } } name) s1
 
                 else
-                    Good True (toResult { start = { row = s0.row, column = s0.col }, end = { row = s1.row, column = s1.col } } name) s1
+                    Bad False (fromState s0 Parser.ExpectingVariable) ()
         )
 
 
