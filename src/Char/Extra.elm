@@ -104,7 +104,8 @@ isLatinAlphaNumOrUnderscoreFast c =
     charCodeIsLower code
         || charCodeIsUpper code
         || charCodeIsDigit code
-        || (c == '_')
+        || -- (c == '_')
+           (code == 95)
 
 
 unicodeIsAlphaNumOrUnderscoreFast : Char -> Bool
@@ -117,8 +118,13 @@ unicodeIsAlphaNumOrUnderscoreFast c =
     charCodeIsLower code
         || charCodeIsUpper code
         || charCodeIsDigit code
-        || (c == '_')
-        || (if code < 0x0100 then
+        || -- (c == '_')
+           (code == 95)
+        || -- if it's not obviously alphanum,
+           -- check if it's not some common end character and shortcut to False if possible
+           -- ((c /= ' ') && (c /= '\n'))
+           ((code /= 32) && (code /= 10))
+        && (if code < 0x0100 then
                 0x30 <= code && code <= 0x39 || 0x41 <= code && code <= 0x5A || 0x61 <= code && code <= 0x7A || code == 0xAA || 0xB2 <= code && code <= 0xB3 || code == 0xB5 || 0xB9 <= code && code <= 0xBA || 0xBC <= code && code <= 0xBE || 0xC0 <= code && code <= 0xD6 || 0xD8 <= code && code <= 0xF6 || 0xF8 <= code && code <= 0xFF
 
             else if code < 0xAAB4 then
