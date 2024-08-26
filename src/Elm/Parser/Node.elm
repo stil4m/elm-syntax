@@ -1,4 +1,4 @@
-module Elm.Parser.Node exposing (parser, parserCore)
+module Elm.Parser.Node exposing (parser)
 
 import Elm.Syntax.Node exposing (Node(..))
 import ParserFast exposing (Parser)
@@ -14,8 +14,3 @@ parser p =
             }
         )
         p
-
-
-parserCore : ParserFast.Parser a -> ParserFast.Parser (Node a)
-parserCore p =
-    ParserFast.mapWithRange Node p

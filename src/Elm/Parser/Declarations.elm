@@ -454,9 +454,9 @@ infixDeclaration =
             }
         )
         (ParserFast.keywordFollowedBy "infix" Layout.maybeLayout)
-        (Node.parserCore infixDirection)
+        infixDirection
         Layout.maybeLayout
-        (Node.parserCore ParserFast.int)
+        (ParserFast.mapWithRange Node ParserFast.int)
         Layout.maybeLayout
         (ParserFast.mapWithRange Node
             (ParserFast.symbolFollowedBy "(" Tokens.prefixOperatorToken
@@ -468,12 +468,12 @@ infixDeclaration =
         Tokens.functionNameNode
 
 
-infixDirection : ParserFast.Parser Infix.InfixDirection
+infixDirection : ParserFast.Parser (Node Infix.InfixDirection)
 infixDirection =
     ParserFast.oneOf3
-        (ParserFast.keyword "right" Infix.Right)
-        (ParserFast.keyword "left" Infix.Left)
-        (ParserFast.keyword "non" Infix.Non)
+        (ParserFast.mapWithRange Node (ParserFast.keyword "right" Infix.Right))
+        (ParserFast.mapWithRange Node (ParserFast.keyword "left" Infix.Left))
+        (ParserFast.mapWithRange Node (ParserFast.keyword "non" Infix.Non))
 
 
 portDeclarationAfterDocumentation : Parser (WithComments DeclarationAfterDocumentation)
