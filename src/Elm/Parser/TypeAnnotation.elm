@@ -123,7 +123,7 @@ genericTypeAnnotation =
 
 recordTypeAnnotation : Parser (WithComments (Node TypeAnnotation))
 recordTypeAnnotation =
-    ParserFast.map2WithStartAndEndPosition
+    ParserFast.map2WithStartAndEndLocation
         (\start commentsBefore afterCurly end ->
             case afterCurly of
                 Nothing ->
@@ -159,7 +159,7 @@ recordTypeAnnotation =
                 Layout.maybeLayout
                 (ParserFast.oneOf2
                     (ParserFast.symbolFollowedBy "|"
-                        (ParserFast.mapWithStartAndEndPosition
+                        (ParserFast.mapWithStartAndEndLocation
                             (\start extension end ->
                                 { comments = extension.comments
                                 , syntax =
@@ -239,7 +239,7 @@ recordFieldsTypeAnnotation =
 
 recordFieldDefinition : Parser (WithComments (Node TypeAnnotation.RecordField))
 recordFieldDefinition =
-    ParserFast.map6WithStartAndEndPosition
+    ParserFast.map6WithStartAndEndLocation
         (\start commentsBeforeFunctionName name commentsAfterFunctionName commentsAfterColon value commentsAfterValue end ->
             { comments =
                 commentsBeforeFunctionName
@@ -262,7 +262,7 @@ recordFieldDefinition =
 
 typedTypeAnnotationWithoutArguments : Parser (WithComments (Node TypeAnnotation))
 typedTypeAnnotationWithoutArguments =
-    ParserFast.map2WithStartAndEndPosition
+    ParserFast.map2WithStartAndEndLocation
         (\start startName afterStartName end ->
             let
                 range : Range
@@ -306,7 +306,7 @@ maybeDotTypeNamesTuple =
 
 typedTypeAnnotationWithArguments : Parser (WithComments (Node TypeAnnotation))
 typedTypeAnnotationWithArguments =
-    ParserFast.map2WithStartAndEndPosition
+    ParserFast.map2WithStartAndEndLocation
         (\start nameNode args end ->
             { comments = args.comments
             , syntax =
@@ -314,7 +314,7 @@ typedTypeAnnotationWithArguments =
                     (TypeAnnotation.Typed nameNode args.syntax)
             }
         )
-        (ParserFast.map2WithStartAndEndPosition
+        (ParserFast.map2WithStartAndEndLocation
             (\start startName afterStartName end ->
                 let
                     name : ( ModuleName, String )

@@ -11,7 +11,7 @@ import Rope
 
 exposeDefinition : Parser (WithComments (Node Exposing))
 exposeDefinition =
-    ParserFast.map3WithStartAndEndPosition
+    ParserFast.map3WithStartAndEndLocation
         (\start commentsAfterExposing commentsBefore exposingListInnerResult end ->
             { comments =
                 commentsAfterExposing
@@ -55,7 +55,7 @@ exposingListInner =
                 )
             )
         )
-        (ParserFast.mapWithStartAndEndPosition
+        (ParserFast.mapWithStartAndEndLocation
             (\start commentsAfterDotDot end ->
                 { comments = commentsAfterDotDot
                 , syntax =
@@ -76,7 +76,7 @@ exposable =
 
 infixExpose : ParserFast.Parser (WithComments (Node TopLevelExpose))
 infixExpose =
-    ParserFast.map2WithStartAndEndPosition
+    ParserFast.map2WithStartAndEndLocation
         (\start infixName () end ->
             { comments = Rope.empty
             , syntax = Node { start = start, end = end } (InfixExpose infixName)
@@ -93,7 +93,7 @@ infixExpose =
 
 typeExpose : Parser (WithComments (Node TopLevelExpose))
 typeExpose =
-    ParserFast.map2WithStartAndEndPosition
+    ParserFast.map2WithStartAndEndLocation
         (\start typeName open end ->
             case open of
                 Nothing ->
@@ -119,7 +119,7 @@ typeExpose =
                     }
             )
             Layout.maybeLayoutBacktrackable
-            (ParserFast.map2WithStartAndEndPosition
+            (ParserFast.map2WithStartAndEndLocation
                 (\start left right end ->
                     { comments = left |> Rope.prependTo right, range = { start = start, end = end } }
                 )

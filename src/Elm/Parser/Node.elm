@@ -7,7 +7,7 @@ import ParserWithComments exposing (WithComments)
 
 parser : Parser (WithComments a) -> Parser (WithComments (Node a))
 parser p =
-    ParserFast.mapWithStartAndEndPosition
+    ParserFast.mapWithStartAndEndLocation
         (\start v end ->
             { comments = v.comments
             , syntax =
@@ -19,7 +19,7 @@ parser p =
 
 parserCore : ParserFast.Parser a -> ParserFast.Parser (Node a)
 parserCore p =
-    ParserFast.mapWithStartAndEndPosition
+    ParserFast.mapWithStartAndEndLocation
         (\start v end ->
             Node { start = start, end = end } v
         )

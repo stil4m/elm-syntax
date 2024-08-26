@@ -302,7 +302,7 @@ functionAfterDocumentation =
 
 functionDeclarationWithoutDocumentation : Parser (WithComments (Node Declaration))
 functionDeclarationWithoutDocumentation =
-    ParserFast.map6WithStartPosition
+    ParserFast.map6WithStartLocation
         (\startNameStart startNameNode commentsAfterStartName maybeSignature arguments commentsAfterEqual result ->
             let
                 allComments : Comments
@@ -438,7 +438,7 @@ parameterPatternsEqual =
 
 infixDeclaration : Parser (WithComments (Node Declaration))
 infixDeclaration =
-    ParserFast.map9WithStartAndEndPosition
+    ParserFast.map9WithStartAndEndLocation
         (\start commentsAfterInfix direction commentsAfterDirection precedence commentsAfterPrecedence operator commentsAfterOperator commentsAfterEqual fn end ->
             { comments =
                 commentsAfterInfix
@@ -458,7 +458,7 @@ infixDeclaration =
         Layout.maybeLayout
         (Node.parserCore ParserFast.int)
         Layout.maybeLayout
-        (ParserFast.mapWithStartAndEndPosition
+        (ParserFast.mapWithStartAndEndLocation
             (\start prefixOperator end -> Node { start = start, end = end } prefixOperator)
             (ParserFast.symbolFollowedBy "(" Tokens.prefixOperatorToken
                 |> ParserFast.followedBySymbol ")"
@@ -617,7 +617,7 @@ customTypeDefinitionAfterDocumentationAfterTypePrefix =
 
 typeOrTypeAliasDefinitionWithoutDocumentation : Parser (WithComments (Node Declaration.Declaration))
 typeOrTypeAliasDefinitionWithoutDocumentation =
-    ParserFast.map2WithStartPosition
+    ParserFast.map2WithStartLocation
         (\start commentsAfterType afterStart ->
             let
                 allComments : Comments

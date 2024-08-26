@@ -8,7 +8,7 @@ import ParserFast
 
 moduleName : ParserFast.Parser (Node ModuleName)
 moduleName =
-    ParserFast.map2WithStartAndEndPosition
+    ParserFast.map2WithStartAndEndLocation
         (\start head tail end ->
             Node { start = start, end = end } (head :: tail)
         )

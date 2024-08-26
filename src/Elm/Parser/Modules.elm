@@ -85,7 +85,7 @@ effectWhereClauses =
 
 effectModuleDefinition : Parser (WithComments (Node Module))
 effectModuleDefinition =
-    ParserFast.map7WithStartAndEndPosition
+    ParserFast.map7WithStartAndEndLocation
         (\start commentsAfterEffect commentsAfterModule name commentsAfterName whereClauses commentsAfterWhereClauses exp end ->
             { comments =
                 commentsAfterEffect
@@ -116,7 +116,7 @@ effectModuleDefinition =
 
 normalModuleDefinition : Parser (WithComments (Node Module))
 normalModuleDefinition =
-    ParserFast.map4WithStartAndEndPosition
+    ParserFast.map4WithStartAndEndLocation
         (\start commentsAfterModule moduleName commentsAfterModuleName exposingList end ->
             { comments =
                 commentsAfterModule
@@ -139,7 +139,7 @@ normalModuleDefinition =
 
 portModuleDefinition : Parser (WithComments (Node Module))
 portModuleDefinition =
-    ParserFast.map5WithStartAndEndPosition
+    ParserFast.map5WithStartAndEndLocation
         (\start commentsAfterPort commentsAfterModule moduleName commentsAfterModuleName exposingList end ->
             { comments =
                 commentsAfterPort
