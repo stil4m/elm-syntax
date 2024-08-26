@@ -13,7 +13,7 @@ module ParserFast exposing
 
 @docs Parser, run
 
-@docs int, intOrHex, floatOrIntOrHex, symbol, symbolBacktrackable, symbolWithEndLocation, symbolWithRange, symbolFollowedBy, symbolBacktrackableFollowedBy, followedBySymbol, keyword, keywordFollowedBy, while, whileWithoutLinebreak, whileMap, ifFollowedByWhileWithoutLinebreak, ifFollowedByWhileMapWithoutLinebreak, ifFollowedByWhileMapWithRangeWithoutLinebreak, ifFollowedByWhileExceptWithoutLinebreak, ifFollowedByWhileExceptMapWithRangesWithoutLinebreak, anyChar, end
+@docs int, intOrHex, floatOrIntOrHex, symbol, symbolBacktrackable, symbolWithEndLocation, symbolWithRange, symbolFollowedBy, symbolBacktrackableFollowedBy, followedBySymbol, keyword, keywordFollowedBy, while, whileWithoutLinebreak, whileMap, ifFollowedByWhileWithoutLinebreak, ifFollowedByWhileMapWithoutLinebreak, ifFollowedByWhileMapWithRangeWithoutLinebreak, ifFollowedByWhileExceptWithoutLinebreak, ifFollowedByWhileExceptMapWithRangeWithoutLinebreak, anyChar, end
 
 
 # Flow
@@ -2661,13 +2661,13 @@ variable i =
         }
 
 
-ifFollowedByWhileExceptMapWithRangesWithoutLinebreak :
-    (Location -> String -> Location -> res)
+ifFollowedByWhileExceptMapWithRangeWithoutLinebreak :
+    (Range -> String -> res)
     -> (Char -> Bool)
     -> (Char -> Bool)
     -> Set.Set String
     -> Parser res
-ifFollowedByWhileExceptMapWithRangesWithoutLinebreak toResult firstIsOkay afterFirstIsOkay exceptionSet =
+ifFollowedByWhileExceptMapWithRangeWithoutLinebreak toResult firstIsOkay afterFirstIsOkay exceptionSet =
     Parser
         (\s0 ->
             let
@@ -2692,7 +2692,7 @@ ifFollowedByWhileExceptMapWithRangesWithoutLinebreak toResult firstIsOkay afterF
                     Bad False (fromState s0 Parser.ExpectingVariable) ()
 
                 else
-                    Good True (toResult { row = s0.row, column = s0.col } name { row = s1.row, column = s1.col }) s1
+                    Good True (toResult { start = { row = s0.row, column = s0.col }, end = { row = s1.row, column = s1.col } } name) s1
         )
 
 
@@ -2722,7 +2722,7 @@ ifFollowedByWhileWithoutLinebreak firstIsOkay afterFirstIsOkay =
 
 
 ifFollowedByWhileMapWithRangeWithoutLinebreak :
-    (Location -> String -> Location -> res)
+    (Range -> String -> res)
     -> (Char -> Bool)
     -> (Char -> Bool)
     -> Parser res
@@ -2745,9 +2745,10 @@ ifFollowedByWhileMapWithRangeWithoutLinebreak rangeAndChompedToRes firstIsOkay a
                 in
                 Good True
                     (rangeAndChompedToRes
-                        { row = s0.row, column = s0.col }
+                        { start = { row = s0.row, column = s0.col }
+                        , end = { row = s1.row, column = s1.col }
+                        }
                         (String.slice s0.offset s1.offset s0.src)
-                        { row = s1.row, column = s1.col }
                     )
                     s1
         )
