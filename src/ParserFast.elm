@@ -2070,7 +2070,6 @@ symbolBacktrackableFollowedBy str (Parser parseNext) =
                     , row = s.row
                     , col = s.col + strLength
                     }
-                    |> pStepBacktrack
 
             else
                 Bad False (fromState s expecting) ()
@@ -2085,16 +2084,6 @@ pStepCommit pStep =
 
         Bad _ errors () ->
             Bad True errors ()
-
-
-pStepBacktrack : PStep x a -> PStep x a
-pStepBacktrack pStep =
-    case pStep of
-        Good _ a state ->
-            Good False a state
-
-        Bad _ errors () ->
-            Bad False errors ()
 
 
 {-| Parse keywords like `let`, `case`, and `type`.
