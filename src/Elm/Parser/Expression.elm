@@ -37,7 +37,7 @@ subExpression =
                                     (Negation
                                         (recordAccesses
                                             |> List.foldr
-                                                (\((Node fieldRange _) as fieldNode) ((Node leftRange left) as leftNode) ->
+                                                (\((Node fieldRange _) as fieldNode) ((Node leftRange _) as leftNode) ->
                                                     Node { start = leftRange.start, end = fieldRange.end }
                                                         (Expression.RecordAccess leftNode fieldNode)
                                                 )
@@ -48,7 +48,7 @@ subExpression =
                             _ ->
                                 recordAccesses
                                     |> List.foldr
-                                        (\((Node fieldRange _) as fieldNode) ((Node leftRange left) as leftNode) ->
+                                        (\((Node fieldRange _) as fieldNode) ((Node leftRange _) as leftNode) ->
                                             Node { start = leftRange.start, end = fieldRange.end }
                                                 (Expression.RecordAccess leftNode fieldNode)
                                         )
@@ -1083,29 +1083,6 @@ extendedSubExpression aboveCurrentPrecedenceLayout =
         )
 
 
-extendedSubExpressionWithoutInitialLayout :
-    Parser (WithComments ExtensionRight)
-    -> Parser (WithComments (Node Expression))
-extendedSubExpressionWithoutInitialLayout aboveCurrentPrecedenceLayout =
-    ParserFast.map3
-        (\leftExpressionResult commentsAfter extensionsRight ->
-            { comments =
-                leftExpressionResult.comments
-                    |> Rope.prependTo commentsAfter
-                    |> Rope.prependTo extensionsRight.comments
-            , syntax =
-                List.foldr applyExtensionRight
-                    leftExpressionResult.syntax
-                    extensionsRight.syntax
-            }
-        )
-        (ParserFast.lazy (\() -> subExpression))
-        Layout.optimisticLayout
-        (ParserWithComments.manyWithoutReverse
-            aboveCurrentPrecedenceLayout
-        )
-
-
 applyExtensionRight : ExtensionRight -> Node Expression -> Node Expression
 applyExtensionRight extensionRight ((Node { start } left) as leftNode) =
     case extensionRight of
@@ -1174,10 +1151,6 @@ abovePrecedence9 : Parser (WithComments ExtensionRight)
 abovePrecedence9 =
     computeAbovePrecedence 9
 
-
-abovePrecedence95 : Parser (WithComments ExtensionRight)
-abovePrecedence95 =
-    computeAbovePrecedence 95
 
 
 computeAbovePrecedence : Int -> Parser (WithComments ExtensionRight)
