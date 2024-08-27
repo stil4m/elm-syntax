@@ -189,16 +189,11 @@ charToHex c =
             15
 
 
-slashEscapedCharValue : ParserFast.Parser Char
-slashEscapedCharValue =
-    ParserFast.symbolFollowedBy "\\" (escapedCharValueMap identity)
-
-
 characterLiteral : ParserFast.Parser Char
 characterLiteral =
     ParserFast.symbolFollowedBy "'"
         (ParserFast.oneOf2
-            slashEscapedCharValue
+            (ParserFast.symbolFollowedBy "\\" (escapedCharValueMap identity))
             ParserFast.anyChar
         )
         |> ParserFast.followedBySymbol "'"
