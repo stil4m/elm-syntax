@@ -78,11 +78,10 @@ importDefinition =
                     }
             )
             (ParserFast.keywordFollowedBy "as" Layout.maybeLayout)
-            (ParserFast.mapWithRange
+            (Tokens.typeNameMapWithRange
                 (\range moduleAlias ->
                     Node range [ moduleAlias ]
                 )
-                Tokens.typeName
             )
             Layout.optimisticLayout
             Nothing

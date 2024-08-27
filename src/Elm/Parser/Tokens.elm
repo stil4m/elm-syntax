@@ -3,7 +3,7 @@ module Elm.Parser.Tokens exposing
     , equal, parensEnd
     , prefixOperatorToken, allowedOperatorTokens
     , characterLiteral, singleOrTripleQuotedStringLiteral
-    , functionName, functionNameNode, functionNameMapWithRange, functionNameNotInfixNode, typeName, typeNameNode
+    , functionName, functionNameNode, functionNameMapWithRange, functionNameNotInfixNode, typeName, typeNameNode, typeNameMapWithRange
     )
 
 {-|
@@ -14,7 +14,7 @@ module Elm.Parser.Tokens exposing
 @docs prefixOperatorToken, allowedOperatorTokens
 
 @docs characterLiteral, singleOrTripleQuotedStringLiteral
-@docs functionName, functionNameNode, functionNameMapWithRange, functionNameNotInfixNode, typeName, typeNameNode
+@docs functionName, functionNameNode, functionNameMapWithRange, functionNameNotInfixNode, typeName, typeNameNode, typeNameMapWithRange
 
 -}
 
@@ -280,6 +280,13 @@ functionNameNotInfixNode =
 typeName : ParserFast.Parser String
 typeName =
     ParserFast.ifFollowedByWhileWithoutLinebreak
+        Char.Extra.unicodeIsUpperFast
+        Char.Extra.unicodeIsAlphaNumOrUnderscoreFast
+
+
+typeNameMapWithRange : (Range -> String -> res) -> ParserFast.Parser res
+typeNameMapWithRange rangeAndNameToRes =
+    ParserFast.ifFollowedByWhileMapWithRangeWithoutLinebreak rangeAndNameToRes
         Char.Extra.unicodeIsUpperFast
         Char.Extra.unicodeIsAlphaNumOrUnderscoreFast
 
