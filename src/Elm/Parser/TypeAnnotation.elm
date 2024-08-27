@@ -158,15 +158,32 @@ recordTypeAnnotation =
                 Layout.maybeLayout
                 (ParserFast.oneOf2
                     (ParserFast.symbolFollowedBy "|"
-                        (ParserFast.mapWithRange
-                            (\range extension ->
-                                { comments = extension.comments
+                        (ParserFast.map3WithRange
+                            (\range commentsBefore head tail ->
+                                { comments =
+                                    commentsBefore
+                                        |> Rope.prependTo head.comments
+                                        |> Rope.prependTo tail.comments
                                 , syntax =
                                     RecordExtensionExpressionAfterName
-                                        (Node range extension.syntax)
+                                        (Node range (head.syntax :: tail.syntax))
                                 }
                             )
-                            recordFieldsTypeAnnotation
+                            Layout.maybeLayout
+                            recordFieldDefinition
+                            (ParserWithComments.many
+                                (ParserFast.symbolFollowedBy ","
+                                    (ParserFast.map2
+                                        (\commentsBefore field ->
+                                            { comments = commentsBefore |> Rope.prependTo field.comments
+                                            , syntax = field.syntax
+                                            }
+                                        )
+                                        Layout.maybeLayout
+                                        recordFieldDefinition
+                                    )
+                                )
+                            )
                         )
                     )
                     (ParserFast.map4
