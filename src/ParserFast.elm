@@ -4,7 +4,7 @@ module ParserFast exposing
     , succeed, problem, lazy, map, map2, map2WithStartLocation, map2WithRange, map3, map3WithRange, map4, map4WithRange, map5, map5WithStartLocation, map5WithRange, map6, map6WithStartLocation, map6WithRange, map7WithRange, map8WithStartLocation, map9WithRange, validate
     , orSucceed, mapOrSucceed, map2OrSucceed, map3OrSucceed, map4OrSucceed, oneOf2, oneOf2Map, oneOf2OrSucceed, oneOf3, oneOf4, oneOf5, oneOf7, oneOf10, oneOf14, oneOf
     , loopWhileSucceeds, loopUntil
-    , chompIfWhitespaceFollowedBy, chompWhileWhitespaceFollowedBy, nestableMultiComment
+    , chompIfWhitespaceFollowedBy, chompWhileWhitespaceFollowedBy, nestableMultiCommentMapWithRange
     , withIndentSetToColumn, withIndent, columnIndentAndThen, validateEndColumnIndentation, validateEndColumnIndentationBacktrackable
     , mapWithRange, columnAndThen, offsetSourceAndThen
     )
@@ -27,7 +27,7 @@ module ParserFast exposing
 
 # Whitespace
 
-@docs chompIfWhitespaceFollowedBy, chompWhileWhitespaceFollowedBy, nestableMultiComment
+@docs chompIfWhitespaceFollowedBy, chompWhileWhitespaceFollowedBy, nestableMultiCommentMapWithRange
 
 
 # Indentation, Locations and source
@@ -46,7 +46,6 @@ import Parser.Advanced exposing ((|=))
 
 type Problem
     = ExpectingNumber Int Int ()
-
     | ExpectingSymbol Int Int String
     | ExpectingAnyChar Int Int ()
     | ExpectingKeyword Int Int String
@@ -125,7 +124,6 @@ ropeFilledToList problemToConvert soFar =
 
         ExpectingNumber row col () ->
             { problem = Parser.ExpectingNumber, row = row, col = col } :: soFar
-
 
         ExpectingSymbol row col symbolString ->
             { problem = Parser.ExpectingSymbol symbolString, row = row, col = col } :: soFar
@@ -2671,8 +2669,8 @@ why wee need the `ifProgress` helper. It detects if there is no more whitespace
 to consume.
 
 -}
-nestableMultiComment : ( Char, String ) -> ( Char, String ) -> Parser String
-nestableMultiComment ( openChar, openTail ) ( closeChar, closeTail ) =
+nestableMultiCommentMapWithRange : (Range -> String -> res) -> ( Char, String ) -> ( Char, String ) -> Parser res
+nestableMultiCommentMapWithRange rangeContentToRes ( openChar, openTail ) ( closeChar, closeTail ) =
     let
         open : String
         open =
@@ -2686,9 +2684,11 @@ nestableMultiComment ( openChar, openTail ) ( closeChar, closeTail ) =
         isNotRelevant char =
             char /= openChar && char /= closeChar
     in
-    map2
-        (\afterOpen contentAfterAfterOpen ->
-            open ++ afterOpen ++ contentAfterAfterOpen ++ close
+    map2WithRange
+        (\range afterOpen contentAfterAfterOpen ->
+            rangeContentToRes
+                range
+                (open ++ afterOpen ++ contentAfterAfterOpen ++ close)
         )
         (symbolFollowedBy open
             (while isNotRelevant)
