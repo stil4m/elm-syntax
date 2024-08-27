@@ -31,7 +31,7 @@ subExpression =
                     { comments = leftestResult.comments
                     , syntax =
                         case leftest of
-                            Negation ((Node negatedRange negated) as negatedNode) ->
+                            Negation negatedNode ->
                                 -- is there a nicer way to make -foo.bar count as negated (access _) instead of access (negated _)?
                                 Node { start = leftestRange.start, end = lastRecordAccessRange.end }
                                     (Negation
@@ -839,7 +839,7 @@ negationAfterMinus =
                     (Negation subExpressionResult.syntax)
             }
         )
-        (extendedSubExpressionWithoutInitialLayout abovePrecedence95)
+        (ParserFast.lazy (\() -> subExpression))
 
 
 qualifiedOrVariantOrRecordConstructorReferenceExpression : Parser (WithComments (Node Expression))
