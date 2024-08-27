@@ -93,13 +93,7 @@ extensionRightByPrecedence =
     -- TODO Report a syntax error when encountering multiple of the comparison operators
     -- `a < b < c` is not valid Elm syntax
     [ infixLeft 1 (ParserFast.lazy (\() -> abovePrecedence1)) "|>"
-
-    -- to avoid ambiguity between negated arguments and subtraction,
-    -- calls must be checked AFTER subtraction
-    , infixLeftSubtraction 6 (ParserFast.lazy (\() -> abovePrecedence6))
     , functionCall
-
-    --
     , infixRight 5 (ParserFast.lazy (\() -> abovePrecedence4)) "++"
     , infixRight 1 (ParserFast.lazy (\() -> abovePrecedence0)) "<|"
     , infixRight 9 (ParserFast.lazy (\() -> abovePrecedence8)) ">>"
@@ -107,6 +101,7 @@ extensionRightByPrecedence =
     , infixLeft 7 (ParserFast.lazy (\() -> abovePrecedence7)) "*"
     , infixRight 5 (ParserFast.lazy (\() -> abovePrecedence4)) "::"
     , infixLeft 6 (ParserFast.lazy (\() -> abovePrecedence6)) "+"
+    , infixLeftSubtraction 6 (ParserFast.lazy (\() -> abovePrecedence6))
     , infixLeft 6 (ParserFast.lazy (\() -> abovePrecedence6)) "|."
     , infixRight 3 (ParserFast.lazy (\() -> abovePrecedence2)) "&&"
     , infixLeft 5 (ParserFast.lazy (\() -> abovePrecedence5)) "|="
@@ -791,19 +786,59 @@ ifBlockExpression =
 
 negationOperation : Parser (WithComments (Node Expression))
 negationOperation =
-    ParserFast.map2WithStartLocation
-        (\start () subExpressionResult ->
+    ParserFast.symbolBacktrackableFollowedBy "-"
+        (ParserFast.offsetSourceAndThen
+            (\offset source ->
+                case String.slice (offset - 2) (offset - 1) source of
+                    " " ->
+                        negationAfterMinus
+
+                    -- not "\n" or "\r" since expressions are always indented
+                    "(" ->
+                        negationAfterMinus
+
+                    ")" ->
+                        negationAfterMinus
+
+                    -- from the end of a multiline comment
+                    "}" ->
+                        negationAfterMinus
+
+                    -- TODO only for tests
+                    "" ->
+                        negationAfterMinus
+
+                    _ ->
+                        negationWhitespaceProblem
+            )
+        )
+
+
+negationWhitespaceProblem : Parser a
+negationWhitespaceProblem =
+    ParserFast.problem "if a negation sign is not preceded by whitespace, it's considered subtraction"
+
+
+negationAfterMinus : Parser (WithComments (Node Expression))
+negationAfterMinus =
+    ParserFast.map
+        (\subExpressionResult ->
             let
                 (Node subExpressionRange _) =
                     subExpressionResult.syntax
             in
             { comments = subExpressionResult.comments
             , syntax =
-                Node { start = start, end = subExpressionRange.end }
+                Node
+                    { start =
+                        { row = subExpressionRange.start.row
+                        , column = subExpressionRange.start.column - 1
+                        }
+                    , end = subExpressionRange.end
+                    }
                     (Negation subExpressionResult.syntax)
             }
         )
-        (ParserFast.symbolBacktrackable "-" ())
         (extendedSubExpressionWithoutInitialLayout abovePrecedence95)
 
 
