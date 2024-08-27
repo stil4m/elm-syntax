@@ -17,21 +17,74 @@ import Rope
 
 subExpression : Parser (WithComments (Node Expression))
 subExpression =
-    ParserFast.oneOf14
-        qualifiedOrVariantOrRecordConstructorReferenceExpression
-        unqualifiedFunctionReferenceExpression
-        literalExpression
-        numberExpression
-        tupledExpression
-        listOrGlslExpression
-        recordExpression
-        caseExpression
-        lambdaExpression
-        letExpression
-        ifBlockExpression
-        recordAccessFunctionExpression
-        negationOperation
-        charLiteralExpression
+    ParserFast.map2
+        (\leftestResult recordAccesses ->
+            case recordAccesses of
+                [] ->
+                    leftestResult
+
+                (Node lastRecordAccessRange _) :: _ ->
+                    let
+                        ((Node leftestRange leftest) as leftestNode) =
+                            leftestResult.syntax
+                    in
+                    { comments = leftestResult.comments
+                    , syntax =
+                        case leftest of
+                            Negation ((Node negatedRange negated) as negatedNode) ->
+                                -- is there a nicer way to make -foo.bar count as negated (access _) instead of access (negated _)?
+                                Node { start = leftestRange.start, end = lastRecordAccessRange.end }
+                                    (Negation
+                                        (recordAccesses
+                                            |> List.foldr
+                                                (\((Node fieldRange _) as fieldNode) ((Node leftRange left) as leftNode) ->
+                                                    Node { start = leftRange.start, end = fieldRange.end }
+                                                        (Expression.RecordAccess leftNode fieldNode)
+                                                )
+                                                negatedNode
+                                        )
+                                    )
+
+                            _ ->
+                                recordAccesses
+                                    |> List.foldr
+                                        (\((Node fieldRange _) as fieldNode) ((Node leftRange left) as leftNode) ->
+                                            Node { start = leftRange.start, end = fieldRange.end }
+                                                (Expression.RecordAccess leftNode fieldNode)
+                                        )
+                                        leftestNode
+                    }
+        )
+        (ParserFast.oneOf14
+            qualifiedOrVariantOrRecordConstructorReferenceExpression
+            unqualifiedFunctionReferenceExpression
+            literalExpression
+            numberExpression
+            tupledExpression
+            listOrGlslExpression
+            recordExpression
+            caseExpression
+            lambdaExpression
+            letExpression
+            ifBlockExpression
+            recordAccessFunctionExpression
+            negationOperation
+            charLiteralExpression
+        )
+        multiRecordAccess
+
+
+multiRecordAccess : ParserFast.Parser (List (Node String))
+multiRecordAccess =
+    ParserFast.loopWhileSucceeds
+        (ParserFast.symbolFollowedBy "."
+            Tokens.functionNameNode
+        )
+        []
+        (\pResult itemsSoFar ->
+            pResult :: itemsSoFar
+        )
+        identity
 
 
 extensionRightByPrecedence : List ( Int, Parser (WithComments ExtensionRight) )
@@ -39,8 +92,7 @@ extensionRightByPrecedence =
     -- TODO Add tests for all operators
     -- TODO Report a syntax error when encountering multiple of the comparison operators
     -- `a < b < c` is not valid Elm syntax
-    [ recordAccessOptimisticLayout
-    , infixLeft 1 (ParserFast.lazy (\() -> abovePrecedence1)) "|>"
+    [ infixLeft 1 (ParserFast.lazy (\() -> abovePrecedence1)) "|>"
 
     -- to avoid ambiguity between negated arguments and subtraction,
     -- calls must be checked AFTER subtraction
@@ -78,61 +130,20 @@ expression =
     extendedSubExpression abovePrecedence0
 
 
-recordAccessOptimisticLayout : ( Int, Parser (WithComments ExtensionRight) )
-recordAccessOptimisticLayout =
-    postfix 100 recordAccessParserOptimisticLayout
-
-
-recordAccessParserOptimisticLayout : Parser (WithComments ExtensionRight)
-recordAccessParserOptimisticLayout =
-    dotFieldOptimisticLayout
-
-
-recordAccessAfterDot : Parser { comments : Comments, syntax : ExtensionRight }
-recordAccessAfterDot =
-    ParserFast.map2
-        (\field commentsAfter ->
-            { comments = commentsAfter
-            , syntax =
-                ExtendRightByRecordAccess field
-            }
-        )
-        Tokens.functionNameNode
-        Layout.optimisticLayout
-
-
-problemRecordAccessStartingWithSpace : ParserFast.Parser a
-problemRecordAccessStartingWithSpace =
-    ParserFast.problem "Record access can't start with a space"
-
-
-dotFieldOptimisticLayout : ParserFast.Parser (WithComments ExtensionRight)
-dotFieldOptimisticLayout =
-    ParserFast.symbolBacktrackableFollowedBy "."
-        (ParserFast.offsetSourceAndThen
-            (\offset source ->
-                case String.slice (offset - 2) (offset - 1) source of
-                    " " ->
-                        problemRecordAccessStartingWithSpace
-
-                    "\n" ->
-                        problemRecordAccessStartingWithSpace
-
-                    "\u{000D}" ->
-                        problemRecordAccessStartingWithSpace
-
-                    _ ->
-                        recordAccessAfterDot
-            )
-        )
-
-
 functionCall : ( Int, Parser (WithComments ExtensionRight) )
 functionCall =
-    infixHelp 90
-        (ParserFast.lazy (\() -> abovePrecedence90))
-        Layout.positivelyIndentedFollowedBy
-        ExtendRightByApplication
+    ( 90
+    , ParserFast.map2
+        (\arg commentsAfter ->
+            { comments = arg.comments |> Rope.prependTo commentsAfter
+            , syntax = ExtendRightByApplication arg.syntax
+            }
+        )
+        (Layout.positivelyIndentedFollowedBy
+            (ParserFast.lazy (\() -> subExpression))
+        )
+        Layout.optimisticLayout
+    )
 
 
 glslExpressionAfterOpeningSquareBracket : Parser (WithComments (Node Expression))
@@ -1017,11 +1028,11 @@ extendedSubExpression :
     -> Parser (WithComments (Node Expression))
 extendedSubExpression aboveCurrentPrecedenceLayout =
     ParserFast.map4
-        (\commentsBefore leftExpressionResult commentsAfter extensionsRight ->
+        (\commentsBefore leftExpressionResult commentsBeforeExtension extensionsRight ->
             { comments =
                 commentsBefore
                     |> Rope.prependTo leftExpressionResult.comments
-                    |> Rope.prependTo commentsAfter
+                    |> Rope.prependTo commentsBeforeExtension
                     |> Rope.prependTo extensionsRight.comments
             , syntax =
                 leftExpressionResult.syntax
@@ -1071,10 +1082,6 @@ extendedSubExpressionWithoutInitialLayout aboveCurrentPrecedenceLayout =
 applyExtensionRight : ExtensionRight -> Node Expression -> Node Expression
 applyExtensionRight extensionRight ((Node { start } left) as leftNode) =
     case extensionRight of
-        ExtendRightByRecordAccess ((Node { end } _) as field) ->
-            Node { start = start, end = end }
-                (Expression.RecordAccess leftNode field)
-
         ExtendRightByApplication ((Node { end } _) as right) ->
             Node { start = start, end = end }
                 (Expression.Application
@@ -1139,11 +1146,6 @@ abovePrecedence8 =
 abovePrecedence9 : Parser (WithComments ExtensionRight)
 abovePrecedence9 =
     computeAbovePrecedence 9
-
-
-abovePrecedence90 : Parser (WithComments ExtensionRight)
-abovePrecedence90 =
-    computeAbovePrecedence 90
 
 
 abovePrecedence95 : Parser (WithComments ExtensionRight)
@@ -1265,14 +1267,6 @@ infixHelp leftPrecedence rightPrecedence operatorFollowedBy apply =
     )
 
 
-postfix : Int -> Parser (WithComments ExtensionRight) -> ( Int, Parser (WithComments ExtensionRight) )
-postfix precedence operator =
-    ( precedence
-    , operator
-    )
-
-
 type ExtensionRight
     = ExtendRightByOperation { symbol : String, direction : Infix.InfixDirection, expression : Node Expression }
     | ExtendRightByApplication (Node Expression)
-    | ExtendRightByRecordAccess (Node String)
