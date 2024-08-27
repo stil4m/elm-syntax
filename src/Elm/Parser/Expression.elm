@@ -1012,8 +1012,9 @@ extendedSubExpression aboveCurrentPrecedenceLayout =
                     |> Rope.prependTo commentsBeforeExtension
                     |> Rope.prependTo extensionsRight.comments
             , syntax =
-                leftExpressionResult.syntax
-                    |> applyExtensionsRightReverse extensionsRight.syntax
+                List.foldr applyExtensionRight
+                    leftExpressionResult.syntax
+                    extensionsRight.syntax
             }
         )
         Layout.optimisticLayout
@@ -1022,16 +1023,6 @@ extendedSubExpression aboveCurrentPrecedenceLayout =
         (ParserWithComments.manyWithoutReverse
             aboveCurrentPrecedenceLayout
         )
-
-
-applyExtensionsRightReverse : List ExtensionRight -> Node Expression -> Node Expression
-applyExtensionsRightReverse extensionsRight leftExpression =
-    List.foldr
-        (\extensionRight soFar ->
-            soFar |> applyExtensionRight extensionRight
-        )
-        leftExpression
-        extensionsRight
 
 
 extendedSubExpressionWithoutInitialLayout :
@@ -1045,8 +1036,9 @@ extendedSubExpressionWithoutInitialLayout aboveCurrentPrecedenceLayout =
                     |> Rope.prependTo commentsAfter
                     |> Rope.prependTo extensionsRight.comments
             , syntax =
-                leftExpressionResult.syntax
-                    |> applyExtensionsRightReverse extensionsRight.syntax
+                List.foldr applyExtensionRight
+                    leftExpressionResult.syntax
+                    extensionsRight.syntax
             }
         )
         (ParserFast.lazy (\() -> subExpression))
