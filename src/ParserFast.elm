@@ -4,7 +4,7 @@ module ParserFast exposing
     , succeed, problem, lazy, map, map2, map2WithStartLocation, map2WithRange, map3, map3WithRange, map4, map4WithRange, map5, map5WithStartLocation, map5WithRange, map6, map6WithStartLocation, map6WithRange, map7WithRange, map8WithStartLocation, map9WithRange, validate
     , orSucceed, mapOrSucceed, map2OrSucceed, map3OrSucceed, map4OrSucceed, oneOf2, oneOf2Map, oneOf2MapWithStartRowColumnAndEndRowColumn, oneOf2OrSucceed, oneOf3, oneOf4, oneOf5, oneOf7, oneOf10, oneOf14, oneOf
     , loopWhileSucceeds, loopUntil
-    , chompIfWhitespaceFollowedBy, chompWhileWhitespaceFollowedBy, nestableMultiCommentMapWithRange
+    , chompWhileWhitespaceFollowedBy, nestableMultiCommentMapWithRange
     , withIndentSetToColumn, withIndent, columnIndentAndThen, validateEndColumnIndentation, validateEndColumnIndentationBacktrackable
     , mapWithRange, columnAndThen, offsetSourceAndThen
     )
@@ -27,7 +27,7 @@ module ParserFast exposing
 
 # Whitespace
 
-@docs chompIfWhitespaceFollowedBy, chompWhileWhitespaceFollowedBy, nestableMultiCommentMapWithRange
+@docs chompWhileWhitespaceFollowedBy, nestableMultiCommentMapWithRange
 
 
 # Indentation, Locations and source
@@ -2372,46 +2372,6 @@ chompWhileWhitespaceFollowedBy (Parser parseNext) =
 
             else
                 parseNext s1
-        )
-
-
-chompIfWhitespaceFollowedBy : Parser next -> Parser next
-chompIfWhitespaceFollowedBy (Parser parseNext) =
-    Parser
-        (\s ->
-            case String.slice s.offset (s.offset + 1) s.src of
-                " " ->
-                    parseNext
-                        { src = s.src
-                        , offset = s.offset + 1
-                        , indent = s.indent
-                        , row = s.row
-                        , col = s.col + 1
-                        }
-                        |> pStepCommit
-
-                "\n" ->
-                    parseNext
-                        { src = s.src
-                        , offset = s.offset + 1
-                        , indent = s.indent
-                        , row = s.row + 1
-                        , col = 1
-                        }
-                        |> pStepCommit
-
-                "\u{000D}" ->
-                    parseNext
-                        { src = s.src
-                        , offset = s.offset + 1
-                        , indent = s.indent
-                        , row = s.row
-                        , col = s.col + 1
-                        }
-                        |> pStepCommit
-
-                _ ->
-                    Bad False (ExpectingAnyChar s.row s.col ()) ()
         )
 
 
