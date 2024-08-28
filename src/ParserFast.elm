@@ -1,6 +1,6 @@
 module ParserFast exposing
     ( Parser(..), run
-    , int, intOrHex, floatOrIntOrHex, symbol, symbolBacktrackable, symbolWithEndLocation, symbolWithRange, symbolFollowedBy, symbolBacktrackableFollowedBy, followedBySymbol, keyword, keywordFollowedBy, while, whileWithoutLinebreak, whileMap, ifFollowedByWhileWithoutLinebreak, ifFollowedByWhileMapWithoutLinebreak, ifFollowedByWhileMapWithRangeWithoutLinebreak, ifFollowedByWhileValidateWithoutLinebreak, ifFollowedByWhileValidateMapWithRangeWithoutLinebreak, anyChar, end
+    , int, intOrHexMapWithRange, floatOrIntOrHexMapWithRange, symbol, symbolBacktrackable, symbolWithEndLocation, symbolWithRange, symbolFollowedBy, symbolBacktrackableFollowedBy, followedBySymbol, keyword, keywordFollowedBy, while, whileWithoutLinebreak, whileMap, ifFollowedByWhileWithoutLinebreak, ifFollowedByWhileMapWithoutLinebreak, ifFollowedByWhileMapWithRangeWithoutLinebreak, ifFollowedByWhileValidateWithoutLinebreak, ifFollowedByWhileValidateMapWithRangeWithoutLinebreak, anyChar, end
     , succeed, problem, lazy, map, map2, map2WithStartLocation, map2WithRange, map3, map3WithRange, map4, map4WithRange, map5, map5WithStartLocation, map5WithRange, map6, map6WithStartLocation, map6WithRange, map7WithRange, map8WithStartLocation, map9WithRange, validate
     , orSucceed, mapOrSucceed, map2OrSucceed, map3OrSucceed, map4OrSucceed, oneOf2, oneOf2Map, oneOf2OrSucceed, oneOf3, oneOf4, oneOf5, oneOf7, oneOf10, oneOf14, oneOf
     , loopWhileSucceeds, loopUntil
@@ -14,7 +14,7 @@ module ParserFast exposing
 
 @docs Parser, run
 
-@docs int, intOrHex, floatOrIntOrHex, symbol, symbolBacktrackable, symbolWithEndLocation, symbolWithRange, symbolFollowedBy, symbolBacktrackableFollowedBy, followedBySymbol, keyword, keywordFollowedBy, while, whileWithoutLinebreak, whileMap, ifFollowedByWhileWithoutLinebreak, ifFollowedByWhileMapWithoutLinebreak, ifFollowedByWhileMapWithRangeWithoutLinebreak, ifFollowedByWhileValidateWithoutLinebreak, ifFollowedByWhileValidateMapWithRangeWithoutLinebreak, anyChar, end
+@docs int, intOrHexMapWithRange, floatOrIntOrHexMapWithRange, symbol, symbolBacktrackable, symbolWithEndLocation, symbolWithRange, symbolFollowedBy, symbolBacktrackableFollowedBy, followedBySymbol, keyword, keywordFollowedBy, while, whileWithoutLinebreak, whileMap, ifFollowedByWhileWithoutLinebreak, ifFollowedByWhileMapWithoutLinebreak, ifFollowedByWhileMapWithRangeWithoutLinebreak, ifFollowedByWhileValidateWithoutLinebreak, ifFollowedByWhileValidateMapWithRangeWithoutLinebreak, anyChar, end
 
 
 # Flow
@@ -1723,18 +1723,18 @@ loopUntilHelp committedSoFar ((Parser parseEnd) as endParser) ((Parser parseElem
 
 
 numberHelp :
-    { int : Result () (Int -> a)
-    , hex : Result () (Int -> a)
-    , octal : Result () (Int -> a)
-    , binary : Result () (Int -> a)
-    , float : Result () (Float -> a)
+    { int : Result () (Int -> Range -> a)
+    , hex : Result () (Int -> Range -> a)
+    , octal : Result () (Int -> Range -> a)
+    , binary : Result () (Int -> Range -> a)
+    , float : Result () (Float -> Range -> a)
     , invalid : ()
     , expecting : ()
     }
     -> Parser a
 numberHelp consumers =
     let
-        parserAdvancedNumberAndStringLength : Parser.Advanced.Parser c () { length : Int, number : a }
+        parserAdvancedNumberAndStringLength : Parser.Advanced.Parser c () { length : Int, number : Range -> a }
         parserAdvancedNumberAndStringLength =
             Parser.Advanced.map (\n -> \endOffset -> { length = endOffset, number = n })
                 (Parser.Advanced.number consumers)
@@ -1745,7 +1745,13 @@ numberHelp consumers =
             if String.any Char.isDigit (String.slice state.offset (state.offset + 1) state.src) then
                 case Parser.Advanced.run parserAdvancedNumberAndStringLength (String.slice state.offset (String.length state.src) state.src) of
                     Ok result ->
-                        Good False result.number (stateAddLengthToOffsetAndColumn result.length state)
+                        Good False
+                            (result.number
+                                { start = { row = state.row, column = state.col }
+                                , end = { row = state.row, column = state.col + result.length }
+                                }
+                            )
+                            (stateAddLengthToOffsetAndColumn result.length state)
 
                     Err _ ->
                         Bad False (ExpectingNumber state.row state.col ()) ()
@@ -1793,7 +1799,7 @@ parser like this:
 int : Parser Int
 int =
     numberHelp
-        { int = Ok identity
+        { int = Ok (\n _ -> n)
         , hex = Err ()
         , octal = Err ()
         , binary = Err ()
@@ -1803,8 +1809,8 @@ int =
         }
 
 
-floatOrIntOrHex : (Float -> a) -> (Int -> a) -> (Int -> a) -> Parser a
-floatOrIntOrHex floatf intf hexf =
+floatOrIntOrHexMapWithRange : (Float -> Range -> a) -> (Int -> Range -> a) -> (Int -> Range -> a) -> Parser a
+floatOrIntOrHexMapWithRange floatf intf hexf =
     numberHelp
         { int = Ok intf
         , hex = Ok hexf
@@ -1816,8 +1822,8 @@ floatOrIntOrHex floatf intf hexf =
         }
 
 
-intOrHex : (Int -> a) -> (Int -> a) -> Parser a
-intOrHex intf hexf =
+intOrHexMapWithRange : (Int -> Range -> a) -> (Int -> Range -> a) -> Parser a
+intOrHexMapWithRange intf hexf =
     numberHelp
         { int = Ok intf
         , hex = Ok hexf

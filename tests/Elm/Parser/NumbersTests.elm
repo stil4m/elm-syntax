@@ -11,12 +11,12 @@ all =
     describe "NumbersTests"
         [ test "hex" <|
             \() ->
-                parse "0x03FFFFFF" (ParserFast.intOrHex (always Nothing) Just)
+                parse "0x03FFFFFF" (ParserFast.intOrHexMapWithRange (\_ _ -> Nothing) (\n _ -> Just n))
                     |> Expect.equal
                         (Just (Just 67108863))
         , test "hex - 2" <|
             \() ->
-                parse "0xFF" (ParserFast.intOrHex (always Nothing) Just)
+                parse "0xFF" (ParserFast.intOrHexMapWithRange (\_ _ -> Nothing) (\n _ -> Just n))
                     |> Expect.equal
                         (Just (Just 255))
         ]
