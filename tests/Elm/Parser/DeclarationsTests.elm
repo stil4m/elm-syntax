@@ -835,7 +835,7 @@ type Color = Blue String | Red | Green"""
 
 expectAst : Node Declaration -> String -> Expect.Expectation
 expectAst =
-    ParserWithCommentsUtil.expectAst declaration
+    ParserWithCommentsUtil.expectAstWithIndent1 declaration
 
 
 expectAstWithComments : { ast : Node Declaration, comments : List (Node String) } -> String -> Expect.Expectation

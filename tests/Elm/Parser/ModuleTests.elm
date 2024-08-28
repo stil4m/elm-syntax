@@ -12,6 +12,7 @@ import Elm.Syntax.Node as Node exposing (Node(..))
 import Elm.Syntax.Pattern exposing (Pattern(..))
 import Elm.Syntax.TypeAnnotation exposing (TypeAnnotation(..))
 import Expect
+import Parser
 import ParserFast
 import Test exposing (..)
 
@@ -126,7 +127,7 @@ b = 3
 """)
                     File.file
                     |> Expect.equal
-                        (Just
+                        (Ok
                             { moduleDefinition =
                                 Node { start = { row = 1, column = 1 }, end = { row = 1, column = 32 } }
                                     (NormalModule
@@ -215,7 +216,7 @@ b = 3
 """)
                     File.file
                     |> Expect.equal
-                        (Just
+                        (Ok
                             { moduleDefinition =
                                 Node { start = { row = 1, column = 1 }, end = { row = 1, column = 32 } }
                                     (NormalModule
@@ -286,7 +287,7 @@ a = 1
 """
                     File.file
                     |> Expect.equal
-                        (Just
+                        (Ok
                             { moduleDefinition =
                                 Node { start = { row = 1, column = 1 }, end = { row = 1, column = 32 } }
                                     (NormalModule
@@ -337,7 +338,7 @@ b = 2
 """
                     File.file
                     |> Expect.equal
-                        (Just
+                        (Ok
                             { moduleDefinition =
                                 Node { start = { row = 1, column = 1 }, end = { row = 1, column = 32 } }
                                     (NormalModule
@@ -436,7 +437,7 @@ fun2 n =
 """
                     File.file
                     |> Expect.equal
-                        (Just
+                        (Ok
                             { moduleDefinition = Node { start = { row = 1, column = 1 }, end = { row = 1, column = 31 } } (NormalModule { moduleName = Node { start = { row = 1, column = 8 }, end = { row = 1, column = 9 } } [ "A" ], exposingList = Node { start = { row = 1, column = 10 }, end = { row = 1, column = 31 } } (Explicit [ Node { start = { row = 1, column = 20 }, end = { row = 1, column = 24 } } (FunctionExpose "fun1"), Node { start = { row = 1, column = 26 }, end = { row = 1, column = 30 } } (FunctionExpose "fun2") ]) })
                             , imports = []
                             , declarations =
@@ -500,14 +501,9 @@ expectAst =
     ParserWithCommentsUtil.expectAst (ParserFast.map (\mod -> { comments = mod.comments, syntax = Node.value mod.syntax }) Parser.moduleDefinition)
 
 
-parseCore : String -> ParserFast.Parser a -> Maybe a
+parseCore : String -> ParserFast.Parser a -> Result (List Parser.DeadEnd) a
 parseCore source parser =
-    case ParserFast.run (ParserFast.map2 (\res () -> res) parser ParserFast.end) source of
-        Err _ ->
-            Nothing
-
-        Ok parsed ->
-            parsed |> Just
+    ParserFast.run (ParserFast.map2 (\res () -> res) parser ParserFast.end) source
 
 
 expectInvalid : String -> Expect.Expectation
