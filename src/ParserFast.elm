@@ -7,7 +7,7 @@ module ParserFast exposing
     , chompIfWhitespaceFollowedBy, chompWhileWhitespaceFollowedBy, nestableMultiCommentMapWithRange
     , withIndentSetToColumn, withIndent, columnIndentAndThen, validateEndColumnIndentation, validateEndColumnIndentationBacktrackable
     , mapWithRange, columnAndThen, offsetSourceAndThen
-    , PStep(..), Problem(..), State
+    , PStep(..), Problem(..), State, oneOf2MapWithStartRowColumnAndEndRowColumn
     )
 
 {-|
@@ -1024,6 +1024,41 @@ oneOf2Map firstToChoice (Parser attemptFirst) secondToChoice (Parser attemptSeco
                         case attemptSecond s of
                             Good secondCommitted second s1 ->
                                 Good secondCommitted (secondToChoice second) s1
+
+                            Bad secondCommitted secondX () ->
+                                if secondCommitted then
+                                    Bad secondCommitted secondX ()
+
+                                else
+                                    Bad False (ExpectingOneOf firstX secondX []) ()
+        )
+
+
+oneOf2MapWithStartRowColumnAndEndRowColumn :
+    (Int -> Int -> first -> Int -> Int -> choice)
+    -> Parser first
+    -> (Int -> Int -> second -> Int -> Int -> choice)
+    -> Parser second
+    -> Parser choice
+oneOf2MapWithStartRowColumnAndEndRowColumn firstToChoice (Parser attemptFirst) secondToChoice (Parser attemptSecond) =
+    Parser
+        (\s ->
+            case attemptFirst s of
+                Good firstCommitted first s1 ->
+                    Good firstCommitted
+                        (firstToChoice s.row s.col first s1.row s1.col)
+                        s1
+
+                Bad firstCommitted firstX () ->
+                    if firstCommitted then
+                        Bad firstCommitted firstX ()
+
+                    else
+                        case attemptSecond s of
+                            Good secondCommitted second s1 ->
+                                Good secondCommitted
+                                    (secondToChoice s.row s.col second s1.row s1.col)
+                                    s1
 
                             Bad secondCommitted secondX () ->
                                 if secondCommitted then
