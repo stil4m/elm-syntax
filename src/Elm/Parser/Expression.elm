@@ -121,7 +121,7 @@ extensionRightByPrecedence =
 
 expression : Parser (WithComments (Node Expression))
 expression =
-    extendedSubExpression abovePrecedence0
+    extendedSubExpressionMap Basics.identity abovePrecedence0
 
 
 glslExpressionAfterOpeningSquareBracket : Parser (WithComments (Node Expression))
@@ -1018,10 +1018,11 @@ tupledExpressionInnerAfterOpeningParens =
 ---
 
 
-extendedSubExpression :
-    Parser (WithComments ExtensionRight)
-    -> Parser (WithComments (Node Expression))
-extendedSubExpression aboveCurrentPrecedenceLayout =
+extendedSubExpressionMap :
+    (Node Expression -> res)
+    -> Parser (WithComments ExtensionRight)
+    -> Parser (WithComments res)
+extendedSubExpressionMap expressionNodeoRes aboveCurrentPrecedenceLayout =
     ParserFast.map5
         (\commentsBefore leftExpressionResult commentsBeforeExtension maybeArgsReverse extensionsRight ->
             let
@@ -1051,6 +1052,7 @@ extendedSubExpression aboveCurrentPrecedenceLayout =
                 List.foldr applyExtensionRight
                     leftMaybeApplied
                     extensionsRight.syntax
+                    |> expressionNodeoRes
             }
         )
         Layout.maybeLayout
@@ -1181,25 +1183,21 @@ infixLeftSubtraction precedence possibilitiesForPrecedence =
     let
         subtractionWithWhitespaceAfterMinus : Parser (WithComments ExtensionRight)
         subtractionWithWhitespaceAfterMinus =
-            ParserFast.map
-                (\e ->
-                    { comments = e.comments
-                    , syntax = ExtendRightByOperation { symbol = "-", direction = Infix.Left, expression = e.syntax }
-                    }
-                )
-                (ParserFast.chompIfWhitespaceFollowedBy
-                    (extendedSubExpression possibilitiesForPrecedence)
+            ParserFast.chompIfWhitespaceFollowedBy
+                (extendedSubExpressionMap
+                    (\e ->
+                        ExtendRightByOperation { symbol = "-", direction = Infix.Left, expression = e }
+                    )
+                    possibilitiesForPrecedence
                 )
 
         subtractionWithoutWhitespace : Parser (WithComments ExtensionRight)
         subtractionWithoutWhitespace =
-            ParserFast.map
+            extendedSubExpressionMap
                 (\e ->
-                    { comments = e.comments
-                    , syntax = ExtendRightByOperation { symbol = "-", direction = Infix.Left, expression = e.syntax }
-                    }
+                    ExtendRightByOperation { symbol = "-", direction = Infix.Left, expression = e }
                 )
-                (extendedSubExpression possibilitiesForPrecedence)
+                possibilitiesForPrecedence
     in
     ( precedence
     , ParserFast.symbolBacktrackableFollowedBy "-"
@@ -1232,13 +1230,8 @@ infixHelp :
 infixHelp leftPrecedence rightPrecedence operatorFollowedBy apply =
     ( leftPrecedence
     , operatorFollowedBy
-        (ParserFast.map
-            (\e ->
-                { comments = e.comments
-                , syntax = apply e.syntax
-                }
-            )
-            (extendedSubExpression rightPrecedence)
+        (extendedSubExpressionMap apply
+            rightPrecedence
         )
     )
 
