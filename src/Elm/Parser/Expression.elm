@@ -24,14 +24,10 @@ subExpression =
                     leftestResult
 
                 (Node lastRecordAccessRange _) :: _ ->
-                    let
-                        ((Node leftestRange leftest) as leftestNode) =
-                            leftestResult.syntax
-                    in
                     { comments = leftestResult.comments
                     , syntax =
-                        case leftest of
-                            Negation negatedNode ->
+                        case leftestResult.syntax of
+                            Node leftestRange (Negation negatedNode) ->
                                 -- is there a nicer way to make -foo.bar count as negated (access _) instead of access (negated _)?
                                 Node { start = leftestRange.start, end = lastRecordAccessRange.end }
                                     (Negation
@@ -45,7 +41,7 @@ subExpression =
                                         )
                                     )
 
-                            _ ->
+                            leftestNode ->
                                 recordAccesses
                                     |> List.foldr
                                         (\((Node fieldRange _) as fieldNode) ((Node leftRange _) as leftNode) ->
