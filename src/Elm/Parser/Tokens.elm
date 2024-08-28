@@ -2,8 +2,8 @@ module Elm.Parser.Tokens exposing
     ( inToken
     , equal, parensEnd
     , prefixOperatorToken, allowedOperatorTokens
-    , characterLiteral, singleOrTripleQuotedStringLiteral
     , functionName, functionNameNode, functionNameMapWithRange, functionNameNotInfixNode, typeName, typeNameNode, typeNameMapWithRange
+    , characterLiteralMapWithRange, singleOrTripleQuotedStringLiteralMapWithRange
     )
 
 {-|
@@ -189,22 +189,50 @@ charToHex c =
             15
 
 
-characterLiteral : ParserFast.Parser Char
-characterLiteral =
+characterLiteralMapWithRange : (Range -> Char -> res) -> ParserFast.Parser res
+characterLiteralMapWithRange rangeAndCharToRes =
     ParserFast.symbolFollowedBy "'"
-        (ParserFast.oneOf2
+        (ParserFast.oneOf2MapWithStartRowColumnAndEndRowColumn
+            (\startRow startColumn char endRow endColumn ->
+                rangeAndCharToRes
+                    { start = { row = startRow, column = startColumn - 1 }
+                    , end = { row = endRow, column = endColumn + 1 }
+                    }
+                    char
+            )
             (ParserFast.symbolFollowedBy "\\" (escapedCharValueMap identity))
+            (\startRow startColumn char endRow endColumn ->
+                rangeAndCharToRes
+                    { start = { row = startRow, column = startColumn - 1 }
+                    , end = { row = endRow, column = endColumn + 1 }
+                    }
+                    char
+            )
             ParserFast.anyChar
+            |> ParserFast.followedBySymbol "'"
         )
-        |> ParserFast.followedBySymbol "'"
 
 
-singleOrTripleQuotedStringLiteral : ParserFast.Parser String
-singleOrTripleQuotedStringLiteral =
+singleOrTripleQuotedStringLiteralMapWithRange : (Range -> String -> res) -> ParserFast.Parser res
+singleOrTripleQuotedStringLiteralMapWithRange rangeAndStringToRes =
     ParserFast.symbolFollowedBy "\""
-        (ParserFast.oneOf2
+        (ParserFast.oneOf2MapWithStartRowColumnAndEndRowColumn
+            (\startRow startColumn string endRow endColumn ->
+                rangeAndStringToRes
+                    { start = { row = startRow, column = startColumn - 1 }
+                    , end = { row = endRow, column = endColumn }
+                    }
+                    string
+            )
             (ParserFast.symbolFollowedBy "\"\""
                 tripleQuotedStringLiteralOfterTripleDoubleQuote
+            )
+            (\startRow startColumn string endRow endColumn ->
+                rangeAndStringToRes
+                    { start = { row = startRow, column = startColumn - 1 }
+                    , end = { row = endRow, column = endColumn }
+                    }
+                    string
             )
             singleQuotedStringLiteralAfterDoubleQuote
         )

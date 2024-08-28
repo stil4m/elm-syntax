@@ -81,47 +81,47 @@ all =
                     |> Expect.equal Nothing
         , test "multiline string" <|
             \() ->
-                parse "\"\"\"Bar foo \n a\"\"\"" Parser.singleOrTripleQuotedStringLiteral
+                parse "\"\"\"Bar foo \n a\"\"\"" (Parser.singleOrTripleQuotedStringLiteralMapWithRange (\_ s -> s))
                     |> Expect.equal (Just "Bar foo \n a")
         , test "multiline string escape" <|
             \() ->
-                parse """\"\"\" \\\"\"\" \"\"\"""" Parser.singleOrTripleQuotedStringLiteral
+                parse """\"\"\" \\\"\"\" \"\"\"""" (Parser.singleOrTripleQuotedStringLiteralMapWithRange (\_ s -> s))
                     |> Expect.equal (Just """ \"\"\" """)
         , test "character escaped" <|
             \() ->
-                parse "'\\''" Parser.characterLiteral
+                parse "'\\''" (Parser.characterLiteralMapWithRange (\_ c -> c))
                     |> Expect.equal (Just '\'')
         , test "character escaped - 2" <|
             \() ->
-                parse "'\\r'" Parser.characterLiteral
+                parse "'\\r'" (Parser.characterLiteralMapWithRange (\_ c -> c))
                     |> Expect.equal (Just '\u{000D}')
         , test "unicode char" <|
             \() ->
-                parse "'\\u{000D}'" Parser.characterLiteral
+                parse "'\\u{000D}'" (Parser.characterLiteralMapWithRange (\_ c -> c))
                     |> Expect.equal (Just '\u{000D}')
         , test "unicode char with lowercase hex" <|
             \() ->
-                parse "'\\u{000d}'" Parser.characterLiteral
+                parse "'\\u{000d}'" (Parser.characterLiteralMapWithRange (\_ c -> c))
                     |> Expect.equal (Just '\u{000D}')
         , test "string escaped 3" <|
             \() ->
-                parse "\"\\\"\"" Parser.singleOrTripleQuotedStringLiteral
+                parse "\"\\\"\"" (Parser.singleOrTripleQuotedStringLiteralMapWithRange (\_ s -> s))
                     |> Expect.equal (Just "\"")
         , test "string escaped" <|
             \() ->
-                parse "\"foo\\\\\"" Parser.singleOrTripleQuotedStringLiteral
+                parse "\"foo\\\\\"" (Parser.singleOrTripleQuotedStringLiteralMapWithRange (\_ s -> s))
                     |> Expect.equal (Just "foo\\")
         , test "character escaped 3" <|
             \() ->
-                parse "'\\n'" Parser.characterLiteral
+                parse "'\\n'" (Parser.characterLiteralMapWithRange (\_ c -> c))
                     |> Expect.equal (Just '\n')
         , test "long string" <|
             \() ->
-                parse longString Parser.singleOrTripleQuotedStringLiteral
+                parse longString (Parser.singleOrTripleQuotedStringLiteralMapWithRange (\_ s -> s))
                     |> Expect.notEqual Nothing
         , test "long multi line string" <|
             \() ->
-                parse longMultiLineString Parser.singleOrTripleQuotedStringLiteral
+                parse longMultiLineString (Parser.singleOrTripleQuotedStringLiteralMapWithRange (\_ s -> s))
                     |> Expect.notEqual Nothing
         , test "ρ function" <|
             \() ->

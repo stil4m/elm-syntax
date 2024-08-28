@@ -131,11 +131,10 @@ numberPart =
 
 charPattern : Parser (WithComments (Node Pattern))
 charPattern =
-    Tokens.characterLiteral
-        |> ParserFast.mapWithRange
-            (\range char ->
-                { comments = Rope.empty, syntax = Node range (CharPattern char) }
-            )
+    Tokens.characterLiteralMapWithRange
+        (\range char ->
+            { comments = Rope.empty, syntax = Node range (CharPattern char) }
+        )
 
 
 listPattern : Parser (WithComments (Node Pattern))
@@ -235,13 +234,12 @@ unitPattern =
 
 stringPattern : Parser (WithComments (Node Pattern))
 stringPattern =
-    Tokens.singleOrTripleQuotedStringLiteral
-        |> ParserFast.mapWithRange
-            (\range string ->
-                { comments = Rope.empty
-                , syntax = Node range (StringPattern string)
-                }
-            )
+    Tokens.singleOrTripleQuotedStringLiteralMapWithRange
+        (\range string ->
+            { comments = Rope.empty
+            , syntax = Node range (StringPattern string)
+            }
+        )
 
 
 maybeDotTypeNamesTuple : ParserFast.Parser (Maybe ( List String, String ))

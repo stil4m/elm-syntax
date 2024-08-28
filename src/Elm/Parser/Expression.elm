@@ -304,24 +304,22 @@ recordSetterNodeWithLayout =
 
 literalExpression : Parser (WithComments (Node Expression))
 literalExpression =
-    ParserFast.mapWithRange
+    Tokens.singleOrTripleQuotedStringLiteralMapWithRange
         (\range string ->
             { comments = Rope.empty
             , syntax = Node range (Literal string)
             }
         )
-        Tokens.singleOrTripleQuotedStringLiteral
 
 
 charLiteralExpression : Parser (WithComments (Node Expression))
 charLiteralExpression =
-    ParserFast.mapWithRange
+    Tokens.characterLiteralMapWithRange
         (\range char ->
             { comments = Rope.empty
             , syntax = Node range (CharLiteral char)
             }
         )
-        Tokens.characterLiteral
 
 
 
