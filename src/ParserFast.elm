@@ -13,7 +13,7 @@ module ParserFast exposing
 
 @docs Parser, run
 
-@docs int, intOrHex, floatOrIntOrHex, symbol, symbolBacktrackable, symbolWithEndLocation, symbolWithRange, symbolFollowedBy, symbolBacktrackableFollowedBy, followedBySymbol, keyword, keywordFollowedBy, while, whileWithoutLinebreak, whileMap, ifFollowedByWhileWithoutLinebreak, ifFollowedByWhileMapWithoutLinebreak, ifFollowedByWhileMapWithRangeWithoutLinebreak, ifFollowedByWhileValidateWithoutLinebreak, ifFollowedByWhileValidateMapWithRangeWithoutLinebreak, anyChar, end
+@docs int, intOrHexMapWithRange, floatOrIntOrHexMapWithRange, symbol, symbolBacktrackable, symbolWithEndLocation, symbolWithRange, symbolFollowedBy, symbolBacktrackableFollowedBy, followedBySymbol, keyword, keywordFollowedBy, while, whileWithoutLinebreak, whileMap, ifFollowedByWhileWithoutLinebreak, ifFollowedByWhileMapWithoutLinebreak, ifFollowedByWhileMapWithRangeWithoutLinebreak, ifFollowedByWhileValidateWithoutLinebreak, ifFollowedByWhileValidateMapWithRangeWithoutLinebreak, anyChar, end
 
 
 # Flow
@@ -1829,18 +1829,18 @@ number i =
 
 
 numberHelp :
-    { int : Result () (Int -> a)
-    , hex : Result () (Int -> a)
-    , octal : Result () (Int -> a)
-    , binary : Result () (Int -> a)
-    , float : Result () (Float -> a)
+    { int : Result () (Int -> Range -> a)
+    , hex : Result () (Int -> Range -> a)
+    , octal : Result () (Int -> Range -> a)
+    , binary : Result () (Int -> Range -> a)
+    , float : Result () (Float -> Range -> a)
     , invalid : ()
     , expecting : ()
     }
     -> Parser a
 numberHelp consumers =
     let
-        parserAdvancedNumberAndStringLength : Parser.Advanced.Parser c () { length : Int, number : a }
+        parserAdvancedNumberAndStringLength : Parser.Advanced.Parser c () { length : Int, number : Range -> a }
         parserAdvancedNumberAndStringLength =
             Parser.Advanced.map (\n -> \endOffset -> { length = endOffset, number = n })
                 (Parser.Advanced.number consumers)
@@ -1851,7 +1851,13 @@ numberHelp consumers =
             if String.any Char.isDigit (String.slice state.offset (state.offset + 1) state.src) then
                 case Parser.Advanced.run parserAdvancedNumberAndStringLength (String.slice state.offset (String.length state.src) state.src) of
                     Ok result ->
-                        Good False result.number (stateAddLengthToOffsetAndColumn result.length state)
+                        Good False
+                            (result.number
+                                { start = { row = state.row, column = state.col }
+                                , end = { row = state.row, column = state.col + result.length }
+                                }
+                            )
+                            (stateAddLengthToOffsetAndColumn result.length state)
 
                     Err _ ->
                         Bad False (ExpectingNumber state.row state.col ()) ()
@@ -1909,8 +1915,8 @@ int =
         }
 
 
-floatOrIntOrHex : (Float -> a) -> (Int -> a) -> (Int -> a) -> Parser a
-floatOrIntOrHex floatf intf hexf =
+floatOrIntOrHexMapWithRange : (Float -> Range -> a) -> (Int -> Range -> a) -> (Int -> Range -> a) -> Parser a
+floatOrIntOrHexMapWithRange floatf intf hexf =
     numberHelp
         { int = Ok intf
         , hex = Ok hexf
@@ -1922,8 +1928,8 @@ floatOrIntOrHex floatf intf hexf =
         }
 
 
-intOrHex : (Int -> a) -> (Int -> a) -> Parser a
-intOrHex intf hexf =
+intOrHexMapWithRange : (Int -> Range -> a) -> (Int -> Range -> a) -> Parser a
+intOrHexMapWithRange intf hexf =
     numberHelp
         { int = Ok intf
         , hex = Ok hexf
