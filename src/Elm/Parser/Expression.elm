@@ -93,7 +93,6 @@ extensionRightByPrecedence =
     -- TODO Report a syntax error when encountering multiple of the comparison operators
     -- `a < b < c` is not valid Elm syntax
     [ infixLeft 1 (ParserFast.lazy (\() -> abovePrecedence1)) "|>"
-    , functionCall
     , infixRight 5 (ParserFast.lazy (\() -> abovePrecedence4)) "++"
     , infixRight 1 (ParserFast.lazy (\() -> abovePrecedence0)) "<|"
     , infixRight 9 (ParserFast.lazy (\() -> abovePrecedence8)) ">>"
@@ -123,38 +122,6 @@ extensionRightByPrecedence =
 expression : Parser (WithComments (Node Expression))
 expression =
     extendedSubExpression abovePrecedence0
-
-
-functionCall : ( Int, Parser (WithComments ExtensionRight) )
-functionCall =
-    ( 90
-    , ParserFast.map3
-        (\firstArg commentsAfterFirstArg lastToSecondArg ->
-            { comments =
-                firstArg.comments
-                    |> Rope.prependTo commentsAfterFirstArg
-                    |> Rope.prependTo lastToSecondArg.comments
-            , syntax = ExtendRightByApplicationListReverse firstArg.syntax lastToSecondArg.syntax
-            }
-        )
-        (Layout.positivelyIndentedFollowedBy
-            (ParserFast.lazy (\() -> subExpression))
-        )
-        Layout.optimisticLayout
-        (ParserWithComments.manyWithoutReverse
-            (ParserFast.map2
-                (\arg commentsAfter ->
-                    { comments = arg.comments |> Rope.prependTo commentsAfter
-                    , syntax = arg.syntax
-                    }
-                )
-                (Layout.positivelyIndentedFollowedBy
-                    (ParserFast.lazy (\() -> subExpression))
-                )
-                Layout.optimisticLayout
-            )
-        )
-    )
 
 
 glslExpressionAfterOpeningSquareBracket : Parser (WithComments (Node Expression))
@@ -1055,56 +1022,66 @@ extendedSubExpression :
     Parser (WithComments ExtensionRight)
     -> Parser (WithComments (Node Expression))
 extendedSubExpression aboveCurrentPrecedenceLayout =
-    ParserFast.map4
-        (\commentsBefore leftExpressionResult commentsBeforeExtension extensionsRight ->
+    ParserFast.map5
+        (\commentsBefore leftExpressionResult commentsBeforeExtension maybeArgsReverse extensionsRight ->
+            let
+                leftMaybeApplied : Node Expression
+                leftMaybeApplied =
+                    case maybeArgsReverse.syntax of
+                        [] ->
+                            leftExpressionResult.syntax
+
+                        ((Node lastArgRange _) :: _) as argsReverse ->
+                            let
+                                ((Node leftRange _) as leftNode) =
+                                    leftExpressionResult.syntax
+                            in
+                            Node { start = leftRange.start, end = lastArgRange.end }
+                                (Expression.Application
+                                    (leftNode :: List.reverse argsReverse)
+                                )
+            in
             { comments =
                 commentsBefore
                     |> Rope.prependTo leftExpressionResult.comments
                     |> Rope.prependTo commentsBeforeExtension
+                    |> Rope.prependTo maybeArgsReverse.comments
                     |> Rope.prependTo extensionsRight.comments
             , syntax =
                 List.foldr applyExtensionRight
-                    leftExpressionResult.syntax
+                    leftMaybeApplied
                     extensionsRight.syntax
             }
         )
-        Layout.optimisticLayout
+        Layout.maybeLayout
         (ParserFast.lazy (\() -> subExpression))
         Layout.optimisticLayout
+        (ParserWithComments.manyWithoutReverse
+            (ParserFast.map2
+                (\arg commentsAfter ->
+                    { comments = arg.comments |> Rope.prependTo commentsAfter
+                    , syntax = arg.syntax
+                    }
+                )
+                (Layout.positivelyIndentedFollowedBy
+                    (ParserFast.lazy (\() -> subExpression))
+                )
+                Layout.optimisticLayout
+            )
+        )
         (ParserWithComments.manyWithoutReverse
             aboveCurrentPrecedenceLayout
         )
 
 
 applyExtensionRight : ExtensionRight -> Node Expression -> Node Expression
-applyExtensionRight extensionRight ((Node { start } left) as leftNode) =
-    case extensionRight of
-        ExtendRightByApplicationListReverse firstArg secondArgUp ->
-            let
-                lastArgEndLocation =
-                    case secondArgUp of
-                        [] ->
-                            let
-                                (Node lastArgRange _) =
-                                    firstArg
-                            in
-                            lastArgRange.end
-
-                        (Node lastArgRange _) :: _ ->
-                            lastArgRange.end
-            in
-            Node { start = start, end = lastArgEndLocation }
-                (Expression.Application
-                    (leftNode :: firstArg :: secondArgUp)
-                )
-
-        ExtendRightByOperation extendRightOperation ->
-            let
-                ((Node { end } _) as right) =
-                    extendRightOperation.expression
-            in
-            Node { start = start, end = end }
-                (OperatorApplication extendRightOperation.symbol extendRightOperation.direction leftNode right)
+applyExtensionRight (ExtendRightByOperation extendRightOperation) ((Node { start } _) as leftNode) =
+    let
+        ((Node { end } _) as right) =
+            extendRightOperation.expression
+    in
+    Node { start = start, end = end }
+        (OperatorApplication extendRightOperation.symbol extendRightOperation.direction leftNode right)
 
 
 abovePrecedence0 : Parser (WithComments ExtensionRight)
@@ -1268,4 +1245,3 @@ infixHelp leftPrecedence rightPrecedence operatorFollowedBy apply =
 
 type ExtensionRight
     = ExtendRightByOperation { symbol : String, direction : Infix.InfixDirection, expression : Node Expression }
-    | ExtendRightByApplicationListReverse (Node Expression) (List (Node Expression))
