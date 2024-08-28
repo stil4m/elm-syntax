@@ -1249,18 +1249,18 @@ infixLeftSubtraction precedence possibilitiesForPrecedence =
 infixHelp :
     Int
     -> Parser (WithComments ExtensionRight)
-    -> (Parser (WithComments (Node Expression)) -> Parser (WithComments (Node Expression)))
+    -> (Parser (WithComments ExtensionRight) -> Parser (WithComments ExtensionRight))
     -> (Node Expression -> ExtensionRight)
     -> ( Int, Parser (WithComments ExtensionRight) )
 infixHelp leftPrecedence rightPrecedence operatorFollowedBy apply =
     ( leftPrecedence
-    , ParserFast.map
-        (\e ->
-            { comments = e.comments
-            , syntax = apply e.syntax
-            }
-        )
-        (operatorFollowedBy
+    , operatorFollowedBy
+        (ParserFast.map
+            (\e ->
+                { comments = e.comments
+                , syntax = apply e.syntax
+                }
+            )
             (extendedSubExpression rightPrecedence)
         )
     )
