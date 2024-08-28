@@ -77,9 +77,7 @@ multiRecordAccess =
             Tokens.functionNameNode
         )
         []
-        (\pResult itemsSoFar ->
-            pResult :: itemsSoFar
-        )
+        (::)
         identity
 
 
