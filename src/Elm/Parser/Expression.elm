@@ -94,7 +94,7 @@ extensionRightByPrecedence =
     , infixLeft 7 (ParserFast.lazy (\() -> abovePrecedence7)) "*"
     , infixRight 5 (ParserFast.lazy (\() -> abovePrecedence4)) "::"
     , infixLeft 6 (ParserFast.lazy (\() -> abovePrecedence6)) "+"
-    , infixLeftSubtraction 6 (ParserFast.lazy (\() -> abovePrecedence6))
+    , infixLeft 6 (ParserFast.lazy (\() -> abovePrecedence6)) "-"
     , infixLeft 6 (ParserFast.lazy (\() -> abovePrecedence6)) "|."
     , infixRight 3 (ParserFast.lazy (\() -> abovePrecedence2)) "&&"
     , infixLeft 5 (ParserFast.lazy (\() -> abovePrecedence5)) "|="
@@ -1217,49 +1217,6 @@ infixRight precedence possibilitiesForPrecedenceMinus1 symbol =
         (\right ->
             ExtendRightByOperation { symbol = symbol, direction = Infix.Right, expression = right }
         )
-
-
-infixLeftSubtraction : Int -> Parser (WithComments ExtensionRight) -> ( Int, Parser (WithComments ExtensionRight) )
-infixLeftSubtraction precedence possibilitiesForPrecedence =
-    let
-        subtractionWithWhitespaceAfterMinus : Parser (WithComments ExtensionRight)
-        subtractionWithWhitespaceAfterMinus =
-            ParserFast.chompIfWhitespaceFollowedBy
-                (extendedSubExpressionMap
-                    (\e ->
-                        ExtendRightByOperation { symbol = "-", direction = Infix.Left, expression = e }
-                    )
-                    possibilitiesForPrecedence
-                )
-
-        subtractionWithoutWhitespace : Parser (WithComments ExtensionRight)
-        subtractionWithoutWhitespace =
-            extendedSubExpressionMap
-                (\e ->
-                    ExtendRightByOperation { symbol = "-", direction = Infix.Left, expression = e }
-                )
-                possibilitiesForPrecedence
-    in
-    ( precedence
-    , ParserFast.symbolBacktrackableFollowedBy "-"
-        (ParserFast.offsetSourceAndThen
-            (\offset source ->
-                -- 'a-b', 'a - b' and 'a- b' are subtractions, but 'a -b' is an application on a negation
-                case String.slice (offset - 2) (offset - 1) source of
-                    " " ->
-                        subtractionWithWhitespaceAfterMinus
-
-                    "\n" ->
-                        subtractionWithWhitespaceAfterMinus
-
-                    "\u{000D}" ->
-                        subtractionWithWhitespaceAfterMinus
-
-                    _ ->
-                        subtractionWithoutWhitespace
-            )
-        )
-    )
 
 
 infixHelp :
