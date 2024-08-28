@@ -27,7 +27,7 @@ module ParserFast exposing
 
 # Whitespace
 
-@docs chompIfWhitespaceFollowedBy, chompWhileWhitespaceFollowedBy, nestableMultiCommentMapWithRange
+@docs chompWhileWhitespaceFollowedBy, nestableMultiCommentMapWithRange
 
 
 # Indentation, Locations and source
@@ -2479,46 +2479,6 @@ chompWhileWhitespaceFollowedBy (Parser parseNext) =
 
             else
                 parseNext s1
-        )
-
-
-chompIfWhitespaceFollowedBy : Parser next -> Parser next
-chompIfWhitespaceFollowedBy (Parser parseNext) =
-    Parser
-        (\s ->
-            case String.slice s.offset (s.offset + 1) s.src of
-                " " ->
-                    parseNext
-                        { src = s.src
-                        , offset = s.offset + 1
-                        , indent = s.indent
-                        , row = s.row
-                        , col = s.col + 1
-                        }
-                        |> pStepCommit
-
-                "\n" ->
-                    parseNext
-                        { src = s.src
-                        , offset = s.offset + 1
-                        , indent = s.indent
-                        , row = s.row + 1
-                        , col = 1
-                        }
-                        |> pStepCommit
-
-                "\u{000D}" ->
-                    parseNext
-                        { src = s.src
-                        , offset = s.offset + 1
-                        , indent = s.indent
-                        , row = s.row
-                        , col = s.col + 1
-                        }
-                        |> pStepCommit
-
-                _ ->
-                    Bad False (ExpectingAnyChar s.row s.col ()) ()
         )
 
 
