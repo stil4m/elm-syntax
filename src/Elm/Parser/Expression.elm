@@ -128,16 +128,32 @@ expression =
 functionCall : ( Int, Parser (WithComments ExtensionRight) )
 functionCall =
     ( 90
-    , ParserFast.map2
-        (\arg commentsAfter ->
-            { comments = arg.comments |> Rope.prependTo commentsAfter
-            , syntax = ExtendRightByApplication arg.syntax
+    , ParserFast.map3
+        (\firstArg commentsAfterFirstArg lastToSecondArg ->
+            { comments =
+                firstArg.comments
+                    |> Rope.prependTo commentsAfterFirstArg
+                    |> Rope.prependTo lastToSecondArg.comments
+            , syntax = ExtendRightByApplicationListReverse firstArg.syntax lastToSecondArg.syntax
             }
         )
         (Layout.positivelyIndentedFollowedBy
             (ParserFast.lazy (\() -> subExpression))
         )
         Layout.optimisticLayout
+        (ParserWithComments.manyWithoutReverse
+            (ParserFast.map2
+                (\arg commentsAfter ->
+                    { comments = arg.comments |> Rope.prependTo commentsAfter
+                    , syntax = arg.syntax
+                    }
+                )
+                (Layout.positivelyIndentedFollowedBy
+                    (ParserFast.lazy (\() -> subExpression))
+                )
+                Layout.optimisticLayout
+            )
+        )
     )
 
 
@@ -1063,16 +1079,23 @@ extendedSubExpression aboveCurrentPrecedenceLayout =
 applyExtensionRight : ExtensionRight -> Node Expression -> Node Expression
 applyExtensionRight extensionRight ((Node { start } left) as leftNode) =
     case extensionRight of
-        ExtendRightByApplication ((Node { end } _) as right) ->
-            Node { start = start, end = end }
-                (Expression.Application
-                    (case left of
-                        Expression.Application (called :: firstArg :: secondArgUp) ->
-                            called :: firstArg :: (secondArgUp ++ [ right ])
+        ExtendRightByApplicationListReverse firstArg secondArgUp ->
+            let
+                lastArgEndLocation =
+                    case secondArgUp of
+                        [] ->
+                            let
+                                (Node lastArgRange _) =
+                                    firstArg
+                            in
+                            lastArgRange.end
 
-                        _ ->
-                            [ leftNode, right ]
-                    )
+                        (Node lastArgRange _) :: _ ->
+                            lastArgRange.end
+            in
+            Node { start = start, end = lastArgEndLocation }
+                (Expression.Application
+                    (leftNode :: firstArg :: secondArgUp)
                 )
 
         ExtendRightByOperation extendRightOperation ->
@@ -1127,7 +1150,6 @@ abovePrecedence8 =
 abovePrecedence9 : Parser (WithComments ExtensionRight)
 abovePrecedence9 =
     computeAbovePrecedence 9
-
 
 
 computeAbovePrecedence : Int -> Parser (WithComments ExtensionRight)
@@ -1246,4 +1268,4 @@ infixHelp leftPrecedence rightPrecedence operatorFollowedBy apply =
 
 type ExtensionRight
     = ExtendRightByOperation { symbol : String, direction : Infix.InfixDirection, expression : Node Expression }
-    | ExtendRightByApplication (Node Expression)
+    | ExtendRightByApplicationListReverse (Node Expression) (List (Node Expression))
