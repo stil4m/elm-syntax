@@ -88,17 +88,13 @@ succeedRopeEmpty =
 
 fromMultilineCommentNodeOrEmptyOnProblem : Parser Comments
 fromMultilineCommentNodeOrEmptyOnProblem =
-    ParserFast.orSucceed fromMultilineCommentNode Rope.empty
-
-
-fromMultilineCommentNode : Parser Comments
-fromMultilineCommentNode =
-    ParserFast.map2
+    ParserFast.map2OrSucceed
         (\comment commentsAfter ->
             Rope.one comment |> Rope.filledPrependTo commentsAfter
         )
         Comments.multilineComment
         whitespaceAndCommentsOrEmpty
+        Rope.empty
 
 
 fromSingleLineCommentNode : Parser Comments
