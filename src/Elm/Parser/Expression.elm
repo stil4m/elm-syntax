@@ -26,29 +26,13 @@ subExpression =
                 (Node lastRecordAccessRange _) :: _ ->
                     { comments = leftestResult.comments
                     , syntax =
-                        case leftestResult.syntax of
-                            Node leftestRange (Negation negatedNode) ->
-                                -- is there a nicer way to make -foo.bar count as negated (access _) instead of access (negated _)?
-                                Node { start = leftestRange.start, end = lastRecordAccessRange.end }
-                                    (Negation
-                                        (recordAccesses
-                                            |> List.foldr
-                                                (\((Node fieldRange _) as fieldNode) ((Node leftRange _) as leftNode) ->
-                                                    Node { start = leftRange.start, end = fieldRange.end }
-                                                        (Expression.RecordAccess leftNode fieldNode)
-                                                )
-                                                negatedNode
-                                        )
-                                    )
-
-                            leftestNode ->
-                                recordAccesses
-                                    |> List.foldr
-                                        (\((Node fieldRange _) as fieldNode) ((Node leftRange _) as leftNode) ->
-                                            Node { start = leftRange.start, end = fieldRange.end }
-                                                (Expression.RecordAccess leftNode fieldNode)
-                                        )
-                                        leftestNode
+                        recordAccesses
+                            |> List.foldr
+                                (\((Node fieldRange _) as fieldNode) ((Node leftRange _) as leftNode) ->
+                                    Node { start = leftRange.start, end = fieldRange.end }
+                                        (Expression.RecordAccess leftNode fieldNode)
+                                )
+                                leftestResult.syntax
                     }
         )
         (ParserFast.oneOf14
