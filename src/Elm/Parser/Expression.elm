@@ -10,6 +10,7 @@ import Elm.Syntax.Node as Node exposing (Node(..))
 import Elm.Syntax.Pattern exposing (Pattern)
 import Elm.Syntax.Range exposing (Range)
 import Elm.Syntax.Signature exposing (Signature)
+import Parser
 import ParserFast exposing (Parser)
 import ParserWithComments exposing (Comments, WithComments)
 import Rope
@@ -1052,52 +1053,66 @@ tupledExpressionInnerAfterOpeningParens =
                     }
         )
         (ParserFast.map4WithRange
-            (\rangeAfterOpeningParens commentsBeforeFirstPart firstPart commentsAfterFirstPart tailPartsReverse ->
-                let
-                    range : Range
-                    range =
+            (\rangeAfterOpeningParens commentsBeforeFirstPart firstPart commentsAfterFirstPart tailParts ->
+                { comments =
+                    commentsBeforeFirstPart
+                        |> Rope.prependTo firstPart.comments
+                        |> Rope.prependTo commentsAfterFirstPart
+                        |> Rope.prependTo tailParts.comments
+                , syntax =
+                    Node
                         { start = { row = rangeAfterOpeningParens.start.row, column = rangeAfterOpeningParens.start.column - 1 }
                         , end = rangeAfterOpeningParens.end
                         }
-                in
-                case tailPartsReverse.syntax of
-                    [] ->
-                        { comments =
-                            commentsBeforeFirstPart
-                                |> Rope.prependTo firstPart.comments
-                                |> Rope.prependTo commentsAfterFirstPart
-                        , syntax =
-                            Node range (ParenthesizedExpression firstPart.syntax)
-                        }
+                        (case tailParts.syntax of
+                            Nothing ->
+                                ParenthesizedExpression firstPart.syntax
 
-                    _ ->
-                        { comments =
-                            commentsBeforeFirstPart
-                                |> Rope.prependTo firstPart.comments
-                                |> Rope.prependTo commentsAfterFirstPart
-                                |> Rope.prependTo tailPartsReverse.comments
-                        , syntax =
-                            Node range
-                                (TupledExpression (firstPart.syntax :: List.reverse tailPartsReverse.syntax))
-                        }
+                            Just ( secondPart, maybeThirdPart ) ->
+                                case maybeThirdPart of
+                                    Nothing ->
+                                        TupledExpression [ firstPart.syntax, secondPart ]
+
+                                    Just thirdPart ->
+                                        TupledExpression [ firstPart.syntax, secondPart, thirdPart ]
+                        )
+                }
             )
             Layout.maybeLayout
             expression
             Layout.maybeLayout
-            (ParserWithComments.untilWithoutReverse
-                Tokens.parensEnd
-                (ParserFast.map3
-                    (\commentsBefore partResult commentsAfter ->
+            (ParserFast.oneOf2
+                (ParserFast.symbol ")" { comments = Rope.empty, syntax = Nothing })
+                (ParserFast.map4
+                    (\commentsBefore partResult commentsAfter maybeThirdPart ->
                         { comments =
                             commentsBefore
                                 |> Rope.prependTo partResult.comments
                                 |> Rope.prependTo commentsAfter
-                        , syntax = partResult.syntax
+                                |> Rope.prependTo maybeThirdPart.comments
+                        , syntax = Just ( partResult.syntax, maybeThirdPart.syntax )
                         }
                     )
                     (ParserFast.symbolFollowedBy "," Layout.maybeLayout)
                     expression
                     Layout.maybeLayout
+                    (ParserFast.oneOf2
+                        (ParserFast.symbol ")" { comments = Rope.empty, syntax = Nothing })
+                        (ParserFast.map3
+                            (\commentsBefore partResult commentsAfter ->
+                                { comments =
+                                    commentsBefore
+                                        |> Rope.prependTo partResult.comments
+                                        |> Rope.prependTo commentsAfter
+                                , syntax = Just partResult.syntax
+                                }
+                            )
+                            (ParserFast.symbolFollowedBy "," Layout.maybeLayout)
+                            expression
+                            Layout.maybeLayout
+                            |> ParserFast.followedBySymbol ")"
+                        )
+                    )
                 )
                 Tokens.comma
                 Layout.maybeLayout
