@@ -8,9 +8,8 @@ import Elm.Syntax.Import exposing (Import)
 import Elm.Syntax.Node exposing (Node(..))
 import Elm.Syntax.Range exposing (Range)
 import ParserFast exposing (Parser)
-import ParserWithComments exposing (WithComments)
+import ParserWithComments exposing (Comments, WithComments)
 import Rope
-import ParserWithComments exposing (Comments)
 
 
 importDefinition : Parser (WithComments (Node Import))

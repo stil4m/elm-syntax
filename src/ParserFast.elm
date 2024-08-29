@@ -27,7 +27,7 @@ module ParserFast exposing
 
 # Whitespace
 
-@docs chompWhileWhitespaceFollowedBy, nestableMultiCommentMapWithRange
+@docs chompWhileWhitespaceFollowedBy, followedByChompWhileWhitespace, nestableMultiCommentMapWithRange
 
 
 # Indentation, Locations and source
@@ -2459,6 +2459,24 @@ chompWhileWithoutLinebreakHelp isGood offset row col src indent =
         , row = row
         , col = col
         }
+
+
+followedByChompWhileWhitespace : Parser before -> Parser before
+followedByChompWhileWhitespace (Parser parseBefore) =
+    Parser
+        (\s0 ->
+            case parseBefore s0 of
+                Good committed res s1 ->
+                    let
+                        s2 : State
+                        s2 =
+                            chompWhileWhitespaceHelp s1.offset s1.row s1.col s1.src s1.indent
+                    in
+                    Good (committed || s2.offset > s1.offset) res s2
+
+                bad ->
+                    bad
+        )
 
 
 {-| Specialized `chompWhile (\c -> c == " " || c == "\n" || c == "\r")`
