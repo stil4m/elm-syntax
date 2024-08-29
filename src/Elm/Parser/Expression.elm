@@ -10,7 +10,6 @@ import Elm.Syntax.Node as Node exposing (Node(..))
 import Elm.Syntax.Pattern exposing (Pattern)
 import Elm.Syntax.Range exposing (Range)
 import Elm.Syntax.Signature exposing (Signature)
-import Parser
 import ParserFast exposing (Parser)
 import ParserWithComments exposing (Comments, WithComments)
 import Rope
@@ -1033,85 +1032,103 @@ allowedPrefixOperatorExceptMinusThenClosingParensOneOf =
 
 tupledExpressionInnerAfterOpeningParens : Parser (WithComments (Node Expression))
 tupledExpressionInnerAfterOpeningParens =
-    -- TODO only add record access on parenthesized
-    ParserFast.map2
-        (\leftestResult recordAccesses ->
-            case recordAccesses of
-                [] ->
-                    leftestResult
+    ParserFast.map4WithRange
+        (\rangeAfterOpeningParens commentsBeforeFirstPart firstPart commentsAfterFirstPart tailParts ->
+            { comments =
+                commentsBeforeFirstPart
+                    |> Rope.prependTo firstPart.comments
+                    |> Rope.prependTo commentsAfterFirstPart
+                    |> Rope.prependTo tailParts.comments
+            , syntax =
+                case tailParts.syntax of
+                    TupledParenthesizedFollowedByRecordAccesses recordAccessesReverse ->
+                        case recordAccessesReverse of
+                            [] ->
+                                Node
+                                    { start = { row = rangeAfterOpeningParens.start.row, column = rangeAfterOpeningParens.start.column - 1 }
+                                    , end = rangeAfterOpeningParens.end
+                                    }
+                                    (ParenthesizedExpression firstPart.syntax)
 
-                _ :: _ ->
-                    { comments = leftestResult.comments
-                    , syntax =
-                        recordAccesses
-                            |> List.foldr
-                                (\((Node fieldRange _) as fieldNode) ((Node leftRange _) as leftNode) ->
-                                    Node { start = leftRange.start, end = fieldRange.end }
-                                        (Expression.RecordAccess leftNode fieldNode)
-                                )
-                                leftestResult.syntax
-                    }
-        )
-        (ParserFast.map4WithRange
-            (\rangeAfterOpeningParens commentsBeforeFirstPart firstPart commentsAfterFirstPart tailParts ->
-                { comments =
-                    commentsBeforeFirstPart
-                        |> Rope.prependTo firstPart.comments
-                        |> Rope.prependTo commentsAfterFirstPart
-                        |> Rope.prependTo tailParts.comments
-                , syntax =
-                    Node
-                        { start = { row = rangeAfterOpeningParens.start.row, column = rangeAfterOpeningParens.start.column - 1 }
-                        , end = rangeAfterOpeningParens.end
-                        }
-                        (case tailParts.syntax of
-                            Nothing ->
-                                ParenthesizedExpression firstPart.syntax
+                            lastRecordAccess :: secondLastToFirstRecordAccess ->
+                                let
+                                    range : Range
+                                    range =
+                                        { start = { row = rangeAfterOpeningParens.start.row, column = rangeAfterOpeningParens.start.column - 1 }
+                                        , end =
+                                            let
+                                                (Node firstRecordAccessRange _) =
+                                                    listNonEmptyLast lastRecordAccess secondLastToFirstRecordAccess
+                                            in
+                                            { row = firstRecordAccessRange.start.row
+                                            , column = firstRecordAccessRange.start.column - 1
+                                            }
+                                        }
 
-                            Just ( secondPart, maybeThirdPart ) ->
-                                case maybeThirdPart of
-                                    Nothing ->
-                                        TupledExpression [ firstPart.syntax, secondPart ]
+                                    parenthesizedNode : Node Expression
+                                    parenthesizedNode =
+                                        Node range (ParenthesizedExpression firstPart.syntax)
+                                in
+                                recordAccessesReverse
+                                    |> List.foldr
+                                        (\((Node fieldRange _) as fieldNode) ((Node leftRange _) as leftNode) ->
+                                            Node { start = leftRange.start, end = fieldRange.end }
+                                                (Expression.RecordAccess leftNode fieldNode)
+                                        )
+                                        parenthesizedNode
 
-                                    Just thirdPart ->
-                                        TupledExpression [ firstPart.syntax, secondPart, thirdPart ]
-                        )
-                }
-            )
-            Layout.maybeLayout
-            expression
-            Layout.maybeLayout
-            (ParserFast.oneOf2
-                (ParserFast.symbol ")" { comments = Rope.empty, syntax = Nothing })
-                (ParserFast.map4
-                    (\commentsBefore partResult commentsAfter maybeThirdPart ->
-                        { comments =
-                            commentsBefore
-                                |> Rope.prependTo partResult.comments
-                                |> Rope.prependTo commentsAfter
-                                |> Rope.prependTo maybeThirdPart.comments
-                        , syntax = Just ( partResult.syntax, maybeThirdPart.syntax )
-                        }
-                    )
-                    (ParserFast.symbolFollowedBy "," Layout.maybeLayout)
-                    expression
-                    Layout.maybeLayout
-                    (ParserFast.oneOf2
-                        (ParserFast.symbol ")" { comments = Rope.empty, syntax = Nothing })
-                        (ParserFast.map3
-                            (\commentsBefore partResult commentsAfter ->
-                                { comments =
-                                    commentsBefore
-                                        |> Rope.prependTo partResult.comments
-                                        |> Rope.prependTo commentsAfter
-                                , syntax = Just partResult.syntax
-                                }
+                    TupledTwoOrThree ( secondPart, maybeThirdPart ) ->
+                        Node
+                            { start = { row = rangeAfterOpeningParens.start.row, column = rangeAfterOpeningParens.start.column - 1 }
+                            , end = rangeAfterOpeningParens.end
+                            }
+                            (case maybeThirdPart of
+                                Nothing ->
+                                    TupledExpression [ firstPart.syntax, secondPart ]
+
+                                Just thirdPart ->
+                                    TupledExpression [ firstPart.syntax, secondPart, thirdPart ]
                             )
-                            (ParserFast.symbolFollowedBy "," Layout.maybeLayout)
-                            expression
-                            Layout.maybeLayout
-                            |> ParserFast.followedBySymbol ")"
+            }
+        )
+        Layout.maybeLayout
+        expression
+        Layout.maybeLayout
+        (ParserFast.oneOf2
+            (ParserFast.symbolFollowedBy ")"
+                (ParserFast.map
+                    (\recordAccesses -> { comments = Rope.empty, syntax = TupledParenthesizedFollowedByRecordAccesses recordAccesses })
+                    multiRecordAccess
+                )
+            )
+            (ParserFast.map4
+                (\commentsBefore partResult commentsAfter maybeThirdPart ->
+                    { comments =
+                        commentsBefore
+                            |> Rope.prependTo partResult.comments
+                            |> Rope.prependTo commentsAfter
+                            |> Rope.prependTo maybeThirdPart.comments
+                    , syntax = TupledTwoOrThree ( partResult.syntax, maybeThirdPart.syntax )
+                    }
+                )
+                (ParserFast.symbolFollowedBy "," Layout.maybeLayout)
+                expression
+                Layout.maybeLayout
+                (ParserFast.oneOf2
+                    (ParserFast.symbol ")" { comments = Rope.empty, syntax = Nothing })
+                    (ParserFast.map3
+                        (\commentsBefore partResult commentsAfter ->
+                            { comments =
+                                commentsBefore
+                                    |> Rope.prependTo partResult.comments
+                                    |> Rope.prependTo commentsAfter
+                            , syntax = Just partResult.syntax
+                            }
                         )
+                        (ParserFast.symbolFollowedBy "," Layout.maybeLayout)
+                        expression
+                        Layout.maybeLayout
+                        |> ParserFast.followedBySymbol ")"
                     )
                 )
                 Tokens.comma
@@ -1120,7 +1137,21 @@ tupledExpressionInnerAfterOpeningParens =
                 Layout.maybeLayout
             )
         )
-        multiRecordAccess
+
+
+type Tupled
+    = TupledParenthesizedFollowedByRecordAccesses (List (Node String))
+    | TupledTwoOrThree ( Node Expression, Maybe (Node Expression) )
+
+
+listNonEmptyLast : a -> List a -> a
+listNonEmptyLast head tail =
+    case tail of
+        [] ->
+            head
+
+        tailHead :: tailTail ->
+            listNonEmptyLast tailHead tailTail
 
 
 
