@@ -10,6 +10,7 @@ import Elm.Syntax.Range exposing (Range)
 import ParserFast exposing (Parser)
 import ParserWithComments exposing (WithComments)
 import Rope
+import ParserWithComments exposing (Comments)
 
 
 importDefinition : Parser (WithComments (Node Import))
@@ -40,24 +41,28 @@ importDefinition =
                                     modRange
             in
             { comments =
-                commentsAfterImport
-                    |> Rope.prependTo commentsAfterModuleName
-                    |> Rope.prependTo
-                        (case maybeModuleAlias of
+                let
+                    commentsBeforeAlias : Comments
+                    commentsBeforeAlias =
+                        commentsAfterImport
+                            |> Rope.prependTo commentsAfterModuleName
+
+                    commentsBeforeExposingList : Comments
+                    commentsBeforeExposingList =
+                        case maybeModuleAlias of
                             Nothing ->
-                                Rope.empty
+                                commentsBeforeAlias
 
                             Just moduleAliasValue ->
-                                moduleAliasValue.comments
-                        )
-                    |> Rope.prependTo
-                        (case maybeExposingList of
-                            Nothing ->
-                                Rope.empty
+                                commentsBeforeAlias |> Rope.prependTo moduleAliasValue.comments
+                in
+                (case maybeExposingList of
+                    Nothing ->
+                        commentsBeforeExposingList
 
-                            Just exposingListValue ->
-                                exposingListValue.comments
-                        )
+                    Just exposingListValue ->
+                        commentsBeforeExposingList |> Rope.prependTo exposingListValue.comments
+                )
                     |> Rope.prependTo commentsAfterEverything
             , syntax =
                 Node { start = start, end = endRange.end }
