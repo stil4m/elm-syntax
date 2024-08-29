@@ -20,6 +20,31 @@ module ParserFast exposing
 
 @docs succeed, problem, lazy, map, map2, map2WithStartLocation, map2WithRange, map3, map3WithRange, map4, map4WithRange, map5, map5WithStartLocation, map5WithRange, map6, map6WithStartLocation, map6WithRange, map7WithRange, map8WithStartLocation, map9WithRange, validate
 
+Choice: parsing JSON for example, the values can be strings, floats, booleans,
+arrays, objects, or null. You need a way to pick one of them! Here is a
+sample of what that code might look like:
+
+    type Json
+        = Number Float
+        | Boolean Bool
+        | Null
+
+    json : Parser Json
+    json =
+        oneOf4
+            (ParserFast.map Number float)
+            (ParserFast.keyword "true" (Boolean True))
+            (ParserFast.keyword "False" (Boolean False))
+            (ParserFast.keyword "null" Null)
+
+This parser will keep trying down the list of parsers until one of them starts chomping
+characters. Once a path is chosen, it does not come back and try the others.
+
+**Note:** I highly recommend reading [this document][semantics] to learn how
+`oneOf` and `backtrackable` interact. It is subtle and important!
+
+[semantics]: https://github.com/elm/parser/blob/master/semantics.md
+
 @docs orSucceed, mapOrSucceed, map2OrSucceed, map3OrSucceed, map4OrSucceed, oneOf2, oneOf2Map, oneOf2MapWithStartRowColumnAndEndRowColumn, oneOf2OrSucceed, oneOf3, oneOf4, oneOf5, oneOf7, oneOf10, oneOf14, oneOf
 
 @docs loopWhileSucceeds, loopUntil
@@ -88,13 +113,13 @@ type alias State =
 {-| Try a parser. Here are some examples using the [`keyword`](#keyword)
 parser:
 
-    run (keyword "true") "true" --> Ok ()
+    run (keyword "true" ()) "true" --> Ok ()
 
-    run (keyword "true") "True" --> Err ..
+    run (keyword "true" ()) "True" --> Err ..
 
-    run (keyword "true") "false" --> Err ...
+    run (keyword "true" ()) "false" --> Err ...
 
-    run (keyword "true") "true!" --> Ok ()
+    run (keyword "true" ()) "true!" --> Ok ()
 
 Notice the last case! A `Parser` will chomp as much as possible and not worry
 about the rest. Use the [`end`](#end) parser to ensure you made it to the end
@@ -160,8 +185,8 @@ ropeFilledToList problemToConvert soFar =
 
     run (succeed Nothing) "mississippi" == Ok Nothing
 
-Seems weird on its own, but it is very useful in combination with other
-functions.
+Sometimes useful in combination with -andThen helpers,
+though there are usually alternatives like the -orSucceed versions to consider first.
 
 -}
 succeed : a -> Parser a
@@ -169,8 +194,10 @@ succeed a =
     Parser (\s -> Good False a s)
 
 
-{-| Helper to define recursive parsers. Say we want a parser for simple
-boolean expressions:
+{-| Helper to delay computation,
+mostly to refer to a recursive parser.
+
+Say we want a parser for simple boolean expressions:
 
     true
 
@@ -190,27 +217,29 @@ That means we will want to define our parser in terms of itself:
 
     boolean : Parser Boolean
     boolean =
-        oneOf
-            [ succeed MyTrue
-                |> ParserFast.ignore keyword "true"
-            , succeed MyFalse
-                |> ParserFast.ignore keyword "false"
-            , succeed MyOr
-                |> ParserFast.ignore symbol "("
-                |> ParserFast.ignore spaces
-                |= lazy (\_ -> boolean)
-                |> ParserFast.ignore spaces
-                |> ParserFast.ignore symbol "||"
-                |> ParserFast.ignore spaces
-                |= lazy (\_ -> boolean)
-                |> ParserFast.ignore spaces
-                |> ParserFast.ignore symbol ")"
-            ]
+        ParserFast.oneOf3
+            (ParserFast.keyword "true" MyTrue)
+            (ParserFast.keyword "false" MyFalse)
+            (ParserFast.symbolFollowedBy "("
+                (ParserFast.map2 MyOr
+                    (ParserFast.chompWhileWhitespaceFollowedBy
+                        (ParserFast.lazy (\_ -> boolean))
+                        |> ParserFast.followedByChompWhileWhitespace
+                        |> ParserFast.followedBySymbol "||"
+                        |> ParserFast.followedByChompWhileWhitespace
+                    )
+                    (ParserFast.lazy (\_ -> boolean)
+                        |> ParserFast.followedByChompWhileWhitespace
+                    )
+                )
+                |> ParserFast.followedBySymbol ")"
+            )
 
 **Notice that `boolean` uses `boolean` in its definition!** In Elm, you can
 only define a value in terms of itself it is behind a function call. So
-`lazy` helps us define these self-referential parsers. (`andThen` can be used
-for this as well!)
+`lazy` helps us define these self-referential parsers.
+
+If the recursion is linear, first consider the loop- helpers to avoid stack overflows
 
 -}
 lazy : (() -> Parser a) -> Parser a
@@ -258,18 +287,11 @@ columnAndThen callback =
 
     checkIndent : Parser ()
     checkIndent =
-        columnIndentAndThen (\indent column -> checkIndentHelp (indent <= column))
-
-    checkIndentHelp : Bool -> Parser ()
-    checkIndentHelp isIndented =
-        if isIndented then
-            succeed ()
-
-        else
-            problem "expecting more spaces"
+        columnIndentAndThen (\indent column -> column > indent)
+            "expecting more spaces"
 
 So the `checkIndent` parser only succeeds when you are "deeper" than the
-current indent level. You could use this to parse Elm-style `let` expressions.
+current indent level. You could use this to parse elm-style `let` expressions.
 
 -}
 columnIndentAndThen : (Int -> Int -> Parser b) -> Parser b
@@ -1555,32 +1577,7 @@ oneOf14 (Parser attempt0) (Parser attempt1) (Parser attempt2) (Parser attempt3) 
         )
 
 
-{-| If you are parsing JSON, the values can be strings, floats, booleans,
-arrays, objects, or null. You need a way to pick `oneOf` them! Here is a
-sample of what that code might look like:
-
-    type Json
-        = Number Float
-        | Boolean Bool
-        | Null
-
-    json : Parser Json
-    json =
-        oneOf
-            [ map Number float
-            , map (\_ -> Boolean True) (keyword "true")
-            , map (\_ -> Boolean False) (keyword "false")
-            , map (\_ -> Null) keyword "null"
-            ]
-
-This parser will keep trying parsers until `oneOf` them starts chomping
-characters. Once a path is chosen, it does not come back and try the others.
-
-**Note:** I highly recommend reading [this document][semantics] to learn how
-`oneOf` and `backtrackable` interact. It is subtle and important!
-
-[semantics]: https://github.com/elm/parser/blob/master/semantics.md
-
+{-| Try a dynamic or large list of possibilities where existing oneOfN helpers aren't enough.
 -}
 oneOf : List (Parser a) -> Parser a
 oneOf possibilities =
@@ -1635,16 +1632,16 @@ oneOfHelp s0 firstX secondX remainingProblemsSoFar parsers =
                         oneOfHelp s0 firstX secondX (x :: remainingProblemsSoFar) remainingParsers
 
 
-{-| Transform the result of a parser. Maybe you have a value that is
-an integer or `null`:
+{-| Transform the successful result of a parser.
+
+Maybe you have a value that is an integer or `null`:
 
 
     nullOrInt : Parser (Maybe Int)
     nullOrInt =
-        oneOf
-            [ map Just int
-            , map (\_ -> Nothing) (keyword "null")
-            ]
+        ParserFast.oneOf2
+            (ParserFast.map Just int)
+            (ParserFast.keyword "null" Nothing)
 
     -- run nullOrInt "0"    == Ok (Just 0)
     -- run nullOrInt "13"   == Ok (Just 13)
@@ -1834,18 +1831,16 @@ intOrHexMapWithRange intf hexf =
         }
 
 
-{-| Parse symbols like `(` and `,`.
+{-| Parse exact text like `(` and `,`.
 Make sure the given String isn't empty and does not contain \\n
 or 2-part UTF-16 characters.
 
-    run (symbol "[") "[" == Ok ()
-    run (symbol "[") "4" == Err ... (ExpectingSymbol "[") ...
+    run (symbol "[" ()) "[" == Ok ()
+    run (symbol "[" ()) "4" == Err ... (ExpectingSymbol "[") ...
 
-**Note:** This is good for stuff like brackets and semicolons, but it probably
-should not be used for binary operators like `+` and `-` because you can find
+**Note:** This is good for stuff like brackets and semicolons,
+but it might need extra validations for binary operators like `-` because you can find
 yourself in weird situations. For example, is `3--4` a typo? Or is it `3 - -4`?
-I have had better luck with `chompWhile isSymbol` and sorting out which
-operator it is afterwards.
 
 -}
 symbol : String -> res -> Parser res
@@ -2084,29 +2079,18 @@ pStepCommit pStep =
             Bad True errors ()
 
 
-{-| Parse keywords like `let`, `case`, and `type`.
+{-| Parse words without other word characters after like `let`, `case`, `type` or `import`.
 Make sure the given String isn't empty and does not contain \\n
 or 2-part UTF-16 characters.
 
-    run (keyword "let") "let"     == Ok ()
-    run (keyword "let") "var"     == Err ... (ExpectingKeyword "let") ...
-    run (keyword "let") "letters" == Err ... (ExpectingKeyword "let") ...
+    run (keyword "let" ()) "let"     == Ok ()
+    run (keyword "let" ()) "var"     == Err ... (ExpectingKeyword "let") ...
+    run (keyword "let" ()) "letters" == Err ... (ExpectingKeyword "let") ...
 
 **Note:** Notice the third case there! `keyword` actually looks ahead one
-character to make sure it is not a letter, number, or underscore. The goal is
-to help with parsers like this:
-
-    succeed identity
-        |> ParserFast.ignore keyword "let"
-        |> ParserFast.ignore spaces
-        |= elmVar
-        |> ParserFast.ignore spaces
-        |> ParserFast.ignore symbol "="
-
-The trouble is that `spaces` may chomp zero characters (to handle expressions
-like `[1,2]` and `[ 1 , 2 ]`) and in this case, it would mean `letters` could
-be parsed as `let ters` and then wonder where the equals sign is! Check out the
-[`symbol`](#symbol) docs if you need to customize this!
+character to make sure it is not a letter, digit, or underscore.
+This will help with the weird cases like
+`case(x, y)` being totally fine but `casex` not being fine.
 
 -}
 keyword : String -> res -> Parser res
@@ -2184,19 +2168,10 @@ keywordFollowedBy kwd (Parser parseNext) =
 
 {-| Check if you have reached the end of the string you are parsing.
 
-
-    justAnInt : Parser Int
-    justAnInt =
-        succeed identity
-            |= int
-            |> ParserFast.ignore end
-
-    -- run justAnInt "90210" == Ok 90210
-    -- run justAnInt "1 + 2" == Err ...
-    -- run int       "1 + 2" == Ok 1
-
 Parsers can succeed without parsing the whole string. Ending your parser
 with `end` guarantees that you have successfully parsed the whole string.
+
+Typically you'd put one of these at the end of a file parser.
 
 -}
 end : Parser ()
@@ -2372,8 +2347,7 @@ followedByChompWhileWhitespace (Parser parseBefore) =
         )
 
 
-{-| Specialized `chompWhile (\c -> c == " " || c == "\n" || c == "\r")`
-optimized for speed
+{-| Match zero or more \\n, \\r and space characters, then proceed with the given parser
 -}
 chompWhileWhitespaceFollowedBy : Parser next -> Parser next
 chompWhileWhitespaceFollowedBy (Parser parseNext) =
@@ -2411,8 +2385,8 @@ chompWhileWhitespaceHelp offset row col src indent =
 
 
 {-| Some languages are indentation sensitive. Python cares about tabs. Elm
-cares about spaces sometimes. `withIndent` and `getIndent` allow you to manage
-"indentation state" yourself, however is necessary in your scenario.
+cares about spaces sometimes. Using `withIndent` in tandem with the validate/andThen helpers supplying indentation,
+you can manage "indentation state" yourself, however is necessary in your scenario.
 -}
 withIndent : Int -> Parser a -> Parser a
 withIndent newIndent (Parser parse) =
@@ -2437,7 +2411,8 @@ changeIndent newIndent s =
     }
 
 
-{-| For a given ParserWithComments.Parser, take the current start column as indentation for the whole block
+{-| For a given parser, take the current start column as indentation for the whole block
+parsed by the given parser
 -}
 withIndentSetToColumn : Parser a -> Parser a
 withIndentSetToColumn (Parser parse) =
@@ -2477,15 +2452,15 @@ we could try something like this:
 
     typeVar : Parser String
     typeVar =
-        variable
-            { start = Char.isLower
-            , inner = \c -> Char.isAlphaNum c || c == '_'
-            , reserved = Set.fromList [ "let", "in", "case", "of" ]
-            }
+        ParserFast.ifFollowedByWhileValidateWithoutLinebreak
+            Char.isLower
+            (\c -> Char.isAlphaNum c || c == '_')
+            (\final -> final == "let" || final == "in" || final == "case" || final == "of")
 
 This is saying it _must_ start with a lower-case character. After that,
-characters can be letters, numbers, or underscores. It is also saying that if
-you run into any of these reserved names, it is definitely not a variable.
+characters can be letters, digits, or underscores. It is also saying that if
+you run into any of these reserved names after parsing as much as possible,
+it is definitely not a variable.
 
 -}
 ifFollowedByWhileValidateWithoutLinebreak :
@@ -2643,50 +2618,7 @@ ifFollowedByWhileMapWithoutLinebreak chompedToRes firstIsOkay afterFirstIsOkay =
         )
 
 
-{-| Parse multi-line comments. So if you wanted to parse Elm whitespace or
-JS whitespace, you could say:
-
-    elm : Parser ()
-    elm =
-        loop 0 <|
-            ifProgress <|
-                oneOf
-                    [ lineComment "--"
-                    , multiComment "{-" "-}" Nestable
-                    , spaces
-                    ]
-
-    js : Parser ()
-    js =
-        loop 0 <|
-            ifProgress <|
-                oneOf
-                    [ lineComment "//"
-                    , multiComment "/*" "*/" NotNestable
-                    , chompWhile (\c -> c == ' ' || c == '\n' || c == '\u{000D}' || c == '\t')
-                    ]
-
-    ifProgress : Parser a -> Int -> Parser (Step Int ())
-    ifProgress parser offset =
-        succeed identity
-            |> ParserFast.ignore parser
-            |= getOffset
-            |> map
-                (\newOffset ->
-                    if offset == newOffset then
-                        Done ()
-
-                    else
-                        Loop newOffset
-                )
-
-**Note:** The fact that `spaces` comes last in the definition of `elm` is very
-important! It can succeed without consuming any characters, so if it were the
-first option, it would always succeed and bypass the others! (Same is true of
-`chompWhile` in `js`.) This possibility of success without consumption is also
-why wee need the `ifProgress` helper. It detects if there is no more whitespace
-to consume.
-
+{-| Parse multi-line comments that can itself contain other arbirary multi-comments inside.
 -}
 nestableMultiCommentMapWithRange : (Range -> String -> res) -> ( Char, String ) -> ( Char, String ) -> Parser res
 nestableMultiCommentMapWithRange rangeContentToRes ( openChar, openTail ) ( closeChar, closeTail ) =
@@ -2825,38 +2757,41 @@ repeated structures, like a bunch of statements:
 
     statements : Parser (List Stmt)
     statements =
-        loop [] statementsHelp
+        loop maybeStatementSemicolonWhitespace
+            []
+            (\step soFar ->
+                case step of
+                    Just lastStatement ->
+                        Loop (lastStatement :: soFar)
 
-    statementsHelp : List Stmt -> Parser (Step (List Stmt) (List Stmt))
-    statementsHelp revStmts =
-        oneOf
-            [ succeed (\stmt -> Loop (stmt :: revStmts))
-                |= statement
-                |> ParserFast.ignore spaces
-                |> ParserFast.ignore symbol ";"
-                |> ParserFast.ignore spaces
-            , succeed ()
-                |> map (\_ -> Done (List.reverse revStmts))
-            ]
+                    Nothing ->
+                        Done (List.reverse soFar)
+            )
+
+    maybeStatementSemicolonWhitespace : List Stmt -> Parser (Step (List Stmt) (List Stmt))
+    maybeStatementSemicolonWhitespace revStmts =
+        orSucceed
+            (ParserFast.map Just
+                (statement
+                    |> ParserFast.followedByChompWhileWhitespace
+                    |> ParserFast.followedBySymbol ";"
+                    |> ParserFast.followedByChompWhileWhitespace
+                )
+            )
+            Nothing
 
     -- statement : Parser Stmt
 
 Notice that the statements are tracked in reverse as we `Loop`, and we reorder
 them only once we are `Done`. This is a very common pattern with `loop`!
 
-Check out [`examples/DoubleQuoteString.elm`](https://github.com/elm/parser/blob/master/examples/DoubleQuoteString.elm)
-for another example.
-
-**IMPORTANT NOTE:** Parsers like `chompWhile Char.isAlpha` can
+**IMPORTANT NOTE:** Parsers like `while Char.isAlpha` can
 succeed without consuming any characters. So in some cases you may want to e.g.
 use an [`ifFollowedByWhileWithoutLinebreak`](#ifFollowedByWhileWithoutLinebreak) to ensure that each step actually consumed characters.
 Otherwise you could end up in an infinite loop!
 
-**Note:** Anything you can write with `loop`, you can also write as a parser
-that chomps some characters `andThen` calls itself with new arguments. The
-problem with calling `andThen` recursively is that it grows the stack, so you
-cannot do it indefinitely. So `loop` is important because enables tail-call
-elimination, allowing you to parse however many repeats you want.
+You very likely don't need to keep track of specific state before deciding on how
+to continue, so I recommend using one of the loop- helpers instead.
 
 -}
 loop : state -> Parser extension -> (extension -> state -> Step state a) -> Parser a
