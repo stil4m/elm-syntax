@@ -4,7 +4,7 @@ module ParserFast exposing
     , succeed, problem, lazy, map, map2, map2WithStartLocation, map2WithRange, map3, map3WithRange, map4, map4WithRange, map5, map5WithStartLocation, map5WithRange, map6, map6WithStartLocation, map6WithRange, map7WithRange, map8WithStartLocation, map9WithRange, validate
     , orSucceed, mapOrSucceed, map2OrSucceed, map3OrSucceed, map4OrSucceed, oneOf2, oneOf2Map, oneOf2MapWithStartRowColumnAndEndRowColumn, oneOf2OrSucceed, oneOf3, oneOf4, oneOf5, oneOf7, oneOf10, oneOf14, oneOf
     , loopWhileSucceeds, loopUntil
-    , chompWhileWhitespaceFollowedBy, nestableMultiCommentMapWithRange
+    , chompWhileWhitespaceFollowedBy, followedByChompWhileWhitespace, nestableMultiCommentMapWithRange
     , withIndentSetToColumn, withIndent, columnIndentAndThen, validateEndColumnIndentation, validateEndColumnIndentationBacktrackable
     , mapWithRange, columnAndThen, offsetSourceAndThen
     )
@@ -27,7 +27,7 @@ module ParserFast exposing
 
 # Whitespace
 
-@docs chompWhileWhitespaceFollowedBy, nestableMultiCommentMapWithRange
+@docs chompWhileWhitespaceFollowedBy, followedByChompWhileWhitespace, nestableMultiCommentMapWithRange
 
 
 # Indentation, Locations and source
@@ -2352,6 +2352,24 @@ chompWhileWithoutLinebreakHelp isGood offset row col src indent =
         , row = row
         , col = col
         }
+
+
+followedByChompWhileWhitespace : Parser before -> Parser before
+followedByChompWhileWhitespace (Parser parseBefore) =
+    Parser
+        (\s0 ->
+            case parseBefore s0 of
+                Good committed res s1 ->
+                    let
+                        s2 : State
+                        s2 =
+                            chompWhileWhitespaceHelp s1.offset s1.row s1.col s1.src s1.indent
+                    in
+                    Good (committed || s2.offset > s1.offset) res s2
+
+                bad ->
+                    bad
+        )
 
 
 {-| Specialized `chompWhile (\c -> c == " " || c == "\n" || c == "\r")`

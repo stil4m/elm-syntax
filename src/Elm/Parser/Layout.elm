@@ -92,8 +92,10 @@ fromMultilineCommentNodeOrEmptyOnProblem =
         (\comment commentsAfter ->
             Rope.one comment |> Rope.filledPrependTo commentsAfter
         )
-        Comments.multilineComment
-        whitespaceAndCommentsOrEmpty
+        (Comments.multilineComment
+            |> ParserFast.followedByChompWhileWhitespace
+        )
+        whitespaceAndCommentsOrEmptyLoop
         Rope.empty
 
 
@@ -103,8 +105,23 @@ fromSingleLineCommentNode =
         (\content commentsAfter ->
             Rope.one content |> Rope.filledPrependTo commentsAfter
         )
-        Comments.singleLineComment
-        whitespaceAndCommentsOrEmpty
+        (Comments.singleLineComment
+            |> ParserFast.followedByChompWhileWhitespace
+        )
+        whitespaceAndCommentsOrEmptyLoop
+
+
+whitespaceAndCommentsOrEmptyLoop : Parser Comments
+whitespaceAndCommentsOrEmptyLoop =
+    ParserFast.loopWhileSucceeds
+        (ParserFast.oneOf2
+            Comments.singleLineComment
+            Comments.multilineComment
+            |> ParserFast.followedByChompWhileWhitespace
+        )
+        Rope.empty
+        (\right soFar -> soFar |> Rope.prependToFilled (Rope.one right))
+        identity
 
 
 maybeLayout : Parser Comments

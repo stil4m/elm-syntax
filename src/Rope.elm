@@ -1,4 +1,4 @@
-module Rope exposing (Rope, RopeFilled(..), empty, filledPrependTo, one, prependTo, toList)
+module Rope exposing (Rope, RopeFilled(..), empty, filledPrependTo, one, prependTo, prependToFilled, toList)
 
 {-| inspired by [miniBill/elm-rope](https://dark.elm.dmy.fr/packages/miniBill/elm-rope/latest/)
 -}
@@ -30,6 +30,16 @@ filledPrependTo right leftLikelyFilled =
             Just leftLikelyFilled
 
         Just rightLikelyFilled ->
+            Just (Branch2 leftLikelyFilled rightLikelyFilled)
+
+
+prependToFilled : RopeFilled a -> Rope a -> Rope a
+prependToFilled rightLikelyFilled left =
+    case left of
+        Nothing ->
+            Just rightLikelyFilled
+
+        Just leftLikelyFilled ->
             Just (Branch2 leftLikelyFilled rightLikelyFilled)
 
 
