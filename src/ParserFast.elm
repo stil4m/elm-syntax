@@ -13,7 +13,7 @@ module ParserFast exposing
 
 @docs Parser, run
 
-@docs int, intOrHexMapWithRange, floatOrIntOrHexMapWithRange, symbol, symbolBacktrackable, symbolWithEndLocation, symbolWithRange, symbolFollowedBy, symbolBacktrackableFollowedBy, followedBySymbol, keyword, keywordFollowedBy, while, whileWithoutLinebreak, whileMap, ifFollowedByWhileWithoutLinebreak, ifFollowedByWhileMapWithoutLinebreak, ifFollowedByWhileMapWithRangeWithoutLinebreak, ifFollowedByWhileValidateWithoutLinebreak, ifFollowedByWhileValidateMapWithRangeWithoutLinebreak, anyChar, end
+@docs int, intOrHexMapWithRange, floatOrIntOrHexMapWithRange, symbol, symbolWithEndLocation, symbolWithRange, symbolFollowedBy, symbolBacktrackableFollowedBy, followedBySymbol, keyword, keywordFollowedBy, while, whileWithoutLinebreak, whileMap, ifFollowedByWhileWithoutLinebreak, ifFollowedByWhileMapWithoutLinebreak, ifFollowedByWhileMapWithRangeWithoutLinebreak, ifFollowedByWhileValidateWithoutLinebreak, ifFollowedByWhileValidateMapWithRangeWithoutLinebreak, anyChar, end
 
 
 # Flow
@@ -1983,38 +1983,6 @@ followedBySymbol str (Parser parsePrevious) =
 
                 bad ->
                     bad
-        )
-
-
-{-| Make sure the given String does not contain \\n
-or 2-part UTF-16 characters.
--}
-symbolBacktrackable : String -> res -> Parser res
-symbolBacktrackable str res =
-    let
-        strLength : Int
-        strLength =
-            String.length str
-    in
-    Parser
-        (\s ->
-            let
-                newOffset : Int
-                newOffset =
-                    s.offset + strLength
-            in
-            if String.slice s.offset newOffset s.src == str ++ "" then
-                Good False
-                    res
-                    { src = s.src
-                    , offset = newOffset
-                    , indent = s.indent
-                    , row = s.row
-                    , col = s.col + strLength
-                    }
-
-            else
-                Bad False (ExpectingSymbol s.row s.col str) ()
         )
 
 

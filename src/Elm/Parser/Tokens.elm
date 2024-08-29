@@ -2,8 +2,8 @@ module Elm.Parser.Tokens exposing
     ( inToken
     , equal, parensEnd
     , prefixOperatorToken, allowedOperatorTokens
-    , functionName, functionNameNode, functionNameMapWithRange, functionNameNotInfixNode, typeName, typeNameNode, typeNameMapWithRange
     , characterLiteralMapWithRange, singleOrTripleQuotedStringLiteralMapWithRange
+    , functionName, functionNameNode, functionNameMapWithRange, functionNameNotInfixNode, typeName, typeNameNode, typeNameMapWithRange
     )
 
 {-|
@@ -13,7 +13,7 @@ module Elm.Parser.Tokens exposing
 @docs equal, parensEnd
 @docs prefixOperatorToken, allowedOperatorTokens
 
-@docs characterLiteral, singleOrTripleQuotedStringLiteral
+@docs characterLiteralMapWithRange, singleOrTripleQuotedStringLiteralMapWithRange
 @docs functionName, functionNameNode, functionNameMapWithRange, functionNameNotInfixNode, typeName, typeNameNode, typeNameMapWithRange
 
 -}
