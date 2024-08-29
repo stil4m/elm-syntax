@@ -248,15 +248,13 @@ functionAfterDocumentation =
     ParserFast.map6
         (\startName commentsAfterStartName maybeSignature arguments commentsAfterEqual result ->
             { comments =
-                commentsAfterStartName
-                    |> Rope.prependTo
-                        (case maybeSignature of
-                            Nothing ->
-                                Rope.empty
+                (case maybeSignature of
+                    Nothing ->
+                        commentsAfterStartName
 
-                            Just signature ->
-                                signature.comments
-                        )
+                    Just signature ->
+                        commentsAfterStartName |> Rope.prependTo signature.comments
+                )
                     |> Rope.prependTo arguments.comments
                     |> Rope.prependTo commentsAfterEqual
                     |> Rope.prependTo result.comments
@@ -306,15 +304,13 @@ functionDeclarationWithoutDocumentation =
             let
                 allComments : Comments
                 allComments =
-                    commentsAfterStartName
-                        |> Rope.prependTo
-                            (case maybeSignature of
-                                Nothing ->
-                                    Rope.empty
+                    (case maybeSignature of
+                        Nothing ->
+                            commentsAfterStartName
 
-                                Just signature ->
-                                    signature.comments
-                            )
+                        Just signature ->
+                            commentsAfterStartName |> Rope.prependTo signature.comments
+                    )
                         |> Rope.prependTo arguments.comments
                         |> Rope.prependTo commentsAfterEqual
                         |> Rope.prependTo result.comments
