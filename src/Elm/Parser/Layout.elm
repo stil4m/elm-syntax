@@ -6,8 +6,6 @@ module Elm.Parser.Layout exposing
     , maybeAroundBothSides
     , maybeLayout
     , maybeLayoutBacktrackable
-    , maybeLayoutUntilIgnored
-    , maybeLayoutUntilIgnoredBacktrackable
     , moduleLevelIndentationFollowedBy
     , onTopIndentationFollowedBy
     , optimisticLayout
@@ -19,43 +17,6 @@ import Elm.Parser.Comments as Comments
 import ParserFast exposing (Parser)
 import ParserWithComments exposing (Comments, WithComments)
 import Rope
-
-
-maybeLayoutUntilIgnored : (String -> Comments -> Parser Comments) -> String -> Parser Comments
-maybeLayoutUntilIgnored endParser endSymbol =
-    whitespaceAndCommentsUntilEndComments
-        (endParser endSymbol Rope.empty)
-        |> endsPositivelyIndentedPlus (String.length endSymbol)
-
-
-maybeLayoutUntilIgnoredBacktrackable : (String -> Comments -> Parser Comments) -> String -> Parser Comments
-maybeLayoutUntilIgnoredBacktrackable endParser endSymbol =
-    whitespaceAndCommentsUntilEndComments
-        (endParser endSymbol Rope.empty)
-        |> endsPositivelyIndentedPlusBacktrackable (String.length endSymbol)
-
-
-whitespaceAndCommentsUntilEndComments : Parser Comments -> Parser Comments
-whitespaceAndCommentsUntilEndComments end =
-    ParserFast.chompWhileWhitespaceFollowedBy
-        (ParserFast.oneOf3
-            end
-            (ParserFast.map2
-                (\content commentsAfter ->
-                    Rope.one content
-                        |> Rope.filledPrependTo commentsAfter
-                )
-                Comments.singleLineComment
-                (ParserFast.lazy (\() -> whitespaceAndCommentsUntilEndComments end))
-            )
-            (ParserFast.map2
-                (\comment commentsAfter ->
-                    Rope.one comment |> Rope.filledPrependTo commentsAfter
-                )
-                Comments.multilineComment
-                (ParserFast.lazy (\() -> whitespaceAndCommentsUntilEndComments end))
-            )
-        )
 
 
 whitespaceAndCommentsOrEmpty : Parser Comments
@@ -146,22 +107,6 @@ endsPositivelyIndentedBacktrackable : Parser a -> Parser a
 endsPositivelyIndentedBacktrackable parser =
     ParserFast.validateEndColumnIndentationBacktrackable
         (\column indent -> column > indent)
-        "must be positively indented"
-        parser
-
-
-endsPositivelyIndentedPlus : Int -> Parser a -> Parser a
-endsPositivelyIndentedPlus extraIndent parser =
-    ParserFast.validateEndColumnIndentation
-        (\column indent -> column > indent + extraIndent)
-        "must be positively indented"
-        parser
-
-
-endsPositivelyIndentedPlusBacktrackable : Int -> Parser a -> Parser a
-endsPositivelyIndentedPlusBacktrackable extraIndent parser =
-    ParserFast.validateEndColumnIndentationBacktrackable
-        (\column indent -> column > indent + extraIndent)
         "must be positively indented"
         parser
 

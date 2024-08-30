@@ -458,7 +458,7 @@ infixDeclaration =
                 |> ParserFast.followedBySymbol ")"
             )
         )
-        (Layout.maybeLayoutUntilIgnored ParserFast.symbol "=")
+        (Layout.maybeLayout |> ParserFast.followedBySymbol "=")
         Layout.maybeLayout
         Tokens.functionNameNode
 
@@ -490,7 +490,7 @@ portDeclarationAfterDocumentation =
         )
         (ParserFast.keywordFollowedBy "port" Layout.maybeLayout)
         Tokens.functionNameNode
-        (Layout.maybeLayoutUntilIgnored ParserFast.symbol ":")
+        (Layout.maybeLayout |> ParserFast.followedBySymbol ":")
         Layout.maybeLayout
         typeAnnotation
 
@@ -522,7 +522,7 @@ portDeclarationWithoutDocumentation =
         )
         (ParserFast.keywordFollowedBy "port" Layout.maybeLayout)
         Tokens.functionNameNode
-        (Layout.maybeLayoutUntilIgnored ParserFast.symbol ":")
+        (Layout.maybeLayout |> ParserFast.followedBySymbol ":")
         Layout.maybeLayout
         typeAnnotation
 
@@ -602,7 +602,7 @@ customTypeDefinitionAfterDocumentationAfterTypePrefix =
                     , syntax = variantResult.syntax
                     }
                 )
-                (Layout.maybeLayoutUntilIgnoredBacktrackable ParserFast.symbol "|")
+                (Layout.maybeLayoutBacktrackable |> ParserFast.followedBySymbol "|")
                 Layout.maybeLayout
                 valueConstructor
             )
@@ -734,7 +734,7 @@ customTypeDefinitionWithoutDocumentationAfterTypePrefix =
                     , syntax = variantResult.syntax
                     }
                 )
-                (Layout.maybeLayoutUntilIgnoredBacktrackable ParserFast.symbol "|")
+                (Layout.maybeLayoutBacktrackable |> ParserFast.followedBySymbol "|")
                 Layout.maybeLayout
                 valueConstructor
             )

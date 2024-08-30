@@ -21,7 +21,7 @@ exposeDefinition =
             }
         )
         (ParserFast.symbolFollowedBy "exposing"
-            (Layout.maybeLayoutUntilIgnored ParserFast.symbol "(")
+            (Layout.maybeLayout |> ParserFast.followedBySymbol "(")
         )
         Layout.optimisticLayout
         (exposingListInner
@@ -117,9 +117,9 @@ typeExpose =
                     { comments = left |> Rope.prependTo right, range = range }
                 )
                 (ParserFast.symbolFollowedBy "("
-                    (Layout.maybeLayoutUntilIgnored ParserFast.symbol "..")
+                    (Layout.maybeLayout |> ParserFast.followedBySymbol "..")
                 )
-                (Layout.maybeLayoutUntilIgnored ParserFast.symbol ")")
+                (Layout.maybeLayout |> ParserFast.followedBySymbol ")")
             )
             Nothing
         )
