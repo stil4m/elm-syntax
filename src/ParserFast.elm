@@ -154,31 +154,31 @@ ropeFilledToList problemToConvert soFar =
                 |> ropeFilledToList firstTry
 
         ExpectingNumber row col () ->
-            { problem = Parser.ExpectingNumber, row = row, col = col } :: soFar
+            { row = row, col = col, problem = Parser.ExpectingNumber } :: soFar
 
         ExpectingSymbol row col symbolString ->
-            { problem = Parser.ExpectingSymbol symbolString, row = row, col = col } :: soFar
+            { row = row, col = col, problem = Parser.ExpectingSymbol symbolString } :: soFar
 
         ExpectingAnyChar row col () ->
-            { problem = Parser.Problem "expecting any char", row = row, col = col } :: soFar
+            { row = row, col = col, problem = Parser.Problem "expecting any char" } :: soFar
 
         ExpectingKeyword row col keywordString ->
-            { problem = Parser.ExpectingKeyword keywordString, row = row, col = col } :: soFar
+            { row = row, col = col, problem = Parser.ExpectingKeyword keywordString } :: soFar
 
         ExpectingEnd row col () ->
-            { problem = Parser.ExpectingEnd, row = row, col = col } :: soFar
+            { row = row, col = col, problem = Parser.ExpectingEnd } :: soFar
 
         ExpectingCharSatisfyingPredicate row col () ->
-            { problem = Parser.UnexpectedChar, row = row, col = col } :: soFar
+            { row = row, col = col, problem = Parser.UnexpectedChar } :: soFar
 
         ExpectingStringSatisfyingPredicate row col () ->
-            { problem = Parser.Problem "expected string to pass validation", row = row, col = col } :: soFar
+            { row = row, col = col, problem = Parser.Problem "expected string to pass validation" } :: soFar
 
         ExpectingCustom row col customMessage ->
-            { problem = Parser.Problem customMessage, row = row, col = col } :: soFar
+            { row = row, col = col, problem = Parser.Problem customMessage } :: soFar
 
         ExpectingNonEmptyOneOf row col () ->
-            { problem = Parser.Problem "expecting oneOf list to have at least one member", row = row, col = col } :: soFar
+            { row = row, col = col, problem = Parser.Problem "expecting oneOf list to have at least one member" } :: soFar
 
 
 {-| A parser that succeeds without chomping any characters.
@@ -1748,13 +1748,13 @@ loopUntilHelp committedSoFar ((Parser parseEnd) as endParser) ((Parser parseElem
 
 
 numberHelp :
-    { int : Result () (Int -> Range -> a)
-    , hex : Result () (Int -> Range -> a)
-    , octal : Result () (Int -> Range -> a)
-    , binary : Result () (Int -> Range -> a)
-    , float : Result () (Float -> Range -> a)
-    , invalid : ()
+    { binary : Result () (Int -> Range -> a)
     , expecting : ()
+    , float : Result () (Float -> Range -> a)
+    , hex : Result () (Int -> Range -> a)
+    , int : Result () (Int -> Range -> a)
+    , invalid : ()
+    , octal : Result () (Int -> Range -> a)
     }
     -> Parser a
 numberHelp consumers =
@@ -1824,39 +1824,39 @@ parser like this:
 int : Parser Int
 int =
     numberHelp
-        { int = Ok (\n _ -> n)
-        , hex = Err ()
-        , octal = Err ()
-        , binary = Err ()
-        , float = Err ()
-        , invalid = ()
+        { binary = Err ()
         , expecting = ()
+        , float = Err ()
+        , hex = Err ()
+        , int = Ok (\n _ -> n)
+        , invalid = ()
+        , octal = Err ()
         }
 
 
 floatOrIntOrHexMapWithRange : (Float -> Range -> a) -> (Int -> Range -> a) -> (Int -> Range -> a) -> Parser a
 floatOrIntOrHexMapWithRange floatf intf hexf =
     numberHelp
-        { int = Ok intf
-        , hex = Ok hexf
-        , octal = Err ()
-        , binary = Err ()
-        , float = Ok floatf
-        , invalid = ()
+        { binary = Err ()
         , expecting = ()
+        , float = Ok floatf
+        , hex = Ok hexf
+        , int = Ok intf
+        , invalid = ()
+        , octal = Err ()
         }
 
 
 intOrHexMapWithRange : (Int -> Range -> a) -> (Int -> Range -> a) -> Parser a
 intOrHexMapWithRange intf hexf =
     numberHelp
-        { int = Ok intf
-        , hex = Ok hexf
-        , octal = Err ()
-        , binary = Err ()
-        , float = Err ()
-        , invalid = ()
+        { binary = Err ()
         , expecting = ()
+        , float = Err ()
+        , hex = Ok hexf
+        , int = Ok intf
+        , invalid = ()
+        , octal = Err ()
         }
 
 
