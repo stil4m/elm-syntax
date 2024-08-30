@@ -3,13 +3,14 @@ module Elm.Parser.Comments exposing (declarationDocumentation, moduleDocumentati
 import Elm.Syntax.Documentation exposing (Documentation)
 import Elm.Syntax.Node exposing (Node(..))
 import ParserFast exposing (Parser)
+import Char.Extra
 
 
 singleLineComment : ParserFast.Parser (Node String)
 singleLineComment =
     ParserFast.symbolFollowedBy "--"
         (ParserFast.whileMap
-            (\c -> c /= '\u{000D}' && c /= '\n')
+            (\c -> c /= '\u{000D}' && c /= '\n' && not (Char.Extra.isUtf16Surrogate c))
             (\content -> "--" ++ content)
         )
         |> ParserFast.mapWithRange Node

@@ -2249,7 +2249,7 @@ charOrEnd offset string =
 
 charStringIsUtf16HighSurrogate : String -> Bool
 charStringIsUtf16HighSurrogate charString =
-    charString |> String.any (\c -> Basics.isNaN (Basics.toFloat (Char.toCode c)))
+    charString |> String.any Char.Extra.isUtf16Surrogate
 
 
 whileMap : (Char -> Bool) -> (String -> res) -> Parser res
@@ -2646,7 +2646,7 @@ nestableMultiCommentMapWithRange rangeContentToRes ( openChar, openTail ) ( clos
 
         isNotRelevant : Char -> Bool
         isNotRelevant char =
-            char /= openChar && char /= closeChar
+            char /= openChar && char /= closeChar && not (Char.Extra.isUtf16Surrogate char)
     in
     map2WithRange
         (\range afterOpen contentAfterAfterOpen ->

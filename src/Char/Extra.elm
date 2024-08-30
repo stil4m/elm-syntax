@@ -1,4 +1,4 @@
-module Char.Extra exposing (isLatinAlphaNumOrUnderscoreFast, unicodeIsAlphaNumOrUnderscoreFast, unicodeIsLowerFast, unicodeIsUpperFast)
+module Char.Extra exposing (isLatinAlphaNumOrUnderscoreFast, unicodeIsAlphaNumOrUnderscoreFast, unicodeIsLowerFast, unicodeIsUpperFast, isUtf16Surrogate)
 
 {-| Edited from [minibill/elm-unicode](https://package.elm-lang.org/packages/miniBill/elm-unicode/latest/)
 
@@ -365,3 +365,7 @@ charCodeIsUpper code =
 charCodeIsDigit : Int -> Bool
 charCodeIsDigit code =
     code <= 0x39 && 0x30 <= code
+
+isUtf16Surrogate : Char -> Bool
+isUtf16Surrogate c =
+    Basics.isNaN (Basics.toFloat (Char.toCode c))
