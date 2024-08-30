@@ -2175,7 +2175,7 @@ end : Parser ()
 end =
     Parser
         (\s ->
-            if String.length s.src == s.offset + 0 then
+            if String.length s.src - s.offset == 0 then
                 Good False () s
 
             else

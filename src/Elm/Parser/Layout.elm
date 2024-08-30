@@ -205,7 +205,7 @@ problemModuleLevelIndentation =
 endsTopIndented : Parser a -> Parser a
 endsTopIndented parser =
     ParserFast.validateEndColumnIndentation
-        (\column indent -> column == indent + 0)
+        (\column indent -> column - indent == 0)
         "must be on top indentation"
         parser
 
@@ -214,7 +214,7 @@ onTopIndentationFollowedBy : Parser a -> Parser a
 onTopIndentationFollowedBy nextParser =
     ParserFast.columnIndentAndThen
         (\column indent ->
-            if column == indent + 0 then
+            if column - indent == 0 then
                 nextParser
 
             else
