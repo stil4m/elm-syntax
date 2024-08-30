@@ -2,6 +2,9 @@
 
 ## [Unreleased]
 
+- more strict in a few cases where code that was incorrect code (according to the elm compiler) was successfully parsed: tuples with >3 parts, record access on most things
+- better performance, parsing should now be a lot faster
+
 ## [7.3.4] - 2024-07-26
 
 Parsing is faster by ~90%. A big thank you to [@lue-bird](https://github.com/lue-bird) for finding and introducing a huge amount of performance improvements.
