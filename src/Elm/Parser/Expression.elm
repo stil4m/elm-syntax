@@ -465,46 +465,48 @@ caseStatement =
 
 letExpression : Parser (WithComments (Node Expression))
 letExpression =
-    ParserFast.map3
-        (\declarations commentsAfterIn expressionResult ->
-            let
-                (Node expressionRange _) =
-                    expressionResult.syntax
-            in
-            { comments =
-                declarations.comments
-                    |> Rope.prependTo commentsAfterIn
-                    |> Rope.prependTo expressionResult.comments
-            , syntax =
-                Node { start = declarations.start, end = expressionRange.end }
-                    (LetExpression
-                        { declarations = declarations.declarations
-                        , expression = expressionResult.syntax
+    ParserFast.keywordFollowedBy "let"
+        (ParserFast.map3WithStartLocation
+            (\start declarations commentsAfterIn expressionResult ->
+                let
+                    (Node expressionRange _) =
+                        expressionResult.syntax
+                in
+                { comments =
+                    declarations.comments
+                        |> Rope.prependTo commentsAfterIn
+                        |> Rope.prependTo expressionResult.comments
+                , syntax =
+                    Node
+                        { start = { row = start.row, column = start.column - 3 }
+                        , end = expressionRange.end
                         }
-                    )
-            }
-        )
-        (ParserFast.keywordFollowedBy "let"
+                        (LetExpression
+                            { declarations = declarations.declarations
+                            , expression = expressionResult.syntax
+                            }
+                        )
+                }
+            )
             (ParserFast.withIndentSetToColumnMinus 3
-                (ParserFast.map2WithStartLocation
-                    (\start commentsAfterLet declarations ->
+                (ParserFast.map2
+                    (\commentsAfterLet declarations ->
                         { comments =
                             commentsAfterLet
                                 |> Rope.prependTo declarations.comments
                         , declarations = declarations.syntax
-                        , start = start
                         }
                     )
                     Layout.maybeLayout
                     (ParserFast.withIndentSetToColumn letDeclarationsIn)
                 )
             )
+            -- checks that the `in` token used as the end parser in letDeclarationsIn is indented correctly
+            (Layout.positivelyIndentedPlusFollowedBy 2
+                Layout.maybeLayout
+            )
+            expression
         )
-        -- checks that the `in` token used as the end parser in letDeclarationsIn is indented correctly
-        (Layout.positivelyIndentedPlusFollowedBy 2
-            Layout.maybeLayout
-        )
-        expression
 
 
 letDeclarationsIn : Parser (WithComments (List (Node LetDeclaration)))
