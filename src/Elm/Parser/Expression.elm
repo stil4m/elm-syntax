@@ -43,6 +43,15 @@ multiRecordAccess =
         List.reverse
 
 
+multiRecordAccessMap : (List (Node String) -> res) -> ParserFast.Parser res
+multiRecordAccessMap fieldsToRes =
+    ParserFast.loopWhileSucceeds
+        (ParserFast.symbolFollowedBy "." Tokens.functionNameNode)
+        []
+        (::)
+        (\reversed -> fieldsToRes (List.reverse reversed))
+
+
 extensionRightByPrecedence : List ( Int, Parser (WithComments ExtensionRight) )
 extensionRightByPrecedence =
     -- TODO Add tests for all operators
@@ -1052,9 +1061,8 @@ tupledExpressionInnerAfterOpeningParens =
         Layout.maybeLayout
         (ParserFast.oneOf2
             (ParserFast.symbolFollowedBy ")"
-                (ParserFast.map
+                (multiRecordAccessMap
                     (\recordAccesses -> { comments = Rope.empty, syntax = TupledParenthesizedFollowedByRecordAccesses recordAccesses })
-                    multiRecordAccess
                 )
             )
             (ParserFast.map4
