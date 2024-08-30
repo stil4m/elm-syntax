@@ -2,8 +2,10 @@
 
 ## [Unreleased]
 
-- more strict in a few cases where code that was incorrect code (according to the elm compiler) was successfully parsed: tuples with >3 parts, record access on most things
-- better performance, parsing should now be a lot faster
+## [7.3.5] - 2024-08-30
+
+- The parser is stricter in a few cases where code that was incorrect (according to the Elm compiler) was successfully parsed: tuples with more than 3 elements, and record access on most things
+- Parsing is about 6 times faster than the previous release!
 
 ## [7.3.4] - 2024-07-26
 
@@ -143,7 +145,8 @@ With this change some additional big changes were made to the projects and the d
 - Range information is added to a significant bigger set of AST elements.
 - The decoders and encoders for the specific AST elements are moved to their modules (`Elm.Syntax.*`).
 
-[Unreleased]: https://github.com/stil4m/elm-syntax/compare/v7.3.4...HEAD
+[Unreleased]: https://github.com/stil4m/elm-syntax/compare/v7.3.5...HEAD
+[7.3.5]: https://github.com/stil4m/elm-syntax/releases/tag/7.3.5
 [7.3.4]: https://github.com/stil4m/elm-syntax/releases/tag/7.3.4
 [7.3.3]: https://github.com/stil4m/elm-syntax/releases/tag/7.3.3
 [7.3.2]: https://github.com/stil4m/elm-syntax/releases/tag/7.3.2
