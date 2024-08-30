@@ -825,42 +825,74 @@ negationAfterMinus =
 
 qualifiedOrVariantOrRecordConstructorReferenceExpressionFollowedByRecordAccess : Parser (WithComments (Node Expression))
 qualifiedOrVariantOrRecordConstructorReferenceExpressionFollowedByRecordAccess =
-    ParserFast.map2
-        (\leftestResult recordAccesses ->
-            case recordAccesses of
-                [] ->
-                    leftestResult
+    ParserFast.map2WithRange
+        (\range firstName after ->
+            { comments = Rope.empty
+            , syntax =
+                case after of
+                    Nothing ->
+                        Node range (FunctionOrValue [] firstName)
 
-                _ :: _ ->
-                    { comments = leftestResult.comments
-                    , syntax =
-                        recordAccesses
-                            |> List.foldl
-                                (\((Node fieldRange _) as fieldNode) ((Node leftRange _) as leftNode) ->
-                                    Node { start = leftRange.start, end = fieldRange.end }
-                                        (Expression.RecordAccess leftNode fieldNode)
-                                )
-                                leftestResult.syntax
-                    }
+                    Just ( qualificationAfter, unqualified, recordAccesses ) ->
+                        case recordAccesses of
+                            [] ->
+                                Node range (FunctionOrValue (firstName :: qualificationAfter) unqualified)
+
+                            (Node firstRecordAccessRange _) :: _ ->
+                                let
+                                    referenceNode : Node Expression
+                                    referenceNode =
+                                        Node
+                                            { start = range.start
+                                            , end =
+                                                { row = firstRecordAccessRange.start.row
+                                                , column = firstRecordAccessRange.start.column - 1
+                                                }
+                                            }
+                                            (FunctionOrValue (firstName :: qualificationAfter) unqualified)
+                                in
+                                recordAccesses
+                                    |> List.foldl
+                                        (\((Node fieldRange _) as fieldNode) ((Node leftRange _) as leftNode) ->
+                                            Node { start = leftRange.start, end = fieldRange.end }
+                                                (Expression.RecordAccess leftNode fieldNode)
+                                        )
+                                        referenceNode
+            }
         )
-        (ParserFast.map2WithRange
-            (\range firstName after ->
-                { comments = Rope.empty
-                , syntax =
-                    Node range
-                        (case after of
+        Tokens.typeName
+        maybeDotReferenceExpressionTuple
+
+
+maybeDotReferenceExpressionTuple : ParserFast.Parser (Maybe ( List String, String, List (Node String) ))
+maybeDotReferenceExpressionTuple =
+    ParserFast.orSucceed
+        (ParserFast.symbolFollowedBy "."
+            (ParserFast.oneOf2Map
+                Just
+                (ParserFast.map2
+                    (\firstName after ->
+                        case after of
                             Nothing ->
-                                FunctionOrValue [] firstName
+                                ( [], firstName, [] )
 
-                            Just ( qualificationAfter, unqualified ) ->
-                                FunctionOrValue (firstName :: qualificationAfter) unqualified
-                        )
-                }
+                            Just ( qualificationAfter, unqualified, recordAccess ) ->
+                                ( firstName :: qualificationAfter, unqualified, recordAccess )
+                    )
+                    Tokens.typeName
+                    (ParserFast.lazy (\() -> maybeDotReferenceExpressionTuple))
+                )
+                Basics.identity
+                (ParserFast.map2
+                    (\name recordAccesses ->
+                        Just ( [], name, recordAccesses )
+                    )
+                    Tokens.functionName
+                    multiRecordAccess
+                )
             )
-            Tokens.typeName
-            maybeDotReferenceExpressionTuple
         )
-        multiRecordAccess
+        Nothing
 
 
 unqualifiedFunctionReferenceExpressionFollowedByRecordAccess : Parser (WithComments (Node Expression))
@@ -892,31 +924,6 @@ unqualifiedFunctionReferenceExpressionFollowedByRecordAccess =
             )
         )
         multiRecordAccess
-
-
-maybeDotReferenceExpressionTuple : ParserFast.Parser (Maybe ( List String, String ))
-maybeDotReferenceExpressionTuple =
-    ParserFast.orSucceed
-        (ParserFast.symbolFollowedBy "."
-            (ParserFast.oneOf2Map
-                Just
-                (ParserFast.map2
-                    (\firstName after ->
-                        case after of
-                            Nothing ->
-                                ( [], firstName )
-
-                            Just ( qualificationAfter, unqualified ) ->
-                                ( firstName :: qualificationAfter, unqualified )
-                    )
-                    Tokens.typeName
-                    (ParserFast.lazy (\() -> maybeDotReferenceExpressionTuple))
-                )
-                (\unqualified -> Just ( [], unqualified ))
-                Tokens.functionName
-            )
-        )
-        Nothing
 
 
 recordAccessFunctionExpression : Parser (WithComments (Node Expression))
