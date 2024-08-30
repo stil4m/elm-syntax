@@ -1104,16 +1104,6 @@ type Tupled
     | TupledTwoOrThree ( Node Expression, Maybe (Node Expression) )
 
 
-listNonEmptyLast : a -> List a -> a
-listNonEmptyLast head tail =
-    case tail of
-        [] ->
-            head
-
-        tailHead :: tailTail ->
-            listNonEmptyLast tailHead tailTail
-
-
 
 ---
 
