@@ -37,12 +37,10 @@ subExpression =
 multiRecordAccess : ParserFast.Parser (List (Node String))
 multiRecordAccess =
     ParserFast.loopWhileSucceeds
-        (ParserFast.symbolFollowedBy "."
-            Tokens.functionNameNode
-        )
+        (ParserFast.symbolFollowedBy "." Tokens.functionNameNode)
         []
         (::)
-        identity
+        List.reverse
 
 
 extensionRightByPrecedence : List ( Int, Parser (WithComments ExtensionRight) )
@@ -174,7 +172,7 @@ recordExpressionFollowedByRecordAccess =
                         { comments = leftestResult.comments
                         , syntax =
                             recordAccesses
-                                |> List.foldr
+                                |> List.foldl
                                     (\((Node fieldRange _) as fieldNode) ((Node leftRange _) as leftNode) ->
                                         Node { start = leftRange.start, end = fieldRange.end }
                                             (Expression.RecordAccess leftNode fieldNode)
@@ -828,7 +826,7 @@ qualifiedOrVariantOrRecordConstructorReferenceExpressionFollowedByRecordAccess =
                     { comments = leftestResult.comments
                     , syntax =
                         recordAccesses
-                            |> List.foldr
+                            |> List.foldl
                                 (\((Node fieldRange _) as fieldNode) ((Node leftRange _) as leftNode) ->
                                     Node { start = leftRange.start, end = fieldRange.end }
                                         (Expression.RecordAccess leftNode fieldNode)
@@ -868,7 +866,7 @@ unqualifiedFunctionReferenceExpressionFollowedByRecordAccess =
                     { comments = leftestResult.comments
                     , syntax =
                         recordAccesses
-                            |> List.foldr
+                            |> List.foldl
                                 (\((Node fieldRange _) as fieldNode) ((Node leftRange _) as leftNode) ->
                                     Node { start = leftRange.start, end = fieldRange.end }
                                         (Expression.RecordAccess leftNode fieldNode)
@@ -1003,8 +1001,8 @@ tupledExpressionInnerAfterOpeningParens =
                     |> Rope.prependTo tailParts.comments
             , syntax =
                 case tailParts.syntax of
-                    TupledParenthesizedFollowedByRecordAccesses recordAccessesReverse ->
-                        case recordAccessesReverse of
+                    TupledParenthesizedFollowedByRecordAccesses recordAccesses ->
+                        case recordAccesses of
                             [] ->
                                 Node
                                     { start = { row = rangeAfterOpeningParens.start.row, column = rangeAfterOpeningParens.start.column - 1 }
@@ -1012,16 +1010,12 @@ tupledExpressionInnerAfterOpeningParens =
                                     }
                                     (ParenthesizedExpression firstPart.syntax)
 
-                            lastRecordAccess :: secondLastToFirstRecordAccess ->
+                            (Node firstRecordAccessRange _) :: _ ->
                                 let
                                     range : Range
                                     range =
                                         { start = { row = rangeAfterOpeningParens.start.row, column = rangeAfterOpeningParens.start.column - 1 }
                                         , end =
-                                            let
-                                                (Node firstRecordAccessRange _) =
-                                                    listNonEmptyLast lastRecordAccess secondLastToFirstRecordAccess
-                                            in
                                             { row = firstRecordAccessRange.start.row
                                             , column = firstRecordAccessRange.start.column - 1
                                             }
@@ -1031,8 +1025,8 @@ tupledExpressionInnerAfterOpeningParens =
                                     parenthesizedNode =
                                         Node range (ParenthesizedExpression firstPart.syntax)
                                 in
-                                recordAccessesReverse
-                                    |> List.foldr
+                                recordAccesses
+                                    |> List.foldl
                                         (\((Node fieldRange _) as fieldNode) ((Node leftRange _) as leftNode) ->
                                             Node { start = leftRange.start, end = fieldRange.end }
                                                 (Expression.RecordAccess leftNode fieldNode)
