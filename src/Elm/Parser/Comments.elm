@@ -1,9 +1,9 @@
 module Elm.Parser.Comments exposing (declarationDocumentation, moduleDocumentation, multilineComment, singleLineComment)
 
+import Char.Extra
 import Elm.Syntax.Documentation exposing (Documentation)
 import Elm.Syntax.Node exposing (Node(..))
 import ParserFast exposing (Parser)
-import Char.Extra
 
 
 singleLineComment : ParserFast.Parser (Node String)

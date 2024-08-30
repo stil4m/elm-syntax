@@ -1,4 +1,4 @@
-module Char.Extra exposing (isLatinAlphaNumOrUnderscoreFast, unicodeIsAlphaNumOrUnderscoreFast, unicodeIsLowerFast, unicodeIsUpperFast, isUtf16Surrogate)
+module Char.Extra exposing (isLatinAlphaNumOrUnderscoreFast, isUtf16Surrogate, unicodeIsAlphaNumOrUnderscoreFast, unicodeIsLowerFast, unicodeIsUpperFast)
 
 {-| Edited from [minibill/elm-unicode](https://package.elm-lang.org/packages/miniBill/elm-unicode/latest/)
 
@@ -366,6 +366,19 @@ charCodeIsDigit : Int -> Bool
 charCodeIsDigit code =
     code <= 0x39 && 0x30 <= code
 
+
+{-| Some code points like 🔧 are represented as 2 consecutive UTF-16 codes
+within js strings.
+
+So when we use `String.slice`, the resulting String might only contain
+one of these halves which are called surrogates.
+
+To check for that, the only way to tell whether you've encountered
+a surrogate (that I can imagine at least) is by (ab)using that Char.toCode
+accesses it's first _2_ indexes if the code at the first index indicates there must be a second half,
+leading to NaN being returned.
+
+-}
 isUtf16Surrogate : Char -> Bool
 isUtf16Surrogate c =
     Basics.isNaN (Basics.toFloat (Char.toCode c))
