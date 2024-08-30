@@ -7,6 +7,8 @@ const fs = require('node:fs');
 const os = require('node:os');
 const path = require('node:path');
 const {spawn} = require('node:child_process');
+const { fdir } = require('fdir');
+
 try {
     require('./published/elm.js');
     require('./current/elm.js');
@@ -21,7 +23,19 @@ const publishedElm = require('./published/elm.js');
 const currentElm = require('./current/elm.js');
 
 const disableEquality = process.argv.includes('--no-check');
-const fileToParses = process.argv.slice(2).filter(arg => arg !== '--no-check');
+const pathArguments = process.argv.slice(2).filter(arg => arg !== '--no-check');
+
+const filesToParse =
+    pathArguments.map(pathArgument => {
+        if (pathArgument.endsWith(".elm")) {
+            return [pathArgument];
+        }
+        return new fdir()
+            .withFullPaths()
+            .glob('./**/*.elm')
+            .crawl(pathArgument)
+            .sync();
+    }).reduce((acc, array) => acc.concat(array));
 
 const publishedApp = publishedElm.Elm.ParseMain.init({ flags: 'published' });
 const currentApp = currentElm.Elm.ParseMain.init({ flags: 'current' });
@@ -34,7 +48,7 @@ globalThis.measurements = {
 (async function() {
     const tmpDirectory = fs.mkdtempSync(path.join(os.tmpdir(), 'elm-syntax-regressions-'));
 
-    for await (const filePath of fileToParses) {
+    for await (const filePath of filesToParse) {
         const source = fs.readFileSync(filePath, 'utf8');
         const published = await parse(publishedApp, source)
             .catch(error => {
