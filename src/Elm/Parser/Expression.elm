@@ -484,21 +484,23 @@ letExpression =
                     )
             }
         )
-        (ParserFast.withIndentSetToColumn
-            (ParserFast.map2WithStartLocation
-                (\start commentsAfterLet declarations ->
-                    { comments =
-                        commentsAfterLet
-                            |> Rope.prependTo declarations.comments
-                    , declarations = declarations.syntax
-                    , start = start
-                    }
+        (ParserFast.keywordFollowedBy "let"
+            (ParserFast.withIndentSetToColumnMinus 3
+                (ParserFast.map2WithStartLocation
+                    (\start commentsAfterLet declarations ->
+                        { comments =
+                            commentsAfterLet
+                                |> Rope.prependTo declarations.comments
+                        , declarations = declarations.syntax
+                        , start = start
+                        }
+                    )
+                    Layout.maybeLayout
+                    (ParserFast.withIndentSetToColumn letDeclarationsIn)
                 )
-                (ParserFast.keywordFollowedBy "let" Layout.maybeLayout)
-                (ParserFast.withIndentSetToColumn letDeclarationsIn)
             )
         )
-        -- check that the `in` token used as the end parser in letDeclarationsIn is indented correctly
+        -- checks that the `in` token used as the end parser in letDeclarationsIn is indented correctly
         (Layout.positivelyIndentedPlusFollowedBy 2
             Layout.maybeLayout
         )

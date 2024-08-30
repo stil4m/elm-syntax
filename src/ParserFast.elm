@@ -5,8 +5,9 @@ module ParserFast exposing
     , orSucceed, mapOrSucceed, map2OrSucceed, map3OrSucceed, map4OrSucceed, oneOf2, oneOf2Map, oneOf2MapWithStartRowColumnAndEndRowColumn, oneOf2OrSucceed, oneOf3, oneOf4, oneOf5, oneOf7, oneOf10, oneOf14, oneOf
     , loopWhileSucceeds, loopUntil
     , chompWhileWhitespaceFollowedBy, followedByChompWhileWhitespace, nestableMultiCommentMapWithRange
-    , withIndentSetToColumn, withIndent, columnIndentAndThen, validateEndColumnIndentation, validateEndColumnIndentationBacktrackable
+    , withIndentSetToColumn, withIndentSetToColumnMinus, columnIndentAndThen, validateEndColumnIndentation, validateEndColumnIndentationBacktrackable
     , mapWithRange, columnAndThen, offsetSourceAndThen
+    , withIndent
     )
 
 {-|
@@ -57,8 +58,13 @@ characters. Once a path is chosen, it does not come back and try the others.
 
 # Indentation, Locations and source
 
-@docs withIndentSetToColumn, withIndent, columnIndentAndThen, validateEndColumnIndentation, validateEndColumnIndentationBacktrackable
+@docs withIndentSetToColumn, withIndentSetToColumnMinus, columnIndentAndThen, validateEndColumnIndentation, validateEndColumnIndentationBacktrackable
 @docs mapWithRange, columnAndThen, offsetSourceAndThen
+
+
+# test-only
+
+@docs withIndent
 
 -}
 
@@ -2390,6 +2396,19 @@ withIndentSetToColumn (Parser parse) =
     Parser
         (\s0 ->
             case parse (changeIndent s0.col s0) of
+                Good committed a s1 ->
+                    Good committed a (changeIndent s0.indent s1)
+
+                bad ->
+                    bad
+        )
+
+
+withIndentSetToColumnMinus : Int -> Parser a -> Parser a
+withIndentSetToColumnMinus columnToMoveIndentationBaseBackBy (Parser parse) =
+    Parser
+        (\s0 ->
+            case parse (changeIndent (s0.col - columnToMoveIndentationBaseBackBy) s0) of
                 Good committed a s1 ->
                     Good committed a (changeIndent s0.indent s1)
 
