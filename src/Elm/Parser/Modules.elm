@@ -105,8 +105,10 @@ effectModuleDefinition =
                     )
             }
         )
-        (ParserFast.keywordFollowedBy "effect" Layout.maybeLayout)
-        (ParserFast.keywordFollowedBy "module" Layout.maybeLayout)
+        (ParserFast.keywordFollowedBy "effect"
+            (Layout.maybeLayoutUntilIgnored ParserFast.keyword "module")
+        )
+        Layout.maybeLayout
         moduleName
         Layout.maybeLayout
         effectWhereClauses
@@ -151,8 +153,10 @@ portModuleDefinition =
                     (PortModule { moduleName = moduleName, exposingList = exposingList.syntax })
             }
         )
-        (ParserFast.keywordFollowedBy "port" Layout.maybeLayout)
-        (ParserFast.keywordFollowedBy "module" Layout.maybeLayout)
+        (ParserFast.keywordFollowedBy "port"
+            (Layout.maybeLayoutUntilIgnored ParserFast.keyword "module")
+        )
+        Layout.maybeLayout
         moduleName
         Layout.maybeLayout
         exposeDefinition

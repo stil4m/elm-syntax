@@ -569,8 +569,8 @@ letDestructuringDeclaration =
             }
         )
         Patterns.patternNotDirectlyComposing
+        (Layout.maybeLayoutUntilIgnored ParserFast.symbol "=")
         Layout.maybeLayout
-        (ParserFast.symbolFollowedBy "=" Layout.maybeLayout)
         expression
 
 
