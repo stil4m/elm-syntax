@@ -23,6 +23,11 @@ all =
                 parseSingleLineComment "--bar"
                     |> Expect.equal
                         (Ok (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 6 } } "--bar"))
+        , test "singleLineComment including 2-part utf-16 char range" <|
+            \() ->
+                parseSingleLineComment "--bar🔧"
+                    |> Expect.equal
+                        (Ok (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 7 } } "--bar🔧"))
         , test "singleLineComment does not include new line" <|
             \() ->
                 parseSingleLineComment "--bar\n"
@@ -37,6 +42,11 @@ all =
                 parseMultiLineComment "{-foo\nbar-}"
                     |> Expect.equal
                         (Ok (Node { start = { row = 1, column = 1 }, end = { row = 2, column = 6 } } "{-foo\nbar-}"))
+        , test "multilineComment including 2-part utf-16 char range" <|
+            \() ->
+                parseMultiLineComment "{-foo\nbar🔧-}"
+                    |> Expect.equal
+                        (Ok (Node { start = { row = 1, column = 1 }, end = { row = 2, column = 7 } } "{-foo\nbar🔧-}"))
         , test "nested multilineComment only open" <|
             \() ->
                 parseMultiLineComment "{- {- -}"
