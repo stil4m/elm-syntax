@@ -2821,12 +2821,7 @@ chompWhileWhitespaceFollowedBy (Parser parseNext) =
                 s1 =
                     chompWhileWhitespaceHelp s0.offset s0.row s0.col s0.src s0.indent
             in
-            if s1.offset > s0.offset then
-                parseNext s1
-                    |> pStepCommit
-
-            else
-                parseNext s1
+            parseNext s1 |> pStepCommit
         )
 
 
