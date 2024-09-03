@@ -14,6 +14,42 @@ module ParserFast exposing
 
 @docs Parser, run
 
+### a note about backtracking and committing
+
+By default, even the smallest parsers itself commit, even if no characters end up being consumed.
+This will behave exactly how you'd expect pretty much always,
+e.g. when differentiating between `let`-expression, records and references, since a simple symbol is enough to tell them apart.
+
+You might however run into unintuitive behavior with e.g. whitespace (which commits even after seeing 0 blank characters):
+
+    ParserFast.symbolFollowedBy "("
+        (ParserFast.oneOf2
+            (ParserFast.chompWhileWhitespaceFollowedBy
+                parenthesizedAfterOpeningParens
+            )
+            (ParserFast.symbol ")" Unit)
+        )
+
+With `elm/parser`, the above will work perfectly fine since
+the whitespace parser can succeed but still
+track back to the unit case in case `parenthesizedAfterOpeningParens`
+fails (without committing).
+
+With `ParserFast`, you need to either
+  - check for `)` first. This should be preferred in >90% of cases
+  - _add_ a `chompWhileWhitespaceBacktracksIfEmptyFollowedBy` in this module with something like
+    ```elm
+    if s1.offset > s0.offset then
+        parseNext s1 |> pStepCommit
+
+    else
+        parseNext s1
+    ```
+  - if applicable/feasible in that situation,
+    build a whitespace parser that always ignores at least one character
+
+(this note does not just apply to whitespace!)
+
 @docs floatOrIntegerDecimalOrHexadecimalMapWithRange, integerDecimalMapWithRange, integerDecimalOrHexadecimalMapWithRange, symbol, symbolWithEndLocation, symbolWithRange, symbolFollowedBy, symbolBacktrackableFollowedBy, followedBySymbol, keyword, keywordFollowedBy, while, whileWithoutLinebreak, whileMap, ifFollowedByWhileWithoutLinebreak, ifFollowedByWhileMapWithoutLinebreak, ifFollowedByWhileMapWithRangeWithoutLinebreak, ifFollowedByWhileValidateWithoutLinebreak, ifFollowedByWhileValidateMapWithRangeWithoutLinebreak, whileWithoutLinebreakAnd2PartUtf16ValidateMapWithRangeFollowedBySymbol, anyChar
 
 
