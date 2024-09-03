@@ -100,13 +100,8 @@ sample of what that code might look like:
             (ParserFast.keyword "False" (Boolean False))
             (ParserFast.keyword "null" Null)
 
-This parser will keep trying down the list of parsers until one of them starts chomping
-characters. Once a path is chosen, it does not come back and try the others.
-
-**Note:** I highly recommend reading [this document][semantics] to learn how
-`oneOf` and `backtrackable` interact. It is subtle and important!
-
-[semantics]: https://github.com/elm/parser/blob/master/semantics.md
+This parser will keep trying down the list of parsers until one of them starts committing.
+Once a path is chosen, it does not come back and try the others.
 
 @docs orSucceed, mapOrSucceed, map2OrSucceed, map2WithRangeOrSucceed, map3OrSucceed, map4OrSucceed, oneOf2, oneOf2Map, oneOf2MapWithStartRowColumnAndEndRowColumn, oneOf2OrSucceed, oneOf3, oneOf4, oneOf5, oneOf7, oneOf10, oneOf14, oneOf
 
