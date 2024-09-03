@@ -90,38 +90,33 @@ infixExpose =
 
 typeExpose : Parser (WithComments (Node TopLevelExpose))
 typeExpose =
-    ParserFast.map2WithRange
-        (\range typeName open ->
-            case open of
-                Nothing ->
-                    { comments = Rope.empty
-                    , syntax = Node range (TypeOrAliasExpose typeName)
-                    }
+    ParserFast.map3
+        (\(Node typeNameRange typeName) commentsBeforeMaybeOpen maybeOpen ->
+            { comments = commentsBeforeMaybeOpen |> Rope.prependTo maybeOpen.comments
+            , syntax =
+                case maybeOpen.syntax of
+                    Nothing ->
+                        Node typeNameRange (TypeOrAliasExpose typeName)
 
-                Just openRange ->
-                    { comments = openRange.comments
-                    , syntax = Node range (TypeExpose { name = typeName, open = Just openRange.syntax })
-                    }
+                    Just openRange ->
+                        Node
+                            { start = typeNameRange.start
+                            , end = openRange.end
+                            }
+                            (TypeExpose { name = typeName, open = Just openRange })
+            }
         )
-        Tokens.typeName
-        (ParserFast.map2OrSucceed
-            (\commentsBefore all ->
-                Just
-                    { comments = commentsBefore |> Rope.prependTo all.comments
-                    , syntax = all.range
-                    }
+        Tokens.typeNameNode
+        Layout.optimisticLayout
+        (ParserFast.map2WithRangeOrSucceed
+            (\range left right ->
+                { comments = left |> Rope.prependTo right, syntax = Just range }
             )
-            Layout.maybeLayoutBacktrackable
-            (ParserFast.map2WithRange
-                (\range left right ->
-                    { comments = left |> Rope.prependTo right, range = range }
-                )
-                (ParserFast.symbolFollowedBy "("
-                    (Layout.maybeLayout |> ParserFast.followedBySymbol "..")
-                )
-                (Layout.maybeLayout |> ParserFast.followedBySymbol ")")
+            (ParserFast.symbolFollowedBy "("
+                (Layout.maybeLayout |> ParserFast.followedBySymbol "..")
             )
-            Nothing
+            (Layout.maybeLayout |> ParserFast.followedBySymbol ")")
+            { comments = Rope.empty, syntax = Nothing }
         )
 
 

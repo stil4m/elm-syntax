@@ -5,6 +5,7 @@ import Elm.Parser.Node as Node
 import Elm.Parser.Tokens as Tokens
 import Elm.Syntax.ModuleName exposing (ModuleName)
 import Elm.Syntax.Node as Node exposing (Node(..))
+import Elm.Syntax.Range exposing (Range)
 import Elm.Syntax.TypeAnnotation as TypeAnnotation exposing (RecordDefinition, RecordField, TypeAnnotation)
 import ParserFast exposing (Parser)
 import ParserWithComments exposing (WithComments)
@@ -13,32 +14,38 @@ import Rope
 
 typeAnnotation : Parser (WithComments (Node TypeAnnotation))
 typeAnnotation =
-    ParserFast.map2
-        (\ta afterTa ->
-            case afterTa of
-                Nothing ->
-                    ta
+    ParserFast.map3
+        (\inType commentsAfterIn maybeOut ->
+            { comments =
+                inType.comments
+                    |> Rope.prependTo commentsAfterIn
+                    |> Rope.prependTo maybeOut.comments
+            , syntax =
+                case maybeOut.syntax of
+                    Nothing ->
+                        inType.syntax
 
-                Just out ->
-                    { comments = ta.comments |> Rope.prependTo out.comments
-                    , syntax = Node.combine TypeAnnotation.FunctionTypeAnnotation ta.syntax out.syntax
-                    }
+                    Just out ->
+                        Node.combine TypeAnnotation.FunctionTypeAnnotation inType.syntax out
+            }
         )
         (ParserFast.lazy (\() -> typeAnnotationNoFnIncludingTypedWithArguments))
-        (ParserFast.map3OrSucceed
-            (\commentsBeforeArrow commentsAfterArrow typeAnnotationResult ->
-                Just
-                    { comments =
-                        commentsBeforeArrow
-                            |> Rope.prependTo commentsAfterArrow
-                            |> Rope.prependTo typeAnnotationResult.comments
-                    , syntax = typeAnnotationResult.syntax
-                    }
+        Layout.optimisticLayout
+        (ParserFast.map2OrSucceed
+            (\commentsAfterArrow typeAnnotationResult ->
+                { comments =
+                    commentsAfterArrow
+                        |> Rope.prependTo typeAnnotationResult.comments
+                , syntax = Just typeAnnotationResult.syntax
+                }
             )
-            (Layout.maybeLayoutBacktrackable |> ParserFast.followedBySymbol "->")
-            Layout.maybeLayout
+            (ParserFast.symbolFollowedBy "->"
+                (Layout.positivelyIndentedPlusFollowedBy 2
+                    Layout.maybeLayout
+                )
+            )
             (ParserFast.lazy (\() -> typeAnnotation))
-            Nothing
+            { comments = Rope.empty, syntax = Nothing }
         )
 
 
@@ -55,7 +62,7 @@ typeAnnotationNoFnIncludingTypedWithArguments : Parser (WithComments (Node TypeA
 typeAnnotationNoFnIncludingTypedWithArguments =
     ParserFast.oneOf4
         parensTypeAnnotation
-        typedTypeAnnotationWithArguments
+        typedTypeAnnotationWithArgumentsOptimisticLayout
         genericTypeAnnotation
         recordTypeAnnotation
 
@@ -124,35 +131,35 @@ recordTypeAnnotation : Parser (WithComments (Node TypeAnnotation))
 recordTypeAnnotation =
     ParserFast.map2WithRange
         (\range commentsBefore afterCurly ->
-            case afterCurly of
-                Nothing ->
-                    { comments = commentsBefore
-                    , syntax = Node range typeAnnotationRecordEmpty
-                    }
+            { comments =
+                commentsBefore
+                    |> Rope.prependTo afterCurly.comments
+            , syntax =
+                case afterCurly.syntax of
+                    Nothing ->
+                        Node range typeAnnotationRecordEmpty
 
-                Just afterCurlyResult ->
-                    { comments =
-                        commentsBefore
-                            |> Rope.prependTo afterCurlyResult.comments
-                    , syntax = Node range afterCurlyResult.syntax
-                    }
+                    Just afterCurlyResult ->
+                        Node range afterCurlyResult
+            }
         )
         (ParserFast.symbolFollowedBy "{" Layout.maybeLayout)
         (ParserFast.oneOf2
             (ParserFast.map3
                 (\firstNameNode commentsAfterFirstName afterFirstName ->
-                    Just
-                        { comments =
-                            commentsAfterFirstName
-                                |> Rope.prependTo afterFirstName.comments
-                        , syntax =
-                            case afterFirstName.syntax of
+                    { comments =
+                        commentsAfterFirstName
+                            |> Rope.prependTo afterFirstName.comments
+                    , syntax =
+                        Just
+                            (case afterFirstName.syntax of
                                 RecordExtensionExpressionAfterName fields ->
                                     TypeAnnotation.GenericRecord firstNameNode fields
 
                                 FieldsAfterName fieldsAfterName ->
                                     TypeAnnotation.Record (Node.combine Tuple.pair firstNameNode fieldsAfterName.firstFieldValue :: fieldsAfterName.tailFields)
-                        }
+                            )
+                    }
                 )
                 Tokens.functionNameNode
                 Layout.maybeLayout
@@ -211,7 +218,7 @@ recordTypeAnnotation =
                 )
                 |> ParserFast.followedBySymbol "}"
             )
-            (ParserFast.symbol "}" Nothing)
+            (ParserFast.symbol "}" { comments = Rope.empty, syntax = Nothing })
         )
 
 
@@ -316,13 +323,25 @@ maybeDotTypeNamesTuple =
         Nothing
 
 
-typedTypeAnnotationWithArguments : Parser (WithComments (Node TypeAnnotation))
-typedTypeAnnotationWithArguments =
-    ParserFast.map2WithRange
-        (\range nameNode args ->
-            { comments = args.comments
+typedTypeAnnotationWithArgumentsOptimisticLayout : Parser (WithComments (Node TypeAnnotation))
+typedTypeAnnotationWithArgumentsOptimisticLayout =
+    ParserFast.map3
+        (\((Node nameRange _) as nameNode) commentsAfterName argsReverse ->
+            let
+                range : Range
+                range =
+                    case argsReverse.syntax of
+                        [] ->
+                            nameRange
+
+                        (Node lastArgRange _) :: _ ->
+                            { start = nameRange.start, end = lastArgRange.end }
+            in
+            { comments =
+                commentsAfterName
+                    |> Rope.prependTo argsReverse.comments
             , syntax =
-                Node range (TypeAnnotation.Typed nameNode args.syntax)
+                Node range (TypeAnnotation.Typed nameNode (List.reverse argsReverse.syntax))
             }
         )
         (ParserFast.map2WithRange
@@ -342,14 +361,19 @@ typedTypeAnnotationWithArguments =
             Tokens.typeName
             maybeDotTypeNamesTuple
         )
-        (ParserWithComments.many
-            (ParserFast.map2
-                (\commentsBefore typeAnnotationResult ->
-                    { comments = commentsBefore |> Rope.prependTo typeAnnotationResult.comments
-                    , syntax = typeAnnotationResult.syntax
-                    }
+        Layout.optimisticLayout
+        (ParserWithComments.manyWithoutReverse
+            (Layout.positivelyIndentedFollowedBy
+                (ParserFast.map2
+                    (\typeAnnotationResult commentsAfter ->
+                        { comments =
+                            typeAnnotationResult.comments
+                                |> Rope.prependTo commentsAfter
+                        , syntax = typeAnnotationResult.syntax
+                        }
+                    )
+                    typeAnnotationNoFnExcludingTypedWithArguments
+                    Layout.optimisticLayout
                 )
-                Layout.maybeLayoutBacktrackable
-                typeAnnotationNoFnExcludingTypedWithArguments
             )
         )

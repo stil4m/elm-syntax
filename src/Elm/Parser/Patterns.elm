@@ -3,7 +3,8 @@ module Elm.Parser.Patterns exposing (pattern, patternNotDirectlyComposing)
 import Elm.Parser.Layout as Layout
 import Elm.Parser.Tokens as Tokens
 import Elm.Syntax.Node as Node exposing (Node(..))
-import Elm.Syntax.Pattern as Pattern exposing (Pattern(..))
+import Elm.Syntax.Pattern as Pattern exposing (Pattern(..), QualifiedNameRef)
+import Elm.Syntax.Range exposing (Range)
 import ParserFast exposing (Parser)
 import ParserWithComments exposing (WithComments)
 import Rope
@@ -258,36 +259,59 @@ maybeDotTypeNamesTuple =
 
 qualifiedPatternWithConsumeArgs : Parser (WithComments (Node Pattern))
 qualifiedPatternWithConsumeArgs =
-    ParserFast.map3WithRange
-        (\range startName afterStartName args ->
-            { comments = args.comments
+    ParserFast.map3
+        (\(Node nameRange name) afterStartName argsReverse ->
+            let
+                range : Range
+                range =
+                    case argsReverse.syntax of
+                        [] ->
+                            nameRange
+
+                        (Node lastArgRange _) :: _ ->
+                            { start = nameRange.start, end = lastArgRange.end }
+            in
+            { comments = argsReverse.comments
             , syntax =
                 Node range
                     (NamedPattern
-                        (case afterStartName of
-                            Nothing ->
-                                { moduleName = [], name = startName }
-
-                            Just ( qualificationAfter, unqualified ) ->
-                                { moduleName = startName :: qualificationAfter, name = unqualified }
-                        )
-                        args.syntax
+                        name
+                        (List.reverse argsReverse.syntax)
                     )
             }
         )
-        Tokens.typeName
-        maybeDotTypeNamesTuple
-        (ParserWithComments.many
-            (ParserFast.map2
-                (\commentsBefore arg ->
-                    { comments = arg.comments |> Rope.prependTo commentsBefore
-                    , syntax = arg.syntax
-                    }
+        qualifiedNameRefNode
+        Layout.optimisticLayout
+        (ParserWithComments.manyWithoutReverse
+            (Layout.positivelyIndentedFollowedBy
+                (ParserFast.map2
+                    (\arg commentsAfterArg ->
+                        { comments = arg.comments |> Rope.prependTo commentsAfterArg
+                        , syntax = arg.syntax
+                        }
+                    )
+                    patternNotDirectlyComposing
+                    Layout.optimisticLayout
                 )
-                Layout.maybeLayoutBacktrackable
-                patternNotDirectlyComposing
             )
         )
+
+
+qualifiedNameRefNode : Parser (Node QualifiedNameRef)
+qualifiedNameRefNode =
+    ParserFast.map2WithRange
+        (\range firstName after ->
+            Node range
+                (case after of
+                    Nothing ->
+                        { moduleName = [], name = firstName }
+
+                    Just ( qualificationAfter, unqualified ) ->
+                        { moduleName = firstName :: qualificationAfter, name = unqualified }
+                )
+        )
+        Tokens.typeName
+        maybeDotTypeNamesTuple
 
 
 qualifiedPatternWithoutConsumeArgs : Parser (WithComments (Node Pattern))
@@ -316,30 +340,21 @@ qualifiedPatternWithoutConsumeArgs =
 recordPattern : Parser (WithComments (Node Pattern))
 recordPattern =
     ParserFast.map2WithRange
-        (\range commentsBeforeElements maybeElements ->
-            case maybeElements of
-                Nothing ->
-                    { comments = commentsBeforeElements
-                    , syntax = Node range patternRecordEmpty
-                    }
-
-                Just elements ->
-                    { comments = commentsBeforeElements |> Rope.prependTo elements.comments
-                    , syntax =
-                        Node range
-                            (RecordPattern elements.syntax)
-                    }
+        (\range commentsBeforeElements elements ->
+            { comments = commentsBeforeElements |> Rope.prependTo elements.comments
+            , syntax =
+                Node range (RecordPattern elements.syntax)
+            }
         )
         (ParserFast.symbolFollowedBy "{" Layout.maybeLayout)
         (ParserFast.oneOf2
             (ParserFast.map3
                 (\head commentsAfterHead tail ->
-                    Just
-                        { comments =
-                            commentsAfterHead
-                                |> Rope.prependTo tail.comments
-                        , syntax = head :: tail.syntax
-                        }
+                    { comments =
+                        commentsAfterHead
+                            |> Rope.prependTo tail.comments
+                    , syntax = head :: tail.syntax
+                    }
                 )
                 Tokens.functionNameNode
                 Layout.maybeLayout
@@ -357,10 +372,5 @@ recordPattern =
                 )
                 |> ParserFast.followedBySymbol "}"
             )
-            (ParserFast.symbol "}" Nothing)
+            (ParserFast.symbol "}" { comments = Rope.empty, syntax = [] })
         )
-
-
-patternRecordEmpty : Pattern
-patternRecordEmpty =
-    RecordPattern []

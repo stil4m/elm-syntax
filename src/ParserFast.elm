@@ -1,8 +1,8 @@
 module ParserFast exposing
     ( Parser, run
     , floatOrIntegerDecimalOrHexadecimalMapWithRange, integerDecimalMapWithRange, integerDecimalOrHexadecimalMapWithRange, symbol, symbolWithEndLocation, symbolWithRange, symbolFollowedBy, symbolBacktrackableFollowedBy, followedBySymbol, keyword, keywordFollowedBy, while, whileWithoutLinebreak, whileMap, ifFollowedByWhileWithoutLinebreak, ifFollowedByWhileMapWithoutLinebreak, ifFollowedByWhileMapWithRangeWithoutLinebreak, ifFollowedByWhileValidateWithoutLinebreak, ifFollowedByWhileValidateMapWithRangeWithoutLinebreak, anyChar
-    , succeed, problem, lazy, map, map2, map2WithStartLocation, map2WithRange, map3, map3WithStartLocation, map3WithRange, map4, map4WithRange, map5, map5WithStartLocation, map5WithRange, map6, map6WithStartLocation, map6WithRange, map7WithRange, map8WithStartLocation, map9WithRange, validate
-    , orSucceed, mapOrSucceed, map2OrSucceed, map3OrSucceed, map4OrSucceed, oneOf2, oneOf2Map, oneOf2MapWithStartRowColumnAndEndRowColumn, oneOf2OrSucceed, oneOf3, oneOf4, oneOf5, oneOf7, oneOf10, oneOf14, oneOf
+    , succeed, problem, lazy, map, map2, map2WithStartLocation, map2WithRange, map3, map3WithStartLocation, map3WithRange, map4, map4WithRange, map5, map5WithStartLocation, map5WithRange, map6, map6WithStartLocation, map6WithRange, map7, map7WithRange, map8WithStartLocation, map9WithRange, validate
+    , orSucceed, mapOrSucceed, map2OrSucceed, map2WithRangeOrSucceed, map3OrSucceed, map4OrSucceed, oneOf2, oneOf2Map, oneOf2MapWithStartRowColumnAndEndRowColumn, oneOf2OrSucceed, oneOf3, oneOf4, oneOf5, oneOf7, oneOf10, oneOf14, oneOf
     , loopWhileSucceeds, loopUntil
     , chompWhileWhitespaceFollowedBy, followedByChompWhileWhitespace, nestableMultiCommentMapWithRange
     , withIndentSetToColumn, withIndentSetToColumnMinus, columnIndentAndThen, validateEndColumnIndentation, validateEndColumnIndentationBacktrackable
@@ -19,7 +19,7 @@ module ParserFast exposing
 
 # Flow
 
-@docs succeed, problem, lazy, map, map2, map2WithStartLocation, map2WithRange, map3, map3WithStartLocation, map3WithRange, map4, map4WithRange, map5, map5WithStartLocation, map5WithRange, map6, map6WithStartLocation, map6WithRange, map7WithRange, map8WithStartLocation, map9WithRange, validate
+@docs succeed, problem, lazy, map, map2, map2WithStartLocation, map2WithRange, map3, map3WithStartLocation, map3WithRange, map4, map4WithRange, map5, map5WithStartLocation, map5WithRange, map6, map6WithStartLocation, map6WithRange, map7, map7WithRange, map8WithStartLocation, map9WithRange, validate
 
 Choice: parsing JSON for example, the values can be strings, floats, booleans,
 arrays, objects, or null. You need a way to pick one of them! Here is a
@@ -46,7 +46,7 @@ characters. Once a path is chosen, it does not come back and try the others.
 
 [semantics]: https://github.com/elm/parser/blob/master/semantics.md
 
-@docs orSucceed, mapOrSucceed, map2OrSucceed, map3OrSucceed, map4OrSucceed, oneOf2, oneOf2Map, oneOf2MapWithStartRowColumnAndEndRowColumn, oneOf2OrSucceed, oneOf3, oneOf4, oneOf5, oneOf7, oneOf10, oneOf14, oneOf
+@docs orSucceed, mapOrSucceed, map2OrSucceed, map2WithRangeOrSucceed, map3OrSucceed, map4OrSucceed, oneOf2, oneOf2Map, oneOf2MapWithStartRowColumnAndEndRowColumn, oneOf2OrSucceed, oneOf3, oneOf4, oneOf5, oneOf7, oneOf10, oneOf14, oneOf
 
 @docs loopWhileSucceeds, loopUntil
 
@@ -811,6 +811,49 @@ map7WithRange func (Parser parseA) (Parser parseB) (Parser parseC) (Parser parse
         )
 
 
+map7 : (a -> b -> c -> d -> e -> f -> g -> value) -> Parser a -> Parser b -> Parser c -> Parser d -> Parser e -> Parser f -> Parser g -> Parser value
+map7 func (Parser parseA) (Parser parseB) (Parser parseC) (Parser parseD) (Parser parseE) (Parser parseF) (Parser parseG) =
+    Parser
+        (\s0 ->
+            case parseA s0 of
+                Bad committed x () ->
+                    Bad committed x ()
+
+                Good c1 a s1 ->
+                    case parseB s1 of
+                        Bad c2 x () ->
+                            Bad (c1 || c2) x ()
+
+                        Good c2 b s2 ->
+                            case parseC s2 of
+                                Bad c3 x () ->
+                                    Bad (c1 || c2 || c3) x ()
+
+                                Good c3 c s3 ->
+                                    case parseD s3 of
+                                        Bad c4 x () ->
+                                            Bad (c1 || c2 || c3 || c4) x ()
+
+                                        Good c4 d s4 ->
+                                            case parseE s4 of
+                                                Bad c5 x () ->
+                                                    Bad (c1 || c2 || c3 || c4 || c5) x ()
+
+                                                Good c5 e s5 ->
+                                                    case parseF s5 of
+                                                        Bad c6 x () ->
+                                                            Bad (c1 || c2 || c3 || c4 || c5 || c6) x ()
+
+                                                        Good c6 f s6 ->
+                                                            case parseG s6 of
+                                                                Bad c7 x () ->
+                                                                    Bad (c1 || c2 || c3 || c4 || c5 || c6 || c7) x ()
+
+                                                                Good c7 g s7 ->
+                                                                    Good (c1 || c2 || c3 || c4 || c5 || c6 || c7) (func a b c d e f g) s7
+        )
+
+
 map8WithStartLocation : (Location -> a -> b -> c -> d -> e -> f -> g -> h -> value) -> Parser a -> Parser b -> Parser c -> Parser d -> Parser e -> Parser f -> Parser g -> Parser h -> Parser value
 map8WithStartLocation func (Parser parseA) (Parser parseB) (Parser parseC) (Parser parseD) (Parser parseE) (Parser parseF) (Parser parseG) (Parser parseH) =
     Parser
@@ -977,6 +1020,32 @@ map2OrSucceed func (Parser parseA) (Parser parseB) fallback =
 
                         Good c2 b s2 ->
                             Good (c1 || c2) (func a b) s2
+        )
+
+
+map2WithRangeOrSucceed : (Range -> a -> b -> value) -> Parser a -> Parser b -> value -> Parser value
+map2WithRangeOrSucceed func (Parser parseA) (Parser parseB) fallback =
+    Parser
+        (\s0 ->
+            case parseA s0 of
+                Bad c1 x () ->
+                    if c1 then
+                        Bad True x ()
+
+                    else
+                        Good True fallback s0
+
+                Good c1 a s1 ->
+                    case parseB s1 of
+                        Bad c2 x () ->
+                            if c1 || c2 then
+                                Bad True x ()
+
+                            else
+                                Good True fallback s0
+
+                        Good c2 b s2 ->
+                            Good (c1 || c2) (func { start = { row = s0.row, column = s0.col }, end = { row = s2.row, column = s2.col } } a b) s2
         )
 
 

@@ -591,20 +591,22 @@ customTypeDefinitionAfterDocumentationAfterTypePrefix =
         Layout.maybeLayout
         typeGenericListEquals
         Layout.maybeLayout
-        valueConstructor
+        valueConstructorOptimisticLayout
         (ParserWithComments.manyWithoutReverse
-            (ParserFast.map3
-                (\commentsBeforePipe commentsAfterPipe variantResult ->
-                    { comments =
-                        commentsBeforePipe
-                            |> Rope.prependTo commentsAfterPipe
-                            |> Rope.prependTo variantResult.comments
-                    , syntax = variantResult.syntax
-                    }
+            (ParserFast.symbolFollowedBy "|"
+                (Layout.positivelyIndentedPlusFollowedBy 1
+                    (ParserFast.map2
+                        (\commentsBeforePipe variantResult ->
+                            { comments =
+                                commentsBeforePipe
+                                    |> Rope.prependTo variantResult.comments
+                            , syntax = variantResult.syntax
+                            }
+                        )
+                        Layout.maybeLayout
+                        valueConstructorOptimisticLayout
+                    )
                 )
-                (Layout.maybeLayoutBacktrackable |> ParserFast.followedBySymbol "|")
-                Layout.maybeLayout
-                valueConstructor
             )
         )
 
@@ -723,28 +725,30 @@ customTypeDefinitionWithoutDocumentationAfterTypePrefix =
         Layout.maybeLayout
         typeGenericListEquals
         Layout.maybeLayout
-        valueConstructor
+        valueConstructorOptimisticLayout
         (ParserWithComments.manyWithoutReverse
-            (ParserFast.map3
-                (\commentsBeforePipe commentsAfterPipe variantResult ->
-                    { comments =
-                        commentsBeforePipe
-                            |> Rope.prependTo commentsAfterPipe
-                            |> Rope.prependTo variantResult.comments
-                    , syntax = variantResult.syntax
-                    }
+            (ParserFast.symbolFollowedBy "|"
+                (Layout.positivelyIndentedPlusFollowedBy 1
+                    (ParserFast.map2
+                        (\commentsBeforePipe variantResult ->
+                            { comments =
+                                commentsBeforePipe
+                                    |> Rope.prependTo variantResult.comments
+                            , syntax = variantResult.syntax
+                            }
+                        )
+                        Layout.maybeLayout
+                        valueConstructorOptimisticLayout
+                    )
                 )
-                (Layout.maybeLayoutBacktrackable |> ParserFast.followedBySymbol "|")
-                Layout.maybeLayout
-                valueConstructor
             )
         )
 
 
-valueConstructor : Parser (WithComments (Node ValueConstructor))
-valueConstructor =
-    ParserFast.map2
-        (\((Node nameRange _) as name) argumentsReverse ->
+valueConstructorOptimisticLayout : Parser (WithComments (Node ValueConstructor))
+valueConstructorOptimisticLayout =
+    ParserFast.map3
+        (\((Node nameRange _) as name) commentsAfterName argumentsReverse ->
             let
                 fullRange : Range
                 fullRange =
@@ -755,7 +759,9 @@ valueConstructor =
                         [] ->
                             nameRange
             in
-            { comments = argumentsReverse.comments
+            { comments =
+                commentsAfterName
+                    |> Rope.prependTo argumentsReverse.comments
             , syntax =
                 Node fullRange
                     { name = name
@@ -764,15 +770,18 @@ valueConstructor =
             }
         )
         Tokens.typeNameNode
+        Layout.optimisticLayout
         (ParserWithComments.manyWithoutReverse
-            (ParserFast.map2
-                (\commentsBefore typeAnnotationResult ->
-                    { comments = commentsBefore |> Rope.prependTo typeAnnotationResult.comments
-                    , syntax = typeAnnotationResult.syntax
-                    }
+            (Layout.positivelyIndentedFollowedBy
+                (ParserFast.map2
+                    (\typeAnnotationResult commentsAfter ->
+                        { comments = typeAnnotationResult.comments |> Rope.prependTo commentsAfter
+                        , syntax = typeAnnotationResult.syntax
+                        }
+                    )
+                    typeAnnotationNoFnExcludingTypedWithArguments
+                    Layout.optimisticLayout
                 )
-                Layout.maybeLayoutBacktrackable
-                typeAnnotationNoFnExcludingTypedWithArguments
             )
         )
 

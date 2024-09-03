@@ -5,7 +5,6 @@ module Elm.Parser.Layout exposing
     , layoutStrictFollowedByWithComments
     , maybeAroundBothSides
     , maybeLayout
-    , maybeLayoutBacktrackable
     , moduleLevelIndentationFollowedBy
     , onTopIndentationFollowedBy
     , optimisticLayout
@@ -90,22 +89,9 @@ maybeLayout =
     whitespaceAndCommentsOrEmpty |> endsPositivelyIndented
 
 
-maybeLayoutBacktrackable : Parser Comments
-maybeLayoutBacktrackable =
-    whitespaceAndCommentsOrEmpty |> endsPositivelyIndentedBacktrackable
-
-
 endsPositivelyIndented : Parser a -> Parser a
 endsPositivelyIndented parser =
     ParserFast.validateEndColumnIndentation
-        (\column indent -> column > indent)
-        "must be positively indented"
-        parser
-
-
-endsPositivelyIndentedBacktrackable : Parser a -> Parser a
-endsPositivelyIndentedBacktrackable parser =
-    ParserFast.validateEndColumnIndentationBacktrackable
         (\column indent -> column > indent)
         "must be positively indented"
         parser
