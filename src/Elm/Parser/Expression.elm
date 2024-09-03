@@ -1100,7 +1100,7 @@ extendedSubExpressionMap :
     (Node Expression -> res)
     -> Parser (WithComments ExtensionRight)
     -> Parser (WithComments res)
-extendedSubExpressionMap expressionNodeoRes aboveCurrentPrecedenceLayout =
+extendedSubExpressionMap expressionNodeToRes aboveCurrentPrecedenceLayout =
     ParserFast.map5
         (\commentsBefore leftExpressionResult commentsBeforeExtension maybeArgsReverse extensionsRight ->
             let
@@ -1130,7 +1130,7 @@ extendedSubExpressionMap expressionNodeoRes aboveCurrentPrecedenceLayout =
                 List.foldr applyExtensionRight
                     leftMaybeApplied
                     extensionsRight.syntax
-                    |> expressionNodeoRes
+                    |> expressionNodeToRes
             }
         )
         Layout.maybeLayout
