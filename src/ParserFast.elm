@@ -2254,9 +2254,10 @@ convertIntegerDecimalOrHexadecimal offset src =
         _ ->
             errorAsBaseOffsetAndInt
 
+
 errorAsBaseOffsetAndInt : { base : Base, offsetAndInt : { int : number, offset : number } }
 errorAsBaseOffsetAndInt =
-            { base = Decimal, offsetAndInt = { int = 0, offset = -1 } }
+    { base = Decimal, offsetAndInt = { int = 0, offset = -1 } }
 
 
 convertIntegerDecimal : Int -> String -> { int : Int, offset : Int }
@@ -2295,9 +2296,10 @@ convertIntegerDecimal offset src =
         _ ->
             errorAsOffsetAndInt
 
+
 errorAsOffsetAndInt : { int : Int, offset : Int }
-errorAsOffsetAndInt = 
-            { int = 0, offset = -1 }
+errorAsOffsetAndInt =
+    { int = 0, offset = -1 }
 
 
 convert0OrMore0To9s : Int -> Int -> String -> { int : Int, offset : Int }
