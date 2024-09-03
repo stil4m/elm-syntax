@@ -1,6 +1,6 @@
 module ParserFast exposing
     ( Parser, run
-    , floatOrIntegerDecimalOrHexadecimalMapWithRange, integerDecimalMapWithRange, integerDecimalOrHexadecimalMapWithRange, symbol, symbolWithEndLocation, symbolWithRange, symbolFollowedBy, symbolBacktrackableFollowedBy, followedBySymbol, keyword, keywordFollowedBy, while, whileWithoutLinebreak, whileMap, ifFollowedByWhileWithoutLinebreak, ifFollowedByWhileMapWithoutLinebreak, ifFollowedByWhileMapWithRangeWithoutLinebreak, ifFollowedByWhileValidateWithoutLinebreak, ifFollowedByWhileValidateMapWithRangeWithoutLinebreak, anyChar, end
+    , floatOrIntegerDecimalOrHexadecimalMapWithRange, integerDecimalMapWithRange, integerDecimalOrHexadecimalMapWithRange, symbol, symbolWithEndLocation, symbolWithRange, symbolFollowedBy, symbolBacktrackableFollowedBy, followedBySymbol, keyword, keywordFollowedBy, while, whileWithoutLinebreak, whileMap, ifFollowedByWhileWithoutLinebreak, ifFollowedByWhileMapWithoutLinebreak, ifFollowedByWhileMapWithRangeWithoutLinebreak, ifFollowedByWhileValidateWithoutLinebreak, ifFollowedByWhileValidateMapWithRangeWithoutLinebreak, anyChar
     , succeed, problem, lazy, map, map2, map2WithStartLocation, map2WithRange, map3, map3WithStartLocation, map3WithRange, map4, map4WithRange, map5, map5WithStartLocation, map5WithRange, map6, map6WithStartLocation, map6WithRange, map7WithRange, map8WithStartLocation, map9WithRange, validate
     , orSucceed, mapOrSucceed, map2OrSucceed, map3OrSucceed, map4OrSucceed, oneOf2, oneOf2Map, oneOf2MapWithStartRowColumnAndEndRowColumn, oneOf2OrSucceed, oneOf3, oneOf4, oneOf5, oneOf7, oneOf10, oneOf14, oneOf
     , loopWhileSucceeds, loopUntil
@@ -14,7 +14,7 @@ module ParserFast exposing
 
 @docs Parser, run
 
-@docs floatOrIntegerDecimalOrHexadecimalMapWithRange, integerDecimalMapWithRange, integerDecimalOrHexadecimalMapWithRange, symbol, symbolWithEndLocation, symbolWithRange, symbolFollowedBy, symbolBacktrackableFollowedBy, followedBySymbol, keyword, keywordFollowedBy, while, whileWithoutLinebreak, whileMap, ifFollowedByWhileWithoutLinebreak, ifFollowedByWhileMapWithoutLinebreak, ifFollowedByWhileMapWithRangeWithoutLinebreak, ifFollowedByWhileValidateWithoutLinebreak, ifFollowedByWhileValidateMapWithRangeWithoutLinebreak, anyChar, end
+@docs floatOrIntegerDecimalOrHexadecimalMapWithRange, integerDecimalMapWithRange, integerDecimalOrHexadecimalMapWithRange, symbol, symbolWithEndLocation, symbolWithRange, symbolFollowedBy, symbolBacktrackableFollowedBy, followedBySymbol, keyword, keywordFollowedBy, while, whileWithoutLinebreak, whileMap, ifFollowedByWhileWithoutLinebreak, ifFollowedByWhileMapWithoutLinebreak, ifFollowedByWhileMapWithRangeWithoutLinebreak, ifFollowedByWhileValidateWithoutLinebreak, ifFollowedByWhileValidateMapWithRangeWithoutLinebreak, anyChar
 
 
 # Flow
@@ -123,15 +123,15 @@ parser:
 
     run (keyword "true" ()) "true" --> Ok ()
 
-    run (keyword "true" ()) "True" --> Err ..
+    run (keyword "true" ()) "True" --> Err ...
 
     run (keyword "true" ()) "false" --> Err ...
 
-    run (keyword "true" ()) "true!" --> Ok ()
+    run (keyword "true" ()) "true!" --> Err ...
 
-Notice the last case! A `Parser` will chomp as much as possible and not worry
-about the rest. Use the [`end`](#end) parser to ensure you made it to the end
-of the string!
+Notice the last case!
+It's guaranteed you have reached the end of the string you are parsing.
+Parsers can't succeed without parsing the whole string.
 
 Currently reuses the `elm/parser` `DeadEnd` type to report problems
 to avoid breaking changes
@@ -140,8 +140,12 @@ to avoid breaking changes
 run : Parser a -> String -> Result (List Parser.DeadEnd) a
 run (Parser parse) src =
     case parse { src = src, offset = 0, indent = 1, row = 1, col = 1 } of
-        Good _ value _ ->
-            Ok value
+        Good _ value finalState ->
+            if finalState.offset - String.length finalState.src == 0 then
+                Ok value
+
+            else
+                Err [ { problem = Parser.ExpectingEnd, row = finalState.row, col = finalState.col } ]
 
         Bad _ deadEnds () ->
             Err (ropeFilledToList deadEnds [])
@@ -2639,26 +2643,6 @@ keywordFollowedBy kwd (Parser parseNext) =
 
             else
                 Bad False (ExpectingKeyword s.row s.col kwd) ()
-        )
-
-
-{-| Check if you have reached the end of the string you are parsing.
-
-Parsers can succeed without parsing the whole string. Ending your parser
-with `end` guarantees that you have successfully parsed the whole string.
-
-Typically you'd put one of these at the end of a file parser.
-
--}
-end : Parser ()
-end =
-    Parser
-        (\s ->
-            if String.length s.src - s.offset == 0 then
-                Good True () s
-
-            else
-                Bad False (ExpectingEnd s.row s.col ()) ()
         )
 
 

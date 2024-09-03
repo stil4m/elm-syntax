@@ -15,8 +15,8 @@ import Rope
 
 file : ParserFast.Parser File
 file =
-    ParserFast.map5
-        (\moduleDefinition moduleComments imports declarations () ->
+    ParserFast.map4
+        (\moduleDefinition moduleComments imports declarations ->
             { moduleDefinition = moduleDefinition.syntax
             , imports = imports.syntax
             , declarations = declarations.syntax
@@ -43,7 +43,6 @@ file =
         )
         (ParserWithComments.many importDefinition)
         fileDeclarations
-        ParserFast.end
 
 
 fileDeclarations : Parser (WithComments (List (Node Declaration)))

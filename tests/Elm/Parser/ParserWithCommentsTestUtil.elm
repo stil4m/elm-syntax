@@ -10,7 +10,7 @@ import Rope
 
 parseWithState : String -> ParserFast.Parser (WithComments a) -> Maybe { comments : List (Node String), syntax : a }
 parseWithState s p =
-    case ParserFast.run (ParserFast.map2 (\res () -> res) p ParserFast.end) s of
+    case ParserFast.run p s of
         Err _ ->
             Nothing
 
@@ -29,7 +29,7 @@ parse s p =
 
 parseIndented0 : String -> ParserFast.Parser (WithComments a) -> Maybe a
 parseIndented0 s p =
-    case ParserFast.run (ParserFast.withIndent 0 (ParserFast.map2 (\res () -> res) p ParserFast.end)) s of
+    case ParserFast.run (ParserFast.withIndent 0 p) s of
         Err _ ->
             Nothing
 
@@ -39,7 +39,7 @@ parseIndented0 s p =
 
 parseWithFailure : String -> ParserFast.Parser (WithComments a) -> Result (List Parser.DeadEnd) a
 parseWithFailure s p =
-    case ParserFast.run (ParserFast.map2 (\res () -> res) p ParserFast.end) s of
+    case ParserFast.run p s of
         Err deadEnds ->
             Err deadEnds
 
@@ -50,7 +50,7 @@ parseWithFailure s p =
 expectAstWithIndent1 : ParserFast.Parser (WithComments a) -> a -> String -> Expect.Expectation
 expectAstWithIndent1 parser =
     \expected source ->
-        case ParserFast.run (ParserFast.map2 (\res () -> res) parser ParserFast.end) source of
+        case ParserFast.run parser source of
             Err error ->
                 Expect.fail ("Expected the source to be parsed correctly:\n" ++ Debug.toString error)
 
@@ -69,7 +69,7 @@ expectAstWithIndent1 parser =
 expectAst : ParserFast.Parser (WithComments a) -> a -> String -> Expect.Expectation
 expectAst parser =
     \expected source ->
-        case ParserFast.run (ParserFast.withIndent 0 (ParserFast.map2 (\res () -> res) parser ParserFast.end)) source of
+        case ParserFast.run (ParserFast.withIndent 0 parser) source of
             Err error ->
                 Expect.fail ("Expected the source to be parsed correctly:\n" ++ Debug.toString error)
 
@@ -88,7 +88,7 @@ expectAst parser =
 expectAstWithComments : ParserFast.Parser (WithComments a) -> { ast : a, comments : List (Node String) } -> String -> Expect.Expectation
 expectAstWithComments parser =
     \expected source ->
-        case ParserFast.run (ParserFast.withIndent 0 (ParserFast.map2 (\res () -> res) parser ParserFast.end)) source of
+        case ParserFast.run (ParserFast.withIndent 0 parser) source of
             Err error ->
                 Expect.fail ("Expected the source to be parsed correctly:\n" ++ Debug.toString error)
 

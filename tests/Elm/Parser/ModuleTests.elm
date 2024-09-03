@@ -503,7 +503,7 @@ expectAst =
 
 parseCore : String -> ParserFast.Parser a -> Result (List Parser.DeadEnd) a
 parseCore source parser =
-    ParserFast.run (ParserFast.map2 (\res () -> res) parser ParserFast.end) source
+    ParserFast.run parser source
 
 
 expectInvalid : String -> Expect.Expectation

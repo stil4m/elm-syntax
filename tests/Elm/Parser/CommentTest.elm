@@ -78,18 +78,12 @@ all =
 parseSingleLineComment : String -> Result (List Parser.DeadEnd) (Node String)
 parseSingleLineComment source =
     ParserFast.run
-        (ParserFast.map2 (\res () -> res)
-            Parser.singleLineComment
-            ParserFast.end
-        )
+        Parser.singleLineComment
         source
 
 
 parseMultiLineComment : String -> Result (List Parser.DeadEnd) (Node String)
 parseMultiLineComment source =
     ParserFast.run
-        (ParserFast.map2 (\res () -> res)
-            Parser.multilineComment
-            ParserFast.end
-        )
+        Parser.multilineComment
         source
