@@ -929,7 +929,7 @@ orSucceed (Parser attemptFirst) secondRes =
                         firstBad
 
                     else
-                        Good False secondRes s
+                        Good True secondRes s
         )
 
 
@@ -946,7 +946,7 @@ mapOrSucceed valueChange (Parser parse) fallback =
                         Bad True x ()
 
                     else
-                        Good False fallback s0
+                        Good True fallback s0
         )
 
 
@@ -960,7 +960,7 @@ map2OrSucceed func (Parser parseA) (Parser parseB) fallback =
                         Bad True x ()
 
                     else
-                        Good False fallback s0
+                        Good True fallback s0
 
                 Good c1 a s1 ->
                     case parseB s1 of
@@ -969,7 +969,7 @@ map2OrSucceed func (Parser parseA) (Parser parseB) fallback =
                                 Bad True x ()
 
                             else
-                                Good False fallback s0
+                                Good True fallback s0
 
                         Good c2 b s2 ->
                             Good (c1 || c2) (func a b) s2
@@ -986,7 +986,7 @@ map3OrSucceed func (Parser parseA) (Parser parseB) (Parser parseC) fallback =
                         Bad True x ()
 
                     else
-                        Good False fallback s0
+                        Good True fallback s0
 
                 Good c1 a s1 ->
                     case parseB s1 of
@@ -995,7 +995,7 @@ map3OrSucceed func (Parser parseA) (Parser parseB) (Parser parseC) fallback =
                                 Bad True x ()
 
                             else
-                                Good False fallback s0
+                                Good True fallback s0
 
                         Good c2 b s2 ->
                             case parseC s2 of
@@ -1004,7 +1004,7 @@ map3OrSucceed func (Parser parseA) (Parser parseB) (Parser parseC) fallback =
                                         Bad True x ()
 
                                     else
-                                        Good False fallback s0
+                                        Good True fallback s0
 
                                 Good c3 c s3 ->
                                     Good (c1 || c2 || c3) (func a b c) s3
@@ -1021,7 +1021,7 @@ map4OrSucceed func (Parser parseA) (Parser parseB) (Parser parseC) (Parser parse
                         Bad True x ()
 
                     else
-                        Good False fallback s0
+                        Good True fallback s0
 
                 Good c1 a s1 ->
                     case parseB s1 of
@@ -1030,7 +1030,7 @@ map4OrSucceed func (Parser parseA) (Parser parseB) (Parser parseC) (Parser parse
                                 Bad True x ()
 
                             else
-                                Good False fallback s0
+                                Good True fallback s0
 
                         Good c2 b s2 ->
                             case parseC s2 of
@@ -1039,7 +1039,7 @@ map4OrSucceed func (Parser parseA) (Parser parseB) (Parser parseC) (Parser parse
                                         Bad True x ()
 
                                     else
-                                        Good False fallback s0
+                                        Good True fallback s0
 
                                 Good c3 c s3 ->
                                     case parseD s3 of
@@ -1048,7 +1048,7 @@ map4OrSucceed func (Parser parseA) (Parser parseB) (Parser parseC) (Parser parse
                                                 Bad True x ()
 
                                             else
-                                                Good False fallback s0
+                                                Good True fallback s0
 
                                         Good c4 d s4 ->
                                             Good (c1 || c2 || c3 || c4) (func a b c d) s4
@@ -1169,7 +1169,7 @@ oneOf2OrSucceed (Parser attemptFirst) (Parser attemptSecond) thirdRes =
                                     secondBad
 
                                 else
-                                    Good False thirdRes s
+                                    Good True thirdRes s
         )
 
 
@@ -2655,7 +2655,7 @@ end =
     Parser
         (\s ->
             if String.length s.src - s.offset == 0 then
-                Good False () s
+                Good True () s
 
             else
                 Bad False (ExpectingEnd s.row s.col ()) ()
