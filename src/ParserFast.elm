@@ -3338,7 +3338,7 @@ type Step state a
 repeated structures, like a bunch of statements:
 
 
-    statements : Parser (List Stmt)
+    statements : Parser (List Statement)
     statements =
         loop maybeStatementSemicolonWhitespace
             []
@@ -3351,8 +3351,8 @@ repeated structures, like a bunch of statements:
                         Done (List.reverse soFar)
             )
 
-    maybeStatementSemicolonWhitespace : List Stmt -> Parser (Step (List Stmt) (List Stmt))
-    maybeStatementSemicolonWhitespace revStmts =
+    maybeStatementSemicolonWhitespace : Maybe Statement
+    maybeStatementSemicolonWhitespace =
         orSucceed
             (ParserFast.map Just
                 (statement
@@ -3363,7 +3363,7 @@ repeated structures, like a bunch of statements:
             )
             Nothing
 
-    -- statement : Parser Stmt
+    -- statement : Parser Statement
 
 Notice that the statements are tracked in reverse as we `Loop`, and we reorder
 them only once we are `Done`. This is a very common pattern with `loop`!
