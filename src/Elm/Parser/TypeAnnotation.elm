@@ -1,7 +1,6 @@
 module Elm.Parser.TypeAnnotation exposing (typeAnnotation, typeAnnotationNoFnExcludingTypedWithArguments)
 
 import Elm.Parser.Layout as Layout
-import Elm.Parser.Node as Node
 import Elm.Parser.Tokens as Tokens
 import Elm.Syntax.ModuleName exposing (ModuleName)
 import Elm.Syntax.Node as Node exposing (Node(..))
@@ -71,25 +70,45 @@ parensTypeAnnotation : Parser (WithComments (Node TypeAnnotation))
 parensTypeAnnotation =
     ParserFast.symbolFollowedBy "("
         (ParserFast.oneOf2
-            (ParserFast.symbol ")" { comments = Rope.empty, syntax = TypeAnnotation.Unit })
-            (ParserFast.map4
-                (\commentsBeforeFirstPart firstPart commentsAfterFirstPart lastToSecondPart ->
+            (ParserFast.symbolWithEndLocation ")"
+                (\end ->
+                    { comments = Rope.empty
+                    , syntax =
+                        Node
+                            { start = { row = end.row, column = end.column - 2 }
+                            , end = end
+                            }
+                            TypeAnnotation.Unit
+                    }
+                )
+            )
+            (ParserFast.map4WithRange
+                (\rangeAfterOpeningParens commentsBeforeFirstPart firstPart commentsAfterFirstPart lastToSecondPart ->
                     { comments =
                         commentsBeforeFirstPart
                             |> Rope.prependTo firstPart.comments
                             |> Rope.prependTo commentsAfterFirstPart
                             |> Rope.prependTo lastToSecondPart.comments
                     , syntax =
-                        case lastToSecondPart.syntax of
-                            [] ->
-                                let
-                                    (Node _ firstPartValue) =
-                                        firstPart.syntax
-                                in
-                                firstPartValue
+                        Node
+                            { start = { row = rangeAfterOpeningParens.start.row, column = rangeAfterOpeningParens.start.column - 1 }
+                            , end = rangeAfterOpeningParens.end
+                            }
+                            (case lastToSecondPart.syntax of
+                                [] ->
+                                    -- parenthesized types are not a `Tupled [ firstPart.syntax ]`
+                                    -- but their Range still extends to both parens.
+                                    -- This is done to not break behavior of v7.
+                                    -- This will likely change in v8 after discussion in issues like https://github.com/stil4m/elm-syntax/issues/204
+                                    let
+                                        (Node _ firstPartType) =
+                                            firstPart.syntax
+                                    in
+                                    firstPartType
 
-                            _ ->
-                                TypeAnnotation.Tupled (firstPart.syntax :: List.reverse lastToSecondPart.syntax)
+                                _ :: _ ->
+                                    TypeAnnotation.Tupled (firstPart.syntax :: List.reverse lastToSecondPart.syntax)
+                            )
                     }
                 )
                 Layout.maybeLayout
@@ -113,7 +132,6 @@ parensTypeAnnotation =
                 )
             )
         )
-        |> Node.parser
 
 
 genericTypeAnnotation : Parser (WithComments (Node TypeAnnotation))
