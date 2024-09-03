@@ -49,8 +49,11 @@ suiteDeprecated =
                                     |> Result.map (Processing.process context_)
                                     |> Expect.equal (Ok output)
 
-                            Err _ ->
-                                Expect.fail "Failed to generate context."
+                            Err errors ->
+                                Expect.fail
+                                    ("Failed to generate context. "
+                                        ++ Debug.toString errors
+                                    )
             )
             testCases
         )

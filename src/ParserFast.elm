@@ -1,6 +1,6 @@
 module ParserFast exposing
     ( Parser, run
-    , int, intOrHexMapWithRange, floatOrIntOrHexMapWithRange, symbol, symbolWithEndLocation, symbolWithRange, symbolFollowedBy, symbolBacktrackableFollowedBy, followedBySymbol, keyword, keywordFollowedBy, while, whileWithoutLinebreak, whileMap, ifFollowedByWhileWithoutLinebreak, ifFollowedByWhileMapWithoutLinebreak, ifFollowedByWhileMapWithRangeWithoutLinebreak, ifFollowedByWhileValidateWithoutLinebreak, ifFollowedByWhileValidateMapWithRangeWithoutLinebreak, anyChar, end
+    , floatOrIntegerDecimalOrHexadecimalMapWithRange, integerDecimalMapWithRange, integerDecimalOrHexadecimalMapWithRange, symbol, symbolWithEndLocation, symbolWithRange, symbolFollowedBy, symbolBacktrackableFollowedBy, followedBySymbol, keyword, keywordFollowedBy, while, whileWithoutLinebreak, whileMap, ifFollowedByWhileWithoutLinebreak, ifFollowedByWhileMapWithoutLinebreak, ifFollowedByWhileMapWithRangeWithoutLinebreak, ifFollowedByWhileValidateWithoutLinebreak, ifFollowedByWhileValidateMapWithRangeWithoutLinebreak, anyChar, end
     , succeed, problem, lazy, map, map2, map2WithStartLocation, map2WithRange, map3, map3WithStartLocation, map3WithRange, map4, map4WithRange, map5, map5WithStartLocation, map5WithRange, map6, map6WithStartLocation, map6WithRange, map7WithRange, map8WithStartLocation, map9WithRange, validate
     , orSucceed, mapOrSucceed, map2OrSucceed, map3OrSucceed, map4OrSucceed, oneOf2, oneOf2Map, oneOf2MapWithStartRowColumnAndEndRowColumn, oneOf2OrSucceed, oneOf3, oneOf4, oneOf5, oneOf7, oneOf10, oneOf14, oneOf
     , loopWhileSucceeds, loopUntil
@@ -14,7 +14,7 @@ module ParserFast exposing
 
 @docs Parser, run
 
-@docs int, intOrHexMapWithRange, floatOrIntOrHexMapWithRange, symbol, symbolWithEndLocation, symbolWithRange, symbolFollowedBy, symbolBacktrackableFollowedBy, followedBySymbol, keyword, keywordFollowedBy, while, whileWithoutLinebreak, whileMap, ifFollowedByWhileWithoutLinebreak, ifFollowedByWhileMapWithoutLinebreak, ifFollowedByWhileMapWithRangeWithoutLinebreak, ifFollowedByWhileValidateWithoutLinebreak, ifFollowedByWhileValidateMapWithRangeWithoutLinebreak, anyChar, end
+@docs floatOrIntegerDecimalOrHexadecimalMapWithRange, integerDecimalMapWithRange, integerDecimalOrHexadecimalMapWithRange, symbol, symbolWithEndLocation, symbolWithRange, symbolFollowedBy, symbolBacktrackableFollowedBy, followedBySymbol, keyword, keywordFollowedBy, while, whileWithoutLinebreak, whileMap, ifFollowedByWhileWithoutLinebreak, ifFollowedByWhileMapWithoutLinebreak, ifFollowedByWhileMapWithRangeWithoutLinebreak, ifFollowedByWhileValidateWithoutLinebreak, ifFollowedByWhileValidateMapWithRangeWithoutLinebreak, anyChar, end
 
 
 # Flow
@@ -68,11 +68,9 @@ characters. Once a path is chosen, it does not come back and try the others.
 
 -}
 
-import Char
 import Char.Extra
 import Elm.Syntax.Range exposing (Location, Range)
-import Parser
-import Parser.Advanced exposing ((|=))
+import Parser exposing (Problem(..))
 
 
 type Problem
@@ -89,10 +87,14 @@ type Problem
 
 
 {-| A `Parser` helps turn a `String` into nicely structured data. For example,
-we can [`run`](#run) the [`int`](#int) parser to turn `String` to `Int`:
+we can [`run`](#run) an int parser to turn `String` to `Int`:
 
     run int "123456" == Ok 123456
     run int "3.1415" == Err ...
+
+    int : Parser Int
+    int =
+        ParserFast.integerDecimalMapWithRange (\_ n -> n)
 
 The cool thing is that you can combine `Parser` values to handle much more
 complex scenarios.
@@ -1747,56 +1749,7 @@ loopUntilHelp committedSoFar ((Parser parseEnd) as endParser) ((Parser parseElem
                         Bad (committedSoFar || elementCommitted) x ()
 
 
-numberHelp :
-    { binary : Result () (Int -> Range -> a)
-    , expecting : ()
-    , float : Result () (Float -> Range -> a)
-    , hex : Result () (Int -> Range -> a)
-    , int : Result () (Int -> Range -> a)
-    , invalid : ()
-    , octal : Result () (Int -> Range -> a)
-    }
-    -> Parser a
-numberHelp consumers =
-    let
-        parserAdvancedNumberAndStringLength : Parser.Advanced.Parser c () { length : Int, number : Range -> a }
-        parserAdvancedNumberAndStringLength =
-            Parser.Advanced.map (\n -> \endOffset -> { length = endOffset, number = n })
-                (Parser.Advanced.number consumers)
-                |= Parser.Advanced.getOffset
-    in
-    Parser
-        (\state ->
-            if String.any Char.isDigit (String.slice state.offset (state.offset + 1) state.src) then
-                case Parser.Advanced.run parserAdvancedNumberAndStringLength (String.slice state.offset (String.length state.src) state.src) of
-                    Ok result ->
-                        Good False
-                            (result.number
-                                { start = { row = state.row, column = state.col }
-                                , end = { row = state.row, column = state.col + result.length }
-                                }
-                            )
-                            (stateAddLengthToOffsetAndColumn result.length state)
-
-                    Err _ ->
-                        Bad False (ExpectingNumber state.row state.col ()) ()
-
-            else
-                Bad False (ExpectingNumber state.row state.col ()) ()
-        )
-
-
-stateAddLengthToOffsetAndColumn : Int -> State -> State
-stateAddLengthToOffsetAndColumn lengthAdded s =
-    { src = s.src
-    , offset = s.offset + lengthAdded
-    , indent = s.indent
-    , row = s.row
-    , col = s.col + lengthAdded
-    }
-
-
-{-| Parse integers.
+{-| Parse an integer base 10.
 
     run int "1"    == Ok 1
     run int "1234" == Ok 1234
@@ -1808,56 +1761,580 @@ stateAddLengthToOffsetAndColumn lengthAdded s =
     run int "123a" == Err ...
     run int "0x1A" == Err ...
 
-If you want to handle a leading `+` or `-` you should do it with a custom
-parser like this:
 
-    myInt : Parser Int
-    myInt =
-        oneOf
-            [ succeed negate
-                |> ParserFast.ignore symbol "-"
-                |= int
-            , int
-            ]
+
+    int : Parser Int
+    int =
+        ParserFast.integerDecimalMapWithRange (\_ n -> n)
 
 -}
-int : Parser Int
-int =
-    numberHelp
-        { binary = Err ()
-        , expecting = ()
-        , float = Err ()
-        , hex = Err ()
-        , int = Ok (\n _ -> n)
-        , invalid = ()
-        , octal = Err ()
-        }
+integerDecimalMapWithRange : (Range -> Int -> res) -> Parser res
+integerDecimalMapWithRange rangeAndIntToRes =
+    Parser
+        (\s0 ->
+            let
+                s1 : { int : Int, offset : Int }
+                s1 =
+                    convertIntegerDecimal s0.offset s0.src
+            in
+            if s1.offset == -1 then
+                Bad False (ExpectingNumber s0.row s0.col ()) ()
+
+            else
+                let
+                    newColumn : Int
+                    newColumn =
+                        s0.col + (s1.offset - s0.offset)
+                in
+                Good True
+                    (rangeAndIntToRes
+                        { start = { row = s0.row, column = s0.col }
+                        , end = { row = s0.row, column = newColumn }
+                        }
+                        s1.int
+                    )
+                    { src = s0.src
+                    , offset = s1.offset
+                    , indent = s0.indent
+                    , row = s0.row
+                    , col = newColumn
+                    }
+        )
 
 
-floatOrIntOrHexMapWithRange : (Float -> Range -> a) -> (Int -> Range -> a) -> (Int -> Range -> a) -> Parser a
-floatOrIntOrHexMapWithRange floatf intf hexf =
-    numberHelp
-        { binary = Err ()
-        , expecting = ()
-        , float = Ok floatf
-        , hex = Ok hexf
-        , int = Ok intf
-        , invalid = ()
-        , octal = Err ()
-        }
+{-| Parse an integer base 10 or base 16.
+
+    run int "1"    == Ok 1
+    run int "1234" == Ok 1234
+    run int "0x1A" == Ok 26
+
+    run int "-789" == Err ...
+    run int "0123" == Err ...
+    run int "1.34" == Err ...
+    run int "1e31" == Err ...
+    run int "123a" == Err ...
 
 
-intOrHexMapWithRange : (Int -> Range -> a) -> (Int -> Range -> a) -> Parser a
-intOrHexMapWithRange intf hexf =
-    numberHelp
-        { binary = Err ()
-        , expecting = ()
-        , float = Err ()
-        , hex = Ok hexf
-        , int = Ok intf
-        , invalid = ()
-        , octal = Err ()
-        }
+
+    int : Parser Int
+    int =
+        ParserFast.integerDecimalOrHexadecimalMapWithRange (\_ n -> n) (\_ n -> n)
+
+-}
+integerDecimalOrHexadecimalMapWithRange : (Range -> Int -> res) -> (Range -> Int -> res) -> Parser res
+integerDecimalOrHexadecimalMapWithRange rangeAndIntDecmialToRes rangeAndIntHexadecimalToRes =
+    Parser
+        (\s0 ->
+            let
+                s1 : { base : Base, offsetAndInt : { int : Int, offset : Int } }
+                s1 =
+                    convertIntegerDecimalOrHexadecimal s0.offset s0.src
+            in
+            if s1.offsetAndInt.offset == -1 then
+                Bad False (ExpectingNumber s0.row s0.col ()) ()
+
+            else
+                let
+                    newColumn : Int
+                    newColumn =
+                        s0.col + (s1.offsetAndInt.offset - s0.offset)
+
+                    range : Range
+                    range =
+                        { start = { row = s0.row, column = s0.col }
+                        , end = { row = s0.row, column = newColumn }
+                        }
+                in
+                Good True
+                    (case s1.base of
+                        Decimal ->
+                            rangeAndIntDecmialToRes range s1.offsetAndInt.int
+
+                        Hexadecimal ->
+                            rangeAndIntHexadecimalToRes range s1.offsetAndInt.int
+                    )
+                    { src = s0.src
+                    , offset = s1.offsetAndInt.offset
+                    , indent = s0.indent
+                    , row = s0.row
+                    , col = newColumn
+                    }
+        )
+
+
+{-| Parse an integer base 10 or base 16 or a float.
+
+    run number "1"    == Ok 1
+    run number "1234" == Ok 1234
+    run number "0x1A" == Ok 26
+    run number "1.34" == Ok 1.34
+    run number "2e3"  == Ok 2000
+
+    run number "-789" == Err ...
+    run number "0123" == Err ...
+    run number "123a" == Err ...
+
+
+
+    number : Parser Int
+    number =
+        ParserFast.integerDecimalOrHexadecimalMapWithRange (\_ n -> n) (\_ n -> n) (\_ n -> n)
+
+-}
+floatOrIntegerDecimalOrHexadecimalMapWithRange : (Range -> Float -> res) -> (Range -> Int -> res) -> (Range -> Int -> res) -> Parser res
+floatOrIntegerDecimalOrHexadecimalMapWithRange rangeAndFloatToRes rangeAndIntDecimalToRes rangeAndIntHexadecimalToRes =
+    Parser
+        (\s0 ->
+            let
+                s1 : { base : Base, offsetAndInt : { int : Int, offset : Int } }
+                s1 =
+                    convertIntegerDecimalOrHexadecimal s0.offset s0.src
+            in
+            if s1.offsetAndInt.offset == -1 then
+                Bad False (ExpectingNumber s0.row s0.col ()) ()
+
+            else
+                let
+                    offsetAfterFloat : Int
+                    offsetAfterFloat =
+                        skipFloatAfterIntegerDecimal s1.offsetAndInt.offset s0.src
+                in
+                if offsetAfterFloat == -1 then
+                    let
+                        newColumn : Int
+                        newColumn =
+                            s0.col + (s1.offsetAndInt.offset - s0.offset)
+
+                        range : Range
+                        range =
+                            { start = { row = s0.row, column = s0.col }
+                            , end = { row = s0.row, column = newColumn }
+                            }
+                    in
+                    Good True
+                        (case s1.base of
+                            Decimal ->
+                                rangeAndIntDecimalToRes range s1.offsetAndInt.int
+
+                            Hexadecimal ->
+                                rangeAndIntHexadecimalToRes range s1.offsetAndInt.int
+                        )
+                        { src = s0.src
+                        , offset = s1.offsetAndInt.offset
+                        , indent = s0.indent
+                        , row = s0.row
+                        , col = newColumn
+                        }
+
+                else
+                    case String.toFloat (String.slice s0.offset offsetAfterFloat s0.src) of
+                        Just float ->
+                            let
+                                newColumn : Int
+                                newColumn =
+                                    s0.col + (offsetAfterFloat - s0.offset)
+                            in
+                            Good True
+                                (rangeAndFloatToRes
+                                    { start = { row = s0.row, column = s0.col }
+                                    , end = { row = s0.row, column = newColumn }
+                                    }
+                                    float
+                                )
+                                { src = s0.src
+                                , offset = offsetAfterFloat
+                                , indent = s0.indent
+                                , row = s0.row
+                                , col = newColumn
+                                }
+
+                        Nothing ->
+                            Bad False (ExpectingNumber s0.row s0.col ()) ()
+        )
+
+
+skipFloatAfterIntegerDecimal : Int -> String -> Int
+skipFloatAfterIntegerDecimal offset src =
+    case String.slice offset (offset + 1) src of
+        "." ->
+            skip1OrMoreDigits0To9 (offset + 1) src
+
+        "e" ->
+            skipAfterFloatExponentMark (offset + 1) src
+
+        "E" ->
+            skipAfterFloatExponentMark (offset + 1) src
+
+        _ ->
+            -1
+
+
+skipAfterFloatExponentMark : Int -> String -> Int
+skipAfterFloatExponentMark offset src =
+    case String.slice offset (offset + 1) src of
+        "+" ->
+            skip1OrMoreDigits0To9 (offset + 1) src
+
+        "-" ->
+            skip1OrMoreDigits0To9 (offset + 1) src
+
+        _ ->
+            skip1OrMoreDigits0To9 offset src
+
+
+skip1OrMoreDigits0To9 : Int -> String -> Int
+skip1OrMoreDigits0To9 offset src =
+    case String.slice offset (offset + 1) src of
+        "0" ->
+            skip0OrMoreDigits0To9 (offset + 1) src
+
+        "1" ->
+            skip0OrMoreDigits0To9 (offset + 1) src
+
+        "2" ->
+            skip0OrMoreDigits0To9 (offset + 1) src
+
+        "3" ->
+            skip0OrMoreDigits0To9 (offset + 1) src
+
+        "4" ->
+            skip0OrMoreDigits0To9 (offset + 1) src
+
+        "5" ->
+            skip0OrMoreDigits0To9 (offset + 1) src
+
+        "6" ->
+            skip0OrMoreDigits0To9 (offset + 1) src
+
+        "7" ->
+            skip0OrMoreDigits0To9 (offset + 1) src
+
+        "8" ->
+            skip0OrMoreDigits0To9 (offset + 1) src
+
+        "9" ->
+            skip0OrMoreDigits0To9 (offset + 1) src
+
+        _ ->
+            -1
+
+
+skip0OrMoreDigits0To9 : Int -> String -> Int
+skip0OrMoreDigits0To9 offset src =
+    case String.slice offset (offset + 1) src of
+        "0" ->
+            skip0OrMoreDigits0To9 (offset + 1) src
+
+        "1" ->
+            skip0OrMoreDigits0To9 (offset + 1) src
+
+        "2" ->
+            skip0OrMoreDigits0To9 (offset + 1) src
+
+        "3" ->
+            skip0OrMoreDigits0To9 (offset + 1) src
+
+        "4" ->
+            skip0OrMoreDigits0To9 (offset + 1) src
+
+        "5" ->
+            skip0OrMoreDigits0To9 (offset + 1) src
+
+        "6" ->
+            skip0OrMoreDigits0To9 (offset + 1) src
+
+        "7" ->
+            skip0OrMoreDigits0To9 (offset + 1) src
+
+        "8" ->
+            skip0OrMoreDigits0To9 (offset + 1) src
+
+        "9" ->
+            skip0OrMoreDigits0To9 (offset + 1) src
+
+        _ ->
+            offset
+
+
+convert1OrMoreHexadecimal : Int -> String -> { int : Int, offset : Int }
+convert1OrMoreHexadecimal offset src =
+    case String.slice offset (offset + 1) src of
+        "0" ->
+            convert0OrMoreHexadecimal 0 (offset + 1) src
+
+        "1" ->
+            convert0OrMoreHexadecimal 1 (offset + 1) src
+
+        "2" ->
+            convert0OrMoreHexadecimal 2 (offset + 1) src
+
+        "3" ->
+            convert0OrMoreHexadecimal 3 (offset + 1) src
+
+        "4" ->
+            convert0OrMoreHexadecimal 4 (offset + 1) src
+
+        "5" ->
+            convert0OrMoreHexadecimal 5 (offset + 1) src
+
+        "6" ->
+            convert0OrMoreHexadecimal 6 (offset + 1) src
+
+        "7" ->
+            convert0OrMoreHexadecimal 7 (offset + 1) src
+
+        "8" ->
+            convert0OrMoreHexadecimal 8 (offset + 1) src
+
+        "9" ->
+            convert0OrMoreHexadecimal 9 (offset + 1) src
+
+        "a" ->
+            convert0OrMoreHexadecimal 10 (offset + 1) src
+
+        "A" ->
+            convert0OrMoreHexadecimal 10 (offset + 1) src
+
+        "b" ->
+            convert0OrMoreHexadecimal 11 (offset + 1) src
+
+        "B" ->
+            convert0OrMoreHexadecimal 11 (offset + 1) src
+
+        "c" ->
+            convert0OrMoreHexadecimal 12 (offset + 1) src
+
+        "C" ->
+            convert0OrMoreHexadecimal 12 (offset + 1) src
+
+        "d" ->
+            convert0OrMoreHexadecimal 13 (offset + 1) src
+
+        "D" ->
+            convert0OrMoreHexadecimal 13 (offset + 1) src
+
+        "e" ->
+            convert0OrMoreHexadecimal 14 (offset + 1) src
+
+        "E" ->
+            convert0OrMoreHexadecimal 14 (offset + 1) src
+
+        "f" ->
+            convert0OrMoreHexadecimal 15 (offset + 1) src
+
+        "F" ->
+            convert0OrMoreHexadecimal 15 (offset + 1) src
+
+        _ ->
+            { int = 0, offset = -1 }
+
+
+convert0OrMoreHexadecimal : Int -> Int -> String -> { int : Int, offset : Int }
+convert0OrMoreHexadecimal soFar offset src =
+    case String.slice offset (offset + 1) src of
+        "0" ->
+            convert0OrMoreHexadecimal (soFar * 16) (offset + 1) src
+
+        "1" ->
+            convert0OrMoreHexadecimal (soFar * 16 + 1) (offset + 1) src
+
+        "2" ->
+            convert0OrMoreHexadecimal (soFar * 16 + 2) (offset + 1) src
+
+        "3" ->
+            convert0OrMoreHexadecimal (soFar * 16 + 3) (offset + 1) src
+
+        "4" ->
+            convert0OrMoreHexadecimal (soFar * 16 + 4) (offset + 1) src
+
+        "5" ->
+            convert0OrMoreHexadecimal (soFar * 16 + 5) (offset + 1) src
+
+        "6" ->
+            convert0OrMoreHexadecimal (soFar * 16 + 6) (offset + 1) src
+
+        "7" ->
+            convert0OrMoreHexadecimal (soFar * 16 + 7) (offset + 1) src
+
+        "8" ->
+            convert0OrMoreHexadecimal (soFar * 16 + 8) (offset + 1) src
+
+        "9" ->
+            convert0OrMoreHexadecimal (soFar * 16 + 9) (offset + 1) src
+
+        "a" ->
+            convert0OrMoreHexadecimal (soFar * 16 + 10) (offset + 1) src
+
+        "A" ->
+            convert0OrMoreHexadecimal (soFar * 16 + 10) (offset + 1) src
+
+        "b" ->
+            convert0OrMoreHexadecimal (soFar * 16 + 11) (offset + 1) src
+
+        "B" ->
+            convert0OrMoreHexadecimal (soFar * 16 + 11) (offset + 1) src
+
+        "c" ->
+            convert0OrMoreHexadecimal (soFar * 16 + 12) (offset + 1) src
+
+        "C" ->
+            convert0OrMoreHexadecimal (soFar * 16 + 12) (offset + 1) src
+
+        "d" ->
+            convert0OrMoreHexadecimal (soFar * 16 + 13) (offset + 1) src
+
+        "D" ->
+            convert0OrMoreHexadecimal (soFar * 16 + 13) (offset + 1) src
+
+        "e" ->
+            convert0OrMoreHexadecimal (soFar * 16 + 14) (offset + 1) src
+
+        "E" ->
+            convert0OrMoreHexadecimal (soFar * 16 + 14) (offset + 1) src
+
+        "f" ->
+            convert0OrMoreHexadecimal (soFar * 16 + 15) (offset + 1) src
+
+        "F" ->
+            convert0OrMoreHexadecimal (soFar * 16 + 15) (offset + 1) src
+
+        _ ->
+            { int = soFar, offset = offset }
+
+
+type Base
+    = Decimal
+    | Hexadecimal
+
+
+convertIntegerDecimalOrHexadecimal : Int -> String -> { base : Base, offsetAndInt : { int : Int, offset : Int } }
+convertIntegerDecimalOrHexadecimal offset src =
+    case String.slice offset (offset + 1) src of
+        "0" ->
+            case String.slice (offset + 1) (offset + 2) src of
+                "x" ->
+                    let
+                        --_ = Debug.todo "not huh"
+                        hex : { int : Int, offset : Int }
+                        hex =
+                            convert1OrMoreHexadecimal (offset + 2) src
+                    in
+                    { base = Hexadecimal, offsetAndInt = { int = hex.int, offset = hex.offset } }
+
+                _ ->
+                    { base = Decimal, offsetAndInt = { int = 0, offset = offset + 1 } }
+
+        "1" ->
+            { base = Decimal, offsetAndInt = convert0OrMore0To9s 1 (offset + 1) src }
+
+        "2" ->
+            { base = Decimal, offsetAndInt = convert0OrMore0To9s 2 (offset + 1) src }
+
+        "3" ->
+            { base = Decimal, offsetAndInt = convert0OrMore0To9s 3 (offset + 1) src }
+
+        "4" ->
+            { base = Decimal, offsetAndInt = convert0OrMore0To9s 4 (offset + 1) src }
+
+        "5" ->
+            { base = Decimal, offsetAndInt = convert0OrMore0To9s 5 (offset + 1) src }
+
+        "6" ->
+            { base = Decimal, offsetAndInt = convert0OrMore0To9s 6 (offset + 1) src }
+
+        "7" ->
+            { base = Decimal, offsetAndInt = convert0OrMore0To9s 7 (offset + 1) src }
+
+        "8" ->
+            { base = Decimal, offsetAndInt = convert0OrMore0To9s 8 (offset + 1) src }
+
+        "9" ->
+            { base = Decimal, offsetAndInt = convert0OrMore0To9s 9 (offset + 1) src }
+
+        _ ->
+            errorAsBaseOffsetAndInt
+
+errorAsBaseOffsetAndInt : { base : Base, offsetAndInt : { int : number, offset : number } }
+errorAsBaseOffsetAndInt =
+            { base = Decimal, offsetAndInt = { int = 0, offset = -1 } }
+
+
+convertIntegerDecimal : Int -> String -> { int : Int, offset : Int }
+convertIntegerDecimal offset src =
+    case String.slice offset (offset + 1) src of
+        "0" ->
+            { int = 0, offset = offset + 1 }
+
+        "1" ->
+            convert0OrMore0To9s 1 (offset + 1) src
+
+        "2" ->
+            convert0OrMore0To9s 2 (offset + 1) src
+
+        "3" ->
+            convert0OrMore0To9s 3 (offset + 1) src
+
+        "4" ->
+            convert0OrMore0To9s 4 (offset + 1) src
+
+        "5" ->
+            convert0OrMore0To9s 5 (offset + 1) src
+
+        "6" ->
+            convert0OrMore0To9s 6 (offset + 1) src
+
+        "7" ->
+            convert0OrMore0To9s 7 (offset + 1) src
+
+        "8" ->
+            convert0OrMore0To9s 8 (offset + 1) src
+
+        "9" ->
+            convert0OrMore0To9s 9 (offset + 1) src
+
+        _ ->
+            errorAsOffsetAndInt
+
+errorAsOffsetAndInt : { int : Int, offset : Int }
+errorAsOffsetAndInt = 
+            { int = 0, offset = -1 }
+
+
+convert0OrMore0To9s : Int -> Int -> String -> { int : Int, offset : Int }
+convert0OrMore0To9s soFar offset src =
+    case String.slice offset (offset + 1) src of
+        "0" ->
+            convert0OrMore0To9s (soFar * 10) (offset + 1) src
+
+        "1" ->
+            convert0OrMore0To9s (soFar * 10 + 1) (offset + 1) src
+
+        "2" ->
+            convert0OrMore0To9s (soFar * 10 + 2) (offset + 1) src
+
+        "3" ->
+            convert0OrMore0To9s (soFar * 10 + 3) (offset + 1) src
+
+        "4" ->
+            convert0OrMore0To9s (soFar * 10 + 4) (offset + 1) src
+
+        "5" ->
+            convert0OrMore0To9s (soFar * 10 + 5) (offset + 1) src
+
+        "6" ->
+            convert0OrMore0To9s (soFar * 10 + 6) (offset + 1) src
+
+        "7" ->
+            convert0OrMore0To9s (soFar * 10 + 7) (offset + 1) src
+
+        "8" ->
+            convert0OrMore0To9s (soFar * 10 + 8) (offset + 1) src
+
+        "9" ->
+            convert0OrMore0To9s (soFar * 10 + 9) (offset + 1) src
+
+        _ ->
+            { int = soFar, offset = offset }
 
 
 {-| Parse exact text like `(` and `,`.

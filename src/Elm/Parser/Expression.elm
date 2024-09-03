@@ -710,18 +710,18 @@ parameterPatternsEqual =
 
 numberExpression : Parser (WithComments (Node Expression))
 numberExpression =
-    ParserFast.floatOrIntOrHexMapWithRange
-        (\n range ->
+    ParserFast.floatOrIntegerDecimalOrHexadecimalMapWithRange
+        (\range n ->
             { comments = Rope.empty
             , syntax = Node range (Floatable n)
             }
         )
-        (\n range ->
+        (\range n ->
             { comments = Rope.empty
             , syntax = Node range (Integer n)
             }
         )
-        (\n range ->
+        (\range n ->
             { comments = Rope.empty
             , syntax = Node range (Hex n)
             }

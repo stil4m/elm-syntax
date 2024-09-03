@@ -451,7 +451,7 @@ infixDeclaration =
         (ParserFast.keywordFollowedBy "infix" Layout.maybeLayout)
         infixDirection
         Layout.maybeLayout
-        (ParserFast.mapWithRange Node ParserFast.int)
+        (ParserFast.integerDecimalMapWithRange Node)
         Layout.maybeLayout
         (ParserFast.mapWithRange Node
             (ParserFast.symbolFollowedBy "(" Tokens.prefixOperatorToken

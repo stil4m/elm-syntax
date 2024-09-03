@@ -122,9 +122,9 @@ varPattern =
 
 numberPart : Parser (WithComments (Node Pattern))
 numberPart =
-    ParserFast.intOrHexMapWithRange
-        (\n range -> { comments = Rope.empty, syntax = Node range (IntPattern n) })
-        (\n range -> { comments = Rope.empty, syntax = Node range (HexPattern n) })
+    ParserFast.integerDecimalOrHexadecimalMapWithRange
+        (\range n -> { comments = Rope.empty, syntax = Node range (IntPattern n) })
+        (\range n -> { comments = Rope.empty, syntax = Node range (HexPattern n) })
 
 
 charPattern : Parser (WithComments (Node Pattern))
