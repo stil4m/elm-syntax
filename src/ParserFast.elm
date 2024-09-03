@@ -1,11 +1,11 @@
 module ParserFast exposing
     ( Parser, run
     , floatOrIntegerDecimalOrHexadecimalMapWithRange, integerDecimalMapWithRange, integerDecimalOrHexadecimalMapWithRange, symbol, symbolWithEndLocation, symbolWithRange, symbolFollowedBy, symbolBacktrackableFollowedBy, followedBySymbol, keyword, keywordFollowedBy, while, whileWithoutLinebreak, whileMap, ifFollowedByWhileWithoutLinebreak, ifFollowedByWhileMapWithoutLinebreak, ifFollowedByWhileMapWithRangeWithoutLinebreak, ifFollowedByWhileValidateWithoutLinebreak, ifFollowedByWhileValidateMapWithRangeWithoutLinebreak, whileWithoutLinebreakAnd2PartUtf16ValidateMapWithRangeFollowedBySymbol, anyChar
-    , problem, lazy, map, map2, map2WithStartLocation, map2WithRange, map3, map3WithStartLocation, map3WithRange, map4, map4WithRange, map5, map5WithStartLocation, map5WithRange, map6, map6WithStartLocation, map6WithRange, map7, map7WithRange, map8WithStartLocation, map9WithRange, validate
+    , problem, lazy, map, map2, map2WithStartLocation, map2WithRange, map3, map3WithStartLocation, map3WithRange, map4, map4WithRange, map5, map5WithStartLocation, map5WithRange, map6, map6WithStartLocation, map6WithRange, map7WithRange, map8WithStartLocation, map9WithRange, validate
     , orSucceed, mapOrSucceed, map2OrSucceed, map2WithRangeOrSucceed, map3OrSucceed, map4OrSucceed, oneOf2, oneOf2Map, oneOf2MapWithStartRowColumnAndEndRowColumn, oneOf2OrSucceed, oneOf3, oneOf4, oneOf5, oneOf7, oneOf10, oneOf14, oneOf
     , loopWhileSucceeds, loopUntil
     , chompWhileWhitespaceFollowedBy, followedByChompWhileWhitespace, nestableMultiCommentMapWithRange
-    , withIndentSetToColumn, withIndentSetToColumnMinus, columnIndentAndThen, validateEndColumnIndentation, validateEndColumnIndentationBacktrackable
+    , withIndentSetToColumn, withIndentSetToColumnMinus, columnIndentAndThen, validateEndColumnIndentation
     , mapWithRange, columnAndThen, offsetSourceAndThen, offsetSourceAndThenOrSucceed
     , withIndent
     )
@@ -19,7 +19,7 @@ module ParserFast exposing
 
 # Flow
 
-@docs problem, lazy, map, map2, map2WithStartLocation, map2WithRange, map3, map3WithStartLocation, map3WithRange, map4, map4WithRange, map5, map5WithStartLocation, map5WithRange, map6, map6WithStartLocation, map6WithRange, map7, map7WithRange, map8WithStartLocation, map9WithRange, validate
+@docs problem, lazy, map, map2, map2WithStartLocation, map2WithRange, map3, map3WithStartLocation, map3WithRange, map4, map4WithRange, map5, map5WithStartLocation, map5WithRange, map6, map6WithStartLocation, map6WithRange, map7WithRange, map8WithStartLocation, map9WithRange, validate
 
 Choice: parsing JSON for example, the values can be strings, floats, booleans,
 arrays, objects, or null. You need a way to pick one of them! Here is a
@@ -58,7 +58,7 @@ characters. Once a path is chosen, it does not come back and try the others.
 
 # Indentation, Locations and source
 
-@docs withIndentSetToColumn, withIndentSetToColumnMinus, columnIndentAndThen, validateEndColumnIndentation, validateEndColumnIndentationBacktrackable
+@docs withIndentSetToColumn, withIndentSetToColumnMinus, columnIndentAndThen, validateEndColumnIndentation
 @docs mapWithRange, columnAndThen, offsetSourceAndThen, offsetSourceAndThenOrSucceed
 
 
@@ -78,7 +78,6 @@ type Problem
     | ExpectingSymbol Int Int String
     | ExpectingAnyChar Int Int ()
     | ExpectingKeyword Int Int String
-    | ExpectingEnd Int Int ()
     | ExpectingCharSatisfyingPredicate Int Int ()
     | ExpectingStringSatisfyingPredicate Int Int ()
     | ExpectingCustom Int Int String
@@ -170,9 +169,6 @@ ropeFilledToList problemToConvert soFar =
 
         ExpectingKeyword row col keywordString ->
             { row = row, col = col, problem = Parser.ExpectingKeyword keywordString } :: soFar
-
-        ExpectingEnd row col () ->
-            { row = row, col = col, problem = Parser.ExpectingEnd } :: soFar
 
         ExpectingCharSatisfyingPredicate row col () ->
             { row = row, col = col, problem = Parser.UnexpectedChar } :: soFar
@@ -313,23 +309,6 @@ validateEndColumnIndentation isOkay problemOnIsNotOkay (Parser parse) =
 
                 bad ->
                     bad
-        )
-
-
-validateEndColumnIndentationBacktrackable : (Int -> Int -> Bool) -> String -> Parser a -> Parser a
-validateEndColumnIndentationBacktrackable isOkay problemOnIsNotOkay (Parser parse) =
-    Parser
-        (\s0 ->
-            case parse s0 of
-                Good res s1 ->
-                    if isOkay s1.col s1.indent then
-                        Good res s1
-
-                    else
-                        Bad False (ExpectingCustom s1.row s1.col problemOnIsNotOkay)
-
-                Bad _ x ->
-                    Bad False x
         )
 
 
@@ -802,49 +781,6 @@ map7WithRange func (Parser parseA) (Parser parseB) (Parser parseC) (Parser parse
 
                                                                 Good g s7 ->
                                                                     Good (func { start = { row = s0.row, column = s0.col }, end = { row = s7.row, column = s7.col } } a b c d e f g) s7
-        )
-
-
-map7 : (a -> b -> c -> d -> e -> f -> g -> value) -> Parser a -> Parser b -> Parser c -> Parser d -> Parser e -> Parser f -> Parser g -> Parser value
-map7 func (Parser parseA) (Parser parseB) (Parser parseC) (Parser parseD) (Parser parseE) (Parser parseF) (Parser parseG) =
-    Parser
-        (\s0 ->
-            case parseA s0 of
-                Bad committed x ->
-                    Bad committed x
-
-                Good a s1 ->
-                    case parseB s1 of
-                        Bad c2 x ->
-                            Bad c2 x
-
-                        Good b s2 ->
-                            case parseC s2 of
-                                Bad c3 x ->
-                                    Bad c3 x
-
-                                Good c s3 ->
-                                    case parseD s3 of
-                                        Bad c4 x ->
-                                            Bad c4 x
-
-                                        Good d s4 ->
-                                            case parseE s4 of
-                                                Bad c5 x ->
-                                                    Bad c5 x
-
-                                                Good e s5 ->
-                                                    case parseF s5 of
-                                                        Bad c6 x ->
-                                                            Bad c6 x
-
-                                                        Good f s6 ->
-                                                            case parseG s6 of
-                                                                Bad c7 x ->
-                                                                    Bad c7 x
-
-                                                                Good g s7 ->
-                                                                    Good (func a b c d e f g) s7
         )
 
 
