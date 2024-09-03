@@ -10,7 +10,7 @@ import Test exposing (..)
 
 all : Test
 all =
-    describe "TypeReferenceTests"
+    describe "TypeAnnotationTests"
         [ test "unitTypeReference" <|
             \() ->
                 "()"
