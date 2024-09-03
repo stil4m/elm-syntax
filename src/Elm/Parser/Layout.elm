@@ -25,25 +25,21 @@ whitespaceAndCommentsOrEmpty =
         --
         -- since comments are comparatively rare
         -- but expensive to check for, we allow shortcutting
-        (ParserFast.offsetSourceAndThen
+        (ParserFast.offsetSourceAndThenOrSucceed
             (\offset source ->
                 case source |> String.slice offset (offset + 2) of
                     "--" ->
                         -- this will always succeed from here, so no need to fall back to Rope.empty
-                        fromSingleLineCommentNode
+                        Just fromSingleLineCommentNode
 
                     "{-" ->
-                        fromMultilineCommentNodeOrEmptyOnProblem
+                        Just fromMultilineCommentNodeOrEmptyOnProblem
 
                     _ ->
-                        succeedRopeEmpty
+                        Nothing
             )
+            Rope.empty
         )
-
-
-succeedRopeEmpty : Parser Comments
-succeedRopeEmpty =
-    ParserFast.succeed Rope.empty
 
 
 fromMultilineCommentNodeOrEmptyOnProblem : Parser Comments

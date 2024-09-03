@@ -1,7 +1,7 @@
 module Elm.Parser.Tokens exposing
     ( inToken
     , equal, parensEnd
-    , prefixOperatorToken, allowedOperatorTokens
+    , prefixOperatorToken, isAllowedOperatorToken, isOperatorSymbolChar
     , characterLiteralMapWithRange, singleOrTripleQuotedStringLiteralMapWithRange
     , functionName, functionNameNode, functionNameMapWithRange, functionNameNotInfixNode, typeName, typeNameNode, typeNameMapWithRange
     )
@@ -11,7 +11,7 @@ module Elm.Parser.Tokens exposing
 @docs inToken
 
 @docs equal, parensEnd
-@docs prefixOperatorToken, allowedOperatorTokens
+@docs prefixOperatorToken, isAllowedOperatorToken, isOperatorSymbolChar
 
 @docs characterLiteralMapWithRange, singleOrTripleQuotedStringLiteralMapWithRange
 @docs functionName, functionNameNode, functionNameMapWithRange, functionNameNotInfixNode, typeName, typeNameNode, typeNameMapWithRange
@@ -321,40 +321,137 @@ typeNameNode =
         Char.Extra.unicodeIsAlphaNumOrUnderscoreFast
 
 
-allowedOperatorTokens : List String
-allowedOperatorTokens =
-    [ "=="
-    , "/="
-    , "::"
-    , "++"
-    , "+"
-    , "*"
-    , "<|"
-    , "|>"
-    , "||"
-    , "<="
-    , ">="
-    , "|="
-    , "|."
-    , "//"
-    , "</>"
-    , "<?>"
-    , "^"
-    , "<<"
-    , ">>"
-    , "<"
-    , ">"
-    , "/"
-    , "&&"
-    , "-"
-    ]
+isAllowedOperatorToken : String -> Bool
+isAllowedOperatorToken operatorCandidateToValidate =
+    case operatorCandidateToValidate of
+        "==" ->
+            True
+
+        "/=" ->
+            True
+
+        "::" ->
+            True
+
+        "++" ->
+            True
+
+        "+" ->
+            True
+
+        "*" ->
+            True
+
+        "<|" ->
+            True
+
+        "|>" ->
+            True
+
+        "||" ->
+            True
+
+        "<=" ->
+            True
+
+        ">=" ->
+            True
+
+        "|=" ->
+            True
+
+        "|." ->
+            True
+
+        "//" ->
+            True
+
+        "</>" ->
+            True
+
+        "<?>" ->
+            True
+
+        "^" ->
+            True
+
+        "<<" ->
+            True
+
+        ">>" ->
+            True
+
+        "<" ->
+            True
+
+        ">" ->
+            True
+
+        "/" ->
+            True
+
+        "&&" ->
+            True
+
+        "-" ->
+            True
+
+        _ ->
+            False
 
 
 prefixOperatorToken : ParserFast.Parser String
 prefixOperatorToken =
-    allowedOperatorTokens
-        |> List.map (\token -> ParserFast.symbol token token)
-        |> ParserFast.oneOf
+    ParserFast.ifFollowedByWhileValidateWithoutLinebreak
+        isOperatorSymbolChar
+        isOperatorSymbolChar
+        isAllowedOperatorToken
+
+
+isOperatorSymbolChar : Char -> Bool
+isOperatorSymbolChar c =
+    case c of
+        '+' ->
+            True
+
+        '-' ->
+            True
+
+        '/' ->
+            True
+
+        '*' ->
+            True
+
+        '=' ->
+            True
+
+        '.' ->
+            True
+
+        '<' ->
+            True
+
+        '>' ->
+            True
+
+        ':' ->
+            True
+
+        '&' ->
+            True
+
+        '|' ->
+            True
+
+        '^' ->
+            True
+
+        '?' ->
+            True
+
+        _ ->
+            False
 
 
 equal : ParserFast.Parser ()

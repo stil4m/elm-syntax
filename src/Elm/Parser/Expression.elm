@@ -954,7 +954,7 @@ rangeMoveStartLeftByOneColumn range =
 tupledExpressionIfNecessaryFollowedByRecordAccess : Parser (WithComments (Node Expression))
 tupledExpressionIfNecessaryFollowedByRecordAccess =
     ParserFast.symbolFollowedBy "("
-        (ParserFast.oneOf4
+        (ParserFast.oneOf3
             (ParserFast.symbolWithEndLocation ")"
                 (\end ->
                     { comments = Rope.empty
@@ -964,50 +964,27 @@ tupledExpressionIfNecessaryFollowedByRecordAccess =
                     }
                 )
             )
-            -- since `-` alone  could indicate negation or prefix operator,
-            -- we check for `-)` first
-            (ParserFast.symbolWithEndLocation "-)"
-                (\end ->
-                    { comments = Rope.empty
-                    , syntax =
-                        Node { start = { row = end.row, column = end.column - 3 }, end = end }
-                            expressionPrefixOperatorMinus
-                    }
-                )
-            )
+            allowedPrefixOperatorFollowedByClosingParensOneOf
             tupledExpressionInnerAfterOpeningParens
-            -- and since prefix operators are much more rare than e.g. parenthesized
-            -- we check those later
-            (ParserFast.oneOf allowedPrefixOperatorExceptMinusThenClosingParensOneOf)
         )
 
 
-expressionPrefixOperatorMinus : Expression
-expressionPrefixOperatorMinus =
-    PrefixOperator "-"
-
-
-allowedPrefixOperatorExceptMinusThenClosingParensOneOf : List (Parser (WithComments (Node Expression)))
-allowedPrefixOperatorExceptMinusThenClosingParensOneOf =
-    Tokens.allowedOperatorTokens
-        |> List.filter (\token -> token /= "-")
-        |> List.map
-            (\allowedOperatorToken ->
-                let
-                    prefixOperatorLength : Int
-                    prefixOperatorLength =
-                        2 + String.length allowedOperatorToken
-                in
-                ParserFast.symbolWithEndLocation
-                    (allowedOperatorToken ++ ")")
-                    (\end ->
-                        { comments = Rope.empty
-                        , syntax =
-                            Node { start = { row = end.row, column = end.column - prefixOperatorLength }, end = end }
-                                (PrefixOperator allowedOperatorToken)
-                        }
-                    )
-            )
+allowedPrefixOperatorFollowedByClosingParensOneOf : Parser (WithComments (Node Expression))
+allowedPrefixOperatorFollowedByClosingParensOneOf =
+    ParserFast.whileWithoutLinebreakAnd2PartUtf16ValidateMapWithRangeFollowedBySymbol
+        (\operatorRange operator ->
+            { comments = Rope.empty
+            , syntax =
+                Node
+                    { start = { row = operatorRange.start.row, column = operatorRange.start.column - 1 }
+                    , end = { row = operatorRange.end.row, column = operatorRange.end.column + 1 }
+                    }
+                    (PrefixOperator operator)
+            }
+        )
+        Tokens.isOperatorSymbolChar
+        Tokens.isAllowedOperatorToken
+        ")"
 
 
 tupledExpressionInnerAfterOpeningParens : Parser (WithComments (Node Expression))

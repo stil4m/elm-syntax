@@ -1,12 +1,12 @@
 module ParserFast exposing
     ( Parser, run
-    , floatOrIntegerDecimalOrHexadecimalMapWithRange, integerDecimalMapWithRange, integerDecimalOrHexadecimalMapWithRange, symbol, symbolWithEndLocation, symbolWithRange, symbolFollowedBy, symbolBacktrackableFollowedBy, followedBySymbol, keyword, keywordFollowedBy, while, whileWithoutLinebreak, whileMap, ifFollowedByWhileWithoutLinebreak, ifFollowedByWhileMapWithoutLinebreak, ifFollowedByWhileMapWithRangeWithoutLinebreak, ifFollowedByWhileValidateWithoutLinebreak, ifFollowedByWhileValidateMapWithRangeWithoutLinebreak, anyChar
-    , succeed, problem, lazy, map, map2, map2WithStartLocation, map2WithRange, map3, map3WithStartLocation, map3WithRange, map4, map4WithRange, map5, map5WithStartLocation, map5WithRange, map6, map6WithStartLocation, map6WithRange, map7, map7WithRange, map8WithStartLocation, map9WithRange, validate
+    , floatOrIntegerDecimalOrHexadecimalMapWithRange, integerDecimalMapWithRange, integerDecimalOrHexadecimalMapWithRange, symbol, symbolWithEndLocation, symbolWithRange, symbolFollowedBy, symbolBacktrackableFollowedBy, followedBySymbol, keyword, keywordFollowedBy, while, whileWithoutLinebreak, whileMap, ifFollowedByWhileWithoutLinebreak, ifFollowedByWhileMapWithoutLinebreak, ifFollowedByWhileMapWithRangeWithoutLinebreak, ifFollowedByWhileValidateWithoutLinebreak, ifFollowedByWhileValidateMapWithRangeWithoutLinebreak, whileWithoutLinebreakAnd2PartUtf16ValidateMapWithRangeFollowedBySymbol, anyChar
+    , problem, lazy, map, map2, map2WithStartLocation, map2WithRange, map3, map3WithStartLocation, map3WithRange, map4, map4WithRange, map5, map5WithStartLocation, map5WithRange, map6, map6WithStartLocation, map6WithRange, map7, map7WithRange, map8WithStartLocation, map9WithRange, validate
     , orSucceed, mapOrSucceed, map2OrSucceed, map2WithRangeOrSucceed, map3OrSucceed, map4OrSucceed, oneOf2, oneOf2Map, oneOf2MapWithStartRowColumnAndEndRowColumn, oneOf2OrSucceed, oneOf3, oneOf4, oneOf5, oneOf7, oneOf10, oneOf14, oneOf
     , loopWhileSucceeds, loopUntil
     , chompWhileWhitespaceFollowedBy, followedByChompWhileWhitespace, nestableMultiCommentMapWithRange
     , withIndentSetToColumn, withIndentSetToColumnMinus, columnIndentAndThen, validateEndColumnIndentation, validateEndColumnIndentationBacktrackable
-    , mapWithRange, columnAndThen, offsetSourceAndThen
+    , mapWithRange, columnAndThen, offsetSourceAndThen, offsetSourceAndThenOrSucceed
     , withIndent
     )
 
@@ -14,12 +14,12 @@ module ParserFast exposing
 
 @docs Parser, run
 
-@docs floatOrIntegerDecimalOrHexadecimalMapWithRange, integerDecimalMapWithRange, integerDecimalOrHexadecimalMapWithRange, symbol, symbolWithEndLocation, symbolWithRange, symbolFollowedBy, symbolBacktrackableFollowedBy, followedBySymbol, keyword, keywordFollowedBy, while, whileWithoutLinebreak, whileMap, ifFollowedByWhileWithoutLinebreak, ifFollowedByWhileMapWithoutLinebreak, ifFollowedByWhileMapWithRangeWithoutLinebreak, ifFollowedByWhileValidateWithoutLinebreak, ifFollowedByWhileValidateMapWithRangeWithoutLinebreak, anyChar
+@docs floatOrIntegerDecimalOrHexadecimalMapWithRange, integerDecimalMapWithRange, integerDecimalOrHexadecimalMapWithRange, symbol, symbolWithEndLocation, symbolWithRange, symbolFollowedBy, symbolBacktrackableFollowedBy, followedBySymbol, keyword, keywordFollowedBy, while, whileWithoutLinebreak, whileMap, ifFollowedByWhileWithoutLinebreak, ifFollowedByWhileMapWithoutLinebreak, ifFollowedByWhileMapWithRangeWithoutLinebreak, ifFollowedByWhileValidateWithoutLinebreak, ifFollowedByWhileValidateMapWithRangeWithoutLinebreak, whileWithoutLinebreakAnd2PartUtf16ValidateMapWithRangeFollowedBySymbol, anyChar
 
 
 # Flow
 
-@docs succeed, problem, lazy, map, map2, map2WithStartLocation, map2WithRange, map3, map3WithStartLocation, map3WithRange, map4, map4WithRange, map5, map5WithStartLocation, map5WithRange, map6, map6WithStartLocation, map6WithRange, map7, map7WithRange, map8WithStartLocation, map9WithRange, validate
+@docs problem, lazy, map, map2, map2WithStartLocation, map2WithRange, map3, map3WithStartLocation, map3WithRange, map4, map4WithRange, map5, map5WithStartLocation, map5WithRange, map6, map6WithStartLocation, map6WithRange, map7, map7WithRange, map8WithStartLocation, map9WithRange, validate
 
 Choice: parsing JSON for example, the values can be strings, floats, booleans,
 arrays, objects, or null. You need a way to pick one of them! Here is a
@@ -59,7 +59,7 @@ characters. Once a path is chosen, it does not come back and try the others.
 # Indentation, Locations and source
 
 @docs withIndentSetToColumn, withIndentSetToColumnMinus, columnIndentAndThen, validateEndColumnIndentation, validateEndColumnIndentationBacktrackable
-@docs mapWithRange, columnAndThen, offsetSourceAndThen
+@docs mapWithRange, columnAndThen, offsetSourceAndThen, offsetSourceAndThenOrSucceed
 
 
 # test-only
@@ -185,25 +185,6 @@ ropeFilledToList problemToConvert soFar =
 
         ExpectingNonEmptyOneOf row col () ->
             { row = row, col = col, problem = Parser.Problem "expecting oneOf list to have at least one member" } :: soFar
-
-
-{-| A parser that succeeds without chomping any characters.
-
-    run (succeed 90210) "mississippi" == Ok 90210
-
-    run (succeed 3.141) "mississippi" == Ok 3.141
-
-    run (succeed ()) "mississippi" == Ok ()
-
-    run (succeed Nothing) "mississippi" == Ok Nothing
-
-Sometimes useful in combination with -andThen helpers,
-though there are usually alternatives like the -orSucceed versions to consider first.
-
--}
-succeed : a -> Parser a
-succeed a =
-    Parser (\s -> Good False a s)
 
 
 {-| Helper to delay computation,
@@ -371,6 +352,19 @@ offsetSourceAndThen callback =
                     callback s.offset s.src
             in
             parse s
+        )
+
+
+offsetSourceAndThenOrSucceed : (Int -> String -> Maybe (Parser a)) -> a -> Parser a
+offsetSourceAndThenOrSucceed callback fallback =
+    Parser
+        (\s ->
+            case callback s.offset s.src of
+                Nothing ->
+                    Good True fallback s
+
+                Just (Parser parse) ->
+                    parse s
         )
 
 
@@ -2793,7 +2787,7 @@ whileMap isGood chompedStringToRes =
                 s1 =
                     chompWhileHelp isGood s0.offset s0.row s0.col s0.src s0.indent
             in
-            Good (s1.offset > s0.offset)
+            Good True
                 (chompedStringToRes (String.slice s0.offset s1.offset s0.src))
                 s1
         )
@@ -2856,6 +2850,15 @@ chompWhileWithoutLinebreakHelp isGood offset row col src indent =
         , row = row
         , col = col
         }
+
+
+chompWhileWithoutLinebreakAnd2PartUtf16Help : (Char -> Bool) -> Int -> String -> Int
+chompWhileWithoutLinebreakAnd2PartUtf16Help isGood offset src =
+    if String.any isGood (String.slice offset (offset + 1) src) then
+        chompWhileWithoutLinebreakAnd2PartUtf16Help isGood (offset + 1) src
+
+    else
+        offset
 
 
 followedByChompWhileWhitespace : Parser before -> Parser before
@@ -3042,6 +3045,60 @@ ifFollowedByWhileValidateWithoutLinebreak firstIsOkay afterFirstIsOkay resultIsO
         )
 
 
+whileWithoutLinebreakAnd2PartUtf16ValidateMapWithRangeFollowedBySymbol : (Range -> String -> res) -> (Char -> Bool) -> (String -> Bool) -> String -> Parser res
+whileWithoutLinebreakAnd2PartUtf16ValidateMapWithRangeFollowedBySymbol whileRangeAndContentToRes whileCharIsOkay whileResultIsOkay mandatoryFinalSymbol =
+    let
+        mandatoryFinalSymbolLength : Int
+        mandatoryFinalSymbolLength =
+            String.length mandatoryFinalSymbol
+    in
+    Parser
+        (\s0 ->
+            let
+                s1Offset : Int
+                s1Offset =
+                    chompWhileWithoutLinebreakAnd2PartUtf16Help
+                        whileCharIsOkay
+                        s0.offset
+                        s0.src
+
+                whileContent : String
+                whileContent =
+                    String.slice s0.offset s1Offset s0.src
+            in
+            if
+                (String.slice s1Offset (s1Offset + mandatoryFinalSymbolLength) s0.src
+                    == (mandatoryFinalSymbol ++ "")
+                )
+                    && whileResultIsOkay whileContent
+            then
+                let
+                    s1Column : Int
+                    s1Column =
+                        s0.col + (s1Offset - s0.offset)
+
+                    _ =
+                        Debug.log "operator s0.col" s0.col
+                in
+                Good True
+                    (whileRangeAndContentToRes
+                        { start = { row = s0.row, column = s0.col }
+                        , end = { row = s0.row, column = s1Column }
+                        }
+                        whileContent
+                    )
+                    { src = s0.src
+                    , offset = s1Offset + mandatoryFinalSymbolLength
+                    , indent = s0.indent
+                    , row = s0.row
+                    , col = s1Column + mandatoryFinalSymbolLength
+                    }
+
+            else
+                Bad False (ExpectingStringSatisfyingPredicate s0.row (s0.col + 1) ()) ()
+        )
+
+
 ifFollowedByWhileValidateMapWithRangeWithoutLinebreak :
     (Range -> String -> res)
     -> (Char -> Bool)
@@ -3225,7 +3282,7 @@ while isGood =
                 s1 =
                     chompWhileHelp isGood s0.offset s0.row s0.col s0.src s0.indent
             in
-            Good (s1.offset > s0.offset)
+            Good True
                 (String.slice s0.offset s1.offset s0.src)
                 s1
         )
@@ -3240,7 +3297,7 @@ whileWithoutLinebreak isGood =
                 s1 =
                     chompWhileWithoutLinebreakHelp isGood s0.offset s0.row s0.col s0.src s0.indent
             in
-            Good (s1.offset > s0.offset)
+            Good True
                 (String.slice s0.offset s1.offset s0.src)
                 s1
         )
