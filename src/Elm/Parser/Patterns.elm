@@ -271,7 +271,7 @@ qualifiedPatternWithConsumeArgs =
                         (Node lastArgRange _) :: _ ->
                             { start = nameRange.start, end = lastArgRange.end }
             in
-            { comments = argsReverse.comments
+            { comments = afterStartName |> Rope.prependTo argsReverse.comments
             , syntax =
                 Node range
                     (NamedPattern
