@@ -1883,7 +1883,7 @@ integerDecimalMapWithRange rangeAndIntToRes =
 
 -}
 integerDecimalOrHexadecimalMapWithRange : (Range -> Int -> res) -> (Range -> Int -> res) -> Parser res
-integerDecimalOrHexadecimalMapWithRange rangeAndIntDecmialToRes rangeAndIntHexadecimalToRes =
+integerDecimalOrHexadecimalMapWithRange rangeAndIntDecimalToRes rangeAndIntHexadecimalToRes =
     Parser
         (\s0 ->
             let
@@ -1909,7 +1909,7 @@ integerDecimalOrHexadecimalMapWithRange rangeAndIntDecmialToRes rangeAndIntHexad
                 Good
                     (case s1.base of
                         Decimal ->
-                            rangeAndIntDecmialToRes range s1.offsetAndInt.int
+                            rangeAndIntDecimalToRes range s1.offsetAndInt.int
 
                         Hexadecimal ->
                             rangeAndIntHexadecimalToRes range s1.offsetAndInt.int
@@ -3201,7 +3201,7 @@ ifFollowedByWhileMapWithoutLinebreak consumedStringToRes firstIsOkay afterFirstI
         )
 
 
-{-| Parse multi-line comments that can itself contain other arbirary multi-comments inside.
+{-| Parse multi-line comments that can itself contain other arbitrary multi-comments inside.
 -}
 nestableMultiCommentMapWithRange : (Range -> String -> res) -> ( Char, String ) -> ( Char, String ) -> Parser res
 nestableMultiCommentMapWithRange rangeContentToRes ( openChar, openTail ) ( closeChar, closeTail ) =
