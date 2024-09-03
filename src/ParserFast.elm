@@ -4,11 +4,11 @@ module ParserFast exposing
     , keyword, keywordFollowedBy
     , anyChar, while, whileWithoutLinebreak, whileMap, ifFollowedByWhileWithoutLinebreak, ifFollowedByWhileMapWithoutLinebreak, ifFollowedByWhileMapWithRangeWithoutLinebreak, ifFollowedByWhileValidateWithoutLinebreak, ifFollowedByWhileValidateMapWithRangeWithoutLinebreak, whileWithoutLinebreakAnd2PartUtf16ValidateMapWithRangeFollowedBySymbol
     , integerDecimalMapWithRange, integerDecimalOrHexadecimalMapWithRange, floatOrIntegerDecimalOrHexadecimalMapWithRange
+    , skipWhileWhitespaceFollowedBy, followedBySkipWhileWhitespace, nestableMultiCommentMapWithRange
     , map, validate, lazy
     , map2, map2WithStartLocation, map2WithRange, map3, map3WithStartLocation, map3WithRange, map4, map4WithRange, map5, map5WithStartLocation, map5WithRange, map6, map6WithStartLocation, map6WithRange, map7WithRange, map8WithStartLocation, map9WithRange
     , loopWhileSucceeds, loopUntil
     , orSucceed, mapOrSucceed, map2OrSucceed, map2WithRangeOrSucceed, map3OrSucceed, map4OrSucceed, oneOf2, oneOf2Map, oneOf2MapWithStartRowColumnAndEndRowColumn, oneOf2OrSucceed, oneOf3, oneOf4, oneOf5, oneOf7, oneOf10, oneOf14, oneOf
-    , chompWhileWhitespaceFollowedBy, followedByChompWhileWhitespace, nestableMultiCommentMapWithRange
     , withIndentSetToColumn, withIndentSetToColumnMinus, columnIndentAndThen, validateEndColumnIndentation
     , mapWithRange, columnAndThen, offsetSourceAndThen, offsetSourceAndThenOrSucceed
     , problem
@@ -30,7 +30,7 @@ You might however run into unintuitive behavior with e.g. whitespace (which comm
 
     ParserFast.symbolFollowedBy "("
         (ParserFast.oneOf2
-            (ParserFast.chompWhileWhitespaceFollowedBy
+            (ParserFast.skipWhileWhitespaceFollowedBy
                 parenthesizedAfterOpeningParens
             )
             (ParserFast.symbol ")" Unit)
@@ -44,13 +44,15 @@ fails (without committing).
 With `ParserFast`, you need to either
 
   - check for `)` first. This should be preferred in >90% of cases
-  - _add_ a `chompWhileWhitespaceBacktracksIfEmptyFollowedBy` in this module with something like
+
+  - _add_ a `skipWhileWhitespaceBacktracksIfEmptyFollowedBy` in this module with something like
 
         if s1.offset > s0.offset then
             parseNext s1 |> pStepCommit
 
         else
             parseNext s1
+
   - if applicable/feasible in that situation,
     build a whitespace parser that always ignores at least one character
 
@@ -68,9 +70,11 @@ With `ParserFast`, you need to either
 @docs anyChar, while, whileWithoutLinebreak, whileMap, ifFollowedByWhileWithoutLinebreak, ifFollowedByWhileMapWithoutLinebreak, ifFollowedByWhileMapWithRangeWithoutLinebreak, ifFollowedByWhileValidateWithoutLinebreak, ifFollowedByWhileValidateMapWithRangeWithoutLinebreak, whileWithoutLinebreakAnd2PartUtf16ValidateMapWithRangeFollowedBySymbol
 @docs integerDecimalMapWithRange, integerDecimalOrHexadecimalMapWithRange, floatOrIntegerDecimalOrHexadecimalMapWithRange
 
+
 # Whitespace primitives
 
-@docs chompWhileWhitespaceFollowedBy, followedByChompWhileWhitespace, nestableMultiCommentMapWithRange
+@docs skipWhileWhitespaceFollowedBy, followedBySkipWhileWhitespace, nestableMultiCommentMapWithRange
+
 
 # Flow
 
@@ -265,14 +269,14 @@ That means we will want to define our parser in terms of itself:
             (ParserFast.keyword "false" MyFalse)
             (ParserFast.symbolFollowedBy "("
                 (ParserFast.map2 MyOr
-                    (ParserFast.chompWhileWhitespaceFollowedBy
+                    (ParserFast.skipWhileWhitespaceFollowedBy
                         (ParserFast.lazy (\_ -> boolean))
-                        |> ParserFast.followedByChompWhileWhitespace
+                        |> ParserFast.followedBySkipWhileWhitespace
                         |> ParserFast.followedBySymbol "||"
-                        |> ParserFast.followedByChompWhileWhitespace
+                        |> ParserFast.followedBySkipWhileWhitespace
                     )
                     (ParserFast.lazy (\_ -> boolean)
-                        |> ParserFast.followedByChompWhileWhitespace
+                        |> ParserFast.followedBySkipWhileWhitespace
                     )
                 )
                 |> ParserFast.followedBySymbol ")"
@@ -368,7 +372,7 @@ validateEndColumnIndentation isOkay problemOnIsNotOkay (Parser parse) =
 
 {-| Editors think of code as a grid, but behind the scenes it is just a flat
 array of UTF-16 characters. `getOffset` tells you your index in that flat
-array. So if you chomp `"\n\n\n\n"` you are on row 5, column 1, and offset 4.
+array. So if you consume `"\n\n\n\n"` you are on row 5, column 1, and offset 4.
 
 **Note:** JavaScript uses a somewhat odd version of UTF-16 strings, so a single
 character may take two slots. So in JavaScript, `'abc'.length === 3` but
@@ -2764,22 +2768,22 @@ charStringIsUtf16HighSurrogate charString =
 
 
 whileMap : (Char -> Bool) -> (String -> res) -> Parser res
-whileMap isGood chompedStringToRes =
+whileMap isGood consumedStringToRes =
     Parser
         (\s0 ->
             let
                 s1 : State
                 s1 =
-                    chompWhileHelp isGood s0.offset s0.row s0.col s0.src s0.indent
+                    skipWhileHelp isGood s0.offset s0.row s0.col s0.src s0.indent
             in
             Good
-                (chompedStringToRes (String.slice s0.offset s1.offset s0.src))
+                (consumedStringToRes (String.slice s0.offset s1.offset s0.src))
                 s1
         )
 
 
-chompWhileHelp : (Char -> Bool) -> Int -> Int -> Int -> String -> Int -> State
-chompWhileHelp isGood offset row col src indent =
+skipWhileHelp : (Char -> Bool) -> Int -> Int -> Int -> String -> Int -> State
+skipWhileHelp isGood offset row col src indent =
     let
         actualChar : String
         actualChar =
@@ -2788,17 +2792,17 @@ chompWhileHelp isGood offset row col src indent =
     if String.any isGood actualChar then
         case actualChar of
             "\n" ->
-                chompWhileHelp isGood (offset + 1) (row + 1) 1 src indent
+                skipWhileHelp isGood (offset + 1) (row + 1) 1 src indent
 
             _ ->
-                chompWhileHelp isGood (offset + 1) row (col + 1) src indent
+                skipWhileHelp isGood (offset + 1) row (col + 1) src indent
 
     else if
         charStringIsUtf16HighSurrogate actualChar
             && -- String.any iterates over code points (so here just one Char)
                String.any isGood (String.slice offset (offset + 2) src)
     then
-        chompWhileHelp isGood (offset + 2) row (col + 1) src indent
+        skipWhileHelp isGood (offset + 2) row (col + 1) src indent
 
     else
         -- no match
@@ -2810,22 +2814,22 @@ chompWhileHelp isGood offset row col src indent =
         }
 
 
-chompWhileWithoutLinebreakHelp : (Char -> Bool) -> Int -> Int -> Int -> String -> Int -> State
-chompWhileWithoutLinebreakHelp isGood offset row col src indent =
+skipWhileWithoutLinebreakHelp : (Char -> Bool) -> Int -> Int -> Int -> String -> Int -> State
+skipWhileWithoutLinebreakHelp isGood offset row col src indent =
     let
         actualChar : String
         actualChar =
             String.slice offset (offset + 1) src
     in
     if String.any isGood actualChar then
-        chompWhileWithoutLinebreakHelp isGood (offset + 1) row (col + 1) src indent
+        skipWhileWithoutLinebreakHelp isGood (offset + 1) row (col + 1) src indent
 
     else if
         charStringIsUtf16HighSurrogate actualChar
             && -- String.any iterates over code points (so here just one Char)
                String.any isGood (String.slice offset (offset + 2) src)
     then
-        chompWhileWithoutLinebreakHelp isGood (offset + 2) row (col + 1) src indent
+        skipWhileWithoutLinebreakHelp isGood (offset + 2) row (col + 1) src indent
 
     else
         -- no match
@@ -2837,17 +2841,17 @@ chompWhileWithoutLinebreakHelp isGood offset row col src indent =
         }
 
 
-chompWhileWithoutLinebreakAnd2PartUtf16Help : (Char -> Bool) -> Int -> String -> Int
-chompWhileWithoutLinebreakAnd2PartUtf16Help isGood offset src =
+skipWhileWithoutLinebreakAnd2PartUtf16Help : (Char -> Bool) -> Int -> String -> Int
+skipWhileWithoutLinebreakAnd2PartUtf16Help isGood offset src =
     if String.any isGood (String.slice offset (offset + 1) src) then
-        chompWhileWithoutLinebreakAnd2PartUtf16Help isGood (offset + 1) src
+        skipWhileWithoutLinebreakAnd2PartUtf16Help isGood (offset + 1) src
 
     else
         offset
 
 
-followedByChompWhileWhitespace : Parser before -> Parser before
-followedByChompWhileWhitespace (Parser parseBefore) =
+followedBySkipWhileWhitespace : Parser before -> Parser before
+followedBySkipWhileWhitespace (Parser parseBefore) =
     Parser
         (\s0 ->
             case parseBefore s0 of
@@ -2855,7 +2859,7 @@ followedByChompWhileWhitespace (Parser parseBefore) =
                     let
                         s2 : State
                         s2 =
-                            chompWhileWhitespaceHelp s1.offset s1.row s1.col s1.src s1.indent
+                            skipWhileWhitespaceHelp s1.offset s1.row s1.col s1.src s1.indent
                     in
                     Good res s2
 
@@ -2866,30 +2870,30 @@ followedByChompWhileWhitespace (Parser parseBefore) =
 
 {-| Match zero or more \\n, \\r and space characters, then proceed with the given parser
 -}
-chompWhileWhitespaceFollowedBy : Parser next -> Parser next
-chompWhileWhitespaceFollowedBy (Parser parseNext) =
+skipWhileWhitespaceFollowedBy : Parser next -> Parser next
+skipWhileWhitespaceFollowedBy (Parser parseNext) =
     Parser
         (\s0 ->
             let
                 s1 : State
                 s1 =
-                    chompWhileWhitespaceHelp s0.offset s0.row s0.col s0.src s0.indent
+                    skipWhileWhitespaceHelp s0.offset s0.row s0.col s0.src s0.indent
             in
             parseNext s1 |> pStepCommit
         )
 
 
-chompWhileWhitespaceHelp : Int -> Int -> Int -> String -> Int -> State
-chompWhileWhitespaceHelp offset row col src indent =
+skipWhileWhitespaceHelp : Int -> Int -> Int -> String -> Int -> State
+skipWhileWhitespaceHelp offset row col src indent =
     case String.slice offset (offset + 1) src of
         " " ->
-            chompWhileWhitespaceHelp (offset + 1) row (col + 1) src indent
+            skipWhileWhitespaceHelp (offset + 1) row (col + 1) src indent
 
         "\n" ->
-            chompWhileWhitespaceHelp (offset + 1) (row + 1) 1 src indent
+            skipWhileWhitespaceHelp (offset + 1) (row + 1) 1 src indent
 
         "\u{000D}" ->
-            chompWhileWhitespaceHelp (offset + 1) row (col + 1) src indent
+            skipWhileWhitespaceHelp (offset + 1) row (col + 1) src indent
 
         -- empty or non-whitespace
         _ ->
@@ -3011,7 +3015,7 @@ ifFollowedByWhileValidateWithoutLinebreak firstIsOkay afterFirstIsOkay resultIsO
                 let
                     s1 : State
                     s1 =
-                        chompWhileWithoutLinebreakHelp afterFirstIsOkay firstOffset s.row (s.col + 1) s.src s.indent
+                        skipWhileWithoutLinebreakHelp afterFirstIsOkay firstOffset s.row (s.col + 1) s.src s.indent
 
                     name : String
                     name =
@@ -3037,7 +3041,7 @@ whileWithoutLinebreakAnd2PartUtf16ValidateMapWithRangeFollowedBySymbol whileRang
             let
                 s1Offset : Int
                 s1Offset =
-                    chompWhileWithoutLinebreakAnd2PartUtf16Help
+                    skipWhileWithoutLinebreakAnd2PartUtf16Help
                         whileCharIsOkay
                         s0.offset
                         s0.src
@@ -3097,7 +3101,7 @@ ifFollowedByWhileValidateMapWithRangeWithoutLinebreak toResult firstIsOkay after
                 let
                     s1 : State
                     s1 =
-                        chompWhileWithoutLinebreakHelp afterFirstIsOkay firstOffset s0.row (s0.col + 1) s0.src s0.indent
+                        skipWhileWithoutLinebreakHelp afterFirstIsOkay firstOffset s0.row (s0.col + 1) s0.src s0.indent
 
                     name : String
                     name =
@@ -3130,7 +3134,7 @@ ifFollowedByWhileWithoutLinebreak firstIsOkay afterFirstIsOkay =
                 let
                     s1 : State
                     s1 =
-                        chompWhileWithoutLinebreakHelp afterFirstIsOkay firstOffset s.row (s.col + 1) s.src s.indent
+                        skipWhileWithoutLinebreakHelp afterFirstIsOkay firstOffset s.row (s.col + 1) s.src s.indent
                 in
                 Good (String.slice s.offset s1.offset s.src) s1
         )
@@ -3141,7 +3145,7 @@ ifFollowedByWhileMapWithRangeWithoutLinebreak :
     -> (Char -> Bool)
     -> (Char -> Bool)
     -> Parser res
-ifFollowedByWhileMapWithRangeWithoutLinebreak rangeAndChompedToRes firstIsOkay afterFirstIsOkay =
+ifFollowedByWhileMapWithRangeWithoutLinebreak rangeAndConsumedStringToRes firstIsOkay afterFirstIsOkay =
     Parser
         (\s0 ->
             let
@@ -3156,10 +3160,10 @@ ifFollowedByWhileMapWithRangeWithoutLinebreak rangeAndChompedToRes firstIsOkay a
                 let
                     s1 : State
                     s1 =
-                        chompWhileWithoutLinebreakHelp afterFirstIsOkay firstOffset s0.row (s0.col + 1) s0.src s0.indent
+                        skipWhileWithoutLinebreakHelp afterFirstIsOkay firstOffset s0.row (s0.col + 1) s0.src s0.indent
                 in
                 Good
-                    (rangeAndChompedToRes
+                    (rangeAndConsumedStringToRes
                         { start = { row = s0.row, column = s0.col }
                         , end = { row = s1.row, column = s1.col }
                         }
@@ -3174,7 +3178,7 @@ ifFollowedByWhileMapWithoutLinebreak :
     -> (Char -> Bool)
     -> (Char -> Bool)
     -> Parser res
-ifFollowedByWhileMapWithoutLinebreak chompedToRes firstIsOkay afterFirstIsOkay =
+ifFollowedByWhileMapWithoutLinebreak consumedStringToRes firstIsOkay afterFirstIsOkay =
     Parser
         (\s0 ->
             let
@@ -3189,10 +3193,10 @@ ifFollowedByWhileMapWithoutLinebreak chompedToRes firstIsOkay afterFirstIsOkay =
                 let
                     s1 : State
                     s1 =
-                        chompWhileWithoutLinebreakHelp afterFirstIsOkay firstOffset s0.row (s0.col + 1) s0.src s0.indent
+                        skipWhileWithoutLinebreakHelp afterFirstIsOkay firstOffset s0.row (s0.col + 1) s0.src s0.indent
                 in
                 Good
-                    (chompedToRes (String.slice s0.offset s1.offset s0.src))
+                    (consumedStringToRes (String.slice s0.offset s1.offset s0.src))
                     s1
         )
 
@@ -3230,7 +3234,7 @@ nestableMultiCommentMapWithRange rangeContentToRes ( openChar, openTail ) ( clos
                 (oneOf3
                     (symbol close ( close, -1 ))
                     (symbol open ( open, 1 ))
-                    (anyCharFollowedByWhileMap (\chomped -> ( chomped, 0 ))
+                    (anyCharFollowedByWhileMap (\consumed -> ( consumed, 0 ))
                         isNotRelevant
                     )
                 )
@@ -3257,7 +3261,7 @@ while isGood =
             let
                 s1 : State
                 s1 =
-                    chompWhileHelp isGood s0.offset s0.row s0.col s0.src s0.indent
+                    skipWhileHelp isGood s0.offset s0.row s0.col s0.src s0.indent
             in
             Good
                 (String.slice s0.offset s1.offset s0.src)
@@ -3272,7 +3276,7 @@ whileWithoutLinebreak isGood =
             let
                 s1 : State
                 s1 =
-                    chompWhileWithoutLinebreakHelp isGood s0.offset s0.row s0.col s0.src s0.indent
+                    skipWhileWithoutLinebreakHelp isGood s0.offset s0.row s0.col s0.src s0.indent
             in
             Good
                 (String.slice s0.offset s1.offset s0.src)
@@ -3284,7 +3288,7 @@ anyCharFollowedByWhileMap :
     (String -> res)
     -> (Char -> Bool)
     -> Parser res
-anyCharFollowedByWhileMap chompedStringToRes afterFirstIsOkay =
+anyCharFollowedByWhileMap consumedStringToRes afterFirstIsOkay =
     Parser
         (\s ->
             let
@@ -3301,12 +3305,12 @@ anyCharFollowedByWhileMap chompedStringToRes afterFirstIsOkay =
                     s1 : State
                     s1 =
                         if firstOffset == -2 then
-                            chompWhileHelp afterFirstIsOkay (s.offset + 1) (s.row + 1) 1 s.src s.indent
+                            skipWhileHelp afterFirstIsOkay (s.offset + 1) (s.row + 1) 1 s.src s.indent
 
                         else
-                            chompWhileHelp afterFirstIsOkay firstOffset s.row (s.col + 1) s.src s.indent
+                            skipWhileHelp afterFirstIsOkay firstOffset s.row (s.col + 1) s.src s.indent
                 in
-                Good (chompedStringToRes (String.slice s.offset s1.offset s.src)) s1
+                Good (consumedStringToRes (String.slice s.offset s1.offset s.src)) s1
         )
 
 
@@ -3352,9 +3356,9 @@ repeated structures, like a bunch of statements:
         orSucceed
             (ParserFast.map Just
                 (statement
-                    |> ParserFast.followedByChompWhileWhitespace
+                    |> ParserFast.followedBySkipWhileWhitespace
                     |> ParserFast.followedBySymbol ";"
-                    |> ParserFast.followedByChompWhileWhitespace
+                    |> ParserFast.followedBySkipWhileWhitespace
                 )
             )
             Nothing

@@ -20,7 +20,7 @@ import Rope
 
 whitespaceAndCommentsOrEmpty : Parser Comments
 whitespaceAndCommentsOrEmpty =
-    ParserFast.chompWhileWhitespaceFollowedBy
+    ParserFast.skipWhileWhitespaceFollowedBy
         -- whitespace can't be followed by more whitespace
         --
         -- since comments are comparatively rare
@@ -49,7 +49,7 @@ fromMultilineCommentNodeOrEmptyOnProblem =
             Rope.one comment |> Rope.filledPrependTo commentsAfter
         )
         (Comments.multilineComment
-            |> ParserFast.followedByChompWhileWhitespace
+            |> ParserFast.followedBySkipWhileWhitespace
         )
         whitespaceAndCommentsOrEmptyLoop
         Rope.empty
@@ -62,7 +62,7 @@ fromSingleLineCommentNode =
             Rope.one content |> Rope.filledPrependTo commentsAfter
         )
         (Comments.singleLineComment
-            |> ParserFast.followedByChompWhileWhitespace
+            |> ParserFast.followedBySkipWhileWhitespace
         )
         whitespaceAndCommentsOrEmptyLoop
 
@@ -73,7 +73,7 @@ whitespaceAndCommentsOrEmptyLoop =
         (ParserFast.oneOf2
             Comments.singleLineComment
             Comments.multilineComment
-            |> ParserFast.followedByChompWhileWhitespace
+            |> ParserFast.followedBySkipWhileWhitespace
         )
         Rope.empty
         (\right soFar -> soFar |> Rope.prependToFilled (Rope.one right))
