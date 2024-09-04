@@ -1,7 +1,7 @@
 module Elm.Parser.Tokens exposing
     ( inToken
     , equal, parensEnd
-    , prefixOperatorToken, isAllowedOperatorToken, isOperatorSymbolChar
+    , isAllowedOperatorToken, isOperatorSymbolChar
     , characterLiteralMapWithRange, singleOrTripleQuotedStringLiteralMapWithRange
     , functionName, functionNameNode, functionNameMapWithRange, functionNameNotInfixNode, typeName, typeNameNode, typeNameMapWithRange
     )
@@ -11,7 +11,7 @@ module Elm.Parser.Tokens exposing
 @docs inToken
 
 @docs equal, parensEnd
-@docs prefixOperatorToken, isAllowedOperatorToken, isOperatorSymbolChar
+@docs isAllowedOperatorToken, isOperatorSymbolChar
 
 @docs characterLiteralMapWithRange, singleOrTripleQuotedStringLiteralMapWithRange
 @docs functionName, functionNameNode, functionNameMapWithRange, functionNameNotInfixNode, typeName, typeNameNode, typeNameMapWithRange
@@ -398,14 +398,6 @@ isAllowedOperatorToken operatorCandidateToValidate =
 
         _ ->
             False
-
-
-prefixOperatorToken : ParserFast.Parser String
-prefixOperatorToken =
-    ParserFast.ifFollowedByWhileValidateWithoutLinebreak
-        isOperatorSymbolChar
-        isOperatorSymbolChar
-        isAllowedOperatorToken
 
 
 isOperatorSymbolChar : Char -> Bool
