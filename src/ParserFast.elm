@@ -132,14 +132,14 @@ import Parser exposing (Problem(..))
 
 
 type Problem
-    = ExpectingNumber Int Int ()
+    = ExpectingNumber Int Int
     | ExpectingSymbol Int Int String
-    | ExpectingAnyChar Int Int ()
+    | ExpectingAnyChar Int Int
     | ExpectingKeyword Int Int String
-    | ExpectingCharSatisfyingPredicate Int Int ()
-    | ExpectingStringSatisfyingPredicate Int Int ()
+    | ExpectingCharSatisfyingPredicate Int Int
+    | ExpectingStringSatisfyingPredicate Int Int
     | ExpectingCustom Int Int String
-    | ExpectingNonEmptyOneOf Int Int ()
+    | ExpectingNonEmptyOneOf Int Int
     | ExpectingOneOf Problem Problem (List Problem)
 
 
@@ -216,28 +216,28 @@ ropeFilledToList problemToConvert soFar =
                 |> ropeFilledToList secondTry
                 |> ropeFilledToList firstTry
 
-        ExpectingNumber row col () ->
+        ExpectingNumber row col ->
             { row = row, col = col, problem = Parser.ExpectingNumber } :: soFar
 
         ExpectingSymbol row col symbolString ->
             { row = row, col = col, problem = Parser.ExpectingSymbol symbolString } :: soFar
 
-        ExpectingAnyChar row col () ->
+        ExpectingAnyChar row col ->
             { row = row, col = col, problem = Parser.Problem "expecting any char" } :: soFar
 
         ExpectingKeyword row col keywordString ->
             { row = row, col = col, problem = Parser.ExpectingKeyword keywordString } :: soFar
 
-        ExpectingCharSatisfyingPredicate row col () ->
+        ExpectingCharSatisfyingPredicate row col ->
             { row = row, col = col, problem = Parser.UnexpectedChar } :: soFar
 
-        ExpectingStringSatisfyingPredicate row col () ->
+        ExpectingStringSatisfyingPredicate row col ->
             { row = row, col = col, problem = Parser.Problem "expected string to pass validation" } :: soFar
 
         ExpectingCustom row col customMessage ->
             { row = row, col = col, problem = Parser.Problem customMessage } :: soFar
 
-        ExpectingNonEmptyOneOf row col () ->
+        ExpectingNonEmptyOneOf row col ->
             { row = row, col = col, problem = Parser.Problem "expecting oneOf list to have at least one member" } :: soFar
 
 
@@ -1675,7 +1675,7 @@ oneOf : List (Parser a) -> Parser a
 oneOf possibilities =
     case possibilities of
         [] ->
-            Parser (\s -> Bad False (ExpectingNonEmptyOneOf s.row s.col ()))
+            Parser (\s -> Bad False (ExpectingNonEmptyOneOf s.row s.col))
 
         [ onlyPossibility ] ->
             onlyPossibility
@@ -1839,7 +1839,7 @@ integerDecimalMapWithRange rangeAndIntToRes =
                     convertIntegerDecimal s0.offset s0.src
             in
             if s1.offset == -1 then
-                Bad False (ExpectingNumber s0.row s0.col ())
+                Bad False (ExpectingNumber s0.row s0.col)
 
             else
                 let
@@ -1892,7 +1892,7 @@ integerDecimalOrHexadecimalMapWithRange rangeAndIntDecimalToRes rangeAndIntHexad
                     convertIntegerDecimalOrHexadecimal s0.offset s0.src
             in
             if s1.offsetAndInt.offset == -1 then
-                Bad False (ExpectingNumber s0.row s0.col ())
+                Bad False (ExpectingNumber s0.row s0.col)
 
             else
                 let
@@ -1952,7 +1952,7 @@ floatOrIntegerDecimalOrHexadecimalMapWithRange rangeAndFloatToRes rangeAndIntDec
                     convertIntegerDecimalOrHexadecimal s0.offset s0.src
             in
             if s1.offsetAndInt.offset == -1 then
-                Bad False (ExpectingNumber s0.row s0.col ())
+                Bad False (ExpectingNumber s0.row s0.col)
 
             else
                 let
@@ -2010,7 +2010,7 @@ floatOrIntegerDecimalOrHexadecimalMapWithRange rangeAndFloatToRes rangeAndIntDec
                                 }
 
                         Nothing ->
-                            Bad False (ExpectingNumber s0.row s0.col ())
+                            Bad False (ExpectingNumber s0.row s0.col)
         )
 
 
@@ -2711,7 +2711,7 @@ anyChar =
             in
             if newOffset == -1 then
                 -- end of source
-                Bad False (ExpectingAnyChar s.row s.col ())
+                Bad False (ExpectingAnyChar s.row s.col)
 
             else if newOffset == -2 then
                 -- newline
@@ -2727,7 +2727,7 @@ anyChar =
                 -- found
                 case String.toList (String.slice s.offset newOffset s.src) of
                     [] ->
-                        Bad False (ExpectingAnyChar s.row s.col ())
+                        Bad False (ExpectingAnyChar s.row s.col)
 
                     c :: _ ->
                         Good c
@@ -3009,7 +3009,7 @@ ifFollowedByWhileValidateWithoutLinebreak firstIsOkay afterFirstIsOkay resultIsO
                     isSubCharWithoutLinebreak firstIsOkay s.offset s.src
             in
             if firstOffset == -1 then
-                Bad False (ExpectingCharSatisfyingPredicate s.row s.col ())
+                Bad False (ExpectingCharSatisfyingPredicate s.row s.col)
 
             else
                 let
@@ -3025,7 +3025,7 @@ ifFollowedByWhileValidateWithoutLinebreak firstIsOkay afterFirstIsOkay resultIsO
                     Good name s1
 
                 else
-                    Bad False (ExpectingStringSatisfyingPredicate s.row (s.col + 1) ())
+                    Bad False (ExpectingStringSatisfyingPredicate s.row (s.col + 1))
         )
 
 
@@ -3076,7 +3076,7 @@ whileWithoutLinebreakAnd2PartUtf16ValidateMapWithRangeBacktrackableFollowedBySym
                     }
 
             else
-                Bad False (ExpectingStringSatisfyingPredicate s0.row (s0.col + 1) ())
+                Bad False (ExpectingStringSatisfyingPredicate s0.row (s0.col + 1))
         )
 
 
@@ -3095,7 +3095,7 @@ ifFollowedByWhileValidateMapWithRangeWithoutLinebreak toResult firstIsOkay after
                     isSubCharWithoutLinebreak firstIsOkay s0.offset s0.src
             in
             if firstOffset == -1 then
-                Bad False (ExpectingCharSatisfyingPredicate s0.row s0.col ())
+                Bad False (ExpectingCharSatisfyingPredicate s0.row s0.col)
 
             else
                 let
@@ -3111,7 +3111,7 @@ ifFollowedByWhileValidateMapWithRangeWithoutLinebreak toResult firstIsOkay after
                     Good (toResult { start = { row = s0.row, column = s0.col }, end = { row = s1.row, column = s1.col } } name) s1
 
                 else
-                    Bad False (ExpectingStringSatisfyingPredicate s0.row (s0.col + 1) ())
+                    Bad False (ExpectingStringSatisfyingPredicate s0.row (s0.col + 1))
         )
 
 
@@ -3128,7 +3128,7 @@ ifFollowedByWhileWithoutLinebreak firstIsOkay afterFirstIsOkay =
                     isSubCharWithoutLinebreak firstIsOkay s.offset s.src
             in
             if firstOffset == -1 then
-                Bad False (ExpectingCharSatisfyingPredicate s.row s.col ())
+                Bad False (ExpectingCharSatisfyingPredicate s.row s.col)
 
             else
                 let
@@ -3154,7 +3154,7 @@ ifFollowedByWhileMapWithRangeWithoutLinebreak rangeAndConsumedStringToRes firstI
                     isSubCharWithoutLinebreak firstIsOkay s0.offset s0.src
             in
             if firstOffset == -1 then
-                Bad False (ExpectingCharSatisfyingPredicate s0.row s0.col ())
+                Bad False (ExpectingCharSatisfyingPredicate s0.row s0.col)
 
             else
                 let
@@ -3187,7 +3187,7 @@ ifFollowedByWhileMapWithoutLinebreak consumedStringToRes firstIsOkay afterFirstI
                     isSubCharWithoutLinebreak firstIsOkay s0.offset s0.src
             in
             if firstOffset == -1 then
-                Bad False (ExpectingCharSatisfyingPredicate s0.row s0.col ())
+                Bad False (ExpectingCharSatisfyingPredicate s0.row s0.col)
 
             else
                 let
@@ -3298,7 +3298,7 @@ anyCharFollowedByWhileMap consumedStringToRes afterFirstIsOkay =
             in
             if firstOffset == -1 then
                 -- end of source
-                Bad False (ExpectingAnyChar s.row s.col ())
+                Bad False (ExpectingAnyChar s.row s.col)
 
             else
                 let
