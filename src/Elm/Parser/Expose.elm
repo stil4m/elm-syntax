@@ -20,10 +20,8 @@ exposeDefinition =
             , syntax = Node range exposingListInnerResult.syntax
             }
         )
-        (ParserFast.symbolFollowedBy "exposing"
-            (Layout.maybeLayout |> ParserFast.followedBySymbol "(")
-        )
-        Layout.optimisticLayout
+        (ParserFast.symbolFollowedBy "exposing" Layout.maybeLayout)
+        (ParserFast.symbolFollowedBy "(" Layout.optimisticLayout)
         (exposingListInner
             |> ParserFast.followedBySymbol ")"
         )
@@ -112,10 +110,10 @@ typeExpose =
             (\range left right ->
                 { comments = left |> Rope.prependTo right, syntax = Just range }
             )
-            (ParserFast.symbolFollowedBy "("
-                (Layout.maybeLayout |> ParserFast.followedBySymbol "..")
+            (ParserFast.symbolFollowedBy "(" Layout.maybeLayout)
+            (ParserFast.symbolFollowedBy ".." Layout.maybeLayout
+                |> ParserFast.followedBySymbol ")"
             )
-            (Layout.maybeLayout |> ParserFast.followedBySymbol ")")
             { comments = Rope.empty, syntax = Nothing }
         )
 

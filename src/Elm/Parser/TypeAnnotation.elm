@@ -293,8 +293,8 @@ recordFieldDefinition =
         )
         Layout.maybeLayout
         Tokens.functionNameNode
-        (Layout.maybeLayout |> ParserFast.followedBySymbol ":")
         Layout.maybeLayout
+        (ParserFast.symbolFollowedBy ":" Layout.maybeLayout)
         typeAnnotation
         -- This extra whitespace is just included for compatibility with earlier version
         -- TODO for v8: move to recordFieldsTypeAnnotation

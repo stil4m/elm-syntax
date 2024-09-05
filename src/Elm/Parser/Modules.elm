@@ -29,8 +29,8 @@ effectWhereClause =
             }
         )
         Tokens.functionName
-        (Layout.maybeLayout |> ParserFast.followedBySymbol "=")
         Layout.maybeLayout
+        (ParserFast.symbolFollowedBy "=" Layout.maybeLayout)
         Tokens.typeNameNode
 
 

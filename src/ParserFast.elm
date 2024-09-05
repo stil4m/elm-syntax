@@ -2610,8 +2610,8 @@ pStepCommit pStep =
         (Good _ _) as good ->
             good
 
-        Bad _ errors ->
-            Bad True errors
+        Bad _ x ->
+            Bad True x
 
 
 {-| Parse words without other word characters after like `let`, `case`, `type` or `import`.

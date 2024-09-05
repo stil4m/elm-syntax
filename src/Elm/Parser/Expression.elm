@@ -287,8 +287,8 @@ recordSetterNodeWithLayout =
             }
         )
         Tokens.functionNameNode
-        (Layout.maybeLayout |> ParserFast.followedBySymbol "=")
         Layout.maybeLayout
+        (ParserFast.symbolFollowedBy "=" Layout.maybeLayout)
         expression
         -- This extra whitespace is just included for compatibility with earlier version
         -- TODO for v8: remove
@@ -433,8 +433,8 @@ caseStatements =
             }
         )
         Patterns.pattern
-        (Layout.maybeLayout |> ParserFast.followedBySymbol "->")
         Layout.maybeLayout
+        (ParserFast.symbolFollowedBy "->" Layout.maybeLayout)
         expression
         (ParserWithComments.manyWithoutReverse caseStatement)
 
@@ -453,8 +453,8 @@ caseStatement =
                 }
             )
             Patterns.pattern
-            (Layout.maybeLayout |> ParserFast.followedBySymbol "->")
             Layout.maybeLayout
+            (ParserFast.symbolFollowedBy "->" Layout.maybeLayout)
             expression
         )
 
@@ -569,8 +569,8 @@ letDestructuringDeclaration =
             }
         )
         Patterns.patternNotDirectlyComposing
-        (Layout.maybeLayout |> ParserFast.followedBySymbol "=")
         Layout.maybeLayout
+        (ParserFast.symbolFollowedBy "=" Layout.maybeLayout)
         expression
 
 
@@ -1068,19 +1068,21 @@ tupledExpressionInnerAfterOpeningParens =
                 Layout.maybeLayout
                 (ParserFast.oneOf2
                     (ParserFast.symbol ")" { comments = Rope.empty, syntax = Nothing })
-                    (ParserFast.map3
-                        (\commentsBefore partResult commentsAfter ->
-                            { comments =
-                                commentsBefore
-                                    |> Rope.prependTo partResult.comments
-                                    |> Rope.prependTo commentsAfter
-                            , syntax = Just partResult.syntax
-                            }
+                    (ParserFast.symbolFollowedBy ","
+                        (ParserFast.map3
+                            (\commentsBefore partResult commentsAfter ->
+                                { comments =
+                                    commentsBefore
+                                        |> Rope.prependTo partResult.comments
+                                        |> Rope.prependTo commentsAfter
+                                , syntax = Just partResult.syntax
+                                }
+                            )
+                            Layout.maybeLayout
+                            expression
+                            Layout.maybeLayout
+                            |> ParserFast.followedBySymbol ")"
                         )
-                        (ParserFast.symbolFollowedBy "," Layout.maybeLayout)
-                        expression
-                        Layout.maybeLayout
-                        |> ParserFast.followedBySymbol ")"
                     )
                 )
             )

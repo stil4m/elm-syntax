@@ -467,8 +467,8 @@ infixDeclaration =
                 ")"
             )
         )
-        (Layout.maybeLayout |> ParserFast.followedBySymbol "=")
         Layout.maybeLayout
+        (ParserFast.symbolFollowedBy "=" Layout.maybeLayout)
         Tokens.functionNameNode
 
 
@@ -499,8 +499,8 @@ portDeclarationAfterDocumentation =
         )
         (ParserFast.keywordFollowedBy "port" Layout.maybeLayout)
         Tokens.functionNameNode
-        (Layout.maybeLayout |> ParserFast.followedBySymbol ":")
         Layout.maybeLayout
+        (ParserFast.symbolFollowedBy ":" Layout.maybeLayout)
         typeAnnotation
 
 
@@ -531,8 +531,8 @@ portDeclarationWithoutDocumentation =
         )
         (ParserFast.keywordFollowedBy "port" Layout.maybeLayout)
         Tokens.functionNameNode
-        (Layout.maybeLayout |> ParserFast.followedBySymbol ":")
         Layout.maybeLayout
+        (ParserFast.symbolFollowedBy ":" Layout.maybeLayout)
         typeAnnotation
 
 
