@@ -4,8 +4,8 @@ import Elm.Parser.Expression
 import Elm.Parser.TestUtil exposing (..)
 import Elm.Parser.Tokens as Parser
 import Expect
-import Test exposing (..)
 import ParserFast
+import Test exposing (..)
 
 
 longString : String
