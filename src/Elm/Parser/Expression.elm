@@ -17,21 +17,77 @@ import Rope
 
 subExpression : Parser (WithComments (Node Expression))
 subExpression =
-    ParserFast.oneOf14
+    -- functionally, a simple oneOf would be correct as well.
+    -- However, since this parser is called _a lot_,
+    --   we squeeze out a bit more speed by de-duplicating slices etc
+    ParserFast.offsetSourceAndThen
+        (\offset source ->
+            case String.slice offset (offset + 1) source of
+                "\"" ->
+                    literalExpression
+
+                "(" ->
+                    tupledExpressionIfNecessaryFollowedByRecordAccess
+
+                "[" ->
+                    listOrGlslExpression
+
+                "{" ->
+                    recordExpressionFollowedByRecordAccess
+
+                "c" ->
+                    caseOrUnqualifiedReferenceExpression
+
+                "\\" ->
+                    lambdaExpression
+
+                "l" ->
+                    letOrUnqualifiedReferenceExpression
+
+                "i" ->
+                    ifOrUnqualifiedReferenceExpression
+
+                "." ->
+                    recordAccessFunctionExpression
+
+                "-" ->
+                    negationOperation
+
+                "'" ->
+                    charLiteralExpression
+
+                _ ->
+                    referenceOrNumberExpression
+        )
+
+
+caseOrUnqualifiedReferenceExpression : Parser (WithComments (Node Expression))
+caseOrUnqualifiedReferenceExpression =
+    ParserFast.oneOf2
+        caseExpression
+        unqualifiedFunctionReferenceExpressionFollowedByRecordAccess
+
+
+letOrUnqualifiedReferenceExpression : Parser (WithComments (Node Expression))
+letOrUnqualifiedReferenceExpression =
+    ParserFast.oneOf2
+        letExpression
+        unqualifiedFunctionReferenceExpressionFollowedByRecordAccess
+
+
+ifOrUnqualifiedReferenceExpression : Parser (WithComments (Node Expression))
+ifOrUnqualifiedReferenceExpression =
+    ParserFast.oneOf2
+        ifBlockExpression
+        unqualifiedFunctionReferenceExpressionFollowedByRecordAccess
+
+
+referenceOrNumberExpression : Parser (WithComments (Node Expression))
+referenceOrNumberExpression =
+    ParserFast.oneOf3
         qualifiedOrVariantOrRecordConstructorReferenceExpressionFollowedByRecordAccess
         unqualifiedFunctionReferenceExpressionFollowedByRecordAccess
-        literalExpression
         numberExpression
-        tupledExpressionIfNecessaryFollowedByRecordAccess
-        listOrGlslExpression
-        recordExpressionFollowedByRecordAccess
-        caseExpression
-        lambdaExpression
-        letExpression
-        ifBlockExpression
-        recordAccessFunctionExpression
-        negationOperation
-        charLiteralExpression
 
 
 multiRecordAccess : ParserFast.Parser (List (Node String))
