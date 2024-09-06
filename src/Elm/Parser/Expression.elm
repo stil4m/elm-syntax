@@ -113,30 +113,30 @@ extensionRightByPrecedence =
     -- TODO Add tests for all operators
     -- TODO Report a syntax error when encountering multiple of the comparison operators
     -- `a < b < c` is not valid Elm syntax
-    [ infixLeft 1 (ParserFast.lazy (\() -> abovePrecedence1)) "|>"
-    , infixRight 5 (ParserFast.lazy (\() -> abovePrecedence4)) "++"
-    , infixRight 1 (ParserFast.lazy (\() -> abovePrecedence0)) "<|"
-    , infixRight 9 (ParserFast.lazy (\() -> abovePrecedence8)) ">>"
-    , infixNonAssociative 4 (ParserFast.lazy (\() -> abovePrecedence4)) "=="
-    , infixLeft 7 (ParserFast.lazy (\() -> abovePrecedence7)) "*"
-    , infixRight 5 (ParserFast.lazy (\() -> abovePrecedence4)) "::"
-    , infixLeft 6 (ParserFast.lazy (\() -> abovePrecedence6)) "+"
-    , infixLeft 6 (ParserFast.lazy (\() -> abovePrecedence6)) "-"
-    , infixLeft 6 (ParserFast.lazy (\() -> abovePrecedence6)) "|."
-    , infixRight 3 (ParserFast.lazy (\() -> abovePrecedence2)) "&&"
-    , infixLeft 5 (ParserFast.lazy (\() -> abovePrecedence5)) "|="
-    , infixLeft 9 (ParserFast.lazy (\() -> abovePrecedence9)) "<<"
-    , infixNonAssociative 4 (ParserFast.lazy (\() -> abovePrecedence4)) "/="
-    , infixLeft 7 (ParserFast.lazy (\() -> abovePrecedence7)) "//"
-    , infixLeft 7 (ParserFast.lazy (\() -> abovePrecedence7)) "/"
-    , infixRight 7 (ParserFast.lazy (\() -> abovePrecedence6)) "</>"
-    , infixRight 2 (ParserFast.lazy (\() -> abovePrecedence1)) "||"
-    , infixNonAssociative 4 (ParserFast.lazy (\() -> abovePrecedence4)) "<="
-    , infixNonAssociative 4 (ParserFast.lazy (\() -> abovePrecedence4)) ">="
-    , infixNonAssociative 4 (ParserFast.lazy (\() -> abovePrecedence4)) ">"
-    , infixLeft 8 (ParserFast.lazy (\() -> abovePrecedence8)) "<?>"
-    , infixNonAssociative 4 (ParserFast.lazy (\() -> abovePrecedence4)) "<"
-    , infixRight 8 (ParserFast.lazy (\() -> abovePrecedence7)) "^"
+    [ ( 1, infixLeft (ParserFast.lazy (\() -> abovePrecedence1)) "|>" )
+    , ( 5, infixRight (ParserFast.lazy (\() -> abovePrecedence4)) "++" )
+    , ( 1, infixRight (ParserFast.lazy (\() -> abovePrecedence0)) "<|" )
+    , ( 9, infixRight (ParserFast.lazy (\() -> abovePrecedence8)) ">>" )
+    , ( 4, infixNonAssociative (ParserFast.lazy (\() -> abovePrecedence4)) "==" )
+    , ( 7, infixLeft (ParserFast.lazy (\() -> abovePrecedence7)) "*" )
+    , ( 5, infixRight (ParserFast.lazy (\() -> abovePrecedence4)) "::" )
+    , ( 6, infixLeft (ParserFast.lazy (\() -> abovePrecedence6)) "+" )
+    , ( 6, infixLeft (ParserFast.lazy (\() -> abovePrecedence6)) "-" )
+    , ( 6, infixLeft (ParserFast.lazy (\() -> abovePrecedence6)) "|." )
+    , ( 3, infixRight (ParserFast.lazy (\() -> abovePrecedence2)) "&&" )
+    , ( 5, infixLeft (ParserFast.lazy (\() -> abovePrecedence5)) "|=" )
+    , ( 9, infixLeft (ParserFast.lazy (\() -> abovePrecedence9)) "<<" )
+    , ( 4, infixNonAssociative (ParserFast.lazy (\() -> abovePrecedence4)) "/=" )
+    , ( 7, infixLeft (ParserFast.lazy (\() -> abovePrecedence7)) "//" )
+    , ( 7, infixLeft (ParserFast.lazy (\() -> abovePrecedence7)) "/" )
+    , ( 7, infixRight (ParserFast.lazy (\() -> abovePrecedence6)) "</>" )
+    , ( 2, infixRight (ParserFast.lazy (\() -> abovePrecedence1)) "||" )
+    , ( 4, infixNonAssociative (ParserFast.lazy (\() -> abovePrecedence4)) "<=" )
+    , ( 4, infixNonAssociative (ParserFast.lazy (\() -> abovePrecedence4)) ">=" )
+    , ( 4, infixNonAssociative (ParserFast.lazy (\() -> abovePrecedence4)) ">" )
+    , ( 8, infixLeft (ParserFast.lazy (\() -> abovePrecedence8)) "<?>" )
+    , ( 4, infixNonAssociative (ParserFast.lazy (\() -> abovePrecedence4)) "<" )
+    , ( 8, infixRight (ParserFast.lazy (\() -> abovePrecedence7)) "^" )
     ]
 
 
@@ -1281,9 +1281,9 @@ computeAbovePrecedence currentPrecedence =
         |> ParserFast.oneOf
 
 
-infixLeft : Int -> Parser (WithComments ExtensionRight) -> String -> ( Int, Parser (WithComments ExtensionRight) )
-infixLeft precedence possibilitiesForPrecedence symbol =
-    infixHelp precedence
+infixLeft : Parser (WithComments ExtensionRight) -> String -> Parser (WithComments ExtensionRight)
+infixLeft possibilitiesForPrecedence symbol =
+    infixHelp
         possibilitiesForPrecedence
         (ParserFast.symbolFollowedBy symbol)
         (\right ->
@@ -1291,9 +1291,9 @@ infixLeft precedence possibilitiesForPrecedence symbol =
         )
 
 
-infixNonAssociative : Int -> Parser (WithComments ExtensionRight) -> String -> ( Int, Parser (WithComments ExtensionRight) )
-infixNonAssociative precedence possibilitiesForPrecedence symbol =
-    infixHelp precedence
+infixNonAssociative : Parser (WithComments ExtensionRight) -> String -> Parser (WithComments ExtensionRight)
+infixNonAssociative possibilitiesForPrecedence symbol =
+    infixHelp
         possibilitiesForPrecedence
         (ParserFast.symbolFollowedBy symbol)
         (\right ->
@@ -1304,9 +1304,9 @@ infixNonAssociative precedence possibilitiesForPrecedence symbol =
 {-| To get right associativity, please provide abovePrecedence(precedence-1) for the
 right precedence parser.
 -}
-infixRight : Int -> Parser (WithComments ExtensionRight) -> String -> ( Int, Parser (WithComments ExtensionRight) )
-infixRight precedence possibilitiesForPrecedenceMinus1 symbol =
-    infixHelp precedence
+infixRight : Parser (WithComments ExtensionRight) -> String -> Parser (WithComments ExtensionRight)
+infixRight possibilitiesForPrecedenceMinus1 symbol =
+    infixHelp
         possibilitiesForPrecedenceMinus1
         (ParserFast.symbolFollowedBy symbol)
         (\right ->
@@ -1315,18 +1315,15 @@ infixRight precedence possibilitiesForPrecedenceMinus1 symbol =
 
 
 infixHelp :
-    Int
-    -> Parser (WithComments ExtensionRight)
+    Parser (WithComments ExtensionRight)
     -> (Parser (WithComments ExtensionRight) -> Parser (WithComments ExtensionRight))
     -> (Node Expression -> ExtensionRight)
-    -> ( Int, Parser (WithComments ExtensionRight) )
-infixHelp leftPrecedence rightPrecedence operatorFollowedBy apply =
-    ( leftPrecedence
-    , operatorFollowedBy
+    -> Parser (WithComments ExtensionRight)
+infixHelp rightPrecedence operatorFollowedBy apply =
+    operatorFollowedBy
         (extendedSubExpressionMap apply
             rightPrecedence
         )
-    )
 
 
 type ExtensionRight
