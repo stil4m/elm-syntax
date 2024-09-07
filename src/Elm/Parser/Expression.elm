@@ -1464,21 +1464,23 @@ abovePrecedence9 =
 
 infixLeft : Parser (WithComments ExtensionRight) -> String -> Parser (WithComments ExtensionRight)
 infixLeft possibilitiesForPrecedence symbol =
-    infixHelp
-        possibilitiesForPrecedence
-        (ParserFast.symbolFollowedBy symbol)
-        (\right ->
-            ExtendRightByOperation { symbol = symbol, direction = Infix.Left, expression = right }
+    ParserFast.symbolFollowedBy symbol
+        (extendedSubExpressionMap
+            (\right ->
+                ExtendRightByOperation { symbol = symbol, direction = Infix.Left, expression = right }
+            )
+            possibilitiesForPrecedence
         )
 
 
 infixNonAssociative : Parser (WithComments ExtensionRight) -> String -> Parser (WithComments ExtensionRight)
 infixNonAssociative possibilitiesForPrecedence symbol =
-    infixHelp
-        possibilitiesForPrecedence
-        (ParserFast.symbolFollowedBy symbol)
-        (\right ->
-            ExtendRightByOperation { symbol = symbol, direction = Infix.Non, expression = right }
+    ParserFast.symbolFollowedBy symbol
+        (extendedSubExpressionMap
+            (\right ->
+                ExtendRightByOperation { symbol = symbol, direction = Infix.Non, expression = right }
+            )
+            possibilitiesForPrecedence
         )
 
 
@@ -1487,23 +1489,12 @@ right precedence parser.
 -}
 infixRight : Parser (WithComments ExtensionRight) -> String -> Parser (WithComments ExtensionRight)
 infixRight possibilitiesForPrecedenceMinus1 symbol =
-    infixHelp
-        possibilitiesForPrecedenceMinus1
-        (ParserFast.symbolFollowedBy symbol)
-        (\right ->
-            ExtendRightByOperation { symbol = symbol, direction = Infix.Right, expression = right }
-        )
-
-
-infixHelp :
-    Parser (WithComments ExtensionRight)
-    -> (Parser (WithComments ExtensionRight) -> Parser (WithComments ExtensionRight))
-    -> (Node Expression -> ExtensionRight)
-    -> Parser (WithComments ExtensionRight)
-infixHelp rightPrecedence operatorFollowedBy apply =
-    operatorFollowedBy
-        (extendedSubExpressionMap apply
-            rightPrecedence
+    ParserFast.symbolFollowedBy symbol
+        (extendedSubExpressionMap
+            (\right ->
+                ExtendRightByOperation { symbol = symbol, direction = Infix.Right, expression = right }
+            )
+            possibilitiesForPrecedenceMinus1
         )
 
 
