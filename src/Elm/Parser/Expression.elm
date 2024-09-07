@@ -108,36 +108,124 @@ multiRecordAccessMap fieldsToRes =
         (\reversed -> fieldsToRes (List.reverse reversed))
 
 
-extensionRightByPrecedence : List ( Int, Parser (WithComments ExtensionRight) )
-extensionRightByPrecedence =
-    -- TODO Add tests for all operators
-    -- TODO Report a syntax error when encountering multiple of the comparison operators
-    -- `a < b < c` is not valid Elm syntax
-    [ ( 1, infixLeft (ParserFast.lazy (\() -> abovePrecedence1)) "|>" )
-    , ( 5, infixRight (ParserFast.lazy (\() -> abovePrecedence4)) "++" )
-    , ( 1, infixRight (ParserFast.lazy (\() -> abovePrecedence0)) "<|" )
-    , ( 9, infixRight (ParserFast.lazy (\() -> abovePrecedence8)) ">>" )
-    , ( 4, infixNonAssociative (ParserFast.lazy (\() -> abovePrecedence4)) "==" )
-    , ( 7, infixLeft (ParserFast.lazy (\() -> abovePrecedence7)) "*" )
-    , ( 5, infixRight (ParserFast.lazy (\() -> abovePrecedence4)) "::" )
-    , ( 6, infixLeft (ParserFast.lazy (\() -> abovePrecedence6)) "+" )
-    , ( 6, infixLeft (ParserFast.lazy (\() -> abovePrecedence6)) "-" )
-    , ( 6, infixLeft (ParserFast.lazy (\() -> abovePrecedence6)) "|." )
-    , ( 3, infixRight (ParserFast.lazy (\() -> abovePrecedence2)) "&&" )
-    , ( 5, infixLeft (ParserFast.lazy (\() -> abovePrecedence5)) "|=" )
-    , ( 9, infixLeft (ParserFast.lazy (\() -> abovePrecedence9)) "<<" )
-    , ( 4, infixNonAssociative (ParserFast.lazy (\() -> abovePrecedence4)) "/=" )
-    , ( 7, infixLeft (ParserFast.lazy (\() -> abovePrecedence7)) "//" )
-    , ( 7, infixLeft (ParserFast.lazy (\() -> abovePrecedence7)) "/" )
-    , ( 7, infixRight (ParserFast.lazy (\() -> abovePrecedence6)) "</>" )
-    , ( 2, infixRight (ParserFast.lazy (\() -> abovePrecedence1)) "||" )
-    , ( 4, infixNonAssociative (ParserFast.lazy (\() -> abovePrecedence4)) "<=" )
-    , ( 4, infixNonAssociative (ParserFast.lazy (\() -> abovePrecedence4)) ">=" )
-    , ( 4, infixNonAssociative (ParserFast.lazy (\() -> abovePrecedence4)) ">" )
-    , ( 8, infixLeft (ParserFast.lazy (\() -> abovePrecedence8)) "<?>" )
-    , ( 4, infixNonAssociative (ParserFast.lazy (\() -> abovePrecedence4)) "<" )
-    , ( 8, infixRight (ParserFast.lazy (\() -> abovePrecedence7)) "^" )
-    ]
+precedence1ApR : Parser (WithComments ExtensionRight)
+precedence1ApR =
+    infixLeft abovePrecedence1 "|>"
+
+
+precedence1ApL : Parser (WithComments ExtensionRight)
+precedence1ApL =
+    infixRight (ParserFast.lazy (\() -> abovePrecedence0)) "<|"
+
+
+precedence2Or : Parser (WithComments ExtensionRight)
+precedence2Or =
+    infixRight (ParserFast.lazy (\() -> abovePrecedence1)) "||"
+
+
+precedence3And : Parser (WithComments ExtensionRight)
+precedence3And =
+    infixRight (ParserFast.lazy (\() -> abovePrecedence2)) "&&"
+
+
+precedence4Eq : Parser (WithComments ExtensionRight)
+precedence4Eq =
+    infixNonAssociative abovePrecedence4 "=="
+
+
+precedence4Neq : Parser (WithComments ExtensionRight)
+precedence4Neq =
+    infixNonAssociative abovePrecedence4 "/="
+
+
+precedence4Le : Parser (WithComments ExtensionRight)
+precedence4Le =
+    infixNonAssociative abovePrecedence4 "<="
+
+
+precedence4Ge : Parser (WithComments ExtensionRight)
+precedence4Ge =
+    infixNonAssociative abovePrecedence4 ">="
+
+
+precedence4Gt : Parser (WithComments ExtensionRight)
+precedence4Gt =
+    infixNonAssociative abovePrecedence4 ">"
+
+
+precedence4Lt : Parser (WithComments ExtensionRight)
+precedence4Lt =
+    infixNonAssociative abovePrecedence4 "<"
+
+
+precedence5append : Parser (WithComments ExtensionRight)
+precedence5append =
+    infixRight (ParserFast.lazy (\() -> abovePrecedence4)) "++"
+
+
+precedence5Cons : Parser (WithComments ExtensionRight)
+precedence5Cons =
+    infixRight (ParserFast.lazy (\() -> abovePrecedence4)) "::"
+
+
+precedence5Keep : Parser (WithComments ExtensionRight)
+precedence5Keep =
+    infixLeft abovePrecedence5 "|="
+
+
+precedence6Add : Parser (WithComments ExtensionRight)
+precedence6Add =
+    infixLeft abovePrecedence6 "+"
+
+
+precedence6Sub : Parser (WithComments ExtensionRight)
+precedence6Sub =
+    infixLeft abovePrecedence6 "-"
+
+
+precedence6Ignore : Parser (WithComments ExtensionRight)
+precedence6Ignore =
+    infixLeft abovePrecedence6 "|."
+
+
+precedence7Idiv : Parser (WithComments ExtensionRight)
+precedence7Idiv =
+    infixLeft abovePrecedence7 "//"
+
+
+precedence7Mul : Parser (WithComments ExtensionRight)
+precedence7Mul =
+    infixLeft abovePrecedence7 "*"
+
+
+precedence7Fdiv : Parser (WithComments ExtensionRight)
+precedence7Fdiv =
+    infixLeft abovePrecedence7 "/"
+
+
+precedence7Slash : Parser (WithComments ExtensionRight)
+precedence7Slash =
+    infixRight (ParserFast.lazy (\() -> abovePrecedence6)) "</>"
+
+
+precedence8QuestionMark : Parser (WithComments ExtensionRight)
+precedence8QuestionMark =
+    infixLeft abovePrecedence8 "<?>"
+
+
+precedence8Pow : Parser (WithComments ExtensionRight)
+precedence8Pow =
+    infixRight (ParserFast.lazy (\() -> abovePrecedence7)) "^"
+
+
+precedence9ComposeR : Parser (WithComments ExtensionRight)
+precedence9ComposeR =
+    infixRight (ParserFast.lazy (\() -> abovePrecedence8)) ">>"
+
+
+precedence9ComposeL : Parser (WithComments ExtensionRight)
+precedence9ComposeL =
+    infixLeft abovePrecedence9 "<<"
 
 
 expression : Parser (WithComments (Node Expression))
@@ -1224,61 +1312,156 @@ applyExtensionRight (ExtendRightByOperation extendRightOperation) ((Node { start
 
 abovePrecedence0 : Parser (WithComments ExtensionRight)
 abovePrecedence0 =
-    computeAbovePrecedence 0
+    -- TODO Add tests for all operators
+    -- TODO Report a syntax error when encountering multiple of the comparison operators
+    -- `a < b < c` is not valid Elm syntax
+    ParserFast.oneOf24
+        precedence1ApR
+        precedence5append
+        precedence1ApL
+        precedence9ComposeR
+        precedence4Eq
+        precedence7Mul
+        precedence5Cons
+        precedence6Add
+        precedence6Sub
+        precedence6Ignore
+        precedence3And
+        precedence5Keep
+        precedence9ComposeL
+        precedence4Neq
+        precedence7Idiv
+        precedence7Fdiv
+        precedence7Slash
+        precedence2Or
+        precedence4Le
+        precedence4Ge
+        precedence4Gt
+        precedence8QuestionMark
+        precedence4Lt
+        precedence8Pow
 
 
 abovePrecedence1 : Parser (WithComments ExtensionRight)
 abovePrecedence1 =
-    computeAbovePrecedence 1
+    ParserFast.oneOf22
+        precedence5append
+        precedence9ComposeR
+        precedence4Eq
+        precedence7Mul
+        precedence5Cons
+        precedence6Add
+        precedence6Sub
+        precedence6Ignore
+        precedence3And
+        precedence5Keep
+        precedence9ComposeL
+        precedence4Neq
+        precedence7Idiv
+        precedence7Fdiv
+        precedence7Slash
+        precedence2Or
+        precedence4Le
+        precedence4Ge
+        precedence4Gt
+        precedence8QuestionMark
+        precedence4Lt
+        precedence8Pow
 
 
 abovePrecedence2 : Parser (WithComments ExtensionRight)
 abovePrecedence2 =
-    computeAbovePrecedence 2
+    ParserFast.oneOf21
+        precedence5append
+        precedence9ComposeR
+        precedence4Eq
+        precedence7Mul
+        precedence5Cons
+        precedence6Add
+        precedence6Sub
+        precedence6Ignore
+        precedence3And
+        precedence5Keep
+        precedence9ComposeL
+        precedence4Neq
+        precedence7Idiv
+        precedence7Fdiv
+        precedence7Slash
+        precedence4Le
+        precedence4Ge
+        precedence4Gt
+        precedence8QuestionMark
+        precedence4Lt
+        precedence8Pow
 
 
 abovePrecedence4 : Parser (WithComments ExtensionRight)
 abovePrecedence4 =
-    computeAbovePrecedence 4
+    ParserFast.oneOf14
+        precedence5append
+        precedence9ComposeR
+        precedence7Mul
+        precedence5Cons
+        precedence6Add
+        precedence6Sub
+        precedence6Ignore
+        precedence5Keep
+        precedence9ComposeL
+        precedence7Idiv
+        precedence7Fdiv
+        precedence7Slash
+        precedence8QuestionMark
+        precedence8Pow
 
 
 abovePrecedence5 : Parser (WithComments ExtensionRight)
 abovePrecedence5 =
-    computeAbovePrecedence 5
+    ParserFast.oneOf11
+        precedence9ComposeR
+        precedence7Mul
+        precedence6Add
+        precedence6Sub
+        precedence6Ignore
+        precedence9ComposeL
+        precedence7Idiv
+        precedence7Fdiv
+        precedence7Slash
+        precedence8QuestionMark
+        precedence8Pow
 
 
 abovePrecedence6 : Parser (WithComments ExtensionRight)
 abovePrecedence6 =
-    computeAbovePrecedence 6
+    ParserFast.oneOf8
+        precedence9ComposeR
+        precedence7Mul
+        precedence9ComposeL
+        precedence7Idiv
+        precedence7Fdiv
+        precedence7Slash
+        precedence8QuestionMark
+        precedence8Pow
 
 
 abovePrecedence7 : Parser (WithComments ExtensionRight)
 abovePrecedence7 =
-    computeAbovePrecedence 7
+    ParserFast.oneOf4
+        precedence9ComposeR
+        precedence9ComposeL
+        precedence8QuestionMark
+        precedence8Pow
 
 
 abovePrecedence8 : Parser (WithComments ExtensionRight)
 abovePrecedence8 =
-    computeAbovePrecedence 8
+    ParserFast.oneOf2
+        precedence9ComposeR
+        precedence9ComposeL
 
 
 abovePrecedence9 : Parser (WithComments ExtensionRight)
 abovePrecedence9 =
-    computeAbovePrecedence 9
-
-
-computeAbovePrecedence : Int -> Parser (WithComments ExtensionRight)
-computeAbovePrecedence currentPrecedence =
-    extensionRightByPrecedence
-        |> List.filterMap
-            (\( precedence, parser ) ->
-                if precedence > currentPrecedence then
-                    Just parser
-
-                else
-                    Nothing
-            )
-        |> ParserFast.oneOf
+    ParserFast.problem "there are no operations with precedence > 9"
 
 
 infixLeft : Parser (WithComments ExtensionRight) -> String -> Parser (WithComments ExtensionRight)
