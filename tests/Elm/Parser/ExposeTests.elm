@@ -30,7 +30,7 @@ all =
                 """exposing (
   ..
 )"""
-                    |> expectInvalid
+                    |> expectInvalidWithIndent1
         , test "should fail to parse empty with just 1 `.`" <|
             \() ->
                 "exposing ( . )"
@@ -146,4 +146,9 @@ expectAstWithComments =
 
 expectInvalid : String -> Expect.Expectation
 expectInvalid =
+    ParserWithCommentsUtil.expectInvalid exposeDefinition
+
+
+expectInvalidWithIndent1 : String -> Expect.Expectation
+expectInvalidWithIndent1 =
     ParserWithCommentsUtil.expectInvalid exposeDefinition

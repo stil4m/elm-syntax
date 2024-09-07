@@ -11,7 +11,7 @@ import Test exposing (..)
 
 all : Test
 all =
-    describe "Case expression tests"
+    describe "CaseExpressionTests"
         [ test "should fail to parse when the matched expression has the wrong indentation" <|
             \() ->
                 """case

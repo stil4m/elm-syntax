@@ -1,5 +1,6 @@
 module Elm.Parser.ExpressionTests exposing (all)
 
+import Elm.Parser.Declarations
 import Elm.Parser.Expression exposing (expression)
 import Elm.Parser.ParserWithCommentsTestUtil as ParserWithCommentsUtil
 import Elm.Syntax.Expression exposing (Expression(..))
@@ -15,8 +16,8 @@ all =
     describe "ExpressionTests"
         [ test "empty" <|
             \() ->
-                ""
-                    |> expectInvalid
+                "a = "
+                    |> ParserWithCommentsUtil.expectInvalid Elm.Parser.Declarations.declaration
         , test "Integer literal" <|
             \() ->
                 "101"
@@ -57,8 +58,8 @@ all =
                     |> expectAst (Node { start = { row = 1, column = 1 }, end = { row = 2, column = 6 } } (Literal "Bar foo \n a"))
         , test "Regression test for multiline strings with backslashes" <|
             \() ->
-                "\"\"\"\\{\\}\"\"\""
-                    |> expectInvalid
+                "a = \"\"\"\\{\\}\"\"\""
+                    |> ParserWithCommentsUtil.expectInvalid Elm.Parser.Declarations.declaration
         , test "Regression test 2 for multiline strings with backslashes" <|
             \() ->
                 "\"\"\"\\\\{\\\\}\"\"\""
@@ -184,8 +185,8 @@ all =
                         )
         , test "Function call with argument badly indented" <|
             \() ->
-                "foo\nbar"
-                    |> expectInvalid
+                "a = foo\nbar"
+                    |> ParserWithCommentsUtil.expectInvalid Elm.Parser.Declarations.declaration
         , test "ifBlockExpression" <|
             \() ->
                 "if True then foo else bar"
@@ -403,40 +404,40 @@ all =
                         )
         , test "positive integer should be invalid" <|
             \() ->
-                "+1"
-                    |> expectInvalid
+                "a = +1"
+                    |> ParserWithCommentsUtil.expectInvalid Elm.Parser.Declarations.declaration
         , test "expression ending with an operator should not be valid" <|
             \() ->
-                "1++"
-                    |> expectInvalid
+                "a = 1++"
+                    |> ParserWithCommentsUtil.expectInvalid Elm.Parser.Declarations.declaration
         , test "multiple < in a row should not be valid" <|
             \() ->
-                "a < b < c"
-                    |> expectInvalid
+                "z = a < b < c"
+                    |> ParserWithCommentsUtil.expectInvalid Elm.Parser.Declarations.declaration
         , test "multiple > in a row should not be valid" <|
             \() ->
-                "a > b > c"
-                    |> expectInvalid
+                "z = a > b > c"
+                    |> ParserWithCommentsUtil.expectInvalid Elm.Parser.Declarations.declaration
         , test "multiple == in a row should not be valid" <|
             \() ->
-                "a == b == c"
-                    |> expectInvalid
+                "z = a == b == c"
+                    |> ParserWithCommentsUtil.expectInvalid Elm.Parser.Declarations.declaration
         , test "multiple /= in a row should not be valid" <|
             \() ->
-                "a /= b /= c"
-                    |> expectInvalid
+                "z = a /= b /= c"
+                    |> ParserWithCommentsUtil.expectInvalid Elm.Parser.Declarations.declaration
         , test "multiple >= in a row should not be valid" <|
             \() ->
-                "a >= b >= c"
-                    |> expectInvalid
+                "z = a >= b >= c"
+                    |> ParserWithCommentsUtil.expectInvalid Elm.Parser.Declarations.declaration
         , test "multiple <= in a row should not be valid" <|
             \() ->
-                "a <= b <= c"
-                    |> expectInvalid
+                "z = a <= b <= c"
+                    |> ParserWithCommentsUtil.expectInvalid Elm.Parser.Declarations.declaration
         , test "mixing comparison operators without parenthesis should not be valid" <|
             \() ->
-                "a < b == c"
-                    |> expectInvalid
+                "z = a < b == c"
+                    |> ParserWithCommentsUtil.expectInvalid Elm.Parser.Declarations.declaration
         , test "prefix notation" <|
             \() ->
                 "(::) x"
@@ -695,131 +696,145 @@ all =
                         )
         , test "fail if condition not positively indented" <|
             \() ->
-                """let
-    x =
-        if
-    f y then  1 else 0
-in
-x"""
-                    |> expectInvalid
+                """a =
+    let
+        x =
+            if
+        f y then  1 else 0
+    in
+    x"""
+                    |> ParserWithCommentsUtil.expectInvalid Elm.Parser.Declarations.declaration
         , test "fail if `then` not positively indented" <|
             \() ->
-                """let
-    x =
-        if True
-   then  1 else 0
-in
-x"""
-                    |> expectInvalid
+                """a =
+    let
+        x =
+            if True
+       then  1 else 0
+    in
+    x"""
+                    |> ParserWithCommentsUtil.expectInvalid Elm.Parser.Declarations.declaration
         , test "fail if if-true-branch not positively indented" <|
             \() ->
-                """let
-    x =
-        if True then
-    1   else 0
-in
-x"""
-                    |> expectInvalid
+                """a =
+    let
+        x =
+            if True then
+        1   else 0
+    in
+    x"""
+                    |> ParserWithCommentsUtil.expectInvalid Elm.Parser.Declarations.declaration
         , test "fail if `else` not positively indented" <|
             \() ->
-                """let
-    x =
-        if True then 1
-   else 0
-in
-x"""
-                    |> expectInvalid
+                """a =
+    let
+        x =
+            if True then 1
+       else 0
+    in
+    x"""
+                    |> ParserWithCommentsUtil.expectInvalid Elm.Parser.Declarations.declaration
         , test "fail if if-false-branch not positively indented" <|
             \() ->
-                """let
-    x =
-        if True then 1 else
-    0
-in
-x"""
-                    |> expectInvalid
+                """ a =
+    let
+        x =
+            if True then 1 else
+        0
+    in
+    x"""
+                    |> ParserWithCommentsUtil.expectInvalid Elm.Parser.Declarations.declaration
         , test "fail if record closing curly not positively indented" <|
             \() ->
-                """let
-    x =
-        { a = 0, b = 1
-    }
-in
-x"""
-                    |> expectInvalid
+                """a =
+    let
+        x =
+            { a = 0, b = 1
+        }
+    in
+    x"""
+                    |> ParserWithCommentsUtil.expectInvalid Elm.Parser.Declarations.declaration
         , test "fail if record field value not positively indented" <|
             \() ->
-                """let
-    x =
-        { a = 0, b =
-    1 }
-in
-x"""
-                    |> expectInvalid
+                """a =
+    let
+        x =
+            { a = 0, b =
+        1 }
+    in
+    x"""
+                    |> ParserWithCommentsUtil.expectInvalid Elm.Parser.Declarations.declaration
         , test "fail if record field name not positively indented" <|
             \() ->
-                """let
-    x =
-        { a = 0,
-    b       = 1 }
-in
-x"""
-                    |> expectInvalid
+                """a =
+    let
+        x =
+            { a = 0,
+        b       = 1 }
+    in
+    x"""
+                    |> ParserWithCommentsUtil.expectInvalid Elm.Parser.Declarations.declaration
         , test "fail if record field `=` not positively indented" <|
             \() ->
-                """let
-    x =
-        { a = 0, b
-    =         1 }
-in
-x"""
-                    |> expectInvalid
+                """a =
+    let
+        x =
+            { a = 0, b
+        =         1 }
+    in
+    x"""
+                    |> ParserWithCommentsUtil.expectInvalid Elm.Parser.Declarations.declaration
         , test "fail if tuple closing parens not positively indented" <|
             \() ->
-                """let
-    x =
-        ( 0, 1
-    )
-in
-x"""
-                    |> expectInvalid
+                """a =
+    let
+        x =
+            ( 0, 1
+        )
+    in
+    x"""
+                    |> ParserWithCommentsUtil.expectInvalid Elm.Parser.Declarations.declaration
         , test "fail if first tuple part not positively indented" <|
             \() ->
-                """let
-    x =
-        (
-    0   , 1
-        )
-in
-x"""
-                    |> expectInvalid
+                """a =
+    let
+        x =
+            (
+        0   , 1
+            )
+    in
+    x"""
+                    |> ParserWithCommentsUtil.expectInvalid Elm.Parser.Declarations.declaration
         , test "fail if second tuple part not positively indented" <|
             \() ->
-                """let
-    x =
-        ( 0,
-    1   )
-in
-x"""
-                    |> expectInvalid
+                """a =
+    let
+        x =
+            ( 0,
+        1   )
+    in
+    x"""
+                    |> ParserWithCommentsUtil.expectInvalid Elm.Parser.Declarations.declaration
         , test "fail if operator not positively indented" <|
             \() ->
-                """let
-    x =
-        0
-    + 1
-in
-x"""
-                    |> expectInvalid
+                """a =
+    let
+        x =
+            0
+        + 1
+    in
+    x"""
+                    |> ParserWithCommentsUtil.expectInvalid Elm.Parser.Declarations.declaration
         , test "fail if function call argument not positively indented" <|
             \() ->
-                """let
-    x =
-        f 0
-    1
-in
-x"""
-                    |> expectInvalid
+                """a =
+    let
+        x =
+            f 0
+        1
+    in
+    x"""
+                    |> ParserWithCommentsUtil.expectInvalid Elm.Parser.Declarations.declaration
         ]
 
 
@@ -831,8 +846,3 @@ expectAst =
 expectAstWithComments : { ast : Node Expression, comments : List (Node String) } -> String -> Expect.Expectation
 expectAstWithComments =
     ParserWithCommentsUtil.expectAstWithComments expression
-
-
-expectInvalid : String -> Expect.Expectation
-expectInvalid =
-    ParserWithCommentsUtil.expectInvalid expression
