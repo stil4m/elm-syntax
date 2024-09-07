@@ -409,6 +409,34 @@ all =
             \() ->
                 "1++"
                     |> expectInvalid
+        , test "multiple < in a row should not be valid" <|
+            \() ->
+                "a < b < c"
+                    |> expectInvalid
+        , test "multiple > in a row should not be valid" <|
+            \() ->
+                "a > b > c"
+                    |> expectInvalid
+        , test "multiple == in a row should not be valid" <|
+            \() ->
+                "a == b == c"
+                    |> expectInvalid
+        , test "multiple /= in a row should not be valid" <|
+            \() ->
+                "a /= b /= c"
+                    |> expectInvalid
+        , test "multiple >= in a row should not be valid" <|
+            \() ->
+                "a >= b >= c"
+                    |> expectInvalid
+        , test "multiple <= in a row should not be valid" <|
+            \() ->
+                "a <= b <= c"
+                    |> expectInvalid
+        , test "mixing comparison operators without parenthesis should not be valid" <|
+            \() ->
+                "a < b == c"
+                    |> expectInvalid
         , test "prefix notation" <|
             \() ->
                 "(::) x"

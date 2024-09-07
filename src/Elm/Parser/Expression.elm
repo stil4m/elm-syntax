@@ -1313,9 +1313,7 @@ applyExtensionRight (ExtendRightByOperation extendRightOperation) ((Node { start
 abovePrecedence0 : Parser (WithComments ExtensionRight)
 abovePrecedence0 =
     -- TODO Add tests for all operators
-    -- TODO Report a syntax error when encountering multiple of the comparison operators
-    -- `a < b < c` is not valid Elm syntax
-    ParserFast.oneOf24
+        ParserFast.oneOf24
         precedence1ApR
         precedence5append
         precedence1ApL
