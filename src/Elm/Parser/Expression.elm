@@ -1296,7 +1296,7 @@ extendedSubExpressionMap expressionNodeToRes aboveCurrentPrecedenceLayout =
             )
         )
         (ParserWithComments.manyWithoutReverse
-            aboveCurrentPrecedenceLayout
+            (Layout.positivelyIndentedFollowedBy aboveCurrentPrecedenceLayout)
         )
 
 
@@ -1313,7 +1313,7 @@ applyExtensionRight (ExtendRightByOperation extendRightOperation) ((Node { start
 abovePrecedence0 : Parser (WithComments ExtensionRight)
 abovePrecedence0 =
     -- TODO Add tests for all operators
-        ParserFast.oneOf24
+    ParserFast.oneOf24
         precedence1ApR
         precedence5append
         precedence1ApL
