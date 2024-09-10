@@ -108,129 +108,130 @@ multiRecordAccessMap fieldsToRes =
         (\reversed -> fieldsToRes (List.reverse reversed))
 
 
-precedence1ApR : Parser (WithComments ExtensionRight)
+precedence1ApR : InfixOperatorInfo
 precedence1ApR =
-    infixLeft abovePrecedence1 "|>"
+    infixLeft 1 "|>"
 
 
-precedence1ApL : Parser (WithComments ExtensionRight)
+precedence1ApL : InfixOperatorInfo
 precedence1ApL =
-    infixRight (ParserFast.lazy (\() -> abovePrecedence0)) "<|"
+    infixRight 1 "<|"
 
 
-precedence2Or : Parser (WithComments ExtensionRight)
+precedence2Or : InfixOperatorInfo
 precedence2Or =
-    infixRight (ParserFast.lazy (\() -> abovePrecedence1)) "||"
+    infixRight 2 "||"
 
 
-precedence3And : Parser (WithComments ExtensionRight)
+precedence3And : InfixOperatorInfo
 precedence3And =
-    infixRight (ParserFast.lazy (\() -> abovePrecedence2)) "&&"
+    infixRight 3 "&&"
 
 
-precedence4Eq : Parser (WithComments ExtensionRight)
+precedence4Eq : InfixOperatorInfo
 precedence4Eq =
-    infixNonAssociative (abovePrecedence4NonAssociative "==") "=="
+    infixNonAssociative 4 "=="
 
 
-precedence4Neq : Parser (WithComments ExtensionRight)
+precedence4Neq : InfixOperatorInfo
 precedence4Neq =
-    infixNonAssociative (abovePrecedence4NonAssociative "/=") "/="
+    infixNonAssociative 4 "/="
 
 
-precedence4Le : Parser (WithComments ExtensionRight)
+precedence4Le : InfixOperatorInfo
 precedence4Le =
-    infixNonAssociative (abovePrecedence4NonAssociative "<=") "<="
+    infixNonAssociative 4 "<="
 
 
-precedence4Ge : Parser (WithComments ExtensionRight)
+precedence4Ge : InfixOperatorInfo
 precedence4Ge =
-    infixNonAssociative (abovePrecedence4NonAssociative ">=") ">="
+    infixNonAssociative 4 ">="
 
 
-precedence4Gt : Parser (WithComments ExtensionRight)
+precedence4Gt : InfixOperatorInfo
 precedence4Gt =
-    infixNonAssociative (abovePrecedence4NonAssociative ">") ">"
+    infixNonAssociative 4 ">"
 
 
-precedence4Lt : Parser (WithComments ExtensionRight)
+precedence4Lt : InfixOperatorInfo
 precedence4Lt =
-    infixNonAssociative (abovePrecedence4NonAssociative "<") "<"
+    infixNonAssociative 4 "<"
 
 
-precedence5append : Parser (WithComments ExtensionRight)
+precedence5append : InfixOperatorInfo
 precedence5append =
-    infixRight (ParserFast.lazy (\() -> abovePrecedence4)) "++"
+    infixRight 5 "++"
 
 
-precedence5Cons : Parser (WithComments ExtensionRight)
+precedence5Cons : InfixOperatorInfo
 precedence5Cons =
-    infixRight (ParserFast.lazy (\() -> abovePrecedence4)) "::"
+    infixRight 5 "::"
 
 
-precedence5Keep : Parser (WithComments ExtensionRight)
+precedence5Keep : InfixOperatorInfo
 precedence5Keep =
-    infixLeft abovePrecedence5 "|="
+    infixLeft 5 "|="
 
 
-precedence6Add : Parser (WithComments ExtensionRight)
+precedence6Add : InfixOperatorInfo
 precedence6Add =
-    infixLeft abovePrecedence6 "+"
+    infixLeft 6 "+"
 
 
-precedence6Sub : Parser (WithComments ExtensionRight)
+precedence6Sub : InfixOperatorInfo
 precedence6Sub =
-    infixLeft abovePrecedence6 "-"
+    infixLeft 6 "-"
 
 
-precedence6Ignore : Parser (WithComments ExtensionRight)
+precedence6Ignore : InfixOperatorInfo
 precedence6Ignore =
-    infixLeft abovePrecedence6 "|."
+    infixLeft 6 "|."
 
 
-precedence7Idiv : Parser (WithComments ExtensionRight)
+precedence7Idiv : InfixOperatorInfo
 precedence7Idiv =
-    infixLeft abovePrecedence7 "//"
+    infixLeft 7 "//"
 
 
-precedence7Mul : Parser (WithComments ExtensionRight)
+precedence7Mul : InfixOperatorInfo
 precedence7Mul =
-    infixLeft abovePrecedence7 "*"
+    infixLeft 7 "*"
 
 
-precedence7Fdiv : Parser (WithComments ExtensionRight)
+precedence7Fdiv : InfixOperatorInfo
 precedence7Fdiv =
-    infixLeft abovePrecedence7 "/"
+    infixLeft 7 "/"
 
 
-precedence7Slash : Parser (WithComments ExtensionRight)
+precedence7Slash : InfixOperatorInfo
 precedence7Slash =
-    infixRight (ParserFast.lazy (\() -> abovePrecedence6)) "</>"
+    infixRight 7 "</>"
 
 
-precedence8QuestionMark : Parser (WithComments ExtensionRight)
+precedence8QuestionMark : InfixOperatorInfo
 precedence8QuestionMark =
-    infixLeft abovePrecedence8 "<?>"
+    infixLeft 8 "<?>"
 
 
-precedence8Pow : Parser (WithComments ExtensionRight)
+precedence8Pow : InfixOperatorInfo
 precedence8Pow =
-    infixRight (ParserFast.lazy (\() -> abovePrecedence7)) "^"
+    infixRight 8 "^"
 
 
-precedence9ComposeR : Parser (WithComments ExtensionRight)
+precedence9ComposeR : InfixOperatorInfo
 precedence9ComposeR =
-    infixRight (ParserFast.lazy (\() -> abovePrecedence8)) ">>"
+    infixRight 9 ">>"
 
 
-precedence9ComposeL : Parser (WithComments ExtensionRight)
+precedence9ComposeL : InfixOperatorInfo
 precedence9ComposeL =
-    infixLeft abovePrecedence9 "<<"
+    infixLeft 9 "<<"
 
 
 expression : Parser (WithComments (Node Expression))
 expression =
-    extendedSubExpressionOptimisticLayout abovePrecedence0
+    extendedSubExpressionOptimisticLayout
+        (infixOperatorAndThen Ok .extensionRight)
 
 
 glslExpressionAfterOpeningSquareBracket : Parser (WithComments (Node Expression))
@@ -1326,200 +1327,108 @@ applyExtensionRight (ExtendRightByOperation operation) ((Node leftRange _) as le
         )
 
 
-abovePrecedence0 : Parser (WithComments ExtensionRight)
-abovePrecedence0 =
-    -- TODO Add tests for all operators
-    ParserFast.oneOf24
-        precedence1ApR
-        precedence5append
-        precedence1ApL
-        precedence9ComposeR
-        precedence4Eq
-        precedence7Mul
-        precedence5Cons
-        precedence6Add
-        precedence6Sub
-        precedence6Ignore
-        precedence3And
-        precedence5Keep
-        precedence9ComposeL
-        precedence4Neq
-        precedence7Idiv
-        precedence7Fdiv
-        precedence7Slash
-        precedence2Or
-        precedence4Le
-        precedence4Ge
-        precedence4Gt
-        precedence8QuestionMark
-        precedence4Lt
-        precedence8Pow
+type alias InfixOperatorInfo =
+    { leftPrecedence : Int
+    , symbol : String
+    , extensionRight : Parser (WithComments ExtensionRight)
+    }
 
 
-abovePrecedence1 : Parser (WithComments ExtensionRight)
-abovePrecedence1 =
-    ParserFast.oneOf22
-        precedence5append
-        precedence9ComposeR
-        precedence4Eq
-        precedence7Mul
-        precedence5Cons
-        precedence6Add
-        precedence6Sub
-        precedence6Ignore
-        precedence3And
-        precedence5Keep
-        precedence9ComposeL
-        precedence4Neq
-        precedence7Idiv
-        precedence7Fdiv
-        precedence7Slash
-        precedence2Or
-        precedence4Le
-        precedence4Ge
-        precedence4Gt
-        precedence8QuestionMark
-        precedence4Lt
-        precedence8Pow
+infixOperatorAndThen : (InfixOperatorInfo -> Result String intermediate) -> (intermediate -> Parser res) -> Parser res
+infixOperatorAndThen toResult f =
+    ParserFast.whileWithoutLinebreakAnd2PartUtf16ToResultAndThen
+        Tokens.isOperatorSymbolChar
+        (\operator ->
+            case operator of
+                "|>" ->
+                    toResult precedence1ApR
 
+                "++" ->
+                    toResult precedence5append
 
-abovePrecedence2 : Parser (WithComments ExtensionRight)
-abovePrecedence2 =
-    ParserFast.oneOf21
-        precedence5append
-        precedence9ComposeR
-        precedence4Eq
-        precedence7Mul
-        precedence5Cons
-        precedence6Add
-        precedence6Sub
-        precedence6Ignore
-        precedence3And
-        precedence5Keep
-        precedence9ComposeL
-        precedence4Neq
-        precedence7Idiv
-        precedence7Fdiv
-        precedence7Slash
-        precedence4Le
-        precedence4Ge
-        precedence4Gt
-        precedence8QuestionMark
-        precedence4Lt
-        precedence8Pow
+                "<|" ->
+                    toResult precedence1ApL
 
+                ">>" ->
+                    toResult precedence9ComposeR
 
-abovePrecedence4 : Parser (WithComments ExtensionRight)
-abovePrecedence4 =
-    ParserFast.oneOf14
-        precedence5append
-        precedence9ComposeR
-        precedence7Mul
-        precedence5Cons
-        precedence6Add
-        precedence6Sub
-        precedence6Ignore
-        precedence5Keep
-        precedence9ComposeL
-        precedence7Idiv
-        precedence7Fdiv
-        precedence7Slash
-        precedence8QuestionMark
-        precedence8Pow
+                "==" ->
+                    toResult precedence4Eq
 
+                "*" ->
+                    toResult precedence7Mul
 
-abovePrecedence4NonAssociative : String -> Parser (WithComments ExtensionRight)
-abovePrecedence4NonAssociative leftOperationSymbol =
-    ParserFast.oneOf20
-        precedence5append
-        precedence9ComposeR
-        precedence7Mul
-        precedence5Cons
-        precedence6Add
-        precedence6Sub
-        precedence6Ignore
-        precedence5Keep
-        precedence9ComposeL
-        precedence7Idiv
-        precedence7Fdiv
-        precedence7Slash
-        precedence8QuestionMark
-        precedence8Pow
-        (symbolFollowedByProblemNonAssociative "==" leftOperationSymbol)
-        (symbolFollowedByProblemNonAssociative "/=" leftOperationSymbol)
-        (symbolFollowedByProblemNonAssociative "<" leftOperationSymbol)
-        (symbolFollowedByProblemNonAssociative ">" leftOperationSymbol)
-        (symbolFollowedByProblemNonAssociative "<=" leftOperationSymbol)
-        (symbolFollowedByProblemNonAssociative ">=" leftOperationSymbol)
+                "::" ->
+                    toResult precedence5Cons
 
+                "+" ->
+                    toResult precedence6Add
 
-symbolFollowedByProblemNonAssociative : String -> String -> Parser a
-symbolFollowedByProblemNonAssociative symbol leftOperationSymbol =
-    ParserFast.symbolFollowedBy symbol
-        (ParserFast.problem
-            ("cannot mix ("
-                ++ leftOperationSymbol
-                ++ ") and ("
-                ++ symbol
-                ++ ") without parentheses."
-            )
+                "-" ->
+                    toResult precedence6Sub
+
+                "|." ->
+                    toResult precedence6Ignore
+
+                "&&" ->
+                    toResult precedence3And
+
+                "|=" ->
+                    toResult precedence5Keep
+
+                "<<" ->
+                    toResult precedence9ComposeL
+
+                "/=" ->
+                    toResult precedence4Neq
+
+                "//" ->
+                    toResult precedence7Idiv
+
+                "/" ->
+                    toResult precedence7Fdiv
+
+                "</>" ->
+                    toResult precedence7Slash
+
+                "||" ->
+                    toResult precedence2Or
+
+                "<=" ->
+                    toResult precedence4Le
+
+                ">=" ->
+                    toResult precedence4Ge
+
+                ">" ->
+                    toResult precedence4Gt
+
+                "<?>" ->
+                    toResult precedence8QuestionMark
+
+                "<" ->
+                    toResult precedence4Lt
+
+                "^" ->
+                    toResult precedence8Pow
+
+                other ->
+                    errUnknownInfixOperator
         )
+        f
 
 
-abovePrecedence5 : Parser (WithComments ExtensionRight)
-abovePrecedence5 =
-    ParserFast.oneOf11
-        precedence9ComposeR
-        precedence7Mul
-        precedence6Add
-        precedence6Sub
-        precedence6Ignore
-        precedence9ComposeL
-        precedence7Idiv
-        precedence7Fdiv
-        precedence7Slash
-        precedence8QuestionMark
-        precedence8Pow
+errUnknownInfixOperator : Result String a
+errUnknownInfixOperator =
+    Err "unknown infix operator"
 
 
-abovePrecedence6 : Parser (WithComments ExtensionRight)
-abovePrecedence6 =
-    ParserFast.oneOf8
-        precedence9ComposeR
-        precedence7Mul
-        precedence9ComposeL
-        precedence7Idiv
-        precedence7Fdiv
-        precedence7Slash
-        precedence8QuestionMark
-        precedence8Pow
-
-
-abovePrecedence7 : Parser (WithComments ExtensionRight)
-abovePrecedence7 =
-    ParserFast.oneOf4
-        precedence9ComposeR
-        precedence9ComposeL
-        precedence8QuestionMark
-        precedence8Pow
-
-
-abovePrecedence8 : Parser (WithComments ExtensionRight)
-abovePrecedence8 =
-    ParserFast.oneOf2
-        precedence9ComposeR
-        precedence9ComposeL
-
-
-abovePrecedence9 : Parser (WithComments ExtensionRight)
-abovePrecedence9 =
-    ParserFast.problem "there are no operations with precedence > 9"
-
-
-infixLeft : Parser (WithComments ExtensionRight) -> String -> Parser (WithComments ExtensionRight)
-infixLeft possibilitiesForPrecedence symbol =
-    ParserFast.symbolFollowedBy symbol
-        (ParserFast.map2
+infixLeft : Int -> String -> InfixOperatorInfo
+infixLeft leftPrecedence symbol =
+    { leftPrecedence = leftPrecedence
+    , symbol = symbol
+    , extensionRight =
+        ParserFast.map2
             (\commentsBeforeFirst first ->
                 { comments =
                     commentsBeforeFirst
@@ -1533,14 +1442,27 @@ infixLeft possibilitiesForPrecedence symbol =
                 }
             )
             Layout.maybeLayout
-            (extendedSubExpressionOptimisticLayout possibilitiesForPrecedence)
-        )
+            (extendedSubExpressionOptimisticLayout
+                (infixOperatorAndThen
+                    (\info ->
+                        if info.leftPrecedence > leftPrecedence then
+                            Ok info
+
+                        else
+                            temporaryErrPrecedenceTooHigh
+                    )
+                    .extensionRight
+                )
+            )
+    }
 
 
-infixNonAssociative : Parser (WithComments ExtensionRight) -> String -> Parser (WithComments ExtensionRight)
-infixNonAssociative possibilitiesForPrecedence symbol =
-    ParserFast.symbolFollowedBy symbol
-        (ParserFast.map2
+infixNonAssociative : Int -> String -> InfixOperatorInfo
+infixNonAssociative leftPrecedence symbol =
+    { leftPrecedence = leftPrecedence
+    , symbol = symbol
+    , extensionRight =
+        ParserFast.map2
             (\commentsBefore right ->
                 { comments = commentsBefore |> Rope.prependTo right.comments
                 , syntax =
@@ -1552,14 +1474,39 @@ infixNonAssociative possibilitiesForPrecedence symbol =
                 }
             )
             Layout.maybeLayout
-            (extendedSubExpressionOptimisticLayout possibilitiesForPrecedence)
-        )
+            (extendedSubExpressionOptimisticLayout
+                (infixOperatorAndThen
+                    (\info ->
+                        if info.leftPrecedence >= leftPrecedence then
+                            Ok info
+
+                        else
+                            temporaryErrPrecedenceTooHigh
+                    )
+                    (\info ->
+                        if info.leftPrecedence == leftPrecedence then
+                            problemCannotMixNonAssociativeInfixOperators
+
+                        else
+                            -- info.leftPrecedence > leftPrecedence
+                            info.extensionRight
+                    )
+                )
+            )
+    }
 
 
-infixRight : Parser (WithComments ExtensionRight) -> String -> Parser (WithComments ExtensionRight)
-infixRight possibilitiesForPrecedenceMinus1 symbol =
-    ParserFast.symbolFollowedBy symbol
-        (ParserFast.map2
+problemCannotMixNonAssociativeInfixOperators : Parser a
+problemCannotMixNonAssociativeInfixOperators =
+    ParserFast.problem "cannot mix non-associative infix operators without parenthesis"
+
+
+infixRight : Int -> String -> InfixOperatorInfo
+infixRight leftPrecedence symbol =
+    { leftPrecedence = leftPrecedence
+    , symbol = symbol
+    , extensionRight =
+        ParserFast.map2
             (\commentsBeforeFirst first ->
                 { comments =
                     commentsBeforeFirst
@@ -1573,8 +1520,24 @@ infixRight possibilitiesForPrecedenceMinus1 symbol =
                 }
             )
             Layout.maybeLayout
-            (extendedSubExpressionOptimisticLayout possibilitiesForPrecedenceMinus1)
-        )
+            (extendedSubExpressionOptimisticLayout
+                (infixOperatorAndThen
+                    (\info ->
+                        if info.leftPrecedence >= leftPrecedence then
+                            Ok info
+
+                        else
+                            temporaryErrPrecedenceTooHigh
+                    )
+                    .extensionRight
+                )
+            )
+    }
+
+
+temporaryErrPrecedenceTooHigh : Result String a
+temporaryErrPrecedenceTooHigh =
+    Err "infix operator precedence too high"
 
 
 type ExtensionRight
