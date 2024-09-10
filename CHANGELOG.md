@@ -2,12 +2,12 @@
 
 ## [Unreleased]
 
-- The parser is stricter in a few cases where code that was incorrect (according to the Elm compiler) was successfully parsed: tuple patterns and type annotations with more than 3 elements, non-associative operators (so no more `a < b < c`), lambda indentation
+- The parser is stricter in a few cases where code that was incorrect (according to the Elm compiler) was successfully parsed: tuple patterns and tuple type annotations with more than 3 parts, non-associative operators (so no more `a < b < c`), lambda indentation
 - The parser removes incorrect failures with specific operator combinations like `a + b /= 0` due to specifics of the pratt parser
 
 ## [7.3.5] - 2024-08-30
 
-- The parser is stricter in a few cases where code that was incorrect (according to the Elm compiler) was successfully parsed: tuples with more than 3 elements, and record access on most things
+- The parser is stricter in a few cases where code that was incorrect (according to the Elm compiler) was successfully parsed: tuple expressions with more than 3 parts, and record access on most things
 - Parsing is about 6 times faster than the previous release!
 
 ## [7.3.4] - 2024-07-26
