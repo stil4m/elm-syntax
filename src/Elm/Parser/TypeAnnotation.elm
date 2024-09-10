@@ -95,7 +95,7 @@ parensTypeAnnotation =
                             , end = rangeAfterOpeningParens.end
                             }
                             (case lastToSecondPart.syntax of
-                                [] ->
+                                Nothing ->
                                     -- parenthesized types are not a `Tupled [ firstPart.syntax ]`
                                     -- but their Range still extends to both parens.
                                     -- This is done to not break behavior of v7.
@@ -106,28 +106,58 @@ parensTypeAnnotation =
                                     in
                                     firstPartType
 
-                                _ :: _ ->
-                                    TypeAnnotation.Tupled (firstPart.syntax :: List.reverse lastToSecondPart.syntax)
+                                Just firstAndMaybeThirdPart ->
+                                    case firstAndMaybeThirdPart.maybeThirdPart of
+                                        Nothing ->
+                                            TypeAnnotation.Tupled [ firstPart.syntax, firstAndMaybeThirdPart.secondPart ]
+
+                                        Just thirdPart ->
+                                            TypeAnnotation.Tupled [ firstPart.syntax, firstAndMaybeThirdPart.secondPart, thirdPart ]
                             )
                     }
                 )
                 Layout.maybeLayout
                 typeAnnotation
                 Layout.maybeLayout
-                (ParserWithComments.untilWithoutReverse
-                    Tokens.parensEnd
-                    (ParserFast.map3
-                        (\commentsBefore typeAnnotationResult commentsAfter ->
-                            { comments =
-                                commentsBefore
-                                    |> Rope.prependTo typeAnnotationResult.comments
-                                    |> Rope.prependTo commentsAfter
-                            , syntax = typeAnnotationResult.syntax
-                            }
+                (ParserFast.oneOf2
+                    (ParserFast.symbol ")"
+                        { comments = Rope.empty, syntax = Nothing }
+                    )
+                    (ParserFast.symbolFollowedBy ","
+                        (ParserFast.map4
+                            (\commentsBefore secondPartResult commentsAfter maybeThirdPartResult ->
+                                { comments =
+                                    commentsBefore
+                                        |> Rope.prependTo secondPartResult.comments
+                                        |> Rope.prependTo commentsAfter
+                                , syntax = Just { secondPart = secondPartResult.syntax, maybeThirdPart = maybeThirdPartResult.syntax }
+                                }
+                            )
+                            Layout.maybeLayout
+                            typeAnnotation
+                            Layout.maybeLayout
+                            (ParserFast.oneOf2
+                                (ParserFast.symbol ")"
+                                    { comments = Rope.empty, syntax = Nothing }
+                                )
+                                (ParserFast.symbolFollowedBy ","
+                                    (ParserFast.map3
+                                        (\commentsBefore thirdPartResult commentsAfter ->
+                                            { comments =
+                                                commentsBefore
+                                                    |> Rope.prependTo thirdPartResult.comments
+                                                    |> Rope.prependTo commentsAfter
+                                            , syntax = Just thirdPartResult.syntax
+                                            }
+                                        )
+                                        Layout.maybeLayout
+                                        typeAnnotation
+                                        Layout.maybeLayout
+                                        |> ParserFast.followedBySymbol ")"
+                                    )
+                                )
+                            )
                         )
-                        (ParserFast.symbolFollowedBy "," Layout.maybeLayout)
-                        typeAnnotation
-                        Layout.maybeLayout
                     )
                 )
             )
