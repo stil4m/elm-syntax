@@ -869,6 +869,16 @@ all =
     in
     x"""
                     |> ParserWithCommentsUtil.expectInvalid Elm.Parser.Declarations.declaration
+        , test "fail if lambda result not positively indented" <|
+            \() ->
+                """a =
+    let
+        x =
+            \\y ->
+        y
+    in
+    x"""
+                    |> ParserWithCommentsUtil.expectInvalid Elm.Parser.Declarations.declaration
         ]
 
 

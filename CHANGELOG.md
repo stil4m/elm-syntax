@@ -2,7 +2,7 @@
 
 ## [Unreleased]
 
-- The parser is stricter in a few cases where code that was incorrect (according to the Elm compiler) was successfully parsed: tuple patterns and type annotations with more than 3 elements
+- The parser is stricter in a few cases where code that was incorrect (according to the Elm compiler) was successfully parsed: tuple patterns and type annotations with more than 3 elements, lambda indentation
 
 ## [7.3.5] - 2024-08-30
 
