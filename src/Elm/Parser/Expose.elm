@@ -101,7 +101,7 @@ typeExpose =
                             { start = typeNameRange.start
                             , end = openRange.end
                             }
-                            (TypeExpose { name = typeName, open = Just openRange })
+                            (TypeExpose { name = typeName, open = maybeOpen.syntax })
             }
         )
         Tokens.typeNameNode
