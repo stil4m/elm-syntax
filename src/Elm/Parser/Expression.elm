@@ -1412,7 +1412,7 @@ infixOperatorAndThen toResult f =
                 "^" ->
                     toResult precedence8Pow
 
-                other ->
+                _ ->
                     errUnknownInfixOperator
         )
         f
