@@ -60,8 +60,8 @@ expectAst : ParserFast.Parser (WithComments a) -> a -> String -> Expect.Expectat
 expectAst parser =
     \expected source ->
         case ParserFast.run parser source of
-            Err error ->
-                Expect.fail ("Expected the source to be parsed correctly:\n" ++ Debug.toString error)
+            Err deadEnds ->
+                Expect.fail ("Expected the source to be parsed correctly:\n[ " ++ (List.map deadEndToString deadEnds |> String.join "\n, ") ++ "\n]")
 
             Ok actual ->
                 Expect.all
@@ -73,6 +73,11 @@ expectAst parser =
                             |> Expect.onFail "This parser should not produce any comments. If this is expected, then you should use expectAstWithComments instead."
                     ]
                     ()
+
+
+deadEndToString : Parser.DeadEnd -> String
+deadEndToString { row, col, problem } =
+    "{ problem: " ++ Debug.toString problem ++ ", row = " ++ String.fromInt row ++ ", col = " ++ String.fromInt col ++ " }"
 
 
 expectAstWithComments : ParserFast.Parser (WithComments a) -> { ast : a, comments : List (Node String) } -> String -> Expect.Expectation

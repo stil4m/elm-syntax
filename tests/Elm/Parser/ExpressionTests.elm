@@ -132,7 +132,7 @@ all =
                                 , Node { start = { row = 1, column = 13 }, end = { row = 1, column = 15 } } <| ListExpr []
                                 ]
                         )
-        , test "application expression with operator" <|
+        , test "Binary operation" <|
             \() ->
                 "model + 1"
                     |> expectAst
@@ -141,6 +141,74 @@ all =
                                 Infix.Left
                                 (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 6 } } <| FunctionOrValue [] "model")
                                 (Node { start = { row = 1, column = 9 }, end = { row = 1, column = 10 } } <| Integer 1)
+                        )
+        , test "Nested binary operations (+ and ==)" <|
+            \() ->
+                "count + 1 == 1"
+                    |> expectAst
+                        (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 15 } }
+                            (OperatorApplication "=="
+                                Non
+                                (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 10 } }
+                                    (OperatorApplication "+"
+                                        Left
+                                        (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 6 } } (FunctionOrValue [] "count"))
+                                        (Node { start = { row = 1, column = 9 }, end = { row = 1, column = 10 } } (Integer 1))
+                                    )
+                                )
+                                (Node { start = { row = 1, column = 14 }, end = { row = 1, column = 15 } } (Integer 1))
+                            )
+                        )
+        , test "Nested binary operations (+ and /=)" <|
+            \() ->
+                "count + 1 /= 1"
+                    |> expectAst
+                        (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 15 } }
+                            (OperatorApplication "/="
+                                Non
+                                (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 10 } }
+                                    (OperatorApplication "+"
+                                        Left
+                                        (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 6 } } (FunctionOrValue [] "count"))
+                                        (Node { start = { row = 1, column = 9 }, end = { row = 1, column = 10 } } (Integer 1))
+                                    )
+                                )
+                                (Node { start = { row = 1, column = 14 }, end = { row = 1, column = 15 } } (Integer 1))
+                            )
+                        )
+        , test "Nested binary operations (+ and //)" <|
+            \() ->
+                "count + 1 // 2"
+                    |> expectAst
+                        (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 15 } }
+                            (OperatorApplication "+"
+                                Left
+                                (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 6 } } (FunctionOrValue [] "count"))
+                                (Node { start = { row = 1, column = 9 }, end = { row = 1, column = 15 } }
+                                    (OperatorApplication "//"
+                                        Left
+                                        (Node { start = { row = 1, column = 9 }, end = { row = 1, column = 10 } } (Integer 1))
+                                        (Node { start = { row = 1, column = 14 }, end = { row = 1, column = 15 } } (Integer 2))
+                                    )
+                                )
+                            )
+                        )
+        , test "Nested binary operations (&& and <|)" <|
+            \() ->
+                "condition && condition <| f"
+                    |> expectAst
+                        (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 28 } }
+                            (OperatorApplication "<|"
+                                Right
+                                (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 23 } }
+                                    (OperatorApplication "&&"
+                                        Right
+                                        (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 10 } } (FunctionOrValue [] "condition"))
+                                        (Node { start = { row = 1, column = 14 }, end = { row = 1, column = 23 } } (FunctionOrValue [] "condition"))
+                                    )
+                                )
+                                (Node { start = { row = 1, column = 27 }, end = { row = 1, column = 28 } } (FunctionOrValue [] "f"))
+                            )
                         )
         , test "application expression 2" <|
             \() ->
