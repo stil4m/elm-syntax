@@ -49,23 +49,27 @@ composablePatternTryToCompose =
 maybeComposedWith : Parser { comments : ParserWithComments.Comments, syntax : PatternComposedWith }
 maybeComposedWith =
     ParserFast.oneOf2OrSucceed
-        (ParserFast.map2
-            (\commentsAfterAs name ->
-                { comments = commentsAfterAs
-                , syntax = PatternComposedWithAs name
-                }
+        (ParserFast.keywordFollowedBy "as"
+            (ParserFast.map2
+                (\commentsAfterAs name ->
+                    { comments = commentsAfterAs
+                    , syntax = PatternComposedWithAs name
+                    }
+                )
+                Layout.maybeLayout
+                Tokens.functionNameNode
             )
-            (ParserFast.keywordFollowedBy "as" Layout.maybeLayout)
-            Tokens.functionNameNode
         )
-        (ParserFast.map2
-            (\commentsAfterCons patternResult ->
-                { comments = patternResult.comments |> Rope.prependTo commentsAfterCons
-                , syntax = PatternComposedWithCons patternResult.syntax
-                }
+        (ParserFast.symbolFollowedBy "::"
+            (ParserFast.map2
+                (\commentsAfterCons patternResult ->
+                    { comments = patternResult.comments |> Rope.prependTo commentsAfterCons
+                    , syntax = PatternComposedWithCons patternResult.syntax
+                    }
+                )
+                Layout.maybeLayout
+                pattern
             )
-            (ParserFast.symbolFollowedBy "::" Layout.maybeLayout)
-            pattern
         )
         { comments = Rope.empty, syntax = PatternComposedWithNothing () }
 
@@ -388,15 +392,17 @@ recordPattern =
                 Tokens.functionNameNode
                 Layout.maybeLayout
                 (ParserWithComments.many
-                    (ParserFast.map3
-                        (\beforeName name afterName ->
-                            { comments = beforeName |> Rope.prependTo afterName
-                            , syntax = name
-                            }
+                    (ParserFast.symbolFollowedBy ","
+                        (ParserFast.map3
+                            (\beforeName name afterName ->
+                                { comments = beforeName |> Rope.prependTo afterName
+                                , syntax = name
+                                }
+                            )
+                            Layout.maybeLayout
+                            Tokens.functionNameNode
+                            Layout.maybeLayout
                         )
-                        (ParserFast.symbolFollowedBy "," Layout.maybeLayout)
-                        Tokens.functionNameNode
-                        Layout.maybeLayout
                     )
                 )
                 |> ParserFast.followedBySymbol "}"

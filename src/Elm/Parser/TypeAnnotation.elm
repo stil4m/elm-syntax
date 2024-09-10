@@ -241,26 +241,28 @@ recordTypeAnnotation =
                             )
                         )
                     )
-                    (ParserFast.map4
-                        (\commentsBeforeFirstFieldValue firstFieldValue commentsAfterFirstFieldValue tailFields ->
-                            { comments =
-                                commentsBeforeFirstFieldValue
-                                    |> Rope.prependTo firstFieldValue.comments
-                                    |> Rope.prependTo commentsAfterFirstFieldValue
-                                    |> Rope.prependTo tailFields.comments
-                            , syntax =
-                                FieldsAfterName
-                                    { firstFieldValue = firstFieldValue.syntax
-                                    , tailFields = tailFields.syntax
-                                    }
-                            }
-                        )
-                        (ParserFast.symbolFollowedBy ":" Layout.maybeLayout)
-                        typeAnnotation
-                        Layout.maybeLayout
-                        (ParserFast.orSucceed
-                            (ParserFast.symbolFollowedBy "," recordFieldsTypeAnnotation)
-                            { comments = Rope.empty, syntax = [] }
+                    (ParserFast.symbolFollowedBy ":"
+                        (ParserFast.map4
+                            (\commentsBeforeFirstFieldValue firstFieldValue commentsAfterFirstFieldValue tailFields ->
+                                { comments =
+                                    commentsBeforeFirstFieldValue
+                                        |> Rope.prependTo firstFieldValue.comments
+                                        |> Rope.prependTo commentsAfterFirstFieldValue
+                                        |> Rope.prependTo tailFields.comments
+                                , syntax =
+                                    FieldsAfterName
+                                        { firstFieldValue = firstFieldValue.syntax
+                                        , tailFields = tailFields.syntax
+                                        }
+                                }
+                            )
+                            Layout.maybeLayout
+                            typeAnnotation
+                            Layout.maybeLayout
+                            (ParserFast.orSucceed
+                                (ParserFast.symbolFollowedBy "," recordFieldsTypeAnnotation)
+                                { comments = Rope.empty, syntax = [] }
+                            )
                         )
                     )
                 )

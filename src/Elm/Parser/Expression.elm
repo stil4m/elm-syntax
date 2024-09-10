@@ -370,27 +370,31 @@ recordContentsCurlyEnd =
             Tokens.functionNameNode
             Layout.maybeLayout
             (ParserFast.oneOf2
-                (ParserFast.map2
-                    (\commentsBefore setterResult ->
-                        { comments = commentsBefore |> Rope.prependTo setterResult.comments
-                        , syntax = RecordUpdateFirstSetter setterResult.syntax
-                        }
+                (ParserFast.symbolFollowedBy "|"
+                    (ParserFast.map2
+                        (\commentsBefore setterResult ->
+                            { comments = commentsBefore |> Rope.prependTo setterResult.comments
+                            , syntax = RecordUpdateFirstSetter setterResult.syntax
+                            }
+                        )
+                        Layout.maybeLayout
+                        recordSetterNodeWithLayout
                     )
-                    (ParserFast.symbolFollowedBy "|" Layout.maybeLayout)
-                    recordSetterNodeWithLayout
                 )
-                (ParserFast.map3
-                    (\commentsBefore expressionResult commentsAfter ->
-                        { comments =
-                            commentsBefore
-                                |> Rope.prependTo expressionResult.comments
-                                |> Rope.prependTo commentsAfter
-                        , syntax = FieldsFirstValue expressionResult.syntax
-                        }
+                (ParserFast.symbolFollowedBy "="
+                    (ParserFast.map3
+                        (\commentsBefore expressionResult commentsAfter ->
+                            { comments =
+                                commentsBefore
+                                    |> Rope.prependTo expressionResult.comments
+                                    |> Rope.prependTo commentsAfter
+                            , syntax = FieldsFirstValue expressionResult.syntax
+                            }
+                        )
+                        Layout.maybeLayout
+                        expression
+                        Layout.maybeLayout
                     )
-                    (ParserFast.symbolFollowedBy "=" Layout.maybeLayout)
-                    expression
-                    Layout.maybeLayout
                 )
             )
             recordFields
@@ -407,14 +411,16 @@ type RecordFieldsOrUpdateAfterName
 recordFields : Parser (WithComments (List (Node RecordSetter)))
 recordFields =
     ParserWithComments.many
-        (ParserFast.map2
-            (\commentsBefore setterResult ->
-                { comments = commentsBefore |> Rope.prependTo setterResult.comments
-                , syntax = setterResult.syntax
-                }
+        (ParserFast.symbolFollowedBy ","
+            (ParserFast.map2
+                (\commentsBefore setterResult ->
+                    { comments = commentsBefore |> Rope.prependTo setterResult.comments
+                    , syntax = setterResult.syntax
+                    }
+                )
+                Layout.maybeLayout
+                recordSetterNodeWithLayout
             )
-            (ParserFast.symbolFollowedBy "," Layout.maybeLayout)
-            recordSetterNodeWithLayout
         )
 
 
@@ -1199,35 +1205,37 @@ tupledExpressionInnerAfterOpeningParens =
                     (\recordAccesses -> { comments = Rope.empty, syntax = TupledParenthesizedFollowedByRecordAccesses recordAccesses })
                 )
             )
-            (ParserFast.map4
-                (\commentsBefore partResult commentsAfter maybeThirdPart ->
-                    { comments =
-                        commentsBefore
-                            |> Rope.prependTo partResult.comments
-                            |> Rope.prependTo commentsAfter
-                            |> Rope.prependTo maybeThirdPart.comments
-                    , syntax = TupledTwoOrThree ( partResult.syntax, maybeThirdPart.syntax )
-                    }
-                )
-                (ParserFast.symbolFollowedBy "," Layout.maybeLayout)
-                expression
-                Layout.maybeLayout
-                (ParserFast.oneOf2
-                    (ParserFast.symbol ")" { comments = Rope.empty, syntax = Nothing })
-                    (ParserFast.symbolFollowedBy ","
-                        (ParserFast.map3
-                            (\commentsBefore partResult commentsAfter ->
-                                { comments =
-                                    commentsBefore
-                                        |> Rope.prependTo partResult.comments
-                                        |> Rope.prependTo commentsAfter
-                                , syntax = Just partResult.syntax
-                                }
+            (ParserFast.symbolFollowedBy ","
+                (ParserFast.map4
+                    (\commentsBefore partResult commentsAfter maybeThirdPart ->
+                        { comments =
+                            commentsBefore
+                                |> Rope.prependTo partResult.comments
+                                |> Rope.prependTo commentsAfter
+                                |> Rope.prependTo maybeThirdPart.comments
+                        , syntax = TupledTwoOrThree ( partResult.syntax, maybeThirdPart.syntax )
+                        }
+                    )
+                    Layout.maybeLayout
+                    expression
+                    Layout.maybeLayout
+                    (ParserFast.oneOf2
+                        (ParserFast.symbol ")" { comments = Rope.empty, syntax = Nothing })
+                        (ParserFast.symbolFollowedBy ","
+                            (ParserFast.map3
+                                (\commentsBefore partResult commentsAfter ->
+                                    { comments =
+                                        commentsBefore
+                                            |> Rope.prependTo partResult.comments
+                                            |> Rope.prependTo commentsAfter
+                                    , syntax = Just partResult.syntax
+                                    }
+                                )
+                                Layout.maybeLayout
+                                expression
+                                Layout.maybeLayout
+                                |> ParserFast.followedBySymbol ")"
                             )
-                            Layout.maybeLayout
-                            expression
-                            Layout.maybeLayout
-                            |> ParserFast.followedBySymbol ")"
                         )
                     )
                 )
