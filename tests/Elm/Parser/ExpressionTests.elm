@@ -440,6 +440,22 @@ all =
         --     \() ->
         --         "z = a < b == c"
         --             |> ParserWithCommentsUtil.expectInvalid Elm.Parser.Declarations.declaration
+        -- , test "<| followed by |> operation without parenthesis should not be valid" <|
+        --     \() ->
+        --         "z = a <| b |> c"
+        --             |> ParserWithCommentsUtil.expectInvalid Elm.Parser.Declarations.declaration
+        -- , test "|> followed by <| operation without parenthesis should not be valid" <|
+        --     \() ->
+        --         "z = a |> b <| c"
+        --             |> ParserWithCommentsUtil.expectInvalid Elm.Parser.Declarations.declaration
+        -- , test "<< followed by >> operation without parenthesis should not be valid" <|
+        --     \() ->
+        --         "z = a << b >> c"
+        --             |> ParserWithCommentsUtil.expectInvalid Elm.Parser.Declarations.declaration
+        -- , test ">> followed by << operation without parenthesis should not be valid" <|
+        --     \() ->
+        --         "z = a >> b << c"
+        --             |> ParserWithCommentsUtil.expectInvalid Elm.Parser.Declarations.declaration
         , test "prefix notation" <|
             \() ->
                 "(::) x"
