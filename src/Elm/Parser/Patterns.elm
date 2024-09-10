@@ -119,7 +119,7 @@ parensPattern =
                                             |> Rope.prependTo secondPart.comments
                                             |> Rope.prependTo commentsAfter
                                             |> Rope.prependTo maybeThirdPart.comments
-                                    , syntax = Just { secondPart = secondPart.syntax, maybeThirdPart = maybeThirdPart.syntax }
+                                    , syntax = Just { maybeThirdPart = maybeThirdPart.syntax, secondPart = secondPart.syntax }
                                     }
                                 )
                                 Layout.maybeLayout

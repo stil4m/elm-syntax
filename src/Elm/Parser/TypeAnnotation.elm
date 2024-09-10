@@ -130,7 +130,7 @@ parensTypeAnnotation =
                                     commentsBefore
                                         |> Rope.prependTo secondPartResult.comments
                                         |> Rope.prependTo commentsAfter
-                                , syntax = Just { secondPart = secondPartResult.syntax, maybeThirdPart = maybeThirdPartResult.syntax }
+                                , syntax = Just { maybeThirdPart = maybeThirdPartResult.syntax, secondPart = secondPartResult.syntax }
                                 }
                             )
                             Layout.maybeLayout
