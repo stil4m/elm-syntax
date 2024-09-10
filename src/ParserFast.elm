@@ -1,6 +1,6 @@
 module ParserFast exposing
     ( Parser, run
-    , int, intOrHexMapWithRange, floatOrIntOrHexMapWithRange, symbol, symbolWithEndLocation, symbolWithRange, symbolFollowedBy, symbolBacktrackableFollowedBy, followedBySymbol, keyword, keywordFollowedBy, while, whileWithoutLinebreak, whileMap, ifFollowedByWhileWithoutLinebreak, ifFollowedByWhileMapWithoutLinebreak, ifFollowedByWhileMapWithRangeWithoutLinebreak, ifFollowedByWhileValidateWithoutLinebreak, ifFollowedByWhileValidateMapWithRangeWithoutLinebreak, anyChar, end
+    , int, intOrHexMapWithRange, floatOrIntOrHexMapWithRange, symbol, symbolWithEndLocation, symbolWithRange, symbolFollowedBy, symbolWithExceptionFollowedBy, symbolBacktrackableFollowedBy, followedBySymbol, keyword, keywordFollowedBy, while, whileWithoutLinebreak, whileMap, ifFollowedByWhileWithoutLinebreak, ifFollowedByWhileMapWithoutLinebreak, ifFollowedByWhileMapWithRangeWithoutLinebreak, ifFollowedByWhileValidateWithoutLinebreak, ifFollowedByWhileValidateMapWithRangeWithoutLinebreak, anyChar, end
     , succeed, problem, lazy, map, map2, map2WithStartLocation, map2WithRange, map3, map3WithStartLocation, map3WithRange, map4, map4WithRange, map5, map5WithStartLocation, map5WithRange, map6, map6WithStartLocation, map6WithRange, map7WithRange, map8WithStartLocation, map9WithRange, validate
     , orSucceed, mapOrSucceed, map2OrSucceed, map3OrSucceed, map4OrSucceed, oneOf2, oneOf2Map, oneOf2MapWithStartRowColumnAndEndRowColumn, oneOf2OrSucceed, oneOf3, oneOf4, oneOf5, oneOf7, oneOf10, oneOf14, oneOf
     , loopWhileSucceeds, loopUntil
@@ -14,7 +14,7 @@ module ParserFast exposing
 
 @docs Parser, run
 
-@docs int, intOrHexMapWithRange, floatOrIntOrHexMapWithRange, symbol, symbolWithEndLocation, symbolWithRange, symbolFollowedBy, symbolBacktrackableFollowedBy, followedBySymbol, keyword, keywordFollowedBy, while, whileWithoutLinebreak, whileMap, ifFollowedByWhileWithoutLinebreak, ifFollowedByWhileMapWithoutLinebreak, ifFollowedByWhileMapWithRangeWithoutLinebreak, ifFollowedByWhileValidateWithoutLinebreak, ifFollowedByWhileValidateMapWithRangeWithoutLinebreak, anyChar, end
+@docs int, intOrHexMapWithRange, floatOrIntOrHexMapWithRange, symbol, symbolWithEndLocation, symbolWithRange, symbolFollowedBy, symbolWithExceptionFollowedBy, symbolBacktrackableFollowedBy, followedBySymbol, keyword, keywordFollowedBy, while, whileWithoutLinebreak, whileMap, ifFollowedByWhileWithoutLinebreak, ifFollowedByWhileMapWithoutLinebreak, ifFollowedByWhileMapWithRangeWithoutLinebreak, ifFollowedByWhileValidateWithoutLinebreak, ifFollowedByWhileValidateMapWithRangeWithoutLinebreak, anyChar, end
 
 
 # Flow
@@ -2027,6 +2027,38 @@ symbolFollowedBy str (Parser parseNext) =
                     , indent = s.indent
                     , row = s.row
                     , col = s.col + strLength
+                    }
+                    |> pStepCommit
+
+            else
+                Bad False (ExpectingSymbol s.row s.col str) ()
+        )
+
+
+{-| Same as `symbolFollowedBy` but the following character must not be another given character.
+
+Assumes both symbols are only 1 character long.
+
+-}
+symbolWithExceptionFollowedBy : String -> String -> Parser next -> Parser next
+symbolWithExceptionFollowedBy str exception (Parser parseNext) =
+    Parser
+        (\s ->
+            let
+                newOffset : Int
+                newOffset =
+                    s.offset + 1
+            in
+            if
+                (String.slice s.offset newOffset s.src == str ++ "")
+                    && (String.slice newOffset (newOffset + 1) s.src /= exception ++ "")
+            then
+                parseNext
+                    { src = s.src
+                    , offset = newOffset
+                    , indent = s.indent
+                    , row = s.row
+                    , col = s.col + 1
                     }
                     |> pStepCommit
 

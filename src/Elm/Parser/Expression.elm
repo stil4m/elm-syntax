@@ -72,14 +72,14 @@ extensionRightByPrecedence =
     , infixLeft 9 (ParserFast.lazy (\() -> abovePrecedence9)) "<<"
     , infixNonAssociative 4 (ParserFast.lazy (\() -> abovePrecedence4)) "/="
     , infixLeft 7 (ParserFast.lazy (\() -> abovePrecedence7)) "//"
-    , infixLeft 7 (ParserFast.lazy (\() -> abovePrecedence7)) "/"
+    , infixLeftWithException 7 (ParserFast.lazy (\() -> abovePrecedence7)) "/" "="
     , infixRight 7 (ParserFast.lazy (\() -> abovePrecedence6)) "</>"
     , infixRight 2 (ParserFast.lazy (\() -> abovePrecedence1)) "||"
     , infixNonAssociative 4 (ParserFast.lazy (\() -> abovePrecedence4)) "<="
     , infixNonAssociative 4 (ParserFast.lazy (\() -> abovePrecedence4)) ">="
     , infixNonAssociative 4 (ParserFast.lazy (\() -> abovePrecedence4)) ">"
     , infixLeft 8 (ParserFast.lazy (\() -> abovePrecedence8)) "<?>"
-    , infixNonAssociative 4 (ParserFast.lazy (\() -> abovePrecedence4)) "<"
+    , infixNonAssociativeWithException 4 (ParserFast.lazy (\() -> abovePrecedence4)) "<" "|"
     , infixRight 8 (ParserFast.lazy (\() -> abovePrecedence7)) "^"
     ]
 
@@ -1256,11 +1256,31 @@ infixLeft precedence possibilitiesForPrecedence symbol =
         )
 
 
+infixLeftWithException : Int -> Parser (WithComments ExtensionRight) -> String -> String -> ( Int, Parser (WithComments ExtensionRight) )
+infixLeftWithException precedence possibilitiesForPrecedence symbol exceptionSymbol =
+    infixHelp precedence
+        possibilitiesForPrecedence
+        (ParserFast.symbolWithExceptionFollowedBy symbol exceptionSymbol)
+        (\right ->
+            ExtendRightByOperation { symbol = symbol, direction = Infix.Left, expression = right }
+        )
+
+
 infixNonAssociative : Int -> Parser (WithComments ExtensionRight) -> String -> ( Int, Parser (WithComments ExtensionRight) )
 infixNonAssociative precedence possibilitiesForPrecedence symbol =
     infixHelp precedence
         possibilitiesForPrecedence
         (ParserFast.symbolFollowedBy symbol)
+        (\right ->
+            ExtendRightByOperation { symbol = symbol, direction = Infix.Non, expression = right }
+        )
+
+
+infixNonAssociativeWithException : Int -> Parser (WithComments ExtensionRight) -> String -> String -> ( Int, Parser (WithComments ExtensionRight) )
+infixNonAssociativeWithException precedence possibilitiesForPrecedence symbol exceptionSymbol =
+    infixHelp precedence
+        possibilitiesForPrecedence
+        (ParserFast.symbolWithExceptionFollowedBy symbol exceptionSymbol)
         (\right ->
             ExtendRightByOperation { symbol = symbol, direction = Infix.Non, expression = right }
         )
