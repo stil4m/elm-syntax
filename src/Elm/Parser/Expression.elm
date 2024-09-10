@@ -1248,28 +1248,9 @@ extendedSubExpressionOptimisticLayout :
     Parser (WithComments ExtensionRight)
     -> Parser (WithComments (Node Expression))
 extendedSubExpressionOptimisticLayout aboveCurrentPrecedenceLayout =
-    ParserFast.map2
-        (\leftMaybeAppliedResult extensionsRight ->
-            { comments =
-                leftMaybeAppliedResult.comments
-                    |> Rope.prependTo extensionsRight.comments
-            , syntax =
-                applyExtensionsRight extensionsRight.syntax
-                    leftMaybeAppliedResult.syntax
-            }
-        )
-        maybeAppliedSubExpressionOptimisticLayout
-        (ParserWithComments.manyWithoutReverse
-            (Layout.positivelyIndentedFollowedBy aboveCurrentPrecedenceLayout)
-        )
-
-
-maybeAppliedSubExpressionOptimisticLayout : Parser (WithComments (Node Expression))
-maybeAppliedSubExpressionOptimisticLayout =
-    ParserFast.map3
-        (\leftExpressionResult commentsBeforeExtension maybeArgsReverse ->
+    ParserFast.map4
+        (\leftExpressionResult commentsBeforeExtension maybeArgsReverse extensionsRight ->
             let
-                leftMaybeApplied : Node Expression
                 leftMaybeApplied =
                     case maybeArgsReverse.syntax of
                         [] ->
@@ -1289,7 +1270,10 @@ maybeAppliedSubExpressionOptimisticLayout =
                 leftExpressionResult.comments
                     |> Rope.prependTo commentsBeforeExtension
                     |> Rope.prependTo maybeArgsReverse.comments
-            , syntax = leftMaybeApplied
+                    |> Rope.prependTo extensionsRight.comments
+            , syntax =
+                applyExtensionsRight extensionsRight.syntax
+                    leftMaybeApplied
             }
         )
         (ParserFast.lazy (\() -> subExpression))
@@ -1306,6 +1290,9 @@ maybeAppliedSubExpressionOptimisticLayout =
                 )
                 Layout.optimisticLayout
             )
+        )
+        (ParserWithComments.manyWithoutReverse
+            (Layout.positivelyIndentedFollowedBy aboveCurrentPrecedenceLayout)
         )
 
 
