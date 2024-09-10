@@ -3,6 +3,7 @@
 ## [Unreleased]
 
 - The parser is stricter in a few cases where code that was incorrect (according to the Elm compiler) was successfully parsed: tuple patterns and type annotations with more than 3 elements, non-associative operators (so no more `a < b < c`), lambda indentation
+- The parser removes incorrect failures with specific operator combinations like `a + b /= 0` due to specifics of the pratt parser
 
 ## [7.3.5] - 2024-08-30
 
