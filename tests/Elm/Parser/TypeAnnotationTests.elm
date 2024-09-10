@@ -31,6 +31,10 @@ all =
                                 ]
                             )
                         )
+        , test "4-tuple type annotation is invalid" <|
+            \() ->
+                "(Int,String,(),a)"
+                    |> expectInvalid
         , test "tupledTypeReference 2" <|
             \() ->
                 -- TODO This feels incorrect, there should be a Parenthesized type for this

@@ -206,6 +206,10 @@ all =
                                 ]
                             )
                         )
+        , test "4-tuple pattern is invalid" <|
+            \() ->
+                "(1,2,3,4)"
+                    |> expectInvalid
         , test "Nested tuple" <|
             \() ->
                 "(a,{b,c},())"

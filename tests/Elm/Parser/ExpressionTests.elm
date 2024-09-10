@@ -41,6 +41,18 @@ all =
                                 ]
                             )
                         )
+        , test "triple expression" <|
+            \() ->
+                "(1,2,3)"
+                    |> expectAst
+                        (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 8 } }
+                            (TupledExpression
+                                [ Node { start = { row = 1, column = 2 }, end = { row = 1, column = 3 } } (Integer 1)
+                                , Node { start = { row = 1, column = 4 }, end = { row = 1, column = 5 } } (Integer 2)
+                                , Node { start = { row = 1, column = 6 }, end = { row = 1, column = 7 } } (Integer 3)
+                                ]
+                            )
+                        )
         , test "tuple expression with spaces" <|
             \() ->
                 "( 1  ,  2 )"
@@ -52,6 +64,10 @@ all =
                                 ]
                             )
                         )
+        , test "4-tuple expression is invalid" <|
+            \() ->
+                "a = (1,2,3,4)"
+                    |> ParserWithCommentsUtil.expectInvalid Elm.Parser.Declarations.declaration
         , test "String literal multiline" <|
             \() ->
                 "\"\"\"Bar foo \n a\"\"\""
