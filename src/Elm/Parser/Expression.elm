@@ -1273,8 +1273,9 @@ extendedSubExpressionOptimisticLayout aboveCurrentPrecedenceLayout =
                     |> Rope.prependTo maybeArgsReverse.comments
                     |> Rope.prependTo extensionsRight.comments
             , syntax =
-                applyExtensionsRight extensionsRight.syntax
+                List.foldr applyExtensionRight
                     leftMaybeApplied
+                    extensionsRight.syntax
             }
         )
         (ParserFast.lazy (\() -> subExpression))
@@ -1297,23 +1298,18 @@ extendedSubExpressionOptimisticLayout aboveCurrentPrecedenceLayout =
         )
 
 
-applyExtensionsRight : List ExtensionRight -> Node Expression -> Node Expression
-applyExtensionsRight extensionsRightReverse leftestNode =
-    extensionsRightReverse
-        |> List.foldr
-            (\(ExtendRightByOperation operation) ((Node leftRange _) as leftNode) ->
-                let
-                    ((Node rightExpressionRange _) as rightExpressionNode) =
-                        operation.expression
-                in
-                Node { start = leftRange.start, end = rightExpressionRange.end }
-                    (OperatorApplication operation.symbol
-                        operation.direction
-                        leftNode
-                        rightExpressionNode
-                    )
-            )
-            leftestNode
+applyExtensionRight : ExtensionRight -> Node Expression -> Node Expression
+applyExtensionRight (ExtendRightByOperation operation) ((Node leftRange _) as leftNode) =
+    let
+        ((Node rightExpressionRange _) as rightExpressionNode) =
+            operation.expression
+    in
+    Node { start = leftRange.start, end = rightExpressionRange.end }
+        (OperatorApplication operation.symbol
+            operation.direction
+            leftNode
+            rightExpressionNode
+        )
 
 
 abovePrecedence0 : Parser (WithComments ExtensionRight)
