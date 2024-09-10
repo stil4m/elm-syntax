@@ -9,11 +9,19 @@ import ParserFast exposing (Parser)
 singleLineComment : ParserFast.Parser (Node String)
 singleLineComment =
     ParserFast.symbolFollowedBy "--"
-        (ParserFast.whileMap
+        (ParserFast.whileMapWithRange
             (\c -> c /= '\u{000D}' && c /= '\n' && not (Char.Extra.isUtf16Surrogate c))
-            (\content -> "--" ++ content)
+            (\range content ->
+                Node
+                    { start = { row = range.start.row, column = range.start.column - 2 }
+                    , end =
+                        { row = range.start.row
+                        , column = range.end.column
+                        }
+                    }
+                    ("--" ++ content)
+            )
         )
-        |> ParserFast.mapWithRange Node
 
 
 multilineComment : ParserFast.Parser (Node String)
