@@ -130,32 +130,32 @@ precedence3And =
 
 precedence4Eq : Parser (WithComments ExtensionRight)
 precedence4Eq =
-    infixNonAssociative abovePrecedence4 "=="
+    infixNonAssociative (abovePrecedence4NonAssociative "==") "=="
 
 
 precedence4Neq : Parser (WithComments ExtensionRight)
 precedence4Neq =
-    infixNonAssociative abovePrecedence4 "/="
+    infixNonAssociative (abovePrecedence4NonAssociative "/=") "/="
 
 
 precedence4Le : Parser (WithComments ExtensionRight)
 precedence4Le =
-    infixNonAssociative abovePrecedence4 "<="
+    infixNonAssociative (abovePrecedence4NonAssociative "<=") "<="
 
 
 precedence4Ge : Parser (WithComments ExtensionRight)
 precedence4Ge =
-    infixNonAssociative abovePrecedence4 ">="
+    infixNonAssociative (abovePrecedence4NonAssociative ">=") ">="
 
 
 precedence4Gt : Parser (WithComments ExtensionRight)
 precedence4Gt =
-    infixNonAssociative abovePrecedence4 ">"
+    infixNonAssociative (abovePrecedence4NonAssociative ">") ">"
 
 
 precedence4Lt : Parser (WithComments ExtensionRight)
 precedence4Lt =
-    infixNonAssociative abovePrecedence4 "<"
+    infixNonAssociative (abovePrecedence4NonAssociative "<") "<"
 
 
 precedence5append : Parser (WithComments ExtensionRight)
@@ -1412,6 +1412,44 @@ abovePrecedence4 =
         precedence7Slash
         precedence8QuestionMark
         precedence8Pow
+
+
+abovePrecedence4NonAssociative : String -> Parser (WithComments ExtensionRight)
+abovePrecedence4NonAssociative leftOperationSymbol =
+    ParserFast.oneOf20
+        precedence5append
+        precedence9ComposeR
+        precedence7Mul
+        precedence5Cons
+        precedence6Add
+        precedence6Sub
+        precedence6Ignore
+        precedence5Keep
+        precedence9ComposeL
+        precedence7Idiv
+        precedence7Fdiv
+        precedence7Slash
+        precedence8QuestionMark
+        precedence8Pow
+        (symbolFollowedByProblemNonAssociative "==" leftOperationSymbol)
+        (symbolFollowedByProblemNonAssociative "/=" leftOperationSymbol)
+        (symbolFollowedByProblemNonAssociative "<" leftOperationSymbol)
+        (symbolFollowedByProblemNonAssociative ">" leftOperationSymbol)
+        (symbolFollowedByProblemNonAssociative "<=" leftOperationSymbol)
+        (symbolFollowedByProblemNonAssociative ">=" leftOperationSymbol)
+
+
+symbolFollowedByProblemNonAssociative : String -> String -> Parser a
+symbolFollowedByProblemNonAssociative symbol leftOperationSymbol =
+    ParserFast.symbolFollowedBy symbol
+        (ParserFast.problem
+            ("cannot mix ("
+                ++ leftOperationSymbol
+                ++ ") and ("
+                ++ symbol
+                ++ ") without parentheses."
+            )
+        )
 
 
 abovePrecedence5 : Parser (WithComments ExtensionRight)

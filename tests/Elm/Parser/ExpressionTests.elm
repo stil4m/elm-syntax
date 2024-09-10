@@ -426,36 +426,36 @@ all =
             \() ->
                 "a = 1++"
                     |> ParserWithCommentsUtil.expectInvalid Elm.Parser.Declarations.declaration
+        , test "multiple < in a row should not be valid" <|
+            \() ->
+                "z = a < b < c"
+                    |> ParserWithCommentsUtil.expectInvalid Elm.Parser.Declarations.declaration
+        , test "multiple > in a row should not be valid" <|
+            \() ->
+                "z = a > b > c"
+                    |> ParserWithCommentsUtil.expectInvalid Elm.Parser.Declarations.declaration
+        , test "multiple == in a row should not be valid" <|
+            \() ->
+                "z = a == b == c"
+                    |> ParserWithCommentsUtil.expectInvalid Elm.Parser.Declarations.declaration
+        , test "multiple /= in a row should not be valid" <|
+            \() ->
+                "z = a /= b /= c"
+                    |> ParserWithCommentsUtil.expectInvalid Elm.Parser.Declarations.declaration
+        , test "multiple >= in a row should not be valid" <|
+            \() ->
+                "z = a >= b >= c"
+                    |> ParserWithCommentsUtil.expectInvalid Elm.Parser.Declarations.declaration
+        , test "multiple <= in a row should not be valid" <|
+            \() ->
+                "z = a <= b <= c"
+                    |> ParserWithCommentsUtil.expectInvalid Elm.Parser.Declarations.declaration
+        , test "mixing comparison operators without parenthesis should not be valid" <|
+            \() ->
+                "z = a < b == c"
+                    |> ParserWithCommentsUtil.expectInvalid Elm.Parser.Declarations.declaration
 
         -- TODO introduce validation step for
-        -- , test "multiple < in a row should not be valid" <|
-        --     \() ->
-        --         "z = a < b < c"
-        --             |> ParserWithCommentsUtil.expectInvalid Elm.Parser.Declarations.declaration
-        -- , test "multiple > in a row should not be valid" <|
-        --     \() ->
-        --         "z = a > b > c"
-        --             |> ParserWithCommentsUtil.expectInvalid Elm.Parser.Declarations.declaration
-        -- , test "multiple == in a row should not be valid" <|
-        --     \() ->
-        --         "z = a == b == c"
-        --             |> ParserWithCommentsUtil.expectInvalid Elm.Parser.Declarations.declaration
-        -- , test "multiple /= in a row should not be valid" <|
-        --     \() ->
-        --         "z = a /= b /= c"
-        --             |> ParserWithCommentsUtil.expectInvalid Elm.Parser.Declarations.declaration
-        -- , test "multiple >= in a row should not be valid" <|
-        --     \() ->
-        --         "z = a >= b >= c"
-        --             |> ParserWithCommentsUtil.expectInvalid Elm.Parser.Declarations.declaration
-        -- , test "multiple <= in a row should not be valid" <|
-        --     \() ->
-        --         "z = a <= b <= c"
-        --             |> ParserWithCommentsUtil.expectInvalid Elm.Parser.Declarations.declaration
-        -- , test "mixing comparison operators without parenthesis should not be valid" <|
-        --     \() ->
-        --         "z = a < b == c"
-        --             |> ParserWithCommentsUtil.expectInvalid Elm.Parser.Declarations.declaration
         -- , test "<| followed by |> operation without parenthesis should not be valid" <|
         --     \() ->
         --         "z = a <| b |> c"
