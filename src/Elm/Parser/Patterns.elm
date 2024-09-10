@@ -86,6 +86,7 @@ parensPattern =
             Layout.maybeLayout
             -- yes, (  ) is a valid pattern but not a valid type or expression
             (ParserFast.oneOf2
+                (ParserFast.symbol ")" { comments = Rope.empty, syntax = UnitPattern })
                 (ParserFast.map3
                     (\headResult commentsAfterHead tailResult ->
                         { comments =
@@ -94,23 +95,59 @@ parensPattern =
                                 |> Rope.prependTo tailResult.comments
                         , syntax =
                             case tailResult.syntax of
-                                [] ->
+                                Nothing ->
                                     ParenthesizedPattern headResult.syntax
 
-                                _ ->
-                                    TuplePattern (headResult.syntax :: tailResult.syntax)
+                                Just secondAndMaybeThirdPart ->
+                                    case secondAndMaybeThirdPart.maybeThirdPart of
+                                        Nothing ->
+                                            TuplePattern [ headResult.syntax, secondAndMaybeThirdPart.secondPart ]
+
+                                        Just thirdPart ->
+                                            TuplePattern [ headResult.syntax, secondAndMaybeThirdPart.secondPart, thirdPart ]
                         }
                     )
                     pattern
                     Layout.maybeLayout
-                    (ParserWithComments.until
-                        Tokens.parensEnd
+                    (ParserFast.oneOf2
+                        (ParserFast.symbol ")" { comments = Rope.empty, syntax = Nothing })
                         (ParserFast.symbolFollowedBy ","
-                            (Layout.maybeAroundBothSides pattern)
+                            (ParserFast.map4
+                                (\commentsBefore secondPart commentsAfter maybeThirdPart ->
+                                    { comments =
+                                        commentsBefore
+                                            |> Rope.prependTo secondPart.comments
+                                            |> Rope.prependTo commentsAfter
+                                            |> Rope.prependTo maybeThirdPart.comments
+                                    , syntax = Just { secondPart = secondPart.syntax, maybeThirdPart = maybeThirdPart.syntax }
+                                    }
+                                )
+                                Layout.maybeLayout
+                                pattern
+                                Layout.maybeLayout
+                                (ParserFast.oneOf2
+                                    (ParserFast.symbol ")" { comments = Rope.empty, syntax = Nothing })
+                                    (ParserFast.symbolFollowedBy ","
+                                        (ParserFast.map3
+                                            (\commentsBefore thirdPart commentsAfter ->
+                                                { comments =
+                                                    commentsBefore
+                                                        |> Rope.prependTo thirdPart.comments
+                                                        |> Rope.prependTo commentsAfter
+                                                , syntax = Just thirdPart.syntax
+                                                }
+                                            )
+                                            Layout.maybeLayout
+                                            pattern
+                                            Layout.maybeLayout
+                                            |> ParserFast.followedBySymbol ")"
+                                        )
+                                    )
+                                )
+                            )
                         )
                     )
                 )
-                (ParserFast.symbol ")" { comments = Rope.empty, syntax = UnitPattern })
             )
         )
 
