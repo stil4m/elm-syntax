@@ -230,7 +230,7 @@ precedence9ComposeL =
 
 expression : Parser (WithComments (Node Expression))
 expression =
-    extendedSubExpressionMap Basics.identity abovePrecedence0
+    extendedSubExpressionOptimisticLayout abovePrecedence0
 
 
 glslExpressionAfterOpeningSquareBracket : Parser (WithComments (Node Expression))
@@ -466,8 +466,8 @@ charLiteralExpression =
 lambdaExpression : Parser (WithComments (Node Expression))
 lambdaExpression =
     ParserFast.symbolFollowedBy "\\"
-        (ParserFast.map5WithStartLocation
-            (\start commentsAfterBackslash firstArg commentsAfterFirstArg secondUpArgs expressionResult ->
+        (ParserFast.map6WithStartLocation
+            (\start commentsAfterBackslash firstArg commentsAfterFirstArg secondUpArgs commentsAfterArrow expressionResult ->
                 let
                     (Node expressionRange _) =
                         expressionResult.syntax
@@ -477,6 +477,7 @@ lambdaExpression =
                         |> Rope.prependTo firstArg.comments
                         |> Rope.prependTo commentsAfterFirstArg
                         |> Rope.prependTo secondUpArgs.comments
+                        |> Rope.prependTo commentsAfterArrow
                         |> Rope.prependTo expressionResult.comments
                 , syntax =
                     Node
@@ -507,6 +508,7 @@ lambdaExpression =
                     Layout.maybeLayout
                 )
             )
+            Layout.maybeLayout
             expression
         )
 
@@ -1242,13 +1244,30 @@ type Tupled
 ---
 
 
-extendedSubExpressionMap :
-    (Node Expression -> res)
-    -> Parser (WithComments ExtensionRight)
-    -> Parser (WithComments res)
-extendedSubExpressionMap expressionNodeToRes aboveCurrentPrecedenceLayout =
-    ParserFast.map5
-        (\commentsBefore leftExpressionResult commentsBeforeExtension maybeArgsReverse extensionsRight ->
+extendedSubExpressionOptimisticLayout :
+    Parser (WithComments ExtensionRight)
+    -> Parser (WithComments (Node Expression))
+extendedSubExpressionOptimisticLayout aboveCurrentPrecedenceLayout =
+    ParserFast.map2
+        (\leftMaybeAppliedResult extensionsRight ->
+            { comments =
+                leftMaybeAppliedResult.comments
+                    |> Rope.prependTo extensionsRight.comments
+            , syntax =
+                applyExtensionsRight extensionsRight.syntax
+                    leftMaybeAppliedResult.syntax
+            }
+        )
+        maybeAppliedSubExpressionOptimisticLayout
+        (ParserWithComments.manyWithoutReverse
+            (Layout.positivelyIndentedFollowedBy aboveCurrentPrecedenceLayout)
+        )
+
+
+maybeAppliedSubExpressionOptimisticLayout : Parser (WithComments (Node Expression))
+maybeAppliedSubExpressionOptimisticLayout =
+    ParserFast.map3
+        (\leftExpressionResult commentsBeforeExtension maybeArgsReverse ->
             let
                 leftMaybeApplied : Node Expression
                 leftMaybeApplied =
@@ -1267,19 +1286,12 @@ extendedSubExpressionMap expressionNodeToRes aboveCurrentPrecedenceLayout =
                                 )
             in
             { comments =
-                commentsBefore
-                    |> Rope.prependTo leftExpressionResult.comments
+                leftExpressionResult.comments
                     |> Rope.prependTo commentsBeforeExtension
                     |> Rope.prependTo maybeArgsReverse.comments
-                    |> Rope.prependTo extensionsRight.comments
-            , syntax =
-                List.foldr applyExtensionRight
-                    leftMaybeApplied
-                    extensionsRight.syntax
-                    |> expressionNodeToRes
+            , syntax = leftMaybeApplied
             }
         )
-        Layout.maybeLayout
         (ParserFast.lazy (\() -> subExpression))
         Layout.optimisticLayout
         (ParserWithComments.manyWithoutReverse
@@ -1295,19 +1307,25 @@ extendedSubExpressionMap expressionNodeToRes aboveCurrentPrecedenceLayout =
                 Layout.optimisticLayout
             )
         )
-        (ParserWithComments.manyWithoutReverse
-            (Layout.positivelyIndentedFollowedBy aboveCurrentPrecedenceLayout)
-        )
 
 
-applyExtensionRight : ExtensionRight -> Node Expression -> Node Expression
-applyExtensionRight (ExtendRightByOperation extendRightOperation) ((Node { start } _) as leftNode) =
-    let
-        ((Node { end } _) as right) =
-            extendRightOperation.expression
-    in
-    Node { start = start, end = end }
-        (OperatorApplication extendRightOperation.symbol extendRightOperation.direction leftNode right)
+applyExtensionsRight : List ExtensionRight -> Node Expression -> Node Expression
+applyExtensionsRight extensionsRightReverse ((Node leftestRange _) as leftestNode) =
+    extensionsRightReverse
+        |> List.foldr
+            (\(ExtendRightByOperation operation) ((Node leftRange _) as leftNode) ->
+                let
+                    ((Node rightExpressionRange _) as rightExpressionNode) =
+                        operation.expression
+                in
+                Node { start = leftRange.start, end = rightExpressionRange.end }
+                    (OperatorApplication operation.symbol
+                        operation.direction
+                        leftNode
+                        rightExpressionNode
+                    )
+            )
+            leftestNode
 
 
 abovePrecedence0 : Parser (WithComments ExtensionRight)
@@ -1379,6 +1397,31 @@ abovePrecedence2 =
         precedence6Sub
         precedence6Ignore
         precedence3And
+        precedence5Keep
+        precedence9ComposeL
+        precedence4Neq
+        precedence7Idiv
+        precedence7Fdiv
+        precedence7Slash
+        precedence4Le
+        precedence4Ge
+        precedence4Gt
+        precedence8QuestionMark
+        precedence4Lt
+        precedence8Pow
+
+
+abovePrecedence3 : Parser (WithComments ExtensionRight)
+abovePrecedence3 =
+    ParserFast.oneOf20
+        precedence5append
+        precedence9ComposeR
+        precedence4Eq
+        precedence7Mul
+        precedence5Cons
+        precedence6Add
+        precedence6Sub
+        precedence6Ignore
         precedence5Keep
         precedence9ComposeL
         precedence4Neq
@@ -1465,38 +1508,67 @@ abovePrecedence9 =
 infixLeft : Parser (WithComments ExtensionRight) -> String -> Parser (WithComments ExtensionRight)
 infixLeft possibilitiesForPrecedence symbol =
     ParserFast.symbolFollowedBy symbol
-        (extendedSubExpressionMap
-            (\right ->
-                ExtendRightByOperation { symbol = symbol, direction = Infix.Left, expression = right }
+        (ParserFast.map2
+            (\commentsBeforeFirst first ->
+                { comments =
+                    commentsBeforeFirst
+                        |> Rope.prependTo first.comments
+                , syntax =
+                    ExtendRightByOperation
+                        { symbol = symbol
+                        , direction = Infix.Left
+                        , expression = first.syntax
+                        }
+                }
             )
-            possibilitiesForPrecedence
+            Layout.maybeLayout
+            (extendedSubExpressionOptimisticLayout possibilitiesForPrecedence)
         )
 
 
 infixNonAssociative : Parser (WithComments ExtensionRight) -> String -> Parser (WithComments ExtensionRight)
 infixNonAssociative possibilitiesForPrecedence symbol =
     ParserFast.symbolFollowedBy symbol
-        (extendedSubExpressionMap
-            (\right ->
-                ExtendRightByOperation { symbol = symbol, direction = Infix.Non, expression = right }
+        (ParserFast.map2
+            (\commentsBefore right ->
+                { comments = commentsBefore |> Rope.prependTo right.comments
+                , syntax =
+                    ExtendRightByOperation
+                        { symbol = symbol
+                        , direction = Infix.Non
+                        , expression = right.syntax
+                        }
+                }
             )
-            possibilitiesForPrecedence
+            Layout.maybeLayout
+            (extendedSubExpressionOptimisticLayout possibilitiesForPrecedence)
         )
 
 
-{-| To get right associativity, please provide abovePrecedence(precedence-1) for the
-right precedence parser.
--}
 infixRight : Parser (WithComments ExtensionRight) -> String -> Parser (WithComments ExtensionRight)
 infixRight possibilitiesForPrecedenceMinus1 symbol =
     ParserFast.symbolFollowedBy symbol
-        (extendedSubExpressionMap
-            (\right ->
-                ExtendRightByOperation { symbol = symbol, direction = Infix.Right, expression = right }
+        (ParserFast.map2
+            (\commentsBeforeFirst first ->
+                { comments =
+                    commentsBeforeFirst
+                        |> Rope.prependTo first.comments
+                , syntax =
+                    ExtendRightByOperation
+                        { symbol = symbol
+                        , direction = Infix.Right
+                        , expression = first.syntax
+                        }
+                }
             )
-            possibilitiesForPrecedenceMinus1
+            Layout.maybeLayout
+            (extendedSubExpressionOptimisticLayout possibilitiesForPrecedenceMinus1)
         )
 
 
 type ExtensionRight
-    = ExtendRightByOperation { symbol : String, direction : Infix.InfixDirection, expression : Node Expression }
+    = ExtendRightByOperation
+        { symbol : String
+        , direction : Infix.InfixDirection
+        , expression : Node Expression
+        }
