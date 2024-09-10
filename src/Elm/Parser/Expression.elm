@@ -230,8 +230,7 @@ precedence9ComposeL =
 
 expression : Parser (WithComments (Node Expression))
 expression =
-    extendedSubExpressionOptimisticLayout
-        (infixOperatorAndThen Ok .extensionRight)
+    extendedSubExpressionOptimisticLayout Ok .extensionRight
 
 
 glslExpressionAfterOpeningSquareBracket : Parser (WithComments (Node Expression))
@@ -1254,11 +1253,14 @@ type Tupled
 
 
 extendedSubExpressionOptimisticLayout :
-    Parser (WithComments ExtensionRight)
+    (InfixOperatorInfo -> Result String intermediate)
+    -> (intermediate -> Parser (WithComments ExtensionRight))
     -> Parser (WithComments (Node Expression))
-extendedSubExpressionOptimisticLayout aboveCurrentPrecedenceLayout =
+extendedSubExpressionOptimisticLayout toResult afterCommitting =
     ParserFast.loopWhileSucceedsOntoResultFromParser
-        (Layout.positivelyIndentedFollowedBy aboveCurrentPrecedenceLayout)
+        (Layout.positivelyIndentedFollowedBy
+            (infixOperatorAndThen toResult afterCommitting)
+        )
         subExpressionMaybeAppliedOptimisticLayout
         (\extensionRightResult leftNodeWithComments ->
             { comments =
@@ -1272,70 +1274,8 @@ extendedSubExpressionOptimisticLayout aboveCurrentPrecedenceLayout =
         Basics.identity
 
 
-subExpressionMaybeAppliedOptimisticLayout : Parser (WithComments (Node Expression))
-subExpressionMaybeAppliedOptimisticLayout =
-    ParserFast.map3
-        (\leftExpressionResult commentsBeforeExtension maybeArgsReverse ->
-            { comments =
-                leftExpressionResult.comments
-                    |> Rope.prependTo commentsBeforeExtension
-                    |> Rope.prependTo maybeArgsReverse.comments
-            , syntax =
-                case maybeArgsReverse.syntax of
-                    [] ->
-                        leftExpressionResult.syntax
-
-                    ((Node lastArgRange _) :: _) as argsReverse ->
-                        let
-                            ((Node leftRange _) as leftNode) =
-                                leftExpressionResult.syntax
-                        in
-                        Node { start = leftRange.start, end = lastArgRange.end }
-                            (Expression.Application
-                                (leftNode :: List.reverse argsReverse)
-                            )
-            }
-        )
-        (ParserFast.lazy (\() -> subExpression))
-        Layout.optimisticLayout
-        (ParserWithComments.manyWithoutReverse
-            (ParserFast.map2
-                (\arg commentsAfter ->
-                    { comments = arg.comments |> Rope.prependTo commentsAfter
-                    , syntax = arg.syntax
-                    }
-                )
-                (Layout.positivelyIndentedFollowedBy
-                    (ParserFast.lazy (\() -> subExpression))
-                )
-                Layout.optimisticLayout
-            )
-        )
-
-
-applyExtensionRight : ExtensionRight -> Node Expression -> Node Expression
-applyExtensionRight (ExtendRightByOperation operation) ((Node leftRange _) as leftNode) =
-    let
-        ((Node rightExpressionRange _) as rightExpressionNode) =
-            operation.expression
-    in
-    Node { start = leftRange.start, end = rightExpressionRange.end }
-        (OperatorApplication operation.symbol
-            operation.direction
-            leftNode
-            rightExpressionNode
-        )
-
-
-type alias InfixOperatorInfo =
-    { leftPrecedence : Int
-    , symbol : String
-    , extensionRight : Parser (WithComments ExtensionRight)
-    }
-
-
 infixOperatorAndThen : (InfixOperatorInfo -> Result String intermediate) -> (intermediate -> Parser res) -> Parser res
-infixOperatorAndThen toResult f =
+infixOperatorAndThen toResult afterCommitting =
     ParserFast.whileWithoutLinebreakAnd2PartUtf16ToResultAndThen
         Tokens.isOperatorSymbolChar
         (\operator ->
@@ -1415,7 +1355,69 @@ infixOperatorAndThen toResult f =
                 _ ->
                     errUnknownInfixOperator
         )
-        f
+        afterCommitting
+
+
+subExpressionMaybeAppliedOptimisticLayout : Parser (WithComments (Node Expression))
+subExpressionMaybeAppliedOptimisticLayout =
+    ParserFast.map3
+        (\leftExpressionResult commentsBeforeExtension maybeArgsReverse ->
+            { comments =
+                leftExpressionResult.comments
+                    |> Rope.prependTo commentsBeforeExtension
+                    |> Rope.prependTo maybeArgsReverse.comments
+            , syntax =
+                case maybeArgsReverse.syntax of
+                    [] ->
+                        leftExpressionResult.syntax
+
+                    ((Node lastArgRange _) :: _) as argsReverse ->
+                        let
+                            ((Node leftRange _) as leftNode) =
+                                leftExpressionResult.syntax
+                        in
+                        Node { start = leftRange.start, end = lastArgRange.end }
+                            (Expression.Application
+                                (leftNode :: List.reverse argsReverse)
+                            )
+            }
+        )
+        (ParserFast.lazy (\() -> subExpression))
+        Layout.optimisticLayout
+        (ParserWithComments.manyWithoutReverse
+            (ParserFast.map2
+                (\arg commentsAfter ->
+                    { comments = arg.comments |> Rope.prependTo commentsAfter
+                    , syntax = arg.syntax
+                    }
+                )
+                (Layout.positivelyIndentedFollowedBy
+                    (ParserFast.lazy (\() -> subExpression))
+                )
+                Layout.optimisticLayout
+            )
+        )
+
+
+applyExtensionRight : ExtensionRight -> Node Expression -> Node Expression
+applyExtensionRight (ExtendRightByOperation operation) ((Node leftRange _) as leftNode) =
+    let
+        ((Node rightExpressionRange _) as rightExpressionNode) =
+            operation.expression
+    in
+    Node { start = leftRange.start, end = rightExpressionRange.end }
+        (OperatorApplication operation.symbol
+            operation.direction
+            leftNode
+            rightExpressionNode
+        )
+
+
+type alias InfixOperatorInfo =
+    { leftPrecedence : Int
+    , symbol : String
+    , extensionRight : Parser (WithComments ExtensionRight)
+    }
 
 
 errUnknownInfixOperator : Result String a
@@ -1443,16 +1445,14 @@ infixLeft leftPrecedence symbol =
             )
             Layout.maybeLayout
             (extendedSubExpressionOptimisticLayout
-                (infixOperatorAndThen
-                    (\info ->
-                        if info.leftPrecedence > leftPrecedence then
-                            Ok info
+                (\info ->
+                    if info.leftPrecedence > leftPrecedence then
+                        Ok info
 
-                        else
-                            temporaryErrPrecedenceTooHigh
-                    )
-                    .extensionRight
+                    else
+                        temporaryErrPrecedenceTooHigh
                 )
+                .extensionRight
             )
     }
 
@@ -1475,22 +1475,20 @@ infixNonAssociative leftPrecedence symbol =
             )
             Layout.maybeLayout
             (extendedSubExpressionOptimisticLayout
-                (infixOperatorAndThen
-                    (\info ->
-                        if info.leftPrecedence >= leftPrecedence then
-                            Ok info
+                (\info ->
+                    if info.leftPrecedence >= leftPrecedence then
+                        Ok info
 
-                        else
-                            temporaryErrPrecedenceTooHigh
-                    )
-                    (\info ->
-                        if info.leftPrecedence == leftPrecedence then
-                            problemCannotMixNonAssociativeInfixOperators
+                    else
+                        temporaryErrPrecedenceTooHigh
+                )
+                (\info ->
+                    if info.leftPrecedence == leftPrecedence then
+                        problemCannotMixNonAssociativeInfixOperators
 
-                        else
-                            -- info.leftPrecedence > leftPrecedence
-                            info.extensionRight
-                    )
+                    else
+                        -- info.leftPrecedence > leftPrecedence
+                        info.extensionRight
                 )
             )
     }
@@ -1521,16 +1519,14 @@ infixRight leftPrecedence symbol =
             )
             Layout.maybeLayout
             (extendedSubExpressionOptimisticLayout
-                (infixOperatorAndThen
-                    (\info ->
-                        if info.leftPrecedence >= leftPrecedence then
-                            Ok info
+                (\info ->
+                    if info.leftPrecedence >= leftPrecedence then
+                        Ok info
 
-                        else
-                            temporaryErrPrecedenceTooHigh
-                    )
-                    .extensionRight
+                    else
+                        temporaryErrPrecedenceTooHigh
                 )
+                .extensionRight
             )
     }
 
