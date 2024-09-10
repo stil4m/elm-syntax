@@ -1,4 +1,4 @@
-module Elm.Parser.ParserWithCommentsTestUtil exposing (expectAst, expectAstWithComments, expectAstWithIndent1, expectInvalid, parse, parseIndented0, parseWithState)
+module Elm.Parser.ParserWithCommentsTestUtil exposing (expectAst, expectAstWithComments, expectAstWithIndent1, expectInvalid, parse, parseWithState)
 
 import Elm.Syntax.Node exposing (Node)
 import Expect
@@ -25,16 +25,6 @@ parse : String -> ParserFast.Parser (WithComments a) -> Maybe a
 parse s p =
     parseWithState s p
         |> Maybe.map .syntax
-
-
-parseIndented0 : String -> ParserFast.Parser (WithComments a) -> Maybe a
-parseIndented0 s p =
-    case ParserFast.run (ParserFast.withIndent 0 p) s of
-        Err _ ->
-            Nothing
-
-        Ok commentsAndSyntax ->
-            commentsAndSyntax.syntax |> Just
 
 
 parseWithFailure : String -> ParserFast.Parser (WithComments a) -> Result (List Parser.DeadEnd) a
@@ -69,7 +59,7 @@ expectAstWithIndent1 parser =
 expectAst : ParserFast.Parser (WithComments a) -> a -> String -> Expect.Expectation
 expectAst parser =
     \expected source ->
-        case ParserFast.run (ParserFast.withIndent 0 parser) source of
+        case ParserFast.run parser source of
             Err error ->
                 Expect.fail ("Expected the source to be parsed correctly:\n" ++ Debug.toString error)
 
@@ -88,7 +78,7 @@ expectAst parser =
 expectAstWithComments : ParserFast.Parser (WithComments a) -> { ast : a, comments : List (Node String) } -> String -> Expect.Expectation
 expectAstWithComments parser =
     \expected source ->
-        case ParserFast.run (ParserFast.withIndent 0 parser) source of
+        case ParserFast.run parser source of
             Err error ->
                 Expect.fail ("Expected the source to be parsed correctly:\n" ++ Debug.toString error)
 

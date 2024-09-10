@@ -12,7 +12,6 @@ module ParserFast exposing
     , withIndentSetToColumn, withIndentSetToColumnMinus, columnIndentAndThen, validateEndColumnIndentation
     , mapWithRange, columnAndThen, offsetSourceAndThen, offsetSourceAndThenOrSucceed
     , problem
-    , withIndent
     )
 
 {-|
@@ -121,8 +120,6 @@ Once a path is chosen, it does not come back and try the others.
 
 
 # Test-only
-
-@docs withIndent
 
 -}
 
@@ -3624,26 +3621,6 @@ skipWhileWhitespaceHelp offset row col src indent =
         -- empty or non-whitespace
         _ ->
             { src = src, offset = offset, indent = indent, row = row, col = col }
-
-
-{-| Some languages are indentation sensitive. Python cares about tabs. Elm
-cares about spaces sometimes. Using `withIndent` in tandem with the validate/andThen helpers supplying indentation,
-you can manage "indentation state" yourself, however is necessary in your scenario.
-
-@test-helper
-
--}
-withIndent : Int -> Parser a -> Parser a
-withIndent newIndent (Parser parse) =
-    Parser
-        (\s0 ->
-            case parse (changeIndent newIndent s0) of
-                Good a s1 ->
-                    Good a (changeIndent s0.indent s1)
-
-                bad ->
-                    bad
-        )
 
 
 changeIndent : Int -> State -> State

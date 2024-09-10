@@ -1,10 +1,9 @@
 module Elm.Parser.TokenTests exposing (all)
 
-import Elm.Parser.Expression
+import Elm.Parser.Declarations
 import Elm.Parser.TestUtil exposing (..)
 import Elm.Parser.Tokens as Parser
 import Expect
-import ParserFast
 import Test exposing (..)
 
 
@@ -71,15 +70,15 @@ all =
                     |> Expect.equal (Just "T1")
         , test "operatorToken 11 -- is not an operator" <|
             \() ->
-                parse "(--)" (ParserFast.withIndent 0 Elm.Parser.Expression.expression)
+                parse "a = (--)" Elm.Parser.Declarations.declaration
                     |> Expect.equal Nothing
         , test "operatorToken 14" <|
             \() ->
-                parse "(=)" (ParserFast.withIndent 0 Elm.Parser.Expression.expression)
+                parse "a = (=)" Elm.Parser.Declarations.declaration
                     |> Expect.equal Nothing
         , test "operatorToken 15" <|
             \() ->
-                parse "(?)" (ParserFast.withIndent 0 Elm.Parser.Expression.expression)
+                parse "a = (?)" Elm.Parser.Declarations.declaration
                     |> Expect.equal Nothing
         , test "multiline string" <|
             \() ->

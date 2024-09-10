@@ -13,7 +13,7 @@ all =
     describe "LayoutTests"
         [ test "empty" <|
             \() ->
-                parse "" (ParserFast.withIndent 0 Layout.maybeLayout)
+                parse "." (ParserFast.symbolFollowedBy "." Layout.maybeLayout)
                     |> Expect.equal (Just ())
         , test "just whitespace" <|
             \() ->
@@ -41,7 +41,7 @@ all =
                     |> Expect.equal Nothing
         , test "with newline and higher indent 4" <|
             \() ->
-                parse " \n  " (setIndent 1 Layout.maybeLayout)
+                parse " \n  " Layout.maybeLayout
                     |> Expect.equal (Just ())
         , test "newlines spaces and single line comments" <|
             \() ->
@@ -73,7 +73,10 @@ all =
                     |> Expect.equal Nothing
         , test "layoutStrict some" <|
             \() ->
-                parse "\n  \n  " (setIndent 2 Layout.layoutStrict)
+                parse "..\n  \n  "
+                    (ParserFast.symbolFollowedBy ".."
+                        (ParserFast.withIndentSetToColumn Layout.layoutStrict)
+                    )
                     |> Expect.equal (Just ())
         , test "layoutStrict with comments multi empty line preceding" <|
             \() ->
@@ -81,19 +84,16 @@ all =
                     |> Expect.equal (Just ())
         , test "layoutStrict with multiple new lines" <|
             \() ->
-                parse "\n  \n    \n\n  " (setIndent 2 Layout.layoutStrict)
+                parse "..\n  \n    \n\n  "
+                    (ParserFast.symbolFollowedBy ".."
+                        (ParserFast.withIndentSetToColumn Layout.layoutStrict)
+                    )
                     |> Expect.equal (Just ())
         , test "layoutStrict with multiline comment plus trailing whitespace" <|
             \() ->
                 parse "\n{- some note -}    \n" Layout.layoutStrict
                     |> Expect.equal (Just ())
         ]
-
-
-setIndent : Int -> ParserFast.Parser a -> ParserFast.Parser a
-setIndent x p =
-    ParserFast.withIndent (x + 1)
-        p
 
 
 parse : String -> ParserFast.Parser Comments -> Maybe ()
