@@ -1251,6 +1251,7 @@ extendedSubExpressionOptimisticLayout aboveCurrentPrecedenceLayout =
     ParserFast.map4
         (\leftExpressionResult commentsBeforeExtension maybeArgsReverse extensionsRight ->
             let
+                leftMaybeApplied : Node Expression
                 leftMaybeApplied =
                     case maybeArgsReverse.syntax of
                         [] ->
@@ -1297,7 +1298,7 @@ extendedSubExpressionOptimisticLayout aboveCurrentPrecedenceLayout =
 
 
 applyExtensionsRight : List ExtensionRight -> Node Expression -> Node Expression
-applyExtensionsRight extensionsRightReverse ((Node leftestRange _) as leftestNode) =
+applyExtensionsRight extensionsRightReverse leftestNode =
     extensionsRightReverse
         |> List.foldr
             (\(ExtendRightByOperation operation) ((Node leftRange _) as leftNode) ->
@@ -1384,31 +1385,6 @@ abovePrecedence2 =
         precedence6Sub
         precedence6Ignore
         precedence3And
-        precedence5Keep
-        precedence9ComposeL
-        precedence4Neq
-        precedence7Idiv
-        precedence7Fdiv
-        precedence7Slash
-        precedence4Le
-        precedence4Ge
-        precedence4Gt
-        precedence8QuestionMark
-        precedence4Lt
-        precedence8Pow
-
-
-abovePrecedence3 : Parser (WithComments ExtensionRight)
-abovePrecedence3 =
-    ParserFast.oneOf20
-        precedence5append
-        precedence9ComposeR
-        precedence4Eq
-        precedence7Mul
-        precedence5Cons
-        precedence6Add
-        precedence6Sub
-        precedence6Ignore
         precedence5Keep
         precedence9ComposeL
         precedence4Neq
