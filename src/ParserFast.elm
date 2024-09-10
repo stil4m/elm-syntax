@@ -7,7 +7,7 @@ module ParserFast exposing
     , skipWhileWhitespaceFollowedBy, followedBySkipWhileWhitespace, nestableMultiCommentMapWithRange
     , map, validate, lazy
     , map2, map2WithStartLocation, map2WithRange, map3, map3WithStartLocation, map3WithRange, map4, map4WithRange, map5, map5WithStartLocation, map5WithRange, map6, map6WithStartLocation, map6WithRange, map7WithRange, map8WithStartLocation, map9WithRange
-    , loopWhileSucceeds, loopUntil
+    , loopWhileSucceeds, loopWhileSucceedsOntoResultFromParser, loopUntil
     , orSucceed, mapOrSucceed, map2OrSucceed, map2WithRangeOrSucceed, map3OrSucceed, map4OrSucceed, oneOf2, oneOf2Map, oneOf2MapWithStartRowColumnAndEndRowColumn, oneOf2OrSucceed, oneOf3, oneOf4, oneOf5, oneOf7, oneOf8, oneOf9, oneOf11, oneOf14, oneOf20, oneOf21, oneOf22, oneOf24
     , withIndentSetToColumn, withIndentSetToColumnMinus, columnIndentAndThen, validateEndColumnIndentation
     , mapWithRange, columnAndThen, offsetSourceAndThen, offsetSourceAndThenOrSucceed
@@ -84,7 +84,7 @@ With `ParserFast`, you need to either
 
 @docs map2, map2WithStartLocation, map2WithRange, map3, map3WithStartLocation, map3WithRange, map4, map4WithRange, map5, map5WithStartLocation, map5WithRange, map6, map6WithStartLocation, map6WithRange, map7WithRange, map8WithStartLocation, map9WithRange
 
-@docs loopWhileSucceeds, loopUntil
+@docs loopWhileSucceeds, loopWhileSucceedsOntoResultFromParser, loopUntil
 
 
 ## choice
@@ -2684,6 +2684,24 @@ loopWhileSucceedsHelp ((Parser parseElement) as element) soFar reduce foldedToRe
 
             else
                 Good (foldedToRes soFar) s0
+
+
+loopWhileSucceedsOntoResultFromParser :
+    Parser element
+    -> Parser folded
+    -> (element -> folded -> folded)
+    -> (folded -> res)
+    -> Parser res
+loopWhileSucceedsOntoResultFromParser element (Parser parseInitialFolded) reduce foldedToRes =
+    Parser
+        (\s0 ->
+            case parseInitialFolded s0 of
+                Good initialFolded s1 ->
+                    loopWhileSucceedsHelp element initialFolded reduce foldedToRes s1
+
+                Bad committed x ->
+                    Bad committed x
+        )
 
 
 loopUntil : Parser () -> Parser element -> folded -> (element -> folded -> folded) -> (folded -> res) -> Parser res

@@ -1248,34 +1248,43 @@ extendedSubExpressionOptimisticLayout :
     Parser (WithComments ExtensionRight)
     -> Parser (WithComments (Node Expression))
 extendedSubExpressionOptimisticLayout aboveCurrentPrecedenceLayout =
-    ParserFast.map4
-        (\leftExpressionResult commentsBeforeExtension maybeArgsReverse extensionsRight ->
-            let
-                leftMaybeApplied : Node Expression
-                leftMaybeApplied =
-                    case maybeArgsReverse.syntax of
-                        [] ->
-                            leftExpressionResult.syntax
+    ParserFast.loopWhileSucceedsOntoResultFromParser
+        (Layout.positivelyIndentedFollowedBy aboveCurrentPrecedenceLayout)
+        subExpressionMaybeAppliedOptimisticLayout
+        (\extensionRightResult leftNodeWithComments ->
+            { comments =
+                leftNodeWithComments.comments
+                    |> Rope.prependTo extensionRightResult.comments
+            , syntax =
+                leftNodeWithComments.syntax
+                    |> applyExtensionRight extensionRightResult.syntax
+            }
+        )
+        Basics.identity
 
-                        ((Node lastArgRange _) :: _) as argsReverse ->
-                            let
-                                ((Node leftRange _) as leftNode) =
-                                    leftExpressionResult.syntax
-                            in
-                            Node { start = leftRange.start, end = lastArgRange.end }
-                                (Expression.Application
-                                    (leftNode :: List.reverse argsReverse)
-                                )
-            in
+
+subExpressionMaybeAppliedOptimisticLayout : Parser (WithComments (Node Expression))
+subExpressionMaybeAppliedOptimisticLayout =
+    ParserFast.map3
+        (\leftExpressionResult commentsBeforeExtension maybeArgsReverse ->
             { comments =
                 leftExpressionResult.comments
                     |> Rope.prependTo commentsBeforeExtension
                     |> Rope.prependTo maybeArgsReverse.comments
-                    |> Rope.prependTo extensionsRight.comments
             , syntax =
-                List.foldr applyExtensionRight
-                    leftMaybeApplied
-                    extensionsRight.syntax
+                case maybeArgsReverse.syntax of
+                    [] ->
+                        leftExpressionResult.syntax
+
+                    ((Node lastArgRange _) :: _) as argsReverse ->
+                        let
+                            ((Node leftRange _) as leftNode) =
+                                leftExpressionResult.syntax
+                        in
+                        Node { start = leftRange.start, end = lastArgRange.end }
+                            (Expression.Application
+                                (leftNode :: List.reverse argsReverse)
+                            )
             }
         )
         (ParserFast.lazy (\() -> subExpression))
@@ -1292,9 +1301,6 @@ extendedSubExpressionOptimisticLayout aboveCurrentPrecedenceLayout =
                 )
                 Layout.optimisticLayout
             )
-        )
-        (ParserWithComments.manyWithoutReverse
-            (Layout.positivelyIndentedFollowedBy aboveCurrentPrecedenceLayout)
         )
 
 
