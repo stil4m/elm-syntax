@@ -8,7 +8,7 @@ module ParserFast exposing
     , map, validate, lazy
     , map2, map2WithStartLocation, map2WithRange, map3, map3WithStartLocation, map3WithRange, map4, map4WithRange, map5, map5WithStartLocation, map5WithRange, map6, map6WithStartLocation, map6WithRange, map7WithRange, map8WithStartLocation, map9WithRange
     , loopWhileSucceeds, loopUntil
-    , orSucceed, mapOrSucceed, map2OrSucceed, map2WithRangeOrSucceed, map3OrSucceed, map4OrSucceed, oneOf2, oneOf2Map, oneOf2MapWithStartRowColumnAndEndRowColumn, oneOf2OrSucceed, oneOf3, oneOf4, oneOf5, oneOf7, oneOf8, oneOf10, oneOf11, oneOf14, oneOf21, oneOf22, oneOf24
+    , orSucceed, mapOrSucceed, map2OrSucceed, map2WithRangeOrSucceed, map3OrSucceed, map4OrSucceed, oneOf2, oneOf2Map, oneOf2MapWithStartRowColumnAndEndRowColumn, oneOf2OrSucceed, oneOf3, oneOf4, oneOf5, oneOf7, oneOf8, oneOf9, oneOf11, oneOf14, oneOf21, oneOf22, oneOf24
     , withIndentSetToColumn, withIndentSetToColumnMinus, columnIndentAndThen, validateEndColumnIndentation
     , mapWithRange, columnAndThen, offsetSourceAndThen, offsetSourceAndThenOrSucceed
     , problem
@@ -110,7 +110,7 @@ sample of what that code might look like:
 This parser will keep trying down the list of parsers until one of them starts committing.
 Once a path is chosen, it does not come back and try the others.
 
-@docs orSucceed, mapOrSucceed, map2OrSucceed, map2WithRangeOrSucceed, map3OrSucceed, map4OrSucceed, oneOf2, oneOf2Map, oneOf2MapWithStartRowColumnAndEndRowColumn, oneOf2OrSucceed, oneOf3, oneOf4, oneOf5, oneOf7, oneOf8, oneOf10, oneOf11, oneOf14, oneOf21, oneOf22, oneOf24
+@docs orSucceed, mapOrSucceed, map2OrSucceed, map2WithRangeOrSucceed, map3OrSucceed, map4OrSucceed, oneOf2, oneOf2Map, oneOf2MapWithStartRowColumnAndEndRowColumn, oneOf2OrSucceed, oneOf3, oneOf4, oneOf5, oneOf7, oneOf8, oneOf9, oneOf11, oneOf14, oneOf21, oneOf22, oneOf24
 
 
 # Indentation, Locations and source
@@ -1485,8 +1485,8 @@ oneOf8 (Parser attempt0) (Parser attempt1) (Parser attempt2) (Parser attempt3) (
         )
 
 
-oneOf10 : Parser a -> Parser a -> Parser a -> Parser a -> Parser a -> Parser a -> Parser a -> Parser a -> Parser a -> Parser a -> Parser a
-oneOf10 (Parser attempt0) (Parser attempt1) (Parser attempt2) (Parser attempt3) (Parser attempt4) (Parser attempt5) (Parser attempt6) (Parser attempt7) (Parser attempt8) (Parser attempt9) =
+oneOf9 : Parser a -> Parser a -> Parser a -> Parser a -> Parser a -> Parser a -> Parser a -> Parser a -> Parser a -> Parser a
+oneOf9 (Parser attempt0) (Parser attempt1) (Parser attempt2) (Parser attempt3) (Parser attempt4) (Parser attempt5) (Parser attempt6) (Parser attempt7) (Parser attempt8) =
     Parser
         (\s ->
             case attempt0 s of
@@ -1570,16 +1570,7 @@ oneOf10 (Parser attempt0) (Parser attempt1) (Parser attempt2) (Parser attempt3) 
                                                                                                                         bad8
 
                                                                                                                     else
-                                                                                                                        case attempt9 s of
-                                                                                                                            (Good _ _) as good ->
-                                                                                                                                good
-
-                                                                                                                            (Bad committed9 x9) as bad9 ->
-                                                                                                                                if committed9 then
-                                                                                                                                    bad9
-
-                                                                                                                                else
-                                                                                                                                    Bad False (ExpectingOneOf x0 x1 [ x2, x3, x4, x5, x6, x7, x8, x9 ])
+                                                                                                                        Bad False (ExpectingOneOf x0 x1 [ x2, x3, x4, x5, x6, x7, x8 ])
         )
 
 

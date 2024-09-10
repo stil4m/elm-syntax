@@ -224,11 +224,10 @@ patternListEmpty =
 
 composablePattern : Parser (WithComments (Node Pattern))
 composablePattern =
-    ParserFast.oneOf10
+    ParserFast.oneOf9
         varPattern
         qualifiedPatternWithConsumeArgs
         allPattern
-        unitPattern
         parensPattern
         recordPattern
         stringPattern
@@ -239,11 +238,10 @@ composablePattern =
 
 patternNotDirectlyComposing : Parser (WithComments (Node Pattern))
 patternNotDirectlyComposing =
-    ParserFast.oneOf10
+    ParserFast.oneOf9
         varPattern
         qualifiedPatternWithoutConsumeArgs
         allPattern
-        unitPattern
         parensPattern
         recordPattern
         stringPattern
@@ -258,16 +256,6 @@ allPattern =
         (\range ->
             { comments = Rope.empty
             , syntax = Node range AllPattern
-            }
-        )
-
-
-unitPattern : Parser (WithComments (Node Pattern))
-unitPattern =
-    ParserFast.symbolWithRange "()"
-        (\range ->
-            { comments = Rope.empty
-            , syntax = Node range UnitPattern
             }
         )
 
