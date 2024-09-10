@@ -72,42 +72,46 @@ maybeComposedWith =
 
 parensPattern : Parser (WithComments (Node Pattern))
 parensPattern =
-    ParserFast.map2WithRange
-        (\range commentsBeforeHead contentResult ->
-            { comments =
-                commentsBeforeHead
-                    |> Rope.prependTo contentResult.comments
-            , syntax = Node range contentResult.syntax
-            }
-        )
-        (ParserFast.symbolFollowedBy "(" Layout.maybeLayout)
-        -- yes, (  ) is a valid pattern but not a valid type or expression
-        (ParserFast.oneOf2
-            (ParserFast.map3
-                (\headResult commentsAfterHead tailResult ->
-                    { comments =
-                        headResult.comments
-                            |> Rope.prependTo commentsAfterHead
-                            |> Rope.prependTo tailResult.comments
-                    , syntax =
-                        case tailResult.syntax of
-                            [] ->
-                                ParenthesizedPattern headResult.syntax
+    ParserFast.symbolFollowedBy "("
+        (ParserFast.map2WithRange
+            (\range commentsBeforeHead contentResult ->
+                { comments =
+                    commentsBeforeHead
+                        |> Rope.prependTo contentResult.comments
+                , syntax =
+                    Node { start = { row = range.start.row, column = range.start.column - 1 }, end = range.end }
+                        contentResult.syntax
+                }
+            )
+            Layout.maybeLayout
+            -- yes, (  ) is a valid pattern but not a valid type or expression
+            (ParserFast.oneOf2
+                (ParserFast.map3
+                    (\headResult commentsAfterHead tailResult ->
+                        { comments =
+                            headResult.comments
+                                |> Rope.prependTo commentsAfterHead
+                                |> Rope.prependTo tailResult.comments
+                        , syntax =
+                            case tailResult.syntax of
+                                [] ->
+                                    ParenthesizedPattern headResult.syntax
 
-                            _ ->
-                                TuplePattern (headResult.syntax :: tailResult.syntax)
-                    }
-                )
-                pattern
-                Layout.maybeLayout
-                (ParserWithComments.until
-                    Tokens.parensEnd
-                    (ParserFast.symbolFollowedBy ","
-                        (Layout.maybeAroundBothSides pattern)
+                                _ ->
+                                    TuplePattern (headResult.syntax :: tailResult.syntax)
+                        }
+                    )
+                    pattern
+                    Layout.maybeLayout
+                    (ParserWithComments.until
+                        Tokens.parensEnd
+                        (ParserFast.symbolFollowedBy ","
+                            (Layout.maybeAroundBothSides pattern)
+                        )
                     )
                 )
+                (ParserFast.symbol ")" { comments = Rope.empty, syntax = UnitPattern })
             )
-            (ParserFast.symbol ")" { comments = Rope.empty, syntax = UnitPattern })
         )
 
 
