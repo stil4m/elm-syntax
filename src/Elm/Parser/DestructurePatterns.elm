@@ -1,9 +1,10 @@
-module Elm.Parser.Patterns exposing (pattern)
+module Elm.Parser.DestructurePatterns exposing (patternNotDirectlyComposing)
 
 import Elm.Parser.Layout as Layout
 import Elm.Parser.Tokens as Tokens
+import Elm.Syntax.DestructurePattern exposing (DestructurePattern(..))
 import Elm.Syntax.Node as Node exposing (Node(..))
-import Elm.Syntax.Pattern as Pattern exposing (Pattern(..), QualifiedNameRef)
+import Elm.Syntax.Pattern exposing (QualifiedNameRef)
 import Elm.Syntax.Range exposing (Range)
 import ParserFast exposing (Parser)
 import ParserWithComments exposing (WithComments)
@@ -13,15 +14,14 @@ import Rope
 type PatternComposedWith
     = PatternComposedWithNothing ()
     | PatternComposedWithAs (Node String)
-    | PatternComposedWithCons (Node Pattern)
 
 
-pattern : Parser (WithComments (Node Pattern))
-pattern =
+destructurePattern : Parser (WithComments (Node DestructurePattern))
+destructurePattern =
     ParserFast.lazy (\() -> composablePatternTryToCompose)
 
 
-composablePatternTryToCompose : Parser (WithComments (Node Pattern))
+composablePatternTryToCompose : Parser (WithComments (Node DestructurePattern))
 composablePatternTryToCompose =
     ParserFast.map3
         (\x commentsAfterLeft maybeComposedWithResult ->
@@ -35,10 +35,7 @@ composablePatternTryToCompose =
                         x.syntax
 
                     PatternComposedWithAs anotherName ->
-                        Node.combine Pattern.AsPattern x.syntax anotherName
-
-                    PatternComposedWithCons y ->
-                        Node.combine Pattern.UnConsPattern x.syntax y
+                        Node.combine AsPattern_ x.syntax anotherName
             }
         )
         composablePattern
@@ -48,7 +45,7 @@ composablePatternTryToCompose =
 
 maybeComposedWith : Parser { comments : ParserWithComments.Comments, syntax : PatternComposedWith }
 maybeComposedWith =
-    ParserFast.oneOf2OrSucceed
+    ParserFast.orSucceed
         (ParserFast.keywordFollowedBy "as"
             (ParserFast.map2
                 (\commentsAfterAs name ->
@@ -60,21 +57,10 @@ maybeComposedWith =
                 Tokens.functionNameNode
             )
         )
-        (ParserFast.symbolFollowedBy "::"
-            (ParserFast.map2
-                (\commentsAfterCons patternResult ->
-                    { comments = patternResult.comments |> Rope.prependTo commentsAfterCons
-                    , syntax = PatternComposedWithCons patternResult.syntax
-                    }
-                )
-                Layout.maybeLayout
-                pattern
-            )
-        )
         { comments = Rope.empty, syntax = PatternComposedWithNothing () }
 
 
-parensPattern : Parser (WithComments (Node Pattern))
+parensPattern : Parser (WithComments (Node DestructurePattern))
 parensPattern =
     ParserFast.symbolFollowedBy "("
         (ParserFast.map2WithRange
@@ -90,7 +76,7 @@ parensPattern =
             Layout.maybeLayout
             -- yes, (  ) is a valid pattern but not a valid type or expression
             (ParserFast.oneOf2
-                (ParserFast.symbol ")" { comments = Rope.empty, syntax = UnitPattern })
+                (ParserFast.symbol ")" { comments = Rope.empty, syntax = UnitPattern_ })
                 (ParserFast.map3
                     (\headResult commentsAfterHead tailResult ->
                         { comments =
@@ -100,18 +86,18 @@ parensPattern =
                         , syntax =
                             case tailResult.syntax of
                                 Nothing ->
-                                    ParenthesizedPattern headResult.syntax
+                                    ParenthesizedPattern_ headResult.syntax
 
                                 Just secondAndMaybeThirdPart ->
                                     case secondAndMaybeThirdPart.maybeThirdPart of
                                         Nothing ->
-                                            TuplePattern [ headResult.syntax, secondAndMaybeThirdPart.secondPart ]
+                                            TuplePattern_ [ headResult.syntax, secondAndMaybeThirdPart.secondPart ]
 
                                         Just thirdPart ->
-                                            TuplePattern [ headResult.syntax, secondAndMaybeThirdPart.secondPart, thirdPart ]
+                                            TuplePattern_ [ headResult.syntax, secondAndMaybeThirdPart.secondPart, thirdPart ]
                         }
                     )
-                    pattern
+                    destructurePattern
                     Layout.maybeLayout
                     (ParserFast.oneOf2
                         (ParserFast.symbol ")" { comments = Rope.empty, syntax = Nothing })
@@ -127,7 +113,7 @@ parensPattern =
                                     }
                                 )
                                 Layout.maybeLayout
-                                pattern
+                                destructurePattern
                                 Layout.maybeLayout
                                 (ParserFast.oneOf2
                                     (ParserFast.symbol ")" { comments = Rope.empty, syntax = Nothing })
@@ -142,7 +128,7 @@ parensPattern =
                                                 }
                                             )
                                             Layout.maybeLayout
-                                            pattern
+                                            destructurePattern
                                             Layout.maybeLayout
                                             |> ParserFast.followedBySymbol ")"
                                         )
@@ -156,141 +142,65 @@ parensPattern =
         )
 
 
-varPattern : Parser (WithComments (Node Pattern))
+varPattern : Parser (WithComments (Node DestructurePattern))
 varPattern =
     Tokens.functionNameMapWithRange
         (\range var ->
             { comments = Rope.empty
-            , syntax = Node range (VarPattern var)
+            , syntax = Node range (VarPattern_ var)
             }
         )
 
 
-numberPart : Parser (WithComments (Node Pattern))
-numberPart =
-    ParserFast.integerDecimalOrHexadecimalMapWithRange
-        (\range n -> { comments = Rope.empty, syntax = Node range (IntPattern n) })
-        (\range n -> { comments = Rope.empty, syntax = Node range (HexPattern n) })
-
-
-charPattern : Parser (WithComments (Node Pattern))
-charPattern =
-    Tokens.characterLiteralMapWithRange
-        (\range char ->
-            { comments = Rope.empty, syntax = Node range (CharPattern char) }
-        )
-
-
-listPattern : Parser (WithComments (Node Pattern))
-listPattern =
-    ParserFast.map2WithRange
-        (\range commentsBeforeElements maybeElements ->
-            case maybeElements of
-                Nothing ->
-                    { comments = commentsBeforeElements
-                    , syntax = Node range patternListEmpty
-                    }
-
-                Just elements ->
-                    { comments = commentsBeforeElements |> Rope.prependTo elements.comments
-                    , syntax = Node range (ListPattern elements.syntax)
-                    }
-        )
-        (ParserFast.symbolFollowedBy "[" Layout.maybeLayout)
-        (ParserFast.oneOf2
-            (ParserFast.symbol "]" Nothing)
-            (ParserFast.map3
-                (\head commentsAfterHead tail ->
-                    Just
-                        { comments =
-                            head.comments
-                                |> Rope.prependTo tail.comments
-                                |> Rope.prependTo commentsAfterHead
-                        , syntax = head.syntax :: tail.syntax
-                        }
-                )
-                pattern
-                Layout.maybeLayout
-                (ParserWithComments.many
-                    (ParserFast.symbolFollowedBy ","
-                        (Layout.maybeAroundBothSides pattern)
-                    )
-                )
-                |> ParserFast.followedBySymbol "]"
-            )
-        )
-
-
-patternListEmpty : Pattern
-patternListEmpty =
-    ListPattern []
-
-
-composablePattern : Parser (WithComments (Node Pattern))
+composablePattern : Parser (WithComments (Node DestructurePattern))
 composablePattern =
-    ParserFast.oneOf9
+    ParserFast.oneOf5
         varPattern
         qualifiedPatternWithConsumeArgs
         allPattern
         parensPattern
         recordPattern
-        stringPattern
-        listPattern
-        numberPart
-        charPattern
 
 
-patternNotDirectlyComposing : Parser (WithComments (Node Pattern))
+patternNotDirectlyComposing : Parser (WithComments (Node DestructurePattern))
 patternNotDirectlyComposing =
-    ParserFast.oneOf9
+    ParserFast.oneOf5
         varPattern
         qualifiedPatternWithoutConsumeArgs
         allPattern
         parensPattern
         recordPattern
-        stringPattern
-        listPattern
-        numberPart
-        charPattern
 
 
-allPattern : Parser (WithComments (Node Pattern))
+allPattern : Parser (WithComments (Node DestructurePattern))
 allPattern =
     ParserFast.symbolWithRange "_"
         (\range ->
             { comments = Rope.empty
-            , syntax = Node range AllPattern
-            }
-        )
-
-
-stringPattern : Parser (WithComments (Node Pattern))
-stringPattern =
-    Tokens.singleOrTripleQuotedStringLiteralMapWithRange
-        (\range string ->
-            { comments = Rope.empty
-            , syntax = Node range (StringPattern string)
+            , syntax = Node range AllPattern_
             }
         )
 
 
 maybeDotTypeNamesTuple : ParserFast.Parser (Maybe ( List String, String ))
 maybeDotTypeNamesTuple =
-    ParserFast.map2OrSucceed
-        (\startName afterStartName ->
-            case afterStartName of
-                Nothing ->
-                    Just ( [], startName )
+    ParserFast.orSucceed
+        (ParserFast.map2
+            (\startName afterStartName ->
+                case afterStartName of
+                    Nothing ->
+                        Just ( [], startName )
 
-                Just ( qualificationAfter, unqualified ) ->
-                    Just ( startName :: qualificationAfter, unqualified )
+                    Just ( qualificationAfter, unqualified ) ->
+                        Just ( startName :: qualificationAfter, unqualified )
+            )
+            (ParserFast.symbolFollowedBy "." Tokens.typeName)
+            (ParserFast.lazy (\() -> maybeDotTypeNamesTuple))
         )
-        (ParserFast.symbolFollowedBy "." Tokens.typeName)
-        (ParserFast.lazy (\() -> maybeDotTypeNamesTuple))
         Nothing
 
 
-qualifiedPatternWithConsumeArgs : Parser (WithComments (Node Pattern))
+qualifiedPatternWithConsumeArgs : Parser (WithComments (Node DestructurePattern))
 qualifiedPatternWithConsumeArgs =
     ParserFast.map3
         (\(Node nameRange name) afterStartName argsReverse ->
@@ -307,7 +217,7 @@ qualifiedPatternWithConsumeArgs =
             { comments = afterStartName |> Rope.prependTo argsReverse.comments
             , syntax =
                 Node range
-                    (NamedPattern
+                    (NamedPattern_
                         name
                         (List.reverse argsReverse.syntax)
                     )
@@ -347,14 +257,14 @@ qualifiedNameRefNode =
         maybeDotTypeNamesTuple
 
 
-qualifiedPatternWithoutConsumeArgs : Parser (WithComments (Node Pattern))
+qualifiedPatternWithoutConsumeArgs : Parser (WithComments (Node DestructurePattern))
 qualifiedPatternWithoutConsumeArgs =
     ParserFast.map2WithRange
         (\range firstName after ->
             { comments = Rope.empty
             , syntax =
                 Node range
-                    (NamedPattern
+                    (NamedPattern_
                         (case after of
                             Nothing ->
                                 { moduleName = [], name = firstName }
@@ -370,13 +280,13 @@ qualifiedPatternWithoutConsumeArgs =
         maybeDotTypeNamesTuple
 
 
-recordPattern : Parser (WithComments (Node Pattern))
+recordPattern : Parser (WithComments (Node DestructurePattern))
 recordPattern =
     ParserFast.map2WithRange
         (\range commentsBeforeElements elements ->
             { comments = commentsBeforeElements |> Rope.prependTo elements.comments
             , syntax =
-                Node range (RecordPattern elements.syntax)
+                Node range (RecordPattern_ elements.syntax)
             }
         )
         (ParserFast.symbolFollowedBy "{" Layout.maybeLayout)

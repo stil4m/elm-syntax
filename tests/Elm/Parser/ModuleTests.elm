@@ -4,12 +4,12 @@ import Elm.Parser.File as File
 import Elm.Parser.Modules as Parser
 import Elm.Parser.ParserWithCommentsTestUtil as ParserWithCommentsUtil exposing (..)
 import Elm.Syntax.Declaration exposing (Declaration(..))
+import Elm.Syntax.DestructurePattern exposing (DestructurePattern(..))
 import Elm.Syntax.Exposing exposing (..)
 import Elm.Syntax.Expression exposing (Expression(..))
 import Elm.Syntax.Infix exposing (InfixDirection(..))
 import Elm.Syntax.Module exposing (..)
 import Elm.Syntax.Node as Node exposing (Node(..))
-import Elm.Syntax.Pattern exposing (Pattern(..))
 import Elm.Syntax.TypeAnnotation exposing (TypeAnnotation(..))
 import Expect
 import Parser
@@ -459,7 +459,7 @@ fun2 n =
                                         , declaration =
                                             Node { start = { row = 3, column = 1 }, end = { row = 5, column = 11 } }
                                                 { name = Node { start = { row = 3, column = 1 }, end = { row = 3, column = 5 } } "fun1"
-                                                , arguments = [ Node { start = { row = 3, column = 6 }, end = { row = 3, column = 7 } } (VarPattern "n") ]
+                                                , arguments = [ Node { start = { row = 3, column = 6 }, end = { row = 3, column = 7 } } (VarPattern_ "n") ]
                                                 , expression =
                                                     Node { start = { row = 4, column = 3 }, end = { row = 5, column = 11 } }
                                                         (OperatorApplication "+"
@@ -489,7 +489,7 @@ fun2 n =
                                         , declaration =
                                             Node { start = { row = 7, column = 1 }, end = { row = 8, column = 9 } }
                                                 { name = Node { start = { row = 7, column = 1 }, end = { row = 7, column = 5 } } "fun2"
-                                                , arguments = [ Node { start = { row = 7, column = 6 }, end = { row = 7, column = 7 } } (VarPattern "n") ]
+                                                , arguments = [ Node { start = { row = 7, column = 6 }, end = { row = 7, column = 7 } } (VarPattern_ "n") ]
                                                 , expression =
                                                     Node { start = { row = 8, column = 3 }, end = { row = 8, column = 9 } }
                                                         (Application

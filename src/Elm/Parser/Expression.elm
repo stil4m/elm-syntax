@@ -1,13 +1,14 @@
 module Elm.Parser.Expression exposing (expression)
 
+import Elm.Parser.DestructurePatterns as DestructurePatterns
 import Elm.Parser.Layout as Layout
 import Elm.Parser.Patterns as Patterns
 import Elm.Parser.Tokens as Tokens
 import Elm.Parser.TypeAnnotation as TypeAnnotation
+import Elm.Syntax.DestructurePattern exposing (DestructurePattern)
 import Elm.Syntax.Expression as Expression exposing (Case, Expression(..), LetDeclaration(..), RecordSetter)
 import Elm.Syntax.Infix as Infix
 import Elm.Syntax.Node as Node exposing (Node(..))
-import Elm.Syntax.Pattern exposing (Pattern)
 import Elm.Syntax.Range exposing (Range)
 import Elm.Syntax.Signature exposing (Signature)
 import ParserFast exposing (Parser)
@@ -491,14 +492,15 @@ lambdaExpression =
                         , end = expressionRange.end
                         }
                         (LambdaExpression
-                            { args = firstArg.syntax :: secondUpArgs.syntax
+                            { firstArg = firstArg.syntax
+                            , restOfArgs = secondUpArgs.syntax
                             , expression = expressionResult.syntax
                             }
                         )
                 }
             )
             Layout.maybeLayout
-            Patterns.patternNotDirectlyComposing
+            DestructurePatterns.patternNotDirectlyComposing
             Layout.maybeLayout
             (ParserWithComments.until
                 (ParserFast.symbol "->" ())
@@ -510,7 +512,7 @@ lambdaExpression =
                         , syntax = patternResult.syntax
                         }
                     )
-                    Patterns.patternNotDirectlyComposing
+                    DestructurePatterns.patternNotDirectlyComposing
                     Layout.maybeLayout
                 )
             )
@@ -721,7 +723,7 @@ letDestructuringDeclaration =
                     (LetDestructuring pattern.syntax expressionResult.syntax)
             }
         )
-        Patterns.patternNotDirectlyComposing
+        DestructurePatterns.patternNotDirectlyComposing
         Layout.maybeLayout
         (ParserFast.symbolFollowedBy "=" Layout.maybeLayout)
         expression
@@ -847,7 +849,7 @@ letFunction =
             "Expected to find the same name for declaration and signature"
 
 
-parameterPatternsEqual : Parser (WithComments (List (Node Pattern)))
+parameterPatternsEqual : Parser (WithComments (List (Node DestructurePattern)))
 parameterPatternsEqual =
     ParserWithComments.until Tokens.equal
         (ParserFast.map2
@@ -856,7 +858,7 @@ parameterPatternsEqual =
                 , syntax = patternResult.syntax
                 }
             )
-            Patterns.patternNotDirectlyComposing
+            DestructurePatterns.patternNotDirectlyComposing
             Layout.maybeLayout
         )
 

@@ -3,10 +3,10 @@ module Elm.Parser.ExpressionTests exposing (all)
 import Elm.Parser.Declarations
 import Elm.Parser.Expression exposing (expression)
 import Elm.Parser.ParserWithCommentsTestUtil as ParserWithCommentsUtil
+import Elm.Syntax.DestructurePattern exposing (DestructurePattern(..))
 import Elm.Syntax.Expression exposing (Expression(..))
 import Elm.Syntax.Infix as Infix exposing (InfixDirection(..))
 import Elm.Syntax.Node exposing (Node(..))
-import Elm.Syntax.Pattern exposing (..)
 import Expect
 import Test exposing (Test, describe, test)
 
@@ -673,7 +673,8 @@ all =
                                     (TupleExpression
                                         [ Node { start = { row = 1, column = 13 }, end = { row = 1, column = 53 } }
                                             (LambdaExpression
-                                                { args = [ Node { start = { row = 1, column = 14 }, end = { row = 1, column = 15 } } (VarPattern "c") ]
+                                                { firstArg = Node { start = { row = 1, column = 14 }, end = { row = 1, column = 15 } } (VarPattern_ "c")
+                                                , restOfArgs = []
                                                 , expression =
                                                     Node { start = { row = 1, column = 19 }, end = { row = 1, column = 53 } }
                                                         (OperatorApplication "||"
