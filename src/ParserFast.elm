@@ -1803,7 +1803,24 @@ skipFloatAfterIntegerDecimal : Int -> String -> Int
 skipFloatAfterIntegerDecimal offset src =
     case String.slice offset (offset + 1) src of
         "." ->
-            skip1OrMoreDigits0To9 (offset + 1) src
+            let
+                offsetAfterDigits : Int
+                offsetAfterDigits =
+                    skip1OrMoreDigits0To9 (offset + 1) src
+            in
+            if offsetAfterDigits == -1 then
+                -1
+
+            else
+                case String.slice offsetAfterDigits (offsetAfterDigits + 1) src of
+                    "e" ->
+                        skipAfterFloatExponentMark (offsetAfterDigits + 1) src
+
+                    "E" ->
+                        skipAfterFloatExponentMark (offsetAfterDigits + 1) src
+
+                    _ ->
+                        offsetAfterDigits
 
         "e" ->
             skipAfterFloatExponentMark (offset + 1) src
