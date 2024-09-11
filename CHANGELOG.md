@@ -2,8 +2,11 @@
 
 ## [Unreleased]
 
+## [7.3.6] - 2024-09-11
+
 - The parser is stricter in a few cases where code that was incorrect (according to the Elm compiler) was successfully parsed: tuple patterns and tuple type annotations with more than 3 parts, non-associative operators (so no more `a < b < c`), lambda indentation
 - The parser removes incorrect failures with specific operator combinations like `a + b /= 0` due to specifics of the pratt parser
+- Parsing is about 50% faster than the previous release!
 
 ## [7.3.5] - 2024-08-30
 
@@ -148,7 +151,8 @@ With this change some additional big changes were made to the projects and the d
 - Range information is added to a significant bigger set of AST elements.
 - The decoders and encoders for the specific AST elements are moved to their modules (`Elm.Syntax.*`).
 
-[Unreleased]: https://github.com/stil4m/elm-syntax/compare/v7.3.5...HEAD
+[Unreleased]: https://github.com/stil4m/elm-syntax/compare/v7.3.6...HEAD
+[7.3.6]: https://github.com/stil4m/elm-syntax/releases/tag/7.3.6
 [7.3.5]: https://github.com/stil4m/elm-syntax/releases/tag/7.3.5
 [7.3.4]: https://github.com/stil4m/elm-syntax/releases/tag/7.3.4
 [7.3.3]: https://github.com/stil4m/elm-syntax/releases/tag/7.3.3
