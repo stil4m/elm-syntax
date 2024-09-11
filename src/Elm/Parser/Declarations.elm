@@ -1,9 +1,9 @@
 module Elm.Parser.Declarations exposing (declaration)
 
 import Elm.Parser.Comments as Comments
+import Elm.Parser.DestructurePatterns as DestructurePatterns
 import Elm.Parser.Expression exposing (expression)
 import Elm.Parser.Layout as Layout
-import Elm.Parser.Patterns as Patterns
 import Elm.Parser.Tokens as Tokens
 import Elm.Parser.TypeAnnotation as TypeAnnotation exposing (typeAnnotation, typeAnnotationNoFnExcludingTypedWithArguments)
 import Elm.Syntax.Declaration as Declaration exposing (Declaration)
@@ -426,7 +426,7 @@ parameterPatternsEqual =
                 , syntax = patternResult.syntax
                 }
             )
-            Patterns.patternNotDirectlyComposing
+            DestructurePatterns.patternNotDirectlyComposing
             Layout.maybeLayout
         )
 
