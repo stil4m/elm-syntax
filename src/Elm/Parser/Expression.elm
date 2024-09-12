@@ -1,5 +1,6 @@
 module Elm.Parser.Expression exposing (expression)
 
+import Elm.Parser.DestructurePatterns as DestructurePatterns
 import Elm.Parser.Layout as Layout
 import Elm.Parser.Patterns as Patterns
 import Elm.Parser.Tokens as Tokens
@@ -498,7 +499,7 @@ lambdaExpression =
                 }
             )
             Layout.maybeLayout
-            Patterns.patternNotDirectlyComposing
+            DestructurePatterns.patternNotDirectlyComposing
             Layout.maybeLayout
             (ParserWithComments.until
                 (ParserFast.symbol "->" ())
@@ -510,7 +511,7 @@ lambdaExpression =
                         , syntax = patternResult.syntax
                         }
                     )
-                    Patterns.patternNotDirectlyComposing
+                    DestructurePatterns.patternNotDirectlyComposing
                     Layout.maybeLayout
                 )
             )
@@ -720,7 +721,7 @@ letDestructuringDeclaration =
                     (LetDestructuring pattern.syntax expressionResult.syntax)
             }
         )
-        Patterns.patternNotDirectlyComposing
+        DestructurePatterns.patternNotDirectlyComposing
         Layout.maybeLayout
         (ParserFast.symbolFollowedBy "=" Layout.maybeLayout)
         expression
@@ -855,7 +856,7 @@ parameterPatternsEqual =
                 , syntax = patternResult.syntax
                 }
             )
-            Patterns.patternNotDirectlyComposing
+            DestructurePatterns.patternNotDirectlyComposing
             Layout.maybeLayout
         )
 
