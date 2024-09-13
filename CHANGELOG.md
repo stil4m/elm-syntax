@@ -67,6 +67,12 @@
 - Changed `Elm.Syntax.Exposing.Exposing`:
   - `Explicit (List (Node TopLevelExpose))` -> `Explicit (Node TopLevelExpose) (List (Node TopLevelExpose))` (takes a non-empty list of elements)
 
+- Changed `Elm.Syntax.Module`:
+  - `Module` is now a record type alias for `{ moduleName : Node ModuleName, kind : ModuleKind, exposingList : Node Exposing }`
+  - Added `type ModuleKind = NormalModule | PortModule | EffectModule EffectModuleData`
+  - Removed fields `moduleName` and `exposingList` from `EffectModuleData`
+  - Removed helper functions `exposingList`, `moduleName`, `isPortModule`, `isEffectModule`
+
 - Added module `Elm.Syntax.StringLiteralType` containing `type StringLiteralType = TripleQuote | SingleQuote`
 
 - Removed deprecated `Elm.Syntax.Range.emptyRange`, use `Elm.Syntax.Range.empty` instead.
