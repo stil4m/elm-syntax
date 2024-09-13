@@ -756,8 +756,7 @@ letFunction =
                     , syntax =
                         Node { start = startNameStart, end = expressionRange.end }
                             (LetFunction
-                                { documentation = Nothing
-                                , signature = Nothing
+                                { signature = Nothing
                                 , declaration =
                                     Node { start = startNameStart, end = expressionRange.end }
                                         { name = startNameNode
@@ -780,8 +779,7 @@ letFunction =
                     , syntax =
                         Node { start = startNameStart, end = expressionRange.end }
                             (LetFunction
-                                { documentation = Nothing
-                                , signature = Just (Node.combine Signature startNameNode signature.typeAnnotation)
+                                { signature = Just (Node.combine Signature startNameNode signature.typeAnnotation)
                                 , declaration =
                                     Node { start = implementationNameRange.start, end = expressionRange.end }
                                         { name = signature.implementationName
