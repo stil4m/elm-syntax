@@ -3,11 +3,12 @@ module Elm.Parser.DeclarationsTests exposing (all)
 import Elm.Parser.Declarations exposing (..)
 import Elm.Parser.ParserWithCommentsTestUtil as ParserWithCommentsUtil exposing (parse)
 import Elm.Syntax.Declaration as Declaration exposing (..)
-import Elm.Syntax.Expression exposing (..)
-import Elm.Syntax.Infix as Infix exposing (InfixDirection(..))
+import Elm.Syntax.DestructurePattern exposing (DestructurePattern(..))
+import Elm.Syntax.Expression as Expression exposing (..)
 import Elm.Syntax.Node exposing (Node(..))
 import Elm.Syntax.Pattern exposing (..)
-import Elm.Syntax.TypeAnnotation exposing (..)
+import Elm.Syntax.StringLiteralType exposing (StringLiteralType(..))
+import Elm.Syntax.TypeAnnotation as TypeAnnotation exposing (..)
 import Expect
 import Test exposing (..)
 
@@ -62,7 +63,7 @@ foo = bar"""
                                     Node { start = { row = 1, column = 1 }, end = { row = 1, column = 9 } }
                                         { name = Node { start = { row = 1, column = 1 }, end = { row = 1, column = 4 } } "foo"
                                         , arguments = []
-                                        , expression = Node { start = { row = 1, column = 7 }, end = { row = 1, column = 9 } } (RecordExpr [])
+                                        , expression = Node { start = { row = 1, column = 7 }, end = { row = 1, column = 9 } } (Expression.Record [])
                                         }
                                 }
                             )
@@ -84,10 +85,10 @@ foo = bar"""
                                 , declaration =
                                     Node { start = { row = 1, column = 1 }, end = { row = 7, column = 7 } }
                                         { name = Node { start = { row = 1, column = 1 }, end = { row = 1, column = 4 } } "inc"
-                                        , arguments = [ Node { start = { row = 1, column = 5 }, end = { row = 1, column = 6 } } (VarPattern "x") ]
+                                        , arguments = [ Node { start = { row = 1, column = 5 }, end = { row = 1, column = 6 } } (VarPattern_ "x") ]
                                         , expression =
                                             Node { start = { row = 2, column = 3 }, end = { row = 7, column = 7 } }
-                                                (LetExpression
+                                                (Let
                                                     { declarations =
                                                         [ Node { start = { row = 3, column = 5 }, end = { row = 5, column = 18 } }
                                                             (LetFunction
@@ -99,13 +100,13 @@ foo = bar"""
                                                                         , arguments = []
                                                                         , expression =
                                                                             Node { start = { row = 4, column = 7 }, end = { row = 5, column = 18 } }
-                                                                                (CaseExpression
+                                                                                (Case
                                                                                     { expression = Node { start = { row = 4, column = 12 }, end = { row = 4, column = 13 } } (FunctionOrValue [] "x")
-                                                                                    , cases =
-                                                                                        [ ( Node { start = { row = 5, column = 9 }, end = { row = 5, column = 13 } } (NamedPattern { moduleName = [], name = "True" } [])
-                                                                                          , Node { start = { row = 5, column = 17 }, end = { row = 5, column = 18 } } (FunctionOrValue [] "z")
-                                                                                          )
-                                                                                        ]
+                                                                                    , firstCase =
+                                                                                        ( Node { start = { row = 5, column = 9 }, end = { row = 5, column = 13 } } (NamedPattern { moduleName = [], name = "True" } [])
+                                                                                        , Node { start = { row = 5, column = 17 }, end = { row = 5, column = 18 } } (FunctionOrValue [] "z")
+                                                                                        )
+                                                                                    , restOfCases = []
                                                                                     }
                                                                                 )
                                                                         }
@@ -142,13 +143,12 @@ foo = bar"""
                                 , declaration =
                                     Node { start = { row = 1, column = 1 }, end = { row = 1, column = 14 } }
                                         { name = Node { start = { row = 1, column = 1 }, end = { row = 1, column = 4 } } "inc"
-                                        , arguments = [ Node { start = { row = 1, column = 5 }, end = { row = 1, column = 6 } } (VarPattern "x") ]
+                                        , arguments = [ Node { start = { row = 1, column = 5 }, end = { row = 1, column = 6 } } (VarPattern_ "x") ]
                                         , expression =
                                             Node { start = { row = 1, column = 9 }, end = { row = 1, column = 14 } }
-                                                (OperatorApplication "+"
-                                                    Infix.Left
+                                                (Operation "+"
                                                     (Node { start = { row = 1, column = 9 }, end = { row = 1, column = 10 } } (FunctionOrValue [] "x"))
-                                                    (Node { start = { row = 1, column = 13 }, end = { row = 1, column = 14 } } (Integer 1))
+                                                    (Node { start = { row = 1, column = 13 }, end = { row = 1, column = 14 } } (IntegerLiteral 1))
                                                 )
                                         }
                                 }
@@ -172,7 +172,7 @@ foo = bar"""
                                         , arguments = []
                                         , expression =
                                             Node { start = { row = 2, column = 2 }, end = { row = 5, column = 4 } }
-                                                (LetExpression
+                                                (Let
                                                     { declarations =
                                                         [ Node { start = { row = 3, column = 3 }, end = { row = 3, column = 8 } }
                                                             (LetFunction
@@ -182,7 +182,7 @@ foo = bar"""
                                                                     Node { start = { row = 3, column = 3 }, end = { row = 3, column = 8 } }
                                                                         { name = Node { start = { row = 3, column = 3 }, end = { row = 3, column = 4 } } "b"
                                                                         , arguments = []
-                                                                        , expression = Node { start = { row = 3, column = 7 }, end = { row = 3, column = 8 } } (Integer 1)
+                                                                        , expression = Node { start = { row = 3, column = 7 }, end = { row = 3, column = 8 } } (IntegerLiteral 1)
                                                                         }
                                                                 }
                                                             )
@@ -220,21 +220,21 @@ foo = bar"""
                                         , arguments = []
                                         , expression =
                                             Node { start = { row = 2, column = 2 }, end = { row = 5, column = 4 } }
-                                                (LetExpression
+                                                (Let
                                                     { declarations =
                                                         [ Node { start = { row = 3, column = 3 }, end = { row = 3, column = 16 } }
                                                             (LetDestructuring
                                                                 (Node { start = { row = 3, column = 3 }, end = { row = 3, column = 9 } }
-                                                                    (TuplePattern
-                                                                        [ Node { start = { row = 3, column = 4 }, end = { row = 3, column = 5 } } (VarPattern "b")
-                                                                        , Node { start = { row = 3, column = 7 }, end = { row = 3, column = 8 } } (VarPattern "c")
+                                                                    (TuplePattern_
+                                                                        [ Node { start = { row = 3, column = 4 }, end = { row = 3, column = 5 } } (VarPattern_ "b")
+                                                                        , Node { start = { row = 3, column = 7 }, end = { row = 3, column = 8 } } (VarPattern_ "c")
                                                                         ]
                                                                     )
                                                                 )
                                                                 (Node { start = { row = 3, column = 10 }, end = { row = 3, column = 16 } }
-                                                                    (TupledExpression
-                                                                        [ Node { start = { row = 3, column = 11 }, end = { row = 3, column = 12 } } (Integer 1)
-                                                                        , Node { start = { row = 3, column = 14 }, end = { row = 3, column = 15 } } (Integer 2)
+                                                                    (TupleExpression
+                                                                        [ Node { start = { row = 3, column = 11 }, end = { row = 3, column = 12 } } (IntegerLiteral 1)
+                                                                        , Node { start = { row = 3, column = 14 }, end = { row = 3, column = 15 } } (IntegerLiteral 2)
                                                                         ]
                                                                     )
                                                                 )
@@ -262,13 +262,13 @@ foo = bar"""
                                         , arguments = []
                                         , expression =
                                             Node { start = { row = 2, column = 3 }, end = { row = 2, column = 62 } }
-                                                (Application
-                                                    [ Node { start = { row = 2, column = 3 }, end = { row = 2, column = 18 } } (FunctionOrValue [] "beginnerProgram")
-                                                    , Node { start = { row = 2, column = 19 }, end = { row = 2, column = 62 } }
-                                                        (RecordExpr
+                                                (FunctionCall
+                                                    (Node { start = { row = 2, column = 3 }, end = { row = 2, column = 18 } } (FunctionOrValue [] "beginnerProgram"))
+                                                    (Node { start = { row = 2, column = 19 }, end = { row = 2, column = 62 } }
+                                                        (Expression.Record
                                                             [ Node { start = { row = 2, column = 21 }, end = { row = 2, column = 30 } }
                                                                 ( Node { start = { row = 2, column = 21 }, end = { row = 2, column = 26 } } "model"
-                                                                , Node { start = { row = 2, column = 29 }, end = { row = 2, column = 30 } } (Integer 0)
+                                                                , Node { start = { row = 2, column = 29 }, end = { row = 2, column = 30 } } (IntegerLiteral 0)
                                                                 )
                                                             , Node { start = { row = 2, column = 32 }, end = { row = 2, column = 43 } }
                                                                 ( Node { start = { row = 2, column = 32 }, end = { row = 2, column = 36 } } "view"
@@ -280,7 +280,8 @@ foo = bar"""
                                                                 )
                                                             ]
                                                         )
-                                                    ]
+                                                    )
+                                                    []
                                                 )
                                         }
                                 }
@@ -304,28 +305,27 @@ foo = bar"""
                                     Node { start = { row = 1, column = 1 }, end = { row = 7, column = 16 } }
                                         { name = Node { start = { row = 1, column = 1 }, end = { row = 1, column = 7 } } "update"
                                         , arguments =
-                                            [ Node { start = { row = 1, column = 8 }, end = { row = 1, column = 11 } } (VarPattern "msg")
-                                            , Node { start = { row = 1, column = 12 }, end = { row = 1, column = 17 } } (VarPattern "model")
+                                            [ Node { start = { row = 1, column = 8 }, end = { row = 1, column = 11 } } (VarPattern_ "msg")
+                                            , Node { start = { row = 1, column = 12 }, end = { row = 1, column = 17 } } (VarPattern_ "model")
                                             ]
                                         , expression =
                                             Node { start = { row = 2, column = 3 }, end = { row = 7, column = 16 } }
-                                                (CaseExpression
+                                                (Case
                                                     { expression = Node { start = { row = 2, column = 8 }, end = { row = 2, column = 11 } } (FunctionOrValue [] "msg")
-                                                    , cases =
-                                                        [ ( Node { start = { row = 3, column = 5 }, end = { row = 3, column = 14 } } (NamedPattern { moduleName = [], name = "Increment" } [])
-                                                          , Node { start = { row = 4, column = 7 }, end = { row = 4, column = 16 } }
-                                                                (OperatorApplication "+"
-                                                                    Left
-                                                                    (Node { start = { row = 4, column = 7 }, end = { row = 4, column = 12 } } (FunctionOrValue [] "model"))
-                                                                    (Node { start = { row = 4, column = 15 }, end = { row = 4, column = 16 } } (Integer 1))
-                                                                )
-                                                          )
-                                                        , ( Node { start = { row = 6, column = 5 }, end = { row = 6, column = 14 } } (NamedPattern { moduleName = [], name = "Decrement" } [])
+                                                    , firstCase =
+                                                        ( Node { start = { row = 3, column = 5 }, end = { row = 3, column = 14 } } (NamedPattern { moduleName = [], name = "Increment" } [])
+                                                        , Node { start = { row = 4, column = 7 }, end = { row = 4, column = 16 } }
+                                                            (Operation "+"
+                                                                (Node { start = { row = 4, column = 7 }, end = { row = 4, column = 12 } } (FunctionOrValue [] "model"))
+                                                                (Node { start = { row = 4, column = 15 }, end = { row = 4, column = 16 } } (IntegerLiteral 1))
+                                                            )
+                                                        )
+                                                    , restOfCases =
+                                                        [ ( Node { start = { row = 6, column = 5 }, end = { row = 6, column = 14 } } (NamedPattern { moduleName = [], name = "Decrement" } [])
                                                           , Node { start = { row = 7, column = 7 }, end = { row = 7, column = 16 } }
-                                                                (OperatorApplication "-"
-                                                                    Left
+                                                                (Operation "-"
                                                                     (Node { start = { row = 7, column = 7 }, end = { row = 7, column = 12 } } (FunctionOrValue [] "model"))
-                                                                    (Node { start = { row = 7, column = 15 }, end = { row = 7, column = 16 } } (Integer 1))
+                                                                    (Node { start = { row = 7, column = 15 }, end = { row = 7, column = 16 } } (IntegerLiteral 1))
                                                                 )
                                                           )
                                                         ]
@@ -341,28 +341,32 @@ foo = bar"""
                     |> expectAst
                         (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 51 } }
                             (PortDeclaration
-                                { name = Node { start = { row = 1, column = 6 }, end = { row = 1, column = 19 } } "parseResponse"
-                                , typeAnnotation =
-                                    Node { start = { row = 1, column = 22 }, end = { row = 1, column = 51 } }
-                                        (FunctionTypeAnnotation
-                                            (Node { start = { row = 1, column = 22 }, end = { row = 1, column = 40 } }
-                                                (Tupled
-                                                    [ Node { start = { row = 1, column = 24 }, end = { row = 1, column = 30 } } (Typed (Node { start = { row = 1, column = 24 }, end = { row = 1, column = 30 } } ( [], "String" )) [])
-                                                    , Node { start = { row = 1, column = 32 }, end = { row = 1, column = 38 } }
-                                                        (Typed
-                                                            (Node { start = { row = 1, column = 32 }, end = { row = 1, column = 38 } } ( [], "String" ))
-                                                            []
+                                { documentation = Nothing
+                                , signature =
+                                    Node { start = { row = 1, column = 6 }, end = { row = 1, column = 51 } } <|
+                                        { name = Node { start = { row = 1, column = 6 }, end = { row = 1, column = 19 } } "parseResponse"
+                                        , typeAnnotation =
+                                            Node { start = { row = 1, column = 22 }, end = { row = 1, column = 51 } }
+                                                (FunctionTypeAnnotation
+                                                    (Node { start = { row = 1, column = 22 }, end = { row = 1, column = 40 } }
+                                                        (Tuple
+                                                            [ Node { start = { row = 1, column = 24 }, end = { row = 1, column = 30 } } (Type (Node { start = { row = 1, column = 24 }, end = { row = 1, column = 30 } } ( [], "String" )) [])
+                                                            , Node { start = { row = 1, column = 32 }, end = { row = 1, column = 38 } }
+                                                                (Type
+                                                                    (Node { start = { row = 1, column = 32 }, end = { row = 1, column = 38 } } ( [], "String" ))
+                                                                    []
+                                                                )
+                                                            ]
                                                         )
-                                                    ]
+                                                    )
+                                                    (Node { start = { row = 1, column = 44 }, end = { row = 1, column = 51 } }
+                                                        (Type
+                                                            (Node { start = { row = 1, column = 44 }, end = { row = 1, column = 47 } } ( [], "Cmd" ))
+                                                            [ Node { start = { row = 1, column = 48 }, end = { row = 1, column = 51 } } (Var "msg") ]
+                                                        )
+                                                    )
                                                 )
-                                            )
-                                            (Node { start = { row = 1, column = 44 }, end = { row = 1, column = 51 } }
-                                                (Typed
-                                                    (Node { start = { row = 1, column = 44 }, end = { row = 1, column = 47 } } ( [], "Cmd" ))
-                                                    [ Node { start = { row = 1, column = 48 }, end = { row = 1, column = 51 } } (GenericType "msg") ]
-                                                )
-                                            )
-                                        )
+                                        }
                                 }
                             )
                         )
@@ -372,25 +376,29 @@ foo = bar"""
                     |> expectAst
                         (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 39 } }
                             (PortDeclaration
-                                { name = Node { start = { row = 1, column = 6 }, end = { row = 1, column = 12 } } "scroll"
-                                , typeAnnotation =
-                                    Node { start = { row = 1, column = 15 }, end = { row = 1, column = 39 } }
-                                        (FunctionTypeAnnotation
-                                            (Node { start = { row = 1, column = 15 }, end = { row = 1, column = 28 } }
+                                { documentation = Nothing
+                                , signature =
+                                    Node { start = { row = 1, column = 6 }, end = { row = 1, column = 39 } } <|
+                                        { name = Node { start = { row = 1, column = 6 }, end = { row = 1, column = 12 } } "scroll"
+                                        , typeAnnotation =
+                                            Node { start = { row = 1, column = 15 }, end = { row = 1, column = 39 } }
                                                 (FunctionTypeAnnotation
-                                                    (Node { start = { row = 1, column = 16 }, end = { row = 1, column = 20 } }
-                                                        (Typed (Node { start = { row = 1, column = 16 }, end = { row = 1, column = 20 } } ( [], "Move" )) [])
+                                                    (Node { start = { row = 1, column = 15 }, end = { row = 1, column = 28 } }
+                                                        (FunctionTypeAnnotation
+                                                            (Node { start = { row = 1, column = 16 }, end = { row = 1, column = 20 } }
+                                                                (Type (Node { start = { row = 1, column = 16 }, end = { row = 1, column = 20 } } ( [], "Move" )) [])
+                                                            )
+                                                            (Node { start = { row = 1, column = 24 }, end = { row = 1, column = 27 } } (Var "msg"))
+                                                        )
                                                     )
-                                                    (Node { start = { row = 1, column = 24 }, end = { row = 1, column = 27 } } (GenericType "msg"))
+                                                    (Node { start = { row = 1, column = 32 }, end = { row = 1, column = 39 } }
+                                                        (Type (Node { start = { row = 1, column = 32 }, end = { row = 1, column = 35 } } ( [], "Sub" ))
+                                                            [ Node { start = { row = 1, column = 36 }, end = { row = 1, column = 39 } } (Var "msg")
+                                                            ]
+                                                        )
+                                                    )
                                                 )
-                                            )
-                                            (Node { start = { row = 1, column = 32 }, end = { row = 1, column = 39 } }
-                                                (Typed (Node { start = { row = 1, column = 32 }, end = { row = 1, column = 35 } } ( [], "Sub" ))
-                                                    [ Node { start = { row = 1, column = 36 }, end = { row = 1, column = 39 } } (GenericType "msg")
-                                                    ]
-                                                )
-                                            )
-                                        )
+                                        }
                                 }
                             )
                         )
@@ -413,10 +421,10 @@ foo = bar"""
                                         , arguments = []
                                         , expression =
                                             Node { start = { row = 2, column = 3 }, end = { row = 2, column = 23 } }
-                                                (Application
-                                                    [ Node { start = { row = 2, column = 3 }, end = { row = 2, column = 7 } } (FunctionOrValue [] "text")
-                                                    , Node { start = { row = 2, column = 8 }, end = { row = 2, column = 23 } } (Literal "Hello, World!")
-                                                    ]
+                                                (FunctionCall
+                                                    (Node { start = { row = 2, column = 3 }, end = { row = 2, column = 7 } } (FunctionOrValue [] "text"))
+                                                    (Node { start = { row = 2, column = 8 }, end = { row = 2, column = 23 } } (StringLiteral SingleQuote "Hello, World!"))
+                                                    []
                                                 )
                                         }
                                 }
@@ -437,10 +445,10 @@ foo = bar"""
                                         , arguments = []
                                         , expression =
                                             Node { start = { row = 2, column = 3 }, end = { row = 2, column = 23 } }
-                                                (Application
-                                                    [ Node { start = { row = 2, column = 3 }, end = { row = 2, column = 7 } } (FunctionOrValue [] "text")
-                                                    , Node { start = { row = 2, column = 8 }, end = { row = 2, column = 23 } } (Literal "Hello, World!")
-                                                    ]
+                                                (FunctionCall
+                                                    (Node { start = { row = 2, column = 3 }, end = { row = 2, column = 7 } } (FunctionOrValue [] "text"))
+                                                    (Node { start = { row = 2, column = 8 }, end = { row = 2, column = 23 } } (StringLiteral SingleQuote "Hello, World!"))
+                                                    []
                                                 )
                                         }
                                 }
@@ -477,31 +485,28 @@ foo = bar"""
                                 , declaration =
                                     Node { start = { row = 1, column = 1 }, end = { row = 1, column = 83 } }
                                         { name = Node { start = { row = 1, column = 1 }, end = { row = 1, column = 12 } } "updateState"
-                                        , arguments = [ Node { start = { row = 1, column = 13 }, end = { row = 1, column = 19 } } (VarPattern "update"), Node { start = { row = 1, column = 20 }, end = { row = 1, column = 28 } } (VarPattern "sendPort") ]
+                                        , arguments = [ Node { start = { row = 1, column = 13 }, end = { row = 1, column = 19 } } (VarPattern_ "update"), Node { start = { row = 1, column = 20 }, end = { row = 1, column = 28 } } (VarPattern_ "sendPort") ]
                                         , expression =
                                             Node { start = { row = 1, column = 31 }, end = { row = 1, column = 83 } }
-                                                (OperatorApplication "<|"
-                                                    Right
+                                                (Operation "<|"
                                                     (Node { start = { row = 1, column = 31 }, end = { row = 1, column = 36 } } (FunctionOrValue [] "curry"))
                                                     (Node { start = { row = 1, column = 40 }, end = { row = 1, column = 83 } }
-                                                        (OperatorApplication ">>"
-                                                            Right
+                                                        (Operation ">>"
                                                             (Node { start = { row = 1, column = 40 }, end = { row = 1, column = 56 } }
-                                                                (ParenthesizedExpression
-                                                                    (Node { start = { row = 1, column = 41 }, end = { row = 1, column = 55 } }
-                                                                        (Application
-                                                                            [ Node { start = { row = 1, column = 41 }, end = { row = 1, column = 48 } } (FunctionOrValue [] "uncurry")
-                                                                            , Node { start = { row = 1, column = 49 }, end = { row = 1, column = 55 } } (FunctionOrValue [] "update")
-                                                                            ]
+                                                                (TupleExpression
+                                                                    [ Node { start = { row = 1, column = 41 }, end = { row = 1, column = 55 } }
+                                                                        (FunctionCall
+                                                                            (Node { start = { row = 1, column = 41 }, end = { row = 1, column = 48 } } (FunctionOrValue [] "uncurry"))
+                                                                            (Node { start = { row = 1, column = 49 }, end = { row = 1, column = 55 } } (FunctionOrValue [] "update"))
+                                                                            []
                                                                         )
-                                                                    )
+                                                                    ]
                                                                 )
                                                             )
                                                             (Node { start = { row = 1, column = 60 }, end = { row = 1, column = 83 } }
-                                                                (Application
-                                                                    [ Node { start = { row = 1, column = 60 }, end = { row = 1, column = 74 } } (FunctionOrValue [] "batchStateCmds")
-                                                                    , Node { start = { row = 1, column = 75 }, end = { row = 1, column = 83 } } (FunctionOrValue [] "sendPort")
-                                                                    ]
+                                                                (FunctionCall (Node { start = { row = 1, column = 60 }, end = { row = 1, column = 74 } } (FunctionOrValue [] "batchStateCmds"))
+                                                                    (Node { start = { row = 1, column = 75 }, end = { row = 1, column = 83 } } (FunctionOrValue [] "sendPort"))
+                                                                    []
                                                                 )
                                                             )
                                                         )
@@ -529,28 +534,29 @@ foo = bar"""
                                     Node { start = { row = 1, column = 1 }, end = { row = 7, column = 16 } }
                                         { name = Node { start = { row = 1, column = 1 }, end = { row = 1, column = 7 } } "update"
                                         , arguments =
-                                            [ Node { start = { row = 1, column = 8 }, end = { row = 1, column = 11 } } (VarPattern "msg")
-                                            , Node { start = { row = 1, column = 12 }, end = { row = 1, column = 17 } } (VarPattern "model")
+                                            [ Node { start = { row = 1, column = 8 }, end = { row = 1, column = 11 } } (VarPattern_ "msg")
+                                            , Node { start = { row = 1, column = 12 }, end = { row = 1, column = 17 } } (VarPattern_ "model")
                                             ]
                                         , expression =
                                             Node { start = { row = 2, column = 3 }, end = { row = 7, column = 16 } }
-                                                (CaseExpression
+                                                (Case
                                                     { expression = Node { start = { row = 2, column = 8 }, end = { row = 2, column = 11 } } (FunctionOrValue [] "msg")
-                                                    , cases =
-                                                        [ ( Node { start = { row = 3, column = 5 }, end = { row = 3, column = 14 } } (NamedPattern { moduleName = [], name = "Increment" } [])
-                                                          , Node { start = { row = 4, column = 7 }, end = { row = 4, column = 16 } }
-                                                                (OperatorApplication "+"
-                                                                    Left
-                                                                    (Node { start = { row = 4, column = 7 }, end = { row = 4, column = 12 } } (FunctionOrValue [] "model"))
-                                                                    (Node { start = { row = 4, column = 15 }, end = { row = 4, column = 16 } } (Integer 1))
-                                                                )
-                                                          )
-                                                        , ( Node { start = { row = 6, column = 5 }, end = { row = 6, column = 14 } } (NamedPattern { moduleName = [], name = "Decrement" } [])
+                                                    , firstCase =
+                                                        ( Node { start = { row = 3, column = 5 }, end = { row = 3, column = 14 } }
+                                                            (NamedPattern { moduleName = [], name = "Increment" } [])
+                                                        , Node { start = { row = 4, column = 7 }, end = { row = 4, column = 16 } }
+                                                            (Operation "+"
+                                                                (Node { start = { row = 4, column = 7 }, end = { row = 4, column = 12 } } (FunctionOrValue [] "model"))
+                                                                (Node { start = { row = 4, column = 15 }, end = { row = 4, column = 16 } } (IntegerLiteral 1))
+                                                            )
+                                                        )
+                                                    , restOfCases =
+                                                        [ ( Node { start = { row = 6, column = 5 }, end = { row = 6, column = 14 } }
+                                                                (NamedPattern { moduleName = [], name = "Decrement" } [])
                                                           , Node { start = { row = 7, column = 7 }, end = { row = 7, column = 16 } }
-                                                                (OperatorApplication "-"
-                                                                    Left
+                                                                (Operation "-"
                                                                     (Node { start = { row = 7, column = 7 }, end = { row = 7, column = 12 } } (FunctionOrValue [] "model"))
-                                                                    (Node { start = { row = 7, column = 15 }, end = { row = 7, column = 16 } } (Integer 1))
+                                                                    (Node { start = { row = 7, column = 15 }, end = { row = 7, column = 16 } } (IntegerLiteral 1))
                                                                 )
                                                           )
                                                         ]
@@ -573,15 +579,15 @@ update msg model =
                                     Just
                                         (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 15 } }
                                             { name = Node { start = { row = 1, column = 1 }, end = { row = 1, column = 7 } } "update"
-                                            , typeAnnotation = Node { start = { row = 1, column = 10 }, end = { row = 1, column = 15 } } (Typed (Node { start = { row = 1, column = 10 }, end = { row = 1, column = 15 } } ( [], "Model" )) [])
+                                            , typeAnnotation = Node { start = { row = 1, column = 10 }, end = { row = 1, column = 15 } } (Type (Node { start = { row = 1, column = 10 }, end = { row = 1, column = 15 } } ( [], "Model" )) [])
                                             }
                                         )
                                 , declaration =
                                     Node { start = { row = 2, column = 1 }, end = { row = 3, column = 8 } }
                                         { name = Node { start = { row = 2, column = 1 }, end = { row = 2, column = 7 } } "update"
                                         , arguments =
-                                            [ Node { start = { row = 2, column = 8 }, end = { row = 2, column = 11 } } (VarPattern "msg")
-                                            , Node { start = { row = 2, column = 12 }, end = { row = 2, column = 17 } } (VarPattern "model")
+                                            [ Node { start = { row = 2, column = 8 }, end = { row = 2, column = 11 } } (VarPattern_ "msg")
+                                            , Node { start = { row = 2, column = 12 }, end = { row = 2, column = 17 } } (VarPattern_ "model")
                                             ]
                                         , expression = Node { start = { row = 3, column = 5 }, end = { row = 3, column = 8 } } (FunctionOrValue [] "msg")
                                         }
@@ -599,11 +605,11 @@ update msg model =
                                 , generics = []
                                 , typeAnnotation =
                                     Node { start = { row = 1, column = 18 }, end = { row = 1, column = 34 } }
-                                        (Record
+                                        (TypeAnnotation.Record
                                             [ Node { start = { row = 1, column = 19 }, end = { row = 1, column = 32 } }
                                                 ( Node { start = { row = 1, column = 19 }, end = { row = 1, column = 24 } } "color"
                                                 , Node { start = { row = 1, column = 26 }, end = { row = 1, column = 32 } }
-                                                    (Typed (Node { start = { row = 1, column = 26 }, end = { row = 1, column = 32 } } ( [], "String" )) [])
+                                                    (Type (Node { start = { row = 1, column = 26 }, end = { row = 1, column = 32 } } ( [], "String" )) [])
                                                 )
                                             ]
                                         )
@@ -622,11 +628,11 @@ type alias Foo = {color: String }"""
                                 , generics = []
                                 , typeAnnotation =
                                     Node { start = { row = 2, column = 18 }, end = { row = 2, column = 34 } }
-                                        (Record
+                                        (TypeAnnotation.Record
                                             [ Node { start = { row = 2, column = 19 }, end = { row = 2, column = 32 } }
                                                 ( Node { start = { row = 2, column = 19 }, end = { row = 2, column = 24 } } "color"
                                                 , Node { start = { row = 2, column = 26 }, end = { row = 2, column = 32 } }
-                                                    (Typed (Node { start = { row = 2, column = 26 }, end = { row = 2, column = 32 } } ( [], "String" )) [])
+                                                    (Type (Node { start = { row = 2, column = 26 }, end = { row = 2, column = 32 } } ( [], "String" )) [])
                                                 )
                                             ]
                                         )
@@ -644,18 +650,18 @@ type alias Foo = {color: String }"""
                                 , generics = []
                                 , typeAnnotation =
                                     Node { start = { row = 1, column = 16 }, end = { row = 1, column = 32 } }
-                                        (Record
+                                        (TypeAnnotation.Record
                                             [ Node { start = { row = 1, column = 17 }, end = { row = 1, column = 30 } }
                                                 ( Node { start = { row = 1, column = 17 }, end = { row = 1, column = 22 } } "color"
                                                 , Node { start = { row = 1, column = 24 }, end = { row = 1, column = 30 } }
-                                                    (Typed (Node { start = { row = 1, column = 24 }, end = { row = 1, column = 30 } } ( [], "String" )) [])
+                                                    (Type (Node { start = { row = 1, column = 24 }, end = { row = 1, column = 30 } } ( [], "String" )) [])
                                                 )
                                             ]
                                         )
                                 }
                             )
                         )
-        , test "type alias with GenericType " <|
+        , test "type alias with Var " <|
             \() ->
                 "type alias Foo a = {some : a }"
                     |> expectAst
@@ -666,10 +672,10 @@ type alias Foo = {color: String }"""
                                 , generics = [ Node { start = { row = 1, column = 16 }, end = { row = 1, column = 17 } } "a" ]
                                 , typeAnnotation =
                                     Node { start = { row = 1, column = 20 }, end = { row = 1, column = 31 } }
-                                        (Record
+                                        (TypeAnnotation.Record
                                             [ Node { start = { row = 1, column = 21 }, end = { row = 1, column = 29 } }
                                                 ( Node { start = { row = 1, column = 21 }, end = { row = 1, column = 25 } } "some"
-                                                , Node { start = { row = 1, column = 28 }, end = { row = 1, column = 29 } } (GenericType "a")
+                                                , Node { start = { row = 1, column = 28 }, end = { row = 1, column = 29 } } (Var "a")
                                                 )
                                             ]
                                         )
@@ -685,15 +691,16 @@ type alias Foo = {color: String }"""
                                 { documentation = Nothing
                                 , name = Node { start = { row = 1, column = 6 }, end = { row = 1, column = 11 } } "Color"
                                 , generics = []
-                                , constructors =
-                                    [ Node { start = { row = 1, column = 14 }, end = { row = 1, column = 25 } }
+                                , firstConstructor =
+                                    Node { start = { row = 1, column = 14 }, end = { row = 1, column = 25 } }
                                         { name = Node { start = { row = 1, column = 14 }, end = { row = 1, column = 18 } } "Blue"
                                         , arguments =
                                             [ Node { start = { row = 1, column = 19 }, end = { row = 1, column = 25 } }
-                                                (Typed (Node { start = { row = 1, column = 19 }, end = { row = 1, column = 25 } } ( [], "String" )) [])
+                                                (Type (Node { start = { row = 1, column = 19 }, end = { row = 1, column = 25 } } ( [], "String" )) [])
                                             ]
                                         }
-                                    , Node { start = { row = 1, column = 28 }, end = { row = 1, column = 31 } }
+                                , restOfConstructors =
+                                    [ Node { start = { row = 1, column = 28 }, end = { row = 1, column = 31 } }
                                         { name = Node { start = { row = 1, column = 28 }, end = { row = 1, column = 31 } } "Red"
                                         , arguments = []
                                         }
@@ -715,18 +722,19 @@ type Color = Blue String | Red | Green"""
                                 { documentation = Just (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 19 } } "{-| Classic RGB -}")
                                 , name = Node { start = { row = 2, column = 6 }, end = { row = 2, column = 11 } } "Color"
                                 , generics = []
-                                , constructors =
-                                    [ Node
+                                , firstConstructor =
+                                    Node
                                         { start = { row = 2, column = 14 }
                                         , end = { row = 2, column = 25 }
                                         }
                                         { name = Node { start = { row = 2, column = 14 }, end = { row = 2, column = 18 } } "Blue"
                                         , arguments =
                                             [ Node { start = { row = 2, column = 19 }, end = { row = 2, column = 25 } }
-                                                (Typed (Node { start = { row = 2, column = 19 }, end = { row = 2, column = 25 } } ( [], "String" )) [])
+                                                (Type (Node { start = { row = 2, column = 19 }, end = { row = 2, column = 25 } } ( [], "String" )) [])
                                             ]
                                         }
-                                    , Node { start = { row = 2, column = 28 }, end = { row = 2, column = 31 } }
+                                , restOfConstructors =
+                                    [ Node { start = { row = 2, column = 28 }, end = { row = 2, column = 31 } }
                                         { name = Node { start = { row = 2, column = 28 }, end = { row = 2, column = 31 } } "Red"
                                         , arguments = []
                                         }
@@ -747,16 +755,16 @@ type Color = Blue String | Red | Green"""
                                 { documentation = Nothing
                                 , name = Node { start = { row = 1, column = 6 }, end = { row = 1, column = 7 } } "D"
                                 , generics = []
-                                , constructors =
-                                    [ Node { start = { row = 1, column = 10 }, end = { row = 1, column = 15 } }
+                                , firstConstructor =
+                                    Node { start = { row = 1, column = 10 }, end = { row = 1, column = 15 } }
                                         { name = Node { start = { row = 1, column = 10 }, end = { row = 1, column = 11 } } "C"
                                         , arguments =
-                                            [ Node { start = { row = 1, column = 12 }, end = { row = 1, column = 13 } } (GenericType "a")
+                                            [ Node { start = { row = 1, column = 12 }, end = { row = 1, column = 13 } } (Var "a")
                                             , Node { start = { row = 1, column = 14 }, end = { row = 1, column = 15 } }
-                                                (Typed (Node { start = { row = 1, column = 14 }, end = { row = 1, column = 15 } } ( [], "B" )) [])
+                                                (Type (Node { start = { row = 1, column = 14 }, end = { row = 1, column = 15 } } ( [], "B" )) [])
                                             ]
                                         }
-                                    ]
+                                , restOfConstructors = []
                                 }
                             )
                         )
@@ -769,16 +777,16 @@ type Color = Blue String | Red | Green"""
                                 { documentation = Nothing
                                 , name = Node { start = { row = 1, column = 6 }, end = { row = 1, column = 7 } } "D"
                                 , generics = []
-                                , constructors =
-                                    [ Node { start = { row = 1, column = 10 }, end = { row = 1, column = 15 } }
+                                , firstConstructor =
+                                    Node { start = { row = 1, column = 10 }, end = { row = 1, column = 15 } }
                                         { name = Node { start = { row = 1, column = 10 }, end = { row = 1, column = 11 } } "C"
                                         , arguments =
                                             [ Node { start = { row = 1, column = 12 }, end = { row = 1, column = 13 } }
-                                                (Typed (Node { start = { row = 1, column = 12 }, end = { row = 1, column = 13 } } ( [], "B" )) [])
-                                            , Node { start = { row = 1, column = 14 }, end = { row = 1, column = 15 } } (GenericType "a")
+                                                (Type (Node { start = { row = 1, column = 12 }, end = { row = 1, column = 13 } } ( [], "B" )) [])
+                                            , Node { start = { row = 1, column = 14 }, end = { row = 1, column = 15 } } (Var "a")
                                             ]
                                         }
-                                    ]
+                                , restOfConstructors = []
                                 }
                             )
                         )
@@ -786,7 +794,7 @@ type Color = Blue String | Red | Green"""
             \() ->
                 "type D = C B\na"
                     |> expectInvalid
-        , test "type with GenericType" <|
+        , test "type with Var" <|
             \() ->
                 "type Maybe a = Just a | Nothing"
                     |> expectAst
@@ -795,12 +803,13 @@ type Color = Blue String | Red | Green"""
                                 { documentation = Nothing
                                 , name = Node { start = { row = 1, column = 6 }, end = { row = 1, column = 11 } } "Maybe"
                                 , generics = [ Node { start = { row = 1, column = 12 }, end = { row = 1, column = 13 } } "a" ]
-                                , constructors =
-                                    [ Node { start = { row = 1, column = 16 }, end = { row = 1, column = 22 } }
+                                , firstConstructor =
+                                    Node { start = { row = 1, column = 16 }, end = { row = 1, column = 22 } }
                                         { name = Node { start = { row = 1, column = 16 }, end = { row = 1, column = 20 } } "Just"
-                                        , arguments = [ Node { start = { row = 1, column = 21 }, end = { row = 1, column = 22 } } (GenericType "a") ]
+                                        , arguments = [ Node { start = { row = 1, column = 21 }, end = { row = 1, column = 22 } } (Var "a") ]
                                         }
-                                    , Node { start = { row = 1, column = 25 }, end = { row = 1, column = 32 } }
+                                , restOfConstructors =
+                                    [ Node { start = { row = 1, column = 25 }, end = { row = 1, column = 32 } }
                                         { name = Node { start = { row = 1, column = 25 }, end = { row = 1, column = 32 } } "Nothing"
                                         , arguments = []
                                         }

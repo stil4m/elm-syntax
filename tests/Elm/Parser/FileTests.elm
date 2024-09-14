@@ -1,21 +1,17 @@
 module Elm.Parser.FileTests exposing (all)
 
-import Elm.Internal.RawFile as InternalRawFile
 import Elm.Parser
 import Elm.Parser.File as Parser
 import Elm.Parser.Samples as Samples
-import Elm.RawFile as RawFile exposing (RawFile)
 import Elm.Syntax.Declaration exposing (Declaration(..))
+import Elm.Syntax.DestructurePattern exposing (DestructurePattern(..))
 import Elm.Syntax.Exposing exposing (Exposing(..))
 import Elm.Syntax.Expression exposing (Expression(..), LetDeclaration(..))
-import Elm.Syntax.Infix exposing (InfixDirection(..))
 import Elm.Syntax.Module exposing (Module(..))
 import Elm.Syntax.Node exposing (Node(..))
 import Elm.Syntax.Pattern exposing (Pattern(..))
 import Elm.Syntax.TypeAnnotation exposing (TypeAnnotation(..))
 import Expect
-import Json.Decode
-import Json.Encode
 import ParserFast
 import Test exposing (..)
 
@@ -52,27 +48,6 @@ all =
         --             Parser.parse "module Foo exposing (..) \nx = \n  x + _"
         --                 |> Expect.equal (Err [ "Could not continue parsing on location (2,6)" ])
         --     ]
-        , describe "FileTests - serialisation"
-            (Samples.allSamples
-                |> List.map
-                    (\( n, s ) ->
-                        test ("sample " ++ String.fromInt n) <|
-                            \() ->
-                                let
-                                    parsed : Maybe RawFile
-                                    parsed =
-                                        ParserFast.run Parser.file s
-                                            |> Result.toMaybe
-                                            |> Maybe.map InternalRawFile.Raw
-
-                                    roundTrip : Maybe RawFile
-                                    roundTrip =
-                                        parsed
-                                            |> Maybe.andThen (RawFile.encode >> Json.Encode.encode 0 >> Json.Decode.decodeString RawFile.decoder >> Result.toMaybe)
-                                in
-                                Expect.equal parsed roundTrip
-                    )
-            )
         , test "Comments ordering" <|
             \() ->
                 let
@@ -100,7 +75,7 @@ f =
 {- 6 -}
 """
                 in
-                Elm.Parser.parseToFile input
+                Elm.Parser.parse input
                     |> Result.map .comments
                     |> Expect.equal
                         (Ok
@@ -133,7 +108,7 @@ b =
     1
 
 """
-                    |> Elm.Parser.parseToFile
+                    |> Elm.Parser.parse
                     |> Result.map .comments
                     |> Expect.equal
                         (Ok
@@ -159,7 +134,7 @@ caseWhitespace f = case f   of
 
     
     """
-                    |> Elm.Parser.parseToFile
+                    |> Elm.Parser.parse
                     |> Expect.equal
                         (Ok
                             { moduleDefinition =
@@ -180,17 +155,18 @@ caseWhitespace f = case f   of
                                         , declaration =
                                             Node { start = { row = 4, column = 1 }, end = { row = 11, column = 11 } }
                                                 { name = Node { start = { row = 4, column = 1 }, end = { row = 4, column = 15 } } "caseWhitespace"
-                                                , arguments = [ Node { start = { row = 4, column = 16 }, end = { row = 4, column = 17 } } (VarPattern "f") ]
+                                                , arguments = [ Node { start = { row = 4, column = 16 }, end = { row = 4, column = 17 } } (VarPattern_ "f") ]
                                                 , expression =
                                                     Node { start = { row = 4, column = 20 }, end = { row = 11, column = 11 } }
-                                                        (CaseExpression
+                                                        (Case
                                                             { expression = Node { start = { row = 4, column = 25 }, end = { row = 4, column = 26 } } (FunctionOrValue [] "f")
-                                                            , cases =
-                                                                [ ( Node { start = { row = 5, column = 3 }, end = { row = 5, column = 7 } } (NamedPattern { moduleName = [], name = "True" } [])
-                                                                  , Node { start = { row = 6, column = 5 }, end = { row = 6, column = 6 } } (Integer 1)
-                                                                  )
-                                                                , ( Node { start = { row = 7, column = 3 }, end = { row = 7, column = 8 } } (NamedPattern { moduleName = [], name = "False" } [])
-                                                                  , Node { start = { row = 11, column = 10 }, end = { row = 11, column = 11 } } (Integer 2)
+                                                            , firstCase =
+                                                                ( Node { start = { row = 5, column = 3 }, end = { row = 5, column = 7 } } (NamedPattern { moduleName = [], name = "True" } [])
+                                                                , Node { start = { row = 6, column = 5 }, end = { row = 6, column = 6 } } (IntegerLiteral 1)
+                                                                )
+                                                            , restOfCases =
+                                                                [ ( Node { start = { row = 7, column = 3 }, end = { row = 7, column = 8 } } (NamedPattern { moduleName = [], name = "False" } [])
+                                                                  , Node { start = { row = 11, column = 10 }, end = { row = 11, column = 11 } } (IntegerLiteral 2)
                                                                   )
                                                                 ]
                                                             }
@@ -217,7 +193,7 @@ lambdaWhitespace =   \\ a b ->    a
 --some comment
 
     """
-                    |> Elm.Parser.parseToFile
+                    |> Elm.Parser.parse
                     |> Expect.equal
                         (Ok
                             { moduleDefinition =
@@ -242,14 +218,12 @@ lambdaWhitespace =   \\ a b ->    a
                                                 , expression =
                                                     Node { start = { row = 4, column = 22 }, end = { row = 8, column = 6 } }
                                                         (LambdaExpression
-                                                            { args =
-                                                                [ Node { start = { row = 4, column = 24 }, end = { row = 4, column = 25 } } (VarPattern "a")
-                                                                , Node { start = { row = 4, column = 26 }, end = { row = 4, column = 27 } } (VarPattern "b")
-                                                                ]
+                                                            { firstArg = Node { start = { row = 4, column = 24 }, end = { row = 4, column = 25 } } (VarPattern_ "a")
+                                                            , restOfArgs =
+                                                                [ Node { start = { row = 4, column = 26 }, end = { row = 4, column = 27 } } (VarPattern_ "b") ]
                                                             , expression =
                                                                 Node { start = { row = 4, column = 34 }, end = { row = 8, column = 6 } }
-                                                                    (OperatorApplication "+"
-                                                                        Left
+                                                                    (Operation "+"
                                                                         (Node { start = { row = 4, column = 34 }, end = { row = 4, column = 35 } } (FunctionOrValue [] "a"))
                                                                         (Node { start = { row = 8, column = 5 }, end = { row = 8, column = 6 } } (FunctionOrValue [] "b"))
                                                                     )
@@ -277,7 +251,7 @@ letWhitespace = let
 --some comment
 
     """
-                    |> Elm.Parser.parseToFile
+                    |> Elm.Parser.parse
                     |> Expect.equal
                         (Ok
                             { moduleDefinition =
@@ -301,7 +275,7 @@ letWhitespace = let
                                                 , arguments = []
                                                 , expression =
                                                     Node { start = { row = 4, column = 17 }, end = { row = 8, column = 3 } }
-                                                        (LetExpression
+                                                        (Let
                                                             { declarations =
                                                                 [ Node { start = { row = 5, column = 19 }, end = { row = 5, column = 26 } }
                                                                     (LetFunction
@@ -311,7 +285,7 @@ letWhitespace = let
                                                                             Node { start = { row = 5, column = 19 }, end = { row = 5, column = 26 } }
                                                                                 { name = Node { start = { row = 5, column = 19 }, end = { row = 5, column = 20 } } "b"
                                                                                 , arguments = []
-                                                                                , expression = Node { start = { row = 5, column = 25 }, end = { row = 5, column = 26 } } (Integer 1)
+                                                                                , expression = Node { start = { row = 5, column = 25 }, end = { row = 5, column = 26 } } (IntegerLiteral 1)
                                                                                 }
                                                                         }
                                                                     )
@@ -338,7 +312,7 @@ import Dict
 type Configuration
     = Configuration
 """
-                    |> Elm.Parser.parseToFile
+                    |> Elm.Parser.parse
                     |> Expect.equal
                         (Ok
                             { moduleDefinition =
@@ -363,12 +337,12 @@ type Configuration
                                         { documentation = Just (Node { start = { row = 6, column = 1 }, end = { row = 7, column = 3 } } "{-| Config goes here\n-}")
                                         , name = Node { start = { row = 8, column = 6 }, end = { row = 8, column = 19 } } "Configuration"
                                         , generics = []
-                                        , constructors =
-                                            [ Node { start = { row = 9, column = 7 }, end = { row = 9, column = 20 } }
+                                        , firstConstructor =
+                                            Node { start = { row = 9, column = 7 }, end = { row = 9, column = 20 } }
                                                 { name = Node { start = { row = 9, column = 7 }, end = { row = 9, column = 20 } } "Configuration"
                                                 , arguments = []
                                                 }
-                                            ]
+                                        , restOfConstructors = []
                                         }
                                     )
                                 ]
@@ -385,7 +359,7 @@ module Foo exposing (..)
 type Configuration
     = Configuration
 """
-                    |> Elm.Parser.parseToFile
+                    |> Elm.Parser.parse
                     |> Expect.equal
                         (Ok
                             { moduleDefinition =
@@ -404,19 +378,19 @@ type Configuration
                                         { documentation = Nothing
                                         , name = Node { start = { row = 6, column = 6 }, end = { row = 6, column = 19 } } "Configuration"
                                         , generics = []
-                                        , constructors =
-                                            [ Node { start = { row = 7, column = 7 }, end = { row = 7, column = 20 } }
+                                        , firstConstructor =
+                                            Node { start = { row = 7, column = 7 }, end = { row = 7, column = 20 } }
                                                 { name = Node { start = { row = 7, column = 7 }, end = { row = 7, column = 20 } } "Configuration"
                                                 , arguments = []
                                                 }
-                                            ]
+                                        , restOfConstructors = []
                                         }
                                     )
                                 ]
                             , comments = [ Node { start = { row = 4, column = 1 }, end = { row = 5, column = 3 } } "{-| actually module doc\n-}" ]
                             }
                         )
-        , test "documentation on a port declaration is treated as a normal comment" <|
+        , test "documentation on a port declaration" <|
             \() ->
                 """
 port module Foo exposing (..)
@@ -427,7 +401,7 @@ import String
 -}
 port sendResponse : String -> Cmd msg
 """
-                    |> Elm.Parser.parseToFile
+                    |> Elm.Parser.parse
                     |> Expect.equal
                         (Ok
                             { moduleDefinition =
@@ -447,25 +421,29 @@ port sendResponse : String -> Cmd msg
                                     }
                                 ]
                             , declarations =
-                                [ Node { start = { row = 8, column = 1 }, end = { row = 8, column = 38 } }
+                                [ Node { start = { row = 6, column = 1 }, end = { row = 8, column = 38 } }
                                     (PortDeclaration
-                                        { name = Node { start = { row = 8, column = 6 }, end = { row = 8, column = 18 } } "sendResponse"
-                                        , typeAnnotation =
-                                            Node { start = { row = 8, column = 21 }, end = { row = 8, column = 38 } }
-                                                (FunctionTypeAnnotation
-                                                    (Node { start = { row = 8, column = 21 }, end = { row = 8, column = 27 } }
-                                                        (Typed (Node { start = { row = 8, column = 21 }, end = { row = 8, column = 27 } } ( [], "String" )) [])
-                                                    )
-                                                    (Node { start = { row = 8, column = 31 }, end = { row = 8, column = 38 } }
-                                                        (Typed (Node { start = { row = 8, column = 31 }, end = { row = 8, column = 34 } } ( [], "Cmd" ))
-                                                            [ Node { start = { row = 8, column = 35 }, end = { row = 8, column = 38 } } (GenericType "msg") ]
+                                        { documentation = Just (Node { start = { row = 6, column = 1 }, end = { row = 7, column = 3 } } "{-| foo\n-}")
+                                        , signature =
+                                            Node { start = { row = 8, column = 6 }, end = { row = 8, column = 38 } }
+                                                { name = Node { start = { row = 8, column = 6 }, end = { row = 8, column = 18 } } "sendResponse"
+                                                , typeAnnotation =
+                                                    Node { start = { row = 8, column = 21 }, end = { row = 8, column = 38 } }
+                                                        (FunctionTypeAnnotation
+                                                            (Node { start = { row = 8, column = 21 }, end = { row = 8, column = 27 } }
+                                                                (Type (Node { start = { row = 8, column = 21 }, end = { row = 8, column = 27 } } ( [], "String" )) [])
+                                                            )
+                                                            (Node { start = { row = 8, column = 31 }, end = { row = 8, column = 38 } }
+                                                                (Type (Node { start = { row = 8, column = 31 }, end = { row = 8, column = 34 } } ( [], "Cmd" ))
+                                                                    [ Node { start = { row = 8, column = 35 }, end = { row = 8, column = 38 } } (Var "msg") ]
+                                                                )
+                                                            )
                                                         )
-                                                    )
-                                                )
+                                                }
                                         }
                                     )
                                 ]
-                            , comments = [ Node { start = { row = 6, column = 1 }, end = { row = 7, column = 3 } } "{-| foo\n-}" ]
+                            , comments = []
                             }
                         )
         , test "A file with a large number of comments should not create a stack overflow" <|
@@ -478,7 +456,7 @@ port sendResponse : String -> Cmd msg
                 ("""module Foo exposing (..)
 a = 1
 """ ++ comments)
-                    |> Elm.Parser.parseToFile
+                    |> Elm.Parser.parse
                     |> Result.map (\ast -> List.length ast.comments)
                     |> Expect.equal (Ok 3000)
         ]

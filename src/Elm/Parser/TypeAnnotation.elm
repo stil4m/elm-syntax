@@ -78,7 +78,7 @@ parensTypeAnnotation =
                             { start = { row = end.row, column = end.column - 2 }
                             , end = end
                             }
-                            TypeAnnotation.Unit
+                            unit
                     }
                 )
             )
@@ -109,10 +109,10 @@ parensTypeAnnotation =
                                 Just firstAndMaybeThirdPart ->
                                     case firstAndMaybeThirdPart.maybeThirdPart of
                                         Nothing ->
-                                            TypeAnnotation.Tupled [ firstPart.syntax, firstAndMaybeThirdPart.secondPart ]
+                                            TypeAnnotation.Tuple [ firstPart.syntax, firstAndMaybeThirdPart.secondPart ]
 
                                         Just thirdPart ->
-                                            TypeAnnotation.Tupled [ firstPart.syntax, firstAndMaybeThirdPart.secondPart, thirdPart ]
+                                            TypeAnnotation.Tuple [ firstPart.syntax, firstAndMaybeThirdPart.secondPart, thirdPart ]
                             )
                     }
                 )
@@ -164,13 +164,18 @@ parensTypeAnnotation =
         )
 
 
+unit : TypeAnnotation
+unit =
+    TypeAnnotation.Tuple []
+
+
 genericTypeAnnotation : Parser (WithComments (Node TypeAnnotation))
 genericTypeAnnotation =
     Tokens.functionNameMapWithRange
         (\range var ->
             { comments = Rope.empty
             , syntax =
-                Node range (TypeAnnotation.GenericType var)
+                Node range (TypeAnnotation.Var var)
             }
         )
 
@@ -350,7 +355,7 @@ typedTypeAnnotationWithoutArguments =
             { comments = Rope.empty
             , syntax =
                 Node range
-                    (TypeAnnotation.Typed (Node range name) [])
+                    (TypeAnnotation.Type (Node range name) [])
             }
         )
         Tokens.typeName
@@ -391,7 +396,7 @@ typedTypeAnnotationWithArgumentsOptimisticLayout =
                 commentsAfterName
                     |> Rope.prependTo argsReverse.comments
             , syntax =
-                Node range (TypeAnnotation.Typed nameNode (List.reverse argsReverse.syntax))
+                Node range (TypeAnnotation.Type nameNode (List.reverse argsReverse.syntax))
             }
         )
         (ParserFast.map2WithRange

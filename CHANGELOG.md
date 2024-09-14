@@ -2,6 +2,75 @@
 
 ## [Unreleased]
 
+- Removed the deprecated `Elm.Parser.parse` function, and renamed `Elm.Parser.parseToFile` to `Elm.Parser.parse` (in other words, `Elm.Parser.parse`'s type changed to be the same as `parseToFile`)
+
+- Removed APIs:
+  - `Elm.Writer` module
+  - `Elm.Interface` module
+  - `Elm.Dependency` module
+  - `Elm.Processing` and `Elm.RawFile` modules
+  - All `encode` and `decode` functions
+
+- Changed `Elm.Syntax.Declaration.Declaration`:
+  - Removed `Destructuring` variant (it was not possible to get)
+  - `PortDeclaration` documentation's is now attached to the declaration
+    - `PortDeclaration Signature` -> `PortDeclaration Port` where `type alias Port = { documentation : Maybe (Node Documentation), signature : Signature }`
+    - The comment for the port declaration is now removed from the `Elm.Syntax.File.File.comments` field.
+
+- Add a new module `Elm.Syntax.DeconstructPattern` which mimics `Elm.Syntax.Pattern` but for patterns in functions and let declarations.
+  - This removes the need to handle impossible patterns. For instance, you can't find a string pattern in `someFn (X "impossible") = x` in a function declaration.
+
+- Changed `Elm.Syntax.Expression.Expression`:
+  - **WARNING (will not result in compilation error)** Stripped the `.` in the `String` stored in `RecordAccessFunction` (for code like `.field`)
+    - Example: `RecordAccessFunction ".field"` -> `RecordAccessFunction "field"`
+  - Renamed `Literal` to `StringLiteral`
+  - Added information to `String` literal as to whether `"""` or `"` was used:
+    - `Literal String` -> `StringLiteral StringLiteralType String`
+    - Added `type StringLiteralType = TripleQuote | SingleQuote`
+  - Renamed `Application` to `FunctionCall`
+  - `Application (List (Node Expression))` -> `FunctionCall (Node Expression) (Node Expression) (List (Node Expression))` (function is separated, and takes a non-empty list of arguments)
+  - Renamed `RecordUpdateExpression` to `RecordUpdate`
+  - `RecordUpdateExpression (Node String) (List (Node RecordSetter))` -> `RecordUpdate (Node String) (Node RecordSetter) (List (Node RecordSetter))` (takes a non-empty list of fields)
+  - Renamed `TupledExpression` to `TupleExpression`
+  - Renamed `IfBlock` to `If`
+  - Renamed `Floatable` to `FloatLiteral`
+  - Renamed `Integer` to `IntegerLiteral`
+  - Renamed `Hex` to `HexLiteral`
+  - Renamed `ListExpr` to `ListLiteral`
+  - `OperatorApplication`
+    - Renamed `OperatorApplication` to `Operation`
+    - Removed the `InfixDirection` field
+    - `OperatorApplication String InfixDirection (Node Expression) (Node Expression)` -> `Operation String (Node Expression) (Node Expression)`
+  - Renamed `isOperatorApplication` to `isOperation`
+  - Renamed `RecordExpr` to `Record`
+  - Renamed `CaseExpression` to `Case`
+  - Renamed `LetExpression` to `Let`
+  - Renamed `GLSLExpression` to `GLSL`
+  - `UnitExpr` -> `TupleExpression []`
+  - `ParenthesizedExpression x` -> `TupleExpression [ x ]`
+  - Removed `Elm.Syntax.Expression.Cases` type alias (it was `type alias Cases = List Case`)
+  - `Elm.Syntax.Expression.CaseBlock`'s `cases : List Case` field is split into `firstCase : Case` and `restOfCases : List Case` (takes a non-empty list of cases)
+  - Removed `Operator` (it was not possible to get)
+
+- Changed `Elm.Syntax.Pattern.Pattern`:
+  - Removed `FloatPattern` (it was not possible to get)
+  - Added information to `StringPattern` as to whether `"""` or `"` was used:
+    - `StringPattern String` -> `StringPattern StringLiteralType String`
+
+- Changed `Elm.Syntax.TypeAnnotation.TypeAnnotation`:
+  - `Tupled` -> `Tuple`
+  - `Unit` -> `Tuple []`
+  - Renamed `Typed` to `Type`
+  - `Elm.Syntax.TypeAnnotation.Type`'s `constructors : List (Node ValueConstructor)` field is split into `firstConstructor : Node ValueConstructor` and `restOfConstructors : List (Node ValueConstructor)` (takes a non-empty list of constructors)
+  - Renamed `GenericType` to `Var`
+
+- Changed `Elm.Syntax.Exposing.Exposing`:
+  - `Explicit (List (Node TopLevelExpose))` -> `Explicit (Node TopLevelExpose) (List (Node TopLevelExpose))` (takes a non-empty list of elements)
+
+- Added module `Elm.Syntax.StringLiteralType` containing `type StringLiteralType = TripleQuote | SingleQuote`
+
+- Removed deprecated `Elm.Syntax.Range.emptyRange`, use `Elm.Syntax.Range.empty` instead.
+
 ## [7.3.6] - 2024-09-11
 
 - The parser is stricter in a few cases where code that was incorrect (according to the Elm compiler) was successfully parsed: tuple patterns and tuple type annotations with more than 3 parts, non-associative operators (so no more `a < b < c`), lambda indentation

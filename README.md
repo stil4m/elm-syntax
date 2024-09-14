@@ -11,13 +11,13 @@ Here's an example of that:
 Code: `3 + 4 * 2`
 AST:
 ```elm
-OperatorApplication
-    (Integer 3)
+Operation
+    (IntegerLiteral 3)
     "+"
-    (OperatorApplication
-        (Integer 4)
+    (Operation
+        (IntegerLiteral 4)
         "*"
-        (Integer 2)
+        (IntegerLiteral 2)
     )
 ```
 
@@ -39,7 +39,7 @@ foo = 1
 
 parse : String -> String
 parse input =
-    case Elm.Parser.parseToFile input of
+    case Elm.Parser.parse input of
         Err e ->
             "Failed: " ++ Debug.toString e
 

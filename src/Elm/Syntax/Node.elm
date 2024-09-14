@@ -1,7 +1,6 @@
 module Elm.Syntax.Node exposing
     ( Node(..)
     , empty, combine, range, value, map
-    , encode, decoder
     )
 
 {-| Represents a `Node` of the AST (Abstract Syntax Tree).
@@ -19,16 +18,9 @@ element of the tree was found.
 
 @docs empty, combine, range, value, map
 
-
-## Serialization
-
-@docs encode, decoder
-
 -}
 
 import Elm.Syntax.Range as Range exposing (Range)
-import Json.Decode as JD exposing (Decoder)
-import Json.Encode as JE exposing (Value)
 
 
 {-| Base representation for a syntax node in a source file.
@@ -72,22 +64,3 @@ range (Node r _) =
 value : Node a -> a
 value (Node _ v) =
     v
-
-
-{-| Encode a `Node` into JSON
--}
-encode : (a -> Value) -> Node a -> Value
-encode f (Node r v) =
-    JE.object
-        [ ( "range", Range.encode r )
-        , ( "value", f v )
-        ]
-
-
-{-| A JSON decoder for `Node`
--}
-decoder : Decoder a -> Decoder (Node a)
-decoder sub =
-    JD.map2 Node
-        (JD.field "range" Range.decoder)
-        (JD.field "value" sub)

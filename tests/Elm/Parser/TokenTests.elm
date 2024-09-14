@@ -3,6 +3,7 @@ module Elm.Parser.TokenTests exposing (all)
 import Elm.Parser.Declarations
 import Elm.Parser.TestUtil exposing (..)
 import Elm.Parser.Tokens as Parser
+import Elm.Syntax.StringLiteralType exposing (StringLiteralType(..))
 import Expect
 import Test exposing (..)
 
@@ -82,12 +83,12 @@ all =
                     |> Expect.equal Nothing
         , test "multiline string" <|
             \() ->
-                parse "\"\"\"Bar foo \n a\"\"\"" (Parser.singleOrTripleQuotedStringLiteralMapWithRange (\_ s -> s))
-                    |> Expect.equal (Just "Bar foo \n a")
+                parse "\"\"\"Bar foo \n a\"\"\"" (Parser.singleOrTripleQuotedStringLiteralMapWithRange (\_ stringLiteralType s -> ( stringLiteralType, s )))
+                    |> Expect.equal (Just ( TripleQuote, "Bar foo \n a" ))
         , test "multiline string escape" <|
             \() ->
-                parse """\"\"\" \\\"\"\" \"\"\"""" (Parser.singleOrTripleQuotedStringLiteralMapWithRange (\_ s -> s))
-                    |> Expect.equal (Just """ \"\"\" """)
+                parse """\"\"\" \\\"\"\" \"\"\"""" (Parser.singleOrTripleQuotedStringLiteralMapWithRange (\_ stringLiteralType s -> ( stringLiteralType, s )))
+                    |> Expect.equal (Just ( TripleQuote, """ \"\"\" """ ))
         , test "character escaped" <|
             \() ->
                 parse "'\\''" (Parser.characterLiteralMapWithRange (\_ c -> c))
@@ -106,23 +107,23 @@ all =
                     |> Expect.equal (Just '\u{000D}')
         , test "string escaped 3" <|
             \() ->
-                parse "\"\\\"\"" (Parser.singleOrTripleQuotedStringLiteralMapWithRange (\_ s -> s))
-                    |> Expect.equal (Just "\"")
+                parse "\"\\\"\"" (Parser.singleOrTripleQuotedStringLiteralMapWithRange (\_ stringLiteralType s -> ( stringLiteralType, s )))
+                    |> Expect.equal (Just ( SingleQuote, "\"" ))
         , test "string escaped" <|
             \() ->
-                parse "\"foo\\\\\"" (Parser.singleOrTripleQuotedStringLiteralMapWithRange (\_ s -> s))
-                    |> Expect.equal (Just "foo\\")
+                parse "\"foo\\\\\"" (Parser.singleOrTripleQuotedStringLiteralMapWithRange (\_ stringLiteralType s -> ( stringLiteralType, s )))
+                    |> Expect.equal (Just ( SingleQuote, "foo\\" ))
         , test "character escaped 3" <|
             \() ->
                 parse "'\\n'" (Parser.characterLiteralMapWithRange (\_ c -> c))
                     |> Expect.equal (Just '\n')
         , test "long string" <|
             \() ->
-                parse longString (Parser.singleOrTripleQuotedStringLiteralMapWithRange (\_ s -> s))
+                parse longString (Parser.singleOrTripleQuotedStringLiteralMapWithRange (\_ stringLiteralType s -> ( stringLiteralType, s )))
                     |> Expect.notEqual Nothing
         , test "long multi line string" <|
             \() ->
-                parse longMultiLineString (Parser.singleOrTripleQuotedStringLiteralMapWithRange (\_ s -> s))
+                parse longMultiLineString (Parser.singleOrTripleQuotedStringLiteralMapWithRange (\_ stringLiteralType s -> ( stringLiteralType, s )))
                     |> Expect.notEqual Nothing
         , test "ρ function" <|
             \() ->

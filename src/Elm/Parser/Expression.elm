@@ -1,13 +1,13 @@
 module Elm.Parser.Expression exposing (expression)
 
+import Elm.Parser.DestructurePatterns as DestructurePatterns
 import Elm.Parser.Layout as Layout
 import Elm.Parser.Patterns as Patterns
 import Elm.Parser.Tokens as Tokens
 import Elm.Parser.TypeAnnotation as TypeAnnotation
+import Elm.Syntax.DestructurePattern exposing (DestructurePattern)
 import Elm.Syntax.Expression as Expression exposing (Case, Expression(..), LetDeclaration(..), RecordSetter)
-import Elm.Syntax.Infix as Infix
 import Elm.Syntax.Node as Node exposing (Node(..))
-import Elm.Syntax.Pattern exposing (Pattern)
 import Elm.Syntax.Range exposing (Range)
 import Elm.Syntax.Signature exposing (Signature)
 import ParserFast exposing (Parser)
@@ -27,7 +27,7 @@ subExpression =
                     literalExpression
 
                 "(" ->
-                    tupledExpressionIfNecessaryFollowedByRecordAccess
+                    tupleExpressionIfNecessaryFollowedByRecordAccess
 
                 "[" ->
                     listOrGlslExpression
@@ -245,7 +245,7 @@ glslExpressionAfterOpeningSquareBracket =
                         { start = { row = range.start.row, column = range.start.column - 6 }
                         , end = { row = range.end.row, column = range.end.column + 2 }
                         }
-                        (GLSLExpression s)
+                        (GLSL s)
                 }
             )
             (ParserFast.loopUntil
@@ -285,14 +285,14 @@ expressionAfterOpeningSquareBracket =
             )
             Layout.maybeLayout
             (ParserFast.oneOf2
-                (ParserFast.symbol "]" { comments = Rope.empty, syntax = ListExpr [] })
+                (ParserFast.symbol "]" { comments = Rope.empty, syntax = ListLiteral [] })
                 (ParserFast.map3
                     (\head commentsAfterHead tail ->
                         { comments =
                             head.comments
                                 |> Rope.prependTo commentsAfterHead
                                 |> Rope.prependTo tail.comments
-                        , syntax = ListExpr (head.syntax :: tail.syntax)
+                        , syntax = ListLiteral (head.syntax :: tail.syntax)
                         }
                     )
                     expression
@@ -361,10 +361,10 @@ recordContentsCurlyEnd =
                 , syntax =
                     case afterNameBeforeFields.syntax of
                         RecordUpdateFirstSetter firstField ->
-                            RecordUpdateExpression nameNode (firstField :: tailFields.syntax)
+                            RecordUpdate nameNode firstField tailFields.syntax
 
                         FieldsFirstValue firstFieldValue ->
-                            RecordExpr (Node.combine Tuple.pair nameNode firstFieldValue :: tailFields.syntax)
+                            Record (Node.combine Tuple.pair nameNode firstFieldValue :: tailFields.syntax)
                 }
             )
             Tokens.functionNameNode
@@ -400,7 +400,7 @@ recordContentsCurlyEnd =
             recordFields
             (Layout.maybeLayout |> ParserFast.followedBySymbol "}")
         )
-        (ParserFast.symbol "}" { comments = Rope.empty, syntax = RecordExpr [] })
+        (ParserFast.symbol "}" { comments = Rope.empty, syntax = Record [] })
 
 
 type RecordFieldsOrUpdateAfterName
@@ -448,9 +448,9 @@ recordSetterNodeWithLayout =
 literalExpression : Parser (WithComments (Node Expression))
 literalExpression =
     Tokens.singleOrTripleQuotedStringLiteralMapWithRange
-        (\range string ->
+        (\range stringLiteralType string ->
             { comments = Rope.empty
-            , syntax = Node range (Literal string)
+            , syntax = Node range (StringLiteral stringLiteralType string)
             }
         )
 
@@ -491,14 +491,15 @@ lambdaExpression =
                         , end = expressionRange.end
                         }
                         (LambdaExpression
-                            { args = firstArg.syntax :: secondUpArgs.syntax
+                            { firstArg = firstArg.syntax
+                            , restOfArgs = secondUpArgs.syntax
                             , expression = expressionResult.syntax
                             }
                         )
                 }
             )
             Layout.maybeLayout
-            Patterns.patternNotDirectlyComposing
+            DestructurePatterns.patternNotDirectlyComposing
             Layout.maybeLayout
             (ParserWithComments.until
                 (ParserFast.symbol "->" ())
@@ -510,7 +511,7 @@ lambdaExpression =
                         , syntax = patternResult.syntax
                         }
                     )
-                    Patterns.patternNotDirectlyComposing
+                    DestructurePatterns.patternNotDirectlyComposing
                     Layout.maybeLayout
                 )
             )
@@ -553,9 +554,10 @@ caseExpression =
                                     in
                                     firstCaseExpressionRange.end
                         }
-                        (CaseExpression
+                        (Case
                             { expression = casedExpressionResult.syntax
-                            , cases = firstCase :: List.reverse lastToSecondCase
+                            , firstCase = firstCase
+                            , restOfCases = List.reverse lastToSecondCase
                             }
                         )
                 }
@@ -633,7 +635,7 @@ letExpression =
                         { start = { row = start.row, column = start.column - 3 }
                         , end = expressionRange.end
                         }
-                        (LetExpression
+                        (Let
                             { declarations = declarations.declarations
                             , expression = expressionResult.syntax
                             }
@@ -720,7 +722,7 @@ letDestructuringDeclaration =
                     (LetDestructuring pattern.syntax expressionResult.syntax)
             }
         )
-        Patterns.patternNotDirectlyComposing
+        DestructurePatterns.patternNotDirectlyComposing
         Layout.maybeLayout
         (ParserFast.symbolFollowedBy "=" Layout.maybeLayout)
         expression
@@ -846,7 +848,7 @@ letFunction =
             "Expected to find the same name for declaration and signature"
 
 
-parameterPatternsEqual : Parser (WithComments (List (Node Pattern)))
+parameterPatternsEqual : Parser (WithComments (List (Node DestructurePattern)))
 parameterPatternsEqual =
     ParserWithComments.until Tokens.equal
         (ParserFast.map2
@@ -855,7 +857,7 @@ parameterPatternsEqual =
                 , syntax = patternResult.syntax
                 }
             )
-            Patterns.patternNotDirectlyComposing
+            DestructurePatterns.patternNotDirectlyComposing
             Layout.maybeLayout
         )
 
@@ -865,17 +867,17 @@ numberExpression =
     ParserFast.floatOrIntegerDecimalOrHexadecimalMapWithRange
         (\range n ->
             { comments = Rope.empty
-            , syntax = Node range (Floatable n)
+            , syntax = Node range (FloatLiteral n)
             }
         )
         (\range n ->
             { comments = Rope.empty
-            , syntax = Node range (Integer n)
+            , syntax = Node range (IntegerLiteral n)
             }
         )
         (\range n ->
             { comments = Rope.empty
-            , syntax = Node range (Hex n)
+            , syntax = Node range (HexLiteral n)
             }
         )
 
@@ -903,7 +905,7 @@ ifBlockExpression =
                         { start = { row = start.row, column = start.column - 2 }
                         , end = ifFalseRange.end
                         }
-                        (IfBlock
+                        (If
                             condition.syntax
                             ifTrue.syntax
                             ifFalse.syntax
@@ -1090,7 +1092,7 @@ recordAccessFunctionExpression =
                 { comments = Rope.empty
                 , syntax =
                     Node (range |> rangeMoveStartLeftByOneColumn)
-                        (RecordAccessFunction ("." ++ field))
+                        (RecordAccessFunction field)
                 }
             )
         )
@@ -1103,8 +1105,8 @@ rangeMoveStartLeftByOneColumn range =
     }
 
 
-tupledExpressionIfNecessaryFollowedByRecordAccess : Parser (WithComments (Node Expression))
-tupledExpressionIfNecessaryFollowedByRecordAccess =
+tupleExpressionIfNecessaryFollowedByRecordAccess : Parser (WithComments (Node Expression))
+tupleExpressionIfNecessaryFollowedByRecordAccess =
     ParserFast.symbolFollowedBy "("
         (ParserFast.oneOf3
             (ParserFast.symbolWithEndLocation ")"
@@ -1112,13 +1114,18 @@ tupledExpressionIfNecessaryFollowedByRecordAccess =
                     { comments = Rope.empty
                     , syntax =
                         Node { start = { row = end.row, column = end.column - 2 }, end = end }
-                            UnitExpr
+                            unit
                     }
                 )
             )
             allowedPrefixOperatorFollowedByClosingParensOneOf
-            tupledExpressionInnerAfterOpeningParens
+            tupleExpressionInnerAfterOpeningParens
         )
+
+
+unit : Expression
+unit =
+    TupleExpression []
 
 
 allowedPrefixOperatorFollowedByClosingParensOneOf : Parser (WithComments (Node Expression))
@@ -1139,8 +1146,8 @@ allowedPrefixOperatorFollowedByClosingParensOneOf =
         ")"
 
 
-tupledExpressionInnerAfterOpeningParens : Parser (WithComments (Node Expression))
-tupledExpressionInnerAfterOpeningParens =
+tupleExpressionInnerAfterOpeningParens : Parser (WithComments (Node Expression))
+tupleExpressionInnerAfterOpeningParens =
     ParserFast.map4WithRange
         (\rangeAfterOpeningParens commentsBeforeFirstPart firstPart commentsAfterFirstPart tailParts ->
             { comments =
@@ -1157,7 +1164,7 @@ tupledExpressionInnerAfterOpeningParens =
                                     { start = { row = rangeAfterOpeningParens.start.row, column = rangeAfterOpeningParens.start.column - 1 }
                                     , end = rangeAfterOpeningParens.end
                                     }
-                                    (ParenthesizedExpression firstPart.syntax)
+                                    (TupleExpression [ firstPart.syntax ])
 
                             (Node firstRecordAccessRange _) :: _ ->
                                 let
@@ -1172,7 +1179,7 @@ tupledExpressionInnerAfterOpeningParens =
 
                                     parenthesizedNode : Node Expression
                                     parenthesizedNode =
-                                        Node range (ParenthesizedExpression firstPart.syntax)
+                                        Node range (TupleExpression [ firstPart.syntax ])
                                 in
                                 recordAccesses
                                     |> List.foldl
@@ -1189,10 +1196,10 @@ tupledExpressionInnerAfterOpeningParens =
                             }
                             (case maybeThirdPart of
                                 Nothing ->
-                                    TupledExpression [ firstPart.syntax, secondPart ]
+                                    TupleExpression [ firstPart.syntax, secondPart ]
 
                                 Just thirdPart ->
-                                    TupledExpression [ firstPart.syntax, secondPart, thirdPart ]
+                                    TupleExpression [ firstPart.syntax, secondPart, thirdPart ]
                             )
             }
         )
@@ -1371,15 +1378,19 @@ subExpressionMaybeAppliedOptimisticLayout =
                     [] ->
                         leftExpressionResult.syntax
 
-                    ((Node lastArgRange _) :: _) as argsReverse ->
+                    (Node lastArgRange _) :: _ ->
                         let
                             ((Node leftRange _) as leftNode) =
                                 leftExpressionResult.syntax
                         in
-                        Node { start = leftRange.start, end = lastArgRange.end }
-                            (Expression.Application
-                                (leftNode :: List.reverse argsReverse)
-                            )
+                        case List.reverse maybeArgsReverse.syntax of
+                            [] ->
+                                -- Should not happen, so dummy value
+                                Node { start = leftRange.start, end = lastArgRange.end } (IntegerLiteral 0)
+
+                            firstArg :: restOfArgs ->
+                                Node { start = leftRange.start, end = lastArgRange.end }
+                                    (Expression.FunctionCall leftNode firstArg restOfArgs)
             }
         )
         (ParserFast.lazy (\() -> subExpression))
@@ -1406,8 +1417,7 @@ applyExtensionRight (ExtendRightByOperation operation) ((Node leftRange _) as le
             operation.expression
     in
     Node { start = leftRange.start, end = rightExpressionRange.end }
-        (OperatorApplication operation.symbol
-            operation.direction
+        (Operation operation.symbol
             leftNode
             rightExpressionNode
         )
@@ -1415,7 +1425,6 @@ applyExtensionRight (ExtendRightByOperation operation) ((Node leftRange _) as le
 
 type alias InfixOperatorInfo =
     { leftPrecedence : Int
-    , symbol : String
     , extensionRight : Parser (WithComments ExtensionRight)
     }
 
@@ -1428,7 +1437,6 @@ errUnknownInfixOperator =
 infixLeft : Int -> String -> InfixOperatorInfo
 infixLeft leftPrecedence symbol =
     { leftPrecedence = leftPrecedence
-    , symbol = symbol
     , extensionRight =
         ParserFast.map2
             (\commentsBeforeFirst first ->
@@ -1438,7 +1446,6 @@ infixLeft leftPrecedence symbol =
                 , syntax =
                     ExtendRightByOperation
                         { symbol = symbol
-                        , direction = Infix.Left
                         , expression = first.syntax
                         }
                 }
@@ -1460,7 +1467,6 @@ infixLeft leftPrecedence symbol =
 infixNonAssociative : Int -> String -> InfixOperatorInfo
 infixNonAssociative leftPrecedence symbol =
     { leftPrecedence = leftPrecedence
-    , symbol = symbol
     , extensionRight =
         ParserFast.map2
             (\commentsBefore right ->
@@ -1468,7 +1474,6 @@ infixNonAssociative leftPrecedence symbol =
                 , syntax =
                     ExtendRightByOperation
                         { symbol = symbol
-                        , direction = Infix.Non
                         , expression = right.syntax
                         }
                 }
@@ -1502,7 +1507,6 @@ problemCannotMixNonAssociativeInfixOperators =
 infixRight : Int -> String -> InfixOperatorInfo
 infixRight leftPrecedence symbol =
     { leftPrecedence = leftPrecedence
-    , symbol = symbol
     , extensionRight =
         ParserFast.map2
             (\commentsBeforeFirst first ->
@@ -1512,7 +1516,6 @@ infixRight leftPrecedence symbol =
                 , syntax =
                     ExtendRightByOperation
                         { symbol = symbol
-                        , direction = Infix.Right
                         , expression = first.syntax
                         }
                 }
@@ -1539,6 +1542,5 @@ temporaryErrPrecedenceTooHigh =
 type ExtensionRight
     = ExtendRightByOperation
         { symbol : String
-        , direction : Infix.InfixDirection
         , expression : Node Expression
         }

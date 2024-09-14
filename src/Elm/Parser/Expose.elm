@@ -38,9 +38,8 @@ exposingListInner =
                         |> Rope.prependTo tailElements.comments
                 , syntax =
                     Explicit
-                        (headElement.syntax
-                            :: tailElements.syntax
-                        )
+                        headElement.syntax
+                        tailElements.syntax
                 }
             )
             exposable
