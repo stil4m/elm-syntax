@@ -14,8 +14,8 @@ import Rope
 
 importDefinition : Parser (WithComments (Node Import))
 importDefinition =
-    ParserFast.map6WithStartLocation
-        (\start commentsAfterImport ((Node modRange _) as mod) commentsAfterModuleName maybeModuleAlias maybeExposingList commentsAfterEverything ->
+    ParserFast.map5WithStartLocation
+        (\start commentsAfterImport mod commentsAfterModuleName maybeModuleAlias maybeExposingList ->
             let
                 endRange : Range
                 endRange =
@@ -37,6 +37,10 @@ importDefinition =
                                     range
 
                                 Nothing ->
+                                    let
+                                        (Node modRange _) =
+                                            mod
+                                    in
                                     modRange
             in
             { comments =
@@ -55,14 +59,12 @@ importDefinition =
                             Just moduleAliasValue ->
                                 commentsBeforeAlias |> Rope.prependTo moduleAliasValue.comments
                 in
-                (case maybeExposingList of
+                case maybeExposingList of
                     Nothing ->
                         commentsBeforeExposingList
 
                     Just exposingListValue ->
                         commentsBeforeExposingList |> Rope.prependTo exposingListValue.comments
-                )
-                    |> Rope.prependTo commentsAfterEverything
             , syntax =
                 Node { start = start, end = endRange.end }
                     { moduleName = mod
@@ -90,9 +92,14 @@ importDefinition =
             Layout.optimisticLayout
             Nothing
         )
-        (ParserFast.mapOrSucceed
-            Just
+        (ParserFast.map2OrSucceed
+            (\exposingResult commentsAfter ->
+                Just
+                    { comments = exposingResult.comments |> Rope.prependTo commentsAfter
+                    , syntax = exposingResult.syntax
+                    }
+            )
             exposeDefinition
+            Layout.optimisticLayout
             Nothing
         )
-        Layout.optimisticLayout
