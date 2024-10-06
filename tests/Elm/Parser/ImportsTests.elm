@@ -68,7 +68,7 @@ all =
             \() ->
                 "import Foo as Bar exposing (..)"
                     |> expectAst
-                        (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 18 } }
+                        (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 32 } }
                             { moduleName = Node { start = { row = 1, column = 8 }, end = { row = 1, column = 11 } } [ "Foo" ]
                             , moduleAlias = Just (Node { start = { row = 1, column = 15 }, end = { row = 1, column = 18 } } [ "Bar" ])
                             , exposingList =

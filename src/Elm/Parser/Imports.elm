@@ -17,61 +17,76 @@ importDefinition =
     ParserFast.map5WithStartLocation
         (\start commentsAfterImport mod commentsAfterModuleName maybeModuleAlias maybeExposingList ->
             let
-                endRange : Range
-                endRange =
-                    case maybeModuleAlias of
-                        Just moduleAliasValue ->
-                            let
-                                (Node range _) =
-                                    moduleAliasValue.syntax
-                            in
-                            range
-
-                        Nothing ->
-                            case maybeExposingList of
-                                Just exposingListValue ->
-                                    let
-                                        (Node range _) =
-                                            exposingListValue.syntax
-                                    in
-                                    range
-
-                                Nothing ->
-                                    let
-                                        (Node modRange _) =
-                                            mod
-                                    in
-                                    modRange
+                commentsBeforeAlias : Comments
+                commentsBeforeAlias =
+                    commentsAfterImport
+                        |> Rope.prependTo commentsAfterModuleName
             in
-            { comments =
-                let
-                    commentsBeforeAlias : Comments
-                    commentsBeforeAlias =
-                        commentsAfterImport
-                            |> Rope.prependTo commentsAfterModuleName
+            case maybeModuleAlias of
+                Nothing ->
+                    case maybeExposingList of
+                        Nothing ->
+                            let
+                                (Node modRange _) =
+                                    mod
+                            in
+                            { comments = commentsBeforeAlias
+                            , syntax =
+                                Node { start = start, end = modRange.end }
+                                    { moduleName = mod
+                                    , moduleAlias = Nothing
+                                    , exposingList = Nothing
+                                    }
+                            }
 
-                    commentsBeforeExposingList : Comments
-                    commentsBeforeExposingList =
-                        case maybeModuleAlias of
-                            Nothing ->
+                        Just exposingListValue ->
+                            let
+                                (Node exposingRange _) =
+                                    exposingListValue.syntax
+                            in
+                            { comments =
+                                commentsBeforeAlias |> Rope.prependTo exposingListValue.comments
+                            , syntax =
+                                Node { start = start, end = exposingRange.end }
+                                    { moduleName = mod
+                                    , moduleAlias = Nothing
+                                    , exposingList = Just exposingListValue.syntax
+                                    }
+                            }
+
+                Just moduleAliasResult ->
+                    case maybeExposingList of
+                        Nothing ->
+                            let
+                                (Node aliasRange _) =
+                                    moduleAliasResult.syntax
+                            in
+                            { comments =
+                                commentsBeforeAlias |> Rope.prependTo moduleAliasResult.comments
+                            , syntax =
+                                Node { start = start, end = aliasRange.end }
+                                    { moduleName = mod
+                                    , moduleAlias = Just moduleAliasResult.syntax
+                                    , exposingList = Nothing
+                                    }
+                            }
+
+                        Just exposingListValue ->
+                            let
+                                (Node exposingRange _) =
+                                    exposingListValue.syntax
+                            in
+                            { comments =
                                 commentsBeforeAlias
-
-                            Just moduleAliasValue ->
-                                commentsBeforeAlias |> Rope.prependTo moduleAliasValue.comments
-                in
-                case maybeExposingList of
-                    Nothing ->
-                        commentsBeforeExposingList
-
-                    Just exposingListValue ->
-                        commentsBeforeExposingList |> Rope.prependTo exposingListValue.comments
-            , syntax =
-                Node { start = start, end = endRange.end }
-                    { moduleName = mod
-                    , moduleAlias = maybeModuleAlias |> Maybe.map .syntax
-                    , exposingList = maybeExposingList |> Maybe.map .syntax
-                    }
-            }
+                                    |> Rope.prependTo moduleAliasResult.comments
+                                    |> Rope.prependTo exposingListValue.comments
+                            , syntax =
+                                Node { start = start, end = exposingRange.end }
+                                    { moduleName = mod
+                                    , moduleAlias = Just moduleAliasResult.syntax
+                                    , exposingList = Just exposingListValue.syntax
+                                    }
+                            }
         )
         (ParserFast.keywordFollowedBy "import" Layout.maybeLayout)
         moduleName
