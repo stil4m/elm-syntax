@@ -6,7 +6,6 @@ import Elm.Parser.Layout as Layout
 import Elm.Parser.Tokens as Tokens
 import Elm.Syntax.Import exposing (Import)
 import Elm.Syntax.Node exposing (Node(..))
-import Elm.Syntax.Range exposing (Range)
 import ParserFast exposing (Parser)
 import ParserWithComments exposing (Comments, WithComments)
 import Rope
