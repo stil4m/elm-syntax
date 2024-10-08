@@ -19,20 +19,20 @@ importDefinition =
             let
                 endRange : Range
                 endRange =
-                    case maybeModuleAlias of
-                        Just moduleAliasValue ->
+                    case maybeExposingList of
+                        Just exposingListValue ->
                             let
                                 (Node range _) =
-                                    moduleAliasValue.syntax
+                                    exposingListValue.syntax
                             in
                             range
 
                         Nothing ->
-                            case maybeExposingList of
-                                Just exposingListValue ->
+                            case maybeModuleAlias of
+                                Just moduleAliasValue ->
                                     let
                                         (Node range _) =
-                                            exposingListValue.syntax
+                                            moduleAliasValue.syntax
                                     in
                                     range
 

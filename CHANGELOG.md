@@ -2,6 +2,8 @@
 
 ## [Unreleased]
 
+- Fixed a bug where the range was incorrect for imports with both `as` and `exposing`. 
+
 ## [7.3.6] - 2024-09-11
 
 - The parser is stricter in a few cases where code that was incorrect (according to the Elm compiler) was successfully parsed: tuple patterns and tuple type annotations with more than 3 parts, non-associative operators (so no more `a < b < c`), lambda indentation
