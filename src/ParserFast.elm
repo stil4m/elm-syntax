@@ -8,7 +8,7 @@ module ParserFast exposing
     , map, validate, lazy
     , map2, map2WithStartLocation, map2WithRange, map3, map3WithStartLocation, map3WithRange, map4, map4WithRange, map5, map5WithStartLocation, map5WithRange, map6, map6WithStartLocation, map6WithRange, map7WithRange, map8WithStartLocation, map9WithRange
     , loopWhileSucceeds, loopWhileSucceedsOntoResultFromParser, loopUntil
-    , orSucceed, mapOrSucceed, map2OrSucceed, map2WithRangeOrSucceed, map3OrSucceed, map4OrSucceed, oneOf2, oneOf2Map, oneOf2MapWithStartRowColumnAndEndRowColumn, oneOf2OrSucceed, oneOf3, oneOf4, oneOf5, oneOf7, oneOf9
+    , orSucceed, map2OrSucceed, map2WithRangeOrSucceed, map3OrSucceed, map4OrSucceed, oneOf2, oneOf2Map, oneOf2MapWithStartRowColumnAndEndRowColumn, oneOf2OrSucceed, oneOf3, oneOf4, oneOf5, oneOf7, oneOf9
     , withIndentSetToColumn, withIndentSetToColumnMinus, columnIndentAndThen, validateEndColumnIndentation
     , mapWithRange, columnAndThen, offsetSourceAndThen, offsetSourceAndThenOrSucceed
     , problem
@@ -109,7 +109,7 @@ sample of what that code might look like:
 This parser will keep trying down the list of parsers until one of them starts committing.
 Once a path is chosen, it does not come back and try the others.
 
-@docs orSucceed, mapOrSucceed, map2OrSucceed, map2WithRangeOrSucceed, map3OrSucceed, map4OrSucceed, oneOf2, oneOf2Map, oneOf2MapWithStartRowColumnAndEndRowColumn, oneOf2OrSucceed, oneOf3, oneOf4, oneOf5, oneOf7, oneOf9
+@docs orSucceed, map2OrSucceed, map2WithRangeOrSucceed, map3OrSucceed, map4OrSucceed, oneOf2, oneOf2Map, oneOf2MapWithStartRowColumnAndEndRowColumn, oneOf2OrSucceed, oneOf3, oneOf4, oneOf5, oneOf7, oneOf9
 
 
 # Indentation, Locations and source
@@ -958,23 +958,6 @@ orSucceed (Parser attemptFirst) secondRes =
 
                     else
                         Good secondRes s
-        )
-
-
-mapOrSucceed : (a -> b) -> Parser a -> b -> Parser b
-mapOrSucceed valueChange (Parser parse) fallback =
-    Parser
-        (\s0 ->
-            case parse s0 of
-                Good value s1 ->
-                    Good (valueChange value) s1
-
-                Bad firstCommitted x ->
-                    if firstCommitted then
-                        Bad True x
-
-                    else
-                        Good fallback s0
         )
 
 
