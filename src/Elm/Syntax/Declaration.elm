@@ -16,9 +16,11 @@ These can be one of the following (all declared in `Declaration`):
 
 -}
 
+import Elm.Syntax.Documentation exposing (Documentation)
 import Elm.Syntax.Expression exposing (Function)
 import Elm.Syntax.Infix exposing (Infix)
-import Elm.Syntax.Port exposing (Port)
+import Elm.Syntax.Node exposing (Node)
+import Elm.Syntax.Signature exposing (Signature)
 import Elm.Syntax.Type exposing (Type)
 import Elm.Syntax.TypeAlias exposing (TypeAlias)
 
@@ -29,5 +31,5 @@ type Declaration
     = FunctionDeclaration Function
     | AliasDeclaration TypeAlias
     | CustomTypeDeclaration Type
-    | PortDeclaration Port
+    | PortDeclaration { documentation : Maybe (Node Documentation), signature : Node Signature }
     | InfixDeclaration Infix
