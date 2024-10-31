@@ -21,7 +21,7 @@ all =
                 """(
    -- comment
    )"""
-                    |> expectAstWithComments Parser.pattern
+                    |> expectAstWithComments
                         { ast = Node { start = { row = 1, column = 1 }, end = { row = 3, column = 5 } } UnitPattern
                         , comments = [ Node { start = { row = 2, column = 4 }, end = { row = 2, column = 14 } } "-- comment" ]
                         }
@@ -79,6 +79,28 @@ all =
                                 )
                                 (Node { start = { row = 1, column = 10 }, end = { row = 1, column = 12 } } <| VarPattern "xs")
                         )
+        , test "Uncons with comments" <|
+            \() ->
+                "a {-1-} :: {-2-} b {-3-} :: {-4-} tail"
+                    |> expectAstWithComments
+                        { ast =
+                            Node { start = { row = 1, column = 1 }, end = { row = 1, column = 39 } }
+                                (UnConsPattern
+                                    (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 2 } } (VarPattern "a"))
+                                    (Node { start = { row = 1, column = 18 }, end = { row = 1, column = 39 } }
+                                        (UnConsPattern
+                                            (Node { start = { row = 1, column = 18 }, end = { row = 1, column = 19 } } (VarPattern "b"))
+                                            (Node { start = { row = 1, column = 35 }, end = { row = 1, column = 39 } } (VarPattern "tail"))
+                                        )
+                                    )
+                                )
+                        , comments =
+                            [ Node { start = { row = 1, column = 3 }, end = { row = 1, column = 8 } } "{-1-}"
+                            , Node { start = { row = 1, column = 12 }, end = { row = 1, column = 17 } } "{-2-}"
+                            , Node { start = { row = 1, column = 20 }, end = { row = 1, column = 25 } } "{-3-}"
+                            , Node { start = { row = 1, column = 29 }, end = { row = 1, column = 34 } } "{-4-}"
+                            ]
+                        }
         , test "Empty list" <|
             \() ->
                 "[]"
@@ -303,6 +325,11 @@ all =
 expectAst : Node Pattern -> String -> Expect.Expectation
 expectAst =
     ParserWithCommentsUtil.expectAst Parser.pattern
+
+
+expectAstWithComments : { ast : Node Pattern, comments : List (Node String) } -> String -> Expect.Expectation
+expectAstWithComments =
+    ParserWithCommentsUtil.expectAstWithComments Parser.pattern
 
 
 expectInvalid : String -> Expect.Expectation
