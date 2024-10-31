@@ -63,7 +63,7 @@ maybeComposedWith =
         (ParserFast.symbolFollowedBy "::"
             (ParserFast.map2
                 (\commentsAfterCons patternResult ->
-                    { comments = patternResult.comments |> Rope.prependTo commentsAfterCons
+                    { comments = commentsAfterCons |> Rope.prependTo patternResult.comments
                     , syntax = PatternComposedWithCons patternResult.syntax
                     }
                 )
