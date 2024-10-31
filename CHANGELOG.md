@@ -2,7 +2,10 @@
 
 ## [Unreleased]
 
+## [7.3.7] - 2024-09-11
+
 - Fixed a bug where the range was incorrect for imports with both `as` and `exposing`.
+- Fixed a bug where the order of comments was incorrect in a case pattern.
 
 ## [7.3.6] - 2024-09-11
 
@@ -153,7 +156,8 @@ With this change some additional big changes were made to the projects and the d
 - Range information is added to a significant bigger set of AST elements.
 - The decoders and encoders for the specific AST elements are moved to their modules (`Elm.Syntax.*`).
 
-[Unreleased]: https://github.com/stil4m/elm-syntax/compare/v7.3.6...HEAD
+[Unreleased]: https://github.com/stil4m/elm-syntax/compare/v7.3.7...HEAD
+[7.3.7]: https://github.com/stil4m/elm-syntax/releases/tag/7.3.7
 [7.3.6]: https://github.com/stil4m/elm-syntax/releases/tag/7.3.6
 [7.3.5]: https://github.com/stil4m/elm-syntax/releases/tag/7.3.5
 [7.3.4]: https://github.com/stil4m/elm-syntax/releases/tag/7.3.4
