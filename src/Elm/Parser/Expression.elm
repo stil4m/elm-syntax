@@ -1415,7 +1415,6 @@ applyExtensionRight (ExtendRightByOperation operation) ((Node leftRange _) as le
 
 type alias InfixOperatorInfo =
     { leftPrecedence : Int
-    , symbol : String
     , extensionRight : Parser (WithComments ExtensionRight)
     }
 
@@ -1428,7 +1427,6 @@ errUnknownInfixOperator =
 infixLeft : Int -> String -> InfixOperatorInfo
 infixLeft leftPrecedence symbol =
     { leftPrecedence = leftPrecedence
-    , symbol = symbol
     , extensionRight =
         ParserFast.map2
             (\commentsBeforeFirst first ->
@@ -1460,7 +1458,6 @@ infixLeft leftPrecedence symbol =
 infixNonAssociative : Int -> String -> InfixOperatorInfo
 infixNonAssociative leftPrecedence symbol =
     { leftPrecedence = leftPrecedence
-    , symbol = symbol
     , extensionRight =
         ParserFast.map2
             (\commentsBefore right ->
@@ -1502,7 +1499,6 @@ problemCannotMixNonAssociativeInfixOperators =
 infixRight : Int -> String -> InfixOperatorInfo
 infixRight leftPrecedence symbol =
     { leftPrecedence = leftPrecedence
-    , symbol = symbol
     , extensionRight =
         ParserFast.map2
             (\commentsBeforeFirst first ->
