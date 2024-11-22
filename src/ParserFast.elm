@@ -125,7 +125,7 @@ Once a path is chosen, it does not come back and try the others.
 
 import Char.Extra
 import Elm.Syntax.Range exposing (Location, Range)
-import Parser exposing (Problem(..))
+import Parser
 
 
 type Problem
