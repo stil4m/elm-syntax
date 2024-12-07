@@ -79,8 +79,34 @@ infixExpose =
         )
         (ParserFast.symbolFollowedBy "("
             (ParserFast.ifFollowedByWhileWithoutLinebreak
-                (\c -> c /= ')' && c /= '\n' && c /= ' ')
-                (\c -> c /= ')' && c /= '\n' && c /= ' ')
+                (\c ->
+                    case c of
+                        ')' ->
+                            False
+
+                        '\n' ->
+                            False
+
+                        ' ' ->
+                            False
+
+                        _ ->
+                            True
+                )
+                (\c ->
+                    case c of
+                        ')' ->
+                            False
+
+                        '\n' ->
+                            False
+
+                        ' ' ->
+                            False
+
+                        _ ->
+                            True
+                )
             )
         )
         Tokens.parensEnd

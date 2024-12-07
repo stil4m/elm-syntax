@@ -10,7 +10,17 @@ singleLineComment : ParserFast.Parser (Node String)
 singleLineComment =
     ParserFast.symbolFollowedBy "--"
         (ParserFast.whileMapWithRange
-            (\c -> c /= '\u{000D}' && c /= '\n' && not (Char.Extra.isUtf16Surrogate c))
+            (\c ->
+                case c of
+                    '\u{000D}' ->
+                        False
+
+                    '\n' ->
+                        False
+
+                    _ ->
+                        not (Char.Extra.isUtf16Surrogate c)
+            )
             (\range content ->
                 Node
                     { start = { row = range.start.row, column = range.start.column - 2 }

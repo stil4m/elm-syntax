@@ -572,13 +572,20 @@ writeChar c =
     let
         escape : String
         escape =
-            if c == '\t' || c == '\'' || c == '\\' then
-                "\\"
+            case c of
+                '\t' ->
+                    "'\\"
 
-            else
-                ""
+                '\'' ->
+                    "'\\"
+
+                '\\' ->
+                    "'\\"
+
+                _ ->
+                    "'"
     in
-    string ("'" ++ escape ++ String.fromChar c ++ "'")
+    string (escape ++ String.fromChar c ++ "'")
 
 
 {-| Write a pattern
