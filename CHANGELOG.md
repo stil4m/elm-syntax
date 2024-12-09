@@ -4,7 +4,7 @@
 
 ## [7.3.8] - 2024-12-07
 
-- Massive performance improvement of the parser in non-optimized compilations (thanks @miniBill!)
+- Performance improvement of the parser (small improvement for optimized builds, **massive** improvement for non-optimized compilations, (thanks @miniBill!)
 
 ## [7.3.7] - 2024-09-11
 
