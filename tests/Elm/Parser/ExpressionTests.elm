@@ -573,6 +573,23 @@ all =
                         (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 3 } }
                             (Negation (Node { start = { row = 1, column = 2 }, end = { row = 1, column = 3 } } (FunctionOrValue [] "x")))
                         )
+        , test "negated expression after comma" <|
+            \() ->
+                "(0,-x)"
+                    |> expectAst
+                        (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 7 } }
+                            (TupledExpression
+                                [ Node { start = { row = 1, column = 2 }, end = { row = 1, column = 3 } }
+                                    (Integer 0)
+                                , Node { start = { row = 1, column = 4 }, end = { row = 1, column = 6 } }
+                                    (Negation
+                                        (Node { start = { row = 1, column = 5 }, end = { row = 1, column = 6 } }
+                                            (FunctionOrValue [] "x")
+                                        )
+                                    )
+                                ]
+                            )
+                        )
         , test "negated expression in application" <|
             \() ->
                 "toFloat -5"
