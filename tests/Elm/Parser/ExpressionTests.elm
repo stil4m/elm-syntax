@@ -3,7 +3,7 @@ module Elm.Parser.ExpressionTests exposing (all)
 import Elm.Parser.Declarations
 import Elm.Parser.Expression exposing (expression)
 import Elm.Parser.ParserWithCommentsTestUtil as ParserWithCommentsUtil
-import Elm.Syntax.Expression exposing (Expression(..))
+import Elm.Syntax.Expression exposing (Expression(..), LetDeclaration(..))
 import Elm.Syntax.Infix as Infix exposing (InfixDirection(..))
 import Elm.Syntax.Node exposing (Node(..))
 import Elm.Syntax.Pattern exposing (..)
@@ -566,6 +566,17 @@ all =
                                 (Node { start = { row = 1, column = 3 }, end = { row = 1, column = 4 } } (Integer 1))
                             )
                         )
+        , test "subtraction without spaces with variables" <|
+            \() ->
+                "n-n"
+                    |> expectAst
+                        (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 4 } }
+                            (OperatorApplication "-"
+                                Left
+                                (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 2 } } (FunctionOrValue [] "n"))
+                                (Node { start = { row = 1, column = 3 }, end = { row = 1, column = 4 } } (FunctionOrValue [] "n"))
+                            )
+                        )
         , test "negated expression for value" <|
             \() ->
                 "-x"
@@ -576,6 +587,116 @@ all =
         , test "negated expression after comma" <|
             \() ->
                 "(0,-x)"
+                    |> expectAst
+                        (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 7 } }
+                            (TupledExpression
+                                [ Node { start = { row = 1, column = 2 }, end = { row = 1, column = 3 } }
+                                    (Integer 0)
+                                , Node { start = { row = 1, column = 4 }, end = { row = 1, column = 6 } }
+                                    (Negation
+                                        (Node { start = { row = 1, column = 5 }, end = { row = 1, column = 6 } }
+                                            (FunctionOrValue [] "x")
+                                        )
+                                    )
+                                ]
+                            )
+                        )
+        , test "negated expression after = in record" <|
+            \() ->
+                "{a=-x}"
+                    |> expectAst
+                        (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 7 } }
+                            (RecordExpr
+                                [ Node { start = { row = 1, column = 2 }, end = { row = 1, column = 6 } }
+                                    ( Node { start = { row = 1, column = 2 }, end = { row = 1, column = 3 } } "a"
+                                    , Node { start = { row = 1, column = 4 }, end = { row = 1, column = 6 } }
+                                        (Negation
+                                            (Node { start = { row = 1, column = 5 }, end = { row = 1, column = 6 } } (FunctionOrValue [] "x"))
+                                        )
+                                    )
+                                ]
+                            )
+                        )
+        , test "negated expression after ==" <|
+            \() ->
+                "a==-x"
+                    |> expectAst
+                        (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 7 } }
+                            (TupledExpression
+                                [ Node { start = { row = 1, column = 2 }, end = { row = 1, column = 3 } }
+                                    (Integer 0)
+                                , Node { start = { row = 1, column = 4 }, end = { row = 1, column = 6 } }
+                                    (Negation
+                                        (Node { start = { row = 1, column = 5 }, end = { row = 1, column = 6 } }
+                                            (FunctionOrValue [] "x")
+                                        )
+                                    )
+                                ]
+                            )
+                        )
+        , test "negated expression after -> in anonymous function" <|
+            \() ->
+                "\\a->-x"
+                    |> expectAst
+                        (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 7 } }
+                            (LambdaExpression
+                                { args = [ Node { start = { row = 1, column = 2 }, end = { row = 1, column = 3 } } (VarPattern "a") ]
+                                , expression =
+                                    Node { start = { row = 1, column = 5 }, end = { row = 1, column = 7 } }
+                                        (Negation
+                                            (Node { start = { row = 1, column = 6 }, end = { row = 1, column = 7 } } (FunctionOrValue [] "x"))
+                                        )
+                                }
+                            )
+                        )
+        , test "negated expression after list" <|
+            \() ->
+                "List.sum [a,b]-x"
+                    |> expectAst
+                        (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 17 } }
+                            (OperatorApplication "-"
+                                Left
+                                (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 15 } }
+                                    (Application
+                                        [ Node { start = { row = 1, column = 1 }, end = { row = 1, column = 9 } }
+                                            (FunctionOrValue [ "List" ] "sum")
+                                        , Node { start = { row = 1, column = 10 }, end = { row = 1, column = 15 } }
+                                            (ListExpr
+                                                [ Node { start = { row = 1, column = 11 }, end = { row = 1, column = 12 } } (FunctionOrValue [] "a")
+                                                , Node { start = { row = 1, column = 13 }, end = { row = 1, column = 14 } } (FunctionOrValue [] "b")
+                                                ]
+                                            )
+                                        ]
+                                    )
+                                )
+                                (Node { start = { row = 1, column = 16 }, end = { row = 1, column = 17 } } (FunctionOrValue [] "x"))
+                            )
+                        )
+        , test "negated expression after = in let declaration" <|
+            \() ->
+                "let a=-x in a"
+                    |> expectAst
+                        (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 14 } }
+                            (LetExpression
+                                { declarations = [ Node { start = { row = 1, column = 5 }, end = { row = 1, column = 9 } } (LetFunction { documentation = Nothing, signature = Nothing, declaration = Node { start = { row = 1, column = 5 }, end = { row = 1, column = 9 } } { name = Node { start = { row = 1, column = 5 }, end = { row = 1, column = 6 } } "a", arguments = [], expression = Node { start = { row = 1, column = 7 }, end = { row = 1, column = 9 } } (Negation (Node { start = { row = 1, column = 8 }, end = { row = 1, column = 9 } } (FunctionOrValue [] "x"))) } }) ]
+                                , expression = Node { start = { row = 1, column = 13 }, end = { row = 1, column = 14 } } (FunctionOrValue [] "a")
+                                }
+                            )
+                        )
+        , test "negated expression after -> in case branch" <|
+            \() ->
+                "case 1 of\n    _->-a"
+                    |> expectAst
+                        (Node { start = { row = 1, column = 1 }, end = { row = 2, column = 10 } }
+                            (CaseExpression
+                                { expression = Node { start = { row = 1, column = 6 }, end = { row = 1, column = 7 } } (Integer 1)
+                                , cases = [ ( Node { start = { row = 2, column = 5 }, end = { row = 2, column = 6 } } AllPattern, Node { start = { row = 2, column = 8 }, end = { row = 2, column = 10 } } (Negation (Node { start = { row = 2, column = 9 }, end = { row = 2, column = 10 } } (FunctionOrValue [] "a"))) ) ]
+                                }
+                            )
+                        )
+        , test "negated expression after `in` in let body" <|
+            \() ->
+                "let a=-x in-a"
                     |> expectAst
                         (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 7 } }
                             (TupledExpression
@@ -602,6 +723,62 @@ all =
                                 ]
                             )
                         )
+        , test "negated expression after literal" <|
+            \() ->
+                """String.length""-1"""
+                    |> expectAst
+                        (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 18 } }
+                            (OperatorApplication "-"
+                                Left
+                                (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 16 } }
+                                    (Application
+                                        [ Node { start = { row = 1, column = 1 }, end = { row = 1, column = 14 } } (FunctionOrValue [ "String" ] "length")
+                                        , Node { start = { row = 1, column = 14 }, end = { row = 1, column = 16 } } (Literal "")
+                                        ]
+                                    )
+                                )
+                                (Node { start = { row = 1, column = 17 }, end = { row = 1, column = 18 } } (Integer 1))
+                            )
+                        )
+        , test "negation after exponentiation should succeed when there is spacing after ^" <|
+            \() ->
+                "n ^ -x"
+                    |> expectAst
+                        (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 7 } }
+                            (OperatorApplication "^"
+                                Right
+                                (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 2 } } (FunctionOrValue [] "n"))
+                                (Node { start = { row = 1, column = 5 }, end = { row = 1, column = 7 } }
+                                    (Negation
+                                        (Node { start = { row = 1, column = 6 }, end = { row = 1, column = 7 } } (FunctionOrValue [] "x"))
+                                    )
+                                )
+                            )
+                        )
+        , test "negation after <| should fail" <|
+            \() ->
+                "f<|-x"
+                    |> expectInvalid
+        , test "negation after |> should fail" <|
+            \() ->
+                "f|>x"
+                    |> expectInvalid
+        , test "negation after exponentiation should fail when there is no spacing after ^" <|
+            \() ->
+                "n ^-x"
+                    |> expectInvalid
+        , test "negation after || should fail when there is no spacing" <|
+            \() ->
+                "condition||-x"
+                    |> expectInvalid
+        , test "negation after && should fail when there is no spacing" <|
+            \() ->
+                "condition&&-x"
+                    |> expectInvalid
+        , test "negation after :: should fail when there is no spacing" <|
+            \() ->
+                "x::-x :: []"
+                    |> expectInvalid
         , test "negated expression for parenthesized" <|
             \() ->
                 "-(x - y)"
@@ -658,6 +835,17 @@ all =
                                 (Node { start = { row = 1, column = 22 }, end = { row = 1, column = 29 } }
                                     (Negation (Node { start = { row = 1, column = 23 }, end = { row = 1, column = 29 } } (Integer 100001)))
                                 )
+                            )
+                        )
+        , test ":: and list literal attached" <|
+            \() ->
+                "1::[]"
+                    |> expectAst
+                        (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 6 } }
+                            (OperatorApplication "::"
+                                Right
+                                (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 2 } } (Integer 1))
+                                (Node { start = { row = 1, column = 4 }, end = { row = 1, column = 6 } } (ListExpr []))
                             )
                         )
         , test "plus and minus in the same expression" <|
@@ -974,6 +1162,11 @@ all =
 expectAst : Node Expression -> String -> Expect.Expectation
 expectAst =
     ParserWithCommentsUtil.expectAst expression
+
+
+expectInvalid : String -> Expect.Expectation
+expectInvalid =
+    ParserWithCommentsUtil.expectInvalid expression
 
 
 expectAstWithComments : { ast : Node Expression, comments : List (Node String) } -> String -> Expect.Expectation
