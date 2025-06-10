@@ -2,7 +2,7 @@ module ParserFast exposing
     ( Parser, run
     , symbol, symbolWithEndLocation, symbolWithRange, symbolFollowedBy, symbolBacktrackableFollowedBy, followedBySymbol
     , keyword, keywordFollowedBy
-    , anyChar, while, whileWithoutLinebreak, whileMapWithRange, ifFollowedByWhileWithoutLinebreak, ifFollowedByWhileMapWithoutLinebreak, ifFollowedByWhileMapWithRangeWithoutLinebreak, ifFollowedByWhileValidateWithoutLinebreak, ifFollowedByWhileValidateMapWithRangeWithoutLinebreak, whileWithoutLinebreakAnd2PartUtf16ToResultAndThen, whileWithoutLinebreakAnd2PartUtf16ValidateMapWithRangeBacktrackableFollowedBySymbol
+    , anyChar, while, atLeastOneWhile, whileWithoutLinebreak, atLeastOneWhileWithoutLinebreak, whileMapWithRange, ifFollowedByWhileWithoutLinebreak, ifFollowedByWhileMapWithoutLinebreak, ifFollowedByWhileMapWithRangeWithoutLinebreak, ifFollowedByWhileValidateWithoutLinebreak, ifFollowedByWhileValidateMapWithRangeWithoutLinebreak, whileWithoutLinebreakAnd2PartUtf16ToResultAndThen, whileWithoutLinebreakAnd2PartUtf16ValidateMapWithRangeBacktrackableFollowedBySymbol
     , integerDecimalMapWithRange, integerDecimalOrHexadecimalMapWithRange, floatOrIntegerDecimalOrHexadecimalMapWithRange
     , skipWhileWhitespaceFollowedBy, followedBySkipWhileWhitespace, nestableMultiCommentMapWithRange
     , map, validate, lazy
@@ -66,7 +66,7 @@ With `ParserFast`, you need to either
 
 # Fuzzy match primitives
 
-@docs anyChar, while, whileWithoutLinebreak, whileMapWithRange, ifFollowedByWhileWithoutLinebreak, ifFollowedByWhileMapWithoutLinebreak, ifFollowedByWhileMapWithRangeWithoutLinebreak, ifFollowedByWhileValidateWithoutLinebreak, ifFollowedByWhileValidateMapWithRangeWithoutLinebreak, whileWithoutLinebreakAnd2PartUtf16ToResultAndThen, whileWithoutLinebreakAnd2PartUtf16ValidateMapWithRangeBacktrackableFollowedBySymbol
+@docs anyChar, while, atLeastOneWhile, whileWithoutLinebreak, atLeastOneWhileWithoutLinebreak, whileMapWithRange, ifFollowedByWhileWithoutLinebreak, ifFollowedByWhileMapWithoutLinebreak, ifFollowedByWhileMapWithRangeWithoutLinebreak, ifFollowedByWhileValidateWithoutLinebreak, ifFollowedByWhileValidateMapWithRangeWithoutLinebreak, whileWithoutLinebreakAnd2PartUtf16ToResultAndThen, whileWithoutLinebreakAnd2PartUtf16ValidateMapWithRangeBacktrackableFollowedBySymbol
 @docs integerDecimalMapWithRange, integerDecimalOrHexadecimalMapWithRange, floatOrIntegerDecimalOrHexadecimalMapWithRange
 
 
@@ -3064,6 +3064,25 @@ nestableMultiCommentMapWithRange rangeContentToRes ( openChar, openTail ) ( clos
         )
 
 
+atLeastOneWhile : (Char -> Bool) -> Parser String
+atLeastOneWhile isGood =
+    Parser
+        (\s0 ->
+            let
+                s1 : State
+                s1 =
+                    skipWhileHelp isGood s0.offset s0.row s0.col s0.src s0.indent
+            in
+            if s0.offset - s1.offset == 0 then
+                Bad False (ExpectingAnyChar s0.row s0.col)
+
+            else
+                Good
+                    (String.slice s0.offset s1.offset s0.src)
+                    s1
+        )
+
+
 while : (Char -> Bool) -> Parser String
 while isGood =
     Parser
@@ -3091,6 +3110,25 @@ whileWithoutLinebreak isGood =
             Good
                 (String.slice s0.offset s1.offset s0.src)
                 s1
+        )
+
+
+atLeastOneWhileWithoutLinebreak : (Char -> Bool) -> Parser String
+atLeastOneWhileWithoutLinebreak isGood =
+    Parser
+        (\s0 ->
+            let
+                s1 : State
+                s1 =
+                    skipWhileWithoutLinebreakHelp isGood s0.offset s0.row s0.col s0.src s0.indent
+            in
+            if s0.offset - s1.offset == 0 then
+                Bad False (ExpectingAnyChar s0.row s0.col)
+
+            else
+                Good
+                    (String.slice s0.offset s1.offset s0.src)
+                    s1
         )
 
 
