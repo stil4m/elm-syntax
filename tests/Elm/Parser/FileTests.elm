@@ -508,4 +508,13 @@ a = '
 """
                     |> Elm.Parser.parseToFile
                     |> Expect.err
+        , test "[glsl|, not closed before end of file" <|
+            \() ->
+                """
+module A exposing (..)
+
+a = [glsl|
+"""
+                    |> Elm.Parser.parseToFile
+                    |> Expect.err
         ]
