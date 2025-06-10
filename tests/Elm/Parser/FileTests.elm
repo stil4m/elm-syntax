@@ -481,7 +481,8 @@ a = 1
                     |> Elm.Parser.parseToFile
                     |> Result.map (\ast -> List.length ast.comments)
                     |> Expect.equal (Ok 3000)
-        , test "single double quote, not closed before end of file" <|
+        , -- https://github.com/stil4m/elm-syntax/issues/273
+          test "single double quote, not closed before end of file" <|
             \() ->
                 """
 module A exposing (..)
