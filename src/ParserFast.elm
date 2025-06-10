@@ -2,7 +2,7 @@ module ParserFast exposing
     ( Parser, run
     , symbol, symbolWithEndLocation, symbolWithRange, symbolFollowedBy, symbolBacktrackableFollowedBy, followedBySymbol
     , keyword, keywordFollowedBy
-    , anyChar, while, atLeastOneWhile, whileWithoutLinebreak, atLeastOneWhileWithoutLinebreak, whileMapWithRange, ifFollowedByWhileWithoutLinebreak, ifFollowedByWhileMapWithoutLinebreak, ifFollowedByWhileMapWithRangeWithoutLinebreak, ifFollowedByWhileValidateWithoutLinebreak, ifFollowedByWhileValidateMapWithRangeWithoutLinebreak, whileWithoutLinebreakAnd2PartUtf16ToResultAndThen, whileWithoutLinebreakAnd2PartUtf16ValidateMapWithRangeBacktrackableFollowedBySymbol
+    , anyChar, atLeastOneWhile, atLeastOneWhileWithoutLinebreak, whileMapWithRange, ifFollowedByWhileWithoutLinebreak, ifFollowedByWhileMapWithoutLinebreak, ifFollowedByWhileMapWithRangeWithoutLinebreak, ifFollowedByWhileValidateWithoutLinebreak, ifFollowedByWhileValidateMapWithRangeWithoutLinebreak, whileWithoutLinebreakAnd2PartUtf16ToResultAndThen, whileWithoutLinebreakAnd2PartUtf16ValidateMapWithRangeBacktrackableFollowedBySymbol
     , integerDecimalMapWithRange, integerDecimalOrHexadecimalMapWithRange, floatOrIntegerDecimalOrHexadecimalMapWithRange
     , skipWhileWhitespaceFollowedBy, followedBySkipWhileWhitespace, nestableMultiCommentMapWithRange
     , map, validate, lazy
@@ -66,7 +66,7 @@ With `ParserFast`, you need to either
 
 # Fuzzy match primitives
 
-@docs anyChar, while, atLeastOneWhile, whileWithoutLinebreak, atLeastOneWhileWithoutLinebreak, whileMapWithRange, ifFollowedByWhileWithoutLinebreak, ifFollowedByWhileMapWithoutLinebreak, ifFollowedByWhileMapWithRangeWithoutLinebreak, ifFollowedByWhileValidateWithoutLinebreak, ifFollowedByWhileValidateMapWithRangeWithoutLinebreak, whileWithoutLinebreakAnd2PartUtf16ToResultAndThen, whileWithoutLinebreakAnd2PartUtf16ValidateMapWithRangeBacktrackableFollowedBySymbol
+@docs anyChar, atLeastOneWhile, atLeastOneWhileWithoutLinebreak, whileMapWithRange, ifFollowedByWhileWithoutLinebreak, ifFollowedByWhileMapWithoutLinebreak, ifFollowedByWhileMapWithRangeWithoutLinebreak, ifFollowedByWhileValidateWithoutLinebreak, ifFollowedByWhileValidateMapWithRangeWithoutLinebreak, whileWithoutLinebreakAnd2PartUtf16ToResultAndThen, whileWithoutLinebreakAnd2PartUtf16ValidateMapWithRangeBacktrackableFollowedBySymbol
 @docs integerDecimalMapWithRange, integerDecimalOrHexadecimalMapWithRange, floatOrIntegerDecimalOrHexadecimalMapWithRange
 
 
@@ -3098,21 +3098,6 @@ while isGood =
         )
 
 
-whileWithoutLinebreak : (Char -> Bool) -> Parser String
-whileWithoutLinebreak isGood =
-    Parser
-        (\s0 ->
-            let
-                s1 : State
-                s1 =
-                    skipWhileWithoutLinebreakHelp isGood s0.offset s0.row s0.col s0.src s0.indent
-            in
-            Good
-                (String.slice s0.offset s1.offset s0.src)
-                s1
-        )
-
-
 atLeastOneWhileWithoutLinebreak : (Char -> Bool) -> Parser String
 atLeastOneWhileWithoutLinebreak isGood =
     Parser
@@ -3216,9 +3201,10 @@ repeated structures, like a bunch of statements:
 Notice that the statements are tracked in reverse as we `Loop`, and we reorder
 them only once we are `Done`. This is a very common pattern with `loop`!
 
-**IMPORTANT NOTE:** Parsers like `while Char.isAlpha` can
+**IMPORTANT NOTE:** Parsers like `whileMapWithRange Char.isAlpha` can
 succeed without consuming any characters. So in some cases you may want to e.g.
-use an [`ifFollowedByWhileWithoutLinebreak`](#ifFollowedByWhileWithoutLinebreak) to ensure that each step actually consumed characters.
+use an [`ifFollowedByWhileWithoutLinebreak`](#ifFollowedByWhileWithoutLinebreak)
+or one of the "atLeastOne" versions to ensure that each step actually consumed characters.
 Otherwise you could end up in an infinite loop!
 
 You very likely don't need to keep track of specific state before deciding on how
