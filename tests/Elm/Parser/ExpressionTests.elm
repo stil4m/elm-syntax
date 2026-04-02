@@ -595,6 +595,23 @@ all =
                                 ]
                             )
                         )
+        , test "negated expression after arrow without space" <|
+            \() ->
+                "case x of\n    _->-1"
+                    |> expectAst
+                        (Node { start = { row = 1, column = 1 }, end = { row = 2, column = 10 } }
+                            (CaseExpression
+                                { expression =
+                                    Node { start = { row = 1, column = 6 }, end = { row = 1, column = 7 } } (FunctionOrValue [] "x")
+                                , cases =
+                                    [ ( Node { start = { row = 2, column = 5 }, end = { row = 2, column = 6 } } AllPattern
+                                      , Node { start = { row = 2, column = 8 }, end = { row = 2, column = 10 } }
+                                            (Negation (Node { start = { row = 2, column = 9 }, end = { row = 2, column = 10 } } (Integer 1)))
+                                      )
+                                    ]
+                                }
+                            )
+                        )
         , test "negated expression after then without space" <|
             \() ->
                 "if True then-1 else 0"

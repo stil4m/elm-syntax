@@ -950,6 +950,10 @@ negationOperation =
                     "=" ->
                         negationAfterMinus
 
+                    -- from the end of -> in case branches
+                    ">" ->
+                        negationAfterMinus
+
                     -- TODO only for tests
                     "" ->
                         negationAfterMinus
