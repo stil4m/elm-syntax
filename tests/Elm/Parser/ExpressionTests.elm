@@ -566,6 +566,21 @@ all =
                                 (Node { start = { row = 1, column = 3 }, end = { row = 1, column = 4 } } (Integer 1))
                             )
                         )
+        , test "negated expression in list literal without spaces" <|
+            \() ->
+                "[-3, 5, -1]"
+                    |> expectAst
+                        (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 12 } }
+                            (ListExpr
+                                [ Node { start = { row = 1, column = 2 }, end = { row = 1, column = 4 } }
+                                    (Negation (Node { start = { row = 1, column = 3 }, end = { row = 1, column = 4 } } (Integer 3)))
+                                , Node { start = { row = 1, column = 6 }, end = { row = 1, column = 7 } }
+                                    (Integer 5)
+                                , Node { start = { row = 1, column = 9 }, end = { row = 1, column = 11 } }
+                                    (Negation (Node { start = { row = 1, column = 10 }, end = { row = 1, column = 11 } } (Integer 1)))
+                                ]
+                            )
+                        )
         , test "negated expression for value" <|
             \() ->
                 "-x"

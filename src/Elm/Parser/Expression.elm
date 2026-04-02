@@ -944,6 +944,9 @@ negationOperation =
                     "," ->
                         negationAfterMinus
 
+                    "[" ->
+                        negationAfterMinus
+
                     -- TODO only for tests
                     "" ->
                         negationAfterMinus
