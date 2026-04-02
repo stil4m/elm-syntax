@@ -955,7 +955,20 @@ negationOperation =
                         negationAfterMinus
 
                     _ ->
-                        negationWhitespaceProblem
+                        -- Check if preceded by a keyword that introduces an expression.
+                        -- We check for the keyword AND a space/boundary before it
+                        -- to avoid matching identifiers that end with the keyword
+                        -- (e.g., "within" should not match "in").
+                        if
+                            endsWithKeyword "then" offset source
+                                || endsWithKeyword "else" offset source
+                                || endsWithKeyword "of" offset source
+                                || endsWithKeyword "in" offset source
+                        then
+                            negationAfterMinus
+
+                        else
+                            negationWhitespaceProblem
             )
         )
 
@@ -963,6 +976,40 @@ negationOperation =
 negationWhitespaceProblem : Parser a
 negationWhitespaceProblem =
     ParserFast.problem "if a negation sign is not preceded by whitespace, it's considered subtraction"
+
+
+{-| Check if the source immediately before the minus sign at `offset - 1`
+ends with the given keyword, and that keyword is preceded by a word boundary
+(space, newline, or start of input) so we don't match identifiers like
+"within" for keyword "in".
+-}
+endsWithKeyword : String -> Int -> String -> Bool
+endsWithKeyword keyword offset source =
+    let
+        keywordLen =
+            String.length keyword
+
+        keywordStart =
+            offset - 1 - keywordLen
+    in
+    (String.slice keywordStart (offset - 1) source == keyword)
+        && (keywordStart <= 0 || isWordBoundary (String.slice (keywordStart - 1) keywordStart source))
+
+
+isWordBoundary : String -> Bool
+isWordBoundary char =
+    case char of
+        " " ->
+            True
+
+        "\n" ->
+            True
+
+        "\u{000D}" ->
+            True
+
+        _ ->
+            False
 
 
 negationAfterMinus : Parser (WithComments (Node Expression))

@@ -595,6 +595,32 @@ all =
                                 ]
                             )
                         )
+        , test "negated expression after then without space" <|
+            \() ->
+                "if True then-1 else 0"
+                    |> expectAst
+                        (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 22 } }
+                            (IfBlock
+                                (Node { start = { row = 1, column = 4 }, end = { row = 1, column = 8 } } (FunctionOrValue [] "True"))
+                                (Node { start = { row = 1, column = 13 }, end = { row = 1, column = 15 } }
+                                    (Negation (Node { start = { row = 1, column = 14 }, end = { row = 1, column = 15 } } (Integer 1)))
+                                )
+                                (Node { start = { row = 1, column = 21 }, end = { row = 1, column = 22 } } (Integer 0))
+                            )
+                        )
+        , test "negated expression after else without space" <|
+            \() ->
+                "if True then 0 else-1"
+                    |> expectAst
+                        (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 22 } }
+                            (IfBlock
+                                (Node { start = { row = 1, column = 4 }, end = { row = 1, column = 8 } } (FunctionOrValue [] "True"))
+                                (Node { start = { row = 1, column = 14 }, end = { row = 1, column = 15 } } (Integer 0))
+                                (Node { start = { row = 1, column = 20 }, end = { row = 1, column = 22 } }
+                                    (Negation (Node { start = { row = 1, column = 21 }, end = { row = 1, column = 22 } } (Integer 1)))
+                                )
+                            )
+                        )
         , test "negated expression for value" <|
             \() ->
                 "-x"
