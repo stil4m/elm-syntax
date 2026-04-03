@@ -3296,7 +3296,11 @@ The `newOffset` value can be a few different things:
     words wide.
 
 Callers check failure with `< 0` rather than `== -1` because
-`==` compiles to `_Utils_eq` which allocates on every call.
+the Elm compiler does not optimize `== -1` to `===`. Negative
+numbers are compiled as a prefix negate expression, not a literal,
+so `isLiteral` returns False and `==` falls back to `_Utils_eq`
+which allocates on every call.
+See https://github.com/elm/compiler/blob/0.19.1/compiler/src/Generate/JavaScript/Expression.hs#L549-L592
 
 -}
 isSubCharWithoutLinebreak : (Char -> Bool) -> Int -> String -> Int
