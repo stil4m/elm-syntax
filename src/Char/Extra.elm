@@ -122,9 +122,9 @@ unicodeIsAlphaNumOrUnderscoreFast c =
         code =
             Char.toCode c
     in
-    charCodeIsLower code
-        || charCodeIsUpper code
-        || charCodeIsDigit code
+    (97 <= code && code <= 122)
+        || (65 <= code && code <= 90)
+        || (48 <= code && code <= 57)
         || -- (c == '_')
            (code == 95)
         || -- For ASCII chars (0x00-0x7F), the above checks already catch all valid

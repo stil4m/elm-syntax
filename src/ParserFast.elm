@@ -1606,7 +1606,7 @@ integerDecimalMapWithRange rangeAndIntToRes =
                 s1 =
                     convertIntegerDecimal s0.offset s0.src
             in
-            if s1.offset == -1 then
+            if s1.offset < 0 then
                 Bad False (ExpectingNumber s0.row s0.col)
 
             else
@@ -1659,7 +1659,7 @@ integerDecimalOrHexadecimalMapWithRange rangeAndIntDecimalToRes rangeAndIntHexad
                 s1 =
                     convertIntegerDecimalOrHexadecimal s0.offset s0.src
             in
-            if s1.offsetAndInt.offset == -1 then
+            if s1.offsetAndInt.offset < 0 then
                 Bad False (ExpectingNumber s0.row s0.col)
 
             else
@@ -1719,7 +1719,7 @@ floatOrIntegerDecimalOrHexadecimalMapWithRange rangeAndFloatToRes rangeAndIntDec
                 s1 =
                     convertIntegerDecimalOrHexadecimal s0.offset s0.src
             in
-            if s1.offsetAndInt.offset == -1 then
+            if s1.offsetAndInt.offset < 0 then
                 Bad False (ExpectingNumber s0.row s0.col)
 
             else
@@ -1728,7 +1728,7 @@ floatOrIntegerDecimalOrHexadecimalMapWithRange rangeAndFloatToRes rangeAndIntDec
                     offsetAfterFloat =
                         skipFloatAfterIntegerDecimal s1.offsetAndInt.offset s0.src
                 in
-                if offsetAfterFloat == -1 then
+                if offsetAfterFloat < 0 then
                     let
                         newColumn : Int
                         newColumn =
@@ -1791,7 +1791,7 @@ skipFloatAfterIntegerDecimal offset src =
                 offsetAfterDigits =
                     skip1OrMoreDigits0To9 (offset + 1) src
             in
-            if offsetAfterDigits == -1 then
+            if offsetAfterDigits < 0 then
                 -1
 
             else
@@ -2203,6 +2203,10 @@ symbol str res =
         strLength : Int
         strLength =
             String.length str
+
+        strForCompare : String
+        strForCompare =
+            str ++ ""
     in
     Parser
         (\s ->
@@ -2211,7 +2215,7 @@ symbol str res =
                 newOffset =
                     s.offset + strLength
             in
-            if String.slice s.offset newOffset s.src == str ++ "" then
+            if String.slice s.offset newOffset s.src == strForCompare then
                 Good res
                     { src = s.src
                     , offset = newOffset
@@ -2231,6 +2235,10 @@ followedBySymbol str (Parser parsePrevious) =
         strLength : Int
         strLength =
             String.length str
+
+        strForCompare : String
+        strForCompare =
+            str ++ ""
     in
     Parser
         (\s0 ->
@@ -2241,7 +2249,7 @@ followedBySymbol str (Parser parsePrevious) =
                         newOffset =
                             s1.offset + strLength
                     in
-                    if String.slice s1.offset newOffset s1.src == str ++ "" then
+                    if String.slice s1.offset newOffset s1.src == strForCompare then
                         Good res
                             { src = s1.src
                             , offset = newOffset
@@ -2264,6 +2272,10 @@ symbolWithEndLocation str endLocationToRes =
         strLength : Int
         strLength =
             String.length str
+
+        strForCompare : String
+        strForCompare =
+            str ++ ""
     in
     Parser
         (\s ->
@@ -2272,7 +2284,7 @@ symbolWithEndLocation str endLocationToRes =
                 newOffset =
                     s.offset + strLength
             in
-            if String.slice s.offset newOffset s.src == str ++ "" then
+            if String.slice s.offset newOffset s.src == strForCompare then
                 let
                     newCol : Int
                     newCol =
@@ -2298,6 +2310,10 @@ symbolWithRange str startAndEndLocationToRes =
         strLength : Int
         strLength =
             String.length str
+
+        strForCompare : String
+        strForCompare =
+            str ++ ""
     in
     Parser
         (\s ->
@@ -2306,7 +2322,7 @@ symbolWithRange str startAndEndLocationToRes =
                 newOffset =
                     s.offset + strLength
             in
-            if String.slice s.offset newOffset s.src == str ++ "" then
+            if String.slice s.offset newOffset s.src == strForCompare then
                 let
                     newCol : Int
                     newCol =
@@ -2335,6 +2351,10 @@ symbolFollowedBy str (Parser parseNext) =
         strLength : Int
         strLength =
             String.length str
+
+        strForCompare : String
+        strForCompare =
+            str ++ ""
     in
     Parser
         (\s ->
@@ -2343,7 +2363,7 @@ symbolFollowedBy str (Parser parseNext) =
                 newOffset =
                     s.offset + strLength
             in
-            if String.slice s.offset newOffset s.src == str ++ "" then
+            if String.slice s.offset newOffset s.src == strForCompare then
                 parseNext
                     { src = s.src
                     , offset = newOffset
@@ -2367,6 +2387,10 @@ symbolBacktrackableFollowedBy str (Parser parseNext) =
         strLength : Int
         strLength =
             String.length str
+
+        strForCompare : String
+        strForCompare =
+            str ++ ""
     in
     Parser
         (\s ->
@@ -2375,7 +2399,7 @@ symbolBacktrackableFollowedBy str (Parser parseNext) =
                 newOffset =
                     s.offset + strLength
             in
-            if String.slice s.offset newOffset s.src == str ++ "" then
+            if String.slice s.offset newOffset s.src == strForCompare then
                 parseNext
                     { src = s.src
                     , offset = newOffset
@@ -2419,6 +2443,10 @@ keyword kwd res =
         kwdLength : Int
         kwdLength =
             String.length kwd
+
+        kwdForCompare : String
+        kwdForCompare =
+            kwd ++ ""
     in
     Parser
         (\s ->
@@ -2428,7 +2456,7 @@ keyword kwd res =
                     s.offset + kwdLength
             in
             if
-                (String.slice s.offset newOffset s.src == kwd ++ "")
+                (String.slice s.offset newOffset s.src == kwdForCompare)
                     && not (isSubCharAlphaNumOrUnderscore newOffset s.src)
             then
                 Good res
@@ -2459,6 +2487,10 @@ keywordFollowedBy kwd (Parser parseNext) =
         kwdLength : Int
         kwdLength =
             String.length kwd
+
+        kwdForCompare : String
+        kwdForCompare =
+            kwd ++ ""
     in
     Parser
         (\s ->
@@ -2468,7 +2500,7 @@ keywordFollowedBy kwd (Parser parseNext) =
                     s.offset + kwdLength
             in
             if
-                (String.slice s.offset newOffset s.src == kwd ++ "")
+                (String.slice s.offset newOffset s.src == kwdForCompare)
                     && not (isSubCharAlphaNumOrUnderscore newOffset s.src)
             then
                 parseNext
@@ -2778,7 +2810,7 @@ ifFollowedByWhileValidateWithoutLinebreak firstIsOkay afterFirstIsOkay resultIsO
                 firstOffset =
                     isSubCharWithoutLinebreak firstIsOkay s.offset s.src
             in
-            if firstOffset == -1 then
+            if firstOffset < 0 then
                 Bad False (ExpectingCharSatisfyingPredicate s.row s.col)
 
             else
@@ -2845,6 +2877,10 @@ whileWithoutLinebreakAnd2PartUtf16ValidateMapWithRangeBacktrackableFollowedBySym
         mandatoryFinalSymbolLength : Int
         mandatoryFinalSymbolLength =
             String.length mandatoryFinalSymbol
+
+        mandatoryFinalSymbolForCompare : String
+        mandatoryFinalSymbolForCompare =
+            mandatoryFinalSymbol ++ ""
     in
     Parser
         (\s0 ->
@@ -2862,7 +2898,7 @@ whileWithoutLinebreakAnd2PartUtf16ValidateMapWithRangeBacktrackableFollowedBySym
             in
             if
                 (String.slice s1Offset (s1Offset + mandatoryFinalSymbolLength) s0.src
-                    == (mandatoryFinalSymbol ++ "")
+                    == mandatoryFinalSymbolForCompare
                 )
                     && whileResultIsOkay whileContent
             then
@@ -2904,7 +2940,7 @@ ifFollowedByWhileValidateMapWithRangeWithoutLinebreak toResult firstIsOkay after
                 firstOffset =
                     isSubCharWithoutLinebreak firstIsOkay s0.offset s0.src
             in
-            if firstOffset == -1 then
+            if firstOffset < 0 then
                 Bad False (ExpectingCharSatisfyingPredicate s0.row s0.col)
 
             else
@@ -2937,7 +2973,7 @@ ifFollowedByWhileWithoutLinebreak firstIsOkay afterFirstIsOkay =
                 firstOffset =
                     isSubCharWithoutLinebreak firstIsOkay s.offset s.src
             in
-            if firstOffset == -1 then
+            if firstOffset < 0 then
                 Bad False (ExpectingCharSatisfyingPredicate s.row s.col)
 
             else
@@ -2963,7 +2999,7 @@ ifFollowedByWhileMapWithRangeWithoutLinebreak rangeAndConsumedStringToRes firstI
                 firstOffset =
                     isSubCharWithoutLinebreak firstIsOkay s0.offset s0.src
             in
-            if firstOffset == -1 then
+            if firstOffset < 0 then
                 Bad False (ExpectingCharSatisfyingPredicate s0.row s0.col)
 
             else
@@ -2996,7 +3032,7 @@ ifFollowedByWhileMapWithoutLinebreak consumedStringToRes firstIsOkay afterFirstI
                 firstOffset =
                     isSubCharWithoutLinebreak firstIsOkay s0.offset s0.src
             in
-            if firstOffset == -1 then
+            if firstOffset < 0 then
                 Bad False (ExpectingCharSatisfyingPredicate s0.row s0.col)
 
             else
@@ -3024,9 +3060,22 @@ nestableMultiCommentMapWithRange rangeContentToRes ( openChar, openTail ) ( clos
         close =
             String.cons closeChar closeTail
 
+        openCharCode : Int
+        openCharCode =
+            Char.toCode openChar
+
+        closeCharCode : Int
+        closeCharCode =
+            Char.toCode closeChar
+
         isNotRelevant : Char -> Bool
         isNotRelevant char =
-            char /= openChar && char /= closeChar && not (Char.Extra.isUtf16Surrogate char)
+            let
+                charCode : Int
+                charCode =
+                    Char.toCode char
+            in
+            charCode /= openCharCode && charCode /= closeCharCode && not (Char.Extra.isUtf16Surrogate char)
     in
     map2WithRange
         (\range afterOpen contentAfterAfterOpen ->
@@ -3245,6 +3294,9 @@ The `newOffset` value can be a few different things:
   - otherwise you will get `offset + 1` or `offset + 2`
     depending on whether the UTF16 character is one or two
     words wide.
+
+Callers check failure with `< 0` rather than `== -1` because
+`==` compiles to `_Utils_eq` which allocates on every call.
 
 -}
 isSubCharWithoutLinebreak : (Char -> Bool) -> Int -> String -> Int

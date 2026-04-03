@@ -56,8 +56,38 @@ subExpression =
                 "'" ->
                     charLiteralExpression
 
+                "0" ->
+                    numberExpression
+
+                "1" ->
+                    numberExpression
+
+                "2" ->
+                    numberExpression
+
+                "3" ->
+                    numberExpression
+
+                "4" ->
+                    numberExpression
+
+                "5" ->
+                    numberExpression
+
+                "6" ->
+                    numberExpression
+
+                "7" ->
+                    numberExpression
+
+                "8" ->
+                    numberExpression
+
+                "9" ->
+                    numberExpression
+
                 _ ->
-                    referenceOrNumberExpression
+                    referenceExpression
         )
 
 
@@ -82,12 +112,11 @@ ifOrUnqualifiedReferenceExpression =
         unqualifiedFunctionReferenceExpressionFollowedByRecordAccess
 
 
-referenceOrNumberExpression : Parser (WithComments (Node Expression))
-referenceOrNumberExpression =
-    ParserFast.oneOf3
+referenceExpression : Parser (WithComments (Node Expression))
+referenceExpression =
+    ParserFast.oneOf2
         qualifiedOrVariantOrRecordConstructorReferenceExpressionFollowedByRecordAccess
         unqualifiedFunctionReferenceExpressionFollowedByRecordAccess
-        numberExpression
 
 
 multiRecordAccess : ParserFast.Parser (List (Node String))
