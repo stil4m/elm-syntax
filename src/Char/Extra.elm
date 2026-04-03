@@ -25,41 +25,45 @@ unicodeIsLowerFast c =
         code : Int
         code =
             Char.toCode c
-
-        cString : String
-        cString =
-            String.fromChar c
     in
     charCodeIsLower code
-        || (if String.toLower cString == cString ++ "" && String.toUpper cString /= cString ++ "" then
-                code <= 0x0344 || 0x0346 <= code && code <= 0x216F || 0x2180 <= code && code <= 0x24CF || 0x24EA <= code && code <= 0x000F0000
+        || (code
+                > 0x7F
+                && (let
+                        cString : String
+                        cString =
+                            String.fromChar c
+                    in
+                    if String.toLower cString == cString ++ "" && String.toUpper cString /= cString ++ "" then
+                        code <= 0x0344 || 0x0346 <= code && code <= 0x216F || 0x2180 <= code && code <= 0x24CF || 0x24EA <= code && code <= 0x000F0000
 
-            else if code < 0xA7F9 then
-                if code < 0x2109 then
-                    if code < 0x024E then
-                        0x0137 <= code && code <= 0x0138 || 0x018C <= code && code <= 0x018D || 0x0199 <= code && code <= 0x019B || 0x01AA <= code && code <= 0x01AB || 0x01B9 <= code && code <= 0x01BA || 0x01BD <= code && code <= 0x01BF || code == 0x0221 || 0x0233 <= code && code <= 0x0239
+                    else if code < 0xA7F9 then
+                        if code < 0x2109 then
+                            if code < 0x024E then
+                                0x0137 <= code && code <= 0x0138 || 0x018C <= code && code <= 0x018D || 0x0199 <= code && code <= 0x019B || 0x01AA <= code && code <= 0x01AB || 0x01B9 <= code && code <= 0x01BA || 0x01BD <= code && code <= 0x01BF || code == 0x0221 || 0x0233 <= code && code <= 0x0239
+
+                            else
+                                0x024F <= code && code <= 0x0293 || 0x0295 <= code && code <= 0x02AF || 0x03FB <= code && code <= 0x03FC || 0x0560 <= code && code <= 0x0588 || 0x1D00 <= code && code <= 0x1D2B || 0x1D6B <= code && code <= 0x1D77 || 0x1D79 <= code && code <= 0x1D9A || 0x1E95 <= code && code <= 0x1E9D || code == 0x1E9F
+
+                        else if code < 0x2C70 then
+                            code == 0x210A || 0x210E <= code && code <= 0x210F || code == 0x2113 || code == 0x212F || code == 0x2134 || code == 0x2139 || 0x213C <= code && code <= 0x213D || 0x2146 <= code && code <= 0x2149
+
+                        else
+                            code == 0x2C71 || 0x2C73 <= code && code <= 0x2C74 || 0x2C76 <= code && code <= 0x2C7B || 0x2CE3 <= code && code <= 0x2CE4 || 0xA72F <= code && code <= 0xA731 || 0xA771 <= code && code <= 0xA778 || code == 0xA78E || 0xA793 <= code && code <= 0xA795 || code == 0xA7AF || modBy 2 code == 1 && 0xA7D3 <= code && code <= 0xA7D5
+
+                    else if code < 0x0001D621 then
+                        if code < 0x0001D4BA then
+                            code == 0xA7FA || 0xAB30 <= code && code <= 0xAB5A || 0xAB60 <= code && code <= 0xAB68 || 0x0001D41A <= code && code <= 0x0001D433 || 0x0001D44E <= code && code <= 0x0001D454 || 0x0001D456 <= code && code <= 0x0001D467 || 0x0001D482 <= code && code <= 0x0001D49B || 0x0001D4B6 <= code && code <= 0x0001D4B9
+
+                        else
+                            code == 0x0001D4BB || 0x0001D4BD <= code && code <= 0x0001D4C3 || 0x0001D4C5 <= code && code <= 0x0001D4CF || 0x0001D4EA <= code && code <= 0x0001D503 || 0x0001D51E <= code && code <= 0x0001D537 || 0x0001D552 <= code && code <= 0x0001D56B || 0x0001D586 <= code && code <= 0x0001D59F || 0x0001D5BA <= code && code <= 0x0001D5D3 || 0x0001D5EE <= code && code <= 0x0001D607
+
+                    else if code < 0x0001D74F then
+                        0x0001D622 <= code && code <= 0x0001D63B || 0x0001D656 <= code && code <= 0x0001D66F || 0x0001D68A <= code && code <= 0x0001D6A5 || 0x0001D6C2 <= code && code <= 0x0001D6DA || 0x0001D6DC <= code && code <= 0x0001D6E1 || 0x0001D6FC <= code && code <= 0x0001D714 || 0x0001D716 <= code && code <= 0x0001D71B || 0x0001D736 <= code && code <= 0x0001D74E
 
                     else
-                        0x024F <= code && code <= 0x0293 || 0x0295 <= code && code <= 0x02AF || 0x03FB <= code && code <= 0x03FC || 0x0560 <= code && code <= 0x0588 || 0x1D00 <= code && code <= 0x1D2B || 0x1D6B <= code && code <= 0x1D77 || 0x1D79 <= code && code <= 0x1D9A || 0x1E95 <= code && code <= 0x1E9D || code == 0x1E9F
-
-                else if code < 0x2C70 then
-                    code == 0x210A || 0x210E <= code && code <= 0x210F || code == 0x2113 || code == 0x212F || code == 0x2134 || code == 0x2139 || 0x213C <= code && code <= 0x213D || 0x2146 <= code && code <= 0x2149
-
-                else
-                    code == 0x2C71 || 0x2C73 <= code && code <= 0x2C74 || 0x2C76 <= code && code <= 0x2C7B || 0x2CE3 <= code && code <= 0x2CE4 || 0xA72F <= code && code <= 0xA731 || 0xA771 <= code && code <= 0xA778 || code == 0xA78E || 0xA793 <= code && code <= 0xA795 || code == 0xA7AF || modBy 2 code == 1 && 0xA7D3 <= code && code <= 0xA7D5
-
-            else if code < 0x0001D621 then
-                if code < 0x0001D4BA then
-                    code == 0xA7FA || 0xAB30 <= code && code <= 0xAB5A || 0xAB60 <= code && code <= 0xAB68 || 0x0001D41A <= code && code <= 0x0001D433 || 0x0001D44E <= code && code <= 0x0001D454 || 0x0001D456 <= code && code <= 0x0001D467 || 0x0001D482 <= code && code <= 0x0001D49B || 0x0001D4B6 <= code && code <= 0x0001D4B9
-
-                else
-                    code == 0x0001D4BB || 0x0001D4BD <= code && code <= 0x0001D4C3 || 0x0001D4C5 <= code && code <= 0x0001D4CF || 0x0001D4EA <= code && code <= 0x0001D503 || 0x0001D51E <= code && code <= 0x0001D537 || 0x0001D552 <= code && code <= 0x0001D56B || 0x0001D586 <= code && code <= 0x0001D59F || 0x0001D5BA <= code && code <= 0x0001D5D3 || 0x0001D5EE <= code && code <= 0x0001D607
-
-            else if code < 0x0001D74F then
-                0x0001D622 <= code && code <= 0x0001D63B || 0x0001D656 <= code && code <= 0x0001D66F || 0x0001D68A <= code && code <= 0x0001D6A5 || 0x0001D6C2 <= code && code <= 0x0001D6DA || 0x0001D6DC <= code && code <= 0x0001D6E1 || 0x0001D6FC <= code && code <= 0x0001D714 || 0x0001D716 <= code && code <= 0x0001D71B || 0x0001D736 <= code && code <= 0x0001D74E
-
-            else
-                0x0001D750 <= code && code <= 0x0001D755 || 0x0001D770 <= code && code <= 0x0001D788 || 0x0001D78A <= code && code <= 0x0001D78F || 0x0001D7AA <= code && code <= 0x0001D7C2 || 0x0001D7C4 <= code && code <= 0x0001D7C9 || code == 0x0001D7CB || 0x0001DF00 <= code && code <= 0x0001DF09 || 0x0001DF0B <= code && code <= 0x0001DF1E || 0x0001DF25 <= code && code <= 0x0001DF2A
+                        0x0001D750 <= code && code <= 0x0001D755 || 0x0001D770 <= code && code <= 0x0001D788 || 0x0001D78A <= code && code <= 0x0001D78F || 0x0001D7AA <= code && code <= 0x0001D7C2 || 0x0001D7C4 <= code && code <= 0x0001D7C9 || code == 0x0001D7CB || 0x0001DF00 <= code && code <= 0x0001DF09 || 0x0001DF0B <= code && code <= 0x0001DF1E || 0x0001DF25 <= code && code <= 0x0001DF2A
+                   )
            )
 
 
@@ -71,26 +75,29 @@ unicodeIsUpperFast c =
             Char.toCode c
     in
     charCodeIsUpper code
-        || (let
-                cString : String
-                cString =
-                    String.fromChar c
-            in
-            if String.toUpper cString == cString ++ "" && String.toLower cString /= cString ++ "" then
-                code <= 0x215F || 0x2170 <= code && code <= 0x24B5 || 0x24D0 <= code && code <= 0x000F0000
+        || (code
+                > 0x7F
+                && (let
+                        cString : String
+                        cString =
+                            String.fromChar c
+                    in
+                    if String.toUpper cString == cString ++ "" && String.toLower cString /= cString ++ "" then
+                        code <= 0x215F || 0x2170 <= code && code <= 0x24B5 || 0x24D0 <= code && code <= 0x000F0000
 
-            else if code < 0x0001D4CF then
-                if code < 0x213D then
-                    0x03D2 <= code && code <= 0x03D4 || code == 0x2102 || code == 0x2107 || 0x210B <= code && code <= 0x210D || 0x2110 <= code && code <= 0x2112 || code == 0x2115 || 0x2119 <= code && code <= 0x211D || code == 0x2124 || code == 0x2128 || 0x212A <= code && code <= 0x212D || 0x2130 <= code && code <= 0x2133
+                    else if code < 0x0001D4CF then
+                        if code < 0x213D then
+                            0x03D2 <= code && code <= 0x03D4 || code == 0x2102 || code == 0x2107 || 0x210B <= code && code <= 0x210D || 0x2110 <= code && code <= 0x2112 || code == 0x2115 || 0x2119 <= code && code <= 0x211D || code == 0x2124 || code == 0x2128 || 0x212A <= code && code <= 0x212D || 0x2130 <= code && code <= 0x2133
 
-                else
-                    0x213E <= code && code <= 0x213F || code == 0x2145 || 0x0001D400 <= code && code <= 0x0001D419 || 0x0001D434 <= code && code <= 0x0001D44D || 0x0001D468 <= code && code <= 0x0001D481 || code == 0x0001D49C || 0x0001D49E <= code && code <= 0x0001D49F || code == 0x0001D4A2 || 0x0001D4A5 <= code && code <= 0x0001D4A6 || 0x0001D4A9 <= code && code <= 0x0001D4AC || 0x0001D4AE <= code && code <= 0x0001D4B5
+                        else
+                            0x213E <= code && code <= 0x213F || code == 0x2145 || 0x0001D400 <= code && code <= 0x0001D419 || 0x0001D434 <= code && code <= 0x0001D44D || 0x0001D468 <= code && code <= 0x0001D481 || code == 0x0001D49C || 0x0001D49E <= code && code <= 0x0001D49F || code == 0x0001D4A2 || 0x0001D4A5 <= code && code <= 0x0001D4A6 || 0x0001D4A9 <= code && code <= 0x0001D4AC || 0x0001D4AE <= code && code <= 0x0001D4B5
 
-            else if code < 0x0001D59F then
-                0x0001D4D0 <= code && code <= 0x0001D4E9 || 0x0001D504 <= code && code <= 0x0001D505 || 0x0001D507 <= code && code <= 0x0001D50A || 0x0001D50D <= code && code <= 0x0001D514 || 0x0001D516 <= code && code <= 0x0001D51C || 0x0001D538 <= code && code <= 0x0001D539 || 0x0001D53B <= code && code <= 0x0001D53E || 0x0001D540 <= code && code <= 0x0001D544 || code == 0x0001D546 || 0x0001D54A <= code && code <= 0x0001D550 || 0x0001D56C <= code && code <= 0x0001D585
+                    else if code < 0x0001D59F then
+                        0x0001D4D0 <= code && code <= 0x0001D4E9 || 0x0001D504 <= code && code <= 0x0001D505 || 0x0001D507 <= code && code <= 0x0001D50A || 0x0001D50D <= code && code <= 0x0001D514 || 0x0001D516 <= code && code <= 0x0001D51C || 0x0001D538 <= code && code <= 0x0001D539 || 0x0001D53B <= code && code <= 0x0001D53E || 0x0001D540 <= code && code <= 0x0001D544 || code == 0x0001D546 || 0x0001D54A <= code && code <= 0x0001D550 || 0x0001D56C <= code && code <= 0x0001D585
 
-            else
-                0x0001D5A0 <= code && code <= 0x0001D5B9 || 0x0001D5D4 <= code && code <= 0x0001D5ED || 0x0001D608 <= code && code <= 0x0001D621 || 0x0001D63C <= code && code <= 0x0001D655 || 0x0001D670 <= code && code <= 0x0001D689 || 0x0001D6A8 <= code && code <= 0x0001D6C0 || 0x0001D6E2 <= code && code <= 0x0001D6FA || 0x0001D71C <= code && code <= 0x0001D734 || 0x0001D756 <= code && code <= 0x0001D76E || 0x0001D790 <= code && code <= 0x0001D7A8 || code == 0x0001D7CA
+                    else
+                        0x0001D5A0 <= code && code <= 0x0001D5B9 || 0x0001D5D4 <= code && code <= 0x0001D5ED || 0x0001D608 <= code && code <= 0x0001D621 || 0x0001D63C <= code && code <= 0x0001D655 || 0x0001D670 <= code && code <= 0x0001D689 || 0x0001D6A8 <= code && code <= 0x0001D6C0 || 0x0001D6E2 <= code && code <= 0x0001D6FA || 0x0001D71C <= code && code <= 0x0001D734 || 0x0001D756 <= code && code <= 0x0001D76E || 0x0001D790 <= code && code <= 0x0001D7A8 || code == 0x0001D7CA
+                   )
            )
 
 
@@ -120,12 +127,11 @@ unicodeIsAlphaNumOrUnderscoreFast c =
         || charCodeIsDigit code
         || -- (c == '_')
            (code == 95)
-        || -- if it's not obviously alphanum,
-           -- check if it's not some common end character and shortcut to False if possible
-           -- ((c /= ' ') && (c /= '\n'))
-           ((code /= 32) && (code /= 10))
+        || -- For ASCII chars (0x00-0x7F), the above checks already catch all valid
+           -- identifier characters. Only enter the unicode table for non-ASCII.
+           (code > 0x7F)
         && (if code < 0x0100 then
-                0x30 <= code && code <= 0x39 || 0x41 <= code && code <= 0x5A || 0x61 <= code && code <= 0x7A || code == 0xAA || 0xB2 <= code && code <= 0xB3 || code == 0xB5 || 0xB9 <= code && code <= 0xBA || 0xBC <= code && code <= 0xBE || 0xC0 <= code && code <= 0xD6 || 0xD8 <= code && code <= 0xF6 || 0xF8 <= code && code <= 0xFF
+                code == 0xAA || 0xB2 <= code && code <= 0xB3 || code == 0xB5 || 0xB9 <= code && code <= 0xBA || 0xBC <= code && code <= 0xBE || 0xC0 <= code && code <= 0xD6 || 0xD8 <= code && code <= 0xF6 || 0xF8 <= code && code <= 0xFF
 
             else if code < 0xAAB4 then
                 if code < 0x10FB then
