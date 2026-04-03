@@ -13,17 +13,17 @@ jobs:
     # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
     # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v6
 
     - name: Setup Node.js environment
-      uses: actions/setup-node@v3
+      uses: actions/setup-node@v6
       with:
         node-version: lts/*
 
     # Re-use node_modules between runs until yarn.lock changes.
     - name: Cache node_modules
       id: internal-cache-node_modules
-      uses: actions/cache@v3
+      uses: actions/cache@v5
       with:
         path: node_modules
         key: internal-node_modules-ubuntu-latest.x-${{ hashFiles('yarn.lock') }}
@@ -32,7 +32,7 @@ jobs:
     # review/elm.json changes. The Elm compiler saves downloaded Elm packages
     # to ~/.elm, and elm-tooling saves downloaded tool executables there.
     - name: Cache ~/.elm
-      uses: actions/cache@v3
+      uses: actions/cache@v5
       with:
         path: ~/.elm
         key: elm-${{ hashFiles('elm.json', 'elm-tooling.json', 'review/elm.json') }}
@@ -70,17 +70,17 @@ jobs:
     # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v6
 
       - name: Setup Node.js environment
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v6
         with:
           node-version: lts/*
 
       # Re-use node_modules between runs until yarn.lock changes.
       - name: Cache node_modules
         id: internal-cache-node_modules
-        uses: actions/cache@v3
+        uses: actions/cache@v5
         with:
           path: node_modules
           key: internal-node_modules-ubuntu-latest.x-${{ hashFiles('yarn.lock') }}
@@ -89,7 +89,7 @@ jobs:
       # review/elm.json changes. The Elm compiler saves downloaded Elm packages
       # to ~/.elm, and elm-tooling saves downloaded tool executables there.
       - name: Cache ~/.elm
-        uses: actions/cache@v3
+        uses: actions/cache@v5
         with:
           path: ~/.elm
           key: elm-${{ hashFiles('elm.json', 'elm-tooling.json', 'review/elm.json') }}
@@ -115,18 +115,7 @@ jobs:
       - name: elm-tooling install
         run: npx --no-install elm-tooling install
 
-      - name: Check if package needs to be published
-        uses: dillonkearns/elm-publish-action@v1
-        id: publish
+      - uses: dillonkearns/elm-publish-action@v2
         with:
-          dry-run: true
-          path-to-elm: ./node_modules/.bin/elm
-
-      # Runs a single command using the runners shell
-      - name: Elm Publish
-        if: steps.publish.outputs.is-publishable == 'true'
-        uses: dillonkearns/elm-publish-action@v1
-        with:
-          # Token provided by GitHub
           github-token: ${{ secrets.GITHUB_TOKEN }}
           path-to-elm: ./node_modules/.bin/elm
