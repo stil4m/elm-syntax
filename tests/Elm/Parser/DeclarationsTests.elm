@@ -67,6 +67,27 @@ foo = bar"""
                                 }
                             )
                         )
+        , test "function declaration with negation sign after =" <|
+            \() ->
+                "foo=-1"
+                    |> expectAst
+                        (Node { start = { row = 1, column = 1 }, end = { row = 1, column = 7 } }
+                            (FunctionDeclaration
+                                { documentation = Nothing
+                                , signature = Nothing
+                                , declaration =
+                                    Node { start = { row = 1, column = 1 }, end = { row = 1, column = 7 } }
+                                        { name = Node { start = { row = 1, column = 1 }, end = { row = 1, column = 4 } } "foo"
+                                        , arguments = []
+                                        , expression =
+                                            Node { start = { row = 1, column = 5 }, end = { row = 1, column = 7 } }
+                                                (Negation
+                                                    (Node { start = { row = 1, column = 6 }, end = { row = 1, column = 7 } } (Integer 1))
+                                                )
+                                        }
+                                }
+                            )
+                        )
         , test "function with case in let" <|
             \() ->
                 """inc x =

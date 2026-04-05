@@ -973,6 +973,12 @@ negationOperation =
                     "," ->
                         negationAfterMinus
 
+                    ">" ->
+                        negationAfterMinus
+
+                    "=" ->
+                        negationAfterMinus
+
                     -- TODO only for tests
                     "" ->
                         negationAfterMinus
