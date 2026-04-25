@@ -24,16 +24,28 @@ whitespaceAndCommentsOrEmpty =
         -- whitespace can't be followed by more whitespace
         --
         -- since comments are comparatively rare
-        -- but expensive to check for, we allow shortcutting
+        -- but expensive to check for, we allow shortcutting.
+        --
+        -- Check the first char alone (1-char slice) before paying for a 2-char
+        -- slice + multi-string compare. Almost every call lands in the `_`
+        -- branch and that path allocates one less substring.
         (ParserFast.offsetSourceAndThenOrSucceed
             (\offset source ->
-                case source |> String.slice offset (offset + 2) of
-                    "--" ->
-                        -- this will always succeed from here, so no need to fall back to Rope.empty
-                        Just fromSingleLineCommentNode
+                case String.slice offset (offset + 1) source of
+                    "-" ->
+                        if String.slice (offset + 1) (offset + 2) source == "-" then
+                            -- this will always succeed from here, so no need to fall back to Rope.empty
+                            Just fromSingleLineCommentNode
 
-                    "{-" ->
-                        Just fromMultilineCommentNodeOrEmptyOnProblem
+                        else
+                            Nothing
+
+                    "{" ->
+                        if String.slice (offset + 1) (offset + 2) source == "-" then
+                            Just fromMultilineCommentNodeOrEmptyOnProblem
+
+                        else
+                            Nothing
 
                     _ ->
                         Nothing
