@@ -1515,7 +1515,10 @@ infixNonAssociative leftPrecedence symbol =
                         temporaryErrPrecedenceTooHigh
                 )
                 (\info ->
-                    if info.leftPrecedence == leftPrecedence then
+                    -- `(a - b) == 0` compiles to `=== 0` (literal-Int path);
+                    -- `a == b` between two non-literal Ints compiles to
+                    -- `_Utils_eq(a, b)` which allocates a stack array per call.
+                    if info.leftPrecedence - leftPrecedence == 0 then
                         problemCannotMixNonAssociativeInfixOperators
 
                     else

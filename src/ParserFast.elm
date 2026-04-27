@@ -2494,12 +2494,16 @@ anyChar =
                 newOffset =
                     charOrEnd s.offset s.src
             in
-            if newOffset == -1 then
+            -- `newOffset + 1 == 0` iff `newOffset == -1`. We add then compare to
+            -- the literal 0 so the Elm compiler emits `=== 0` instead of
+            -- `_Utils_eq(newOffset, -1)` (which allocates a stack array).
+            -- See the `isSubCharWithoutLinebreak` docstring below.
+            if newOffset + 1 == 0 then
                 -- end of source
                 Bad False (ExpectingAnyChar s.row s.col)
 
-            else if newOffset == -2 then
-                -- newline
+            else if newOffset < 0 then
+                -- newline (-2; we already filtered -1 above)
                 Good '\n'
                     { src = s.src
                     , offset = s.offset + 1
@@ -2810,7 +2814,18 @@ whileWithoutLinebreakAnd2PartUtf16ToResultAndThen whileCharIsOkay consumedString
                         whileCharIsOkay
                         s0.offset
                         s0.src
+            in
+            -- Short-circuit when no chars were consumed: fires after every
+            -- expression not followed by an infix operator (very common).
+            -- Skips the empty-string slice + callback dispatch that would
+            -- otherwise allocate a Bad+ExpectingCustom record.
+            -- `(a - b) == 0` compiles to `=== 0`; plain `a == b` on Ints
+            -- compiles to `_Utils_eq` which allocates.
+            if s1Offset - s0.offset == 0 then
+                Bad False (ExpectingCharSatisfyingPredicate s0.row s0.col)
 
+            else
+            let
                 whileContent : String
                 whileContent =
                     String.slice s0.offset s1Offset s0.src
@@ -3039,7 +3054,14 @@ nestableMultiCommentMapWithRange rangeContentToRes ( openChar, openTail ) ( clos
                 charCode =
                     Char.toCode char
             in
-            charCode /= openCharCode && charCode /= closeCharCode && not (Char.Extra.isUtf16Surrogate char)
+            -- Subtract-and-compare-to-literal-0 forces the Elm compiler to
+            -- emit `!== 0` instead of `_Utils_eq(int, int)` (the latter
+            -- allocates a stack array per call). This predicate runs once per
+            -- char inside multi-line comment bodies — very hot in elm-package
+            -- corpora which have many doc comments.
+            (charCode - openCharCode /= 0)
+                && (charCode - closeCharCode /= 0)
+                && not (Char.Extra.isUtf16Surrogate char)
     in
     map2WithRange
         (\range afterOpen contentAfterAfterOpen ->
@@ -3142,7 +3164,9 @@ anyCharFollowedByWhileMap consumedStringToRes afterFirstIsOkay =
                 firstOffset =
                     charOrEnd s.offset s.src
             in
-            if firstOffset == -1 then
+            -- `firstOffset + 1 == 0` iff `firstOffset == -1`. See `isSubCharWithoutLinebreak`
+            -- docstring below for why this (vs `== -1`) matters.
+            if firstOffset + 1 == 0 then
                 -- end of source
                 Bad False (ExpectingAnyChar s.row s.col)
 
@@ -3150,7 +3174,8 @@ anyCharFollowedByWhileMap consumedStringToRes afterFirstIsOkay =
                 let
                     s1 : State
                     s1 =
-                        if firstOffset == -2 then
+                        if firstOffset < 0 then
+                            -- newline (-2; we already filtered -1 above)
                             skipWhileHelp afterFirstIsOkay (s.offset + 1) (s.row + 1) 1 s.src s.indent
 
                         else
