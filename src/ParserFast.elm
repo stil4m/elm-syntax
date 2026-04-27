@@ -2502,8 +2502,8 @@ anyChar =
                 -- end of source
                 Bad False (ExpectingAnyChar s.row s.col)
 
-            else if newOffset + 2 == 0 then
-                -- newline
+            else if newOffset < 0 then
+                -- newline (-2; we already filtered -1 above)
                 Good '\n'
                     { src = s.src
                     , offset = s.offset + 1
@@ -3174,7 +3174,8 @@ anyCharFollowedByWhileMap consumedStringToRes afterFirstIsOkay =
                 let
                     s1 : State
                     s1 =
-                        if firstOffset + 2 == 0 then
+                        if firstOffset < 0 then
+                            -- newline (-2; we already filtered -1 above)
                             skipWhileHelp afterFirstIsOkay (s.offset + 1) (s.row + 1) 1 s.src s.indent
 
                         else
